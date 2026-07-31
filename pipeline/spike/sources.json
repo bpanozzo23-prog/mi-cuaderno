@@ -1,0 +1,78 @@
+{
+  "_comment": "Static source registry for the Phase 0.5 spike. License text is quoted verbatim from the URL in licenseVerifiedAt, checked on the date given. 01-download.mjs adds download date, byte size and sha256 to raw/_manifest.json; 07-report.mjs merges both into DATA_SOURCES.md.",
+  "sources": [
+    {
+      "key": "kaikki-es",
+      "name": "Wiktionary Spanish entries (English Wiktionary) via kaikki.org / wiktextract",
+      "file": "kaikki-Spanish.jsonl.gz",
+      "url": "https://kaikki.org/dictionary/Spanish/kaikki.org-dictionary-Spanish.jsonl.gz",
+      "landingPage": "https://kaikki.org/dictionary/Spanish/",
+      "upstream": "English Wiktionary (enwiktionary) dump",
+      "license": "CC BY-SA 4.0 and GFDL (dual-licensed, inherited from English Wiktionary)",
+      "licenseQuote": "Text is available under the Creative Commons Attribution-ShareAlike License; additional terms may apply.",
+      "licenseVerifiedAt": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+      "attribution": "Attribute English Wiktionary contributors; share-alike applies to derived text. Extraction tooling: wiktextract (Tatu Ylonen), served by kaikki.org.",
+      "notes": "kaikki's Spanish index page marks this postprocessed JSONL 'DEPRECATED' but still serves it; it is the only kaikki file with Spanish headwords and ENGLISH glosses as required by brief section 4. The downloads/es/ path is the SPANISH Wiktionary (Spanish glosses) and is NOT interchangeable."
+    },
+    {
+      "key": "freq-es",
+      "name": "FrequencyWords Spanish frequency list (OpenSubtitles-derived)",
+      "file": "es_full.txt",
+      "url": "https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/es/es_full.txt",
+      "landingPage": "https://github.com/hermitdave/FrequencyWords",
+      "license": "CC BY-SA 4.0 (generated frequency lists; repository code is MIT)",
+      "licenseQuote": "Attribution-ShareAlike 4.0 International",
+      "licenseVerifiedAt": "https://github.com/hermitdave/FrequencyWords/blob/master/LICENSE",
+      "attribution": "hermitdave/FrequencyWords; derived from OpenSubtitles corpora.",
+      "notes": "TOKEN frequencies (surface forms), not lemma ranks. Brief section 12 requires form-to-lemma aggregation before these become lemma ranks."
+    },
+    {
+      "key": "jehle-verbs",
+      "name": "Fred Jehle's Spanish Verb Database (600+ fully conjugated verbs)",
+      "file": "jehle_verb_database.csv",
+      "url": "https://raw.githubusercontent.com/ghidinelli/fred-jehle-spanish-verbs/master/jehle_verb_database.csv",
+      "landingPage": "https://github.com/ghidinelli/fred-jehle-spanish-verbs",
+      "license": "CC BY-NC-SA 3.0",
+      "licenseQuote": "Creative Commons Attribution-NonCommercial-ShareAlike 3.0",
+      "licenseVerifiedAt": "https://github.com/ghidinelli/fred-jehle-spanish-verbs",
+      "attribution": "Fred Jehle, Indiana University-Purdue University Fort Wayne; compiled by ghidinelli.",
+      "notes": "NONCOMMERCIAL. Compatible with a free personal app, but this dataset must stay separated from the app-code license and must never be relicensed with it."
+    },
+    {
+      "key": "tatoeba-spa",
+      "name": "Tatoeba Spanish sentences (detailed export)",
+      "file": "spa_sentences_detailed.tsv.bz2",
+      "url": "https://downloads.tatoeba.org/exports/per_language/spa/spa_sentences_detailed.tsv.bz2",
+      "landingPage": "https://tatoeba.org/en/downloads",
+      "license": "CC BY 2.0 FR (default); some sentences also available under CC0 1.0",
+      "licenseQuote": "These files are released under CC BY 2.0 FR.",
+      "licenseVerifiedAt": "https://tatoeba.org/en/downloads",
+      "attribution": "Per-sentence: Tatoeba sentence ID, contributor username, license, and source URL https://tatoeba.org/en/sentences/show/<id>",
+      "notes": "Columns: id, lang, text, username, date_added, date_modified. Username may be blank for sentences with no current owner."
+    },
+    {
+      "key": "tatoeba-eng",
+      "name": "Tatoeba English sentences (detailed export)",
+      "file": "eng_sentences_detailed.tsv.bz2",
+      "url": "https://downloads.tatoeba.org/exports/per_language/eng/eng_sentences_detailed.tsv.bz2",
+      "landingPage": "https://tatoeba.org/en/downloads",
+      "license": "CC BY 2.0 FR (default); some sentences also available under CC0 1.0",
+      "licenseQuote": "These files are released under CC BY 2.0 FR.",
+      "licenseVerifiedAt": "https://tatoeba.org/en/downloads",
+      "attribution": "Per-sentence, as above.",
+      "notes": "Needed to resolve the English side of each es-en link."
+    },
+    {
+      "key": "tatoeba-links",
+      "name": "Tatoeba Spanish-English translation links",
+      "file": "spa-eng_links.tsv.bz2",
+      "url": "https://downloads.tatoeba.org/exports/per_language/spa/spa-eng_links.tsv.bz2",
+      "landingPage": "https://tatoeba.org/en/downloads",
+      "license": "CC BY 2.0 FR",
+      "licenseQuote": "These files are released under CC BY 2.0 FR.",
+      "licenseVerifiedAt": "https://tatoeba.org/en/downloads",
+      "attribution": "Tatoeba Project.",
+      "notes": "Columns: spanish_sentence_id, english_sentence_id."
+    }
+  ]
+}

@@ -1,0 +1,6338 @@
+[
+  {
+    "pos": "noun",
+    "head_templates": [
+      {
+        "name": "es-noun",
+        "args": {
+          "1": "f"
+        },
+        "expansion": "casa f (plural casas)"
+      }
+    ],
+    "forms": [
+      {
+        "form": "casas",
+        "tags": [
+          "plural"
+        ]
+      }
+    ],
+    "descendants": [
+      {
+        "lang": "Cebuano",
+        "lang_code": "ceb",
+        "word": "kasa",
+        "raw_tags": [
+          "borrowed"
+        ]
+      },
+      {
+        "lang": "English",
+        "lang_code": "en",
+        "word": "casa",
+        "raw_tags": [
+          "borrowed"
+        ]
+      },
+      {
+        "lang": "Papiamentu",
+        "lang_code": "pap",
+        "word": "kas",
+        "raw_tags": [
+          "borrowed"
+        ]
+      }
+    ],
+    "etymology_number": "1",
+    "etymology_text": "Inherited from Latin casa (“cottage”).",
+    "etymology_templates": [
+      {
+        "name": "yesno",
+        "args": {
+          "1": "",
+          "2": "i",
+          "3": "I"
+        },
+        "expansion": "I"
+      },
+      {
+        "name": "glossary",
+        "args": {
+          "1": "Inherited"
+        },
+        "expansion": "Inherited"
+      },
+      {
+        "name": "inh",
+        "args": {
+          "1": "es",
+          "2": "la",
+          "3": "casa",
+          "4": "",
+          "5": "cottage",
+          "lit": "",
+          "pos": "",
+          "tr": "",
+          "ts": "",
+          "id": "",
+          "sc": "",
+          "g": "",
+          "g2": "",
+          "g3": "",
+          "nocat": "",
+          "sort": ""
+        },
+        "expansion": "Latin casa (“cottage”)"
+      },
+      {
+        "name": "inh+",
+        "args": {
+          "1": "es",
+          "2": "la",
+          "3": "casa",
+          "4": "",
+          "5": "cottage"
+        },
+        "expansion": "Inherited from Latin casa (“cottage”)"
+      },
+      {
+        "name": "wp",
+        "args": {
+          "1": "es:"
+        },
+        "expansion": ""
+      }
+    ],
+    "word": "casa",
+    "lang": "Spanish",
+    "lang_code": "es",
+    "sounds": [
+      {
+        "ipa": "/ˈkasa/"
+      },
+      {
+        "ipa": "[ˈka.sa]"
+      },
+      {
+        "rhymes": "-asa"
+      },
+      {
+        "homophone": "(Latin America) caza"
+      }
+    ],
+    "hyphenation": [
+      "ca‧sa"
+    ],
+    "hyphenations": [
+      {
+        "parts": [
+          "ca‧sa"
+        ]
+      }
+    ],
+    "senses": [
+      {
+        "links": [
+          [
+            "house",
+            "house"
+          ]
+        ],
+        "glosses": [
+          "house"
+        ],
+        "tags": [
+          "feminine"
+        ],
+        "id": "en-casa-es-noun-1uIShmIa",
+        "derived": [
+          {
+            "tags": [
+              "diminutive"
+            ],
+            "word": "casilla"
+          },
+          {
+            "tags": [
+              "diminutive"
+            ],
+            "word": "casita"
+          },
+          {
+            "tags": [
+              "augmentative"
+            ],
+            "word": "caserón"
+          },
+          {
+            "tags": [
+              "augmentative"
+            ],
+            "word": "casona"
+          },
+          {
+            "tags": [
+              "augmentative"
+            ],
+            "word": "casota"
+          },
+          {
+            "tags": [
+              "pejorative"
+            ],
+            "word": "casucha"
+          },
+          {
+            "tags": [
+              "adverb"
+            ],
+            "sense": "others",
+            "english": "home, homewards",
+            "translation": "home, homewards",
+            "word": "a casa"
+          },
+          {
+            "sense": "others",
+            "word": "alegría de la casa"
+          },
+          {
+            "sense": "others",
+            "word": "ama de casa"
+          },
+          {
+            "sense": "others",
+            "word": "amo de casa"
+          },
+          {
+            "sense": "others",
+            "word": "armar una casa"
+          },
+          {
+            "sense": "others",
+            "word": "cabeza de casa"
+          },
+          {
+            "sense": "others",
+            "word": "cabo de casa"
+          },
+          {
+            "sense": "others",
+            "word": "caérsele la casa encima"
+          },
+          {
+            "sense": "others",
+            "word": "Casa Blanca"
+          },
+          {
+            "sense": "others",
+            "word": "casa consistorial"
+          },
+          {
+            "sense": "others",
+            "word": "casa cuna"
+          },
+          {
+            "sense": "others",
+            "word": "casa cural"
+          },
+          {
+            "sense": "others",
+            "word": "casa de acogida"
+          },
+          {
+            "sense": "others",
+            "word": "casa de aldea"
+          },
+          {
+            "sense": "others",
+            "word": "casa de altos"
+          },
+          {
+            "sense": "others",
+            "word": "casa de aposento"
+          },
+          {
+            "sense": "others",
+            "word": "casa de balcón"
+          },
+          {
+            "sense": "others",
+            "word": "casa de banca"
+          },
+          {
+            "sense": "others",
+            "word": "casa de baños"
+          },
+          {
+            "sense": "others",
+            "word": "casa de beneficencia"
+          },
+          {
+            "sense": "others",
+            "word": "casa de bolsa"
+          },
+          {
+            "sense": "others",
+            "word": "casa de calderas"
+          },
+          {
+            "sense": "others",
+            "word": "casa de camas"
+          },
+          {
+            "sense": "others",
+            "word": "casa de cambio"
+          },
+          {
+            "sense": "others",
+            "word": "casa de campo"
+          },
+          {
+            "sense": "others",
+            "word": "casa de citas"
+          },
+          {
+            "sense": "others",
+            "word": "casa de coima"
+          },
+          {
+            "sense": "others",
+            "word": "casa de comidas"
+          },
+          {
+            "sense": "others",
+            "word": "casa de conversación"
+          },
+          {
+            "sense": "others",
+            "word": "casa de correos"
+          },
+          {
+            "sense": "others",
+            "word": "casa de devoción"
+          },
+          {
+            "sense": "others",
+            "word": "casa de Dios"
+          },
+          {
+            "sense": "others",
+            "word": "casa de dormir"
+          },
+          {
+            "sense": "others",
+            "word": "casa de empeño"
+          },
+          {
+            "sense": "others",
+            "word": "casa de estado"
+          },
+          {
+            "sense": "others",
+            "word": "casa de expósitos"
+          },
+          {
+            "sense": "others",
+            "word": "casa de fieras"
+          },
+          {
+            "sense": "others",
+            "word": "casa de huéspedes"
+          },
+          {
+            "sense": "others",
+            "word": "casa de juego"
+          },
+          {
+            "sense": "others",
+            "word": "casa de lenocinio"
+          },
+          {
+            "sense": "others",
+            "word": "casa de locos"
+          },
+          {
+            "sense": "others",
+            "word": "casa de malicia"
+          },
+          {
+            "sense": "others",
+            "word": "casa de mancebía"
+          },
+          {
+            "sense": "others",
+            "word": "casa de moneda"
+          },
+          {
+            "sense": "others",
+            "word": "casa de muñecas"
+          },
+          {
+            "sense": "others",
+            "word": "casa de oración"
+          },
+          {
+            "sense": "others",
+            "word": "casa de orates"
+          },
+          {
+            "sense": "others",
+            "word": "casa de pailas"
+          },
+          {
+            "sense": "others",
+            "word": "casa de placer"
+          },
+          {
+            "sense": "others",
+            "word": "casa de postas"
+          },
+          {
+            "sense": "others",
+            "word": "casa de préstamos"
+          },
+          {
+            "sense": "others",
+            "word": "casa de prostitución"
+          },
+          {
+            "sense": "others",
+            "word": "casa de pupilos"
+          },
+          {
+            "sense": "others",
+            "word": "casa de putas"
+          },
+          {
+            "sense": "others",
+            "word": "casa de recreo"
+          },
+          {
+            "sense": "others",
+            "word": "casa de socorro"
+          },
+          {
+            "sense": "others",
+            "word": "casa de tía"
+          },
+          {
+            "sense": "others",
+            "word": "casa de tolerancia"
+          },
+          {
+            "sense": "others",
+            "word": "casa de trato"
+          },
+          {
+            "sense": "others",
+            "word": "casa de vacas"
+          },
+          {
+            "sense": "others",
+            "word": "casa de vecindad"
+          },
+          {
+            "sense": "others",
+            "word": "casa del rey"
+          },
+          {
+            "sense": "others",
+            "word": "casa del Señor"
+          },
+          {
+            "sense": "others",
+            "word": "casa destroyer"
+          },
+          {
+            "sense": "others",
+            "word": "casa discográfica"
+          },
+          {
+            "sense": "others",
+            "word": "casa embrujada"
+          },
+          {
+            "sense": "others",
+            "word": "casa encantada"
+          },
+          {
+            "sense": "others",
+            "word": "casa grande"
+          },
+          {
+            "sense": "others",
+            "word": "casa mía, casa mía, por pequeña que tú seas, me pareces una abadía"
+          },
+          {
+            "sense": "others",
+            "word": "casa móvil"
+          },
+          {
+            "sense": "others",
+            "word": "casa parroquial"
+          },
+          {
+            "sense": "others",
+            "word": "casa paterna"
+          },
+          {
+            "sense": "others",
+            "word": "casa real"
+          },
+          {
+            "sense": "others",
+            "word": "casa rodante"
+          },
+          {
+            "sense": "others",
+            "word": "Casa Rosada"
+          },
+          {
+            "sense": "others",
+            "word": "casa rural"
+          },
+          {
+            "sense": "others",
+            "word": "casa solar"
+          },
+          {
+            "sense": "others",
+            "word": "casa solariega"
+          },
+          {
+            "sense": "others",
+            "word": "casamiento en casa"
+          },
+          {
+            "sense": "others",
+            "word": "casar"
+          },
+          {
+            "sense": "others",
+            "word": "casco de casa"
+          },
+          {
+            "sense": "others",
+            "word": "casería"
+          },
+          {
+            "sense": "others",
+            "word": "caserío"
+          },
+          {
+            "sense": "others",
+            "word": "casero"
+          },
+          {
+            "sense": "others",
+            "word": "caseta"
+          },
+          {
+            "sense": "others",
+            "word": "casino"
+          },
+          {
+            "sense": "others",
+            "word": "como una casa"
+          },
+          {
+            "sense": "others",
+            "word": "criada de casa"
+          },
+          {
+            "sense": "others",
+            "word": "cuerpo de casa"
+          },
+          {
+            "sense": "others",
+            "word": "de entre casa"
+          },
+          {
+            "sense": "others",
+            "word": "de entrecasa"
+          },
+          {
+            "sense": "others",
+            "word": "de la casa"
+          },
+          {
+            "sense": "others",
+            "word": "de su casa"
+          },
+          {
+            "sense": "others",
+            "word": "echar la casa por la ventana"
+          },
+          {
+            "sense": "others",
+            "word": "tirar la casa por la ventana"
+          },
+          {
+            "sense": "others",
+            "word": "el casado casa quiere"
+          },
+          {
+            "sense": "others",
+            "word": "empezar la casa por el tejado"
+          },
+          {
+            "tags": [
+              "adverb"
+            ],
+            "sense": "others",
+            "english": "at home, home",
+            "translation": "at home, home",
+            "word": "en casa"
+          },
+          {
+            "sense": "others",
+            "word": "en casa de herrero, cuchara de palo"
+          },
+          {
+            "sense": "others",
+            "word": "estar de casa"
+          },
+          {
+            "sense": "others",
+            "word": "guardar la casa"
+          },
+          {
+            "sense": "others",
+            "word": "invita la casa"
+          },
+          {
+            "sense": "others",
+            "word": "marca de casa"
+          },
+          {
+            "sense": "others",
+            "word": "mi casa es su casa"
+          },
+          {
+            "sense": "others",
+            "word": "mi casa es tu casa"
+          },
+          {
+            "sense": "others",
+            "word": "mi casa y mi hogar cien doblas val"
+          },
+          {
+            "sense": "others",
+            "word": "para andar por casa"
+          },
+          {
+            "sense": "others",
+            "word": "por cuenta de la casa"
+          },
+          {
+            "sense": "others",
+            "english": "on the house",
+            "translation": "on the house",
+            "word": "por la casa"
+          },
+          {
+            "sense": "others",
+            "word": "reina de la casa"
+          },
+          {
+            "sense": "others",
+            "word": "vino de la casa"
+          },
+          {
+            "sense": "others",
+            "word": "zapatilla de andar por casa"
+          },
+          {
+            "sense": "others",
+            "word": "zapatilla de estar por casa"
+          }
+        ],
+        "categories": [
+          {
+            "name": "Buildings",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "orig": "es:Buildings",
+            "langcode": "es",
+            "_dis": "47 48 5"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "pos": "verb",
+    "head_templates": [
+      {
+        "name": "head",
+        "args": {
+          "1": "es",
+          "2": "verb form"
+        },
+        "expansion": "casa"
+      }
+    ],
+    "etymology_number": "2",
+    "etymology_text": "See the etymology of the corresponding lemma form.",
+    "etymology_templates": [
+      {
+        "name": "ety",
+        "args": {
+          "1": "es",
+          "nl": "1"
+        },
+        "expansion": "See the etymology of the corresponding lemma form."
+      }
+    ],
+    "word": "casa",
+    "lang": "Spanish",
+    "lang_code": "es",
+    "sounds": [
+      {
+        "ipa": "/ˈkasa/"
+      },
+      {
+        "ipa": "[ˈka.sa]"
+      },
+      {
+        "rhymes": "-asa"
+      },
+      {
+        "homophone": "(Latin America) caza"
+      }
+    ],
+    "hyphenation": [
+      "ca‧sa"
+    ],
+    "hyphenations": [
+      {
+        "parts": [
+          "ca‧sa"
+        ]
+      }
+    ],
+    "related": [
+      {
+        "word": "hogar",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "lar",
+        "_dis1": "0 0"
+      }
+    ],
+    "senses": [
+      {
+        "links": [
+          [
+            "casar",
+            "casar#Spanish"
+          ]
+        ],
+        "form_of": [
+          {
+            "word": "casar"
+          }
+        ],
+        "glosses": [
+          "inflection of casar:",
+          "third-person singular present indicative"
+        ],
+        "tags": [
+          "form-of",
+          "indicative",
+          "present",
+          "singular",
+          "third-person"
+        ],
+        "id": "en-casa-es-verb-ThMwJ3ul",
+        "categories": [
+          {
+            "name": "Pages with etymon",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "15 3 3 10 6 2 5 21 1 4 24 4"
+          },
+          {
+            "name": "Spanish entries with etymon",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "8 81 11"
+          },
+          {
+            "name": "Spanish entries with incorrect language header",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "9 74 17"
+          },
+          {
+            "name": "Buildings",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "orig": "es:Buildings",
+            "langcode": "es",
+            "_dis": "47 48 5"
+          }
+        ]
+      },
+      {
+        "links": [
+          [
+            "casar",
+            "casar#Spanish"
+          ]
+        ],
+        "form_of": [
+          {
+            "word": "casar"
+          }
+        ],
+        "glosses": [
+          "inflection of casar:",
+          "second-person singular imperative"
+        ],
+        "tags": [
+          "form-of",
+          "imperative",
+          "second-person",
+          "singular"
+        ],
+        "id": "en-casa-es-verb-wyETn5lQ"
+      }
+    ]
+  },
+  {
+    "pos": "noun",
+    "head_templates": [
+      {
+        "name": "es-noun",
+        "args": {
+          "1": "m"
+        },
+        "expansion": "vino m (plural vinos)"
+      }
+    ],
+    "forms": [
+      {
+        "form": "vinos",
+        "tags": [
+          "plural"
+        ]
+      }
+    ],
+    "descendants": [
+      {
+        "lang": "Classical Nahuatl",
+        "lang_code": "nci",
+        "word": "vino",
+        "raw_tags": [
+          "borrowed"
+        ]
+      },
+      {
+        "lang": "Classical Nahuatl",
+        "lang_code": "nci",
+        "word": "uino",
+        "raw_tags": [
+          "borrowed"
+        ]
+      },
+      {
+        "lang": "Classical Nahuatl",
+        "lang_code": "nci",
+        "word": "vinoh",
+        "raw_tags": [
+          "borrowed"
+        ]
+      },
+      {
+        "lang": "English",
+        "lang_code": "en",
+        "word": "vino",
+        "raw_tags": [
+          "borrowed"
+        ]
+      },
+      {
+        "lang": "Hiligaynon",
+        "lang_code": "hil",
+        "word": "bino",
+        "raw_tags": [
+          "borrowed"
+        ]
+      },
+      {
+        "lang": "Tagalog",
+        "lang_code": "tl",
+        "word": "bino",
+        "raw_tags": [
+          "borrowed"
+        ]
+      }
+    ],
+    "etymology_number": "1",
+    "etymology_text": "Etymology tree\nProto-Indo-European *weh₁y-?\nProto-Indo-European *-ō\nProto-Indo-European *wéyh₁ōder.\nProto-Italic *wīnom\nLatin vīnum\nOld Spanish vino\nSpanish vino\nInherited from Old Spanish vino, bino (“wine”), from Latin vīnum. Cognate with Catalan vi, English wine, French vin, Italian vino, Portuguese vinho, and Romanian vin.",
+    "etymology_templates": [
+      {
+        "name": "wp",
+        "args": {
+          "1": "es:"
+        },
+        "expansion": ""
+      },
+      {
+        "name": "etymon",
+        "args": {
+          "1": "es",
+          "2": ":inh",
+          "3": "osp:vino",
+          "tree": "1"
+        },
+        "expansion": "Etymology tree\nProto-Indo-European *weh₁y-?\nProto-Indo-European *-ō\nProto-Indo-European *wéyh₁ōder.\nProto-Italic *wīnom\nLatin vīnum\nOld Spanish vino\nSpanish vino\n[Appendix:Glossary#derived_terms|Derived]] from\", \"terms\" : [ { \"children\" : [ { \"terms\" : [ { \"is_uncertain\" : true, \"children\" : [ ], \"lang_name\" : \"Proto-Indo-European\", \"term\" : \"*weh₁y-\", \"status\" : \"ok\", \"lang\" : \"ine-pro\" }, { \"children\" : [ ], \"lang_name\" : \"Proto-Indo-European\", \"term\" : \"*-ō\", \"status\" : \"ok\", \"lang\" : \"ine-pro\" } ], \"keyword_label\" : \"From\", \"is_group\" : true, \"keyword\" : \"affix\" } ], \"lang_name\" : \"Proto-Indo-European\", \"term\" : \"*wéyh₁ō\", \"status\" : \"ok\", \"lang\" : \"ine-pro\" } ], \"keyword\" : \"derived\" } ], \"lang_name\" : \"Proto-Italic\", \"term\" : \"*wīnom\", \"status\" : \"ok\", \"lang\" : \"itc-pro\" } ], \"keyword_label\" : \"Inherited from\", \"keyword\" : \"inherited\" } ], \"lang_name\" : \"Latin\", \"term\" : \"vīnum\", \"status\" : \"ok\", \"lang\" : \"la\" } ], \"keyword_label\" : \"Inherited from\", \"keyword\" : \"inherited\" } ], \"lang_name\" : \"Old Spanish\", \"term\" : \"vino\", \"status\" : \"ok\", \"lang\" : \"osp\" } ], \"keyword_label\" : \"Inherited from\", \"keyword\" : \"inherited\" } ], \"lang_name\" : \"Spanish\", \"term\" : \"vino\", \"status\" : \"ok\", \"lang\" : \"es\" }\" data-lang=\"es\" data-title=\"vino\">"
+      },
+      {
+        "name": "yesno",
+        "args": {
+          "1": "",
+          "2": "i",
+          "3": "I"
+        },
+        "expansion": "I"
+      },
+      {
+        "name": "glossary",
+        "args": {
+          "1": "Inherited"
+        },
+        "expansion": "Inherited"
+      },
+      {
+        "name": "inh",
+        "args": {
+          "1": "es",
+          "2": "osp",
+          "3": "vino,bino",
+          "4": "",
+          "5": "wine",
+          "lit": "",
+          "pos": "",
+          "tr": "",
+          "ts": "",
+          "id": "",
+          "sc": "",
+          "g": "",
+          "g2": "",
+          "g3": "",
+          "nocat": "",
+          "sort": ""
+        },
+        "expansion": "Old Spanish vino, bino (“wine”)"
+      },
+      {
+        "name": "inh+",
+        "args": {
+          "1": "es",
+          "2": "osp",
+          "3": "vino,bino",
+          "4": "",
+          "5": "wine"
+        },
+        "expansion": "Inherited from Old Spanish vino, bino (“wine”)"
+      },
+      {
+        "name": "inh",
+        "args": {
+          "1": "es",
+          "2": "la",
+          "3": "vīnum"
+        },
+        "expansion": "Latin vīnum"
+      },
+      {
+        "name": "cog",
+        "args": {
+          "1": "ca",
+          "2": "vi"
+        },
+        "expansion": "Catalan vi"
+      },
+      {
+        "name": "cog",
+        "args": {
+          "1": "en",
+          "2": "wine"
+        },
+        "expansion": "English wine"
+      },
+      {
+        "name": "cog",
+        "args": {
+          "1": "fr",
+          "2": "vin"
+        },
+        "expansion": "French vin"
+      },
+      {
+        "name": "cog",
+        "args": {
+          "1": "it",
+          "2": "vino"
+        },
+        "expansion": "Italian vino"
+      },
+      {
+        "name": "cog",
+        "args": {
+          "1": "pt",
+          "2": "vinho"
+        },
+        "expansion": "Portuguese vinho"
+      },
+      {
+        "name": ",",
+        "args": {},
+        "expansion": ","
+      },
+      {
+        "name": "cog",
+        "args": {
+          "1": "ro",
+          "2": "vin"
+        },
+        "expansion": "Romanian vin"
+      }
+    ],
+    "word": "vino",
+    "lang": "Spanish",
+    "lang_code": "es",
+    "sounds": [
+      {
+        "ipa": "/ˈbino/"
+      },
+      {
+        "ipa": "[ˈbi.no]"
+      },
+      {
+        "rhymes": "-ino"
+      },
+      {
+        "homophone": "bino"
+      }
+    ],
+    "hyphenation": [
+      "vi‧no"
+    ],
+    "hyphenations": [
+      {
+        "parts": [
+          "vi‧no"
+        ]
+      }
+    ],
+    "senses": [
+      {
+        "links": [
+          [
+            "wine",
+            "wine#English:_Q282"
+          ],
+          [
+            "alcoholic",
+            "alcoholic"
+          ],
+          [
+            "beverage",
+            "beverage"
+          ],
+          [
+            "made",
+            "made"
+          ],
+          [
+            "fermenting",
+            "fermenting"
+          ],
+          [
+            "grape juice",
+            "grape juice"
+          ],
+          [
+            "ABV",
+            "ABV"
+          ],
+          [
+            "ranging",
+            "ranging"
+          ]
+        ],
+        "glosses": [
+          "wine (an alcoholic beverage made by fermenting grape juice, with an ABV ranging from 5.5–16%)"
+        ],
+        "tags": [
+          "masculine"
+        ],
+        "id": "en-vino-es-noun-tY6viEKP",
+        "derived": [
+          {
+            "word": "carta de vinos"
+          },
+          {
+            "word": "catavino"
+          },
+          {
+            "word": "catavinos"
+          },
+          {
+            "word": "envinar"
+          },
+          {
+            "word": "espíritu de vino"
+          },
+          {
+            "word": "espolada de vino"
+          },
+          {
+            "word": "heces de vino"
+          },
+          {
+            "word": "limonada de vino"
+          },
+          {
+            "word": "llamar al pan, pan, y al vino, vino"
+          },
+          {
+            "word": "ni harto de vino"
+          },
+          {
+            "word": "ni harto vino"
+          },
+          {
+            "word": "pan o vino"
+          },
+          {
+            "word": "sopa de vino"
+          },
+          {
+            "word": "vinazo"
+          },
+          {
+            "word": "vino blanco"
+          },
+          {
+            "word": "vino caliente"
+          },
+          {
+            "word": "vino de coco"
+          },
+          {
+            "word": "vino de garnacha"
+          },
+          {
+            "word": "vino de garrote"
+          },
+          {
+            "word": "vino de la casa"
+          },
+          {
+            "word": "vino de lágrima"
+          },
+          {
+            "word": "vino de mesa"
+          },
+          {
+            "word": "vino de nipa"
+          },
+          {
+            "word": "vino de pasto"
+          },
+          {
+            "word": "vino de postre"
+          },
+          {
+            "word": "vino de quema"
+          },
+          {
+            "word": "vino de solera"
+          },
+          {
+            "word": "vino de yema"
+          },
+          {
+            "word": "vino espumoso"
+          },
+          {
+            "word": "vino rosado"
+          },
+          {
+            "word": "vino tinto"
+          }
+        ],
+        "related": [
+          {
+            "word": "vendimia"
+          },
+          {
+            "word": "vinagre"
+          },
+          {
+            "word": "vinícola"
+          },
+          {
+            "word": "vinicultor"
+          },
+          {
+            "word": "vinicultura"
+          },
+          {
+            "word": "vinolento"
+          },
+          {
+            "word": "vinoso"
+          },
+          {
+            "word": "viña"
+          },
+          {
+            "word": "viñedo"
+          }
+        ],
+        "categories": [
+          {
+            "name": "Pages using etymon with no ID",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "50 50"
+          },
+          {
+            "name": "Pages with etymology trees",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb"
+          },
+          {
+            "name": "Spanish entries referencing pages with etymology sections missing etymons",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb"
+          },
+          {
+            "name": "Spanish entries with etymology trees",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb"
+          },
+          {
+            "name": "Spanish entries with etymon",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "64 36"
+          },
+          {
+            "name": "Spanish entries with incorrect language header",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "75 25"
+          },
+          {
+            "name": "Alcoholic beverages",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "orig": "es:Alcoholic beverages",
+            "langcode": "es",
+            "_dis": "97 3"
+          },
+          {
+            "name": "Wines",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "orig": "es:Wines",
+            "langcode": "es",
+            "_dis": "73 27"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "pos": "verb",
+    "head_templates": [
+      {
+        "name": "head",
+        "args": {
+          "1": "es",
+          "2": "verb form"
+        },
+        "expansion": "vino"
+      }
+    ],
+    "etymology_number": "2",
+    "etymology_text": "See the etymology of the corresponding lemma form.",
+    "etymology_templates": [
+      {
+        "name": "ety",
+        "args": {
+          "1": "es",
+          "nl": "1"
+        },
+        "expansion": "See the etymology of the corresponding lemma form."
+      }
+    ],
+    "word": "vino",
+    "lang": "Spanish",
+    "lang_code": "es",
+    "sounds": [
+      {
+        "ipa": "/ˈbino/"
+      },
+      {
+        "ipa": "[ˈbi.no]"
+      },
+      {
+        "rhymes": "-ino"
+      },
+      {
+        "homophone": "bino"
+      }
+    ],
+    "hyphenation": [
+      "vi‧no"
+    ],
+    "hyphenations": [
+      {
+        "parts": [
+          "vi‧no"
+        ]
+      }
+    ],
+    "senses": [
+      {
+        "links": [
+          [
+            "venir",
+            "venir#Spanish"
+          ]
+        ],
+        "glosses": [
+          "third-person singular preterite indicative of venir"
+        ],
+        "tags": [
+          "form-of",
+          "indicative",
+          "preterite",
+          "singular",
+          "third-person"
+        ],
+        "form_of": [
+          {
+            "word": "venir"
+          }
+        ],
+        "id": "en-vino-es-verb-7jLGMbE9"
+      }
+    ]
+  },
+  {
+    "pos": "noun",
+    "head_templates": [
+      {
+        "name": "es-noun",
+        "args": {
+          "1": "m"
+        },
+        "expansion": "año m (plural años)"
+      }
+    ],
+    "forms": [
+      {
+        "form": "años",
+        "tags": [
+          "plural"
+        ]
+      }
+    ],
+    "etymology_text": "Etymology tree\nProto-Italic *atnos?\nLatin annus\nOld Spanish anno\nSpanish año\nInherited from Old Spanish anno, from Latin annus (“year”).",
+    "etymology_templates": [
+      {
+        "name": "etymon",
+        "args": {
+          "1": "es",
+          "2": ":inh",
+          "3": "osp:anno",
+          "tree": "1"
+        },
+        "expansion": "Etymology tree\nProto-Italic *atnos?\nLatin annus\nOld Spanish anno\nSpanish año\n[Appendix:Glossary#inherited|Inherited]] from\", \"keyword\" : \"inherited\" } ], \"lang_name\" : \"Latin\", \"term\" : \"annus\", \"status\" : \"ok\", \"lang\" : \"la\" } ], \"keyword_label\" : \"Inherited from\", \"keyword\" : \"inherited\" } ], \"lang_name\" : \"Old Spanish\", \"term\" : \"anno\", \"status\" : \"ok\", \"lang\" : \"osp\" } ], \"keyword_label\" : \"Inherited from\", \"keyword\" : \"inherited\" } ], \"lang_name\" : \"Spanish\", \"term\" : \"año\", \"status\" : \"ok\", \"lang\" : \"es\" }\" data-lang=\"es\" data-title=\"año\">"
+      },
+      {
+        "name": "yesno",
+        "args": {
+          "1": "",
+          "2": "i",
+          "3": "I"
+        },
+        "expansion": "I"
+      },
+      {
+        "name": "glossary",
+        "args": {
+          "1": "Inherited"
+        },
+        "expansion": "Inherited"
+      },
+      {
+        "name": "inh",
+        "args": {
+          "1": "es",
+          "2": "osp",
+          "3": "anno",
+          "4": "",
+          "5": "",
+          "lit": "",
+          "pos": "",
+          "tr": "",
+          "ts": "",
+          "id": "",
+          "sc": "",
+          "g": "",
+          "g2": "",
+          "g3": "",
+          "nocat": "",
+          "sort": ""
+        },
+        "expansion": "Old Spanish anno"
+      },
+      {
+        "name": "inh+",
+        "args": {
+          "1": "es",
+          "2": "osp",
+          "3": "anno"
+        },
+        "expansion": "Inherited from Old Spanish anno"
+      },
+      {
+        "name": "inh",
+        "args": {
+          "1": "es",
+          "2": "la",
+          "3": "annus",
+          "4": "",
+          "5": "year"
+        },
+        "expansion": "Latin annus (“year”)"
+      }
+    ],
+    "sounds": [
+      {
+        "ipa": "/ˈaɲo/"
+      },
+      {
+        "ipa": "[ˈa.ɲo]"
+      },
+      {
+        "rhymes": "-aɲo"
+      }
+    ],
+    "hyphenation": [
+      "a‧ño"
+    ],
+    "hyphenations": [
+      {
+        "parts": [
+          "a‧ño"
+        ]
+      }
+    ],
+    "word": "año",
+    "lang": "Spanish",
+    "lang_code": "es",
+    "derived": [
+      {
+        "word": "añito",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "año académico",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "año base",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "año bisiesto",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "año de nieves, año de bienes",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "año del Señor",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "año escolar",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "año luz",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "año natural",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "año nuevo",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "Año Nuevo Island",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "año sabático",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "año santo",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "cuántos años tienes",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "cumpleaños",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "del año de la nana",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "del año de la pera",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "del año de la polca",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "del año de maricastaña",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "del año del caldo",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "el año catapum",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "entrado en años",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "Guerra de los Siete Años",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "Guerra de los Treinta Años",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "metido en años",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "para el año",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "por los años de",
+        "_dis1": "0 0"
+      }
+    ],
+    "related": [
+      {
+        "word": "anal",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "anales",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "aniversario",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "antaño",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "anual",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "anuario",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "anuo",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "añal",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "añejo",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "añojo",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "añoso",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "bienio",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "hogaño",
+        "_dis1": "0 0"
+      },
+      {
+        "word": "perenne",
+        "_dis1": "0 0"
+      }
+    ],
+    "senses": [
+      {
+        "examples": [
+          {
+            "tags": [
+              "collocation"
+            ],
+            "text": "el año pasado",
+            "bold_text_offsets": [
+              [
+                3,
+                6
+              ]
+            ],
+            "translation": "last year",
+            "english": "last year",
+            "bold_translation_offsets": [
+              [
+                5,
+                9
+              ]
+            ],
+            "type": "example"
+          },
+          {
+            "tags": [
+              "collocation"
+            ],
+            "text": "el año que viene",
+            "bold_text_offsets": [
+              [
+                3,
+                6
+              ]
+            ],
+            "translation": "next year",
+            "english": "next year",
+            "bold_translation_offsets": [
+              [
+                5,
+                9
+              ]
+            ],
+            "type": "example"
+          },
+          {
+            "tags": [
+              "collocation"
+            ],
+            "text": "el año vigente",
+            "bold_text_offsets": [
+              [
+                3,
+                6
+              ]
+            ],
+            "translation": "the current year",
+            "english": "the current year",
+            "bold_translation_offsets": [
+              [
+                12,
+                16
+              ]
+            ],
+            "type": "example"
+          },
+          {
+            "text": "va para un año que no te veo",
+            "bold_text_offsets": [
+              [
+                11,
+                14
+              ]
+            ],
+            "translation": "it's been a year since I saw you",
+            "english": "it's been a year since I saw you",
+            "bold_translation_offsets": [
+              [
+                12,
+                16
+              ]
+            ],
+            "type": "example"
+          },
+          {
+            "text": "con los años me cuesta cada vez más estar feliz",
+            "bold_text_offsets": [
+              [
+                8,
+                12
+              ]
+            ],
+            "translation": "over the years I find it harder and harder to be happy",
+            "english": "over the years I find it harder and harder to be happy",
+            "bold_translation_offsets": [
+              [
+                9,
+                14
+              ]
+            ],
+            "type": "example"
+          },
+          {
+            "text": "dentro de un par de años",
+            "bold_text_offsets": [
+              [
+                20,
+                24
+              ]
+            ],
+            "translation": "in a couple of years' time",
+            "english": "in a couple of years' time",
+            "bold_translation_offsets": [
+              [
+                15,
+                20
+              ]
+            ],
+            "type": "example"
+          },
+          {
+            "text": "el mejor año de mi vida",
+            "bold_text_offsets": [
+              [
+                9,
+                12
+              ]
+            ],
+            "translation": "the best year of my life",
+            "english": "the best year of my life",
+            "bold_translation_offsets": [
+              [
+                9,
+                13
+              ]
+            ],
+            "type": "example"
+          },
+          {
+            "text": "todos los años es igual",
+            "bold_text_offsets": [
+              [
+                10,
+                14
+              ]
+            ],
+            "translation": "it's the same thing year on year",
+            "english": "it's the same thing year on year",
+            "bold_translation_offsets": [
+              [
+                20,
+                24
+              ],
+              [
+                28,
+                32
+              ]
+            ],
+            "type": "example"
+          },
+          {
+            "text": "en sus años mozos",
+            "bold_text_offsets": [
+              [
+                7,
+                11
+              ]
+            ],
+            "translation": "in her childhood years",
+            "english": "in her childhood years",
+            "bold_translation_offsets": [
+              [
+                17,
+                22
+              ]
+            ],
+            "type": "example"
+          },
+          {
+            "text": "Sin embargo, en abril de este año, cuando las deportaciones se dispararon bajo la segunda administración de Trump, el ICE restableció su contrato con el condado de Glades.",
+            "ref": "2025 June 20, Randi Kaye and David von Blohn, “El ICE renueva acuerdo con el centro de detención que, según la agencia, no cumplía las normas”, in CNN en Español:",
+            "type": "quotation",
+            "bold_text_offsets": [
+              [
+                30,
+                33
+              ]
+            ]
+          }
+        ],
+        "links": [
+          [
+            "year",
+            "year"
+          ]
+        ],
+        "hypernyms": [
+          {
+            "word": "lustro"
+          },
+          {
+            "word": "década"
+          },
+          {
+            "word": "siglo"
+          },
+          {
+            "word": "milenio"
+          }
+        ],
+        "glosses": [
+          "year"
+        ],
+        "tags": [
+          "masculine"
+        ],
+        "id": "en-año-es-noun-TLTqJVg8",
+        "categories": [
+          {
+            "name": "Spanish terms with collocations",
+            "kind": "other",
+            "parents": [],
+            "source": "w"
+          },
+          {
+            "name": "Spanish entries with etymology trees",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "50 50"
+          },
+          {
+            "name": "Spanish entries with etymon",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "50 50"
+          },
+          {
+            "name": "Spanish entries with incorrect language header",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "50 50"
+          },
+          {
+            "name": "Spanish links with redundant alt parameters",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "50 50"
+          },
+          {
+            "name": "Spanish links with redundant wikilinks",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "50 50"
+          }
+        ]
+      },
+      {
+        "examples": [
+          {
+            "text": "Tengo veinte años.",
+            "bold_text_offsets": [
+              [
+                13,
+                17
+              ]
+            ],
+            "translation": "I'm twenty [years old].",
+            "english": "I'm twenty [years old].",
+            "bold_translation_offsets": [
+              [
+                12,
+                21
+              ]
+            ],
+            "type": "example"
+          },
+          {
+            "text": "Depende de los años que tenga.",
+            "bold_text_offsets": [
+              [
+                15,
+                19
+              ]
+            ],
+            "translation": "It depends how old it is.",
+            "english": "It depends how old it is.",
+            "type": "example"
+          },
+          {
+            "text": "El cantante Liam Payne murió a los 31 años tras caer desde el tercer piso de un hotel de Buenos Aires, Argentina, informó la policía local.",
+            "ref": "2024 October 17, CNN, “En imágenes: algunos episodios de la vida de Liam Payne”, in CNN en Español:",
+            "type": "quotation",
+            "bold_text_offsets": [
+              [
+                38,
+                42
+              ]
+            ]
+          },
+          {
+            "text": "El joven venezolano David Josué García Chirino, de 18 años, compartió a Efe su deseo de poder estudiar en el país norteamericano, traer a su familia y ofrecerle una vida diferente.",
+            "ref": "2024 October 20, EFE, “Nueva caravana migrante con miles de personas sale de la frontera sur de México hacia Estados Unidos”, in CNN en Español:",
+            "type": "quotation",
+            "bold_text_offsets": [
+              [
+                54,
+                58
+              ]
+            ]
+          }
+        ],
+        "links": [
+          [
+            "age",
+            "age"
+          ]
+        ],
+        "raw_glosses": [
+          "(a certain) age"
+        ],
+        "qualifier": "a certain",
+        "glosses": [
+          "age"
+        ],
+        "tags": [
+          "masculine"
+        ],
+        "id": "en-año-es-noun-AT9UQAyC",
+        "categories": [
+          {
+            "name": "Spanish entries with etymology trees",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "50 50"
+          },
+          {
+            "name": "Spanish entries with etymon",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "50 50"
+          },
+          {
+            "name": "Spanish entries with incorrect language header",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "50 50"
+          },
+          {
+            "name": "Spanish links with redundant alt parameters",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "50 50"
+          },
+          {
+            "name": "Spanish links with redundant wikilinks",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "50 50"
+          },
+          {
+            "name": "Time",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "orig": "es:Time",
+            "langcode": "es",
+            "_dis": "0 100"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "pos": "verb",
+    "head_templates": [
+      {
+        "name": "es-verb",
+        "args": {},
+        "expansion": "sacar (first-person singular present saco, first-person singular preterite saqué, past participle sacado)"
+      }
+    ],
+    "forms": [
+      {
+        "form": "saco",
+        "tags": [
+          "first-person",
+          "present",
+          "singular"
+        ]
+      },
+      {
+        "form": "saqué",
+        "tags": [
+          "first-person",
+          "preterite",
+          "singular"
+        ]
+      },
+      {
+        "form": "sacado",
+        "tags": [
+          "participle",
+          "past"
+        ]
+      },
+      {
+        "form": "no-table-tags",
+        "source": "conjugation",
+        "tags": [
+          "table-tags"
+        ]
+      },
+      {
+        "form": "es-conj",
+        "source": "conjugation",
+        "tags": [
+          "inflection-template"
+        ]
+      },
+      {
+        "form": "c-qu alternation",
+        "source": "conjugation",
+        "tags": [
+          "class"
+        ]
+      },
+      {
+        "form": "sacar",
+        "tags": [
+          "infinitive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacando",
+        "tags": [
+          "gerund"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacado",
+        "tags": [
+          "masculine",
+          "participle",
+          "past",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacada",
+        "tags": [
+          "feminine",
+          "participle",
+          "past",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacados",
+        "tags": [
+          "masculine",
+          "participle",
+          "past",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacadas",
+        "tags": [
+          "feminine",
+          "participle",
+          "past",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saco",
+        "tags": [
+          "first-person",
+          "indicative",
+          "present",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacas",
+        "tags": [
+          "indicative",
+          "informal",
+          "present",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacás",
+        "tags": [
+          "indicative",
+          "informal",
+          "present",
+          "second-person",
+          "singular",
+          "vos-form"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saca",
+        "tags": [
+          "indicative",
+          "present",
+          "singular",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacamos",
+        "tags": [
+          "first-person",
+          "indicative",
+          "plural",
+          "present"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacáis",
+        "tags": [
+          "indicative",
+          "plural",
+          "present",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacan",
+        "tags": [
+          "indicative",
+          "plural",
+          "present",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaba",
+        "tags": [
+          "first-person",
+          "imperfect",
+          "indicative",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacabas",
+        "tags": [
+          "imperfect",
+          "indicative",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaba",
+        "tags": [
+          "imperfect",
+          "indicative",
+          "singular",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacábamos",
+        "tags": [
+          "first-person",
+          "imperfect",
+          "indicative",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacabais",
+        "tags": [
+          "imperfect",
+          "indicative",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaban",
+        "tags": [
+          "imperfect",
+          "indicative",
+          "plural",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saqué",
+        "tags": [
+          "first-person",
+          "indicative",
+          "preterite",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaste",
+        "tags": [
+          "indicative",
+          "preterite",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacó",
+        "tags": [
+          "indicative",
+          "preterite",
+          "singular",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacamos",
+        "tags": [
+          "first-person",
+          "indicative",
+          "plural",
+          "preterite"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacasteis",
+        "tags": [
+          "indicative",
+          "plural",
+          "preterite",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaron",
+        "tags": [
+          "indicative",
+          "plural",
+          "preterite",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaré",
+        "tags": [
+          "first-person",
+          "future",
+          "indicative",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarás",
+        "tags": [
+          "future",
+          "indicative",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacará",
+        "tags": [
+          "future",
+          "indicative",
+          "singular",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaremos",
+        "tags": [
+          "first-person",
+          "future",
+          "indicative",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaréis",
+        "tags": [
+          "future",
+          "indicative",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarán",
+        "tags": [
+          "future",
+          "indicative",
+          "plural",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaría",
+        "tags": [
+          "conditional",
+          "first-person",
+          "indicative",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarías",
+        "tags": [
+          "conditional",
+          "indicative",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaría",
+        "tags": [
+          "conditional",
+          "indicative",
+          "singular",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaríamos",
+        "tags": [
+          "conditional",
+          "first-person",
+          "indicative",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaríais",
+        "tags": [
+          "conditional",
+          "indicative",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarían",
+        "tags": [
+          "conditional",
+          "indicative",
+          "plural",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saque",
+        "tags": [
+          "first-person",
+          "present",
+          "singular",
+          "subjunctive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saques",
+        "tags": [
+          "informal",
+          "present",
+          "second-person",
+          "singular",
+          "subjunctive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saqués",
+        "tags": [
+          "informal",
+          "present",
+          "second-person",
+          "singular",
+          "subjunctive",
+          "vos-form"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saque",
+        "tags": [
+          "present",
+          "singular",
+          "subjunctive",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquemos",
+        "tags": [
+          "first-person",
+          "plural",
+          "present",
+          "subjunctive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquéis",
+        "tags": [
+          "plural",
+          "present",
+          "second-person",
+          "subjunctive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquen",
+        "tags": [
+          "plural",
+          "present",
+          "subjunctive",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacara",
+        "tags": [
+          "first-person",
+          "imperfect",
+          "singular",
+          "subjunctive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaras",
+        "tags": [
+          "imperfect",
+          "second-person",
+          "singular",
+          "subjunctive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacara",
+        "tags": [
+          "imperfect",
+          "singular",
+          "subjunctive",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacáramos",
+        "tags": [
+          "first-person",
+          "imperfect",
+          "plural",
+          "subjunctive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarais",
+        "tags": [
+          "imperfect",
+          "plural",
+          "second-person",
+          "subjunctive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaran",
+        "tags": [
+          "imperfect",
+          "plural",
+          "subjunctive",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacase",
+        "tags": [
+          "first-person",
+          "imperfect",
+          "imperfect-se",
+          "singular",
+          "subjunctive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacases",
+        "tags": [
+          "imperfect",
+          "imperfect-se",
+          "second-person",
+          "singular",
+          "subjunctive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacase",
+        "tags": [
+          "imperfect",
+          "imperfect-se",
+          "singular",
+          "subjunctive",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacásemos",
+        "tags": [
+          "first-person",
+          "imperfect",
+          "imperfect-se",
+          "plural",
+          "subjunctive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaseis",
+        "tags": [
+          "imperfect",
+          "imperfect-se",
+          "plural",
+          "second-person",
+          "subjunctive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacasen",
+        "tags": [
+          "imperfect",
+          "imperfect-se",
+          "plural",
+          "subjunctive",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacare",
+        "tags": [
+          "first-person",
+          "future",
+          "singular",
+          "subjunctive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacares",
+        "tags": [
+          "future",
+          "second-person",
+          "singular",
+          "subjunctive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacare",
+        "tags": [
+          "future",
+          "singular",
+          "subjunctive",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacáremos",
+        "tags": [
+          "first-person",
+          "future",
+          "plural",
+          "subjunctive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacareis",
+        "tags": [
+          "future",
+          "plural",
+          "second-person",
+          "subjunctive"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaren",
+        "tags": [
+          "future",
+          "plural",
+          "subjunctive",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saca",
+        "tags": [
+          "imperative",
+          "informal",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacá",
+        "tags": [
+          "imperative",
+          "informal",
+          "second-person",
+          "singular",
+          "vos-form"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saque",
+        "tags": [
+          "formal",
+          "imperative",
+          "second-person-semantically",
+          "singular",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saque",
+        "tags": [
+          "imperative",
+          "singular",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquemos",
+        "tags": [
+          "first-person",
+          "imperative",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacad",
+        "tags": [
+          "imperative",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquen",
+        "tags": [
+          "formal",
+          "imperative",
+          "plural",
+          "second-person-semantically",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquen",
+        "tags": [
+          "imperative",
+          "plural",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saques",
+        "tags": [
+          "imperative",
+          "negative",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saque",
+        "tags": [
+          "formal",
+          "imperative",
+          "negative",
+          "second-person-semantically",
+          "singular",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saque",
+        "tags": [
+          "imperative",
+          "negative",
+          "singular",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquemos",
+        "tags": [
+          "first-person",
+          "imperative",
+          "negative",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquéis",
+        "tags": [
+          "imperative",
+          "negative",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquen",
+        "tags": [
+          "formal",
+          "imperative",
+          "negative",
+          "plural",
+          "second-person-semantically",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquen",
+        "tags": [
+          "imperative",
+          "negative",
+          "plural",
+          "third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "no-table-tags",
+        "source": "conjugation",
+        "tags": [
+          "table-tags"
+        ]
+      },
+      {
+        "form": "es-conj",
+        "source": "conjugation",
+        "tags": [
+          "inflection-template"
+        ]
+      },
+      {
+        "form": "c-qu alternation",
+        "source": "conjugation",
+        "tags": [
+          "class"
+        ]
+      },
+      {
+        "form": "sacarme",
+        "tags": [
+          "combined-form",
+          "dative",
+          "infinitive",
+          "object-first-person",
+          "object-singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarte",
+        "tags": [
+          "combined-form",
+          "dative",
+          "infinitive",
+          "object-second-person",
+          "object-singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarle",
+        "tags": [
+          "combined-form",
+          "dative",
+          "infinitive",
+          "object-singular",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarse",
+        "tags": [
+          "combined-form",
+          "dative",
+          "infinitive",
+          "object-singular",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarnos",
+        "tags": [
+          "combined-form",
+          "dative",
+          "infinitive",
+          "object-first-person",
+          "object-plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaros",
+        "tags": [
+          "combined-form",
+          "dative",
+          "infinitive",
+          "object-plural",
+          "object-second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarles",
+        "tags": [
+          "combined-form",
+          "dative",
+          "infinitive",
+          "object-plural",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarse",
+        "tags": [
+          "combined-form",
+          "dative",
+          "infinitive",
+          "object-plural",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarme",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "infinitive",
+          "object-first-person",
+          "object-singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarte",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "infinitive",
+          "object-second-person",
+          "object-singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarlo",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "infinitive",
+          "object-singular",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarla",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "infinitive",
+          "object-singular",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarse",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "infinitive",
+          "object-singular",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarnos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "infinitive",
+          "object-first-person",
+          "object-plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaros",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "infinitive",
+          "object-plural",
+          "object-second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarlos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "infinitive",
+          "object-plural",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarlas",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "infinitive",
+          "object-plural",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacarse",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "infinitive",
+          "object-plural",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándome",
+        "tags": [
+          "combined-form",
+          "dative",
+          "gerund",
+          "object-first-person",
+          "object-singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándote",
+        "tags": [
+          "combined-form",
+          "dative",
+          "gerund",
+          "object-second-person",
+          "object-singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándole",
+        "tags": [
+          "combined-form",
+          "dative",
+          "gerund",
+          "object-singular",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándose",
+        "tags": [
+          "combined-form",
+          "dative",
+          "gerund",
+          "object-singular",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándonos",
+        "tags": [
+          "combined-form",
+          "dative",
+          "gerund",
+          "object-first-person",
+          "object-plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándoos",
+        "tags": [
+          "combined-form",
+          "dative",
+          "gerund",
+          "object-plural",
+          "object-second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándoles",
+        "tags": [
+          "combined-form",
+          "dative",
+          "gerund",
+          "object-plural",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándose",
+        "tags": [
+          "combined-form",
+          "dative",
+          "gerund",
+          "object-plural",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándome",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "gerund",
+          "object-first-person",
+          "object-singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándote",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "gerund",
+          "object-second-person",
+          "object-singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándolo",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "gerund",
+          "object-singular",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándola",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "gerund",
+          "object-singular",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándose",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "gerund",
+          "object-singular",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándonos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "gerund",
+          "object-first-person",
+          "object-plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándoos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "gerund",
+          "object-plural",
+          "object-second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándolos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "gerund",
+          "object-plural",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándolas",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "gerund",
+          "object-plural",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacándose",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "gerund",
+          "object-plural",
+          "object-third-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sácame",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-first-person",
+          "object-singular",
+          "second-person",
+          "singular",
+          "with-tú"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sácate",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-second-person",
+          "object-singular",
+          "second-person",
+          "singular",
+          "with-tú"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sácale",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-singular",
+          "object-third-person",
+          "second-person",
+          "singular",
+          "with-tú"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sácanos",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-first-person",
+          "object-plural",
+          "second-person",
+          "singular",
+          "with-tú"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "-",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-plural",
+          "object-second-person",
+          "second-person",
+          "singular",
+          "with-tú"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sácales",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-plural",
+          "object-third-person",
+          "second-person",
+          "singular",
+          "with-tú"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sácame",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-first-person",
+          "object-singular",
+          "second-person",
+          "singular",
+          "with-tú"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sácate",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-second-person",
+          "object-singular",
+          "second-person",
+          "singular",
+          "with-tú"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sácalo",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-singular",
+          "object-third-person",
+          "second-person",
+          "singular",
+          "with-tú"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sácala",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-singular",
+          "object-third-person",
+          "second-person",
+          "singular",
+          "with-tú"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sácanos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-first-person",
+          "object-plural",
+          "second-person",
+          "singular",
+          "with-tú"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "-",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-plural",
+          "object-second-person",
+          "second-person",
+          "singular",
+          "with-tú"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sácalos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-plural",
+          "object-third-person",
+          "second-person",
+          "singular",
+          "with-tú"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sácalas",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-plural",
+          "object-third-person",
+          "second-person",
+          "singular",
+          "with-tú"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacame",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-first-person",
+          "object-singular",
+          "second-person",
+          "singular",
+          "with-vos"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacate",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-second-person",
+          "object-singular",
+          "second-person",
+          "singular",
+          "with-vos"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacale",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-singular",
+          "object-third-person",
+          "second-person",
+          "singular",
+          "with-vos"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacanos",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-first-person",
+          "object-plural",
+          "second-person",
+          "singular",
+          "with-vos"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "-",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-plural",
+          "object-second-person",
+          "second-person",
+          "singular",
+          "with-vos"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacales",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-plural",
+          "object-third-person",
+          "second-person",
+          "singular",
+          "with-vos"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacame",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-first-person",
+          "object-singular",
+          "second-person",
+          "singular",
+          "with-vos"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacate",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-second-person",
+          "object-singular",
+          "second-person",
+          "singular",
+          "with-vos"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacalo",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-singular",
+          "object-third-person",
+          "second-person",
+          "singular",
+          "with-vos"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacala",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-singular",
+          "object-third-person",
+          "second-person",
+          "singular",
+          "with-vos"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacanos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-first-person",
+          "object-plural",
+          "second-person",
+          "singular",
+          "with-vos"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "-",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-plural",
+          "object-second-person",
+          "second-person",
+          "singular",
+          "with-vos"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacalos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-plural",
+          "object-third-person",
+          "second-person",
+          "singular",
+          "with-vos"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacalas",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-plural",
+          "object-third-person",
+          "second-person",
+          "singular",
+          "with-vos"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáqueme",
+        "tags": [
+          "combined-form",
+          "dative",
+          "formal",
+          "imperative",
+          "object-first-person",
+          "object-singular",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "-",
+        "tags": [
+          "combined-form",
+          "dative",
+          "formal",
+          "imperative",
+          "object-second-person",
+          "object-singular",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquele",
+        "tags": [
+          "combined-form",
+          "dative",
+          "formal",
+          "imperative",
+          "object-singular",
+          "object-third-person",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquese",
+        "tags": [
+          "combined-form",
+          "dative",
+          "formal",
+          "imperative",
+          "object-singular",
+          "object-third-person",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquenos",
+        "tags": [
+          "combined-form",
+          "dative",
+          "formal",
+          "imperative",
+          "object-first-person",
+          "object-plural",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "-",
+        "tags": [
+          "combined-form",
+          "dative",
+          "formal",
+          "imperative",
+          "object-plural",
+          "object-second-person",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáqueles",
+        "tags": [
+          "combined-form",
+          "dative",
+          "formal",
+          "imperative",
+          "object-plural",
+          "object-third-person",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáqueme",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-first-person",
+          "object-singular",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "-",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-second-person",
+          "object-singular",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquelo",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-singular",
+          "object-third-person",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquela",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-singular",
+          "object-third-person",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquese",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-singular",
+          "object-third-person",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquenos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-first-person",
+          "object-plural",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "-",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-plural",
+          "object-second-person",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquelos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-plural",
+          "object-third-person",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquelas",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-plural",
+          "object-third-person",
+          "second-person",
+          "singular"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "-",
+        "tags": [
+          "combined-form",
+          "dative",
+          "first-person",
+          "imperative",
+          "object-first-person",
+          "object-singular",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquémoste",
+        "tags": [
+          "combined-form",
+          "dative",
+          "first-person",
+          "imperative",
+          "object-second-person",
+          "object-singular",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquémosle",
+        "tags": [
+          "combined-form",
+          "dative",
+          "first-person",
+          "imperative",
+          "object-singular",
+          "object-third-person",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquémonos",
+        "tags": [
+          "combined-form",
+          "dative",
+          "first-person",
+          "imperative",
+          "object-first-person",
+          "object-plural",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquémoos",
+        "tags": [
+          "combined-form",
+          "dative",
+          "first-person",
+          "imperative",
+          "object-plural",
+          "object-second-person",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquémosles",
+        "tags": [
+          "combined-form",
+          "dative",
+          "first-person",
+          "imperative",
+          "object-plural",
+          "object-third-person",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "-",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "first-person",
+          "imperative",
+          "object-first-person",
+          "object-singular",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquémoste",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "first-person",
+          "imperative",
+          "object-second-person",
+          "object-singular",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquémoslo",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "first-person",
+          "imperative",
+          "object-singular",
+          "object-third-person",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquémosla",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "first-person",
+          "imperative",
+          "object-singular",
+          "object-third-person",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquémonos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "first-person",
+          "imperative",
+          "object-first-person",
+          "object-plural",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquémoos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "first-person",
+          "imperative",
+          "object-plural",
+          "object-second-person",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquémoslos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "first-person",
+          "imperative",
+          "object-plural",
+          "object-third-person",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "saquémoslas",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "first-person",
+          "imperative",
+          "object-plural",
+          "object-third-person",
+          "plural"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacadme",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-first-person",
+          "object-singular",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "-",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-second-person",
+          "object-singular",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacadle",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-singular",
+          "object-third-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacadnos",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-first-person",
+          "object-plural",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaos",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-plural",
+          "object-second-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacadles",
+        "tags": [
+          "combined-form",
+          "dative",
+          "imperative",
+          "informal",
+          "object-plural",
+          "object-third-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacadme",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-first-person",
+          "object-singular",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "-",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-second-person",
+          "object-singular",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacadlo",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-singular",
+          "object-third-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacadla",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-singular",
+          "object-third-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacadnos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-first-person",
+          "object-plural",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacaos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-plural",
+          "object-second-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacadlos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-plural",
+          "object-third-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sacadlas",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "imperative",
+          "informal",
+          "object-plural",
+          "object-third-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquenme",
+        "tags": [
+          "combined-form",
+          "dative",
+          "formal",
+          "imperative",
+          "object-first-person",
+          "object-singular",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "-",
+        "tags": [
+          "combined-form",
+          "dative",
+          "formal",
+          "imperative",
+          "object-second-person",
+          "object-singular",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquenle",
+        "tags": [
+          "combined-form",
+          "dative",
+          "formal",
+          "imperative",
+          "object-singular",
+          "object-third-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquennos",
+        "tags": [
+          "combined-form",
+          "dative",
+          "formal",
+          "imperative",
+          "object-first-person",
+          "object-plural",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "-",
+        "tags": [
+          "combined-form",
+          "dative",
+          "formal",
+          "imperative",
+          "object-plural",
+          "object-second-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquenles",
+        "tags": [
+          "combined-form",
+          "dative",
+          "formal",
+          "imperative",
+          "object-plural",
+          "object-third-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquense",
+        "tags": [
+          "combined-form",
+          "dative",
+          "formal",
+          "imperative",
+          "object-plural",
+          "object-third-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquenme",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-first-person",
+          "object-singular",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "-",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-second-person",
+          "object-singular",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquenlo",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-singular",
+          "object-third-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquenla",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-singular",
+          "object-third-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquennos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-first-person",
+          "object-plural",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "-",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-plural",
+          "object-second-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquenlos",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-plural",
+          "object-third-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquenlas",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-plural",
+          "object-third-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      },
+      {
+        "form": "sáquense",
+        "tags": [
+          "accusative",
+          "combined-form",
+          "formal",
+          "imperative",
+          "object-plural",
+          "object-third-person",
+          "plural",
+          "second-person"
+        ],
+        "source": "conjugation"
+      }
+    ],
+    "inflection_templates": [
+      {
+        "name": "es-conj",
+        "args": {}
+      }
+    ],
+    "wikipedia": [
+      "Cantar de mio Cid"
+    ],
+    "etymology_text": "Etymology tree\nProto-Indo-European *seh₂g-\nProto-Indo-European *-ti\nProto-Indo-European *séh₂gti\nProto-Germanic *sakaną\nGothic 𐍃𐌰𐌺𐌰𐌽 (sakan)bor.?\nOld Spanish sacar\nSpanish sacar\nInherited from Old Spanish sacar (in Cantar de mio Cid), perhaps from Gothic 𐍃𐌰𐌺𐌰𐌽 (sakan, “to dispute, to rebuke”). Cognate with English seek, sake, Latin sāgiō.",
+    "etymology_templates": [
+      {
+        "name": "etymon",
+        "args": {
+          "1": "es",
+          "2": ":inh",
+          "3": "osp:sacar<ety:bor<got:𐍃𐌰𐌺𐌰𐌽<unc>>>",
+          "tree": "1"
+        },
+        "expansion": "Etymology tree\nProto-Indo-European *seh₂g-\nProto-Indo-European *-ti\nProto-Indo-European *séh₂gti\nProto-Germanic *sakaną\nGothic 𐍃𐌰𐌺𐌰𐌽 (sakan)bor.?\nOld Spanish sacar\nSpanish sacar\n[Appendix:Glossary#loanword|Borrowed]] from\", \"terms\" : [ { \"is_uncertain\" : true, \"children\" : [ { \"terms\" : [ { \"children\" : [ { \"terms\" : [ { \"alt\" : \"*séh₂gti\", \"lang_name\" : \"Proto-Indo-European\", \"status\" : \"inline\", \"children\" : [ { \"terms\" : [ { \"children\" : [ ], \"lang_name\" : \"Proto-Indo-European\", \"term\" : \"*seh₂g-\", \"status\" : \"ok\", \"lang\" : \"ine-pro\" }, { \"id\" : \"verb\", \"children\" : [ ], \"status\" : \"ok\", \"lang_name\" : \"Proto-Indo-European\", \"term\" : \"*-ti\", \"lang\" : \"ine-pro\" } ], \"keyword_label\" : \"From\", \"is_group\" : true, \"keyword\" : \"affix\" } ], \"lang\" : \"ine-pro\" } ], \"keyword_label\" : \"Inherited from\", \"keyword\" : \"inherited\" } ], \"lang_name\" : \"Proto-Germanic\", \"term\" : \"*sakaną\", \"status\" : \"ok\", \"lang\" : \"gem-pro\" } ], \"keyword_label\" : \"Inherited from\", \"keyword\" : \"inherited\" } ], \"lang_name\" : \"Gothic\", \"term\" : \"𐍃𐌰𐌺𐌰𐌽\", \"status\" : \"ok\", \"lang\" : \"got\" } ], \"keyword\" : \"bor\" } ], \"lang_name\" : \"Old Spanish\", \"term\" : \"sacar\", \"status\" : \"inline\", \"lang\" : \"osp\" } ], \"keyword_label\" : \"Inherited from\", \"keyword\" : \"inherited\" } ], \"lang_name\" : \"Spanish\", \"term\" : \"sacar\", \"status\" : \"ok\", \"lang\" : \"es\" }\" data-lang=\"es\" data-title=\"sacar\">"
+      },
+      {
+        "name": "yesno",
+        "args": {
+          "1": "",
+          "2": "i",
+          "3": "I"
+        },
+        "expansion": "I"
+      },
+      {
+        "name": "glossary",
+        "args": {
+          "1": "Inherited"
+        },
+        "expansion": "Inherited"
+      },
+      {
+        "name": "inh",
+        "args": {
+          "1": "es",
+          "2": "osp",
+          "3": "sacar",
+          "4": "",
+          "5": "",
+          "lit": "",
+          "pos": "",
+          "tr": "",
+          "ts": "",
+          "id": "",
+          "sc": "",
+          "g": "",
+          "g2": "",
+          "g3": "",
+          "nocat": "",
+          "sort": ""
+        },
+        "expansion": "Old Spanish sacar"
+      },
+      {
+        "name": "inh+",
+        "args": {
+          "1": "es",
+          "2": "osp",
+          "3": "sacar"
+        },
+        "expansion": "Inherited from Old Spanish sacar"
+      },
+      {
+        "name": "der",
+        "args": {
+          "1": "es",
+          "2": "got",
+          "3": "𐍃𐌰𐌺𐌰𐌽",
+          "4": "",
+          "5": "to dispute, to rebuke"
+        },
+        "expansion": "Gothic 𐍃𐌰𐌺𐌰𐌽 (sakan, “to dispute, to rebuke”)"
+      },
+      {
+        "name": "cog",
+        "args": {
+          "1": "en",
+          "2": "seek"
+        },
+        "expansion": "English seek"
+      },
+      {
+        "name": "cog",
+        "args": {
+          "1": "la",
+          "2": "sāgiō"
+        },
+        "expansion": "Latin sāgiō"
+      }
+    ],
+    "sounds": [
+      {
+        "ipa": "/saˈkaɾ/"
+      },
+      {
+        "ipa": "[saˈkaɾ]"
+      },
+      {
+        "rhymes": "-aɾ"
+      }
+    ],
+    "hyphenation": [
+      "sa‧car"
+    ],
+    "hyphenations": [
+      {
+        "parts": [
+          "sa‧car"
+        ]
+      }
+    ],
+    "word": "sacar",
+    "lang": "Spanish",
+    "lang_code": "es",
+    "derived": [
+      {
+        "word": "mete dos y saca cinco",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "metisaca",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "saca",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacabocados",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacabotas",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacaclavos",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacacorazones",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacacuartos",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacadineros",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacadólares",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacador",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacafaltas",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacaleche",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacaleches",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacamanchas",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacamantecas",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacamuelas",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacaniguas",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacapuntas",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar a colación",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar a flote",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar a relucir",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar adelante",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar agua de las piedras",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar de contexto",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar de la manga",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar de quicio",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar de sus casillas",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar del armario",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar el ascua con la mano del gato",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar el ascua con mano ajena",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "english": "to make the most of",
+        "translation": "to make the most of",
+        "word": "sacar el máximo partido de",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "english": "to make the most of",
+        "translation": "to make the most of",
+        "word": "sacar el máximo provecho de",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar el quite",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar fuerzas de flaqueza",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar hierro",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar la cabeza",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar la piedra",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar la vuelta",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar las castañas del fuego",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar lo mejor de",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar lo que el negro del sermón",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar los pies del plato",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar los trapitos al sol",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar partido",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar petróleo",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar pica",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar polvo debajo del agua",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar provecho",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar punta",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacar tajada",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacarse de encima",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacarse el clavo",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacarse el sombrero",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "sacarse la mierda",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "saque",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "saqueador",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "saquear",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "saqueo",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      {
+        "word": "un clavo saca otro clavo",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      }
+    ],
+    "related": [
+      {
+        "word": "extraer",
+        "_dis1": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      }
+    ],
+    "senses": [
+      {
+        "examples": [
+          {
+            "text": "Vamos a sacar un álbum.",
+            "bold_text_offsets": [
+              [
+                8,
+                13
+              ]
+            ],
+            "translation": "We're going to release an album.",
+            "english": "We're going to release an album.",
+            "bold_translation_offsets": [
+              [
+                15,
+                22
+              ]
+            ],
+            "type": "example"
+          },
+          {
+            "text": "Sacaron un anuncio importante.",
+            "bold_text_offsets": [
+              [
+                0,
+                7
+              ]
+            ],
+            "translation": "They made an important announcement.",
+            "english": "They made an important announcement.",
+            "bold_translation_offsets": [
+              [
+                5,
+                9
+              ]
+            ],
+            "type": "example"
+          },
+          {
+            "text": "Él no sacará ninguna canción.",
+            "bold_text_offsets": [
+              [
+                6,
+                12
+              ]
+            ],
+            "translation": "He won't release any songs.",
+            "english": "He won't release any songs.",
+            "bold_translation_offsets": [
+              [
+                9,
+                16
+              ]
+            ],
+            "type": "example"
+          }
+        ],
+        "links": [
+          [
+            "put out",
+            "put out"
+          ],
+          [
+            "get out",
+            "get out"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive) to put out, to get out (e.g. a public statement, an APB, a release of media or entertainment)"
+        ],
+        "glosses": [
+          "to put out, to get out (e.g. a public statement, an APB, a release of media or entertainment)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-xwUVjAmT",
+        "categories": []
+      },
+      {
+        "examples": [
+          {
+            "text": "Saca la basura.",
+            "bold_text_offsets": [
+              [
+                0,
+                4
+              ]
+            ],
+            "translation": "Take out the trash.",
+            "english": "Take out the trash.",
+            "bold_translation_offsets": [
+              [
+                0,
+                4
+              ]
+            ],
+            "type": "example"
+          }
+        ],
+        "links": [
+          [
+            "take out",
+            "take out"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive) to take out (e.g. the trash)"
+        ],
+        "glosses": [
+          "to take out (e.g. the trash)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-sorzuvq4",
+        "categories": []
+      },
+      {
+        "examples": [
+          {
+            "text": "¡Saca el dedo de la nariz!",
+            "bold_text_offsets": [
+              [
+                1,
+                5
+              ]
+            ],
+            "translation": "Pull/take your finger out of your nose!",
+            "english": "Pull/take your finger out of your nose!",
+            "bold_translation_offsets": [
+              [
+                0,
+                9
+              ],
+              [
+                22,
+                25
+              ]
+            ],
+            "type": "example"
+          }
+        ],
+        "links": [
+          [
+            "pull out",
+            "pull out"
+          ],
+          [
+            "take out",
+            "take out"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive) to pull out, to take out (e.g. a badge, an ID card, a picture, paperwork, the keys, finger)"
+        ],
+        "glosses": [
+          "to pull out, to take out (e.g. a badge, an ID card, a picture, paperwork, the keys, finger)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-tmEyaogy",
+        "categories": [
+          {
+            "name": "Pages using etymon with no ID",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "4 3 3 2 3 1 1 2 2 1 1 4 3 2 4 2 16 2 2 2 1 2 2 2 2 2 2 2 2 1 2 2 1 2 2 2 1 2 4 1 2 2"
+          },
+          {
+            "name": "Pages with etymology trees",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "5 3 3 2 3 2 1 2 3 1 1 5 3 2 4 3 6 2 2 3 1 2 3 3 2 1 2 2 2 1 2 2 1 3 3 2 1 2 4 2 2 1"
+          },
+          {
+            "name": "Pages with etymon",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "5 4 3 3 3 1 1 2 2 1 1 4 3 2 4 3 7 2 2 2 1 2 3 2 2 1 2 3 1 1 2 2 1 3 3 2 1 2 4 1 2 1"
+          },
+          {
+            "name": "Spanish entries with etymology trees",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "7 4 10 4 3 4 2 3 4 4 3 2 3 4 3 2 3 3 1 5 4 3 2 3 6 3 3 2"
+          },
+          {
+            "name": "Spanish entries with etymon",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "8 4 11 4 3 3 2 3 4 4 3 2 3 4 2 2 3 4 2 4 4 3 2 4 7 2 4 2"
+          },
+          {
+            "name": "Spanish entries with incorrect language header",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "6 2 13 2 5 4 2 2 2 3 5 2 9 2 2 2 2 3 1 4 4 3 2 6 9 1 3 1"
+          },
+          {
+            "name": "Spanish verbs ending in -ar",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "6 4 9 3 3 3 2 3 4 4 3 2 4 4 2 2 3 4 2 4 4 4 2 3 6 2 3 2"
+          },
+          {
+            "name": "Spanish verbs with c-qu alternation",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "4 3 9 3 6 3 2 3 3 5 6 2 7 3 4 2 3 2 1 4 4 3 2 3 5 3 3 2"
+          }
+        ]
+      },
+      {
+        "links": [
+          [
+            "get out",
+            "get out"
+          ],
+          [
+            "take out",
+            "take out"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive) to get out, to take out (e.g. the family, a partner, a friend, a dog)"
+        ],
+        "glosses": [
+          "to get out, to take out (e.g. the family, a partner, a friend, a dog)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-Ku8lzk33",
+        "categories": []
+      },
+      {
+        "examples": [
+          {
+            "tags": [
+              "collocation"
+            ],
+            "text": "sacar al perro de paseo",
+            "bold_text_offsets": [
+              [
+                0,
+                5
+              ]
+            ],
+            "translation": "to take the dog out for a walk",
+            "english": "to take the dog out for a walk",
+            "bold_translation_offsets": [
+              [
+                3,
+                7
+              ],
+              [
+                16,
+                19
+              ]
+            ],
+            "type": "example"
+          },
+          {
+            "text": "¿Sacarán al gato al parque?",
+            "bold_text_offsets": [
+              [
+                1,
+                8
+              ]
+            ],
+            "translation": "Will they take the cat out to the park?",
+            "english": "Will they take the cat out to the park?",
+            "bold_translation_offsets": [
+              [
+                10,
+                14
+              ]
+            ],
+            "type": "example"
+          },
+          {
+            "text": "Dejó de sacar a su perro a la calle cuando tenía doce años.",
+            "bold_text_offsets": [
+              [
+                0,
+                4
+              ]
+            ],
+            "translation": "He stopped taking his dog out when he was twelve years old.",
+            "english": "He stopped taking his dog out when he was twelve years old.",
+            "bold_translation_offsets": [
+              [
+                11,
+                17
+              ]
+            ],
+            "type": "example"
+          }
+        ],
+        "links": [
+          [
+            "pull out",
+            "pull out"
+          ],
+          [
+            "get out",
+            "get out"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive) to pull out, to get out (e.g. a pencil, a hand, a key)"
+        ],
+        "glosses": [
+          "to pull out, to get out (e.g. a pencil, a hand, a key)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-VdNHlUS~",
+        "categories": [
+          {
+            "name": "Spanish terms with collocations",
+            "kind": "other",
+            "parents": [],
+            "source": "w"
+          }
+        ]
+      },
+      {
+        "examples": [
+          {
+            "text": "¡Sácate de aquí!",
+            "bold_text_offsets": [
+              [
+                1,
+                7
+              ]
+            ],
+            "translation": "Get out of here!",
+            "english": "Get out of here!",
+            "bold_translation_offsets": [
+              [
+                0,
+                3
+              ]
+            ],
+            "type": "example"
+          }
+        ],
+        "links": [
+          [
+            "remove",
+            "remove"
+          ],
+          [
+            "extract",
+            "extract"
+          ],
+          [
+            "get out",
+            "get out"
+          ],
+          [
+            "take out",
+            "take out"
+          ],
+          [
+            "dig up",
+            "dig up"
+          ],
+          [
+            "dig out",
+            "dig out"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive) to remove, to extract, to get out, to take out, to dig up or dig out (e.g., the weeds, a tooth, military forces, information, the truth, remove someone from the equation or a situation)"
+        ],
+        "glosses": [
+          "to remove, to extract, to get out, to take out, to dig up or dig out (e.g., the weeds, a tooth, military forces, information, the truth, remove someone from the equation or a situation)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-h9cIQlVg",
+        "categories": []
+      },
+      {
+        "examples": [
+          {
+            "text": "Con una cámara digital, se puede sacar y borrar una foto en dos segundos.",
+            "bold_text_offsets": [
+              [
+                33,
+                38
+              ]
+            ],
+            "translation": "With a digital camera, you can take and delete a photo in two seconds.",
+            "english": "With a digital camera, you can take and delete a photo in two seconds.",
+            "bold_translation_offsets": [
+              [
+                31,
+                35
+              ]
+            ],
+            "type": "example"
+          },
+          {
+            "text": "La cámara deja de sacar fotos.",
+            "bold_text_offsets": [
+              [
+                18,
+                23
+              ]
+            ],
+            "translation": "The camera stops taking pictures.",
+            "english": "The camera stops taking pictures.",
+            "bold_translation_offsets": [
+              [
+                17,
+                23
+              ]
+            ],
+            "type": "example"
+          }
+        ],
+        "links": [
+          [
+            "take",
+            "take"
+          ]
+        ],
+        "synonyms": [
+          {
+            "word": "hacer"
+          },
+          {
+            "word": "quitar"
+          }
+        ],
+        "raw_glosses": [
+          "(transitive) to take (e.g. a photograph, advantage of, etc.)"
+        ],
+        "glosses": [
+          "to take (e.g. a photograph, advantage of, etc.)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-cR8uDp35",
+        "categories": []
+      },
+      {
+        "links": [
+          [
+            "withdraw",
+            "withdraw"
+          ],
+          [
+            "take out",
+            "take out"
+          ]
+        ],
+        "synonyms": [
+          {
+            "word": "retirar"
+          },
+          {
+            "word": "quitar"
+          }
+        ],
+        "raw_glosses": [
+          "(transitive) to withdraw, to take out (e.g. money)"
+        ],
+        "glosses": [
+          "to withdraw, to take out (e.g. money)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-blckuisB",
+        "categories": []
+      },
+      {
+        "examples": [
+          {
+            "text": "Esta secta me quiere sacar el dinero.",
+            "bold_text_offsets": [
+              [
+                21,
+                36
+              ]
+            ],
+            "translation": "This sect wants to rip me off.",
+            "english": "This sect wants to rip me off.",
+            "bold_translation_offsets": [
+              [
+                19,
+                29
+              ]
+            ],
+            "type": "example"
+          }
+        ],
+        "links": [
+          [
+            "rip off",
+            "rip off"
+          ]
+        ],
+        "synonyms": [
+          {
+            "word": "quitar"
+          }
+        ],
+        "raw_glosses": [
+          "(transitive) to rip off (e.g. to steal money)"
+        ],
+        "glosses": [
+          "to rip off (e.g. to steal money)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-0zkdMtV5",
+        "categories": []
+      },
+      {
+        "links": [
+          [
+            "drive out",
+            "drive out"
+          ],
+          [
+            "expel",
+            "expel"
+          ],
+          [
+            "eject",
+            "eject"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive) to drive out, expel, to eject"
+        ],
+        "glosses": [
+          "to drive out, expel, to eject"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-Ljygy3wW",
+        "categories": []
+      },
+      {
+        "examples": [
+          {
+            "text": "Te vamos a sacar de aquí.",
+            "bold_text_offsets": [
+              [
+                11,
+                16
+              ]
+            ],
+            "translation": "We're going to get you out of here.",
+            "english": "We're going to get you out of here.",
+            "bold_translation_offsets": [
+              [
+                15,
+                18
+              ]
+            ],
+            "type": "example"
+          }
+        ],
+        "links": [
+          [
+            "send out",
+            "send out"
+          ],
+          [
+            "move out",
+            "move out"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive) to send out or move out something or somebody from some place"
+        ],
+        "glosses": [
+          "to send out or move out something or somebody from some place"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-CYWylgeC",
+        "categories": []
+      },
+      {
+        "links": [
+          [
+            "extricate",
+            "extricate"
+          ],
+          [
+            "lift",
+            "lift"
+          ],
+          [
+            "rescue",
+            "rescue"
+          ],
+          [
+            "trouble",
+            "trouble"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive) to extricate, to lift from or out of, to rescue somebody from an entanglement or trouble"
+        ],
+        "glosses": [
+          "to extricate, to lift from or out of, to rescue somebody from an entanglement or trouble"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-WOFcbIbP",
+        "categories": []
+      },
+      {
+        "links": [
+          [
+            "bring up",
+            "bring up"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive) to bring up (a subject or issue for talk or discussion)"
+        ],
+        "glosses": [
+          "to bring up (a subject or issue for talk or discussion)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-MweexdZc",
+        "categories": []
+      },
+      {
+        "links": [
+          [
+            "stick out",
+            "stick out"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive) to stick out"
+        ],
+        "glosses": [
+          "to stick out"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-DbbPijAq",
+        "categories": []
+      },
+      {
+        "links": [
+          [
+            "get",
+            "get"
+          ],
+          [
+            "make",
+            "make"
+          ],
+          [
+            "take",
+            "take"
+          ],
+          [
+            "receive",
+            "receive"
+          ],
+          [
+            "derive",
+            "derive"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive) to get, to make, to take, to receive, to derive (to make or take something out of an experience or to make the most of, e.g. a benefit, a profit, money, etc.)"
+        ],
+        "glosses": [
+          "to get, to make, to take, to receive, to derive (to make or take something out of an experience or to make the most of, e.g. a benefit, a profit, money, etc.)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-9jESm9xz",
+        "categories": []
+      },
+      {
+        "links": [
+          [
+            "lift",
+            "lift"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive) to lift (e.g. a fingerprint)"
+        ],
+        "glosses": [
+          "to lift (e.g. a fingerprint)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-cws-J-FV",
+        "categories": []
+      },
+      {
+        "links": [
+          [
+            "draw",
+            "draw"
+          ],
+          [
+            "whip out",
+            "whip out"
+          ],
+          [
+            "take out",
+            "take out"
+          ],
+          [
+            "unsheathe",
+            "unsheathe"
+          ]
+        ],
+        "synonyms": [
+          {
+            "word": "desenfundar"
+          }
+        ],
+        "raw_glosses": [
+          "(transitive, literally) to draw, to whip out, to take out, to unsheathe (e.g. water, blood, a weapon, straws)"
+        ],
+        "glosses": [
+          "to draw, to whip out, to take out, to unsheathe (e.g. water, blood, a weapon, straws)"
+        ],
+        "tags": [
+          "literally",
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-gJD02WAa",
+        "categories": []
+      },
+      {
+        "links": [
+          [
+            "draw",
+            "draw"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive, figuratively) to draw (e.g. a lesson, conclusions, strength, power, energy, hope)"
+        ],
+        "glosses": [
+          "to draw (e.g. a lesson, conclusions, strength, power, energy, hope)"
+        ],
+        "tags": [
+          "figuratively",
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-U-p7rBnw",
+        "categories": []
+      },
+      {
+        "links": [
+          [
+            "make",
+            "make"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive) to make (a copy, etc.)"
+        ],
+        "glosses": [
+          "to make (a copy, etc.)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-id693hS3",
+        "categories": []
+      },
+      {
+        "examples": [
+          {
+            "text": "Sácate los jeans.",
+            "bold_text_offsets": [
+              [
+                0,
+                4
+              ]
+            ],
+            "translation": "Take off your jeans.",
+            "english": "Take off your jeans.",
+            "bold_translation_offsets": [
+              [
+                0,
+                4
+              ]
+            ],
+            "type": "example"
+          }
+        ],
+        "links": [
+          [
+            "take off",
+            "take off"
+          ],
+          [
+            "remove",
+            "remove"
+          ]
+        ],
+        "synonyms": [
+          {
+            "word": "quitar"
+          },
+          {
+            "word": "desvestirse",
+            "topics": [
+              "clothing",
+              "textiles",
+              "fashion",
+              "lifestyle",
+              "manufacturing",
+              "business"
+            ]
+          },
+          {
+            "word": "descalzarse",
+            "english": "footwear",
+            "translation": "footwear"
+          }
+        ],
+        "raw_glosses": [
+          "(transitive) to take off, remove (e.g. clothing, footwear, jewelry)"
+        ],
+        "glosses": [
+          "to take off, remove (e.g. clothing, footwear, jewelry)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-hQjTWHg3",
+        "categories": []
+      },
+      {
+        "examples": [
+          {
+            "text": "Saca los pies de la mesa.",
+            "bold_text_offsets": [
+              [
+                0,
+                4
+              ]
+            ],
+            "translation": "Take your feet off the table.",
+            "english": "Take your feet off the table.",
+            "bold_translation_offsets": [
+              [
+                0,
+                4
+              ],
+              [
+                15,
+                18
+              ]
+            ],
+            "type": "example"
+          },
+          {
+            "text": "Saca la cereza de la torta.",
+            "bold_text_offsets": [
+              [
+                0,
+                4
+              ]
+            ],
+            "translation": "Take the cherry on top of the cake.",
+            "english": "Take the cherry on top of the cake.",
+            "bold_translation_offsets": [
+              [
+                0,
+                4
+              ]
+            ],
+            "type": "example"
+          }
+        ],
+        "links": [
+          [
+            "take off",
+            "take off"
+          ]
+        ],
+        "synonyms": [
+          {
+            "word": "quitar"
+          }
+        ],
+        "raw_glosses": [
+          "(transitive) to take off (remove from a place)"
+        ],
+        "glosses": [
+          "to take off (remove from a place)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-ToeEpG39",
+        "categories": []
+      },
+      {
+        "links": [
+          [
+            "bring out",
+            "bring out"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive) to bring out (e.g. the best or worst in someone, a certain quality or trait)"
+        ],
+        "glosses": [
+          "to bring out (e.g. the best or worst in someone, a certain quality or trait)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-5XCgAPOK",
+        "categories": []
+      },
+      {
+        "links": [
+          [
+            "scoop",
+            "scoop"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive) to scoop (e.g. fruit, flour, sugar, salt, sand)"
+        ],
+        "glosses": [
+          "to scoop (e.g. fruit, flour, sugar, salt, sand)"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-6C1cP8cT",
+        "categories": []
+      },
+      {
+        "topics": [
+          "hobbies",
+          "lifestyle",
+          "sports"
+        ],
+        "links": [
+          [
+            "sports",
+            "sports"
+          ],
+          [
+            "serve",
+            "serve"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive, sports) to serve"
+        ],
+        "glosses": [
+          "to serve"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-UTizBQxZ",
+        "categories": [
+          {
+            "name": "Sports",
+            "kind": "other",
+            "parents": [],
+            "source": "w",
+            "orig": "es:Sports",
+            "langcode": "es"
+          }
+        ]
+      },
+      {
+        "topics": [
+          "ball-games",
+          "games",
+          "hobbies",
+          "lifestyle",
+          "soccer",
+          "sports"
+        ],
+        "links": [
+          [
+            "soccer",
+            "soccer"
+          ],
+          [
+            "kick off",
+            "kick off"
+          ]
+        ],
+        "raw_glosses": [
+          "(transitive, soccer) to kick off"
+        ],
+        "glosses": [
+          "to kick off"
+        ],
+        "tags": [
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb--psRJWDV",
+        "categories": [
+          {
+            "name": "Football (soccer)",
+            "kind": "other",
+            "parents": [],
+            "source": "w",
+            "orig": "es:Football (soccer)",
+            "langcode": "es"
+          }
+        ]
+      },
+      {
+        "examples": [
+          {
+            "text": "Él se sacó el gordo.",
+            "bold_text_offsets": [
+              [
+                3,
+                10
+              ]
+            ],
+            "translation": "He won first prize.",
+            "english": "He won first prize.",
+            "bold_translation_offsets": [
+              [
+                3,
+                6
+              ]
+            ],
+            "type": "example"
+          }
+        ],
+        "links": [
+          [
+            "obtain",
+            "obtain"
+          ],
+          [
+            "receive",
+            "receive"
+          ],
+          [
+            "win",
+            "win"
+          ]
+        ],
+        "raw_glosses": [
+          "(reflexive) to obtain, receive",
+          "(reflexive) to win, get, obtain (a prize, award)"
+        ],
+        "glosses": [
+          "to obtain, receive",
+          "to win, get, obtain (a prize, award)"
+        ],
+        "tags": [
+          "reflexive"
+        ],
+        "id": "en-sacar-es-verb-b8zcCsVr",
+        "categories": []
+      },
+      {
+        "examples": [
+          {
+            "text": "Me saqué un puñetazo",
+            "bold_text_offsets": [
+              [
+                0,
+                8
+              ]
+            ],
+            "translation": "I received a punch.",
+            "english": "I received a punch.",
+            "bold_translation_offsets": [
+              [
+                0,
+                10
+              ]
+            ],
+            "type": "example"
+          }
+        ],
+        "links": [
+          [
+            "obtain",
+            "obtain"
+          ],
+          [
+            "receive",
+            "receive"
+          ],
+          [
+            "inflict",
+            "inflict"
+          ]
+        ],
+        "raw_glosses": [
+          "(reflexive) to obtain, receive",
+          "(reflexive) to receive, get, be inflicted with"
+        ],
+        "glosses": [
+          "to obtain, receive",
+          "to receive, get, be inflicted with"
+        ],
+        "tags": [
+          "reflexive"
+        ],
+        "id": "en-sacar-es-verb-qrNg805R",
+        "categories": []
+      },
+      {
+        "examples": [
+          {
+            "text": "Ella se sacó un par de cervezas anoche.",
+            "bold_text_offsets": [
+              [
+                5,
+                12
+              ]
+            ],
+            "translation": "She treated us to a pair of beers last night.",
+            "english": "She treated us to a pair of beers last night.",
+            "bold_translation_offsets": [
+              [
+                4,
+                17
+              ]
+            ],
+            "type": "example"
+          }
+        ],
+        "raw_glosses": [
+          "(transitive, pronominal, El Salvador) treat someone to (something)"
+        ],
+        "glosses": [
+          "treat someone to (something)"
+        ],
+        "tags": [
+          "El-Salvador",
+          "pronominal",
+          "transitive"
+        ],
+        "id": "en-sacar-es-verb-YGR9toM0",
+        "categories": [
+          {
+            "name": "Salvadoran Spanish",
+            "kind": "other",
+            "parents": [],
+            "source": "w"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "pos": "adj",
+    "head_templates": [
+      {
+        "name": "es-adj",
+        "args": {
+          "sup": "rapidísimo"
+        },
+        "expansion": "rápido (feminine rápida, masculine plural rápidos, feminine plural rápidas, superlative rapidísimo)"
+      }
+    ],
+    "forms": [
+      {
+        "form": "rápida",
+        "tags": [
+          "feminine"
+        ]
+      },
+      {
+        "form": "rápidos",
+        "tags": [
+          "masculine",
+          "plural"
+        ]
+      },
+      {
+        "form": "rápidas",
+        "tags": [
+          "feminine",
+          "plural"
+        ]
+      },
+      {
+        "form": "rapidísimo",
+        "tags": [
+          "superlative"
+        ]
+      }
+    ],
+    "etymology_text": "Borrowed from Latin rapidus. Doublet of raudo. From the same Latin source as English rapid.",
+    "etymology_templates": [
+      {
+        "name": "bor+",
+        "args": {
+          "1": "es",
+          "2": "la",
+          "3": "rapidus"
+        },
+        "expansion": "Borrowed from Latin rapidus"
+      },
+      {
+        "name": "dbt",
+        "args": {
+          "1": "es",
+          "2": "raudo"
+        },
+        "expansion": "Doublet of raudo"
+      },
+      {
+        "name": "cog",
+        "args": {
+          "1": "en",
+          "2": "rapid"
+        },
+        "expansion": "English rapid"
+      }
+    ],
+    "sounds": [
+      {
+        "ipa": "/ˈrapido/"
+      },
+      {
+        "ipa": "[ˈra.pi.ð̞o]"
+      },
+      {
+        "rhymes": "-apido"
+      }
+    ],
+    "hyphenation": [
+      "rá‧pi‧do"
+    ],
+    "hyphenations": [
+      {
+        "parts": [
+          "rá‧pi‧do"
+        ]
+      }
+    ],
+    "word": "rápido",
+    "lang": "Spanish",
+    "lang_code": "es",
+    "senses": [
+      {
+        "links": [
+          [
+            "rapid",
+            "rapid"
+          ],
+          [
+            "quick",
+            "quick"
+          ],
+          [
+            "fast",
+            "fast"
+          ]
+        ],
+        "synonyms": [
+          {
+            "word": "veloz"
+          }
+        ],
+        "glosses": [
+          "rapid, quick, fast"
+        ],
+        "id": "en-rápido-es-adj-yiYgBYP7",
+        "derived": [
+          {
+            "word": "comida rápida"
+          },
+          {
+            "word": "moda rápida"
+          },
+          {
+            "word": "vía rápida"
+          }
+        ],
+        "categories": [
+          {
+            "name": "Spanish entries with incorrect language header",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "43 16 41 0"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "pos": "adv",
+    "head_templates": [
+      {
+        "name": "es-adv",
+        "args": {},
+        "expansion": "rápido"
+      }
+    ],
+    "etymology_text": "Borrowed from Latin rapidus. Doublet of raudo. From the same Latin source as English rapid.",
+    "etymology_templates": [
+      {
+        "name": "bor+",
+        "args": {
+          "1": "es",
+          "2": "la",
+          "3": "rapidus"
+        },
+        "expansion": "Borrowed from Latin rapidus"
+      },
+      {
+        "name": "dbt",
+        "args": {
+          "1": "es",
+          "2": "raudo"
+        },
+        "expansion": "Doublet of raudo"
+      },
+      {
+        "name": "cog",
+        "args": {
+          "1": "en",
+          "2": "rapid"
+        },
+        "expansion": "English rapid"
+      }
+    ],
+    "sounds": [
+      {
+        "ipa": "/ˈrapido/"
+      },
+      {
+        "ipa": "[ˈra.pi.ð̞o]"
+      },
+      {
+        "rhymes": "-apido"
+      }
+    ],
+    "hyphenation": [
+      "rá‧pi‧do"
+    ],
+    "hyphenations": [
+      {
+        "parts": [
+          "rá‧pi‧do"
+        ]
+      }
+    ],
+    "word": "rápido",
+    "lang": "Spanish",
+    "lang_code": "es",
+    "senses": [
+      {
+        "links": [
+          [
+            "rapidly",
+            "rapidly"
+          ],
+          [
+            "quickly",
+            "quickly"
+          ],
+          [
+            "fast",
+            "fast"
+          ]
+        ],
+        "synonyms": [
+          {
+            "word": "deprisa"
+          },
+          {
+            "word": "velozmente"
+          }
+        ],
+        "glosses": [
+          "rapidly, quickly, fast"
+        ],
+        "id": "en-rápido-es-adv-~n~QPYVQ",
+        "derived": [
+          {
+            "roman": "n.",
+            "english": "fast forward",
+            "translation": "fast forward",
+            "word": "avance rápido"
+          },
+          {
+            "word": "pista rápida"
+          }
+        ],
+        "related": [
+          {
+            "english": "rapidly, quickly",
+            "translation": "rapidly, quickly",
+            "word": "rápidamente"
+          },
+          {
+            "english": "rapidity, speed",
+            "translation": "rapidity, speed",
+            "word": "rapidez"
+          },
+          {
+            "word": "rapto"
+          }
+        ],
+        "categories": [
+          {
+            "name": "Spanish entries with incorrect language header",
+            "kind": "other",
+            "parents": [],
+            "source": "w+disamb",
+            "_dis": "43 16 41 0"
+          }
+        ]
+      }
+    ]
+  }
+]

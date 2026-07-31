@@ -1,0 +1,27 @@
+{
+  "generatedAt": "2026-07-31T03:58:20.981Z",
+  "measuredOn": {
+    "sampleEntries": 186,
+    "conjugationTables": 35
+  },
+  "perEntryBytes": {
+    "rawJson": 513,
+    "gzipped": 140
+  },
+  "projectedFor": 10000,
+  "projected": {
+    "entriesGzip": 1402849,
+    "conjugationsGzip": 793773,
+    "searchIndexGzip": 693031,
+    "searchIndexRaw": 6931536,
+    "totalGzip": 2889654,
+    "totalGzipHuman": "2.8 MB"
+  },
+  "estimatedVerbsInTop10k": 1985,
+  "distinctFormsInTrimmedIndex": 223891,
+  "chunkingSketch": {
+    "note": "Section 11 requires a chunked, resumable, atomic download.",
+    "suggestedChunks": 5,
+    "chunkTargetBytes": 614400
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "generatedAt": "2026-07-31T03:56:47.344Z",
+  "jehleVerbsInDatabase": 637,
+  "sampleEntries": 186,
+  "verbsInSample": 37,
+  "verbsWithJehleConjugation": 35,
+  "verbsMissingJehleConjugation": 2,
+  "verbsMissingJehle": [
+    {
+      "lemma": "haber",
+      "freqRank": 27,
+      "regular": true
+    },
+    {
+      "lemma": "madrugar",
+      "freqRank": 9616,
+      "regular": true
+    }
+  ],
+  "mexicoFlaggedEntriesIncluded": [
+    "hueso",
+    "dar",
+    "we",
+    "torta",
+    "sale",
+    "gallo",
+    "computadora",
+    "conejo",
+    "conductor",
+    "sal",
+    "ese",
+    "cesta",
+    "tomate",
+    "palomita",
+    "va",
+    "bueno",
+    "sé",
+    "chamba",
+    "ése",
+    "güey"
+  ]
+}

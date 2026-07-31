@@ -1,0 +1,433 @@
+{
+  "generatedAt": "2026-07-31T03:27:38.934Z",
+  "totalRecords": 807155,
+  "coverage": {
+    "withForms": 113951,
+    "withSounds": 165236,
+    "withEtymologyNumber": 10041,
+    "withEtymologyText": 65926,
+    "withCategories": 1806,
+    "withHeadTemplates": 806842,
+    "sensesWithTags": 840444,
+    "sensesWithRawGlosses": 42570
+  },
+  "topLevelFields": {
+    "pos": 807155,
+    "word": 807155,
+    "lang": 807155,
+    "lang_code": 807155,
+    "senses": 807155,
+    "head_templates": 806842,
+    "sounds": 165236,
+    "hyphenations": 164249,
+    "hyphenation": 164248,
+    "forms": 113951,
+    "etymology_text": 65926,
+    "etymology_templates": 62421,
+    "etymology_number": 10041,
+    "inflection_templates": 8700,
+    "derived": 6189,
+    "related": 5241,
+    "descendants": 3187,
+    "categories": 1806,
+    "wikipedia": 394,
+    "hyponyms": 179,
+    "antonyms": 141,
+    "synonyms": 96,
+    "coordinate_terms": 40,
+    "hypernyms": 23,
+    "meronyms": 6,
+    "original_title": 6,
+    "abbreviations": 3,
+    "holonyms": 2,
+    "info_templates": 1
+  },
+  "posCounts": {
+    "verb": 584562,
+    "noun": 128854,
+    "adj": 75618,
+    "name": 8650,
+    "adv": 5063,
+    "suffix": 1080,
+    "phrase": 788,
+    "intj": 682,
+    "prefix": 326,
+    "pron": 284,
+    "prep": 256,
+    "num": 250,
+    "proverb": 233,
+    "conj": 159,
+    "det": 143,
+    "character": 75,
+    "contraction": 50,
+    "prep_phrase": 28,
+    "symbol": 20,
+    "article": 16,
+    "particle": 10,
+    "punct": 6,
+    "interfix": 1,
+    "infix": 1
+  },
+  "senseFields": {
+    "id": 871145,
+    "glosses": 871015,
+    "links": 867121,
+    "tags": 840444,
+    "categories": 821945,
+    "form_of": 719833,
+    "raw_glosses": 42570,
+    "synonyms": 26078,
+    "examples": 17097,
+    "topics": 12502,
+    "related": 12341,
+    "derived": 9183,
+    "alt_of": 5918,
+    "antonyms": 2002,
+    "qualifier": 1624,
+    "raw_tags": 1000,
+    "wikipedia": 819,
+    "coordinate_terms": 403,
+    "hypernyms": 281,
+    "attestations": 255,
+    "info_templates": 198,
+    "hyponyms": 142,
+    "senseid": 124,
+    "head_nr": 92,
+    "wikidata": 46,
+    "meronyms": 24,
+    "holonyms": 11,
+    "taxonomic": 4,
+    "compound_of": 4
+  },
+  "regionalTagsSeen": {
+    "Mexico": 2008,
+    "Spain": 1419,
+    "Latin-America": 1113,
+    "Chile": 1081,
+    "Rioplatense": 720,
+    "Colombia": 650,
+    "Peru": 605,
+    "Argentina": 535,
+    "Cuba": 508,
+    "Canary-Islands": 438,
+    "Central-America": 278,
+    "South-America": 127,
+    "Caribbean": 101,
+    "in Spain": 32,
+    "in Latin America": 8,
+    "in Peru": 5,
+    "in Argentina": 4,
+    "in colloquial usage chiefly Latin America": 4,
+    "in Mexico": 3,
+    "in Chile": 3,
+    "with ser or (chiefly Latin America, sometimes) estar": 2,
+    "in Colombia": 2,
+    "in colloquial usage more common in Latin America": 2,
+    "in Honduras and Chile": 2,
+    "in Mesoamerican mythology": 2,
+    "in Bolivia and Chile": 1,
+    "in Rioplatense and Peru": 1,
+    "North-America": 1,
+    "not used in Mexico": 1,
+    "in El Salvador and Spain": 1,
+    "relating to the sea": 1,
+    "in some parts of Latin America": 1,
+    "Southern-Spain": 1,
+    "in Bolivia and Rioplatense": 1,
+    "of Mesoamerican languages": 1
+  },
+  "formTagsTop": {
+    "combined-form": 822754,
+    "plural": 757292,
+    "imperative": 717246,
+    "second-person": 714752,
+    "singular": 653789,
+    "accusative": 464452,
+    "object-singular": 411405,
+    "object-plural": 411349,
+    "object-third-person": 398250,
+    "dative": 358304,
+    "informal": 330771,
+    "first-person": 293622,
+    "indicative": 275325,
+    "formal": 248639,
+    "third-person": 233472,
+    "subjunctive": 222106,
+    "object-first-person": 212418,
+    "object-second-person": 212086,
+    "imperfect": 159795,
+    "present": 135127,
+    "infinitive": 131229,
+    "gerund": 131229,
+    "future": 106553,
+    "with-tú": 92686,
+    "with-vos": 92344,
+    "feminine": 87303,
+    "preterite": 63825,
+    "negative": 62564,
+    "conditional": 53285,
+    "imperfect-se": 53267,
+    "masculine": 51185,
+    "past": 46310,
+    "participle": 46305,
+    "second-person-semantically": 35692,
+    "vos-form": 26459,
+    "table-tags": 15533,
+    "inflection-template": 15533,
+    "alternative": 7011,
+    "class": 4998,
+    "error-unrecognized-form": 878,
+    "canonical": 653,
+    "obsolete": 566,
+    "archaic": 328,
+    "proximal": 246,
+    "Uruguay": 181,
+    "uncommon": 152,
+    "superlative": 143,
+    "Argentina": 135,
+    "medial": 123,
+    "distal": 123
+  },
+  "identityProbe": {
+    "ir": [
+      {
+        "pos": "verb",
+        "etymology_number": null,
+        "etymology_text_head": "Inherited from Latin īre (“to go”). Forms beginning with /b/ such as v",
+        "senseCount": 32,
+        "firstGloss": "to go (away from speaker and listener)",
+        "formCount": 314
+      }
+    ],
+    "casa": [
+      {
+        "pos": "noun",
+        "etymology_number": "1",
+        "etymology_text_head": "Inherited from Latin casa (“cottage”).",
+        "senseCount": 1,
+        "firstGloss": "house",
+        "formCount": 1
+      },
+      {
+        "pos": "verb",
+        "etymology_number": "2",
+        "etymology_text_head": "See the etymology of the corresponding lemma form.",
+        "senseCount": 2,
+        "firstGloss": "inflection of casar:",
+        "formCount": 0
+      }
+    ],
+    "ser": [
+      {
+        "pos": "verb",
+        "etymology_number": null,
+        "etymology_text_head": "Etymology tree\nProto-Indo-European *h₁es-\nProto-Indo-European *h₁ésti\n",
+        "senseCount": 3,
+        "firstGloss": "to be (essentially or identified as)",
+        "formCount": 193
+      },
+      {
+        "pos": "noun",
+        "etymology_number": null,
+        "etymology_text_head": "Etymology tree\nProto-Indo-European *h₁es-\nProto-Indo-European *h₁ésti\n",
+        "senseCount": 3,
+        "firstGloss": "a being, organism",
+        "formCount": 1
+      }
+    ],
+    "papa": [
+      {
+        "pos": "noun",
+        "etymology_number": "1",
+        "etymology_text_head": "Borrowed from Latin papas, from Ancient Greek πάπας (pápas, “bishop, p",
+        "senseCount": 1,
+        "firstGloss": "pope (an honorary title of the Roman Catholic bishop of Rome)",
+        "formCount": 1
+      },
+      {
+        "pos": "noun",
+        "etymology_number": "2",
+        "etymology_text_head": "Borrowed from Quechua papa.",
+        "senseCount": 2,
+        "firstGloss": "potato",
+        "formCount": 1
+      },
+      {
+        "pos": "noun",
+        "etymology_number": "3",
+        "etymology_text_head": "Inherited from Latin pappa (“food; used regarding children”).",
+        "senseCount": 2,
+        "firstGloss": "very bland soup, or more broadly, food in general",
+        "formCount": 1
+      },
+      {
+        "pos": "verb",
+        "etymology_number": "4",
+        "etymology_text_head": "See the etymology of the corresponding lemma form.",
+        "senseCount": 2,
+        "firstGloss": "inflection of papar:",
+        "formCount": 0
+      }
+    ],
+    "vino": [
+      {
+        "pos": "noun",
+        "etymology_number": "1",
+        "etymology_text_head": "Etymology tree\nProto-Indo-European *weh₁y-?\nProto-Indo-European *-ō\nPr",
+        "senseCount": 1,
+        "firstGloss": "wine (an alcoholic beverage made by fermenting grape juice, with an ABV ranging from 5.5–16%)",
+        "formCount": 1
+      },
+      {
+        "pos": "verb",
+        "etymology_number": "2",
+        "etymology_text_head": "See the etymology of the corresponding lemma form.",
+        "senseCount": 1,
+        "firstGloss": "third-person singular preterite indicative of venir",
+        "formCount": 0
+      }
+    ],
+    "sobre": [
+      {
+        "pos": "prep",
+        "etymology_number": "1",
+        "etymology_text_head": "Inherited from Old Spanish sobre, from Latin super (“above”), from *ek",
+        "senseCount": 2,
+        "firstGloss": "over, above, on, upon, atop",
+        "formCount": 0
+      },
+      {
+        "pos": "noun",
+        "etymology_number": "1",
+        "etymology_text_head": "Inherited from Old Spanish sobre, from Latin super (“above”), from *ek",
+        "senseCount": 3,
+        "firstGloss": "envelope",
+        "formCount": 1
+      },
+      {
+        "pos": "verb",
+        "etymology_number": "2",
+        "etymology_text_head": "See the etymology of the corresponding lemma form.",
+        "senseCount": 2,
+        "firstGloss": "inflection of sobrar:",
+        "formCount": 0
+      }
+    ],
+    "año": [
+      {
+        "pos": "noun",
+        "etymology_number": null,
+        "etymology_text_head": "Etymology tree\nProto-Italic *atnos?\nLatin annus\nOld Spanish anno\nSpani",
+        "senseCount": 2,
+        "firstGloss": "year",
+        "formCount": 1
+      }
+    ],
+    "sacar": [
+      {
+        "pos": "verb",
+        "etymology_number": null,
+        "etymology_text_head": "Etymology tree\nProto-Indo-European *seh₂g-\nProto-Indo-European *-ti\nPr",
+        "senseCount": 28,
+        "firstGloss": "to put out, to get out (e.g. a public statement, an APB, a release of media or entertainment)",
+        "formCount": 210
+      }
+    ],
+    "tener": [
+      {
+        "pos": "verb",
+        "etymology_number": null,
+        "etymology_text_head": "Inherited from Old Spanish tener (“to hold”), from Latin tenēre, teneō",
+        "senseCount": 12,
+        "firstGloss": "to have; to possess",
+        "formCount": 210
+      }
+    ],
+    "banco": [
+      {
+        "pos": "noun",
+        "etymology_number": "1",
+        "etymology_text_head": "Borrowed from Old French bank, from Proto-Germanic *bankiz. Compare En",
+        "senseCount": 4,
+        "firstGloss": "bank (financial institution)",
+        "formCount": 1
+      },
+      {
+        "pos": "verb",
+        "etymology_number": "2",
+        "etymology_text_head": null,
+        "senseCount": 1,
+        "firstGloss": "first-person singular present indicative of bancar",
+        "formCount": 0
+      }
+    ],
+    "bajo": [
+      {
+        "pos": "adj",
+        "etymology_number": "1",
+        "etymology_text_head": "Inherited from Late Latin bassus. Cognate with English base and bass.",
+        "senseCount": 5,
+        "firstGloss": "short (of little height)",
+        "formCount": 4
+      },
+      {
+        "pos": "adv",
+        "etymology_number": "1",
+        "etymology_text_head": "Inherited from Late Latin bassus. Cognate with English base and bass.",
+        "senseCount": 3,
+        "firstGloss": "low",
+        "formCount": 1
+      },
+      {
+        "pos": "noun",
+        "etymology_number": "1",
+        "etymology_text_head": "Inherited from Late Latin bassus. Cognate with English base and bass.",
+        "senseCount": 2,
+        "firstGloss": "bass (sound, voice or instrument)",
+        "formCount": 2
+      },
+      {
+        "pos": "prep",
+        "etymology_number": "1",
+        "etymology_text_head": "Inherited from Late Latin bassus. Cognate with English base and bass.",
+        "senseCount": 1,
+        "firstGloss": "under (in both literal and figurative senses)",
+        "formCount": 1
+      },
+      {
+        "pos": "verb",
+        "etymology_number": "2",
+        "etymology_text_head": "See the etymology of the corresponding lemma form.",
+        "senseCount": 1,
+        "firstGloss": "first-person singular present indicative of bajar",
+        "formCount": 1
+      }
+    ],
+    "rápido": [
+      {
+        "pos": "adj",
+        "etymology_number": null,
+        "etymology_text_head": "Borrowed from Latin rapidus. Doublet of raudo. From the same Latin sou",
+        "senseCount": 1,
+        "firstGloss": "rapid, quick, fast",
+        "formCount": 4
+      },
+      {
+        "pos": "adv",
+        "etymology_number": null,
+        "etymology_text_head": "Borrowed from Latin rapidus. Doublet of raudo. From the same Latin sou",
+        "senseCount": 1,
+        "firstGloss": "rapidly, quickly, fast",
+        "formCount": 0
+      },
+      {
+        "pos": "noun",
+        "etymology_number": null,
+        "etymology_text_head": "Borrowed from Latin rapidus. Doublet of raudo. From the same Latin sou",
+        "senseCount": 2,
+        "firstGloss": "rapid (part of a river)",
+        "formCount": 1
+      }
+    ]
+  }
+}

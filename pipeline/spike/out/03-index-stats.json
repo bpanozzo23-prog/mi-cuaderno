@@ -1,0 +1,168 @@
+{
+  "generatedAt": "2026-07-31T03:55:56.116Z",
+  "totalRecords": 807155,
+  "lemmaRecords": 116333,
+  "inflectionRecords": 690822,
+  "distinctNormalizedForms": 1065362,
+  "distinctExactForms": 1205793,
+  "distinctCitationForms": 106071,
+  "formsHarvestedFromFormsArray": 1509505,
+  "formsHarvestedFromFormOfRecords": 724814,
+  "canonicalIds": 115393,
+  "recordsThatMergeIntoAnExistingId": 940,
+  "entriesBuiltFromMultipleRecords": 920,
+  "mergeExamples": [
+    {
+      "id": "dict:wiktionary-es:color:noun",
+      "word": "color",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:o:conj:2",
+      "word": "o",
+      "pos": "conj",
+      "etymology_number": "2"
+    },
+    {
+      "id": "dict:wiktionary-es:FIFA:name",
+      "word": "FIFA",
+      "pos": "name",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:general:noun",
+      "word": "general",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:capital:noun",
+      "word": "capital",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:español:noun",
+      "word": "español",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:gallo:noun",
+      "word": "gallo",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:gallo:noun",
+      "word": "gallo",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:vocal:noun",
+      "word": "vocal",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:conductor:noun",
+      "word": "conductor",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:actor:noun",
+      "word": "actor",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:central:noun",
+      "word": "central",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:central:noun",
+      "word": "central",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:simple:noun",
+      "word": "simple",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:mayor:noun",
+      "word": "mayor",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:delta:noun",
+      "word": "delta",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:kappa:noun",
+      "word": "kappa",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:terminal:noun",
+      "word": "terminal",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:tri:noun",
+      "word": "tri",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:micro:noun:2",
+      "word": "micro",
+      "pos": "noun",
+      "etymology_number": "2"
+    },
+    {
+      "id": "dict:wiktionary-es:negro:noun",
+      "word": "negro",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:Java:name",
+      "word": "Java",
+      "pos": "name",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:Quito:name",
+      "word": "Quito",
+      "pos": "name",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:feta:noun",
+      "word": "feta",
+      "pos": "noun",
+      "etymology_number": null
+    },
+    {
+      "id": "dict:wiktionary-es:tau:noun",
+      "word": "tau",
+      "pos": "noun",
+      "etymology_number": null
+    }
+  ],
+  "multiPosLemmas": 8330,
+  "indexFileBytes": 49714895
+}
