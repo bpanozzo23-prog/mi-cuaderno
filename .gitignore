@@ -1,0 +1,13 @@
+# dependencies and build output
+node_modules/
+dist/
+dev-dist/
+
+# raw pipeline downloads (hundreds of MB — never committed)
+pipeline/spike/raw/
+pipeline/raw/
+
+# local junk
+*.local
+.DS_Store
+Thumbs.db
