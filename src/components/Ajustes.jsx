@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Download, Upload, HardDrive, ShieldCheck, ShieldAlert, AlertTriangle } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, SectionTitle, Card, Button } from "../theme.jsx";
 import { db, getPref } from "../db/db.js";
@@ -14,6 +14,8 @@ import { storageStatus } from "../lib/persistence.js";
 import { downloadJson, readFileAsText } from "../lib/file.js";
 import { daysSince } from "../lib/dates.js";
 import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
+import DictionaryCard from "./DictionaryCard.jsx";
+import { installedMeta } from "../db/ref/entries.js";
 
 function backupAgeLabel(iso) {
   if (!iso) return "never";
@@ -31,6 +33,7 @@ export default function Ajustes({ onDataReplaced }) {
   const [pending, setPending] = useState(null); // { envelope, summary }
   const [problems, setProblems] = useState([]);
   const [note, setNote] = useState("");
+  const [dictionary, setDictionary] = useState(null);
 
   async function refresh() {
     const [status, last, items, events] = await Promise.all([
@@ -44,9 +47,14 @@ export default function Ajustes({ onDataReplaced }) {
     setCounts({ items, events });
   }
 
+  const refreshDictionary = useCallback(async () => {
+    setDictionary(await installedMeta());
+  }, []);
+
   useEffect(() => {
     refresh();
-  }, []);
+    refreshDictionary();
+  }, [refreshDictionary]);
 
   async function handleExport() {
     const envelope = await buildBackup();
@@ -197,13 +205,57 @@ export default function Ajustes({ onDataReplaced }) {
         )}
       </Card>
 
+      <DictionaryCard onInstalled={refreshDictionary} />
+
       <SectionTitle>About</SectionTitle>
       <Card>
         <div className="text-xs space-y-1" style={{ fontFamily: MONO, color: C.mut }}>
           <div>app version {APP_VERSION}</div>
           <div>data schema v{SCHEMA_VERSION}</div>
-          <div>dictionary: not installed (Phase 2)</div>
+          <div>dictionary: {dictionary ? dictionary.datasetVersion : "not installed"}</div>
         </div>
+
+        {/*
+          Brief §4: the About screen shows the dataset version and renders the attribution.
+          It is read from the installed manifest rather than hard-coded, so it can never
+          describe a different dataset than the one actually on the phone.
+        */}
+        {dictionary?.attribution && (
+          <div className="mt-3 pt-3 border-t" style={{ borderColor: C.line }}>
+            <div className="text-xs font-semibold" style={{ color: C.ink }}>
+              Dictionary data
+            </div>
+            <div className="mt-1 text-xs leading-relaxed" style={{ color: C.mut }}>
+              {dictionary.attribution.note}
+            </div>
+            <ul className="mt-2 space-y-1.5">
+              {dictionary.attribution.sources.map((s) => (
+                <li key={s.name} className="text-xs leading-relaxed" style={{ color: C.mut }}>
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline underline-offset-2"
+                    style={{ color: C.pen }}
+                  >
+                    {s.name}
+                  </a>
+                  <br />
+                  {s.license} · {s.attribution}
+                </li>
+              ))}
+            </ul>
+            {dictionary.attribution.examples?.license && (
+              <div className="mt-2 text-xs leading-relaxed" style={{ color: C.mut }}>
+                Example sentences are {dictionary.attribution.examples.license}; each one shows its contributor and
+                links to the original.
+              </div>
+            )}
+            <div className="mt-2 text-xs" style={{ color: C.mut }}>
+              Full record: {dictionary.attribution.fullRecord}
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );

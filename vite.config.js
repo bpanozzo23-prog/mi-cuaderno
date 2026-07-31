@@ -12,6 +12,15 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      workbox: {
+        // The dictionary is an explicit, owner-initiated download that lands in IndexedDB
+        // (brief §11) — the service worker must not quietly precache 22 MB of chunks on
+        // first visit. globPatterns is already js/css/html-only by default; both entries
+        // are stated rather than inherited so a later Workbox default cannot change it.
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
+        globIgnores: ["**/dict/**"],
+        navigateFallbackDenylist: [/^\/mi-cuaderno\/dict\//],
+      },
       manifest: {
         name: "Mi cuaderno",
         short_name: "Mi cuaderno",
