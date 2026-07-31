@@ -24,4 +24,15 @@ One line per meaningful choice: date — decision — reason.
 - 2026-07-31 — Form-index filters: reject `form_of` targets matching /^deprecated in \d{4}/, and forms tagged `inflection-template`, `class`, or `table-tags`. — These are prose and conjugation-table metadata (`es-conj`, `e-ie alternation`), not words. Kept deliberately narrow so real multiword idioms and reflexive forms (`me voy`) survive.
 - 2026-07-31 — `unbzip2-stream` added as a dev dependency. — Tatoeba ships `.bz2`, which Node cannot decompress natively; a pure-JS decoder avoids depending on a system `bzip2` binary.
 - 2026-07-31 — Full-dictionary size measured, not estimated: ~2.8 MB gzipped for 10k lemmas (entries 1.34 + conjugations 0.76 + search index 0.66). — Confirms the §11 chunked download is straightforward (~5 chunks of 600 KB).
+## Phase 1a — data foundation (2026-07-31)
+
+- 2026-07-31 — Dexie schema v1: `items (id, type, term, title, updatedAt, *tags, *linkedKeys)`, `events (id, at, localDate, itemKey, type)`, `prefs (key)`. — Multi-entry indexes on `tags` and `linkedKeys` make "items with tag T" and "items linking to key K" single indexed lookups instead of full scans; the latter is what computes backlinks and cleans up on delete.
+- 2026-07-31 — Personal-layer timestamps are ISO-8601 strings, not epoch numbers. — They sort correctly as strings and are readable inside a backup file, which is the format the owner may one day have to repair by hand.
+- 2026-07-31 — Reference-layer tables are deliberately absent from schema v1; Phase 2 adds them as separate stores. — Enforces the §5 rule that rebuilding the dictionary can never touch personal data.
+- 2026-07-31 — Backup validation rejects an envelope whose `schemaVersion` is newer than the app's. — A newer file may contain fields this version would silently drop on import; better to ask the owner to update the app.
+- 2026-07-31 — Duplicate *item* ids in a backup are a hard error; duplicate *event* ids are skipped. — §10 specifies skipping for events; for items there is no safe choice between two records claiming the same identity, so the import stops rather than guess.
+- 2026-07-31 — Ajustes (settings) occupies the third tab until Phase 5, when Asistente joins. — Backup is the disaster-recovery mechanism (§10); it needs a permanent home from day one, not a menu.
+- 2026-07-31 — Vitest + fake-indexeddb for tests (`npm test`). — fake-indexeddb runs the real Dexie code in Node, so the database tests exercise what ships rather than a mock.
+- 2026-07-31 — `vite.config.js` dev server honours `process.env.PORT`. — Lets tooling assign a free port when the default 5173 is already taken.
+
 - 2026-07-31 — Phase 2 scope note: generating conjugations for verbs Jehle lacks requires orthographic rules (`-gar`/`-car`/`-zar`, stem changes), not just endings — `madrugar` → `madrugué`. — Recorded now so it is not discovered mid-Phase-2. — All are one dependency chain inside the build tool (`vite-plugin-pwa` → workbox → old `brace-expansion`); build-time only, nothing ships to the app; the offered fix downgrades the PWA plugin.

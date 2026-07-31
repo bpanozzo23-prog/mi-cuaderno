@@ -6,6 +6,7 @@ import { VitePWA } from "vite-plugin-pwa";
 // base must match the GitHub Pages sub-path: https://<user>.github.io/mi-cuaderno/
 export default defineConfig({
   base: "/mi-cuaderno/",
+  server: { port: Number(process.env.PORT) || 5173 },
   plugins: [
     react(),
     tailwindcss(),

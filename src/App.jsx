@@ -1,68 +1,75 @@
-import { NotebookPen } from "lucide-react";
+import { useState } from "react";
+import { BookOpen, BarChart3, Settings } from "lucide-react";
+import { C, SERIF, MONO, dotGrid, Hi, Card } from "./theme.jsx";
+import Ajustes from "./components/Ajustes.jsx";
 
-/* Design tokens from the prototype (docs/mi-cuaderno.jsx) */
-const C = {
-  paper: "#FAF9F4",
-  card: "#FFFFFF",
-  ink: "#212A3D",
-  pen: "#2D4EA0",
-  penPale: "#EDF1FA",
-  hi: "#F7DF4E",
-  line: "#E6E3D7",
-  mut: "#7A8199",
-};
-const SERIF = 'Georgia, "Iowan Old Style", "Times New Roman", serif';
+const TABS = [
+  { id: "cuaderno", label: "Cuaderno", icon: BookOpen },
+  { id: "repaso", label: "Repaso", icon: BarChart3 },
+  { id: "ajustes", label: "Ajustes", icon: Settings },
+];
 
-function Hi({ children }) {
+function Placeholder({ text }) {
   return (
-    <span
-      style={{
-        backgroundImage: `linear-gradient(100deg, transparent 0.5%, ${C.hi} 3.5%, ${C.hi}E6 96%, transparent 99.5%)`,
-        borderRadius: 4,
-        padding: "0 6px",
-        margin: "0 -6px",
-        boxDecorationBreak: "clone",
-        WebkitBoxDecorationBreak: "clone",
-      }}
-    >
-      {children}
-    </span>
+    <div className="px-4 py-16" style={dotGrid}>
+      <Card className="mx-auto max-w-xs text-center p-6">
+        <div className="text-base" style={{ fontFamily: SERIF, color: C.ink }}>
+          Aquí empieza el cuaderno.
+        </div>
+        <div className="mt-2 text-sm" style={{ color: C.mut }}>
+          {text}
+        </div>
+      </Card>
+    </div>
   );
 }
 
-const dotGrid = {
-  backgroundImage: "radial-gradient(rgba(45,78,160,0.06) 1px, transparent 1.2px)",
-  backgroundSize: "18px 18px",
-};
-
 export default function App() {
+  const [tab, setTab] = useState("cuaderno");
+  const [dataEpoch, setDataEpoch] = useState(0); // bumped when an import replaces everything
+
   return (
     <div className="min-h-screen" style={{ background: C.paper, color: C.ink }}>
-      <div className="max-w-md mx-auto min-h-screen" style={{ background: C.paper }}>
-        <header className="px-4 pt-4 pb-3" style={{ borderBottom: `1px solid ${C.line}` }}>
+      <div className="max-w-md mx-auto min-h-screen relative" style={{ background: C.paper }}>
+        <header
+          className="sticky top-0 z-20 px-4 pt-4 pb-3"
+          style={{ background: C.paper, borderBottom: `1px solid ${C.line}` }}
+        >
           <div className="text-2xl font-bold" style={{ fontFamily: SERIF, color: C.ink }}>
             Mi <Hi>cuaderno</Hi>
           </div>
           <div className="text-xs mt-1" style={{ color: C.mut }}>
-            Spanish notebook · setup complete
+            Spanish notebook
           </div>
         </header>
 
-        <main className="px-4 py-16 text-center" style={dotGrid}>
-          <div
-            className="mx-auto max-w-xs rounded-2xl border p-6"
-            style={{ background: C.card, borderColor: C.line }}
-          >
-            <NotebookPen size={28} className="mx-auto" style={{ color: C.pen }} />
-            <div className="mt-3 text-base" style={{ fontFamily: SERIF, color: C.ink }}>
-              Aquí empieza el cuaderno.
-            </div>
-            <div className="mt-2 text-sm" style={{ color: C.mut }}>
-              The notebook itself arrives in Phase 1. This shell exists to prove the app installs,
-              opens full-screen, and redeploys on every push.
-            </div>
+        {tab === "cuaderno" && <Placeholder text="Words, phrases and pages arrive in the next step (Phase 1b)." />}
+        {tab === "repaso" && <Placeholder text="Lookup history and tricky words arrive in Phase 1d." />}
+        {tab === "ajustes" && <Ajustes key={dataEpoch} onDataReplaced={() => setDataEpoch((n) => n + 1)} />}
+
+        <nav className="fixed bottom-0 inset-x-0 z-30">
+          <div className="max-w-md mx-auto flex border-t" style={{ background: C.card, borderColor: C.line }}>
+            {TABS.map((t) => {
+              const Icon = t.icon;
+              const active = tab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  className="flex-1 py-2.5 flex flex-col items-center gap-0.5"
+                >
+                  <Icon size={19} style={{ color: active ? C.pen : C.mut }} />
+                  <span
+                    className="text-[11px]"
+                    style={{ color: active ? C.pen : C.mut, fontWeight: active ? 600 : 400 }}
+                  >
+                    {t.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
-        </main>
+        </nav>
       </div>
     </div>
   );
