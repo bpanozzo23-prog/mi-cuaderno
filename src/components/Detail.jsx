@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, Trash2, X, ExternalLink, Pencil, CalendarDays, FileText, Check, Link2 } from "lucide-react";
+import {
+  ChevronLeft, Trash2, X, ExternalLink, Pencil, CalendarDays, FileText, Check, Link2,
+  Highlighter, Eye, Clock,
+} from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Chip, Button } from "../theme.jsx";
 import { POS_OPTIONS, POS_ABBR } from "./ItemCard.jsx";
 import { updateItem, deleteItem, linkItems, unlinkItems, displayTitle } from "../db/items.js";
+import { logView, toggleTricky } from "../db/events.js";
 import { emptyItemState } from "../useNotebook.js";
+import { timeAgo } from "../lib/dates.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
@@ -44,6 +49,17 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
         ? { title: item.title, pageDate: item.pageDate || "" }
         : { term: item.term, translation: item.translation, pos: item.pos || "", form: item.form }
     );
+  }, [item.id]);
+
+  // A lookup is recorded when the owner intentionally opens an item — keyed on
+  // item.id alone, so rerenders and edits within this screen never re-fire it.
+  // logView itself decides whether this counts as a new lookup; the refresh is
+  // not tied to this component still being mounted, because the effect may be
+  // torn down and re-run before the write settles.
+  useEffect(() => {
+    logView(item.id).then((logged) => {
+      if (logged) onChanged();
+    });
   }, [item.id]);
 
   async function patch(fields, options) {
@@ -179,6 +195,35 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
               <Pencil size={15} style={{ color: C.mut }} />
             </button>
           </div>
+        )}
+
+        {!editingHead && (
+          <>
+            <div className="mt-3 flex items-center gap-4 text-xs" style={{ fontFamily: MONO, color: C.mut }}>
+              <span className="inline-flex items-center gap-1">
+                <Eye size={12} /> {state.views} {state.views === 1 ? "lookup" : "lookups"}
+              </span>
+              {state.lastViewedAt && (
+                <span className="inline-flex items-center gap-1">
+                  <Clock size={12} /> {timeAgo(state.lastViewedAt)}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={async () => {
+                await toggleTricky(item.id, state.tricky);
+                onChanged();
+              }}
+              className="mt-3 inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border font-medium"
+              style={
+                state.tricky
+                  ? { background: C.hi, borderColor: "#E3C93A", color: "#5B4E08" }
+                  : { background: C.card, borderColor: C.line, color: C.mut }
+              }
+            >
+              <Highlighter size={15} /> {state.tricky ? "Marked tricky" : "Highlight as tricky"}
+            </button>
+          </>
         )}
       </Card>
 

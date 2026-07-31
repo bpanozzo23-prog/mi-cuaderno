@@ -23,8 +23,15 @@ export const EVENT_TYPES = {
   searchMiss: "search_miss",
 };
 
-export async function logEvent(type, itemKey = null, metadata = null) {
-  const when = new Date();
+/**
+ * A detail screen opened again within this window does not count as a second
+ * lookup (brief section 7). Rerenders, edit toggles and hopping back from a
+ * linked item must not inflate the count — only genuinely returning to a word
+ * later should.
+ */
+export const SESSION_WINDOW_MINUTES = 30;
+
+export async function logEvent(type, itemKey = null, metadata = null, when = new Date()) {
   const event = {
     id: newEventId(),
     type,
@@ -35,6 +42,35 @@ export async function logEvent(type, itemKey = null, metadata = null) {
   };
   await db.events.add(event);
   return event;
+}
+
+/**
+ * Records a lookup, unless one was already recorded for this item inside the
+ * session window. Returns the event when it logged one, otherwise null.
+ *
+ * The check and the write share one transaction on purpose. Two calls arriving
+ * together — React re-invoking an effect, or a fast double-tap — would otherwise
+ * both read "no view yet" and both write one, which is exactly the inflated count
+ * the session window exists to prevent. Transactions with the same scope run in
+ * sequence, so the second call sees the first one's event.
+ */
+export async function logView(itemKey, now = new Date()) {
+  return db.transaction("rw", db.events, async () => {
+    const previous = await db.events.where("itemKey").equals(itemKey).toArray();
+    const lastView = previous
+      .filter((e) => e.type === EVENT_TYPES.view)
+      .reduce((latest, e) => (!latest || e.at > latest.at ? e : latest), null);
+
+    if (lastView) {
+      const elapsedMinutes = (now.getTime() - new Date(lastView.at).getTime()) / 60000;
+      if (elapsedMinutes < SESSION_WINDOW_MINUTES) return null;
+    }
+    return logEvent(EVENT_TYPES.view, itemKey, null, now);
+  });
+}
+
+export async function toggleTricky(itemKey, currentlyTricky) {
+  return logEvent(currentlyTricky ? EVENT_TYPES.trickyOff : EVENT_TYPES.trickyOn, itemKey);
 }
 
 export async function eventsFor(itemKey) {

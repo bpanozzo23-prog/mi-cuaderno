@@ -45,4 +45,12 @@ One line per meaningful choice: date — decision — reason.
 - 2026-07-31 — Linking and unlinking do not log an `edit` event. — `edit` marks content the owner changed; links are bookkeeping, and logging them would inflate the activity feed.
 - 2026-07-31 — `.gitignore` covers `mi-cuaderno-backup-*.json` and `before-import-*.json`. — Exports land in the working directory by default and contain the entire notebook; the repo is public.
 
+## Phase 1d — tracking and Repaso (2026-07-31)
+
+- 2026-07-31 — `SESSION_WINDOW_MINUTES = 30`, and the check-then-write in `logView` runs inside one Dexie transaction. — Without the transaction, two calls arriving together (React re-invoking the effect in development, or a double-tap) both read "no view yet" and both write one — the exact inflated count the window exists to prevent. Found in the browser, now pinned by a test.
+- 2026-07-31 — `logEvent` takes the timestamp as an argument rather than reading the clock itself. — `logView` compares elapsed time against an injected clock; if the write then stamped a different clock, the two disagreed. A test caught it.
+- 2026-07-31 — Repaso derives every number at render time from the event log; nothing is cached or counted incrementally. — §7 makes the log the single source of truth. A personal notebook is small enough that recomputing is free, and one code path means the screen can never disagree with the log.
+- 2026-07-31 — Events belonging to deleted items stay in the log but are excluded from stats by filtering against the surviving item keys. — §7: keep the history, exclude it from active queues and statistics.
+- 2026-07-31 — Repaso shows a "searched for, not found" list from `search_miss` events already in Phase 1d, ahead of its Phase 4 slot. — The events were being logged from 1c onward; surfacing them cost a few lines and made the log visible to the owner rather than invisible until Phase 4.
+
 - 2026-07-31 — Phase 2 scope note: generating conjugations for verbs Jehle lacks requires orthographic rules (`-gar`/`-car`/`-zar`, stem changes), not just endings — `madrugar` → `madrugué`. — Recorded now so it is not discovered mid-Phase-2. — All are one dependency chain inside the build tool (`vite-plugin-pwa` → workbox → old `brace-expansion`); build-time only, nothing ships to the app; the offered fix downgrades the PWA plugin.

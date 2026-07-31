@@ -12,10 +12,22 @@ installable web app (PWA). Private tool for one person; the code is public, the 
 **Live at <https://bpanozzo23-prog.github.io/mi-cuaderno/>** — installable from Chrome on Android.
 
 - **Phase 0 — done.** Installable PWA shell, auto-deployed on every push to `main`.
-- **Phase 0.5 — done, awaiting owner review.** Data pipeline proven end to end on all four sources;
+- **Phase 0.5 — done, reviewed.** Data pipeline proven end to end on all four sources;
   see [docs/PHASE-0.5-SPIKE-REPORT.md](docs/PHASE-0.5-SPIKE-REPORT.md) and the 20 generated records in
   [pipeline/spike/out/07-review-records.md](pipeline/spike/out/07-review-records.md).
-- **Phase 1 — next.** The notebook itself: schema and backup, items and pages, search and linking, tracking.
+- **Phase 1 — done.** The notebook itself, in four subphases: data foundation and backup (1a),
+  words, phrases and pages (1b), search and linking (1c), tracking and Repaso (1d).
+- **Phase 2 — next.** The bundled dictionary: the real pipeline, ~10k lemmas, offline download,
+  conjugations, and inflected-form search.
+
+## Testing
+
+```
+npm test        # Vitest — 74 tests over the data layer, search and event rules
+```
+
+The database tests run the real Dexie code against an in-memory IndexedDB
+(`fake-indexeddb`), so they exercise what ships rather than a mock.
 
 ## Development
 

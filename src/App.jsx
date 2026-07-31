@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { BookOpen, BarChart3, Settings, Loader2 } from "lucide-react";
-import { C, SERIF, MONO, dotGrid, Hi, Card } from "./theme.jsx";
+import { C, SERIF, MONO, Hi } from "./theme.jsx";
 import Cuaderno from "./components/Cuaderno.jsx";
+import Repaso from "./components/Repaso.jsx";
 import Ajustes from "./components/Ajustes.jsx";
 import { useNotebook } from "./useNotebook.js";
 
@@ -58,16 +59,13 @@ export default function App() {
               <Cuaderno notebook={notebook} selectedId={selectedId} onSelect={setSelectedId} />
             )}
             {tab === "repaso" && (
-              <div className="px-4 py-16" style={dotGrid}>
-                <Card className="mx-auto max-w-xs text-center p-6">
-                  <div className="text-base" style={{ fontFamily: SERIF, color: C.ink }}>
-                    Repaso
-                  </div>
-                  <div className="mt-2 text-sm" style={{ color: C.mut }}>
-                    Lookup history, tricky words and stats arrive in Phase 1d.
-                  </div>
-                </Card>
-              </div>
+              <Repaso
+                notebook={notebook}
+                onSelect={(id) => {
+                  setSelectedId(id);
+                  setTab("cuaderno");
+                }}
+              />
             )}
             {tab === "ajustes" && <Ajustes onDataReplaced={notebook.reload} />}
           </>
