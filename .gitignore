@@ -7,6 +7,9 @@ dev-dist/
 pipeline/spike/raw/
 pipeline/raw/
 
+# local assistant/tooling config (machine-specific paths)
+.claude/
+
 # local junk
 *.local
 .DS_Store
