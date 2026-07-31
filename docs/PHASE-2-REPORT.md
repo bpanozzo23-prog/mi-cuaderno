@@ -47,6 +47,20 @@ Jehle's noncommercial licence may now be droppable.
 | **20 representative entries read correctly** | ⏳ **needs you** — see below |
 | **Startup and search timing on your phone** | ⏳ **needs you** — one tap, see below |
 
+### Verified on the deployed site
+
+Everything below was run against <https://bpanozzo23-prog.github.io/mi-cuaderno/>, not just locally:
+
+- **The download works over the real network:** 3.3 MB in 14 parts, **21 seconds** start to finish.
+- **GitHub Pages does gzip the chunks**, which the plan flagged as an unverified assumption.
+  Chunk 0 is 1.81 MB on disk and **547 KB on the wire**, `content-encoding: gzip`. This is why
+  22.6 MB of JSON costs 3.3 MB to download and no compression code was needed.
+- **It works with no network at all.** With `fetch` broken outright, "tuvimos" still resolves to
+  *tener* — the dictionary answers from IndexedDB, as §11 requires.
+- **Timing on the deployed build:** app ready in 875 ms (cold, over the network), search 25 ms
+  median and 33 ms slowest.
+- All seven §12 searches return the right lemmas with the right reasons.
+
 ### Verified in the browser, against the real dataset
 
 ```
@@ -95,12 +109,14 @@ Check the senses read sensibly, verbs show conjugations, examples make sense. Th
 acceptance item no test can stand in for.
 
 **Tap "Test speed on this device"** in Ajustes → Dictionary. It reports startup time and the
-median and slowest of six searches. On this development machine: app ready in 80 ms, search 25 ms
-median, 64 ms slowest. If your phone is in the same neighbourhood the timing criterion is met; if
-it is much worse, tell me the numbers and I will look at where the time goes.
+median and slowest of six searches. For comparison: 875 ms startup and 25 ms median search on the
+deployed site from a desktop browser. A phone will be slower — if it is in the same neighbourhood
+the timing criterion is met; if it is much worse, send me the numbers and I will find where the
+time goes.
 
-**Download it over a real connection.** The download is 3.3 MB in 14 parts. Interrupting it
-mid-way should leave the app working and offer to resume.
+**Download it on the phone.** 3.3 MB in 14 parts; it took 21 seconds here on a desktop
+connection. Interrupting it mid-way should leave the app working and offer to resume — worth
+trying deliberately, since that is the §11 guarantee that matters most on a phone.
 
 ## Numbers, for the record
 
