@@ -1,0 +1,227 @@
+{
+  "format": "mi-cuaderno-dictionary",
+  "formatVersion": 1,
+  "datasetVersion": "kaikki-es-2026-07-25",
+  "generatedAt": "2026-07-31T15:45:54.878Z",
+  "path": "kaikki-es-2026-07-25",
+  "counts": {
+    "entries": 10278,
+    "senses": 21680,
+    "examples": 28210,
+    "conjugations": 1771,
+    "forms": 223500,
+    "englishWords": 16063,
+    "formShards": 326,
+    "englishShards": 330
+  },
+  "bytes": {
+    "total": 23747146,
+    "gzipped": 3434047
+  },
+  "chunks": [
+    {
+      "file": "chunk-000.json",
+      "bytes": 1809305,
+      "gzipBytes": 528813,
+      "sha256": "86629a8c9e8c486f89a81340b83fe3186b431d64094551313799015bd6ddb257",
+      "rows": {
+        "entries": 2421
+      }
+    },
+    {
+      "file": "chunk-001.json",
+      "bytes": 1809521,
+      "gzipBytes": 546906,
+      "sha256": "360e7f8eee127ca2653019e1834c835c6dccf8256e08d7bcc17165d9b6a2631c",
+      "rows": {
+        "entries": 2582
+      }
+    },
+    {
+      "file": "chunk-002.json",
+      "bytes": 1809898,
+      "gzipBytes": 548375,
+      "sha256": "d2060def4bd675e3b21a289136a6a8cd85f418d6972c3e8df9fa9e03b51f558e",
+      "rows": {
+        "entries": 2736
+      }
+    },
+    {
+      "file": "chunk-003.json",
+      "bytes": 1813943,
+      "gzipBytes": 490039,
+      "sha256": "86a2769397a902a0a63b2d97268e6bf74884d5940d8fe0bfd526b46ec57c511f",
+      "rows": {
+        "entries": 2539,
+        "conjugations": 171
+      }
+    },
+    {
+      "file": "chunk-004.json",
+      "bytes": 1842055,
+      "gzipBytes": 214432,
+      "sha256": "b48d7ab5eb6ef796a9835e2b5bfc81e6c04544c0ca9a3d342f059699b3f444fa",
+      "rows": {
+        "conjugations": 984
+      }
+    },
+    {
+      "file": "chunk-005.json",
+      "bytes": 1776910,
+      "gzipBytes": 172263,
+      "sha256": "4a80f0b0e8577429f5dc10893a483f18db7d5a67aebc6a0f3c716200958d8924",
+      "rows": {
+        "conjugations": 616,
+        "formShards": 4
+      }
+    },
+    {
+      "file": "chunk-006.json",
+      "bytes": 1752471,
+      "gzipBytes": 99477,
+      "sha256": "4fa99578b89855cfd68d93816eb933387ceabb2e22cec8717d5f82ce3ab49234",
+      "rows": {
+        "formShards": 22
+      }
+    },
+    {
+      "file": "chunk-007.json",
+      "bytes": 1788451,
+      "gzipBytes": 102037,
+      "sha256": "1d2ab09ac6279938ed2f1b8146aae792fa0d772d1dcfd09886b4579cd480605a",
+      "rows": {
+        "formShards": 27
+      }
+    },
+    {
+      "file": "chunk-008.json",
+      "bytes": 1759347,
+      "gzipBytes": 102480,
+      "sha256": "214083530389b3fba2f1142650077974a4f5caa306767190f56b195c07a1b5d6",
+      "rows": {
+        "formShards": 26
+      }
+    },
+    {
+      "file": "chunk-009.json",
+      "bytes": 1708656,
+      "gzipBytes": 104753,
+      "sha256": "9edaa2fe629866fb809da35994dd4529f5256a62e28c84214178d54ec5669b51",
+      "rows": {
+        "formShards": 50
+      }
+    },
+    {
+      "file": "chunk-010.json",
+      "bytes": 1149546,
+      "gzipBytes": 65371,
+      "sha256": "49b28494fc3de9eca7dc7ebf561b1731f664aff8d62fda44708fe3fd73f91e3d",
+      "rows": {
+        "formShards": 20
+      }
+    },
+    {
+      "file": "chunk-011.json",
+      "bytes": 1683889,
+      "gzipBytes": 93821,
+      "sha256": "dbfad2b2da5e7db51018b3e4f908d895e4426dba59773094838052663f8787b7",
+      "rows": {
+        "formShards": 42
+      }
+    },
+    {
+      "file": "chunk-012.json",
+      "bytes": 1801851,
+      "gzipBytes": 175798,
+      "sha256": "57fd3d0f55341d31ccdbb71ee4383fe057f6ffa743aa5f91e3cb85c3a5362a0d",
+      "rows": {
+        "formShards": 135,
+        "englishShards": 36
+      }
+    },
+    {
+      "file": "chunk-013.json",
+      "bytes": 1241303,
+      "gzipBytes": 189482,
+      "sha256": "f21e27877c1c9acdc967b680c9dfb30a82da3f5f920f26d6154146f6fdae7eee",
+      "rows": {
+        "englishShards": 294
+      }
+    }
+  ],
+  "previousIds": {},
+  "attribution": {
+    "note": "Dictionary data is licensed separately from the app's code. The Jehle conjugation database is NONCOMMERCIAL (CC BY-NC-SA 3.0) and constrains the whole dataset.",
+    "sources": [
+      {
+        "name": "Wiktionary Spanish entries (English Wiktionary) via kaikki.org / wiktextract",
+        "license": "CC BY-SA 4.0 and GFDL (dual-licensed, inherited from English Wiktionary)",
+        "attribution": "Attribute English Wiktionary contributors; share-alike applies to derived text. Extraction tooling: wiktextract (Tatu Ylonen), served by kaikki.org.",
+        "url": "https://kaikki.org/dictionary/Spanish/",
+        "provides": [
+          "entries",
+          "conjugations"
+        ]
+      },
+      {
+        "name": "FrequencyWords Spanish frequency list (OpenSubtitles-derived)",
+        "license": "CC BY-SA 4.0 (generated frequency lists; repository code is MIT)",
+        "attribution": "hermitdave/FrequencyWords; derived from OpenSubtitles corpora.",
+        "url": "https://github.com/hermitdave/FrequencyWords",
+        "provides": [
+          "frequency ranking"
+        ]
+      },
+      {
+        "name": "Fred Jehle's Spanish Verb Database (600+ fully conjugated verbs)",
+        "license": "CC BY-NC-SA 3.0",
+        "attribution": "Fred Jehle, Indiana University-Purdue University Fort Wayne; compiled by ghidinelli.",
+        "url": "https://github.com/ghidinelli/fred-jehle-spanish-verbs",
+        "provides": [
+          "conjugations"
+        ]
+      },
+      {
+        "name": "Tatoeba Spanish sentences (detailed export)",
+        "license": "CC BY 2.0 FR (default); some sentences also available under CC0 1.0",
+        "attribution": "Per-sentence: Tatoeba sentence ID, contributor username, license, and source URL https://tatoeba.org/en/sentences/show/<id>",
+        "url": "https://tatoeba.org/en/downloads",
+        "provides": [
+          "examples"
+        ]
+      },
+      {
+        "name": "Tatoeba English sentences (detailed export)",
+        "license": "CC BY 2.0 FR (default); some sentences also available under CC0 1.0",
+        "attribution": "Per-sentence, as above.",
+        "url": "https://tatoeba.org/en/downloads",
+        "provides": [
+          "examples"
+        ]
+      },
+      {
+        "name": "Tatoeba Spanish-English translation links",
+        "license": "CC BY 2.0 FR",
+        "attribution": "Tatoeba Project.",
+        "url": "https://tatoeba.org/en/downloads",
+        "provides": [
+          "examples"
+        ]
+      }
+    ],
+    "fullRecord": "DATA_SOURCES.md in the mi-cuaderno repository",
+    "examples": {
+      "license": "CC BY 2.0 FR",
+      "urlTemplate": "https://tatoeba.org/en/sentences/show/{id}",
+      "idPrefix": "tatoeba:",
+      "fields": [
+        "es",
+        "en",
+        "sourceId",
+        "contributor",
+        "englishSourceId",
+        "englishContributor"
+      ]
+    }
+  }
+}

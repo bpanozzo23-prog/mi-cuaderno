@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-31T15:18:22.337Z",
+  "generatedAt": "2026-07-31T15:45:26.543Z",
   "approach": "Conjugations extracted from kaikki's tagged forms[] for verbs Jehle lacks; Jehle remains primary for the 554 verbs it covers. Perfect tenses composed as haber + participle.",
   "validation": {
     "gate": 99.5,
@@ -626,12 +626,38 @@
     "completeSimpleTables": 1770,
     "averageSimpleCellsFilledPct": 100
   },
+  "storedTenses": {
+    "note": "Only the simple tenses are stored. The eight perfect tenses are composed by the app from haber + past participle (src/lib/conjugation.js), which is 322 KB less to download; the composition is validated against Jehle above.",
+    "simple": [
+      "Indicative/Present",
+      "Indicative/Imperfect",
+      "Indicative/Preterite",
+      "Indicative/Future",
+      "Indicative/Conditional",
+      "Subjunctive/Present",
+      "Subjunctive/Imperfect",
+      "Subjunctive/Imperfect (-se)",
+      "Subjunctive/Future",
+      "Imperative Affirmative/Present",
+      "Imperative Negative/Present"
+    ],
+    "composed": [
+      "Indicative/Present Perfect",
+      "Indicative/Past Perfect",
+      "Indicative/Preterite (Archaic)",
+      "Indicative/Future Perfect",
+      "Indicative/Conditional Perfect",
+      "Subjunctive/Present Perfect",
+      "Subjunctive/Past Perfect",
+      "Subjunctive/Future Perfect"
+    ]
+  },
   "haberPresentIndicative": {
     "yo": "he",
     "tú": "has",
     "él/ella/usted": "ha",
     "nosotros": "hemos",
-    "ustedes/ellos": "han",
-    "vosotros": "habéis"
+    "vosotros": "habéis",
+    "ustedes/ellos": "han"
   }
 }

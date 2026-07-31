@@ -19,10 +19,11 @@
 import fs from "node:fs";
 import { eachRecord, raw, out, writeJson, readJson, step, done } from "../lib/io.mjs";
 import { conjugationId } from "../lib/ids.mjs";
+import { HABER_CONJUGATION_ID } from "../../src/lib/conjugation.js";
 import { parseCsvObjects } from "../lib/csv.mjs";
 import {
-  extractFromKaikki, extractFromJehle, addPerfectTenses, compareTables,
-  SIMPLE_TENSES, PERFECT_TENSES, SLOTS, getSlot, expectedSlots, setSlot,
+  extractFromKaikki, extractFromJehle, compareTables, withPerfectTenses,
+  SIMPLE_TENSES, PERFECT_TENSES, SLOTS, expectedSlots,
 } from "../lib/conjugation.mjs";
 
 const started = step("06 · conjugations");
@@ -73,17 +74,16 @@ if (!haber) throw new Error("no conjugation for haber — every perfect tense de
 const haberPresent = haber.tenses["Indicative/Present"];
 const haberExpected = { yo: "he", "tú": "has", "él/ella/usted": "ha", nosotros: "hemos", "ustedes/ellos": "han" };
 for (const [slot, expected] of Object.entries(haberExpected)) {
-  const got = getSlot(haberPresent, slot);
-  if (got !== expected) throw new Error(`haber present ${slot}: expected "${expected}", extracted "${got}"`);
+  if (haberPresent[slot] !== expected) {
+    throw new Error(`haber present ${slot}: expected "${expected}", extracted "${haberPresent[slot]}"`);
+  }
 }
-console.log(`    haber verified: ${SLOTS.map((s) => getSlot(haberPresent, s)).join(" · ")}`);
-
-// Perfect tenses are composed before validation, not after, so that the comparison also
-// checks the participle extraction and the composition itself against Jehle's own
-// "he hablado" rows — 8 more tenses of evidence for free.
-for (const table of kaikkiTables.values()) addPerfectTenses(table, haber.tenses);
+console.log(`    haber verified: ${SLOTS.map((s) => haberPresent[s]).join(" · ")}`);
 
 // ---- validate the extractor against Jehle ---------------------------------
+// The comparison covers the composed perfect tenses too, which checks the participle
+// extraction and the composition itself against Jehle's own "he hablado" rows — eight
+// more tenses of evidence for free, and how the reflexive-pronoun bug was found.
 console.log("  validating against Jehle, cell by cell …");
 const ALL_TENSES = [...SIMPLE_TENSES, ...Object.keys(PERFECT_TENSES)];
 let agree = 0, compared = 0;
@@ -94,8 +94,8 @@ const byVerb = [];
 for (const [lemma, rows] of jehleByVerb) {
   const mine = kaikkiTables.get(lemma);
   if (!mine) continue;
-  const theirs = extractFromJehle(rows);
-  const r = compareTables(mine, theirs, { tenses: ALL_TENSES });
+  const theirs = extractFromJehle(rows, { keepPerfect: true });
+  const r = compareTables(withPerfectTenses(mine, haber.tenses), theirs, { tenses: ALL_TENSES });
   agree += r.agree;
   compared += r.compared;
   if (r.differ.length) {
@@ -127,10 +127,9 @@ function repairJehleTable(table, fallback) {
     const theirs = fallback.tenses[tense];
     if (!mine || !theirs) continue;
     for (const slot of expectedSlots(tense)) {
-      if (!isBlankCell(getSlot(mine, slot))) continue;
-      const replacement = getSlot(theirs, slot);
-      if (!replacement) continue;
-      setSlot(mine, slot, replacement);
+      if (!isBlankCell(mine[slot])) continue;
+      if (!theirs[slot]) continue;
+      mine[slot] = theirs[slot];
       repaired++;
     }
   }
@@ -154,13 +153,6 @@ for (const e of verbs) {
       repairedCells += n;
       repairedVerbs.push({ lemma: e.lemma, cells: n });
     }
-    // Perfect tenses are recomposed rather than taken from Jehle's stored rows. They are
-    // mechanically derivable, this composition agrees with Jehle on 99.8% of 57,580 cells,
-    // and some of Jehle's stored rows are corrupt — cepillar's past perfect reads
-    // "cepillía cepillado" where it should read "había cepillado". Composing uniformly
-    // means both sources render one shape and neither can ship a mangled auxiliary.
-    for (const perfect of Object.keys(PERFECT_TENSES)) delete table.tenses[perfect];
-    addPerfectTenses(table, haber.tenses);
     conjugations[e.conjugationId] = table;
     fromJehle++;
     continue;
@@ -168,7 +160,7 @@ for (const e of verbs) {
   const table = kaikkiTables.get(e.lemma);
   if (table) {
     e.conjugationId = conjugationId("wikt", e.lemma);
-    conjugations[e.conjugationId] = table; // perfect tenses already composed above
+    conjugations[e.conjugationId] = table;
     fromKaikki++;
     continue;
   }
@@ -177,22 +169,23 @@ for (const e of verbs) {
   verbsWithoutTable.push({ lemma: e.lemma, freqRank: e.freqRank });
 }
 
-// haber's own table, needed by the app to render any perfect tense it composes later,
-// and by the owner looking haber up — it is rank 19 and absent from Jehle.
-if (!conjugations[conjugationId("wikt", "haber")] && !conjugations[conjugationId("jehle", "haber")]) {
-  conjugations[conjugationId("wikt", "haber")] = haber;
-}
+// haber's own table under its well-known id. The app loads it once and composes every
+// perfect tense of every other verb from it, so it must ship even if haber somehow left
+// the dictionary. It is also rank 19 and absent from Jehle, so the owner needs it anyway.
+conjugations[HABER_CONJUGATION_ID] = haber;
 
 writeJson(raw("_entries-final.json"), { datasetVersion: data.datasetVersion, count: entries.length, entries });
 writeJson(raw("_conjugations.json"), conjugations);
 
 // ---- completeness of what we ship -----------------------------------------
+// The -se imperfect subjunctive is a kaikki-only extra, so it is not part of "complete".
+const CORE_TENSES = SIMPLE_TENSES.filter((t) => t !== "Subjunctive/Imperfect (-se)");
 const tableStats = Object.values(conjugations).map((t) => {
   let filled = 0, total = 0;
-  for (const tense of SIMPLE_TENSES) {
+  for (const tense of CORE_TENSES) {
     for (const slot of expectedSlots(tense)) {
       total++;
-      if (t.tenses[tense] && getSlot(t.tenses[tense], slot)) filled++;
+      if (t.tenses[tense]?.[slot]) filled++;
     }
   }
   return { filled, total, source: t.source };
@@ -235,7 +228,15 @@ const report = {
     completeSimpleTables: complete,
     averageSimpleCellsFilledPct: avgFilled,
   },
-  haberPresentIndicative: Object.fromEntries(SLOTS.map((s) => [s, getSlot(haberPresent, s)])),
+  storedTenses: {
+    note:
+      "Only the simple tenses are stored. The eight perfect tenses are composed by the " +
+      "app from haber + past participle (src/lib/conjugation.js), which is 322 KB less " +
+      "to download; the composition is validated against Jehle above.",
+    simple: SIMPLE_TENSES,
+    composed: Object.keys(PERFECT_TENSES),
+  },
+  haberPresentIndicative: haberPresent,
 };
 writeJson(out("06-conjugation-report.json"), report);
 

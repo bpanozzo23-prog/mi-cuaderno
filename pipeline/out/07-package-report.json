@@ -1,0 +1,26 @@
+{
+  "generatedAt": "2026-07-31T15:45:54.881Z",
+  "datasetVersion": "kaikki-es-2026-07-25",
+  "outputDir": "public/dict/kaikki-es-2026-07-25",
+  "chunkBudgetRawBytes": 1800000,
+  "chunks": 14,
+  "counts": {
+    "entries": 10278,
+    "senses": 21680,
+    "examples": 28210,
+    "conjugations": 1771,
+    "forms": 223500,
+    "englishWords": 16063,
+    "formShards": 326,
+    "englishShards": 330
+  },
+  "bytes": {
+    "rawTotal": 23747146,
+    "gzipTotal": 3434047,
+    "gzipHuman": "3.3 MB",
+    "perEntryGzip": 334,
+    "largestChunkGzip": 548375
+  },
+  "budgetNote": "Phase 2 plan budgeted ≤ ~3.5 MB gzipped; the spike measured 2.8 MB before the English index.",
+  "englishIndexCappedTokens": 1
+}

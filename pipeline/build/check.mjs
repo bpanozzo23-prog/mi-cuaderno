@@ -11,6 +11,7 @@
 import fs from "node:fs";
 import { raw, readJson, eachJsonl, step } from "../lib/io.mjs";
 import { normalize } from "../lib/ids.mjs";
+import { SIMPLE_TENSES, HABER_CONJUGATION_ID, allTenses } from "../../src/lib/conjugation.js";
 
 step("check · brief §12 acceptance");
 
@@ -92,6 +93,19 @@ check("Mexico-labeled senses sort before other regional senses (§3)",
   misordered.length === 0,
   `${mexicoEntries.length} entries carry a Mexico sense`);
 
+// An unmarked sense is general Spanish and outranks a sense marked for another country.
+const OTHER_COUNTRY = /^(El-Salvador|Chile|Argentina|Colombia|Peru|Cuba|Uruguay|Venezuela|Rioplatense|Spain)$/i;
+const buriedGeneral = entries.filter((e) => {
+  const firstUnmarked = e.senses.findIndex((s) => s.regionLabels.length === 0);
+  const firstOtherCountry = e.senses.findIndex(
+    (s) => s.regionLabels.length > 0 && s.regionLabels.every((l) => OTHER_COUNTRY.test(l))
+  );
+  return firstUnmarked !== -1 && firstOtherCountry !== -1 && firstOtherCountry < firstUnmarked;
+});
+check("general senses sort above senses marked for another country (§3)",
+  buriedGeneral.length === 0,
+  buriedGeneral.length ? `${buriedGeneral.length} entries, e.g. ${buriedGeneral.slice(0, 3).map((e) => e.lemma).join(", ")}` : "");
+
 // ---- §4 attribution -------------------------------------------------------
 const allExamples = entries.flatMap((e) => e.examples);
 check("every example carries a Tatoeba id, license and URL on both sides (§4)",
@@ -128,9 +142,13 @@ if (Object.keys(conjugations).length) {
     haber?.tenses["Indicative/Present"]?.yo === "he" && haber?.tenses["Indicative/Present"]?.nosotros === "hemos",
     haber ? `${haber.tenses["Indicative/Present"].yo} … ${haber.tenses["Indicative/Present"].nosotros}` : "no table");
 
-  check("tables are ustedes-first with vosotros collapsed (§3)",
-    Object.values(conjugations).every((t) =>
-      Object.values(t.tenses).every((tense) => typeof tense.vosotros === "object" && "collapsed" in tense.vosotros)));
+  check("stored tables hold only simple tenses; perfects are composed by the app",
+    Object.values(conjugations).every((t) => Object.keys(t.tenses).every((label) => SIMPLE_TENSES.includes(label))));
+
+  const composed = allTenses(madrugar, conjugations[HABER_CONJUGATION_ID]);
+  check("the app can compose a perfect tense from what ships (§3)",
+    composed["Indicative/Present Perfect"]?.yo === "he madrugado",
+    composed["Indicative/Present Perfect"]?.yo);
 }
 console.log(`\n  verbs ${verbs.length.toLocaleString()} · with a conjugation table ${withConj.length.toLocaleString()} (${((withConj.length / verbs.length) * 100).toFixed(1)}%)`);
 

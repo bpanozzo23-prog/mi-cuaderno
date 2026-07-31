@@ -1,5 +1,5 @@
 /**
- * Conjugation tables: one shape, two sources.
+ * Extracting conjugation tables from the two sources.
  *
  * Fred Jehle's database covers 637 verbs; the dictionary needs ~1,800. The brief's plan
  * was to generate the rest from rules, and DECISIONS.md warned that "regular" is a trap —
@@ -9,55 +9,18 @@
  * conjugation table in `forms[]`, written by Wiktionary editors who already handled the
  * stem changes (e→ie), the -gar/-car/-zar spelling rules, and every irregular. Extracting
  * a table inherits all of that; a hand-written generator would have to re-earn it. And
- * because 554 verbs appear in BOTH sources, the extractor can be checked cell by cell
- * against Jehle rather than trusted (see 06-conjugate.mjs).
+ * because 554 verbs appear in BOTH sources, the extractor is checked cell by cell against
+ * Jehle rather than trusted (see 06-conjugate.mjs).
  *
- * Both sources produce the same shape, so the app renders one table and never branches:
- *
- *   { source, gerund, pastParticiple, tenses: { "Indicative/Present": { yo, tú, … } } }
- *
- * Slots are ustedes-first per brief §3: "ustedes/ellos" is a first-class row and vosotros
- * is kept but marked collapsed, because this is a Latin American notebook.
+ * The table SHAPE and the perfect-tense composition live in src/lib/conjugation.js,
+ * shared with the app so the writer and the reader cannot drift apart.
  */
+export {
+  SLOTS, SIMPLE_TENSES, PERFECT_TENSES, expectedSlots, isPronominal,
+  composePerfectTenses, allTenses,
+} from "../../src/lib/conjugation.js";
 
-/** The six display slots of a tense, in the order the app shows them. */
-export const SLOTS = ["yo", "tú", "él/ella/usted", "nosotros", "ustedes/ellos", "vosotros"];
-
-/**
- * The ten simple tenses. The other eight Jehle tenses are perfect (compound) tenses,
- * which are mechanically "haber + past participle" and are composed rather than stored.
- */
-export const SIMPLE_TENSES = [
-  "Indicative/Present",
-  "Indicative/Imperfect",
-  "Indicative/Preterite",
-  "Indicative/Future",
-  "Indicative/Conditional",
-  "Subjunctive/Present",
-  "Subjunctive/Imperfect",
-  "Subjunctive/Future",
-  "Imperative Affirmative/Present",
-  "Imperative Negative/Present",
-];
-
-/** Perfect tense → the simple tense of `haber` that builds it (brief §3 display order). */
-export const PERFECT_TENSES = {
-  "Indicative/Present Perfect": "Indicative/Present",
-  "Indicative/Past Perfect": "Indicative/Imperfect",
-  "Indicative/Preterite (Archaic)": "Indicative/Preterite",
-  "Indicative/Future Perfect": "Indicative/Future",
-  "Indicative/Conditional Perfect": "Indicative/Conditional",
-  "Subjunctive/Present Perfect": "Subjunctive/Present",
-  "Subjunctive/Past Perfect": "Subjunctive/Imperfect",
-  "Subjunctive/Future Perfect": "Subjunctive/Future",
-};
-
-/**
- * Which slots a tense can actually fill. Spanish has no first-person singular imperative
- * — you cannot command yourself — so a table missing that cell is complete, not broken.
- */
-export const expectedSlots = (tense) =>
-  tense.startsWith("Imperative") ? SLOTS.filter((s) => s !== "yo") : SLOTS;
+import { SLOTS, expectedSlots, composePerfectTenses } from "../../src/lib/conjugation.js";
 
 /** Tags that mean "this row is not a conjugated form of the verb at all". */
 const NOT_A_FORM = new Set(["inflection-template", "class", "table-tags", "error-unrecognized-form"]);
@@ -117,25 +80,13 @@ export function slotOf(tags) {
   return null;
 }
 
-const emptyTense = () => ({
-  yo: "", "tú": "", "él/ella/usted": "", nosotros: "", "ustedes/ellos": "",
-  vosotros: { form: "", collapsed: true },
-});
-
-const setSlot = (tense, slot, form) => {
-  if (slot === "vosotros") tense.vosotros = { form, collapsed: true };
-  else tense[slot] = form;
-};
-
-const getSlot = (tense, slot) => (slot === "vosotros" ? tense.vosotros.form : tense[slot]);
-
 /**
  * Builds a conjugation table from one kaikki verb record's `forms[]`.
  * Returns null when the record carries no usable conjugation at all.
  */
 export function extractFromKaikki(record) {
   const tenses = {};
-  const quality = {}; // "tense|slot" -> true when filled by a non-deprioritized form
+  const preferredCell = {}; // "tense|slot" -> filled by a non-deprioritized form
   let gerund = "", pastParticiple = "";
 
   for (const f of record.forms || []) {
@@ -157,20 +108,19 @@ export function extractFromKaikki(record) {
     if (!tense || !slot) continue;
 
     // kaikki stores the bare subjunctive for negative imperatives ("abandones"); Jehle
-    // stores what you actually say ("no abandones"). Normalizing to Jehle's convention
-    // is what makes the two sources comparable — and it is also the more useful form to
-    // show, since the negative imperative does not exist without its "no".
+    // stores what you actually say ("no abandones"). Normalizing to Jehle's convention is
+    // what makes the two sources comparable — and it is also the more useful form to show,
+    // since the negative imperative does not exist without its "no".
     const cell = tense === "Imperative Negative/Present" && !/^no\s/i.test(form) ? `no ${form}` : form;
 
-    if (!tenses[tense]) tenses[tense] = emptyTense();
+    if (!tenses[tense]) tenses[tense] = {};
     const preferred = !tags.some((t) => DEPRIORITIZED.has(t));
     const key = `${tense}|${slot}`;
-    const existing = getSlot(tenses[tense], slot);
 
     // First writer wins, except that a preferred form may replace a deprioritized one.
-    if (!existing || (preferred && !quality[key])) {
-      setSlot(tenses[tense], slot, cell);
-      quality[key] = preferred;
+    if (!tenses[tense][slot] || (preferred && !preferredCell[key])) {
+      tenses[tense][slot] = cell;
+      preferredCell[key] = preferred;
     }
   }
 
@@ -179,64 +129,27 @@ export function extractFromKaikki(record) {
 }
 
 /**
- * The reflexive pronoun each slot takes. In a perfect tense it goes BEFORE the auxiliary
- * — "me he arrepentido", never "he me arrepentido".
+ * Builds the same shape from Jehle's CSV rows for one verb.
+ * Jehle's stored perfect tenses are dropped: they are recomposed from haber (see
+ * 06-conjugate.mjs) because some of them are corrupt — cepillar's past perfect reads
+ * "cepillía cepillado" where it should read "había cepillado".
  */
-const REFLEXIVE_PRONOUN = {
-  yo: "me", "tú": "te", "él/ella/usted": "se",
-  nosotros: "nos", "ustedes/ellos": "se", vosotros: "os",
-};
-
-/**
- * Whether this is a pronominal verb, judged by its own conjugated forms rather than by the
- * lemma's spelling: "arrepentirse" is reflexive but so is nothing about "coser", which also
- * ends in -se. kaikki writes the pronoun into the simple forms ("me arrepiento"), so its
- * presence there is the reliable signal.
- */
-export function isPronominal(table) {
-  const present = table.tenses?.["Indicative/Present"];
-  return Boolean(present && /^(me|te|se|nos|os)\s/.test(getSlot(present, "yo") || ""));
-}
-
-/**
- * Composes the eight perfect tenses from haber's simple tenses plus this verb's participle.
- * Deterministic — every Spanish perfect tense is haber + past participle — so it is done
- * once here rather than in the app, which keeps both sources rendering identically.
- */
-export function addPerfectTenses(table, haberTenses) {
-  if (!table.pastParticiple) return table;
-  const reflexive = isPronominal(table);
-
-  for (const [perfect, simple] of Object.entries(PERFECT_TENSES)) {
-    const aux = haberTenses[simple];
-    if (!aux) continue;
-    const built = emptyTense();
-    let filled = 0;
-    for (const slot of SLOTS) {
-      const auxForm = getSlot(aux, slot);
-      if (!auxForm) continue;
-      const prefix = reflexive ? `${REFLEXIVE_PRONOUN[slot]} ` : "";
-      setSlot(built, slot, `${prefix}${auxForm} ${table.pastParticiple}`);
-      filled++;
-    }
-    if (filled) table.tenses[perfect] = built;
-  }
-  return table;
-}
-
-/** Builds the same shape from Jehle's CSV rows for one verb. */
-export function extractFromJehle(rows) {
+export function extractFromJehle(rows, { keepPerfect = false } = {}) {
   const tenses = {};
   for (const r of rows) {
     const label = `${r.mood_english}/${r.tense_english}`;
-    tenses[label] = {
-      yo: r.form_1s || "",
-      "tú": r.form_2s || "",
-      "él/ella/usted": r.form_3s || "",
-      nosotros: r.form_1p || "",
-      "ustedes/ellos": r.form_3p || "",
-      vosotros: { form: r.form_2p || "", collapsed: true },
+    const tense = {};
+    const cells = {
+      yo: r.form_1s, "tú": r.form_2s, "él/ella/usted": r.form_3s,
+      nosotros: r.form_1p, "ustedes/ellos": r.form_3p, vosotros: r.form_2p,
     };
+    for (const [slot, value] of Object.entries(cells)) if (value) tense[slot] = value;
+    if (Object.keys(tense).length) tenses[label] = tense;
+  }
+  if (!keepPerfect) {
+    for (const label of Object.keys(tenses)) {
+      if (/Perfect|Preterite \(Archaic\)/.test(label)) delete tenses[label];
+    }
   }
   const first = rows[0] || {};
   return {
@@ -248,22 +161,28 @@ export function extractFromJehle(rows) {
 }
 
 /** Cell-by-cell comparison of two tables, used to validate the extractor against Jehle. */
-export function compareTables(a, b, { tenses = SIMPLE_TENSES } = {}) {
-  const agree = [], differ = [], missing = [];
+export function compareTables(a, b, { tenses }) {
+  const differ = [], missing = [];
+  let agree = 0;
   for (const tense of tenses) {
-    const ta = a.tenses[tense], tb = b.tenses[tense];
+    const ta = a.tenses[tense] || {}, tb = b.tenses[tense] || {};
     for (const slot of expectedSlots(tense)) {
-      const va = ta ? getSlot(ta, slot) : "";
-      const vb = tb ? getSlot(tb, slot) : "";
+      const va = ta[slot] || "", vb = tb[slot] || "";
       if (!va || !vb) {
         if (va || vb) missing.push({ tense, slot, a: va, b: vb });
         continue;
       }
-      if (va.normalize("NFC") === vb.normalize("NFC")) agree.push({ tense, slot });
+      if (va.normalize("NFC") === vb.normalize("NFC")) agree++;
       else differ.push({ tense, slot, a: va, b: vb });
     }
   }
-  return { agree: agree.length, differ, missing, compared: agree.length + differ.length };
+  return { agree, differ, missing, compared: agree + differ.length };
 }
 
-export { getSlot, setSlot };
+/** A table with its perfect tenses materialized — used only for validation and inspection. */
+export const withPerfectTenses = (table, haberTenses) => ({
+  ...table,
+  tenses: { ...table.tenses, ...composePerfectTenses(table, haberTenses) },
+});
+
+export { SLOTS as DISPLAY_SLOTS };

@@ -68,8 +68,11 @@ console.log(`    ${formsFor.size.toLocaleString()} lemmas have forms`);
 
 // ---- sense shaping --------------------------------------------------------
 const MEXICO = /^Mexico$/i;
-const LATAM = /^(Latin-America|Central-America|South-America|Caribbean|Argentina|Bolivia|Chile|Colombia|Costa-Rica|Cuba|Dominican-Republic|Ecuador|El-Salvador|Guatemala|Honduras|Nicaragua|Panama|Paraguay|Peru|Puerto-Rico|Rioplatense|Uruguay|Venezuela)$/i;
-const OTHER_REGION = /^(Spain|Canary-Islands|Southern-Spain|Andalusia|Philippines|Equatorial-Guinea)$/i;
+/** Broad labels that INCLUDE Mexico, so a Mexican speaker would use these senses. */
+const INCLUDES_MEXICO = /^(Latin-America|Central-America|North-America|Hispanic-America|Spanish-America)$/i;
+/** Other Spanish-speaking countries and regions — real, but not this owner's dialect. */
+const OTHER_LATAM = /^(South-America|Caribbean|Argentina|Bolivia|Chile|Colombia|Costa-Rica|Cuba|Dominican-Republic|Ecuador|El-Salvador|Guatemala|Honduras|Nicaragua|Panama|Paraguay|Peru|Puerto-Rico|Rioplatense|Uruguay|Venezuela)$/i;
+const SPAIN = /^(Spain|Canary-Islands|Southern-Spain|Andalusia|Philippines|Equatorial-Guinea)$/i;
 
 /**
  * Register and grammar labels worth showing next to a gloss. A learner needs to know
@@ -84,16 +87,26 @@ const KEPT_LABELS = new Set([
   "countable", "abbreviation", "initialism", "acronym",
 ]);
 
+/**
+ * Sense order (brief §3, "prefer Mexico-labeled senses"). The ranking that matters is the
+ * one between *unmarked* and *other country*: an unlabelled sense is general Spanish and
+ * is more use to this owner than a sense marked El-Salvador. Ranking every Latin American
+ * label above unmarked put an obscure Salvadoran sense of *sacar* above "to take out
+ * (the trash)", which is not what §3 asks for.
+ */
 const regionRank = (labels) => {
   if (labels.some((l) => MEXICO.test(l))) return 0;
-  if (labels.some((l) => LATAM.test(l))) return 1;
-  if (labels.length === 0) return 2;      // unmarked = general Spanish, before Spain-only
-  return 3;
+  if (labels.some((l) => INCLUDES_MEXICO.test(l))) return 1;
+  if (labels.length === 0) return 2;
+  if (labels.some((l) => OTHER_LATAM.test(l))) return 3;
+  return 4; // Spain-only and further afield
 };
 
 const shapeSense = (s) => {
   const all = [...(s.tags || []), ...(s.raw_tags || [])];
-  const regionLabels = all.filter((t) => MEXICO.test(t) || LATAM.test(t) || OTHER_REGION.test(t));
+  const regionLabels = all.filter(
+    (t) => MEXICO.test(t) || INCLUDES_MEXICO.test(t) || OTHER_LATAM.test(t) || SPAIN.test(t)
+  );
   const labels = all.filter((t) => KEPT_LABELS.has(t));
   return {
     gloss: (s.glosses || [])[0] || "",
