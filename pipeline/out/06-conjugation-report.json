@@ -1,0 +1,637 @@
+{
+  "generatedAt": "2026-07-31T15:18:22.337Z",
+  "approach": "Conjugations extracted from kaikki's tagged forms[] for verbs Jehle lacks; Jehle remains primary for the 554 verbs it covers. Perfect tenses composed as haber + participle.",
+  "validation": {
+    "gate": 99.5,
+    "verbsComparedAgainstJehle": 637,
+    "cellsCompared": 57580,
+    "cellsAgreeing": 57482,
+    "agreementPct": 99.83,
+    "passesGate": true,
+    "disagreementsByTense": {
+      "Imperative Negative/Present": 14,
+      "Indicative/Present Perfect": 7,
+      "Indicative/Past Perfect": 12,
+      "Indicative/Future Perfect": 12,
+      "Indicative/Conditional Perfect": 12,
+      "Indicative/Present": 3,
+      "Indicative/Preterite": 3,
+      "Subjunctive/Present": 5,
+      "Indicative/Preterite (Archaic)": 6,
+      "Subjunctive/Present Perfect": 6,
+      "Subjunctive/Past Perfect": 6,
+      "Subjunctive/Future Perfect": 6,
+      "Imperative Affirmative/Present": 4,
+      "Subjunctive/Imperfect": 2
+    },
+    "verbsWithAnyDisagreement": 19,
+    "worstVerbs": [
+      {
+        "lemma": "freír",
+        "differ": 51,
+        "of": 106
+      },
+      {
+        "lemma": "cepillar",
+        "differ": 19,
+        "of": 106
+      },
+      {
+        "lemma": "criar",
+        "differ": 4,
+        "of": 106
+      },
+      {
+        "lemma": "doler",
+        "differ": 3,
+        "of": 39
+      },
+      {
+        "lemma": "guiar",
+        "differ": 3,
+        "of": 106
+      },
+      {
+        "lemma": "huir",
+        "differ": 2,
+        "of": 106
+      },
+      {
+        "lemma": "llover",
+        "differ": 2,
+        "of": 24
+      },
+      {
+        "lemma": "soñar",
+        "differ": 2,
+        "of": 106
+      },
+      {
+        "lemma": "tropezar",
+        "differ": 2,
+        "of": 106
+      },
+      {
+        "lemma": "arrepentirse",
+        "differ": 1,
+        "of": 106
+      },
+      {
+        "lemma": "graduar",
+        "differ": 1,
+        "of": 106
+      },
+      {
+        "lemma": "gruñir",
+        "differ": 1,
+        "of": 106
+      },
+      {
+        "lemma": "invertir",
+        "differ": 1,
+        "of": 106
+      },
+      {
+        "lemma": "ir",
+        "differ": 1,
+        "of": 106
+      },
+      {
+        "lemma": "nevar",
+        "differ": 1,
+        "of": 25
+      },
+      {
+        "lemma": "presentir",
+        "differ": 1,
+        "of": 106
+      },
+      {
+        "lemma": "reír",
+        "differ": 1,
+        "of": 106
+      },
+      {
+        "lemma": "satisfacer",
+        "differ": 1,
+        "of": 106
+      },
+      {
+        "lemma": "ser",
+        "differ": 1,
+        "of": 106
+      }
+    ],
+    "sampleDisagreements": [
+      {
+        "lemma": "arrepentirse",
+        "tense": "Imperative Negative/Present",
+        "slot": "vosotros",
+        "a": "no os arrepintáis",
+        "b": "no os arrepentáis"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Present Perfect",
+        "slot": "vosotros",
+        "a": "habéis cepillado",
+        "b": "cepilléis cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Past Perfect",
+        "slot": "yo",
+        "a": "había cepillado",
+        "b": "cepillía cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Past Perfect",
+        "slot": "tú",
+        "a": "habías cepillado",
+        "b": "cepillías cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Past Perfect",
+        "slot": "él/ella/usted",
+        "a": "había cepillado",
+        "b": "cepillía cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Past Perfect",
+        "slot": "nosotros",
+        "a": "habíamos cepillado",
+        "b": "cepillíamos cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Past Perfect",
+        "slot": "ustedes/ellos",
+        "a": "habían cepillado",
+        "b": "cepillían cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Past Perfect",
+        "slot": "vosotros",
+        "a": "habíais cepillado",
+        "b": "cepillíais cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Future Perfect",
+        "slot": "yo",
+        "a": "habré cepillado",
+        "b": "cepillré cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Future Perfect",
+        "slot": "tú",
+        "a": "habrás cepillado",
+        "b": "cepillrás cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Future Perfect",
+        "slot": "él/ella/usted",
+        "a": "habrá cepillado",
+        "b": "cepillrá cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Future Perfect",
+        "slot": "nosotros",
+        "a": "habremos cepillado",
+        "b": "cepillremos cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Future Perfect",
+        "slot": "ustedes/ellos",
+        "a": "habrán cepillado",
+        "b": "cepillrán cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Future Perfect",
+        "slot": "vosotros",
+        "a": "habréis cepillado",
+        "b": "cepillréis cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Conditional Perfect",
+        "slot": "yo",
+        "a": "habría cepillado",
+        "b": "cepillría cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Conditional Perfect",
+        "slot": "tú",
+        "a": "habrías cepillado",
+        "b": "cepillrías cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Conditional Perfect",
+        "slot": "él/ella/usted",
+        "a": "habría cepillado",
+        "b": "cepillría cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Conditional Perfect",
+        "slot": "nosotros",
+        "a": "habríamos cepillado",
+        "b": "cepillríamos cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Conditional Perfect",
+        "slot": "ustedes/ellos",
+        "a": "habrían cepillado",
+        "b": "cepillrían cepillado"
+      },
+      {
+        "lemma": "cepillar",
+        "tense": "Indicative/Conditional Perfect",
+        "slot": "vosotros",
+        "a": "habríais cepillado",
+        "b": "cepillríais cepillado"
+      },
+      {
+        "lemma": "criar",
+        "tense": "Indicative/Present",
+        "slot": "vosotros",
+        "a": "criais",
+        "b": "criáis"
+      },
+      {
+        "lemma": "criar",
+        "tense": "Indicative/Preterite",
+        "slot": "yo",
+        "a": "crie",
+        "b": "crié"
+      },
+      {
+        "lemma": "criar",
+        "tense": "Subjunctive/Present",
+        "slot": "vosotros",
+        "a": "crieis",
+        "b": "criéis"
+      },
+      {
+        "lemma": "criar",
+        "tense": "Imperative Negative/Present",
+        "slot": "vosotros",
+        "a": "no crieis",
+        "b": "no criéis"
+      },
+      {
+        "lemma": "doler",
+        "tense": "Imperative Negative/Present",
+        "slot": "tú",
+        "a": "no duelas",
+        "b": "no "
+      },
+      {
+        "lemma": "doler",
+        "tense": "Imperative Negative/Present",
+        "slot": "nosotros",
+        "a": "no dolamos",
+        "b": "no "
+      },
+      {
+        "lemma": "doler",
+        "tense": "Imperative Negative/Present",
+        "slot": "vosotros",
+        "a": "no doláis",
+        "b": "no "
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Preterite",
+        "slot": "él/ella/usted",
+        "a": "frio",
+        "b": "frió"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Subjunctive/Present",
+        "slot": "vosotros",
+        "a": "friais",
+        "b": "friáis"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Imperative Negative/Present",
+        "slot": "vosotros",
+        "a": "no friais",
+        "b": "no friáis"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Present Perfect",
+        "slot": "yo",
+        "a": "he freído",
+        "b": "he frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Present Perfect",
+        "slot": "tú",
+        "a": "has freído",
+        "b": "has frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Present Perfect",
+        "slot": "él/ella/usted",
+        "a": "ha freído",
+        "b": "ha frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Present Perfect",
+        "slot": "nosotros",
+        "a": "hemos freído",
+        "b": "hemos frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Present Perfect",
+        "slot": "ustedes/ellos",
+        "a": "han freído",
+        "b": "han frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Present Perfect",
+        "slot": "vosotros",
+        "a": "habéis freído",
+        "b": "habéis frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Past Perfect",
+        "slot": "yo",
+        "a": "había freído",
+        "b": "había frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Past Perfect",
+        "slot": "tú",
+        "a": "habías freído",
+        "b": "habías frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Past Perfect",
+        "slot": "él/ella/usted",
+        "a": "había freído",
+        "b": "había frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Past Perfect",
+        "slot": "nosotros",
+        "a": "habíamos freído",
+        "b": "habíamos frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Past Perfect",
+        "slot": "ustedes/ellos",
+        "a": "habían freído",
+        "b": "habían frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Past Perfect",
+        "slot": "vosotros",
+        "a": "habíais freído",
+        "b": "habíais frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Preterite (Archaic)",
+        "slot": "yo",
+        "a": "hube freído",
+        "b": "hube frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Preterite (Archaic)",
+        "slot": "tú",
+        "a": "hubiste freído",
+        "b": "hubiste frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Preterite (Archaic)",
+        "slot": "él/ella/usted",
+        "a": "hubo freído",
+        "b": "hubo frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Preterite (Archaic)",
+        "slot": "nosotros",
+        "a": "hubimos freído",
+        "b": "hubimos frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Preterite (Archaic)",
+        "slot": "ustedes/ellos",
+        "a": "hubieron freído",
+        "b": "hubieron frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Preterite (Archaic)",
+        "slot": "vosotros",
+        "a": "hubisteis freído",
+        "b": "hubisteis frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Future Perfect",
+        "slot": "yo",
+        "a": "habré freído",
+        "b": "habré frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Future Perfect",
+        "slot": "tú",
+        "a": "habrás freído",
+        "b": "habrás frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Future Perfect",
+        "slot": "él/ella/usted",
+        "a": "habrá freído",
+        "b": "habrá frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Future Perfect",
+        "slot": "nosotros",
+        "a": "habremos freído",
+        "b": "habremos frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Future Perfect",
+        "slot": "ustedes/ellos",
+        "a": "habrán freído",
+        "b": "habrán frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Future Perfect",
+        "slot": "vosotros",
+        "a": "habréis freído",
+        "b": "habréis frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Conditional Perfect",
+        "slot": "yo",
+        "a": "habría freído",
+        "b": "habría frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Conditional Perfect",
+        "slot": "tú",
+        "a": "habrías freído",
+        "b": "habrías frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Conditional Perfect",
+        "slot": "él/ella/usted",
+        "a": "habría freído",
+        "b": "habría frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Conditional Perfect",
+        "slot": "nosotros",
+        "a": "habríamos freído",
+        "b": "habríamos frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Conditional Perfect",
+        "slot": "ustedes/ellos",
+        "a": "habrían freído",
+        "b": "habrían frito"
+      },
+      {
+        "lemma": "freír",
+        "tense": "Indicative/Conditional Perfect",
+        "slot": "vosotros",
+        "a": "habríais freído",
+        "b": "habríais frito"
+      }
+    ]
+  },
+  "jehleRepairs": {
+    "note": "Jehle cells that were empty or malformed (doler's negative imperatives are the literal string 'no ') filled from the kaikki table. Repairs a defect; does not change which source is primary.",
+    "cells": 158,
+    "verbs": [
+      {
+        "lemma": "llover",
+        "cells": 44
+      },
+      {
+        "lemma": "nevar",
+        "cells": 42
+      },
+      {
+        "lemma": "doler",
+        "cells": 38
+      },
+      {
+        "lemma": "ocurrir",
+        "cells": 34
+      }
+    ]
+  },
+  "coverage": {
+    "verbsInDictionary": 1807,
+    "fromJehle": 554,
+    "fromKaikkiExtraction": 1241,
+    "withoutAnyTable": 12,
+    "verbsWithoutTable": [
+      {
+        "lemma": "había",
+        "freqRank": 187
+      },
+      {
+        "lemma": "persona",
+        "freqRank": 614
+      },
+      {
+        "lemma": "escucho",
+        "freqRank": 2062
+      },
+      {
+        "lemma": "ponerle",
+        "freqRank": 3209
+      },
+      {
+        "lemma": "probando",
+        "freqRank": 4232
+      },
+      {
+        "lemma": "hope",
+        "freqRank": 5051
+      },
+      {
+        "lemma": "queja",
+        "freqRank": 5475
+      },
+      {
+        "lemma": "digna",
+        "freqRank": 6479
+      },
+      {
+        "lemma": "hermandad",
+        "freqRank": 7279
+      },
+      {
+        "lemma": "sacrificado",
+        "freqRank": 7680
+      },
+      {
+        "lemma": "hai",
+        "freqRank": 8460
+      },
+      {
+        "lemma": "quejando",
+        "freqRank": 9344
+      }
+    ],
+    "tablesShipped": 1771,
+    "completeSimpleTables": 1770,
+    "averageSimpleCellsFilledPct": 100
+  },
+  "haberPresentIndicative": {
+    "yo": "he",
+    "tú": "has",
+    "él/ella/usted": "ha",
+    "nosotros": "hemos",
+    "ustedes/ellos": "han",
+    "vosotros": "habéis"
+  }
+}

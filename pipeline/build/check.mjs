@@ -8,10 +8,16 @@
  *
  * Run: node pipeline/build/check.mjs
  */
+import fs from "node:fs";
 import { raw, readJson, eachJsonl, step } from "../lib/io.mjs";
 import { normalize } from "../lib/ids.mjs";
 
 step("check · brief §12 acceptance");
+
+// Runs against the furthest stage that exists, so it is useful after step 05 and again
+// after step 06 fills in the conjugations.
+const source = fs.existsSync(raw("_entries-final.json")) ? "_entries-final.json" : "_entries-with-examples.json";
+console.log(`  reading ${source}\n`);
 
 const results = [];
 const check = (name, pass, detail = "") => {
@@ -19,8 +25,9 @@ const check = (name, pass, detail = "") => {
   console.log(`  ${pass ? "PASS" : "FAIL"}  ${name}${detail ? `  — ${detail}` : ""}`);
 };
 
-const data = readJson(raw("_entries-with-examples.json"));
+const data = readJson(raw(source));
 const entries = data.entries;
+const conjugations = fs.existsSync(raw("_conjugations.json")) ? readJson(raw("_conjugations.json")) : {};
 const byLemma = new Map();
 for (const e of entries) {
   if (!byLemma.has(e.lemma)) byLemma.set(e.lemma, []);
@@ -103,6 +110,28 @@ for (const word of ["madrugar", "haber", "sacar", "año", "güey", "chamba"]) {
 // ---- conjugations (filled by step 06) -------------------------------------
 const verbs = entries.filter((e) => e.pos === "verb");
 const withConj = verbs.filter((e) => e.conjugationId);
+if (Object.keys(conjugations).length) {
+  check("almost every verb has a conjugation table (§12)",
+    withConj.length / verbs.length > 0.99,
+    `${withConj.length.toLocaleString()}/${verbs.length.toLocaleString()} verbs`);
+  check("every conjugationId resolves to a table",
+    withConj.every((e) => conjugations[e.conjugationId]));
+
+  // The orthographic case DECISIONS.md flagged as the reason rules were risky.
+  const madrugar = conjugations[(byLemma.get("madrugar") || [])[0]?.conjugationId];
+  check("madrugar's preterite is madrugué, not madrugé",
+    madrugar?.tenses["Indicative/Preterite"]?.yo === "madrugué",
+    madrugar?.tenses["Indicative/Preterite"]?.yo);
+
+  const haber = conjugations[(byLemma.get("haber") || []).find((e) => e.pos === "verb")?.conjugationId];
+  check("haber conjugates correctly (every perfect tense depends on it)",
+    haber?.tenses["Indicative/Present"]?.yo === "he" && haber?.tenses["Indicative/Present"]?.nosotros === "hemos",
+    haber ? `${haber.tenses["Indicative/Present"].yo} … ${haber.tenses["Indicative/Present"].nosotros}` : "no table");
+
+  check("tables are ustedes-first with vosotros collapsed (§3)",
+    Object.values(conjugations).every((t) =>
+      Object.values(t.tenses).every((tense) => typeof tense.vosotros === "object" && "collapsed" in tense.vosotros)));
+}
 console.log(`\n  verbs ${verbs.length.toLocaleString()} · with a conjugation table ${withConj.length.toLocaleString()} (${((withConj.length / verbs.length) * 100).toFixed(1)}%)`);
 
 const failed = results.filter((r) => !r.pass);
