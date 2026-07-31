@@ -80,10 +80,11 @@ export const FIXTURE_ENGLISH_SHARDS = [
 ];
 
 /** Splits the stores across chunks the way 07-package.mjs does. */
-export function buildFixtureChunks() {
+export function buildFixtureChunks(entries = FIXTURE_ENTRIES) {
+  const half = Math.ceil(entries.length / 2);
   return [
-    { stores: { entries: FIXTURE_ENTRIES.slice(0, 3) } },
-    { stores: { entries: FIXTURE_ENTRIES.slice(3), conjugations: FIXTURE_CONJUGATIONS } },
+    { stores: { entries: entries.slice(0, half) } },
+    { stores: { entries: entries.slice(half), conjugations: FIXTURE_CONJUGATIONS } },
     { stores: { formShards: FIXTURE_FORM_SHARDS, englishShards: FIXTURE_ENGLISH_SHARDS } },
   ];
 }
@@ -94,14 +95,26 @@ async function sha256Hex(buffer) {
 }
 
 /**
- * Builds a manifest and its chunk bodies, with real hashes. `datasetVersion` lets a test
- * build a second, different version to exercise the atomic swap.
+ * Builds a manifest and its chunk bodies, with real hashes.
+ *
+ * Takes either a version string or options:
+ *   datasetVersion  a second, different version, to exercise the atomic swap
+ *   dropEntries     ids to leave out, standing in for a rebuild that removed a word (§5)
+ *   previousIds     the alias map, for testing that a moved id still resolves (§6)
  */
-export async function buildFixtureDictionary(datasetVersion = "fixture-v1") {
+export async function buildFixtureDictionary(options = {}) {
+  const {
+    datasetVersion = "fixture-v1",
+    dropEntries = [],
+    previousIds = {},
+  } = typeof options === "string" ? { datasetVersion: options } : options;
+
+  const dropped = new Set(dropEntries);
+  const entries = FIXTURE_ENTRIES.filter((e) => !dropped.has(e.id));
   const bodies = new Map();
   const chunks = [];
 
-  for (const [index, chunk] of buildFixtureChunks().entries()) {
+  for (const [index, chunk] of buildFixtureChunks(entries).entries()) {
     const file = `chunk-${String(index).padStart(3, "0")}.json`;
     const buffer = new TextEncoder().encode(JSON.stringify({ datasetVersion, chunk: index, ...chunk }));
     bodies.set(file, buffer);
@@ -119,7 +132,7 @@ export async function buildFixtureDictionary(datasetVersion = "fixture-v1") {
     datasetVersion,
     path: datasetVersion,
     counts: {
-      entries: FIXTURE_ENTRIES.length,
+      entries: entries.length,
       conjugations: FIXTURE_CONJUGATIONS.length,
       formShards: FIXTURE_FORM_SHARDS.length,
       englishShards: FIXTURE_ENGLISH_SHARDS.length,
@@ -127,7 +140,7 @@ export async function buildFixtureDictionary(datasetVersion = "fixture-v1") {
     },
     bytes: { total: chunks.reduce((n, c) => n + c.bytes, 0), gzipped: 0 },
     chunks,
-    previousIds: {},
+    previousIds,
     attribution: {
       note: "Fixture data. The Jehle conjugation database is NONCOMMERCIAL (CC BY-NC-SA 3.0).",
       sources: [{ name: "Fixture", license: "CC BY-SA 4.0", attribution: "nobody", url: "https://example.invalid" }],

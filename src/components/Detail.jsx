@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft, Trash2, X, ExternalLink, Pencil, CalendarDays, FileText, Check, Link2,
-  Highlighter, Eye, Clock,
+  Highlighter, Eye, Clock, BookMarked,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Chip, Button } from "../theme.jsx";
 import { POS_OPTIONS, POS_ABBR } from "./ItemCard.jsx";
+import DictAttachment, { DictPicker } from "./DictAttachment.jsx";
+import { POS_LABEL } from "./DictCard.jsx";
 import { updateItem, deleteItem, linkItems, unlinkItems, displayTitle } from "../db/items.js";
 import { logView, toggleTricky } from "../db/events.js";
+import { getEntries, isDictKey, dictionaryInstalled } from "../db/ref/entries.js";
 import { emptyItemState } from "../useNotebook.js";
 import { timeAgo } from "../lib/dates.js";
 
@@ -39,11 +42,36 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
     [items, item, related]
   );
 
+  // linkedKeys may point into the reference layer (§6). Those entries cannot hold a
+  // reciprocal link, which is exactly why links are stored on one side and read back
+  // from both — the design Phase 1c chose for this moment.
+  const [linkedEntries, setLinkedEntries] = useState([]);
+  const [linkingDict, setLinkingDict] = useState(false);
+  const [dictionaryReady, setDictionaryReady] = useState(false);
+
+  useEffect(() => {
+    dictionaryInstalled().then(setDictionaryReady);
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    const keys = item.linkedKeys.filter(isDictKey);
+    if (!keys.length) {
+      setLinkedEntries([]);
+      return;
+    }
+    getEntries(keys).then((found) => alive && setLinkedEntries(found));
+    return () => {
+      alive = false;
+    };
+  }, [item.id, item.linkedKeys]);
+
   useEffect(() => {
     setBodyDraft(isPage ? item.body || "" : item.notes || "");
     setBodyDirty(false);
     setEditingHead(false);
     setDeleteArm(false);
+    setLinkingDict(false);
     setHead(
       isPage
         ? { title: item.title, pageDate: item.pageDate || "" }
@@ -223,6 +251,8 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
             >
               <Highlighter size={15} /> {state.tricky ? "Marked tricky" : "Highlight as tricky"}
             </button>
+
+            {!isPage && <DictAttachment item={item} onOpen={onOpen} onChanged={onChanged} />}
           </>
         )}
       </Card>
@@ -396,6 +426,21 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
             {other.type === "page" ? <FileText size={11} /> : <Link2 size={11} />} {displayTitle(other)}
           </Chip>
         ))}
+        {linkedEntries.map((entry) => (
+          <Chip
+            key={entry.id}
+            onClick={() => onOpen(entry.id)}
+            onRemove={async () => {
+              await unlinkItems(item.id, entry.id);
+              onChanged();
+            }}
+          >
+            <BookMarked size={11} /> {entry.lemma}
+            <span className="italic ml-1" style={{ color: C.mut }}>
+              {POS_LABEL[entry.pos] || entry.pos}
+            </span>
+          </Chip>
+        ))}
         {linkable.length > 0 && (
           <div className="flex items-center gap-1">
             <select
@@ -425,12 +470,33 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
             </button>
           </div>
         )}
-        {related.length === 0 && linkable.length === 0 && (
+        {dictionaryReady && (
+          <button
+            onClick={() => setLinkingDict((v) => !v)}
+            className="text-xs px-2 py-1 rounded-full border inline-flex items-center gap-1"
+            style={{ background: C.card, color: C.mut, borderColor: C.line }}
+          >
+            <BookMarked size={11} /> link a dictionary word
+          </button>
+        )}
+        {related.length === 0 && linkedEntries.length === 0 && linkable.length === 0 && !dictionaryReady && (
           <span className="text-xs" style={{ color: C.mut }}>
             Nothing else in the cuaderno to link to yet.
           </span>
         )}
       </div>
+
+      {linkingDict && (
+        <DictPicker
+          placeholder="Link a word from the dictionary…"
+          onCancel={() => setLinkingDict(false)}
+          onPick={async (entry) => {
+            setLinkingDict(false);
+            await linkItems(item.id, entry.id);
+            onChanged();
+          }}
+        />
+      )}
 
       <div className="mt-8">
         <Button

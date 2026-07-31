@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BookMarked, Download, RefreshCw, Trash2, AlertTriangle, Check, X, WifiOff } from "lucide-react";
+import { BookMarked, Download, RefreshCw, Trash2, AlertTriangle, Check, X, WifiOff, Gauge } from "lucide-react";
 import { C, MONO, SectionTitle, Card, Button } from "../theme.jsx";
 import {
   fetchManifest, installDictionary, installedDataset, pendingInstall,
   discardPendingInstall, removeDictionary,
 } from "../db/ref/install.js";
 import { forgetCaches } from "../db/ref/entries.js";
+import { runSearchSpeedTest, startupTiming } from "../lib/speedtest.js";
 
 /**
  * The §11 download flow: an explicit, versioned, chunked download with visible progress,
@@ -27,7 +28,14 @@ export default function DictionaryCard({ onInstalled }) {
   const [note, setNote] = useState("");
   const [checking, setChecking] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const [speed, setSpeed] = useState(null);
   const abort = useRef(null);
+
+  async function runSpeedTest() {
+    setSpeed("running");
+    const result = await runSearchSpeedTest();
+    setSpeed({ ...result, startup: startupTiming() });
+  }
 
   const refresh = useCallback(async () => {
     const [dataset, half] = await Promise.all([installedDataset(), pendingInstall()]);
@@ -161,6 +169,36 @@ export default function DictionaryCard({ onInstalled }) {
               >
                 <Trash2 size={14} /> {confirmRemove ? "Tap again to remove" : "Remove"}
               </Button>
+            </div>
+
+            {/*
+              §12 asks for startup and search timing measured on the owner's phone. A number
+              from a development machine cannot answer that, so the measurement ships here.
+            */}
+            <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${C.line}` }}>
+              <Button tone="quiet" onClick={runSpeedTest} disabled={speed === "running"}>
+                <Gauge size={15} className={speed === "running" ? "animate-pulse" : ""} /> Test speed on this device
+              </Button>
+              {speed && speed !== "running" && (
+                <div className="mt-2 text-xs leading-relaxed" style={{ fontFamily: MONO, color: C.mut }}>
+                  {speed.startup && (
+                    <div>
+                      app ready in {speed.startup.interactiveMs} ms
+                      {speed.startup.firstPaintMs != null && ` · first paint ${speed.startup.firstPaintMs} ms`}
+                    </div>
+                  )}
+                  <div>
+                    search: {speed.medianMs} ms median, {speed.slowestMs} ms slowest
+                  </div>
+                  <div className="mt-1">
+                    {speed.runs.map((r) => (
+                      <span key={r.query} className="inline-block mr-2">
+                        {r.query} {r.ms}ms
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </>
         ) : pending && manifest && pending.datasetVersion === manifest.datasetVersion ? (
