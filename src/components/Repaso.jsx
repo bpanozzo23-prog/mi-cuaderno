@@ -1,10 +1,12 @@
-import { useMemo } from "react";
-import { Highlighter, SearchX } from "lucide-react";
-import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card } from "../theme.jsx";
+import { useMemo, useState } from "react";
+import { Highlighter, SearchX, Play, CheckCircle2 } from "lucide-react";
+import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button } from "../theme.jsx";
 import ItemCard from "./ItemCard.jsx";
+import ReviewSession from "./ReviewSession.jsx";
 import { EVENT_TYPES } from "../db/events.js";
 import { emptyItemState } from "../useNotebook.js";
 import { timeAgo } from "../lib/dates.js";
+import { deriveReviewState } from "../lib/review.js";
 
 /**
  * Every number here is derived from the event log at render time — there are no
@@ -36,9 +38,19 @@ function Stat({ label, value }) {
 }
 
 export default function Repaso({ notebook, onSelect }) {
-  const { items, events, itemState } = notebook;
+  const { items, events, itemState, reload } = notebook;
+  const [inSession, setInSession] = useState(false);
 
   const byId = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
+
+  // The whole Leitner schedule, replayed from the log — the same derive-at-render-time
+  // approach as itemState above (brief section 7). Recomputed on every notebook change,
+  // so grading a card during a session updates this without any separate bookkeeping.
+  const review = useMemo(() => deriveReviewState(items, events), [items, events]);
+
+  // The session owns its own list once started, so re-deriving mid-session (a grade
+  // changes what is due) cannot pull the card out from under the owner's thumb.
+  const [sessionCards, setSessionCards] = useState([]);
 
   const tricky = useMemo(
     () => items.filter((i) => itemState.get(i.id)?.tricky),
@@ -74,9 +86,57 @@ export default function Repaso({ notebook, onSelect }) {
   // Newest first; an event whose item is gone still shows, marked as deleted.
   const recent = useMemo(() => [...events].reverse().slice(0, 12), [events]);
 
+  function startSession() {
+    setSessionCards(review.due.map((item) => ({ ...item, ...review.states.get(item.id) })));
+    setInSession(true);
+  }
+
+  if (inSession) {
+    return (
+      <ReviewSession
+        cards={sessionCards}
+        onFinish={() => {
+          setInSession(false);
+          reload();
+        }}
+        onOpen={onSelect}
+        onGraded={reload}
+      />
+    );
+  }
+
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
-      <div className="grid grid-cols-3 gap-2">
+      <SectionTitle>Para hoy</SectionTitle>
+      <Card className="p-4">
+        {review.due.length === 0 ? (
+          <div className="flex items-start gap-2 text-sm" style={{ color: C.mut }}>
+            <CheckCircle2 size={15} style={{ marginTop: 2, color: C.green }} />
+            {review.enrolled.length === 0
+              ? "Nothing in review yet. Highlighting a word or looking it up a few times puts it here."
+              : review.reviewedToday > 0
+                ? "Nothing left for today. Come back tomorrow."
+                : "Nothing due today."}
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-2xl" style={{ fontFamily: MONO, color: C.ink }}>
+                {review.due.length}
+              </div>
+              <div className="text-xs" style={{ color: C.mut }}>
+                {review.due.length === 1 ? "word due" : "words due"}
+                {review.reviewedToday > 0 && ` · ${review.reviewedToday} done today`}
+              </div>
+            </div>
+            <Button onClick={startSession}>
+              <Play size={15} /> Start
+            </Button>
+          </div>
+        )}
+      </Card>
+
+      <div className="grid grid-cols-3 gap-2 mt-6">
         <Stat label="items" value={items.length} />
         <Stat label="lookups" value={totalLookups} />
         <Stat label="tricky" value={tricky.length} />
