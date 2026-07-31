@@ -7,9 +7,10 @@ import Detail from "./Detail.jsx";
 import DictCard from "./DictCard.jsx";
 import DictDetail from "./DictDetail.jsx";
 import SearchBar from "./SearchBar.jsx";
+import EmptyState from "./EmptyState.jsx";
 import { searchItems, mergeResults } from "../lib/search.js";
 import { searchDictionary } from "../db/ref/search.js";
-import { isDictKey } from "../db/ref/entries.js";
+import { isDictKey, installedMeta } from "../db/ref/entries.js";
 import { emptyItemState } from "../useNotebook.js";
 
 /** Long enough that a fast typist does not fire a query per keystroke, short enough to feel instant. */
@@ -21,15 +22,22 @@ const TYPE_FILTERS = [
   { id: "page", label: "páginas" },
 ];
 
-export default function Cuaderno({ notebook, selectedId, onSelect }) {
+export default function Cuaderno({ notebook, selectedId, onSelect, onOpenSettings }) {
   const { items, itemState, reload } = notebook;
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [tagFilter, setTagFilter] = useState(null);
   const [addKind, setAddKind] = useState(null);
   const [askKind, setAskKind] = useState(false);
+  const [dictionary, setDictionary] = useState(null);
 
   const searching = query.trim() !== "";
+
+  // Whether this device has the dictionary changes what an empty screen should say, and
+  // what the search box should promise. It is per-device by design (§11).
+  useEffect(() => {
+    installedMeta().then(setDictionary);
+  }, [selectedId]);
 
   const allTags = useMemo(() => {
     const set = new Set();
@@ -133,6 +141,7 @@ export default function Cuaderno({ notebook, selectedId, onSelect }) {
           resultCount={visible.length}
           pending={dictPending}
           onMissLogged={reload}
+          placeholder={dictionary ? "Search the dictionary and your notes…" : "Search words, meanings, notes, pages…"}
         />
         <div className="flex gap-1.5 items-center mt-2">
           {TYPE_FILTERS.map((f) => (
@@ -160,13 +169,13 @@ export default function Cuaderno({ notebook, selectedId, onSelect }) {
 
       <div className="px-4 py-4 space-y-2.5 pb-28" style={dotGrid}>
         {visible.length === 0 && (
-          <div className="text-sm text-center py-16" style={{ color: C.mut }}>
-            {items.length === 0 && !searching
-              ? "Nothing here yet. Add your first word or page with the + button."
-              : searching
-                ? `Nothing matches “${query.trim()}”.`
-                : "Nothing matches that filter."}
-          </div>
+          <EmptyState
+            hasItems={items.length > 0}
+            searching={searching}
+            query={query}
+            dictionary={dictionary}
+            onOpenSettings={onOpenSettings}
+          />
         )}
         {visible.map((result) =>
           result.kind === "entry" ? (

@@ -16,7 +16,14 @@ import { logEvent, EVENT_TYPES } from "../db/events.js";
 export const SEARCH_SETTLE_MS = 1500;
 const loggedThisSession = new Set();
 
-export default function SearchBar({ value, onChange, resultCount, pending = false, onMissLogged }) {
+export default function SearchBar({
+  value,
+  onChange,
+  resultCount,
+  pending = false,
+  onMissLogged,
+  placeholder = "Search words, meanings, notes, pages…",
+}) {
   const timer = useRef(null);
 
   useEffect(() => {
@@ -44,7 +51,7 @@ export default function SearchBar({ value, onChange, resultCount, pending = fals
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Search words, meanings, notes, pages…"
+        placeholder={placeholder}
         className="flex-1 bg-transparent outline-none text-sm"
         style={{ color: C.ink }}
       />

@@ -56,7 +56,12 @@ export default function App() {
         ) : (
           <>
             {tab === "cuaderno" && (
-              <Cuaderno notebook={notebook} selectedId={selectedId} onSelect={setSelectedId} />
+              <Cuaderno
+                notebook={notebook}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+                onOpenSettings={() => switchTab("ajustes")}
+              />
             )}
             {tab === "repaso" && (
               <Repaso
