@@ -9,12 +9,12 @@ to change.
 
 ## Verdict
 
-**Phase 2 is complete except for the two acceptance items that require your phone.** Everything
-in the §12 "done when" list is implemented and verified on desktop; the dataset is 10,278 entries
-and 3.3 MB gzipped, under the 3.5 MB budget.
+**Phase 2 is complete except for one acceptance item: reading 20 entries and judging that they
+read well.** Everything else in the §12 "done when" list is implemented and verified, including
+the on-phone timing. The dataset is 10,278 entries and 3.3 MB gzipped, under the 3.5 MB budget.
 
-Two things below want a decision from you, and one is a genuine opportunity rather than a problem:
-Jehle's noncommercial licence may now be droppable.
+The licensing question raised here is now **resolved**: Jehle is out of the shipped data and the
+dictionary carries no noncommercial restriction. Details below.
 
 ## What shipped
 
@@ -45,7 +45,7 @@ Jehle's noncommercial licence may now be droppable.
 | Every example carries source metadata | ✅ 0 examples missing a contributor or source id |
 | Works fully offline after download | ✅ IndexedDB; service worker precaches 404 KB and ignores `dict/**` |
 | **20 representative entries read correctly** | ⏳ **needs you** — see below |
-| **Startup and search timing on your phone** | ⏳ **needs you** — one tap, see below |
+| Startup and search timing on the owner's phone | ✅ **28 ms to ready, 88 ms first paint, 7 ms median search, 9 ms slowest** |
 
 ### Verified on the deployed site
 
@@ -80,20 +80,41 @@ layer knows nothing about surfaces **your note** rather than a duplicate diction
 
 ## Two things for you
 
-### 1. Jehle may now be droppable — and that would remove the noncommercial restriction
+### 1. ~~Jehle may now be droppable~~ — RESOLVED: Jehle dropped, noncommercial restriction gone
 
-The spike report flagged Jehle's CC BY-NC-SA licence as "the one license that constrains what
-this app may ever become". Phase 2b changed the facts:
+**Decided 2026-07-31. Dataset `kaikki-es-2026-07-25-r2` ships every conjugation table extracted
+from kaikki. The whole bundle is now CC BY-SA / CC BY, with no noncommercial restriction** — the
+one licence the spike report called "the one license that constrains what this app may ever become".
 
-- kaikki's own conjugation tables cover **1,795 of 1,807** verbs; Jehle covers 554.
-- Validated cell by cell on the 554 both sources have: **99.83% agreement across 57,580 cells**.
-- Where they disagree, **kaikki is right**. `criáis`→`criais` and `frió`→`frio` are the 2010 RAE
-  spelling reform, which Jehle predates. Jehle's `gradúéis` carries two accents, which Spanish
-  orthography does not permit. `doler`'s negative imperatives are the literal string `"no "`.
+Measured before deciding, so the choice rested on facts rather than preference:
 
-So Jehle is now technically redundant. Dropping it would leave the dataset CC BY-SA throughout
-and lift the noncommercial restriction from the whole app. I have **not** done it: §4 names Jehle
-explicitly, and this is a licensing decision, not a technical one. Say the word either way.
+| | |
+|---|---|
+| Verbs Jehle covered that would lose their table | **0** of 546 |
+| Cells that would be lost | **0** |
+| Coverage before / after | 1,795 tables — identical |
+
+And removing it **improved** the data. Jehle was primary for the verbs it covered, so its errors
+were the ones on the phone:
+
+| Verb | Was (Jehle) | Now (kaikki) | |
+|---|---|---|---|
+| `freír` | frió | **frio** | 2010 RAE spelling reform, which Jehle predates |
+| `criar` | criáis | **criais** | same |
+| `graduar` | gradúéis | **graduéis** | two accents, which Spanish orthography forbids |
+| `arrepentirse` | arrepentáis | **arrepintáis** | missed stem change |
+
+Jehle is retained as a **build-time validation reference only** — the extractor is still compared
+against it cell by cell (99.83% across 57,580 cells, gate at 99.5%), which is the one real benefit
+it offered and does not require shipping any of its content. The CSV is never committed, and the
+build still runs without it, saying loudly that the tables are unchecked.
+
+Brief §4 is amended inline to match, with the original text struck through rather than deleted.
+
+*One correction to an earlier claim of mine:* I described all 98 disagreeing cells as shipped
+differences. They were not — 61 are perfect tenses, composed from *haber* for both sources, so
+Jehle's versions (including `cepillar`'s corrupt "cepillía cepillado") never shipped. The real
+delta was ~37 simple-tense cells across 19 verbs. Same conclusion, smaller number.
 
 ### 2. kaikki still marks the source file DEPRECATED
 
@@ -108,36 +129,39 @@ proceed, re-check at every refresh.
 Check the senses read sensibly, verbs show conjugations, examples make sense. This is the one
 acceptance item no test can stand in for.
 
-**Tap "Test speed on this device"** in Ajustes → Dictionary. It reports startup time and the
-median and slowest of six searches. For comparison: 875 ms startup and 25 ms median search on the
-deployed site from a desktop browser. A phone will be slower — if it is in the same neighbourhood
-the timing criterion is met; if it is much worse, send me the numbers and I will find where the
-time goes.
+~~**Tap "Test speed on this device."**~~ **Done — and comfortably fast.** On the owner's phone:
+app ready in **28 ms**, first paint **88 ms**, search **7 ms median / 9 ms slowest**. Better than
+the deployed desktop figures (875 ms / 25 ms / 33 ms), which carried a cold network load. The §12
+timing criterion is met.
 
-**Download it on the phone.** 3.3 MB in 14 parts; it took 21 seconds here on a desktop
-connection. Interrupting it mid-way should leave the app working and offer to resume — worth
-trying deliberately, since that is the §11 guarantee that matters most on a phone.
+**Take the r2 update on the phone.** Ajustes → Dictionary will offer it. The swap is atomic: it
+downloads into the unused slot and flips only when every chunk has verified, so an interruption
+leaves the working dictionary intact. Worth interrupting deliberately once — that is the §11
+guarantee that matters most on a phone.
 
 ## Numbers, for the record
 
 | | |
 |---|---|
+| Dataset version | `kaikki-es-2026-07-25-r2` |
+| Licence of everything distributed | CC BY-SA / CC BY — **no noncommercial restriction** |
 | Entries | 10,278 (21,680 senses, 2.11 per entry) |
 | With a gender | 6,420 |
 | With a Mexico-labeled sense | 242 |
-| Verbs / with a conjugation table | 1,807 / 1,795 (99.3%) |
-| Conjugation validation vs Jehle | 99.83% of 57,580 cells |
+| Verbs / with a conjugation table | 1,807 / 1,795 (99.3%), all kaikki-derived |
+| Conjugation validation vs Jehle (build-time only) | 99.83% of 57,580 cells, 546 verbs |
 | Examples | 28,210 across 9,854 entries (95.9%); 83.5% show the citation form |
 | Examples missing attribution | **0** |
 | Searchable forms / English words | 223,500 / 16,063 |
-| Download | 3.3 MB gzipped (23.7 MB raw) in 14 chunks |
-| Tests | 143 |
+| Download | 3.3 MB gzipped (22.7 MB raw) in 15 chunks |
+| Phone: ready / search | 28 ms / 7 ms median |
+| Tests · package checks | 143 · 24 |
 
 ## Where things are
 
 - `pipeline/build/` — scripts 01–08, each runnable alone; `check.mjs` and `verify-package.mjs`
   assert the §12 behaviour at full scale and against the shipped chunks.
 - `pipeline/spike/` — untouched, the historical record of Phase 0.5.
-- `public/dict/` — the manifest and the 14 chunks that actually ship.
+- `public/dict/` — the manifest and the 15 chunks that actually ship.
 - `src/db/ref/` — the reference layer: A/B databases, installer, reads, search.
 - `DATA_SOURCES.md` — regenerated; every dataset with its exact licence, as §4 requires.

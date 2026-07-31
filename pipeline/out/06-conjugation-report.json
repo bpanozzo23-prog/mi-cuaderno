@@ -1,9 +1,11 @@
 {
-  "generatedAt": "2026-07-31T15:45:26.543Z",
-  "approach": "Conjugations extracted from kaikki's tagged forms[] for verbs Jehle lacks; Jehle remains primary for the 554 verbs it covers. Perfect tenses composed as haber + participle.",
+  "generatedAt": "2026-07-31T21:23:54.443Z",
+  "approach": "Every conjugation table is extracted from kaikki's tagged forms[]. Jehle is a validation reference only — no Jehle content is distributed, so its CC BY-NC-SA noncommercial terms do not apply to the bundle. Perfect tenses composed as haber + participle.",
   "validation": {
     "gate": 99.5,
-    "verbsComparedAgainstJehle": 637,
+    "verbsComparedAgainstJehle": 546,
+    "jehleVerbsInDatabase": 637,
+    "jehleVerbsNotInDictionary": 91,
     "cellsCompared": 57580,
     "cellsAgreeing": 57482,
     "agreementPct": 99.83,
@@ -545,32 +547,10 @@
       }
     ]
   },
-  "jehleRepairs": {
-    "note": "Jehle cells that were empty or malformed (doler's negative imperatives are the literal string 'no ') filled from the kaikki table. Repairs a defect; does not change which source is primary.",
-    "cells": 158,
-    "verbs": [
-      {
-        "lemma": "llover",
-        "cells": 44
-      },
-      {
-        "lemma": "nevar",
-        "cells": 42
-      },
-      {
-        "lemma": "doler",
-        "cells": 38
-      },
-      {
-        "lemma": "ocurrir",
-        "cells": 34
-      }
-    ]
-  },
   "coverage": {
     "verbsInDictionary": 1807,
-    "fromJehle": 554,
-    "fromKaikkiExtraction": 1241,
+    "fromKaikkiExtraction": 1795,
+    "fromJehle": 0,
     "withoutAnyTable": 12,
     "verbsWithoutTable": [
       {

@@ -4,7 +4,7 @@
 everyday vocabulary, Mexico-flagged terms, mixed parts of speech, verbs with conjugations,
 and examples with their attribution.
 
-Dataset version: `kaikki-es-2026-07-25`  ·  10,278 entries total
+Dataset version: `kaikki-es-2026-07-25-r2`  ·  10,278 entries total
 
 ---
 
@@ -13,7 +13,7 @@ Dataset version: `kaikki-es-2026-07-25`  ·  10,278 entries total
 - **ID:** `dict:wiktionary-es:sacar:verb`
 - **Frequency rank:** 299
 - **Searchable forms:** 113 (e.g. saca, sacaba, sacabais, sacabamos, sacaban, sacabas, sacad, sacada, …)
-- **Conjugation:** `conj:jehle:sacar`
+- **Conjugation:** `conj:wikt:sacar`
 
 **Senses**
 
@@ -40,7 +40,7 @@ Dataset version: `kaikki-es-2026-07-25`  ·  10,278 entries total
     <sub>tatoeba:436230 · lukaszpp · CC BY 2.0 FR · https://tatoeba.org/en/sentences/show/436230
     · English side tatoeba:436229 · lukaszpp</sub>
 
-**Conjugation** (source: jehle; ustedes-first, vosotros last; 18 tenses)
+**Conjugation** (source: wiktionary; ustedes-first, vosotros last; 19 tenses)
 
   _Indicative/Present_ — saco · sacas · saca · sacamos · sacan · sacáis
   _Indicative/Preterite_ — saqué · sacaste · sacó · sacamos · sacaron · sacasteis
@@ -53,7 +53,7 @@ Dataset version: `kaikki-es-2026-07-25`  ·  10,278 entries total
 - **ID:** `dict:wiktionary-es:tener:verb`
 - **Frequency rank:** 14
 - **Searchable forms:** 135 (e.g. ten, tendra, tendran, tendras, tendre, tendreis, tendremos, tendria, …)
-- **Conjugation:** `conj:jehle:tener`
+- **Conjugation:** `conj:wikt:tener`
 
 **Senses**
 
@@ -80,7 +80,7 @@ Dataset version: `kaikki-es-2026-07-25`  ·  10,278 entries total
     <sub>tatoeba:2575 · japegon · CC BY 2.0 FR · https://tatoeba.org/en/sentences/show/2575
     · English side tatoeba:1369 · human600</sub>
 
-**Conjugation** (source: jehle; ustedes-first, vosotros last; 18 tenses)
+**Conjugation** (source: wiktionary; ustedes-first, vosotros last; 19 tenses)
 
   _Indicative/Present_ — tengo · tienes · tiene · tenemos · tienen · tenéis
   _Indicative/Preterite_ — tuve · tuviste · tuvo · tuvimos · tuvieron · tuvisteis
@@ -277,7 +277,7 @@ Dataset version: `kaikki-es-2026-07-25`  ·  10,278 entries total
 - **ID:** `dict:wiktionary-es:dar:verb`
 - **Frequency rank:** 70
 - **Searchable forms:** 184 (e.g. da, daba, dabais, dabamos, daban, dabas, dad, dada, …)
-- **Conjugation:** `conj:jehle:dar`
+- **Conjugation:** `conj:wikt:dar`
 
 **Senses**
 
@@ -304,7 +304,7 @@ Dataset version: `kaikki-es-2026-07-25`  ·  10,278 entries total
     <sub>tatoeba:2528 · Shishir · CC BY 2.0 FR · https://tatoeba.org/en/sentences/show/2528
     · English side tatoeba:1322 · CK</sub>
 
-**Conjugation** (source: jehle; ustedes-first, vosotros last; 18 tenses)
+**Conjugation** (source: wiktionary; ustedes-first, vosotros last; 19 tenses)
 
   _Indicative/Present_ — doy · das · da · damos · dan · dais
   _Indicative/Preterite_ — di · diste · dio · dimos · dieron · disteis
@@ -572,7 +572,7 @@ Dataset version: `kaikki-es-2026-07-25`  ·  10,278 entries total
 - **ID:** `dict:wiktionary-es:ser:verb`
 - **Frequency rank:** 1
 - **Searchable forms:** 129 (e.g. era, erais, eramos, eran, eras, eres, eri, eris, …)
-- **Conjugation:** `conj:jehle:ser`
+- **Conjugation:** `conj:wikt:ser`
 
 **Senses**
 
@@ -595,7 +595,7 @@ Dataset version: `kaikki-es-2026-07-25`  ·  10,278 entries total
     <sub>tatoeba:2522 · Shishir · CC BY 2.0 FR · https://tatoeba.org/en/sentences/show/2522
     · English side tatoeba:1316 · papabear</sub>
 
-**Conjugation** (source: jehle; ustedes-first, vosotros last; 18 tenses)
+**Conjugation** (source: wiktionary; ustedes-first, vosotros last; 19 tenses)
 
   _Indicative/Present_ — soy · eres · es · somos · son · sois
   _Indicative/Preterite_ — fui · fuiste · fue · fuimos · fueron · fuisteis

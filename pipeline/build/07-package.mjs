@@ -241,15 +241,20 @@ const manifest = {
   previousIds,
   attribution: {
     note:
-      "Dictionary data is licensed separately from the app's code. The Jehle conjugation " +
-      "database is NONCOMMERCIAL (CC BY-NC-SA 3.0) and constrains the whole dataset.",
-    sources: sources.map((s) => ({
-      name: s.name,
-      license: s.license,
-      attribution: s.attribution,
-      url: s.landingPage,
-      provides: s.provides || [],
-    })),
+      "Dictionary data is licensed separately from the app's code. Everything here is " +
+      "CC BY-SA or CC BY — share-alike and attribution, no noncommercial restriction.",
+    // Only distributed sources are listed. Fred Jehle's database is used at build time to
+    // validate the conjugation extractor and none of its content ships, so naming it here
+    // would tell the reader they are looking at data they are not.
+    sources: sources
+      .filter((s) => s.distributed !== false)
+      .map((s) => ({
+        name: s.name,
+        license: s.license,
+        attribution: s.attribution,
+        url: s.landingPage,
+        provides: s.provides || [],
+      })),
     fullRecord: "DATA_SOURCES.md in the mi-cuaderno repository",
     // Constant for every example, stored once here instead of on all 56,420 sentence
     // sides. The app renders licence and link on each example from these (brief §4).

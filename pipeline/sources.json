@@ -1,7 +1,7 @@
 {
   "_comment": "Source registry for the Phase 2 build pipeline. License text is quoted verbatim from the URL in licenseVerifiedAt, checked on the date given. 01-download.mjs adds download date, byte size and sha256 to raw/_manifest.json; 08-report.mjs merges both into DATA_SOURCES.md (brief section 4).",
-  "datasetVersion": "kaikki-es-2026-07-25",
-  "datasetVersionNote": "kaikki extraction date; upstream enwiktionary dump 2026-07-06. Bump this whenever the kaikki file is re-downloaded — it is the version the app shows in About and the directory name under public/dict/.",
+  "datasetVersion": "kaikki-es-2026-07-25-r2",
+  "datasetVersionNote": "kaikki extraction date; upstream enwiktionary dump 2026-07-06. Bump this whenever the kaikki file is re-downloaded — it is the version the app shows in About and the directory name under public/dict/. A trailing -rN marks a rebuild from the SAME sources with different build logic; r2 is the rebuild that made every conjugation table kaikki-derived so no Jehle content is distributed.",
   "sources": [
     {
       "key": "kaikki-es",
@@ -45,8 +45,10 @@
       "licenseQuote": "Creative Commons Attribution-NonCommercial-ShareAlike 3.0",
       "licenseVerifiedAt": "https://github.com/ghidinelli/fred-jehle-spanish-verbs",
       "attribution": "Fred Jehle, Indiana University-Purdue University Fort Wayne; compiled by ghidinelli.",
-      "notes": "NONCOMMERCIAL. Compatible with a free personal app, but this dataset must stay separated from the app-code license and must never be relicensed with it.",
-      "provides": ["conjugations"]
+      "notes": "NONCOMMERCIAL — and deliberately NOT DISTRIBUTED. As of dataset kaikki-es-2026-07-25-r2 this database is used only at build time, to validate the kaikki conjugation extractor cell by cell (99.83% agreement across 57,580 cells). No Jehle content appears in the shipped bundle, so its noncommercial terms do not attach to the distributed data. The CSV itself is never committed — raw/ is gitignored.",
+      "role": "validation-only",
+      "distributed": false,
+      "provides": ["validation of extracted conjugations"]
     },
     {
       "key": "tatoeba-spa",

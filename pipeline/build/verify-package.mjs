@@ -11,7 +11,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
-import { repo, readJson, mb, step } from "../lib/io.mjs";
+import { repo, readJson, mb, step, PIPELINE_DIR } from "../lib/io.mjs";
 import { normalize } from "../lib/ids.mjs";
 import { allTenses, HABER_CONJUGATION_ID } from "../../src/lib/conjugation.js";
 
@@ -123,10 +123,27 @@ check("every example carries text and a sentence id for both sides (§4)",
 check("the manifest records the example license and URL template (§4)",
   Boolean(manifest.attribution?.examples?.license && manifest.attribution.examples.urlTemplate),
   manifest.attribution?.examples?.license);
-check("the manifest names every source with its license (§4)",
-  manifest.attribution?.sources?.length === 6 && manifest.attribution.sources.every((s) => s.license && s.attribution));
-check("the manifest states the noncommercial constraint (§4)",
-  /NONCOMMERCIAL/i.test(manifest.attribution?.note || ""));
+// Every source whose data is actually in the bundle must be named with its license. Jehle
+// is deliberately absent: it validates the conjugation extractor at build time and none of
+// its content ships, so listing it would credit the reader with data they do not have.
+const { sources } = readJson(path.join(PIPELINE_DIR, "sources.json"));
+const distributedSources = sources.filter((s) => s.distributed !== false);
+check("the manifest names every distributed source with its license (§4)",
+  manifest.attribution?.sources?.length === distributedSources.length &&
+    manifest.attribution.sources.every((s) => s.license && s.attribution),
+  `${manifest.attribution?.sources?.length} of ${sources.length} sources are distributed`);
+
+// The bundle must not carry a noncommercial obligation. This asserts the *absence* of one,
+// which is the claim that matters now — the previous check looked for the word
+// "NONCOMMERCIAL" in the note and would have passed on a note saying there is no such
+// restriction, making it useless in exactly the case it needed to catch.
+const ncSources = manifest.attribution?.sources?.filter((s) => /\bNC\b|noncommercial|non-commercial/i.test(s.license || "")) || [];
+check("no distributed source carries a noncommercial license (§4)",
+  ncSources.length === 0,
+  ncSources.length ? `NC sources present: ${ncSources.map((s) => s.name).join(", ")}` : "all CC BY-SA / CC BY");
+check("no shipped conjugation table is attributed to Jehle",
+  stores.conjugations.every((t) => t.source !== "jehle" && !/jehle/i.test(t.id || "")),
+  `${stores.conjugations.length.toLocaleString()} tables, all kaikki-derived`);
 
 console.log(`\n  dataset ${manifest.datasetVersion} · ${mb(manifest.bytes.gzipped)} gzipped over ${manifest.chunks.length} chunks`);
 console.log(`  ${stores.entries.length.toLocaleString()} entries · ${stores.conjugations.length.toLocaleString()} tables · ` +

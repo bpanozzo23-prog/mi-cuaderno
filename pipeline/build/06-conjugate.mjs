@@ -1,17 +1,18 @@
 /**
  * Step 6 — conjugation tables for every verb in the dictionary.
  *
- * Jehle covers 554 of the 1,807 verbs. The other 1,253 get their tables extracted from
- * kaikki's tagged `forms[]` (see pipeline/lib/conjugation.mjs for why that beats writing
- * a rule-based generator).
+ * Every table is extracted from kaikki's tagged `forms[]` (see pipeline/lib/conjugation.mjs
+ * for why that beats writing a rule-based generator).
  *
- * The extractor is not trusted, it is CHECKED: the 554 verbs present in both sources are
- * compared cell by cell, and this script exits non-zero if agreement falls below the gate.
- * That is a stronger correctness argument than any hand-written conjugator could offer,
- * because it is measured against an independently produced reference.
+ * The extractor is not trusted, it is CHECKED: every verb present in both kaikki and Fred
+ * Jehle's database is compared cell by cell, and this script exits non-zero if agreement
+ * falls below the gate. That is a stronger correctness argument than any hand-written
+ * conjugator could offer, because it is measured against an independently produced reference.
  *
- * Jehle stays the primary source for the verbs it covers — brief §4 locks it in — so its
- * noncommercial licence continues to apply to the dataset either way.
+ * Jehle is ONLY that reference. No Jehle content reaches the distributed dataset, which is
+ * what keeps its CC BY-NC-SA noncommercial terms off the bundle — see the amendment note in
+ * brief §4 and the reasoning in DECISIONS.md. If the CSV is absent the build still runs, and
+ * says loudly that it shipped unvalidated.
  *
  * Run: node --max-old-space-size=6144 pipeline/build/06-conjugate.mjs
  * Writes: raw/_entries-final.json, raw/_conjugations.json, out/06-conjugation-report.json
@@ -37,16 +38,22 @@ const verbs = entries.filter((e) => e.pos === "verb");
 const verbLemmas = new Set(verbs.map((e) => e.lemma));
 console.log(`  ${verbs.length.toLocaleString()} verbs in the dictionary`);
 
-// ---- Jehle ----------------------------------------------------------------
-const jehleRows = parseCsvObjects(fs.readFileSync(raw("jehle_verb_database.csv"), "utf8"));
+// ---- Jehle: the validation reference, never a source -----------------------
+// Optional on purpose. The dataset no longer contains any Jehle content, so a build
+// without the CSV is still shippable — it is just unchecked, and says so.
+const jehlePath = raw("jehle_verb_database.csv");
 const jehleByVerb = new Map();
-for (const r of jehleRows) {
-  const inf = r.infinitive?.trim();
-  if (!inf) continue;
-  if (!jehleByVerb.has(inf)) jehleByVerb.set(inf, []);
-  jehleByVerb.get(inf).push(r);
+if (fs.existsSync(jehlePath)) {
+  for (const r of parseCsvObjects(fs.readFileSync(jehlePath, "utf8"))) {
+    const inf = r.infinitive?.trim();
+    if (!inf) continue;
+    if (!jehleByVerb.has(inf)) jehleByVerb.set(inf, []);
+    jehleByVerb.get(inf).push(r);
+  }
+  console.log(`  ${jehleByVerb.size} verbs in Jehle's database (validation reference)`);
+} else {
+  console.log(`  ! jehle_verb_database.csv absent — conjugations will ship UNVALIDATED`);
 }
-console.log(`  ${jehleByVerb.size} verbs in Jehle's database`);
 
 // ---- extract every dictionary verb from kaikki ----------------------------
 // haber is extracted too and is load-bearing: every perfect tense of every other verb is
@@ -86,7 +93,7 @@ console.log(`    haber verified: ${SLOTS.map((s) => haberPresent[s]).join(" · "
 // more tenses of evidence for free, and how the reflexive-pronoun bug was found.
 console.log("  validating against Jehle, cell by cell …");
 const ALL_TENSES = [...SIMPLE_TENSES, ...Object.keys(PERFECT_TENSES)];
-let agree = 0, compared = 0;
+let agree = 0, compared = 0, verbsCompared = 0;
 const differences = [];
 const byTense = {};
 const byVerb = [];
@@ -94,6 +101,7 @@ const byVerb = [];
 for (const [lemma, rows] of jehleByVerb) {
   const mine = kaikkiTables.get(lemma);
   if (!mine) continue;
+  verbsCompared++;
   const theirs = extractFromJehle(rows, { keepPerfect: true });
   const r = compareTables(withPerfectTenses(mine, haber.tenses), theirs, { tenses: ALL_TENSES });
   agree += r.agree;
@@ -112,51 +120,21 @@ console.log(`    ${agree.toLocaleString()}/${compared.toLocaleString()} cells ag
 
 // ---- assign tables to entries ---------------------------------------------
 /**
- * A few Jehle cells are malformed rather than empty: `doler`'s negative imperatives are
- * the literal string "no " with no verb after it. An empty cell in a tense that should
- * have one is filled from the kaikki table where possible. This repairs defects; it does
- * not substitute sources, so Jehle remains primary for the verbs it covers (brief §4).
+ * Every shipped table comes from kaikki. Jehle is a reference the extraction is measured
+ * against, above, and nothing more — no Jehle content reaches the distributed dataset,
+ * which is what keeps its CC BY-NC-SA noncommercial terms off the bundle.
+ *
+ * Measured before this was changed: of the 554 verbs Jehle covered, kaikki produces a
+ * table for all 554 and loses not one cell. Where the two disagree, kaikki is the correct
+ * one — `criáis`/`frió` are the 2010 RAE spelling reform that Jehle predates, `gradúéis`
+ * carries two accents that Spanish orthography does not permit, and `arrepentáis` misses
+ * a stem change. Shipping Jehle was costing accuracy, not buying it.
  */
-const isBlankCell = (v) => !v || !v.trim() || /^no\s*$/i.test(v.trim());
-
-function repairJehleTable(table, fallback) {
-  if (!fallback) return 0;
-  let repaired = 0;
-  for (const tense of SIMPLE_TENSES) {
-    const mine = table.tenses[tense];
-    const theirs = fallback.tenses[tense];
-    if (!mine || !theirs) continue;
-    for (const slot of expectedSlots(tense)) {
-      if (!isBlankCell(mine[slot])) continue;
-      if (!theirs[slot]) continue;
-      mine[slot] = theirs[slot];
-      repaired++;
-    }
-  }
-  if (!table.pastParticiple && fallback.pastParticiple) table.pastParticiple = fallback.pastParticiple;
-  if (!table.gerund && fallback.gerund) table.gerund = fallback.gerund;
-  return repaired;
-}
-
 const conjugations = {};
-let fromJehle = 0, fromKaikki = 0, noTable = 0, repairedCells = 0;
-const repairedVerbs = [];
+let fromKaikki = 0, noTable = 0;
 const verbsWithoutTable = [];
 
 for (const e of verbs) {
-  const rows = jehleByVerb.get(e.lemma);
-  if (rows) {
-    e.conjugationId = conjugationId("jehle", e.lemma);
-    const table = extractFromJehle(rows);
-    const n = repairJehleTable(table, kaikkiTables.get(e.lemma));
-    if (n) {
-      repairedCells += n;
-      repairedVerbs.push({ lemma: e.lemma, cells: n });
-    }
-    conjugations[e.conjugationId] = table;
-    fromJehle++;
-    continue;
-  }
   const table = kaikkiTables.get(e.lemma);
   if (table) {
     e.conjugationId = conjugationId("wikt", e.lemma);
@@ -196,11 +174,17 @@ const avgFilled = +(tableStats.reduce((n, s) => n + s.filled / s.total, 0) / tab
 const report = {
   generatedAt: new Date().toISOString(),
   approach:
-    "Conjugations extracted from kaikki's tagged forms[] for verbs Jehle lacks; Jehle " +
-    "remains primary for the 554 verbs it covers. Perfect tenses composed as haber + participle.",
+    "Every conjugation table is extracted from kaikki's tagged forms[]. Jehle is a " +
+    "validation reference only — no Jehle content is distributed, so its CC BY-NC-SA " +
+    "noncommercial terms do not apply to the bundle. Perfect tenses composed as haber + participle.",
   validation: {
     gate: AGREEMENT_GATE,
-    verbsComparedAgainstJehle: byVerb.length + (jehleByVerb.size - byVerb.length),
+    // The count of verbs actually compared — both sources must have a table. An earlier
+    // version of this line reported jehleByVerb.size, which is just the size of Jehle's
+    // database and told you nothing about how much was checked.
+    verbsComparedAgainstJehle: verbsCompared,
+    jehleVerbsInDatabase: jehleByVerb.size,
+    jehleVerbsNotInDictionary: jehleByVerb.size - verbsCompared,
     cellsCompared: compared,
     cellsAgreeing: agree,
     agreementPct,
@@ -210,18 +194,10 @@ const report = {
     worstVerbs: byVerb.sort((a, b) => b.differ - a.differ).slice(0, 20),
     sampleDisagreements: differences.slice(0, 60),
   },
-  jehleRepairs: {
-    note:
-      "Jehle cells that were empty or malformed (doler's negative imperatives are the " +
-      "literal string 'no ') filled from the kaikki table. Repairs a defect; does not " +
-      "change which source is primary.",
-    cells: repairedCells,
-    verbs: repairedVerbs.sort((a, b) => b.cells - a.cells).slice(0, 30),
-  },
   coverage: {
     verbsInDictionary: verbs.length,
-    fromJehle,
     fromKaikkiExtraction: fromKaikki,
+    fromJehle: 0,
     withoutAnyTable: noTable,
     verbsWithoutTable: verbsWithoutTable.slice(0, 40),
     tablesShipped: Object.keys(conjugations).length,
@@ -242,7 +218,8 @@ writeJson(out("06-conjugation-report.json"), report);
 
 console.log(`\n  VALIDATION`);
 console.log(`    agreement            ${agreementPct}%  (gate ${AGREEMENT_GATE}%)`);
-console.log(`    verbs with any diff  ${byVerb.length} of ${jehleByVerb.size} compared`);
+console.log(`    verbs compared       ${verbsCompared} of ${jehleByVerb.size} in Jehle's database`);
+console.log(`    verbs with any diff  ${byVerb.length}`);
 if (Object.keys(byTense).length) {
   console.log(`    disagreements by tense:`);
   for (const [t, n] of Object.entries(byTense).sort((a, b) => b[1] - a[1])) {
@@ -254,13 +231,16 @@ if (Object.keys(byTense).length) {
   }
 }
 console.log(`\n  COVERAGE`);
-console.log(`    from Jehle           ${fromJehle.toLocaleString()}  (${repairedCells} blank/malformed cells repaired from kaikki)`);
-console.log(`    from kaikki          ${fromKaikki.toLocaleString()}`);
+console.log(`    from kaikki          ${fromKaikki.toLocaleString()}  (every shipped table; Jehle is a check, not a source)`);
 console.log(`    still without one    ${noTable.toLocaleString()}`);
 console.log(`    tables shipped       ${Object.keys(conjugations).length.toLocaleString()}`);
 console.log(`    complete simple tables ${complete.toLocaleString()} · avg cells filled ${avgFilled}%`);
 
-if (agreementPct < AGREEMENT_GATE) {
+// The gate only means something when there was something to compare against. A build with
+// no reference is not a passing build — it is an unchecked one, and must not read as a pass.
+if (!compared) {
+  console.log(`\n  ! No validation was possible. These tables are UNCHECKED.`);
+} else if (agreementPct < AGREEMENT_GATE) {
   console.log(`\n  Agreement is below the ${AGREEMENT_GATE}% gate. Read out/06-conjugation-report.json before shipping.`);
   process.exit(1);
 }
