@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { BookOpen, BarChart3, Settings } from "lucide-react";
+import { BookOpen, BarChart3, Settings, Loader2 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, Card } from "./theme.jsx";
+import Cuaderno from "./components/Cuaderno.jsx";
 import Ajustes from "./components/Ajustes.jsx";
+import { useNotebook } from "./useNotebook.js";
 
 const TABS = [
   { id: "cuaderno", label: "Cuaderno", icon: BookOpen },
@@ -9,24 +11,18 @@ const TABS = [
   { id: "ajustes", label: "Ajustes", icon: Settings },
 ];
 
-function Placeholder({ text }) {
-  return (
-    <div className="px-4 py-16" style={dotGrid}>
-      <Card className="mx-auto max-w-xs text-center p-6">
-        <div className="text-base" style={{ fontFamily: SERIF, color: C.ink }}>
-          Aquí empieza el cuaderno.
-        </div>
-        <div className="mt-2 text-sm" style={{ color: C.mut }}>
-          {text}
-        </div>
-      </Card>
-    </div>
-  );
-}
-
 export default function App() {
   const [tab, setTab] = useState("cuaderno");
-  const [dataEpoch, setDataEpoch] = useState(0); // bumped when an import replaces everything
+  const [selectedId, setSelectedId] = useState(null);
+  const notebook = useNotebook();
+
+  const lexicalCount = notebook.items.filter((i) => i.type === "lexical").length;
+  const pageCount = notebook.items.length - lexicalCount;
+
+  function switchTab(next) {
+    setTab(next);
+    if (next !== "cuaderno") setSelectedId(null);
+  }
 
   return (
     <div className="min-h-screen" style={{ background: C.paper, color: C.ink }}>
@@ -35,17 +31,47 @@ export default function App() {
           className="sticky top-0 z-20 px-4 pt-4 pb-3"
           style={{ background: C.paper, borderBottom: `1px solid ${C.line}` }}
         >
-          <div className="text-2xl font-bold" style={{ fontFamily: SERIF, color: C.ink }}>
-            Mi <Hi>cuaderno</Hi>
-          </div>
-          <div className="text-xs mt-1" style={{ color: C.mut }}>
-            Spanish notebook
+          <div className="flex items-end justify-between">
+            <div>
+              <div className="text-2xl font-bold" style={{ fontFamily: SERIF, color: C.ink }}>
+                Mi <Hi>cuaderno</Hi>
+              </div>
+              <div className="text-xs mt-1" style={{ color: C.mut }}>
+                Spanish notebook
+              </div>
+            </div>
+            <div className="text-right text-xs" style={{ fontFamily: MONO, color: C.mut }}>
+              {lexicalCount} palabras
+              <br />
+              {pageCount} páginas
+            </div>
           </div>
         </header>
 
-        {tab === "cuaderno" && <Placeholder text="Words, phrases and pages arrive in the next step (Phase 1b)." />}
-        {tab === "repaso" && <Placeholder text="Lookup history and tricky words arrive in Phase 1d." />}
-        {tab === "ajustes" && <Ajustes key={dataEpoch} onDataReplaced={() => setDataEpoch((n) => n + 1)} />}
+        {notebook.loading ? (
+          <div className="flex items-center justify-center gap-2 text-sm py-24" style={{ color: C.mut }}>
+            <Loader2 size={16} className="animate-spin" /> Opening your cuaderno…
+          </div>
+        ) : (
+          <>
+            {tab === "cuaderno" && (
+              <Cuaderno notebook={notebook} selectedId={selectedId} onSelect={setSelectedId} />
+            )}
+            {tab === "repaso" && (
+              <div className="px-4 py-16" style={dotGrid}>
+                <Card className="mx-auto max-w-xs text-center p-6">
+                  <div className="text-base" style={{ fontFamily: SERIF, color: C.ink }}>
+                    Repaso
+                  </div>
+                  <div className="mt-2 text-sm" style={{ color: C.mut }}>
+                    Lookup history, tricky words and stats arrive in Phase 1d.
+                  </div>
+                </Card>
+              </div>
+            )}
+            {tab === "ajustes" && <Ajustes onDataReplaced={notebook.reload} />}
+          </>
+        )}
 
         <nav className="fixed bottom-0 inset-x-0 z-30">
           <div className="max-w-md mx-auto flex border-t" style={{ background: C.card, borderColor: C.line }}>
@@ -55,7 +81,7 @@ export default function App() {
               return (
                 <button
                   key={t.id}
-                  onClick={() => setTab(t.id)}
+                  onClick={() => switchTab(t.id)}
                   className="flex-1 py-2.5 flex flex-col items-center gap-0.5"
                 >
                   <Icon size={19} style={{ color: active ? C.pen : C.mut }} />

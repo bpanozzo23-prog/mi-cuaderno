@@ -10,6 +10,10 @@ pipeline/raw/
 # local assistant/tooling config (machine-specific paths)
 .claude/
 
+# notebook backups — personal data, never committed (the repo is public)
+mi-cuaderno-backup-*.json
+before-import-*.json
+
 # local junk
 *.local
 .DS_Store
