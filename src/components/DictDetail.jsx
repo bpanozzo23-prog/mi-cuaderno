@@ -3,7 +3,7 @@ import { ChevronLeft, BookMarked, Plus, ExternalLink, ChevronDown, ChevronRight,
 import { C, SERIF, MONO, dotGrid, SectionTitle, Card, Chip, Button } from "../theme.jsx";
 import { POS_LABEL } from "./DictCard.jsx";
 import { getEntryWithConjugation, installedMeta, exampleAttribution } from "../db/ref/entries.js";
-import { createItem, newLexical, displayTitle } from "../db/items.js";
+import { createItem, newLexicalFromEntry, displayTitle } from "../db/items.js";
 import { logView } from "../db/events.js";
 import { SLOTS, COLLAPSED_SLOTS, SIMPLE_TENSES, PERFECT_TENSES } from "../lib/conjugation.js";
 
@@ -143,14 +143,7 @@ export default function DictDetail({ entryId, items, onBack, onOpen, onChanged }
   );
 
   async function addToCuaderno() {
-    const created = await createItem(
-      newLexical({
-        term: entry.lemma,
-        translation: entry.senses[0]?.gloss || "",
-        pos: entry.pos === "adj" ? "adjective" : entry.pos === "adv" ? "adverb" : entry.pos,
-        dictKey: entry.id,
-      })
-    );
+    const created = await createItem(newLexicalFromEntry(entry));
     onChanged?.();
     onOpen(created.id);
   }

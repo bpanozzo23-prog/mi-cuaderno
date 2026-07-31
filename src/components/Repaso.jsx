@@ -1,12 +1,14 @@
-import { useMemo, useState } from "react";
-import { Highlighter, SearchX, Play, CheckCircle2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Highlighter, SearchX, Play, CheckCircle2, Eye } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button } from "../theme.jsx";
 import ItemCard from "./ItemCard.jsx";
 import ReviewSession from "./ReviewSession.jsx";
 import { EVENT_TYPES } from "../db/events.js";
+import { createItem, newLexicalFromEntry } from "../db/items.js";
+import { getEntries } from "../db/ref/entries.js";
 import { emptyItemState } from "../useNotebook.js";
 import { timeAgo } from "../lib/dates.js";
-import { deriveReviewState } from "../lib/review.js";
+import { deriveReviewState, deriveDictSuggestions } from "../lib/review.js";
 
 /**
  * Every number here is derived from the event log at render time — there are no
@@ -51,6 +53,49 @@ export default function Repaso({ notebook, onSelect }) {
   // The session owns its own list once started, so re-deriving mid-session (a grade
   // changes what is due) cannot pull the card out from under the owner's thumb.
   const [sessionCards, setSessionCards] = useState([]);
+
+  /**
+   * Dictionary entries the owner keeps opening but has not added — the counterpart to
+   * the queue for words that never made it into the cuaderno (brief section 12). This
+   * is the only door: reviewing a dict: key directly is not built (see DECISIONS.md,
+   * Phase 3a) because a dataset rebuild can move or drop the key, and the owner's
+   * review history should never depend on that surviving.
+   *
+   * Resolving each suggestion's entry is async (the reference layer lives in
+   * IndexedDB), so this loads after the derived counts and quietly renders nothing for
+   * a key the installed dataset can no longer resolve — the rail's version of
+   * DictAttachment's orphan handling: a suggestion with nothing to act on just doesn't
+   * show.
+   */
+  const dictCandidates = useMemo(() => deriveDictSuggestions(items, events), [items, events]);
+  const [dictSuggestions, setDictSuggestions] = useState([]);
+  const [adding, setAdding] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    if (!dictCandidates.length) {
+      setDictSuggestions([]);
+      return;
+    }
+    getEntries(dictCandidates.map((c) => c.dictKey)).then((entries) => {
+      if (!alive) return;
+      const byId = new Map(entries.map((e) => [e.id, e]));
+      setDictSuggestions(
+        dictCandidates.map((c) => ({ ...c, entry: byId.get(c.dictKey) })).filter((c) => c.entry)
+      );
+    });
+    return () => {
+      alive = false;
+    };
+  }, [dictCandidates]);
+
+  async function addSuggestion(suggestion) {
+    setAdding(suggestion.dictKey);
+    const created = await createItem(newLexicalFromEntry(suggestion.entry));
+    setAdding(null);
+    reload();
+    onSelect(created.id);
+  }
 
   const tricky = useMemo(
     () => items.filter((i) => itemState.get(i.id)?.tricky),
@@ -135,6 +180,42 @@ export default function Repaso({ notebook, onSelect }) {
           </div>
         )}
       </Card>
+
+      {dictSuggestions.length > 0 && (
+        <div className="mt-2 space-y-1.5">
+          {dictSuggestions.map((s) => (
+            <div
+              key={s.dictKey}
+              className="flex items-center justify-between gap-2 rounded-xl border px-3 py-2"
+              style={{ background: C.card, borderColor: C.line }}
+            >
+              <div className="min-w-0 flex items-center gap-1.5 text-sm">
+                <Eye size={12} style={{ color: C.mut }} className="shrink-0" />
+                <span className="truncate" style={{ color: C.ink }}>
+                  You keep looking up{" "}
+                  <button
+                    onClick={() => onSelect(s.dictKey)}
+                    style={{ fontFamily: SERIF, fontWeight: 700, color: C.pen }}
+                  >
+                    {s.entry.lemma}
+                  </button>
+                </span>
+                <span className="text-xs shrink-0" style={{ fontFamily: MONO, color: C.mut }}>
+                  ×{s.views}
+                </span>
+              </div>
+              <button
+                onClick={() => addSuggestion(s)}
+                disabled={adding === s.dictKey}
+                className="text-xs px-2.5 py-1 rounded-full text-white shrink-0"
+                style={{ background: C.pen, opacity: adding === s.dictKey ? 0.6 : 1 }}
+              >
+                Add
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-2 mt-6">
         <Stat label="items" value={items.length} />

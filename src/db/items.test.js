@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { db, clearAllPersonalData } from "./db.js";
 import {
   newLexical,
+  newLexicalFromEntry,
   newPage,
   createItem,
   getItem,
@@ -50,6 +51,40 @@ describe("lexical items", () => {
   it("allows a term with no translation", async () => {
     const item = await createItem(newLexical({ term: "por si acaso" }));
     expect((await getItem(item.id)).translation).toBe("");
+  });
+});
+
+describe("newLexicalFromEntry", () => {
+  it("carries the lemma, first gloss and dictKey over, attached", () => {
+    const entry = {
+      id: "dict:wiktionary-es:chamba-noun-1",
+      lemma: "chamba",
+      pos: "noun",
+      senses: [{ gloss: "job, work (Mexico)" }, { gloss: "luck" }],
+    };
+
+    const item = newLexicalFromEntry(entry);
+
+    expect(item.term).toBe("chamba");
+    expect(item.translation).toBe("job, work (Mexico)");
+    expect(item.pos).toBe("noun");
+    expect(item.dictKey).toBe(entry.id);
+  });
+
+  it("maps the dictionary's abbreviated pos tags to the cuaderno's own labels", () => {
+    expect(newLexicalFromEntry({ id: "dict:x", lemma: "x", pos: "adj", senses: [] }).pos).toBe("adjective");
+    expect(newLexicalFromEntry({ id: "dict:x", lemma: "x", pos: "adv", senses: [] }).pos).toBe("adverb");
+    expect(newLexicalFromEntry({ id: "dict:x", lemma: "x", pos: "verb", senses: [] }).pos).toBe("verb");
+  });
+
+  it("leaves the translation blank when the entry has no senses", () => {
+    expect(newLexicalFromEntry({ id: "dict:x", lemma: "x", pos: "noun", senses: [] }).translation).toBe("");
+  });
+
+  it("is only a builder — nothing is written until createItem is called", async () => {
+    const entry = { id: "dict:wiktionary-es:chamba-noun-1", lemma: "chamba", pos: "noun", senses: [{ gloss: "job" }] };
+    newLexicalFromEntry(entry);
+    expect(await allItems()).toEqual([]);
   });
 });
 

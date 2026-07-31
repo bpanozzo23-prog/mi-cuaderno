@@ -47,6 +47,23 @@ export function newLexical({
   };
 }
 
+/**
+ * Builds a lexical item attached to a dictionary entry — term, first gloss and part of
+ * speech carried over, dictKey set. Pure: takes a plain entry object, no reference-layer
+ * import, so it can be reused wherever an entry needs a one-tap way into the cuaderno
+ * (the entry's own "Add to my cuaderno" button, and the Repaso "keep looking these up"
+ * rail alike). The seam rule (section 5) is why this only ever seeds the item — term and
+ * translation are copied in, not referenced, so the item stays meaningful on its own.
+ */
+export function newLexicalFromEntry(entry) {
+  return newLexical({
+    term: entry.lemma,
+    translation: entry.senses?.[0]?.gloss || "",
+    pos: entry.pos === "adj" ? "adjective" : entry.pos === "adv" ? "adverb" : entry.pos,
+    dictKey: entry.id,
+  });
+}
+
 export function newPage({
   title,
   body = "",
