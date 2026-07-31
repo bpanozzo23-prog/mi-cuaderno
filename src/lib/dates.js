@@ -15,6 +15,20 @@ export function localDate(date = new Date()) {
   return `${y}-${m}-${d}`;
 }
 
+/**
+ * Calendar arithmetic on a localDate string, for the review schedule.
+ * Done with date components rather than milliseconds so a day is a day even
+ * across a daylight-saving change; noon keeps zones that shift at midnight
+ * from landing on the wrong side of it.
+ */
+export function addDaysToLocalDate(dateStr, days) {
+  const [y, m, d] = String(dateStr).split("-").map(Number);
+  if (!y || !m || !d) return dateStr;
+  const date = new Date(y, m - 1, d, 12);
+  date.setDate(date.getDate() + days);
+  return localDate(date);
+}
+
 export function timeAgo(iso, now = Date.now()) {
   const then = new Date(iso).getTime();
   if (!Number.isFinite(then)) return "";

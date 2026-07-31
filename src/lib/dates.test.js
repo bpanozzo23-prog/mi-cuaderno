@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { localDate, timeAgo, daysSince } from "./dates.js";
+import { localDate, timeAgo, daysSince, addDaysToLocalDate } from "./dates.js";
 
 describe("localDate", () => {
   it("uses the local calendar day, not UTC", () => {
@@ -24,6 +24,32 @@ describe("timeAgo", () => {
     ["2026-07-28T12:00:00.000Z", "2d ago"],
   ])("renders %s as %s", (iso, expected) => {
     expect(timeAgo(iso, now)).toBe(expected);
+  });
+});
+
+describe("addDaysToLocalDate", () => {
+  it("counts calendar days forward and back", () => {
+    expect(addDaysToLocalDate("2026-07-31", 1)).toBe("2026-08-01");
+    expect(addDaysToLocalDate("2026-07-31", 16)).toBe("2026-08-16");
+    expect(addDaysToLocalDate("2026-08-01", -1)).toBe("2026-07-31");
+    expect(addDaysToLocalDate("2026-07-31", 0)).toBe("2026-07-31");
+  });
+
+  it("rolls over months, years and leap days", () => {
+    expect(addDaysToLocalDate("2026-12-31", 1)).toBe("2027-01-01");
+    expect(addDaysToLocalDate("2027-01-01", -1)).toBe("2026-12-31");
+    expect(addDaysToLocalDate("2028-02-28", 1)).toBe("2028-02-29");
+  });
+
+  it("crosses a daylight-saving change without losing or gaining a day", () => {
+    // A day is a calendar day, not 86,400,000 milliseconds. Northern-hemisphere
+    // spring forward and autumn back, whichever way this machine's zone runs.
+    expect(addDaysToLocalDate("2026-03-07", 2)).toBe("2026-03-09");
+    expect(addDaysToLocalDate("2026-10-31", 2)).toBe("2026-11-02");
+  });
+
+  it("leaves a value it cannot parse alone", () => {
+    expect(addDaysToLocalDate("", 1)).toBe("");
   });
 });
 

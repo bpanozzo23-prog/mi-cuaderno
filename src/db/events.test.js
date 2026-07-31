@@ -4,6 +4,7 @@ import { newLexical, newPage, createItem, deleteItem } from "./items.js";
 import {
   logEvent,
   logView,
+  logReview,
   toggleTricky,
   isTricky,
   deriveItemState,
@@ -13,6 +14,7 @@ import {
   SESSION_WINDOW_MINUTES,
 } from "./events.js";
 import { makeEvent } from "../test/factories.js";
+import { GRADES } from "../lib/review.js";
 
 beforeEach(async () => {
   await db.open();
@@ -98,6 +100,40 @@ describe("tricky state is derived, never stored", () => {
     const stored = await db.items.get(item.id);
     expect(stored.struggling).toBeUndefined();
     expect(stored.tricky).toBeUndefined();
+  });
+});
+
+describe("every review event carries a grade", () => {
+  it("logs pass as good (2) and fail as again (0), on section 7's 4-point scale", async () => {
+    const item = await createItem(newLexical({ term: "madrugar" }));
+
+    const passed = await logReview(item.id, true);
+    const failed = await logReview(item.id, false);
+
+    expect(passed.type).toBe(EVENT_TYPES.reviewPass);
+    expect(passed.metadata).toEqual({ grade: GRADES.good });
+    expect(failed.type).toBe(EVENT_TYPES.reviewFail);
+    expect(failed.metadata).toEqual({ grade: GRADES.again });
+  });
+
+  it("stamps the grade into the log itself, not just the return value", async () => {
+    const item = await createItem(newLexical({ term: "madrugar" }));
+    await logReview(item.id, true);
+
+    const stored = (await eventsFor(item.id)).filter((e) => e.type.startsWith("review_"));
+    expect(stored).toHaveLength(1);
+    expect(stored[0].metadata.grade).toBe(GRADES.good);
+    expect(stored[0].localDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it("accepts an injected timestamp, so a history can be replayed or tested", async () => {
+    const item = await createItem(newLexical({ term: "madrugar" }));
+    const when = new Date(2026, 6, 15, 9, 0, 0);
+
+    const event = await logReview(item.id, true, when);
+
+    expect(event.at).toBe(when.toISOString());
+    expect(event.localDate).toBe("2026-07-15");
   });
 });
 

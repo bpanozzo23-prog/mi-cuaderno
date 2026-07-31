@@ -1,6 +1,7 @@
 import { db } from "./db.js";
 import { newEventId } from "../lib/ids.js";
 import { nowIso, localDate } from "../lib/dates.js";
+import { PASS_GRADE, FAIL_GRADE } from "../lib/review.js";
 
 /**
  * Events are the single source of truth for state and statistics (brief section 7).
@@ -67,6 +68,20 @@ export async function logView(itemKey, now = new Date()) {
     }
     return logEvent(EVENT_TYPES.view, itemKey, null, now);
   });
+}
+
+/**
+ * Records one review. The UI offers pass and fail, but the log stores a grade on
+ * section 7's 4-point scale (0 again / 1 hard / 2 good / 3 easy) so a richer scheduler
+ * fitted later has the full history to work from rather than two coarse buckets.
+ */
+export async function logReview(itemKey, passed, when = new Date()) {
+  return logEvent(
+    passed ? EVENT_TYPES.reviewPass : EVENT_TYPES.reviewFail,
+    itemKey,
+    { grade: passed ? PASS_GRADE : FAIL_GRADE },
+    when
+  );
 }
 
 export async function toggleTricky(itemKey, currentlyTricky) {

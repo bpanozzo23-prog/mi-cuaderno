@@ -72,6 +72,29 @@ describe("import: replace and restore", () => {
     expect(await getPref("storagePersisted")).toBe(true);
   });
 
+  it("carries review grades through the file, so the schedule survives a restore", async () => {
+    // Leitner boxes are derived from these events (src/lib/review.js). If the grade
+    // metadata did not survive a backup, restoring would silently reset the schedule —
+    // which is why this is checked through JSON text rather than an in-memory object.
+    const word = makeLexical({ term: "madrugar" });
+    await db.items.add(word);
+    await db.events.bulkAdd([
+      makeEvent({ type: "review_pass", itemKey: word.id, metadata: { grade: 2 } }),
+      makeEvent({ type: "review_fail", itemKey: word.id, metadata: { grade: 0 } }),
+    ]);
+
+    const text = JSON.stringify(await buildBackup());
+    await clearAllPersonalData();
+    const { ok, envelope } = validateBackup(text);
+    expect(ok).toBe(true);
+    await importBackup(envelope);
+
+    const restored = (await db.events.toArray()).sort((a, b) => a.type.localeCompare(b.type));
+    expect(restored.map((e) => e.type)).toEqual(["review_fail", "review_pass"]);
+    expect(restored.map((e) => e.metadata.grade)).toEqual([0, 2]);
+    expect(restored.every((e) => /^\d{4}-\d{2}-\d{2}$/.test(e.localDate))).toBe(true);
+  });
+
   it("survives a JSON string round-trip, not just an in-memory object", async () => {
     await db.items.add(makeLexical({ term: "año" }));
     const text = JSON.stringify(await buildBackup());
