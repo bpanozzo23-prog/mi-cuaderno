@@ -4,6 +4,8 @@ import { C, SERIF, MONO, dotGrid, Chip, Card } from "../theme.jsx";
 import ItemCard from "./ItemCard.jsx";
 import AddSheet from "./AddSheet.jsx";
 import Detail from "./Detail.jsx";
+import SearchBar from "./SearchBar.jsx";
+import { searchItems } from "../lib/search.js";
 import { emptyItemState } from "../useNotebook.js";
 
 const TYPE_FILTERS = [
@@ -14,10 +16,13 @@ const TYPE_FILTERS = [
 
 export default function Cuaderno({ notebook, selectedId, onSelect }) {
   const { items, itemState, reload } = notebook;
+  const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [tagFilter, setTagFilter] = useState(null);
   const [addKind, setAddKind] = useState(null);
   const [askKind, setAskKind] = useState(false);
+
+  const searching = query.trim() !== "";
 
   const allTags = useMemo(() => {
     const set = new Set();
@@ -25,13 +30,22 @@ export default function Cuaderno({ notebook, selectedId, onSelect }) {
     return [...set].sort();
   }, [items]);
 
-  const visible = useMemo(
+  const filtered = useMemo(
     () =>
       items.filter(
         (i) => (typeFilter === "all" || i.type === typeFilter) && (!tagFilter || i.tags.includes(tagFilter))
       ),
     [items, typeFilter, tagFilter]
   );
+
+  // Searching ranks across everything the filters allow, so a tag filter narrows
+  // the search rather than being silently ignored by it.
+  const results = useMemo(
+    () => (searching ? searchItems(filtered, query) : filtered.map((item) => ({ item, reason: null }))),
+    [filtered, query, searching]
+  );
+
+  const visible = results;
 
   const selected = items.find((i) => i.id === selectedId) || null;
 
@@ -40,7 +54,9 @@ export default function Cuaderno({ notebook, selectedId, onSelect }) {
       <Detail
         item={selected}
         state={itemState.get(selected.id) || emptyItemState}
+        items={items}
         onBack={() => onSelect(null)}
+        onOpen={onSelect}
         onChanged={reload}
       />
     );
@@ -49,7 +65,13 @@ export default function Cuaderno({ notebook, selectedId, onSelect }) {
   return (
     <>
       <div className="px-4 pt-3" style={{ background: C.paper }}>
-        <div className="flex gap-1.5 items-center">
+        <SearchBar
+          value={query}
+          onChange={setQuery}
+          resultCount={results.length}
+          onMissLogged={reload}
+        />
+        <div className="flex gap-1.5 items-center mt-2">
           {TYPE_FILTERS.map((f) => (
             <Chip key={f.id} active={typeFilter === f.id} onClick={() => setTypeFilter(f.id)}>
               {f.label}
@@ -78,15 +100,18 @@ export default function Cuaderno({ notebook, selectedId, onSelect }) {
           <div className="text-sm text-center py-16" style={{ color: C.mut }}>
             {items.length === 0
               ? "Nothing here yet. Add your first word or page with the + button."
-              : "Nothing matches that filter."}
+              : searching
+                ? `Nothing in your cuaderno matches “${query.trim()}”.`
+                : "Nothing matches that filter."}
           </div>
         )}
-        {visible.map((item) => (
+        {visible.map(({ item, reason }) => (
           <ItemCard
             key={item.id}
             item={item}
             state={itemState.get(item.id) || emptyItemState}
             onOpen={onSelect}
+            reason={reason}
           />
         ))}
       </div>

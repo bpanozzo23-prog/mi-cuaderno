@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
-import { ChevronLeft, Trash2, X, ExternalLink, Pencil, CalendarDays, FileText, Check } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronLeft, Trash2, X, ExternalLink, Pencil, CalendarDays, FileText, Check, Link2 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Chip, Button } from "../theme.jsx";
 import { POS_OPTIONS, POS_ABBR } from "./ItemCard.jsx";
-import { updateItem, deleteItem } from "../db/items.js";
+import { updateItem, deleteItem, linkItems, unlinkItems, displayTitle } from "../db/items.js";
 import { emptyItemState } from "../useNotebook.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
-export default function Detail({ item, state = emptyItemState, onBack, onChanged }) {
+export default function Detail({ item, state = emptyItemState, items = [], onBack, onOpen, onChanged }) {
   const isPage = item.type === "page";
 
   const [editingHead, setEditingHead] = useState(false);
@@ -20,6 +20,19 @@ export default function Detail({ item, state = emptyItemState, onBack, onChanged
   const [mUrl, setMUrl] = useState("");
   const [mLabel, setMLabel] = useState("");
   const [deleteArm, setDeleteArm] = useState(false);
+  const [linkPick, setLinkPick] = useState("");
+
+  // Both directions at once: links this item made, and links made to it from
+  // elsewhere. Which side stores the link is bookkeeping the owner shouldn't see.
+  const related = useMemo(() => {
+    const keys = new Set(item.linkedKeys);
+    return items.filter((other) => other.id !== item.id && (keys.has(other.id) || other.linkedKeys.includes(item.id)));
+  }, [items, item]);
+
+  const linkable = useMemo(
+    () => items.filter((other) => other.id !== item.id && !related.some((r) => r.id === other.id)),
+    [items, item, related]
+  );
 
   useEffect(() => {
     setBodyDraft(isPage ? item.body || "" : item.notes || "");
@@ -322,6 +335,56 @@ export default function Detail({ item, state = emptyItemState, onBack, onChanged
             Add link
           </Button>
         </Card>
+      </div>
+
+      <SectionTitle>Linked</SectionTitle>
+      <div className="flex flex-wrap gap-1.5 items-center">
+        {related.map((other) => (
+          <Chip
+            key={other.id}
+            onClick={() => onOpen(other.id)}
+            onRemove={async () => {
+              await unlinkItems(item.id, other.id);
+              onChanged();
+            }}
+          >
+            {other.type === "page" ? <FileText size={11} /> : <Link2 size={11} />} {displayTitle(other)}
+          </Chip>
+        ))}
+        {linkable.length > 0 && (
+          <div className="flex items-center gap-1">
+            <select
+              value={linkPick}
+              onChange={(e) => setLinkPick(e.target.value)}
+              className="text-xs px-2 py-1 rounded-full border outline-none max-w-40"
+              style={inputStyle}
+            >
+              <option value="">link something…</option>
+              {linkable.map((other) => (
+                <option key={other.id} value={other.id}>
+                  {displayTitle(other)}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={async () => {
+                if (!linkPick) return;
+                await linkItems(item.id, linkPick);
+                setLinkPick("");
+                onChanged();
+              }}
+              className="text-xs px-2 py-1 rounded-full text-white"
+              style={{ background: C.pen }}
+            >
+              Link
+            </button>
+          </div>
+        )}
+        {related.length === 0 && linkable.length === 0 && (
+          <span className="text-xs" style={{ color: C.mut }}>
+            Nothing else in the cuaderno to link to yet.
+          </span>
+        )}
       </div>
 
       <div className="mt-8">

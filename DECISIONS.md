@@ -35,4 +35,14 @@ One line per meaningful choice: date — decision — reason.
 - 2026-07-31 — Vitest + fake-indexeddb for tests (`npm test`). — fake-indexeddb runs the real Dexie code in Node, so the database tests exercise what ships rather than a mock.
 - 2026-07-31 — `vite.config.js` dev server honours `process.env.PORT`. — Lets tooling assign a free port when the default 5173 is already taken.
 
+## Phase 1c — search and linking (2026-07-31)
+
+- 2026-07-31 — Links are stored once, on the item where the link was made; the reverse direction is computed from the `*linkedKeys` index. — The prototype wrote both sides, which cannot work in Phase 2: links will point at read-only dictionary entries that cannot store a reciprocal link. One mechanism has to serve both, so it is built that way now. The owner never sees which side stores it — both detail screens show one "Linked" list.
+- 2026-07-31 — Search ranking reserves tier 3 for the Phase 2 inflected-form index, unused in Phase 1. — Keeps the tier numbers identical to brief §8, so personal and dictionary results interleave correctly when the reference layer arrives, with no renumbering.
+- 2026-07-31 — An exactly typed accent outranks an accent-blind match (`sacó` typed in full ranks `sacó` above `saco`). — §8 orders exact above accent-normalized; comparing the raw strings before normalizing is what makes that distinction possible.
+- 2026-07-31 — `search_miss` is logged only after typing settles (1.5 s) and stays unlogged for a query already recorded this page session. — §7 wants "words I couldn't find", not a keystroke log: typing "chamarra" letter by letter must produce one miss, not eight.
+- 2026-07-31 — Searching ranks within the active type/tag filters rather than ignoring them. — A visible filter that search silently overrode would look broken.
+- 2026-07-31 — Linking and unlinking do not log an `edit` event. — `edit` marks content the owner changed; links are bookkeeping, and logging them would inflate the activity feed.
+- 2026-07-31 — `.gitignore` covers `mi-cuaderno-backup-*.json` and `before-import-*.json`. — Exports land in the working directory by default and contain the entire notebook; the repo is public.
+
 - 2026-07-31 — Phase 2 scope note: generating conjugations for verbs Jehle lacks requires orthographic rules (`-gar`/`-car`/`-zar`, stem changes), not just endings — `madrugar` → `madrugué`. — Recorded now so it is not discovered mid-Phase-2. — All are one dependency chain inside the build tool (`vite-plugin-pwa` → workbox → old `brace-expansion`); build-time only, nothing ships to the app; the offered fix downgrades the PWA plugin.
