@@ -8,17 +8,21 @@ import { logEvent, EVENT_TYPES } from "../db/events.js";
  * found nothing — keystrokes on the way to a word are not misses. Queries already
  * logged this session are not logged again, so a failed search the owner stares at
  * does not become twenty identical events.
+ *
+ * `pending` is true while the dictionary lookup is still in flight. A miss means "I
+ * looked for this and it does not exist" (§7); logging one before the reference layer
+ * has answered would record words the dictionary was about to find.
  */
 export const SEARCH_SETTLE_MS = 1500;
 const loggedThisSession = new Set();
 
-export default function SearchBar({ value, onChange, resultCount, onMissLogged }) {
+export default function SearchBar({ value, onChange, resultCount, pending = false, onMissLogged }) {
   const timer = useRef(null);
 
   useEffect(() => {
     clearTimeout(timer.current);
     const query = value.trim();
-    if (!query || resultCount > 0) return;
+    if (!query || resultCount > 0 || pending) return;
 
     timer.current = setTimeout(async () => {
       const key = query.toLowerCase();
@@ -29,7 +33,7 @@ export default function SearchBar({ value, onChange, resultCount, onMissLogged }
     }, SEARCH_SETTLE_MS);
 
     return () => clearTimeout(timer.current);
-  }, [value, resultCount]);
+  }, [value, resultCount, pending]);
 
   return (
     <div

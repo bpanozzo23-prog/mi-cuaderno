@@ -1,12 +1,19 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, BookOpen, FileText, X } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Chip, Card } from "../theme.jsx";
 import ItemCard from "./ItemCard.jsx";
 import AddSheet from "./AddSheet.jsx";
 import Detail from "./Detail.jsx";
+import DictCard from "./DictCard.jsx";
+import DictDetail from "./DictDetail.jsx";
 import SearchBar from "./SearchBar.jsx";
-import { searchItems } from "../lib/search.js";
+import { searchItems, mergeResults } from "../lib/search.js";
+import { searchDictionary } from "../db/ref/search.js";
+import { isDictKey } from "../db/ref/entries.js";
 import { emptyItemState } from "../useNotebook.js";
+
+/** Long enough that a fast typist does not fire a query per keystroke, short enough to feel instant. */
+const SEARCH_DEBOUNCE_MS = 140;
 
 const TYPE_FILTERS = [
   { id: "all", label: "todo" },
@@ -40,14 +47,65 @@ export default function Cuaderno({ notebook, selectedId, onSelect }) {
 
   // Searching ranks across everything the filters allow, so a tag filter narrows
   // the search rather than being silently ignored by it.
-  const results = useMemo(
+  const personalResults = useMemo(
     () => (searching ? searchItems(filtered, query) : filtered.map((item) => ({ item, reason: null }))),
     [filtered, query, searching]
   );
 
-  const visible = results;
+  /**
+   * The dictionary half of the seam (§8). It is asynchronous — the reference layer lives
+   * in IndexedDB — so it is debounced and guarded against out-of-order replies: a slow
+   * query for "sac" must never overwrite the results for "sacar" typed after it.
+   *
+   * Dictionary results are shown only when nothing is filtered to a type the dictionary
+   * cannot satisfy; filtering to "páginas" means the owner is looking through their own
+   * pages, and reference words would be noise.
+   */
+  const [dictResults, setDictResults] = useState([]);
+  const [dictPending, setDictPending] = useState(false);
+  const dictionaryWanted = searching && typeFilter !== "page" && !tagFilter;
+
+  useEffect(() => {
+    if (!dictionaryWanted) {
+      setDictResults([]);
+      setDictPending(false);
+      return;
+    }
+    let current = true;
+    setDictPending(true);
+    const timer = setTimeout(async () => {
+      const found = await searchDictionary(query);
+      if (!current) return;
+      setDictResults(found);
+      setDictPending(false);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      current = false;
+      clearTimeout(timer);
+    };
+  }, [query, dictionaryWanted]);
+
+  const visible = useMemo(
+    () =>
+      searching
+        ? mergeResults(personalResults, dictResults, items)
+        : personalResults.map((r) => ({ ...r, kind: "item", key: r.item.id })),
+    [personalResults, dictResults, items, searching]
+  );
 
   const selected = items.find((i) => i.id === selectedId) || null;
+
+  if (selectedId && isDictKey(selectedId)) {
+    return (
+      <DictDetail
+        entryId={selectedId}
+        items={items}
+        onBack={() => onSelect(null)}
+        onOpen={onSelect}
+        onChanged={reload}
+      />
+    );
+  }
 
   if (selected) {
     return (
@@ -65,10 +123,15 @@ export default function Cuaderno({ notebook, selectedId, onSelect }) {
   return (
     <>
       <div className="px-4 pt-3" style={{ background: C.paper }}>
+        {/*
+          The miss count is the COMBINED one: a query the dictionary answers is not a
+          word the owner could not find (§7), so it must not become a search_miss.
+        */}
         <SearchBar
           value={query}
           onChange={setQuery}
-          resultCount={results.length}
+          resultCount={visible.length}
+          pending={dictPending}
           onMissLogged={reload}
         />
         <div className="flex gap-1.5 items-center mt-2">
@@ -98,22 +161,26 @@ export default function Cuaderno({ notebook, selectedId, onSelect }) {
       <div className="px-4 py-4 space-y-2.5 pb-28" style={dotGrid}>
         {visible.length === 0 && (
           <div className="text-sm text-center py-16" style={{ color: C.mut }}>
-            {items.length === 0
+            {items.length === 0 && !searching
               ? "Nothing here yet. Add your first word or page with the + button."
               : searching
-                ? `Nothing in your cuaderno matches “${query.trim()}”.`
+                ? `Nothing matches “${query.trim()}”.`
                 : "Nothing matches that filter."}
           </div>
         )}
-        {visible.map(({ item, reason }) => (
-          <ItemCard
-            key={item.id}
-            item={item}
-            state={itemState.get(item.id) || emptyItemState}
-            onOpen={onSelect}
-            reason={reason}
-          />
-        ))}
+        {visible.map((result) =>
+          result.kind === "entry" ? (
+            <DictCard key={result.key} entry={result.entry} reason={result.reason} onOpen={onSelect} />
+          ) : (
+            <ItemCard
+              key={result.key}
+              item={result.item}
+              state={itemState.get(result.item.id) || emptyItemState}
+              onOpen={onSelect}
+              reason={result.reason}
+            />
+          )
+        )}
       </div>
 
       <button

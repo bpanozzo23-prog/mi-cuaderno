@@ -6,9 +6,9 @@ import { normalize } from "./normalize.js";
  * One results list spans both content types, ranked high to low:
  *   1 exact Spanish term
  *   2 accent-normalized Spanish term
- *   3 inflected-form alias  — RESERVED for Phase 2 (needs the reference layer's
- *                             form-to-lemma index; the tier number is held open
- *                             so personal and dictionary results interleave correctly)
+ *   3 inflected-form alias  — reference layer only (src/db/ref/search.js); the tier
+ *                             number is shared so personal and dictionary results
+ *                             interleave into a single ranked list
  *   4 English gloss or personal translation — English to Spanish is first-class
  *   5 tags
  *   6 notes, personal examples, page titles and page bodies
@@ -19,7 +19,7 @@ import { normalize } from "./normalize.js";
 export const TIER = {
   exactTerm: 1,
   normalizedTerm: 2,
-  inflectedForm: 3, // Phase 2
+  inflectedForm: 3,
   translation: 4,
   tag: 5,
   text: 6,
@@ -102,4 +102,47 @@ export function searchItems(items, query) {
         normalize(b.item.type === "page" ? b.item.title : b.item.term)
       )
   );
+}
+
+/**
+ * Interleaves personal and dictionary results into the single list brief §8 asks for.
+ *
+ * Two rules decide the order:
+ *  - tier first, so an exact dictionary match outranks a personal note that merely
+ *    mentions the word;
+ *  - within a tier, the owner's own entry comes first. It is their notebook, and their
+ *    note on a word is worth more to them than the dictionary's definition of it.
+ *
+ * The interesting case is a dictionary entry the owner has ATTACHED to one of their items.
+ * The dictionary result is replaced by their item, carrying the dictionary's reason. That
+ * does two things at once: it stops *sacar* appearing twice, once as their word and once
+ * as the dictionary's; and it lets the reference layer find the owner's own words through
+ * inflections the personal layer knows nothing about — searching "fui" surfaces their note
+ * on *ir*, labelled "form of ir", which is the whole point of the seam (§5).
+ *
+ * `items` is every personal item, not just the ones that matched, because an item can only
+ * be promoted this way if we can see it.
+ */
+export function mergeResults(personal, dictionary, items = []) {
+  const byDictKey = new Map();
+  for (const item of items) {
+    if (item.dictKey && !byDictKey.has(item.dictKey)) byDictKey.set(item.dictKey, item);
+  }
+
+  const rows = personal.map((r) => ({ ...r, kind: "item", key: r.item.id, source: 0 }));
+  const alreadyListed = new Set(personal.map((r) => r.item.id));
+
+  for (const result of dictionary) {
+    const attached = byDictKey.get(result.entry.id);
+    if (!attached) {
+      rows.push({ ...result, kind: "entry", key: result.entry.id, source: 1 });
+      continue;
+    }
+    // Their item is already in the list on its own merits; the dictionary adds nothing.
+    if (alreadyListed.has(attached.id)) continue;
+    alreadyListed.add(attached.id);
+    rows.push({ ...result, entry: undefined, item: attached, kind: "item", key: attached.id, source: 0 });
+  }
+
+  return rows.sort((a, b) => a.tier - b.tier || a.source - b.source || a.offset - b.offset);
 }
