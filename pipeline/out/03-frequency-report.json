@@ -1,0 +1,1376 @@
+{
+  "generatedAt": "2026-07-31T15:00:46.542Z",
+  "policy": "citationProportional",
+  "policyNote": "Citation-form-first narrowing, then ambiguous tokens allocated in proportion to each candidate's score from unambiguous tokens. See the header of this script for why.",
+  "requiredCases": [
+    {
+      "form": "fui",
+      "resolves": true,
+      "lemmas": [
+        {
+          "lemma": "ir",
+          "pos": "verb"
+        },
+        {
+          "lemma": "ser",
+          "pos": "verb"
+        },
+        {
+          "lemma": "fui",
+          "pos": "verb"
+        }
+      ]
+    },
+    {
+      "form": "tuvimos",
+      "resolves": true,
+      "lemmas": [
+        {
+          "lemma": "tener",
+          "pos": "verb"
+        }
+      ]
+    },
+    {
+      "form": "casas",
+      "resolves": true,
+      "lemmas": [
+        {
+          "lemma": "casa",
+          "pos": "noun"
+        },
+        {
+          "lemma": "casar",
+          "pos": "verb"
+        },
+        {
+          "lemma": "Casas",
+          "pos": "name"
+        },
+        {
+          "lemma": "Cases",
+          "pos": "name"
+        }
+      ]
+    },
+    {
+      "form": "rápidas",
+      "resolves": true,
+      "lemmas": [
+        {
+          "lemma": "rápido",
+          "pos": "adj"
+        }
+      ]
+    }
+  ],
+  "tokens": {
+    "read": 1202520,
+    "resolved": 339001,
+    "resolvedPct": 28.2,
+    "corpusOccurrencesCoveredPct": 96.6,
+    "tokensThatAreACitationForm": 51611,
+    "unambiguousForms": 257821,
+    "ambiguousForms": 18879
+  },
+  "coverageByTopN": [
+    {
+      "topN": 1000,
+      "resolved": 990,
+      "pct": 99
+    },
+    {
+      "topN": 5000,
+      "resolved": 4722,
+      "pct": 94.4
+    },
+    {
+      "topN": 10000,
+      "resolved": 9143,
+      "pct": 91.4
+    },
+    {
+      "topN": 50000,
+      "resolved": 41552,
+      "pct": 83.1
+    },
+    {
+      "topN": 100000,
+      "resolved": 74564,
+      "pct": 74.6
+    }
+  ],
+  "lemmasRanked": 61236,
+  "posDistributionInTop": {
+    "topN": 10000,
+    "counts": {
+      "noun": 5563,
+      "adj": 1944,
+      "verb": 1783,
+      "adv": 322,
+      "intj": 165,
+      "pron": 67,
+      "prep": 37,
+      "num": 36,
+      "det": 35,
+      "conj": 31,
+      "article": 6,
+      "contraction": 4,
+      "phrase": 4,
+      "particle": 3
+    }
+  },
+  "policyComparison": {
+    "shouldFall": [
+      {
+        "lemma": "perar|verb",
+        "rankSplit": 75,
+        "rankCitationEven": 14017,
+        "rankCitationProportional": 18633,
+        "coreScore": 108
+      },
+      {
+        "lemma": "asir|verb",
+        "rankSplit": 120,
+        "rankCitationEven": 9335,
+        "rankCitationProportional": 14830,
+        "coreScore": 310
+      },
+      {
+        "lemma": "seer|verb",
+        "rankSplit": 237,
+        "rankCitationEven": 237,
+        "rankCitationProportional": 4984,
+        "coreScore": 2797
+      },
+      {
+        "lemma": "podar|verb",
+        "rankSplit": 308,
+        "rankCitationEven": 317,
+        "rankCitationProportional": 6468,
+        "coreScore": 1952
+      },
+      {
+        "lemma": "hacendar|verb",
+        "rankSplit": 349,
+        "rankCitationEven": 360,
+        "rankCitationProportional": 31796,
+        "coreScore": 0
+      },
+      {
+        "lemma": "pudir|verb",
+        "rankSplit": 477,
+        "rankCitationEven": 475,
+        "rankCitationProportional": 16154,
+        "coreScore": 286
+      },
+      {
+        "lemma": "piensar|verb",
+        "rankSplit": 412,
+        "rankCitationEven": 483,
+        "rankCitationProportional": 11251,
+        "coreScore": 545
+      },
+      {
+        "lemma": "amigx|noun",
+        "rankSplit": 400,
+        "rankCitationEven": 613,
+        "rankCitationProportional": 1005,
+        "coreScore": 8
+      },
+      {
+        "lemma": "chicx|noun",
+        "rankSplit": 373,
+        "rankCitationEven": 674,
+        "rankCitationProportional": 983,
+        "coreScore": 2
+      },
+      {
+        "lemma": "niñe|noun",
+        "rankSplit": 440,
+        "rankCitationEven": 814,
+        "rankCitationProportional": 33155,
+        "coreScore": 13
+      },
+      {
+        "lemma": "segurar|verb",
+        "rankSplit": null,
+        "rankCitationEven": null,
+        "rankCitationProportional": null,
+        "coreScore": 0
+      },
+      {
+        "lemma": "your|det",
+        "rankSplit": null,
+        "rankCitationEven": null,
+        "rankCitationProportional": null,
+        "coreScore": 0
+      }
+    ],
+    "shouldHold": [
+      {
+        "lemma": "pero|conj",
+        "rankSplit": 77,
+        "rankCitationEven": 54,
+        "rankCitationProportional": 54,
+        "coreScore": 0
+      },
+      {
+        "lemma": "así|adv",
+        "rankSplit": 108,
+        "rankCitationEven": 56,
+        "rankCitationProportional": 57,
+        "coreScore": 1097009
+      },
+      {
+        "lemma": "ir|verb",
+        "rankSplit": 12,
+        "rankCitationEven": 28,
+        "rankCitationProportional": 27,
+        "coreScore": 2054261
+      },
+      {
+        "lemma": "ser|verb",
+        "rankSplit": 2,
+        "rankCitationEven": 9,
+        "rankCitationProportional": 1,
+        "coreScore": 1737697
+      },
+      {
+        "lemma": "poder|verb",
+        "rankSplit": 28,
+        "rankCitationEven": 29,
+        "rankCitationProportional": 26,
+        "coreScore": 2332033
+      },
+      {
+        "lemma": "querer|verb",
+        "rankSplit": 31,
+        "rankCitationEven": 31,
+        "rankCitationProportional": 30,
+        "coreScore": 2407662
+      },
+      {
+        "lemma": "deber|verb",
+        "rankSplit": 56,
+        "rankCitationEven": 55,
+        "rankCitationProportional": 55,
+        "coreScore": 1136256
+      },
+      {
+        "lemma": "gustar|verb",
+        "rankSplit": 115,
+        "rankCitationEven": 117,
+        "rankCitationProportional": 117,
+        "coreScore": 515267
+      },
+      {
+        "lemma": "preocupar|verb",
+        "rankSplit": 254,
+        "rankCitationEven": 269,
+        "rankCitationProportional": 257,
+        "coreScore": 192151
+      },
+      {
+        "lemma": "soler|verb",
+        "rankSplit": 645,
+        "rankCitationEven": 766,
+        "rankCitationProportional": 677,
+        "coreScore": 45120
+      },
+      {
+        "lemma": "adiós|intj",
+        "rankSplit": 599,
+        "rankCitationEven": 595,
+        "rankCitationProportional": 588,
+        "coreScore": 0
+      },
+      {
+        "lemma": "amigo|noun",
+        "rankSplit": 399,
+        "rankCitationEven": 277,
+        "rankCitationProportional": 223,
+        "coreScore": 28
+      },
+      {
+        "lemma": "casa|noun",
+        "rankSplit": 198,
+        "rankCitationEven": 92,
+        "rankCitationProportional": 90,
+        "coreScore": 588018
+      }
+    ]
+  },
+  "top50": [
+    {
+      "rank": 1,
+      "lemma": "ser",
+      "pos": "verb",
+      "score": 10929277
+    },
+    {
+      "rank": 2,
+      "lemma": "a",
+      "pos": "prep",
+      "score": 9550115
+    },
+    {
+      "rank": 3,
+      "lemma": "el",
+      "pos": "article",
+      "score": 7535182
+    },
+    {
+      "rank": 4,
+      "lemma": "estar",
+      "pos": "verb",
+      "score": 7322294
+    },
+    {
+      "rank": 5,
+      "lemma": "de",
+      "pos": "prep",
+      "score": 7248192
+    },
+    {
+      "rank": 6,
+      "lemma": "de",
+      "pos": "noun",
+      "score": 7229760
+    },
+    {
+      "rank": 7,
+      "lemma": "que",
+      "pos": "conj",
+      "score": 7212809
+    },
+    {
+      "rank": 8,
+      "lemma": "que",
+      "pos": "pron",
+      "score": 7212809
+    },
+    {
+      "rank": 9,
+      "lemma": "y",
+      "pos": "conj",
+      "score": 7128745
+    },
+    {
+      "rank": 10,
+      "lemma": "en",
+      "pos": "prep",
+      "score": 6817324
+    },
+    {
+      "rank": 11,
+      "lemma": "lo",
+      "pos": "article",
+      "score": 6041793
+    },
+    {
+      "rank": 12,
+      "lemma": "un",
+      "pos": "article",
+      "score": 5694116
+    },
+    {
+      "rank": 13,
+      "lemma": "yo",
+      "pos": "pron",
+      "score": 4885679
+    },
+    {
+      "rank": 14,
+      "lemma": "tener",
+      "pos": "verb",
+      "score": 4668017
+    },
+    {
+      "rank": 15,
+      "lemma": "no",
+      "pos": "noun",
+      "score": 4126577
+    },
+    {
+      "rank": 16,
+      "lemma": "no",
+      "pos": "adv",
+      "score": 4126502
+    },
+    {
+      "rank": 17,
+      "lemma": "no",
+      "pos": "intj",
+      "score": 4126502
+    },
+    {
+      "rank": 18,
+      "lemma": "una",
+      "pos": "pron",
+      "score": 3846322
+    },
+    {
+      "rank": 19,
+      "lemma": "haber",
+      "pos": "verb",
+      "score": 3699711
+    },
+    {
+      "rank": 20,
+      "lemma": "los",
+      "pos": "pron",
+      "score": 3069193
+    },
+    {
+      "rank": 21,
+      "lemma": "se",
+      "pos": "pron",
+      "score": 3068171
+    },
+    {
+      "rank": 22,
+      "lemma": "la",
+      "pos": "article",
+      "score": 3041824
+    },
+    {
+      "rank": 23,
+      "lemma": "la",
+      "pos": "noun",
+      "score": 3041824
+    },
+    {
+      "rank": 24,
+      "lemma": "la",
+      "pos": "pron",
+      "score": 3041824
+    },
+    {
+      "rank": 25,
+      "lemma": "con",
+      "pos": "prep",
+      "score": 3028045
+    },
+    {
+      "rank": 26,
+      "lemma": "poder",
+      "pos": "verb",
+      "score": 2902785
+    },
+    {
+      "rank": 27,
+      "lemma": "ir",
+      "pos": "verb",
+      "score": 2817887
+    },
+    {
+      "rank": 28,
+      "lemma": "mi",
+      "pos": "noun",
+      "score": 2789364
+    },
+    {
+      "rank": 29,
+      "lemma": "hacer",
+      "pos": "verb",
+      "score": 2755226
+    },
+    {
+      "rank": 30,
+      "lemma": "querer",
+      "pos": "verb",
+      "score": 2426779
+    },
+    {
+      "rank": 31,
+      "lemma": "si",
+      "pos": "conj",
+      "score": 2348665
+    },
+    {
+      "rank": 32,
+      "lemma": "por",
+      "pos": "prep",
+      "score": 2231517
+    },
+    {
+      "rank": 33,
+      "lemma": "por",
+      "pos": "intj",
+      "score": 2231332
+    },
+    {
+      "rank": 34,
+      "lemma": "ése",
+      "pos": "pron",
+      "score": 2088346
+    },
+    {
+      "rank": 35,
+      "lemma": "decir",
+      "pos": "verb",
+      "score": 2062935
+    },
+    {
+      "rank": 36,
+      "lemma": "su",
+      "pos": "det",
+      "score": 2005512
+    },
+    {
+      "rank": 37,
+      "lemma": "todo",
+      "pos": "det",
+      "score": 1793439
+    },
+    {
+      "rank": 38,
+      "lemma": "este",
+      "pos": "det",
+      "score": 1731596
+    },
+    {
+      "rank": 39,
+      "lemma": "aquí",
+      "pos": "adv",
+      "score": 1690732
+    },
+    {
+      "rank": 40,
+      "lemma": "tuyo",
+      "pos": "det",
+      "score": 1655461
+    },
+    {
+      "rank": 41,
+      "lemma": "del",
+      "pos": "contraction",
+      "score": 1647872
+    },
+    {
+      "rank": 42,
+      "lemma": "ver",
+      "pos": "verb",
+      "score": 1585841
+    },
+    {
+      "rank": 43,
+      "lemma": "al",
+      "pos": "contraction",
+      "score": 1549489
+    },
+    {
+      "rank": 44,
+      "lemma": "te",
+      "pos": "noun",
+      "score": 1517415
+    },
+    {
+      "rank": 45,
+      "lemma": "te",
+      "pos": "pron",
+      "score": 1517188
+    },
+    {
+      "rank": 46,
+      "lemma": "le",
+      "pos": "pron",
+      "score": 1432173
+    },
+    {
+      "rank": 47,
+      "lemma": "para",
+      "pos": "prep",
+      "score": 1416537
+    },
+    {
+      "rank": 48,
+      "lemma": "para",
+      "pos": "noun",
+      "score": 1416352
+    },
+    {
+      "rank": 49,
+      "lemma": "tú",
+      "pos": "pron",
+      "score": 1376411
+    },
+    {
+      "rank": 50,
+      "lemma": "esto",
+      "pos": "pron",
+      "score": 1307646
+    }
+  ],
+  "rank9950to10050": [
+    {
+      "rank": 9950,
+      "lemma": "sonámbulo",
+      "pos": "noun",
+      "score": 947
+    },
+    {
+      "rank": 9951,
+      "lemma": "chistoso",
+      "pos": "noun",
+      "score": 947
+    },
+    {
+      "rank": 9952,
+      "lemma": "denominar",
+      "pos": "verb",
+      "score": 947
+    },
+    {
+      "rank": 9953,
+      "lemma": "pintada",
+      "pos": "noun",
+      "score": 946
+    },
+    {
+      "rank": 9954,
+      "lemma": "celeste",
+      "pos": "adj",
+      "score": 946
+    },
+    {
+      "rank": 9955,
+      "lemma": "celeste",
+      "pos": "noun",
+      "score": 946
+    },
+    {
+      "rank": 9956,
+      "lemma": "detonación",
+      "pos": "noun",
+      "score": 946
+    },
+    {
+      "rank": 9957,
+      "lemma": "diecinueve",
+      "pos": "num",
+      "score": 946
+    },
+    {
+      "rank": 9958,
+      "lemma": "inservible",
+      "pos": "adj",
+      "score": 946
+    },
+    {
+      "rank": 9959,
+      "lemma": "lapicera",
+      "pos": "noun",
+      "score": 946
+    },
+    {
+      "rank": 9960,
+      "lemma": "dina",
+      "pos": "noun",
+      "score": 945
+    },
+    {
+      "rank": 9961,
+      "lemma": "doquiera",
+      "pos": "adv",
+      "score": 945
+    },
+    {
+      "rank": 9962,
+      "lemma": "guiño",
+      "pos": "noun",
+      "score": 945
+    },
+    {
+      "rank": 9963,
+      "lemma": "abalanzar",
+      "pos": "verb",
+      "score": 944
+    },
+    {
+      "rank": 9964,
+      "lemma": "examinando",
+      "pos": "noun",
+      "score": 944
+    },
+    {
+      "rank": 9965,
+      "lemma": "guerrilla",
+      "pos": "noun",
+      "score": 944
+    },
+    {
+      "rank": 9966,
+      "lemma": "hispano",
+      "pos": "adj",
+      "score": 944
+    },
+    {
+      "rank": 9967,
+      "lemma": "kan",
+      "pos": "noun",
+      "score": 944
+    },
+    {
+      "rank": 9968,
+      "lemma": "socializar",
+      "pos": "verb",
+      "score": 944
+    },
+    {
+      "rank": 9969,
+      "lemma": "petar",
+      "pos": "verb",
+      "score": 944
+    },
+    {
+      "rank": 9970,
+      "lemma": "avivar",
+      "pos": "verb",
+      "score": 943
+    },
+    {
+      "rank": 9971,
+      "lemma": "bayoneta",
+      "pos": "noun",
+      "score": 943
+    },
+    {
+      "rank": 9972,
+      "lemma": "desbordar",
+      "pos": "verb",
+      "score": 943
+    },
+    {
+      "rank": 9973,
+      "lemma": "escapada",
+      "pos": "noun",
+      "score": 943
+    },
+    {
+      "rank": 9974,
+      "lemma": "dañino",
+      "pos": "adj",
+      "score": 942
+    },
+    {
+      "rank": 9975,
+      "lemma": "discapacidad",
+      "pos": "noun",
+      "score": 942
+    },
+    {
+      "rank": 9976,
+      "lemma": "fausto",
+      "pos": "adj",
+      "score": 942
+    },
+    {
+      "rank": 9977,
+      "lemma": "génesis",
+      "pos": "noun",
+      "score": 942
+    },
+    {
+      "rank": 9978,
+      "lemma": "grime",
+      "pos": "noun",
+      "score": 942
+    },
+    {
+      "rank": 9979,
+      "lemma": "nacionalidad",
+      "pos": "noun",
+      "score": 942
+    },
+    {
+      "rank": 9980,
+      "lemma": "neural",
+      "pos": "adj",
+      "score": 942
+    },
+    {
+      "rank": 9981,
+      "lemma": "repercusión",
+      "pos": "noun",
+      "score": 942
+    },
+    {
+      "rank": 9982,
+      "lemma": "saciar",
+      "pos": "verb",
+      "score": 942
+    },
+    {
+      "rank": 9983,
+      "lemma": "funcional",
+      "pos": "adj",
+      "score": 942
+    },
+    {
+      "rank": 9984,
+      "lemma": "baraja",
+      "pos": "noun",
+      "score": 941
+    },
+    {
+      "rank": 9985,
+      "lemma": "bit",
+      "pos": "noun",
+      "score": 941
+    },
+    {
+      "rank": 9986,
+      "lemma": "fango",
+      "pos": "noun",
+      "score": 941
+    },
+    {
+      "rank": 9987,
+      "lemma": "hipopótamo",
+      "pos": "noun",
+      "score": 941
+    },
+    {
+      "rank": 9988,
+      "lemma": "inicialmente",
+      "pos": "adv",
+      "score": 941
+    },
+    {
+      "rank": 9989,
+      "lemma": "perplejo",
+      "pos": "adj",
+      "score": 941
+    },
+    {
+      "rank": 9990,
+      "lemma": "secuela",
+      "pos": "noun",
+      "score": 941
+    },
+    {
+      "rank": 9991,
+      "lemma": "lagrimar",
+      "pos": "verb",
+      "score": 941
+    },
+    {
+      "rank": 9992,
+      "lemma": "agregado",
+      "pos": "noun",
+      "score": 940
+    },
+    {
+      "rank": 9993,
+      "lemma": "burocracia",
+      "pos": "noun",
+      "score": 940
+    },
+    {
+      "rank": 9994,
+      "lemma": "dependencia",
+      "pos": "noun",
+      "score": 940
+    },
+    {
+      "rank": 9995,
+      "lemma": "diplomacia",
+      "pos": "noun",
+      "score": 940
+    },
+    {
+      "rank": 9996,
+      "lemma": "domo",
+      "pos": "noun",
+      "score": 940
+    },
+    {
+      "rank": 9997,
+      "lemma": "importación",
+      "pos": "noun",
+      "score": 940
+    },
+    {
+      "rank": 9998,
+      "lemma": "inoportuno",
+      "pos": "adj",
+      "score": 940
+    },
+    {
+      "rank": 9999,
+      "lemma": "rivalidad",
+      "pos": "noun",
+      "score": 940
+    },
+    {
+      "rank": 10000,
+      "lemma": "indicador",
+      "pos": "adj",
+      "score": 939
+    },
+    {
+      "rank": 10001,
+      "lemma": "caparazón",
+      "pos": "noun",
+      "score": 939
+    },
+    {
+      "rank": 10002,
+      "lemma": "sífilis",
+      "pos": "noun",
+      "score": 939
+    },
+    {
+      "rank": 10003,
+      "lemma": "medicinal",
+      "pos": "adj",
+      "score": 939
+    },
+    {
+      "rank": 10004,
+      "lemma": "pisado",
+      "pos": "adj",
+      "score": 938
+    },
+    {
+      "rank": 10005,
+      "lemma": "embargar",
+      "pos": "verb",
+      "score": 938
+    },
+    {
+      "rank": 10006,
+      "lemma": "paracaidista",
+      "pos": "noun",
+      "score": 938
+    },
+    {
+      "rank": 10007,
+      "lemma": "stand",
+      "pos": "noun",
+      "score": 938
+    },
+    {
+      "rank": 10008,
+      "lemma": "lama",
+      "pos": "noun",
+      "score": 938
+    },
+    {
+      "rank": 10009,
+      "lemma": "cana",
+      "pos": "noun",
+      "score": 937
+    },
+    {
+      "rank": 10010,
+      "lemma": "tinto",
+      "pos": "adj",
+      "score": 937
+    },
+    {
+      "rank": 10011,
+      "lemma": "naufragio",
+      "pos": "noun",
+      "score": 937
+    },
+    {
+      "rank": 10012,
+      "lemma": "tinto",
+      "pos": "noun",
+      "score": 937
+    },
+    {
+      "rank": 10013,
+      "lemma": "maqueta",
+      "pos": "noun",
+      "score": 937
+    },
+    {
+      "rank": 10014,
+      "lemma": "agricultor",
+      "pos": "adj",
+      "score": 937
+    },
+    {
+      "rank": 10015,
+      "lemma": "agricultor",
+      "pos": "noun",
+      "score": 937
+    },
+    {
+      "rank": 10016,
+      "lemma": "guillotina",
+      "pos": "noun",
+      "score": 936
+    },
+    {
+      "rank": 10017,
+      "lemma": "abadía",
+      "pos": "noun",
+      "score": 936
+    },
+    {
+      "rank": 10018,
+      "lemma": "candidatura",
+      "pos": "noun",
+      "score": 936
+    },
+    {
+      "rank": 10019,
+      "lemma": "cisco",
+      "pos": "noun",
+      "score": 936
+    },
+    {
+      "rank": 10020,
+      "lemma": "pintalabios",
+      "pos": "noun",
+      "score": 936
+    },
+    {
+      "rank": 10021,
+      "lemma": "rapar",
+      "pos": "verb",
+      "score": 936
+    },
+    {
+      "rank": 10022,
+      "lemma": "mayúscula",
+      "pos": "noun",
+      "score": 936
+    },
+    {
+      "rank": 10023,
+      "lemma": "curandero",
+      "pos": "noun",
+      "score": 935
+    },
+    {
+      "rank": 10024,
+      "lemma": "proverbio",
+      "pos": "noun",
+      "score": 935
+    },
+    {
+      "rank": 10025,
+      "lemma": "derramado",
+      "pos": "adj",
+      "score": 935
+    },
+    {
+      "rank": 10026,
+      "lemma": "klingon",
+      "pos": "adj",
+      "score": 935
+    },
+    {
+      "rank": 10027,
+      "lemma": "klingon",
+      "pos": "noun",
+      "score": 935
+    },
+    {
+      "rank": 10028,
+      "lemma": "calva",
+      "pos": "noun",
+      "score": 934
+    },
+    {
+      "rank": 10029,
+      "lemma": "ladra",
+      "pos": "noun",
+      "score": 934
+    },
+    {
+      "rank": 10030,
+      "lemma": "acatar",
+      "pos": "verb",
+      "score": 934
+    },
+    {
+      "rank": 10031,
+      "lemma": "incienso",
+      "pos": "noun",
+      "score": 934
+    },
+    {
+      "rank": 10032,
+      "lemma": "vértigo",
+      "pos": "noun",
+      "score": 934
+    },
+    {
+      "rank": 10033,
+      "lemma": "pegajosa",
+      "pos": "noun",
+      "score": 934
+    },
+    {
+      "rank": 10034,
+      "lemma": "estimulante",
+      "pos": "adj",
+      "score": 934
+    },
+    {
+      "rank": 10035,
+      "lemma": "estimulante",
+      "pos": "noun",
+      "score": 934
+    },
+    {
+      "rank": 10036,
+      "lemma": "cochera",
+      "pos": "noun",
+      "score": 933
+    },
+    {
+      "rank": 10037,
+      "lemma": "alcoba",
+      "pos": "noun",
+      "score": 933
+    },
+    {
+      "rank": 10038,
+      "lemma": "infligir",
+      "pos": "verb",
+      "score": 933
+    },
+    {
+      "rank": 10039,
+      "lemma": "ordenada",
+      "pos": "noun",
+      "score": 933
+    },
+    {
+      "rank": 10040,
+      "lemma": "deformar",
+      "pos": "verb",
+      "score": 933
+    },
+    {
+      "rank": 10041,
+      "lemma": "étnico",
+      "pos": "adj",
+      "score": 932
+    },
+    {
+      "rank": 10042,
+      "lemma": "lugareño",
+      "pos": "noun",
+      "score": 932
+    },
+    {
+      "rank": 10043,
+      "lemma": "monitorizar",
+      "pos": "verb",
+      "score": 932
+    },
+    {
+      "rank": 10044,
+      "lemma": "regresivo",
+      "pos": "adj",
+      "score": 932
+    },
+    {
+      "rank": 10045,
+      "lemma": "suavidad",
+      "pos": "noun",
+      "score": 932
+    },
+    {
+      "rank": 10046,
+      "lemma": "bellísima",
+      "pos": "noun",
+      "score": 931
+    },
+    {
+      "rank": 10047,
+      "lemma": "constancia",
+      "pos": "noun",
+      "score": 931
+    },
+    {
+      "rank": 10048,
+      "lemma": "indefinidamente",
+      "pos": "adv",
+      "score": 931
+    },
+    {
+      "rank": 10049,
+      "lemma": "lubricante",
+      "pos": "noun",
+      "score": 931
+    },
+    {
+      "rank": 10050,
+      "lemma": "vanidoso",
+      "pos": "adj",
+      "score": 931
+    }
+  ],
+  "unresolvedHighFrequencyTokens": [
+    {
+      "token": "john",
+      "count": 69978
+    },
+    {
+      "token": "jack",
+      "count": 62965
+    },
+    {
+      "token": "the",
+      "count": 54966
+    },
+    {
+      "token": "sam",
+      "count": 53082
+    },
+    {
+      "token": "michael",
+      "count": 45411
+    },
+    {
+      "token": "frank",
+      "count": 44615
+    },
+    {
+      "token": "charlie",
+      "count": 44589
+    },
+    {
+      "token": "tom",
+      "count": 43467
+    },
+    {
+      "token": "george",
+      "count": 42765
+    },
+    {
+      "token": "mike",
+      "count": 41066
+    },
+    {
+      "token": "peter",
+      "count": 36107
+    },
+    {
+      "token": "ben",
+      "count": 32858
+    },
+    {
+      "token": "james",
+      "count": 32572
+    },
+    {
+      "token": "max",
+      "count": 32182
+    },
+    {
+      "token": "harry",
+      "count": 30134
+    },
+    {
+      "token": "mary",
+      "count": 28973
+    },
+    {
+      "token": "you",
+      "count": 28617
+    },
+    {
+      "token": "bill",
+      "count": 28210
+    },
+    {
+      "token": "jimmy",
+      "count": 28145
+    },
+    {
+      "token": "jim",
+      "count": 27640
+    },
+    {
+      "token": "danny",
+      "count": 27097
+    },
+    {
+      "token": "nick",
+      "count": 26552
+    },
+    {
+      "token": "steve",
+      "count": 26340
+    },
+    {
+      "token": "sarah",
+      "count": 25528
+    },
+    {
+      "token": "um",
+      "count": 24948
+    },
+    {
+      "token": "jane",
+      "count": 24469
+    },
+    {
+      "token": "tommy",
+      "count": 24300
+    },
+    {
+      "token": "ray",
+      "count": 23492
+    },
+    {
+      "token": "billy",
+      "count": 23444
+    },
+    {
+      "token": "johnny",
+      "count": 23426
+    },
+    {
+      "token": "eddie",
+      "count": 22197
+    },
+    {
+      "token": "mark",
+      "count": 22087
+    },
+    {
+      "token": "robert",
+      "count": 21882
+    },
+    {
+      "token": "chris",
+      "count": 21736
+    },
+    {
+      "token": "will",
+      "count": 21495
+    },
+    {
+      "token": "ryan",
+      "count": 20997
+    },
+    {
+      "token": "jake",
+      "count": 20197
+    },
+    {
+      "token": "bobby",
+      "count": 19818
+    },
+    {
+      "token": "amy",
+      "count": 19792
+    },
+    {
+      "token": "and",
+      "count": 18928
+    }
+  ]
+}

@@ -1,0 +1,175 @@
+{
+  "generatedAt": "2026-07-31T15:00:35.631Z",
+  "totalRecords": 807155,
+  "recordsSkippedForPos": 1509,
+  "lemmaRecords": 115573,
+  "inflectionRecords": 690073,
+  "distinctNormalizedForms": 1063506,
+  "distinctExactForms": 1203803,
+  "distinctCitationForms": 105397,
+  "formsHarvestedFromFormsArray": 1507193,
+  "formsHarvestedFromFormOfRecords": 723964,
+  "canonicalIds": 114666,
+  "realLemmaKeys": 113855,
+  "recordsThatMergeIntoAnExistingId": 907,
+  "entriesBuiltFromMultipleRecords": 893,
+  "mergeExamples": [
+    {
+      "id": "dict:wiktionary-es:color:noun",
+      "word": "color",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:o:conj:2",
+      "word": "o",
+      "pos": "conj"
+    },
+    {
+      "id": "dict:wiktionary-es:FIFA:name",
+      "word": "FIFA",
+      "pos": "name"
+    },
+    {
+      "id": "dict:wiktionary-es:general:noun",
+      "word": "general",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:capital:noun",
+      "word": "capital",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:español:noun",
+      "word": "español",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:gallo:noun",
+      "word": "gallo",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:gallo:noun",
+      "word": "gallo",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:vocal:noun",
+      "word": "vocal",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:conductor:noun",
+      "word": "conductor",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:actor:noun",
+      "word": "actor",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:central:noun",
+      "word": "central",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:central:noun",
+      "word": "central",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:simple:noun",
+      "word": "simple",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:mayor:noun",
+      "word": "mayor",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:delta:noun",
+      "word": "delta",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:kappa:noun",
+      "word": "kappa",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:terminal:noun",
+      "word": "terminal",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:tri:noun",
+      "word": "tri",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:micro:noun:2",
+      "word": "micro",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:negro:noun",
+      "word": "negro",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:Java:name",
+      "word": "Java",
+      "pos": "name"
+    },
+    {
+      "id": "dict:wiktionary-es:Quito:name",
+      "word": "Quito",
+      "pos": "name"
+    },
+    {
+      "id": "dict:wiktionary-es:feta:noun",
+      "word": "feta",
+      "pos": "noun"
+    },
+    {
+      "id": "dict:wiktionary-es:tau:noun",
+      "word": "tau",
+      "pos": "noun"
+    }
+  ],
+  "multiPosLemmas": 8319,
+  "posCounts": {
+    "verb": 584562,
+    "noun": 128854,
+    "adj": 75618,
+    "name": 8650,
+    "adv": 5063,
+    "phrase": 788,
+    "intj": 682,
+    "pron": 284,
+    "prep": 256,
+    "num": 250,
+    "proverb": 233,
+    "conj": 159,
+    "det": 143,
+    "contraction": 50,
+    "prep_phrase": 28,
+    "article": 16,
+    "particle": 10
+  },
+  "files": {
+    "search": {
+      "file": "C:\\Users\\bpano\\Documents\\Spanish_Dict_Notebook_Project\\pipeline\\raw\\_forms-search.jsonl",
+      "rows": 1063506,
+      "bytes": 38616936
+    },
+    "exact": {
+      "file": "C:\\Users\\bpano\\Documents\\Spanish_Dict_Notebook_Project\\pipeline\\raw\\_forms-exact.jsonl",
+      "rows": 1203803,
+      "bytes": 49366558
+    }
+  }
+}
