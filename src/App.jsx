@@ -44,7 +44,7 @@ export default function App() {
             Mi <Hi>cuaderno</Hi>
           </div>
           <div className="text-xs mt-1" style={{ color: C.mut }}>
-            Spanish notebook · Phase 0
+            Spanish notebook · setup complete
           </div>
         </header>
 

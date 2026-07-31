@@ -12,6 +12,8 @@ One line per meaningful choice: date — decision — reason.
 - 2026-07-30 — App-code license: deferred (repo currently has no LICENSE file). — Data licenses are the urgent part (§4); code license decision can wait for the owner.
 - 2026-07-30 — `npm audit`'s 8 "high" findings left unfixed. — All are one dependency chain inside the build tool (`vite-plugin-pwa` → workbox → old `brace-expansion`); build-time only, nothing ships to the app; the offered fix downgrades the PWA plugin.
 
+- 2026-07-31 — GitHub Pages had to be enabled once by hand (`gh api --method POST /repos/.../pages -f build_type=workflow`); the workflow's `configure-pages` with `enablement: true` cannot create the Pages site itself. — The built-in `GITHUB_TOKEN` lacks that permission, so the first deploy failed with "Resource not accessible by integration". Subsequent pushes deploy automatically; `enablement: true` is kept because it succeeds once the site exists. Repo: `bpanozzo23-prog/mi-cuaderno`.
+
 ## Phase 0.5 — data spike (2026-07-31)
 
 - 2026-07-31 — Dictionary source is `kaikki.org/dictionary/Spanish/…jsonl.gz` (English Wiktionary, English glosses), despite kaikki labelling it DEPRECATED. — It is the only kaikki file matching brief §4; the newer `downloads/es/` path is the *Spanish* Wiktionary with Spanish glosses and is not interchangeable. Re-check at each dataset refresh.

@@ -9,7 +9,13 @@ installable web app (PWA). Private tool for one person; the code is public, the 
 
 ## Status
 
-Phase 0 — skeleton and deploy. The app is an empty installable shell; the notebook arrives in Phase 1.
+**Live at <https://bpanozzo23-prog.github.io/mi-cuaderno/>** — installable from Chrome on Android.
+
+- **Phase 0 — done.** Installable PWA shell, auto-deployed on every push to `main`.
+- **Phase 0.5 — done, awaiting owner review.** Data pipeline proven end to end on all four sources;
+  see [docs/PHASE-0.5-SPIKE-REPORT.md](docs/PHASE-0.5-SPIKE-REPORT.md) and the 20 generated records in
+  [pipeline/spike/out/07-review-records.md](pipeline/spike/out/07-review-records.md).
+- **Phase 1 — next.** The notebook itself: schema and backup, items and pages, search and linking, tracking.
 
 ## Development
 
