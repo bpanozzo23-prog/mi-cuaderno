@@ -11,21 +11,16 @@ import EmptyState from "./EmptyState.jsx";
 import { searchItems, mergeResults } from "../lib/search.js";
 import { searchDictionary } from "../db/ref/search.js";
 import { isDictKey, installedMeta } from "../db/ref/entries.js";
+import { TYPE_FILTERS, FILTERS, matchesTypeFilter, wantsDictionary } from "../lib/filters.js";
 import { emptyItemState } from "../useNotebook.js";
 
 /** Long enough that a fast typist does not fire a query per keystroke, short enough to feel instant. */
 const SEARCH_DEBOUNCE_MS = 140;
 
-const TYPE_FILTERS = [
-  { id: "all", label: "todo" },
-  { id: "lexical", label: "palabras" },
-  { id: "page", label: "páginas" },
-];
-
 export default function Cuaderno({ notebook, selectedId, onSelect, onOpenSettings }) {
   const { items, itemState, reload } = notebook;
   const [query, setQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState(FILTERS.all);
   const [tagFilter, setTagFilter] = useState(null);
   const [addKind, setAddKind] = useState(null);
   const [askKind, setAskKind] = useState(false);
@@ -46,10 +41,7 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onOpenSetting
   }, [items]);
 
   const filtered = useMemo(
-    () =>
-      items.filter(
-        (i) => (typeFilter === "all" || i.type === typeFilter) && (!tagFilter || i.tags.includes(tagFilter))
-      ),
+    () => items.filter((i) => matchesTypeFilter(i, typeFilter) && (!tagFilter || i.tags.includes(tagFilter))),
     [items, typeFilter, tagFilter]
   );
 
@@ -71,7 +63,7 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onOpenSetting
    */
   const [dictResults, setDictResults] = useState([]);
   const [dictPending, setDictPending] = useState(false);
-  const dictionaryWanted = searching && typeFilter !== "page" && !tagFilter;
+  const dictionaryWanted = searching && wantsDictionary(typeFilter, tagFilter);
 
   useEffect(() => {
     if (!dictionaryWanted) {

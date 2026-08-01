@@ -6,6 +6,13 @@ import Repaso from "./components/Repaso.jsx";
 import Ajustes from "./components/Ajustes.jsx";
 import { useNotebook } from "./useNotebook.js";
 
+/**
+ * Spanish pluralization for the header counts: only 1 takes the singular, 0 takes the plural.
+ * Worth the three lines in a notebook for learning Spanish — and splitting phrases out gave the
+ * counts a line that will often read exactly 1, where the wrong plural is most visible.
+ */
+const count = (n, singular) => `${n} ${n === 1 ? singular : `${singular}s`}`;
+
 const TABS = [
   { id: "cuaderno", label: "Cuaderno", icon: BookOpen },
   { id: "repaso", label: "Repaso", icon: BarChart3 },
@@ -17,8 +24,12 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(null);
   const notebook = useNotebook();
 
-  const lexicalCount = notebook.items.filter((i) => i.type === "lexical").length;
-  const pageCount = notebook.items.length - lexicalCount;
+  // Counted the way the tabs divide things, since a single "palabras" total that quietly
+  // included phrases stopped being true the moment they got their own tab.
+  const lexical = notebook.items.filter((i) => i.type === "lexical");
+  const phraseCount = lexical.filter((i) => i.form === "phrase").length;
+  const wordCount = lexical.length - phraseCount;
+  const pageCount = notebook.items.length - lexical.length;
 
   function switchTab(next) {
     setTab(next);
@@ -41,10 +52,12 @@ export default function App() {
                 Spanish notebook
               </div>
             </div>
-            <div className="text-right text-xs" style={{ fontFamily: MONO, color: C.mut }}>
-              {lexicalCount} palabras
+            <div className="text-right text-xs leading-relaxed" style={{ fontFamily: MONO, color: C.mut }}>
+              {count(wordCount, "palabra")}
               <br />
-              {pageCount} páginas
+              {count(phraseCount, "frase")}
+              <br />
+              {count(pageCount, "página")}
             </div>
           </div>
         </header>

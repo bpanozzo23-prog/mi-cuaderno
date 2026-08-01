@@ -19,7 +19,15 @@ export default function AddSheet({ kind, items = [], onClose, onCreated }) {
 
   const [term, setTerm] = useState("");
   const [translation, setTranslation] = useState("");
-  const [form, setForm] = useState("word");
+
+  /**
+   * The word/phrase toggle follows the term until the owner touches it — a term with a space
+   * in it starts as a phrase, which is what quick-create-and-link already infers (Detail.jsx).
+   * Once they pick a side it stays picked, so "buenos días" can still be filed as a word if
+   * that is what they mean.
+   */
+  const [formChoice, setFormChoice] = useState(null);
+  const form = formChoice ?? (term.trim().includes(" ") ? "phrase" : "word");
   const [pos, setPos] = useState("");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -117,7 +125,7 @@ export default function AddSheet({ kind, items = [], onClose, onCreated }) {
                 {["word", "phrase"].map((f) => (
                   <button
                     key={f}
-                    onClick={() => setForm(f)}
+                    onClick={() => setFormChoice(f)}
                     className="text-sm px-3 py-2.5"
                     style={
                       form === f
