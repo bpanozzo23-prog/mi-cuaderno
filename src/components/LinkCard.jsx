@@ -31,9 +31,16 @@ function Shell({ icon: Icon, onOpen, onRemove, removeLabel, children, dashed }) 
       <button onClick={onOpen} disabled={!onOpen} className="min-w-0 flex-1 text-left">
         {children}
       </button>
-      <button onClick={onRemove} aria-label={removeLabel} className="shrink-0 p-0.5">
-        <X size={13} style={{ color: C.mut }} />
-      </button>
+      {/*
+        Unlinking is only offered where the link is STORED — on one of the owner's own items.
+        A dictionary entry is read-only (§5) and holds no link to remove, so its screen shows
+        these cards without an × rather than offering an action that edits a different record.
+      */}
+      {onRemove && (
+        <button onClick={onRemove} aria-label={removeLabel} className="shrink-0 p-0.5">
+          <X size={13} style={{ color: C.mut }} />
+        </button>
+      )}
     </div>
   );
 }

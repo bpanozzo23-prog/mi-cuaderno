@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, BookMarked, Plus, ExternalLink, ChevronDown, ChevronRight, Link2, FileText } from "lucide-react";
-import { C, SERIF, MONO, dotGrid, SectionTitle, Card, Chip, Button } from "../theme.jsx";
+import { ChevronLeft, BookMarked, Plus, ExternalLink, ChevronDown, ChevronRight } from "lucide-react";
+import { C, SERIF, MONO, dotGrid, SectionTitle, Card, Button } from "../theme.jsx";
 import { POS_LABEL } from "./DictCard.jsx";
+import { ItemLinkCard } from "./LinkCard.jsx";
 import { getEntryWithConjugation, installedMeta, exampleAttribution } from "../db/ref/entries.js";
 import { createItem, newLexicalFromEntry, displayTitle } from "../db/items.js";
 import { logView } from "../db/events.js";
+import { relatedToKey, groupRelated, GROUPS } from "../lib/links.js";
 import { SLOTS, COLLAPSED_SLOTS, SIMPLE_TENSES, PERFECT_TENSES } from "../lib/conjugation.js";
 
 /**
@@ -136,10 +138,14 @@ export default function DictDetail({ entryId, items, onBack, onOpen, onChanged }
     });
   }, [entryId]);
 
-  // Personal items already attached to this entry, and anything linking to it.
-  const related = useMemo(
-    () => items.filter((i) => i.dictKey === entryId || i.linkedKeys.includes(entryId)),
-    [items, entryId]
+  // Personal items already attached to this entry, and anything linking to it — the same
+  // derivation the detail screens use, so a link renders identically wherever it appears.
+  const related = useMemo(() => relatedToKey(entryId, items), [items, entryId]);
+
+  // A dictionary entry is a word, so it leads with the pages that word turns up on.
+  const groups = useMemo(
+    () => groupRelated(related, [], [GROUPS.paginas, GROUPS.diario, GROUPS.palabras]),
+    [related]
   );
 
   async function addToCuaderno() {
@@ -295,16 +301,29 @@ export default function DictDetail({ entryId, items, onBack, onOpen, onChanged }
         </>
       )}
 
-      {related.length > 0 && (
+      {groups.length > 0 && (
         <>
           <SectionTitle>Linked</SectionTitle>
-          <div className="flex flex-wrap gap-1.5">
-            {related.map((r) => (
-              <Chip key={r.id} onClick={() => onOpen(r.id)}>
-                {r.type === "page" ? <FileText size={11} /> : <Link2 size={11} />} {displayTitle(r)}
-              </Chip>
-            ))}
-          </div>
+          {groups.map((group) => (
+            <div key={group.name} className="mb-3">
+              <div
+                className="text-[11px] uppercase mb-1.5"
+                style={{ fontFamily: MONO, color: C.mut, letterSpacing: "0.08em" }}
+              >
+                {group.name}
+              </div>
+              <div className="space-y-1.5">
+                {group.rows.map((row) => (
+                  <ItemLinkCard
+                    key={row.key}
+                    item={row.item}
+                    attached={row.item.dictKey === entryId}
+                    onOpen={onOpen}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
         </>
       )}
 
