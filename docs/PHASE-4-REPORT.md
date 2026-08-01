@@ -111,6 +111,68 @@ that is friction worth writing down.
 **Then the friction list.** It is the one input this phase deliberately went without, and it
 decides both requirement 7 and whatever Phase 4 does next.
 
+---
+
+# The friction list opens (2026-08-01)
+
+The owner used the app and reported the first three friction items. Two of the three were not
+about linking at all, which is itself the most useful thing the list said: the picker appears to
+have absorbed the friction requirement 7 was aimed at, and what remains is about capturing
+meaning and organising vocabulary.
+
+All three are built, in `4f`–`4h`. `npm test` runs **240 tests**. Still no schema change —
+`SCHEMA_VERSION` is 1, and §5 has still never triggered in this project.
+
+| # | The friction | What shipped |
+|---|---|---|
+| 1 | The word/phrase toggle had no effect on the list — everything landed under *palabras* | **4g** — four tabs: todo / palabras / frases / páginas |
+| 2 | A phrase's meaning could only be one running line | **4h** — meanings can hold several lines |
+| 3 | Typing a tag gave no hint that a similar one already existed | **4f** — suggestions from the tags already in use |
+
+### What each one turned on
+
+**4f — tag suggestions.** The fix that matters is not the autocomplete, it is that matching goes
+through the shared `normalize()` and is therefore **case- and accent-insensitive**. `cleanTags`
+dedupes exact strings only, so `expression`, `Expression` and `expresión` genuinely are three
+tags today; typing any spelling now surfaces the one already in use. It only ever *suggests* —
+what gets stored is exactly what was typed or tapped, because silently rewriting the owner's
+spelling is the kind of helpfulness that annoys the third time. One `TagInput` now serves both
+the detail screen and the add sheet, retiring the comma-separated field.
+
+**4g — palabras and frases.** Worth being clear that this is **not a third content type**, which
+§7 would require a brief amendment for. `form: word | phrase` has been a locked field since
+Phase 1b and is already shown as *loc.*; only the filter ignored it. Three things came with it:
+dictionary results are suppressed under *frases* (the bundled dictionary is lemma-focused, §1, so
+the tab would fill with single words — the same rule Phase 2e applied to *páginas*); the header
+count splits three ways, since one "palabras" total quietly including phrases stops being true
+the moment they separate; and the add sheet's toggle now follows the term until touched, matching
+what quick-create already inferred.
+
+**4h — multi-line meanings.** The important decision here was what *not* to build. A structured
+`translations[]` array would have been the project's first schema change, triggering §5 in full,
+and edges into the sense-level annotations §7 defers. `translation` was always a plain string, so
+newlines already survived storage, backup and import — the only blocker was `<input>`, which
+cannot hold a line break. Rendering follows what each screen is for: full on the detail screen
+and the review card, clamped to two lines in lists, flattened in the picker. Search flattens
+whitespace at that one comparison, never in `normalize()`, which the pipeline imports and which
+decides what the shipped dictionary matches.
+
+### Verified
+
+At 375 px, with seeded data and a fixture dictionary: four filter chips fit one row with no
+horizontal overflow; each tab shows only what belongs to it; searching "casa" under *frases*
+returns nothing where *palabras* returns the dictionary entry; typing "EXPRESION" surfaces the
+existing "expresión" and tapping it stores that spelling; a three-line meaning renders in full on
+the detail and review screens (72 px and unclipped) and clamps to two lines in the list. No
+console errors; production build clean.
+
+### Requirement 7 — still parked
+
+Nothing on the friction list asked for link suggestions, and two of the three items pointed
+elsewhere. It stays parked until the list asks for it.
+
+---
+
 ## Where things are
 
 - `src/lib/links.js` — `relatedTo`, `relatedToKey`, `pickerMatches`, `groupRelated`, `GROUPS`.
@@ -119,3 +181,7 @@ decides both requirement 7 and whatever Phase 4 does next.
 - `src/components/LinkPicker.jsx` — the picker and quick-create.
 - `src/components/LinkCard.jsx` — `ItemLinkCard`, `EntryLinkCard`, `OrphanLinkCard`.
 - `src/components/Detail.test.jsx` — the first component tests; jsdom is opt-in per file.
+- `src/lib/tags.js` + `src/components/TagInput.jsx` — the tag vocabulary and the one control
+  that enters tags anywhere.
+- `src/lib/filters.js` — the four-way type filter and the rule for when dictionary results
+  belong in the list.
