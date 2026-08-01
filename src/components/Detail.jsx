@@ -8,7 +8,10 @@ import { POS_OPTIONS, POS_ABBR } from "./ItemCard.jsx";
 import DictAttachment from "./DictAttachment.jsx";
 import LinkPicker from "./LinkPicker.jsx";
 import { POS_LABEL } from "./DictCard.jsx";
-import { updateItem, deleteItem, linkItems, unlinkItems, displayTitle } from "../db/items.js";
+import {
+  updateItem, deleteItem, linkItems, unlinkItems, displayTitle,
+  createItem, newLexical, newPage,
+} from "../db/items.js";
 import { logView, toggleTricky } from "../db/events.js";
 import { getEntries, isDictKey } from "../db/ref/entries.js";
 import { emptyItemState } from "../useNotebook.js";
@@ -456,6 +459,18 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
           onCancel={() => setPicking(false)}
           onPick={async (key) => {
             await linkItems(item.id, key);
+            onChanged();
+          }}
+          onCreate={async (kind, text) => {
+            // Deliberately NOT onOpen(created.id): the whole point of quick-create is that
+            // the owner stays on the item they were writing. Detail resets its draft only
+            // when item.id changes, so staying put is what keeps unsaved work alive.
+            const created = await createItem(
+              kind === "page"
+                ? newPage({ title: text })
+                : newLexical({ term: text, form: text.includes(" ") ? "phrase" : "word" })
+            );
+            await linkItems(item.id, created.id);
             onChanged();
           }}
         />

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, X, Check, FileText, BookMarked, CalendarDays, Type } from "lucide-react";
+import { Search, X, Check, FileText, BookMarked, CalendarDays, Type, Plus } from "lucide-react";
 import { C, SERIF, MONO, Card } from "../theme.jsx";
 import { POS_ABBR } from "./ItemCard.jsx";
 import { POS_LABEL } from "./DictCard.jsx";
@@ -77,9 +77,34 @@ function Row({ icon: Icon, heading, suffix, context, reason, linked, onPick }) {
   );
 }
 
-export default function LinkPicker({ item, items, linkedKeys, onPick, onCancel, footer }) {
+/**
+ * Quick-create-and-link (requirement 2): when nothing suitable exists, make it here.
+ *
+ * The point is what does NOT happen — the owner does not leave the page they are writing to
+ * go and create a word. Creating logs a `create` event (it is content) and linking logs
+ * nothing (it is bookkeeping, Phase 1c); neither navigates, so a half-written journal entry
+ * is still on screen, still unsaved, still exactly as it was.
+ *
+ * A query with a space in it becomes a `phrase` rather than a `word` — brief §7 makes both
+ * first-class, and "de repente" is not a word.
+ */
+function CreateRow({ icon: Icon, label, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-lg"
+      style={{ background: C.penPale, color: C.penDark }}
+    >
+      <Icon size={13} className="shrink-0" />
+      <span className="text-sm truncate">{label}</span>
+    </button>
+  );
+}
+
+export default function LinkPicker({ item, items, linkedKeys, onPick, onCancel, onCreate }) {
   const [query, setQuery] = useState("");
   const [dictResults, setDictResults] = useState([]);
+  const typed = query.trim();
 
   const personal = useMemo(
     () => pickerMatches(items, query, { excludeId: item.id, limit: LIMIT }),
@@ -130,7 +155,7 @@ export default function LinkPicker({ item, items, linkedKeys, onPick, onCancel, 
       <div className="mt-2 space-y-1">
         {rows.length === 0 && (
           <div className="text-xs py-2" style={{ color: C.mut }}>
-            {query.trim() ? "Nothing matches that yet." : "Nothing else in the cuaderno to link to yet."}
+            {typed ? "Nothing matches that yet." : "Nothing else in the cuaderno to link to yet."}
           </div>
         )}
 
@@ -161,7 +186,20 @@ export default function LinkPicker({ item, items, linkedKeys, onPick, onCancel, 
         )}
       </div>
 
-      {footer?.(query)}
+      {typed && (
+        <div className="mt-2 pt-2 space-y-1 border-t" style={{ borderColor: C.line }}>
+          <CreateRow
+            icon={Plus}
+            label={`Create ${typed.includes(" ") ? "phrase" : "word"} “${typed}” and link it`}
+            onClick={() => onCreate("lexical", typed)}
+          />
+          <CreateRow
+            icon={Plus}
+            label={`Create page “${typed}” and link it`}
+            onClick={() => onCreate("page", typed)}
+          />
+        </div>
+      )}
     </Card>
   );
 }
