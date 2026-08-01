@@ -11,6 +11,7 @@ import { updateItem, deleteItem, linkItems, unlinkItems, displayTitle } from "..
 import { logView, toggleTricky } from "../db/events.js";
 import { getEntries, isDictKey, dictionaryInstalled } from "../db/ref/entries.js";
 import { emptyItemState } from "../useNotebook.js";
+import { relatedTo } from "../lib/links.js";
 import { timeAgo } from "../lib/dates.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
@@ -32,10 +33,7 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
 
   // Both directions at once: links this item made, and links made to it from
   // elsewhere. Which side stores the link is bookkeeping the owner shouldn't see.
-  const related = useMemo(() => {
-    const keys = new Set(item.linkedKeys);
-    return items.filter((other) => other.id !== item.id && (keys.has(other.id) || other.linkedKeys.includes(item.id)));
-  }, [items, item]);
+  const related = useMemo(() => relatedTo(item, items), [items, item]);
 
   const linkable = useMemo(
     () => items.filter((other) => other.id !== item.id && !related.some((r) => r.id === other.id)),

@@ -162,22 +162,15 @@ export async function unlinkItems(fromId, toKey) {
   return item;
 }
 
+/**
+ * The reverse direction, straight off the `*linkedKeys` multi-entry index — one indexed
+ * lookup rather than a scan. `deleteItem` uses the same query to clean up.
+ *
+ * Reading both directions for a screen is a render-time derivation over items already in
+ * memory, and lives in src/lib/links.js as a pure function; this is the database half.
+ */
 export async function backlinksFor(key) {
   return db.items.where("linkedKeys").equals(key).toArray();
-}
-
-/** Everything connected to an item, in both directions, deduplicated. */
-export async function relatedItems(item) {
-  if (!item) return [];
-  const [forward, backward] = await Promise.all([
-    db.items.bulkGet(item.linkedKeys),
-    backlinksFor(item.id),
-  ]);
-  const byId = new Map();
-  for (const found of forward) if (found) byId.set(found.id, found);
-  for (const found of backward) byId.set(found.id, found);
-  byId.delete(item.id);
-  return [...byId.values()];
 }
 
 export function displayTitle(item) {

@@ -9,7 +9,6 @@ import {
   linkItems,
   unlinkItems,
   backlinksFor,
-  relatedItems,
 } from "./items.js";
 import { allEvents, EVENT_TYPES } from "./events.js";
 
@@ -44,15 +43,9 @@ describe("links are stored once and read in both directions", () => {
     expect(backlinks.map((i) => i.id)).toEqual([page.id]);
   });
 
-  it("relatedItems returns both directions, deduplicated", async () => {
-    const { preterite, imperfect, page } = await scenario();
-
-    const fromPage = await relatedItems(await getItem(page.id));
-    expect(fromPage.map((i) => i.id).sort()).toEqual([preterite.id, imperfect.id].sort());
-
-    const fromWord = await relatedItems(await getItem(preterite.id));
-    expect(fromWord.map((i) => i.id)).toEqual([page.id]);
-  });
+  // Reading both directions for a screen is a pure render-time derivation over items already
+  // in memory — src/lib/links.test.js covers it. What has to be true *here* is that the
+  // database stores the link on one side and the index can answer the other.
 
   it("refuses to link an item to itself and never duplicates a link", async () => {
     const word = await createItem(newLexical({ term: "sacar" }));
