@@ -50,6 +50,62 @@ export function relatedToKey(key, items = []) {
 const headingOf = (item) => (item.type === "page" ? item.title || "" : item.term || "");
 
 /**
+ * The three groups links fall into, named from what the data ALREADY knows (requirement 5).
+ * A dated page is a journal entry — brief §7 defines it that way, so `pageDate` is the whole
+ * test and no new field is needed. There is deliberately no "sources" group: nothing in the
+ * data distinguishes a film page from a grammar page, and inventing that distinction would
+ * cost either a tag convention or the project's first schema field.
+ */
+export const GROUPS = {
+  palabras: "palabras",
+  paginas: "páginas",
+  diario: "diario",
+};
+
+const groupOf = (item) => {
+  if (item.type !== "page") return GROUPS.palabras;
+  return item.pageDate ? GROUPS.diario : GROUPS.paginas;
+};
+
+/** Most recently updated first. ISO-8601 strings sort correctly as strings (Phase 1a). */
+const byUpdatedDesc = (a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""));
+
+/**
+ * An item's links, grouped and ordered for display (requirement 5).
+ *
+ * One fixed sensible order, and no user-facing sort controls: those are desktop thinking for
+ * a list of five links. `order` lets a screen lead with what that screen is for (requirement
+ * 6) — a page leads with its vocabulary — without any of it being stored or configurable.
+ *
+ * Linked dictionary entries join **palabras**, after the owner's own words: a linked
+ * dictionary word is still a word, and it has no `updatedAt` to sort by because the owner
+ * never edits it. Entries are resolved elsewhere (src/db/linkedEntries.js) because the
+ * reference layer is asynchronous and may not be installed at all.
+ */
+export function groupRelated(items = [], entries = [], order = [GROUPS.palabras, GROUPS.paginas, GROUPS.diario]) {
+  const buckets = new Map(order.map((name) => [name, []]));
+
+  for (const item of items) {
+    const bucket = buckets.get(groupOf(item));
+    if (bucket) bucket.push({ kind: "item", key: item.id, item });
+  }
+  for (const [, rows] of buckets) rows.sort((a, b) => byUpdatedDesc(a.item, b.item));
+
+  const palabras = buckets.get(GROUPS.palabras);
+  if (palabras) {
+    palabras.push(
+      ...[...entries]
+        .sort((a, b) => a.lemma.localeCompare(b.lemma))
+        .map((entry) => ({ kind: "entry", key: entry.id, entry }))
+    );
+  }
+
+  return order
+    .map((name) => ({ name, rows: buckets.get(name) || [] }))
+    .filter((group) => group.rows.length > 0);
+}
+
+/**
  * Matches for the link picker: "find the one item I mean".
  *
  * Deliberately narrower than search (src/lib/search.js). It matches **term, title and

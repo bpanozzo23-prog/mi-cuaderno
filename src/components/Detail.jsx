@@ -1,21 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  ChevronLeft, Trash2, X, ExternalLink, Pencil, CalendarDays, FileText, Check, Link2,
-  Highlighter, Eye, Clock, BookMarked, Plus,
+  ChevronLeft, Trash2, X, ExternalLink, Pencil, CalendarDays, FileText, Check,
+  Highlighter, Eye, Clock, Plus,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Chip, Button } from "../theme.jsx";
 import { POS_OPTIONS, POS_ABBR } from "./ItemCard.jsx";
 import DictAttachment from "./DictAttachment.jsx";
 import LinkPicker from "./LinkPicker.jsx";
-import { POS_LABEL } from "./DictCard.jsx";
+import { ItemLinkCard, EntryLinkCard, OrphanLinkCard } from "./LinkCard.jsx";
 import {
-  updateItem, deleteItem, linkItems, unlinkItems, displayTitle,
+  updateItem, deleteItem, linkItems, unlinkItems,
   createItem, newLexical, newPage,
 } from "../db/items.js";
 import { logView, toggleTricky } from "../db/events.js";
-import { getEntries, isDictKey } from "../db/ref/entries.js";
+import { resolveLinkedKeys } from "../db/linkedEntries.js";
 import { emptyItemState } from "../useNotebook.js";
-import { relatedTo } from "../lib/links.js";
+import { relatedTo, groupRelated, GROUPS } from "../lib/links.js";
 import { timeAgo } from "../lib/dates.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
@@ -49,21 +49,46 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
 
   // linkedKeys may point into the reference layer (§6). Those entries cannot hold a
   // reciprocal link, which is exactly why links are stored on one side and read back
-  // from both — the design Phase 1c chose for this moment.
+  // from both — the design Phase 1c chose for this moment. Resolving them goes through
+  // the alias map and reports what it could not find (§5); see db/linkedEntries.js.
   const [linkedEntries, setLinkedEntries] = useState([]);
+  const [orphanKeys, setOrphanKeys] = useState([]);
 
   useEffect(() => {
     let alive = true;
-    const keys = item.linkedKeys.filter(isDictKey);
-    if (!keys.length) {
-      setLinkedEntries([]);
-      return;
-    }
-    getEntries(keys).then((found) => alive && setLinkedEntries(found));
+    resolveLinkedKeys(item).then(({ entries, orphans, rewritten }) => {
+      if (!alive) return;
+      setLinkedEntries(entries);
+      setOrphanKeys(orphans);
+      if (rewritten) onChanged();
+    });
     return () => {
       alive = false;
     };
   }, [item.id, item.linkedKeys]);
+
+  /**
+   * Grouped for display (requirement 5), and led by what THIS screen is for (requirement 6):
+   * a page leads with the words it is about — every page is then its own vocabulary sheet,
+   * which is what made deferring a "source" page type free. A word leads with the pages it
+   * turns up on. Fixed orders, derived at render, nothing stored and nothing configurable.
+   */
+  const groups = useMemo(
+    () =>
+      groupRelated(
+        related,
+        linkedEntries,
+        isPage
+          ? [GROUPS.palabras, GROUPS.paginas, GROUPS.diario]
+          : [GROUPS.paginas, GROUPS.diario, GROUPS.palabras]
+      ),
+    [related, linkedEntries, isPage]
+  );
+
+  async function unlink(key) {
+    await unlinkItems(item.id, key);
+    onChanged();
+  }
 
   useEffect(() => {
     setBodyDraft(isPage ? item.body || "" : item.notes || "");
@@ -412,44 +437,55 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
       </div>
 
       <SectionTitle>Linked</SectionTitle>
-      <div className="flex flex-wrap gap-1.5 items-center">
-        {related.map((other) => (
-          <Chip
-            key={other.id}
-            onClick={() => onOpen(other.id)}
-            onRemove={async () => {
-              await unlinkItems(item.id, other.id);
-              onChanged();
-            }}
-          >
-            {other.type === "page" ? <FileText size={11} /> : <Link2 size={11} />} {displayTitle(other)}
-          </Chip>
-        ))}
-        {linkedEntries.map((entry) => (
-          <Chip
-            key={entry.id}
-            onClick={() => onOpen(entry.id)}
-            onRemove={async () => {
-              await unlinkItems(item.id, entry.id);
-              onChanged();
-            }}
-          >
-            <BookMarked size={11} /> {entry.lemma}
-            <span className="italic ml-1" style={{ color: C.mut }}>
-              {POS_LABEL[entry.pos] || entry.pos}
-            </span>
-          </Chip>
-        ))}
-        {!picking && (
-          <button
-            onClick={() => setPicking(true)}
-            className="text-xs px-2 py-1 rounded-full border inline-flex items-center gap-1"
-            style={{ background: C.card, color: C.mut, borderColor: C.line }}
-          >
-            <Plus size={11} /> link something
-          </button>
-        )}
-      </div>
+
+      {groups.length === 0 && !picking && (
+        <div className="text-xs mb-2" style={{ color: C.mut }}>
+          {isPage
+            ? "Nothing linked yet. Link the words this page is about."
+            : "Nothing linked yet. Link the pages and words this one belongs with."}
+        </div>
+      )}
+
+      {groups.map((group) => (
+        <div key={group.name} className="mb-3">
+          <div className="text-[11px] uppercase mb-1.5" style={{ fontFamily: MONO, color: C.mut, letterSpacing: "0.08em" }}>
+            {group.name}
+          </div>
+          <div className="space-y-1.5">
+            {group.rows.map((row) =>
+              row.kind === "entry" ? (
+                <EntryLinkCard key={row.key} entry={row.entry} onOpen={onOpen} onRemove={() => unlink(row.key)} />
+              ) : (
+                <ItemLinkCard
+                  key={row.key}
+                  item={row.item}
+                  attached={Boolean(row.item.dictKey)}
+                  onOpen={onOpen}
+                  onRemove={() => unlink(row.key)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      ))}
+
+      {orphanKeys.length > 0 && (
+        <div className="space-y-1.5 mb-3">
+          {orphanKeys.map((key) => (
+            <OrphanLinkCard key={key} dictKey={key} onRemove={() => unlink(key)} />
+          ))}
+        </div>
+      )}
+
+      {!picking && (
+        <button
+          onClick={() => setPicking(true)}
+          className="text-xs px-2 py-1 rounded-full border inline-flex items-center gap-1"
+          style={{ background: C.card, color: C.mut, borderColor: C.line }}
+        >
+          <Plus size={11} /> link something
+        </button>
+      )}
 
       {picking && (
         <LinkPicker

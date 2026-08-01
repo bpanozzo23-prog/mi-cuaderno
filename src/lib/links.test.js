@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { relatedTo, relatedToKey, pickerMatches } from "./links.js";
+import { relatedTo, relatedToKey, pickerMatches, groupRelated, GROUPS } from "./links.js";
 
 /**
  * The Phase 1c contract, asserted against the pure derivation the screens actually use:
@@ -161,5 +161,66 @@ describe("pickerMatches finds the one item you mean", () => {
     const many = Array.from({ length: 20 }, (_, i) => word(`w${i}`, { term: `sacar${i}` }));
 
     expect(pickerMatches(many, "sacar", { limit: 3 })).toHaveLength(3);
+  });
+});
+
+describe("groupRelated sorts links into what the data already knows", () => {
+  const names = (groups) => groups.map((g) => g.name);
+  const keys = (groups, name) => groups.find((g) => g.name === name).rows.map((r) => r.key);
+
+  it("splits words, undated pages and dated pages, which are journal entries (§7)", () => {
+    const rows = [
+      word("w1"),
+      page("p1"),
+      page("d1", { pageDate: "2026-07-28" }),
+    ];
+
+    const groups = groupRelated(rows);
+
+    expect(names(groups)).toEqual([GROUPS.palabras, GROUPS.paginas, GROUPS.diario]);
+    expect(keys(groups, GROUPS.palabras)).toEqual(["w1"]);
+    expect(keys(groups, GROUPS.paginas)).toEqual(["p1"]);
+    expect(keys(groups, GROUPS.diario)).toEqual(["d1"]);
+  });
+
+  it("orders each group most recently updated first", () => {
+    const rows = [
+      word("old", { updatedAt: "2026-07-01T00:00:00.000Z" }),
+      word("new", { updatedAt: "2026-07-30T00:00:00.000Z" }),
+      word("mid", { updatedAt: "2026-07-15T00:00:00.000Z" }),
+    ];
+
+    expect(keys(groupRelated(rows), GROUPS.palabras)).toEqual(["new", "mid", "old"]);
+  });
+
+  it("puts linked dictionary entries in palabras, after the owner's own words", () => {
+    const entries = [
+      { id: "dict:b", lemma: "beber", pos: "verb", senses: [{ gloss: "to drink" }] },
+      { id: "dict:a", lemma: "andar", pos: "verb", senses: [{ gloss: "to walk" }] },
+    ];
+
+    const groups = groupRelated([word("w1")], entries);
+
+    // The owner's word first; entries alphabetical, having no updatedAt to sort by.
+    expect(keys(groups, GROUPS.palabras)).toEqual(["w1", "dict:a", "dict:b"]);
+    expect(groups.find((g) => g.name === GROUPS.palabras).rows.map((r) => r.kind)).toEqual([
+      "item",
+      "entry",
+      "entry",
+    ]);
+  });
+
+  it("drops empty groups rather than rendering empty headings", () => {
+    expect(names(groupRelated([word("w1")]))).toEqual([GROUPS.palabras]);
+    expect(groupRelated([])).toEqual([]);
+  });
+
+  it("leads with the group the screen is for, without changing what is in them", () => {
+    const rows = [word("w1"), page("p1"), page("d1", { pageDate: "2026-07-28" })];
+
+    // A word's screen leads with the pages it turns up on; a page's leads with its vocabulary.
+    const fromWord = groupRelated(rows, [], [GROUPS.paginas, GROUPS.diario, GROUPS.palabras]);
+    expect(names(fromWord)).toEqual([GROUPS.paginas, GROUPS.diario, GROUPS.palabras]);
+    expect(keys(fromWord, GROUPS.palabras)).toEqual(["w1"]);
   });
 });
