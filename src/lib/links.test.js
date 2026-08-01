@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { relatedTo, relatedToKey } from "./links.js";
+import { relatedTo, relatedToKey, pickerMatches } from "./links.js";
 
 /**
  * The Phase 1c contract, asserted against the pure derivation the screens actually use:
@@ -85,5 +85,81 @@ describe("relatedToKey answers the same question about a dictionary entry", () =
     const both = word("mine", { dictKey: KEY, linkedKeys: [KEY] });
 
     expect(relatedToKey(KEY, [both]).map((i) => i.id)).toEqual(["mine"]);
+  });
+});
+
+describe("pickerMatches finds the one item you mean", () => {
+  const ids = (rows) => rows.map((r) => r.item.id);
+
+  it("matches a word's term and a page's title", () => {
+    const sacar = word("w1", { term: "sacar" });
+    const grammar = page("p1", { title: "Sacar y poner" });
+
+    expect(ids(pickerMatches([sacar, grammar], "sacar"))).toEqual(["w1", "p1"]);
+  });
+
+  it("matches the English translation, because looking up from English is first-class", () => {
+    const sacar = word("w1", { term: "sacar", translation: "to take out" });
+
+    expect(ids(pickerMatches([sacar], "take out"))).toEqual(["w1"]);
+  });
+
+  it("does NOT match tags — a picker is not a search screen", () => {
+    const tagged = word("w1", { term: "correr", tags: ["verbs"] });
+
+    expect(pickerMatches([tagged], "verbs")).toEqual([]);
+  });
+
+  it("does NOT match notes or page bodies", () => {
+    const noted = word("w1", { term: "correr", notes: "heard it in a podcast" });
+    const bodied = page("p1", { title: "Grammar", body: "heard it in a podcast" });
+
+    expect(pickerMatches([noted, bodied], "podcast")).toEqual([]);
+  });
+
+  it("keeps ñ a distinct letter: año never offers ano", () => {
+    const year = word("w1", { term: "año" });
+    const anus = word("w2", { term: "ano" });
+
+    expect(ids(pickerMatches([year, anus], "ano"))).toEqual(["w2"]);
+    expect(ids(pickerMatches([year, anus], "año"))).toEqual(["w1"]);
+  });
+
+  it("ranks an exactly typed accent above an accent-blind match", () => {
+    const accented = word("w1", { term: "sacó" });
+    const plain = word("w2", { term: "saco" });
+
+    expect(ids(pickerMatches([accented, plain], "sacó"))).toEqual(["w1", "w2"]);
+    expect(ids(pickerMatches([accented, plain], "saco"))).toEqual(["w2", "w1"]);
+  });
+
+  it("ranks exact above prefix above contains", () => {
+    const contains = word("w1", { term: "resacar" });
+    const prefix = word("w2", { term: "sacarse" });
+    const exact = word("w3", { term: "sacar" });
+
+    expect(ids(pickerMatches([contains, prefix, exact], "sacar"))).toEqual(["w3", "w2", "w1"]);
+  });
+
+  it("never offers the item being linked from", () => {
+    const self = word("w1", { term: "sacar" });
+    const other = word("w2", { term: "sacar" });
+
+    expect(ids(pickerMatches([self, other], "sacar", { excludeId: "w1" }))).toEqual(["w2"]);
+  });
+
+  it("offers the most recently updated items before anything is typed", () => {
+    const older = word("w1", { updatedAt: "2026-07-01T10:00:00.000Z" });
+    const newer = word("w2", { updatedAt: "2026-07-30T10:00:00.000Z" });
+
+    // useNotebook hands items over already ordered newest-first; the picker keeps that order.
+    expect(ids(pickerMatches([newer, older], ""))).toEqual(["w2", "w1"]);
+    expect(ids(pickerMatches([newer, older], "   "))).toEqual(["w2", "w1"]);
+  });
+
+  it("honours the limit", () => {
+    const many = Array.from({ length: 20 }, (_, i) => word(`w${i}`, { term: `sacar${i}` }));
+
+    expect(pickerMatches(many, "sacar", { limit: 3 })).toHaveLength(3);
   });
 });

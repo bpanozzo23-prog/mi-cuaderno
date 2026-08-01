@@ -1,3 +1,6 @@
+import { normalize } from "./normalize.js";
+import { TIER } from "./search.js";
+
 /**
  * Links, derived (brief section 7).
  *
@@ -41,4 +44,55 @@ export function relatedTo(item, items = []) {
 export function relatedToKey(key, items = []) {
   if (!key) return [];
   return items.filter((item) => item.dictKey === key || (item.linkedKeys || []).includes(key));
+}
+
+/** The heading an item is known by: a page's title, a word's term. */
+const headingOf = (item) => (item.type === "page" ? item.title || "" : item.term || "");
+
+/**
+ * Matches for the link picker: "find the one item I mean".
+ *
+ * Deliberately narrower than search (src/lib/search.js). It matches **term, title and
+ * translation only** — NOT tags, notes or page bodies. A picker is not a search screen: tag
+ * matches are noise there, because typing "verb" would offer every item tagged `verbs` when
+ * the owner is trying to pick one word. (The tag-filter chips on the Cuaderno screen are a
+ * different feature and are untouched.)
+ *
+ * Ranking reuses the section 8 tier numbers, which is what lets these results interleave with
+ * dictionary ones through mergeResults rather than being stacked below them. Within the
+ * heading tiers, the raw comparison runs before normalization so an exactly typed accent
+ * outranks an accent-blind match — the Phase 1c rule, so `sacó` typed in full beats `saco`.
+ *
+ * Matching goes through normalize(), so ñ stays a distinct letter: "año" never offers "ano".
+ */
+export function pickerMatches(items, query, { excludeId = null, limit = 8 } = {}) {
+  const candidates = items.filter((item) => item.id !== excludeId);
+  const typed = (query || "").trim();
+
+  // No query yet: the most recently touched items, which useNotebook has already ordered.
+  // A word just added is then zero typing away from being linked.
+  if (!typed) {
+    return candidates.slice(0, limit).map((item) => ({ item, tier: TIER.exactTerm, offset: 0 }));
+  }
+
+  const q = normalize(typed);
+  const lower = typed.toLowerCase();
+  const rows = [];
+
+  for (const item of candidates) {
+    const heading = headingOf(item);
+    const nHeading = normalize(heading);
+
+    if (heading.toLowerCase() === lower) rows.push({ item, tier: TIER.exactTerm, offset: 0 });
+    else if (nHeading === q) rows.push({ item, tier: TIER.normalizedTerm, offset: 0 });
+    else if (nHeading.startsWith(q)) rows.push({ item, tier: TIER.normalizedTerm, offset: 1 });
+    else if (nHeading.includes(q)) rows.push({ item, tier: TIER.normalizedTerm, offset: 2 });
+    else if (item.type !== "page" && normalize(item.translation).includes(q)) {
+      rows.push({ item, tier: TIER.translation, offset: 0 });
+    }
+  }
+
+  return rows
+    .sort((a, b) => a.tier - b.tier || a.offset - b.offset || headingOf(a.item).localeCompare(headingOf(b.item)))
+    .slice(0, limit);
 }

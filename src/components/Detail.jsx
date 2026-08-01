@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft, Trash2, X, ExternalLink, Pencil, CalendarDays, FileText, Check, Link2,
-  Highlighter, Eye, Clock, BookMarked,
+  Highlighter, Eye, Clock, BookMarked, Plus,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Chip, Button } from "../theme.jsx";
 import { POS_OPTIONS, POS_ABBR } from "./ItemCard.jsx";
-import DictAttachment, { DictPicker } from "./DictAttachment.jsx";
+import DictAttachment from "./DictAttachment.jsx";
+import LinkPicker from "./LinkPicker.jsx";
 import { POS_LABEL } from "./DictCard.jsx";
 import { updateItem, deleteItem, linkItems, unlinkItems, displayTitle } from "../db/items.js";
 import { logView, toggleTricky } from "../db/events.js";
-import { getEntries, isDictKey, dictionaryInstalled } from "../db/ref/entries.js";
+import { getEntries, isDictKey } from "../db/ref/entries.js";
 import { emptyItemState } from "../useNotebook.js";
 import { relatedTo } from "../lib/links.js";
 import { timeAgo } from "../lib/dates.js";
@@ -29,27 +30,24 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
   const [mUrl, setMUrl] = useState("");
   const [mLabel, setMLabel] = useState("");
   const [deleteArm, setDeleteArm] = useState(false);
-  const [linkPick, setLinkPick] = useState("");
+  const [picking, setPicking] = useState(false);
 
   // Both directions at once: links this item made, and links made to it from
   // elsewhere. Which side stores the link is bookkeeping the owner shouldn't see.
   const related = useMemo(() => relatedTo(item, items), [items, item]);
 
-  const linkable = useMemo(
-    () => items.filter((other) => other.id !== item.id && !related.some((r) => r.id === other.id)),
-    [items, item, related]
+  // Everything already connected, in one set, so the picker can mark it rather than hide it:
+  // seeing "linked ✓" answers "have I already done this?" where a missing row just looks
+  // like the search failed. Dictionary keys are in here too — they live in linkedKeys.
+  const linkedKeys = useMemo(
+    () => new Set([...related.map((r) => r.id), ...item.linkedKeys]),
+    [related, item.linkedKeys]
   );
 
   // linkedKeys may point into the reference layer (§6). Those entries cannot hold a
   // reciprocal link, which is exactly why links are stored on one side and read back
   // from both — the design Phase 1c chose for this moment.
   const [linkedEntries, setLinkedEntries] = useState([]);
-  const [linkingDict, setLinkingDict] = useState(false);
-  const [dictionaryReady, setDictionaryReady] = useState(false);
-
-  useEffect(() => {
-    dictionaryInstalled().then(setDictionaryReady);
-  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -69,7 +67,7 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
     setBodyDirty(false);
     setEditingHead(false);
     setDeleteArm(false);
-    setLinkingDict(false);
+    setPicking(false);
     setHead(
       isPage
         ? { title: item.title, pageDate: item.pageDate || "" }
@@ -439,58 +437,25 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
             </span>
           </Chip>
         ))}
-        {linkable.length > 0 && (
-          <div className="flex items-center gap-1">
-            <select
-              value={linkPick}
-              onChange={(e) => setLinkPick(e.target.value)}
-              className="text-xs px-2 py-1 rounded-full border outline-none max-w-40"
-              style={inputStyle}
-            >
-              <option value="">link something…</option>
-              {linkable.map((other) => (
-                <option key={other.id} value={other.id}>
-                  {displayTitle(other)}
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={async () => {
-                if (!linkPick) return;
-                await linkItems(item.id, linkPick);
-                setLinkPick("");
-                onChanged();
-              }}
-              className="text-xs px-2 py-1 rounded-full text-white"
-              style={{ background: C.pen }}
-            >
-              Link
-            </button>
-          </div>
-        )}
-        {dictionaryReady && (
+        {!picking && (
           <button
-            onClick={() => setLinkingDict((v) => !v)}
+            onClick={() => setPicking(true)}
             className="text-xs px-2 py-1 rounded-full border inline-flex items-center gap-1"
             style={{ background: C.card, color: C.mut, borderColor: C.line }}
           >
-            <BookMarked size={11} /> link a dictionary word
+            <Plus size={11} /> link something
           </button>
-        )}
-        {related.length === 0 && linkedEntries.length === 0 && linkable.length === 0 && !dictionaryReady && (
-          <span className="text-xs" style={{ color: C.mut }}>
-            Nothing else in the cuaderno to link to yet.
-          </span>
         )}
       </div>
 
-      {linkingDict && (
-        <DictPicker
-          placeholder="Link a word from the dictionary…"
-          onCancel={() => setLinkingDict(false)}
-          onPick={async (entry) => {
-            setLinkingDict(false);
-            await linkItems(item.id, entry.id);
+      {picking && (
+        <LinkPicker
+          item={item}
+          items={items}
+          linkedKeys={linkedKeys}
+          onCancel={() => setPicking(false)}
+          onPick={async (key) => {
+            await linkItems(item.id, key);
             onChanged();
           }}
         />
