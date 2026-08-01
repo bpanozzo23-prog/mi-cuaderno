@@ -3,10 +3,11 @@ import {
   ChevronLeft, Trash2, X, ExternalLink, Pencil, CalendarDays, FileText, Check,
   Highlighter, Eye, Clock, Plus,
 } from "lucide-react";
-import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Chip, Button } from "../theme.jsx";
+import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button } from "../theme.jsx";
 import { POS_OPTIONS, POS_ABBR } from "./ItemCard.jsx";
 import DictAttachment from "./DictAttachment.jsx";
 import LinkPicker from "./LinkPicker.jsx";
+import TagInput from "./TagInput.jsx";
 import { ItemLinkCard, EntryLinkCard, OrphanLinkCard } from "./LinkCard.jsx";
 import {
   updateItem, deleteItem, linkItems, unlinkItems,
@@ -16,6 +17,7 @@ import { logView, toggleTricky } from "../db/events.js";
 import { resolveLinkedKeys } from "../db/linkedEntries.js";
 import { emptyItemState } from "../useNotebook.js";
 import { relatedTo, groupRelated, GROUPS } from "../lib/links.js";
+import { allTagsIn } from "../lib/tags.js";
 import { timeAgo } from "../lib/dates.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
@@ -27,13 +29,16 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
   const [head, setHead] = useState({});
   const [bodyDraft, setBodyDraft] = useState("");
   const [bodyDirty, setBodyDirty] = useState(false);
-  const [tagAdd, setTagAdd] = useState("");
   const [exEs, setExEs] = useState("");
   const [exEn, setExEn] = useState("");
   const [mUrl, setMUrl] = useState("");
   const [mLabel, setMLabel] = useState("");
   const [deleteArm, setDeleteArm] = useState(false);
   const [picking, setPicking] = useState(false);
+
+  // The tag vocabulary already in use, derived from the notebook in memory (§7) — what makes
+  // the tag field offer `expression` instead of letting a fourth spelling of it be created.
+  const allTags = useMemo(() => allTagsIn(items), [items]);
 
   // Both directions at once: links this item made, and links made to it from
   // elsewhere. Which side stores the link is bookkeeping the owner shouldn't see.
@@ -305,33 +310,7 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
       </Card>
 
       <SectionTitle>Tags</SectionTitle>
-      <div className="flex flex-wrap gap-1.5 items-center">
-        {item.tags.map((t) => (
-          <Chip key={t} onRemove={() => patch({ tags: item.tags.filter((x) => x !== t) })}>
-            {t}
-          </Chip>
-        ))}
-        <div className="flex items-center gap-1">
-          <input
-            value={tagAdd}
-            onChange={(e) => setTagAdd(e.target.value)}
-            placeholder="new tag"
-            className="text-xs px-2 py-1 rounded-full border outline-none w-24"
-            style={inputStyle}
-          />
-          <button
-            onClick={() => {
-              const t = tagAdd.trim();
-              if (t && !item.tags.includes(t)) patch({ tags: [...item.tags, t] });
-              setTagAdd("");
-            }}
-            className="text-xs px-2 py-1 rounded-full text-white"
-            style={{ background: C.pen }}
-          >
-            Add
-          </button>
-        </div>
-      </div>
+      <TagInput tags={item.tags} allTags={allTags} onChange={(tags) => patch({ tags })} />
 
       {!isPage && (
         <>

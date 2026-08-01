@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { C, SERIF } from "../theme.jsx";
 import { POS_OPTIONS } from "./ItemCard.jsx";
+import TagInput from "./TagInput.jsx";
 import { newLexical, newPage, createItem } from "../db/items.js";
 import { localDate } from "../lib/dates.js";
+import { allTagsIn } from "../lib/tags.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
@@ -11,8 +13,9 @@ function Field({ children }) {
   return <div className="space-y-1">{children}</div>;
 }
 
-export default function AddSheet({ kind, onClose, onCreated }) {
+export default function AddSheet({ kind, items = [], onClose, onCreated }) {
   const isPage = kind === "page";
+  const allTags = useMemo(() => allTagsIn(items), [items]);
 
   const [term, setTerm] = useState("");
   const [translation, setTranslation] = useState("");
@@ -21,17 +24,16 @@ export default function AddSheet({ kind, onClose, onCreated }) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [pageDate, setPageDate] = useState("");
-  const [tags, setTags] = useState("");
+  const [tags, setTags] = useState([]);
   const [notes, setNotes] = useState("");
 
   const ready = isPage ? title.trim() !== "" : term.trim() !== "";
 
   async function submit() {
     if (!ready) return;
-    const tagList = tags.split(",");
     const item = isPage
-      ? newPage({ title, body, pageDate: pageDate || null, tags: tagList })
-      : newLexical({ term, translation, form, pos, notes, tags: tagList });
+      ? newPage({ title, body, pageDate: pageDate || null, tags })
+      : newLexical({ term, translation, form, pos, notes, tags });
     await createItem(item);
     onCreated(item.id);
   }
@@ -150,13 +152,7 @@ export default function AddSheet({ kind, onClose, onCreated }) {
           </>
         )}
 
-        <input
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
-          placeholder="tags, comma separated"
-          className="w-full text-sm rounded-xl border px-3 py-2.5 outline-none"
-          style={inputStyle}
-        />
+        <TagInput tags={tags} allTags={allTags} onChange={setTags} placeholder="add a tag" />
 
         <button
           onClick={submit}

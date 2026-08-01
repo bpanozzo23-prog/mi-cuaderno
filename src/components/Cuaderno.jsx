@@ -250,6 +250,7 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onOpenSetting
       {addKind && (
         <AddSheet
           kind={addKind}
+          items={items}
           onClose={() => setAddKind(null)}
           onCreated={(id) => {
             setAddKind(null);
