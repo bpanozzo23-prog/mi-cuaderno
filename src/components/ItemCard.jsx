@@ -35,8 +35,9 @@ export default function ItemCard({ item, state = emptyItemState, onOpen, reason 
         )}
       </div>
 
+      {/* Clamped: a meaning with several lines must not stretch a row in a long list. */}
       {!isPage && item.translation && (
-        <div className="text-sm mt-0.5" style={{ color: C.ink }}>
+        <div className="text-sm mt-0.5 whitespace-pre-wrap line-clamp-2" style={{ color: C.ink }}>
           — {item.translation}
         </div>
       )}

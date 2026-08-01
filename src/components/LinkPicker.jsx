@@ -29,13 +29,18 @@ import { searchDictionary } from "../db/ref/search.js";
 const SEARCH_DEBOUNCE_MS = 140;
 const LIMIT = 8;
 
-/** What tells two similar results apart, at a glance, on a phone. */
+/**
+ * What tells two similar results apart, at a glance, on a phone. Always one line, so a
+ * multi-line meaning is flattened rather than truncated at its first line break.
+ */
+const flatten = (text) => text.replace(/\s+/g, " ").trim();
+
 function contextLine(item) {
   if (item.type === "page") {
     if (item.pageDate) return item.pageDate;
-    return item.body ? item.body.slice(0, 60) : "page";
+    return item.body ? flatten(item.body).slice(0, 60) : "page";
   }
-  return item.translation || (item.notes ? item.notes.slice(0, 60) : "");
+  return item.translation ? flatten(item.translation) : item.notes ? flatten(item.notes).slice(0, 60) : "";
 }
 
 function Row({ icon: Icon, heading, suffix, context, reason, linked, onPick }) {

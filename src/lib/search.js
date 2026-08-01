@@ -37,6 +37,9 @@ const REASONS = {
   body: "in the page",
 };
 
+/** Newlines and runs of spaces read as one space when matching a free-text field. */
+const flattenSpace = (text) => text.replace(/\s+/g, " ");
+
 function bestMatch(item, query) {
   const q = normalize(query);
   if (!q) return null;
@@ -65,7 +68,12 @@ function bestMatch(item, query) {
   }
 
   // Tier 4: English meaning. Looking a word up from English is a first-class path.
-  if (!isPage && normalize(item.translation).includes(q)) {
+  //
+  // Whitespace is flattened HERE rather than in normalize(): a meaning may now hold several
+  // lines, and "jacket sack" should find one reading "jacket" above another reading "sack".
+  // normalize() itself must not change — the pipeline imports it and it decides the shipped
+  // dictionary index, so collapsing whitespace there would alter what 10,278 entries match.
+  if (!isPage && flattenSpace(normalize(item.translation)).includes(q)) {
     return { tier: TIER.translation, reason: REASONS.translation, offset: 0 };
   }
 

@@ -77,8 +77,9 @@ export function ItemLinkCard({ item, attached, onOpen, onRemove }) {
         </span>
       </div>
 
+      {/* Clamped, for the same reason as the list card: a link row should stay a row. */}
       {!isPage && item.translation && (
-        <div className="text-sm" style={{ color: C.ink }}>
+        <div className="text-sm whitespace-pre-wrap line-clamp-2" style={{ color: C.ink }}>
           — {item.translation}
         </div>
       )}

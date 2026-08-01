@@ -93,6 +93,26 @@ describe("match reasons", () => {
   });
 });
 
+describe("meanings written on several lines", () => {
+  // A phrase's readings are stored as newlines inside `translation`. A query is typed on one
+  // line, so matching has to read across the break — otherwise "suddenly all" would fail
+  // against a meaning whose two readings happen to sit on consecutive lines.
+  const multi = [lexical({ term: "de repente", translation: "suddenly\nall at once" })];
+
+  it("finds a reading on any line", () => {
+    expect(searchItems(multi, "suddenly")).toHaveLength(1);
+    expect(searchItems(multi, "all at once")).toHaveLength(1);
+  });
+
+  it("matches across the line break, treating it as a space", () => {
+    expect(searchItems(multi, "suddenly all")).toHaveLength(1);
+  });
+
+  it("still refuses a phrase that is not there", () => {
+    expect(searchItems(multi, "suddenly never")).toEqual([]);
+  });
+});
+
 describe("empty queries", () => {
   it.each(["", "   ", null, undefined])("returns nothing for %s", (query) => {
     expect(searchItems(notebook, query)).toEqual([]);

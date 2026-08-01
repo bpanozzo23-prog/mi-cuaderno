@@ -122,7 +122,12 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
           </button>
         ) : (
           <div className="mt-4 pt-4 border-t space-y-3" style={{ borderColor: C.line }}>
-            <div className="text-lg text-center" style={{ color: C.ink }}>
+            {/*
+              Shown in full, never clipped: this IS the answer side of the card. A phrase with
+              three readings is exactly the case where clipping would hide the thing being
+              tested.
+            */}
+            <div className="text-lg text-center whitespace-pre-wrap" style={{ color: C.ink }}>
               {item.translation || (
                 <span className="text-sm italic" style={{ color: C.mut }}>
                   No meaning written down for this one yet.

@@ -113,11 +113,18 @@ export default function AddSheet({ kind, items = [], onClose, onCreated }) {
               className="w-full text-sm rounded-xl border px-3 py-2.5 outline-none"
               style={{ ...inputStyle, fontFamily: SERIF }}
             />
-            <input
+            {/*
+              A textarea, not an input: a phrase often has several readings, and one line
+              forced them onto a single run-on line. `translation` is a plain string, so a
+              newline needs nothing from the schema — the same shape `notes` and page bodies
+              have always had.
+            */}
+            <textarea
               value={translation}
               onChange={(e) => setTranslation(e.target.value)}
-              placeholder="English meaning (optional)"
-              className="w-full text-sm rounded-xl border px-3 py-2.5 outline-none"
+              placeholder="English meaning (optional) — one per line if it has several"
+              rows={2}
+              className="w-full text-sm rounded-xl border px-3 py-2.5 outline-none resize-y"
               style={inputStyle}
             />
             <div className="flex gap-2">

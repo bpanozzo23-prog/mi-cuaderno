@@ -108,6 +108,24 @@ describe("import: replace and restore", () => {
     expect(restored[0].term).toBe("año");
   });
 
+  it("preserves the line breaks in a multi-line meaning", async () => {
+    // A phrase's several readings are stored as newlines inside `translation` — no schema
+    // field, just a string. If a restore flattened them the owner would silently lose the
+    // distinction between readings, so it is pinned the same way review grades are.
+    const meaning = "suddenly\nall at once\nout of nowhere";
+    await db.items.add(makeLexical({ term: "de repente", translation: meaning }));
+
+    const text = JSON.stringify(await buildBackup());
+    await clearAllPersonalData();
+    const { ok, envelope } = validateBackup(text);
+    expect(ok).toBe(true);
+    await importBackup(envelope);
+
+    const restored = await db.items.toArray();
+    expect(restored[0].translation).toBe(meaning);
+    expect(restored[0].translation.split("\n")).toHaveLength(3);
+  });
+
   it("skips duplicate event ids rather than failing", async () => {
     const event = makeEvent({ type: "view" });
     const envelope = {

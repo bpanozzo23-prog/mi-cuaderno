@@ -176,11 +176,12 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
                   className="w-full text-lg rounded-xl border px-3 py-2 outline-none"
                   style={{ ...inputStyle, fontFamily: SERIF }}
                 />
-                <input
+                <textarea
                   value={head.translation}
                   onChange={(e) => setHead({ ...head, translation: e.target.value })}
-                  placeholder="English meaning"
-                  className="w-full text-sm rounded-xl border px-3 py-2 outline-none"
+                  placeholder="English meaning — one per line if it has several"
+                  rows={2}
+                  className="w-full text-sm rounded-xl border px-3 py-2 outline-none resize-y"
                   style={inputStyle}
                 />
                 <div className="flex gap-2">
@@ -237,8 +238,9 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
                   </span>
                 )}
               </div>
+              {/* Shown in full: this screen is where the owner reads what they wrote. */}
               {!isPage && item.translation && (
-                <div className="mt-1" style={{ color: C.ink }}>
+                <div className="mt-1 whitespace-pre-wrap" style={{ color: C.ink }}>
                   — {item.translation}
                 </div>
               )}
