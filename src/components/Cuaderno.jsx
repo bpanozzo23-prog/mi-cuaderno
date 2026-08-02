@@ -17,7 +17,7 @@ import { emptyItemState } from "../useNotebook.js";
 /** Long enough that a fast typist does not fire a query per keystroke, short enough to feel instant. */
 const SEARCH_DEBOUNCE_MS = 140;
 
-export default function Cuaderno({ notebook, selectedId, onSelect, onOpenSettings }) {
+export default function Cuaderno({ notebook, selectedId, onSelect, onBack, hasDetailOrigin, onOpenSettings }) {
   const { items, itemState, reload } = notebook;
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState(FILTERS.all);
@@ -98,9 +98,13 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onOpenSetting
   if (selectedId && isDictKey(selectedId)) {
     return (
       <DictDetail
+        // Each destination owns its drafts and async lookup state. Remounting on a trail
+        // hop prevents either from flashing or being saved against the next entry.
+        key={selectedId}
         entryId={selectedId}
         items={items}
-        onBack={() => onSelect(null)}
+        onBack={onBack}
+        backLabel={hasDetailOrigin ? "Atrás" : "Todo el cuaderno"}
         onOpen={onSelect}
         onChanged={reload}
       />
@@ -110,10 +114,13 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onOpenSetting
   if (selected) {
     return (
       <Detail
+        // Optional example/media drafts are intentionally local to one detail screen.
+        key={selected.id}
         item={selected}
         state={itemState.get(selected.id) || emptyItemState}
         items={items}
-        onBack={() => onSelect(null)}
+        onBack={onBack}
+        backLabel={hasDetailOrigin ? "Atrás" : "Todo el cuaderno"}
         onOpen={onSelect}
         onChanged={reload}
       />

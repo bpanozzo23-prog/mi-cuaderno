@@ -110,7 +110,14 @@ function Conjugation({ conjugation }) {
   );
 }
 
-export default function DictDetail({ entryId, items, onBack, onOpen, onChanged }) {
+export default function DictDetail({
+  entryId,
+  items,
+  onBack,
+  backLabel = "Todo el cuaderno",
+  onOpen,
+  onChanged,
+}) {
   const [entry, setEntry] = useState(null);
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -156,8 +163,13 @@ export default function DictDetail({ entryId, items, onBack, onOpen, onChanged }
 
   if (loading) {
     return (
-      <div className="px-4 py-16 text-center text-sm" style={{ color: C.mut }}>
-        Looking that up…
+      <div className="px-4 py-4" style={dotGrid}>
+        <button onClick={onBack} className="flex items-center gap-1 text-sm mb-3" style={{ color: C.pen }}>
+          <ChevronLeft size={16} /> {backLabel}
+        </button>
+        <div className="py-12 text-center text-sm" style={{ color: C.mut }}>
+          Looking that up…
+        </div>
       </div>
     );
   }
@@ -166,7 +178,7 @@ export default function DictDetail({ entryId, items, onBack, onOpen, onChanged }
     return (
       <div className="px-4 py-4" style={dotGrid}>
         <button onClick={onBack} className="flex items-center gap-1 text-sm mb-3" style={{ color: C.pen }}>
-          <ChevronLeft size={16} /> Todo el cuaderno
+          <ChevronLeft size={16} /> {backLabel}
         </button>
         <Card>
           <div className="text-sm" style={{ color: C.ink }}>
@@ -180,7 +192,7 @@ export default function DictDetail({ entryId, items, onBack, onOpen, onChanged }
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
       <button onClick={onBack} className="flex items-center gap-1 text-sm mb-3" style={{ color: C.pen }}>
-        <ChevronLeft size={16} /> Todo el cuaderno
+        <ChevronLeft size={16} /> {backLabel}
       </button>
 
       <Card className="p-4">

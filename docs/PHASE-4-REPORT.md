@@ -204,3 +204,17 @@ requirement 7 is ever worth building — and may well open a phase not yet writt
   that enters tags anywhere.
 - `src/lib/filters.js` — the four-way type filter and the rule for when dictionary results
   belong in the list.
+
+---
+
+# Part three — concurrent-phase status (2026-08-02)
+
+Phase 4 remains open as a friction-driven maintenance stream; 4a–4h are complete. Requirement 7
+remains deliberately deferred: it was optional in the direction, the shipped picker absorbed the
+friction it targeted, and the owner's first live-use list pointed elsewhere. It is a candidate for
+real-use friction to reactivate, not current planned work.
+
+Organizational improvements proceed separately as active Phase 5; the AI assistant moves to
+Phase 6. Phase 4 and Phase 5 may remain open together because their boundaries are explicit under
+the brief's concurrent-work amendment. Overlapping files or behaviours are sequenced. See
+`docs/PHASE-5-DIRECTION.md` for the Phase 5 sequence.

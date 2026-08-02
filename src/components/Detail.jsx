@@ -22,7 +22,15 @@ import { timeAgo } from "../lib/dates.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
-export default function Detail({ item, state = emptyItemState, items = [], onBack, onOpen, onChanged }) {
+export default function Detail({
+  item,
+  state = emptyItemState,
+  items = [],
+  onBack,
+  backLabel = "Todo el cuaderno",
+  onOpen,
+  onChanged,
+}) {
   const isPage = item.type === "page";
 
   const [editingHead, setEditingHead] = useState(false);
@@ -146,7 +154,7 @@ export default function Detail({ item, state = emptyItemState, items = [], onBac
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
       <button onClick={onBack} className="flex items-center gap-1 text-sm mb-3" style={{ color: C.pen }}>
-        <ChevronLeft size={16} /> Todo el cuaderno
+        <ChevronLeft size={16} /> {backLabel}
       </button>
 
       <Card className="p-4">

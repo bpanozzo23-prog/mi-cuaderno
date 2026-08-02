@@ -4,9 +4,9 @@
 `docs/AGENT-GUIDE.md`; this brief remains the product contract.
 **Owner:** The sole builder and only user of this app.
 **Companion file:** `mi-cuaderno.jsx` — a working single-file prototype of the notebook layer. It is the reference for features, interaction patterns, and visual design of **lexical entries**. Pages (§7) do not exist in the prototype and are new in v3. Where this brief contradicts the prototype's *implementation* (ID scheme, search normalization, the `struggling` field, event rules), **this brief wins** — the prototype shows what the app should feel like, not how it must be built.
-**Version:** v3 — revised after lock-in review. Product contract last amended July 31, 2026;
+**Version:** v3 — revised after lock-in review. Product contract last amended August 2, 2026;
 agent-facing framing refreshed August 2, 2026.
-**Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
+**Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. §§3, 9 and 12 — 2026-08-02: organizational improvements became Phase 5 and the AI assistant moved to Phase 6. §12 — 2026-08-02: independently scoped phases may proceed concurrently under explicit coordination rules. Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
 
 ---
 
@@ -34,13 +34,13 @@ It is inspired by the *scope* of SpanishDict but built entirely from open data s
 |---|---|
 | Form | Web app, installable PWA, designed phone-first (phone is the primary device) |
 | Hosting | Free static hosting (GitHub Pages by default). The *code* may be public; personal *data* is not |
-| Personal data | On-device only through Phase 4. In Phase 5, only data the owner deliberately includes in an AI request leaves the device — see §9 |
+| Personal data | ~~On-device only through Phase 4. In Phase 5, only data the owner deliberately includes in an AI request leaves the device.~~ **Amended 2026-08-02:** on-device only through Phase 5. In Phase 6, only data the owner deliberately includes in an AI request leaves the device — see §9 |
 | Backup | JSON export **and** import from Phase 1 onward. Backup is the primary disaster-recovery mechanism, not a convenience — see §10 |
 | Dictionary | Top ~10,000 lemmas by frequency, fully offline after an explicit in-app download — see §11 |
 | Spanish variety | Latin American. Prefer Mexico-labeled senses where sources distinguish them. Conjugation display is ustedes-first; vosotros forms kept but collapsed |
 | Media | Links only for now. A direct Attachment model is **reserved** in the schema (§7) so file attachments (audio recordings, screenshots) can be added later without a data migration; building it is a deferred decision |
 | Sync | Deferred. Single device for now; the data model stays sync-ready (§7) but no sync is built |
-| AI access (Phase 5) | Owner's own Anthropic API key, entered once, stored on-device. Accepted risk for a single-user app, on the condition that a **hard monthly spend cap** is set in the Anthropic console before the feature is enabled. A small serverless proxy is the named upgrade path if circumstances change |
+| AI access (~~Phase 5~~ **Phase 6**) | Owner's own Anthropic API key, entered once, stored on-device. Accepted risk for a single-user app, on the condition that a **hard monthly spend cap** is set in the Anthropic console before the feature is enabled. A small serverless proxy is the named upgrade path if circumstances change |
 | Stack | React + Vite + Tailwind, Dexie (IndexedDB wrapper), vite-plugin-pwa. Sensible substitutes allowed if justified in the plan |
 
 ## 4. Data sources and licensing
@@ -132,7 +132,7 @@ Event       { id, type: view | create | edit | delete | tricky_on | tricky_off |
   6. Notes, personal examples, page titles and page bodies
 - Each result shows *why* it matched (e.g., "form of ir", "English meaning", "in your notes").
 
-## 9. AI assistant policy (Phase 5)
+## 9. AI assistant policy (~~Phase 5~~ **Phase 6**)
 
 - Off by default; the owner enables it explicitly.
 - Before anything is sent, the interface states which categories of notebook data are included in requests (e.g., entries, notes, activity summary). Only deliberately included data is transmitted, and only to the AI provider.
@@ -168,7 +168,14 @@ Backup envelope:
 
 ## 12. Phases and acceptance criteria
 
-Each phase ends with the app fully usable. Do not start a phase before the previous one's "done when" holds.
+~~Each phase ends with the app fully usable. Do not start a phase before the previous one's "done when" holds.~~
+
+**Amended August 2, 2026.** Each phase still ends with the app fully usable, and sequential work
+remains the default. The owner may approve concurrent work on independently scoped phases when
+their boundaries, dependencies and integration order are documented first. Parallel work uses
+separate branches or worktrees; overlapping files or behaviours must be sequenced rather than
+edited independently at the same time. Each integrated sub-phase must leave the app usable and
+pass its relevant verification before dependent work is merged.
 
 **Phase 0 — Skeleton and deploy.** Repo, scaffold, PWA config, automatic deploy on push.
 *Done when:* the empty app installs to an Android home screen as an icon that opens full-screen, and a pushed change appears at the public URL without manual steps.
@@ -191,7 +198,20 @@ Each phase ends with the app fully usable. Do not start a phase before the previ
 
 **Phase 4 — Live-use polish.** Driven by a running list of friction the owner collects while using the app daily. Candidates: a journal view (dated pages, newest first), YouTube links opening at a timestamp, richer linking, better stats, a "words I couldn't find" list from `search_miss` events.
 
-**Phase 5 — AI assistant.** Implement per §9.
+~~**Phase 5 — AI assistant.** Implement per §9.~~
+
+**Amended 2026-08-02 — Phase 5: organizational improvements.** Improve navigation continuity,
+retrieval and maintenance views, tag/list control, detail-page scanability, activity navigation,
+and duplicate guardrails. Keep all first-pass state derived in memory from the existing item and
+event shapes; no personal-layer schema change, stored taxonomy, or real-data-dependent content
+model is part of this phase. The detailed sequence lives in `docs/PHASE-5-DIRECTION.md`.
+*Done when:* linked-entry traversal has a predictable back path and opens each destination at
+the top; existing fields support useful browse sorting and neutral maintenance views; the tag
+vocabulary remains manageable on a phone; long and sparse detail pages are easier to scan;
+active recent activity can reopen its item; exact personal matches receive duplicate warnings;
+and all of this ships with `SCHEMA_VERSION` still 1.
+
+**Phase 6 — AI assistant.** Implement per §9.
 *Done when:* the spend cap is set and the disclosure is visible before first send; the assistant correctly answers a question about the owner's tricky words; and a proposed entry lands in the notebook only after the approve tap.
 
 ## 13. Non-goals

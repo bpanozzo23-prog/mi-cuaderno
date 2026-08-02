@@ -4,7 +4,7 @@ import { nowIso } from "../lib/dates.js";
 
 /**
  * Backup is the disaster-recovery mechanism, not a convenience (brief section 10).
- * The envelope excludes the reference dictionary (replaceable) and, from Phase 5,
+ * The envelope excludes the reference dictionary (replaceable) and, from Phase 6,
  * the API key (never exported).
  */
 export const BACKUP_FORMAT = "mi-cuaderno-backup";

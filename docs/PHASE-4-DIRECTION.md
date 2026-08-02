@@ -32,6 +32,13 @@ for a "complete" list; a few real items are worth more than a long speculative o
 The package stays inside the existing item-level linking architecture (`linkedKeys[]`,
 §6/§7). No graph database, no new link entity, and no graph visualization this phase.
 
+**Coordination update, 2026-08-02.** Phase 4 remains open as a friction-driven maintenance
+stream; 4a–4h are complete and requirement 7 remains a deferred candidate that returns only if
+real use asks for it. Organizational improvements proceed separately as active Phase 5, and the
+AI assistant moves to Phase 6. The two open phases follow brief §12's coordination rule: their
+boundaries are explicit, and overlapping files or behaviours are sequenced rather than edited
+independently.
+
 ---
 
 ## Requirements

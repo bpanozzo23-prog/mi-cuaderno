@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { BookOpen, BarChart3, Settings, Loader2 } from "lucide-react";
 import { C, SERIF, MONO, Hi } from "./theme.jsx";
 import Cuaderno from "./components/Cuaderno.jsx";
@@ -21,8 +21,12 @@ const TABS = [
 
 export default function App() {
   const [tab, setTab] = useState("cuaderno");
-  const [selectedId, setSelectedId] = useState(null);
+  // Detail navigation is a session-only trail. A related-item hop pushes a key; Back pops it.
+  // Nothing is stored and the browser URL stays unchanged — this is the smallest fix for
+  // source → word → back losing its origin without introducing a router.
+  const [detailTrail, setDetailTrail] = useState([]);
   const notebook = useNotebook();
+  const selectedId = detailTrail[detailTrail.length - 1] || null;
 
   // Counted the way the tabs divide things, since a single "palabras" total that quietly
   // included phrases stopped being true the moment they got their own tab.
@@ -33,8 +37,24 @@ export default function App() {
 
   function switchTab(next) {
     setTab(next);
-    if (next !== "cuaderno") setSelectedId(null);
+    if (next !== "cuaderno") setDetailTrail([]);
   }
+
+  function openItem(id) {
+    if (!id) return;
+    setDetailTrail((trail) => (trail[trail.length - 1] === id ? trail : [...trail, id]));
+    setTab("cuaderno");
+  }
+
+  function backFromDetail() {
+    setDetailTrail((trail) => trail.slice(0, -1));
+  }
+
+  // The document is the scroll container. A newly selected tab or detail must never inherit
+  // a long source page's scroll offset and appear to open halfway down the destination.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [tab, selectedId]);
 
   return (
     <div className="min-h-screen" style={{ background: C.paper, color: C.ink }}>
@@ -72,17 +92,16 @@ export default function App() {
               <Cuaderno
                 notebook={notebook}
                 selectedId={selectedId}
-                onSelect={setSelectedId}
+                onSelect={openItem}
+                onBack={backFromDetail}
+                hasDetailOrigin={detailTrail.length > 1}
                 onOpenSettings={() => switchTab("ajustes")}
               />
             )}
             {tab === "repaso" && (
               <Repaso
                 notebook={notebook}
-                onSelect={(id) => {
-                  setSelectedId(id);
-                  setTab("cuaderno");
-                }}
+                onSelect={openItem}
               />
             )}
             {tab === "ajustes" && <Ajustes onDataReplaced={notebook.reload} />}

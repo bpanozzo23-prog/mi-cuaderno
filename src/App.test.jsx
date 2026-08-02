@@ -1,0 +1,135 @@
+// @vitest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import App from "./App.jsx";
+import { db, clearAllPersonalData } from "./db/db.js";
+import { createItem, linkItems, newLexical, newPage } from "./db/items.js";
+import { removeDictionary } from "./db/ref/install.js";
+import { META_KEYS, refDb, setActiveSlot } from "./db/ref/refdb.js";
+import { FIXTURE_ENTRIES } from "./test/dictFixture.js";
+
+const CASA = "dict:wiktionary-es:casa:noun";
+
+beforeEach(async () => {
+  await removeDictionary();
+  localStorage.clear();
+  await db.open();
+  await clearAllPersonalData();
+  Object.defineProperty(window, "scrollTo", { value: vi.fn(), configurable: true });
+});
+
+afterEach(async () => {
+  cleanup();
+  await removeDictionary();
+  vi.restoreAllMocks();
+});
+
+async function seedDictionary(entryIds = [CASA]) {
+  const slot = "a";
+  const reference = refDb(slot);
+  const entries = FIXTURE_ENTRIES.filter((entry) => entryIds.includes(entry.id));
+  await reference.entries.bulkPut(entries);
+  await reference.meta.put({
+    key: META_KEYS.dataset,
+    value: {
+      datasetVersion: "phase-5a-fixture",
+      counts: { entries: entries.length },
+      previousIds: {},
+    },
+  });
+  setActiveSlot(slot);
+}
+
+async function linkedTrail() {
+  const phrase = await createItem(newLexical({ term: "de repente", form: "phrase" }));
+  const word = await createItem(newLexical({ term: "madrugar", translation: "to get up early" }));
+  const page = await createItem(newPage({ title: "Study source" }));
+  await linkItems(word.id, phrase.id);
+  await linkItems(page.id, word.id);
+  return { phrase, word, page };
+}
+
+describe("Phase 5a navigation continuity", () => {
+  it("opens each linked destination at the top and backs through the detail trail", async () => {
+    const user = userEvent.setup();
+    await linkedTrail();
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: /Study source/ }));
+    expect(screen.getByRole("button", { name: "Todo el cuaderno" })).toBeTruthy();
+    await waitFor(() => expect(window.scrollTo).toHaveBeenLastCalledWith(0, 0));
+
+    window.scrollTo.mockClear();
+    await user.click(screen.getByRole("button", { name: /^madrugar/ }));
+    expect(screen.getByRole("button", { name: "Atrás" })).toBeTruthy();
+    await waitFor(() => expect(window.scrollTo).toHaveBeenLastCalledWith(0, 0));
+
+    await user.click(screen.getByRole("button", { name: /^de repente/ }));
+    expect(screen.getByRole("button", { name: "Atrás" })).toBeTruthy();
+
+    window.scrollTo.mockClear();
+    await user.click(screen.getByRole("button", { name: "Atrás" }));
+    expect(screen.getByText("madrugar", { selector: ".text-2xl *" })).toBeTruthy();
+    await waitFor(() => expect(window.scrollTo).toHaveBeenLastCalledWith(0, 0));
+
+    await user.click(screen.getByRole("button", { name: "Atrás" }));
+    expect(screen.getByText("Study source", { selector: ".text-2xl *" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Todo el cuaderno" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Todo el cuaderno" }));
+    expect(screen.getByPlaceholderText(/Search words, meanings, notes, pages/)).toBeTruthy();
+  });
+
+  it("clears a linked trail when leaving Cuaderno", async () => {
+    const user = userEvent.setup();
+    await linkedTrail();
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: /Study source/ }));
+    await user.click(screen.getByRole("button", { name: /^madrugar/ }));
+    expect(screen.getByRole("button", { name: "Atrás" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Repaso" }));
+    expect(await screen.findByText("Para hoy")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Cuaderno" }));
+
+    expect(screen.queryByRole("button", { name: "Atrás" })).toBeNull();
+    expect(screen.getByPlaceholderText(/Search words, meanings, notes, pages/)).toBeTruthy();
+  });
+
+  it("keeps optional-field drafts scoped to the entry where they were typed", async () => {
+    const user = userEvent.setup();
+    await linkedTrail();
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: /Study source/ }));
+    await user.click(screen.getByRole("button", { name: /^madrugar/ }));
+    await user.type(screen.getByPlaceholderText("Sentence in Spanish"), "Me levanto temprano.");
+
+    await user.click(screen.getByRole("button", { name: /^de repente/ }));
+    expect(screen.getByPlaceholderText("Sentence in Spanish").value).toBe("");
+  });
+
+  it("traverses between personal and dictionary details without losing the trail", async () => {
+    const user = userEvent.setup();
+    await seedDictionary();
+    const word = await createItem(newLexical({ term: "madrugar", linkedKeys: [CASA] }));
+    const page = await createItem(newPage({ title: "Study source" }));
+    await linkItems(page.id, word.id);
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: /Study source/ }));
+    await user.click(screen.getByRole("button", { name: /^madrugar/ }));
+    await user.click(await screen.findByRole("button", { name: /^casa/ }));
+
+    expect(screen.getByRole("button", { name: "Atrás" })).toBeTruthy();
+    expect(await screen.findByText("casa", { selector: ".text-2xl" })).toBeTruthy();
+
+    await user.click(screen.getAllByRole("button", { name: /^madrugar/ })[0]);
+    expect(screen.getByText("madrugar", { selector: ".text-2xl *" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Atrás" }));
+    expect(await screen.findByText("casa", { selector: ".text-2xl" })).toBeTruthy();
+  });
+});
