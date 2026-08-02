@@ -4,6 +4,12 @@
 review into small, schema-v1 improvements that can be designed and verified without inspecting
 the owner's real notebook. The AI assistant moves to Phase 6.
 
+**Closeout update, 2026-08-02.** All six approved sub-phases, 5a–5f, are complete and deployed
+from `main` at commit `079e0fb`. Phase 5 is now in real-use observation rather than active planned
+development. The prospective language below is retained as the plan that governed the work; any
+later Phase 5 addition will be scoped from the owner's live-use evidence and approved separately.
+See `docs/PHASE-5-REPORT.md` for the implementation and verification record.
+
 Phase 4 remains open as a friction-driven maintenance stream; 4a–4h are complete and its
 exact-term/title link suggestions remain a deferred candidate, not Phase 5 scope. Phase 5 is the
 active planned build. The two may stay open under brief §12's coordination rule because their

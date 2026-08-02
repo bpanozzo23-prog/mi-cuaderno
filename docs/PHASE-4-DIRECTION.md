@@ -39,6 +39,11 @@ AI assistant moves to Phase 6. The two open phases follow brief §12's coordinat
 boundaries are explicit, and overlapping files or behaviours are sequenced rather than edited
 independently.
 
+**Subsequent closeout, 2026-08-02.** Phase 5 has since completed and deployed. The “active Phase 5”
+wording above records the coordination state when that phase opened; it is not current work.
+Phase 4 remains the open friction-driven stream, and requirement 7 still returns only if real use
+asks for it.
+
 ---
 
 ## Requirements

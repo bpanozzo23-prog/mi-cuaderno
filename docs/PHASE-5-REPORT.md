@@ -424,3 +424,25 @@ its disposable separate profile. This did not inspect or overwrite the owner's r
 - Personal phrase rows consistently exposed the `phrase` label. Document `scrollWidth` (360 px)
   equaled `clientWidth` inside the 375 px viewport, and the console returned **no warnings or
   errors**.
+
+---
+
+# Phase-wide closeout (2026-08-02)
+
+Phase 5 is **complete and deployed**. Commits `4f934ec` through `079e0fb` delivered all six
+approved sub-phases, and `main` was fast-forwarded to `079e0fb`. The
+[GitHub Pages workflow](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/30769562046)
+completed its build and deploy jobs successfully; the resulting asset was verified at the
+[public site](https://bpanozzo23-prog.github.io/mi-cuaderno/).
+
+The final verified baseline is **295 tests across 27 files**, a clean production build with a
+**433.79 KiB** PWA precache, and seeded 375 px browser coverage for every visible sub-phase. All
+phase-wide acceptance criteria hold: search ranking, event rules, one-sided links, quick-create
+draft behavior, dictionary orphan handling and backup shapes remain intact, and
+`SCHEMA_VERSION` remains **1**.
+
+Phase 5 now enters real-use observation. It does not accumulate speculative follow-up work: a
+later addition will be planned only from the owner's live-use evidence and approved as a new,
+independently verified slice. Regressions and general usability friction continue through Phase
+4; real-data-dependent content models and schema work remain deferred under the original
+acceptance criteria.

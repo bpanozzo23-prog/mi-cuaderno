@@ -218,3 +218,7 @@ Organizational improvements proceed separately as active Phase 5; the AI assista
 Phase 6. Phase 4 and Phase 5 may remain open together because their boundaries are explicit under
 the brief's concurrent-work amendment. Overlapping files or behaviours are sequenced. See
 `docs/PHASE-5-DIRECTION.md` for the Phase 5 sequence.
+
+**Subsequent closeout, 2026-08-02.** Phase 5 completed through 5f and deployed from `main` at
+`079e0fb`. Phase 4 remains open only for observed live-use friction; the earlier “active Phase 5”
+status above is retained as a dated record rather than rewritten.

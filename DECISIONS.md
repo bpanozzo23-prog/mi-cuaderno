@@ -271,6 +271,7 @@ One line per meaningful choice: date — decision — reason.
 - 2026-08-02 — **Duplicate matches are advisory status messages, never validation errors, and dictionary results are independent of personal creation.** — Homographs are legitimate notebook entries, while a reference match says nothing about whether the owner needs a personal note. Add Sheet and quick-create therefore keep their creation actions enabled and visible in every warned or dictionary-only state.
 - 2026-08-02 — **Personal lexical UI spells out `word` and `phrase`; dictionary part-of-speech abbreviations remain untouched.** — The owner should see one vocabulary for their own records across creation, pickers, cards, detail and review, without pretending the dictionary's grammatical labels are personal item types.
 - 2026-08-02 — **5f remains a schema-v1 derivation over items already loaded in memory.** — Duplicate feedback needs no persisted index or uniqueness constraint; adding either would turn a warning into data authority and create migration work with no benefit.
+- 2026-08-02 — **OWNER'S CLOSEOUT DECISION: Phase 5 is complete through 5f and enters real-use observation; it will be revisited only after the owner tests the deployed site.** — The approved organizational sequence has shipped, so extending it now would replace evidence with speculation. Regressions and ordinary live-use friction continue through Phase 4; any later Phase 5 slice needs a concrete observation, its own plan and the same independent verification.
 
 ## Tooling — CLAUDE.md (2026-08-02)
 
