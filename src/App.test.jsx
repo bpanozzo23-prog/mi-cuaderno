@@ -105,10 +105,12 @@ describe("Phase 5a navigation continuity", () => {
 
     await user.click(await screen.findByRole("button", { name: /Study source/ }));
     await user.click(screen.getByRole("button", { name: /^madrugar/ }));
-    await user.type(screen.getByPlaceholderText("Sentence in Spanish"), "Me levanto temprano.");
+    await user.click(screen.getByRole("button", { name: "Add an example" }));
+    await user.type(screen.getByRole("textbox", { name: "Sentence in Spanish" }), "Me levanto temprano.");
 
     await user.click(screen.getByRole("button", { name: /^de repente/ }));
-    expect(screen.getByPlaceholderText("Sentence in Spanish").value).toBe("");
+    await user.click(screen.getByRole("button", { name: "Add an example" }));
+    expect(screen.getByRole("textbox", { name: "Sentence in Spanish" }).value).toBe("");
   });
 
   it("traverses between personal and dictionary details without losing the trail", async () => {

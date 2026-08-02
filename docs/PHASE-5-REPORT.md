@@ -281,3 +281,71 @@ separate profile. This did not use or expose the owner's real browser data.
 - The Repaso feed and dictionary detail had no horizontal overflow: document `scrollWidth` equaled
   `clientWidth` in both checked states at the phone viewport.
 - The browser console returned **no warnings or errors** after the complete flow.
+
+---
+
+# Part five — 5e scan-first detail pages (2026-08-02)
+
+## Status
+
+Sub-phase 5e is **complete**. Personal detail screens now lead with saved reading content and keep
+blank optional forms behind deliberate actions, while every existing field and save path remains
+available.
+
+`SCHEMA_VERSION` remains **1**. The new modes are local React presentation state; no item, event,
+database, backup, preference, link, dictionary or browser-storage shape changed.
+
+## What 5e does
+
+- Saved lexical notes and page bodies render as ordinary text with their line breaks preserved and
+  long tokens bounded to the phone width. Empty content is a compact **Add note** or **Write page**
+  state rather than a blank textarea.
+- **Edit note** and **Edit page** reveal the existing prefilled editor. Save writes the same raw
+  field through the existing explicit-save path and returns to reading; Cancel restores the saved
+  value without writing or logging an event.
+- Existing personal examples and media links stay visible. Their blank composers start collapsed,
+  focus their first field when opened, keep invalid drafts open, and clear and collapse after
+  Cancel or a successful Add.
+- Example and media additions retain their existing validation, trimming, array shapes and one
+  `edit` event. Pages still offer media but not personal examples.
+- The new state resets for a different item but survives same-item notebook reloads, preserving the
+  Phase 4 quick-create draft contract and Phase 5a's destination-local isolation.
+- Conditional fields and controls have specific accessible names and disclosure state; the header
+  pencil now distinguishes entry details from the note/page edit action.
+
+## Files
+
+- `src/components/Detail.jsx` — reading/editor presentation and optional-form disclosures.
+- `src/components/Detail.test.jsx` — body, event, validation, disclosure and draft-preservation
+  contracts.
+- `src/App.test.jsx` — the existing cross-entry optional-draft isolation check now opens the
+  collapsed composer explicitly.
+
+## Automated verification
+
+- Focused detail/navigation tests: **15 passed across 2 files**.
+- Full suite: **275 passed across 23 files**.
+- Production build: clean; PWA precache **432.78 KiB**.
+- The tests were proved rather than trusted: temporarily forcing the body editor and example
+  composer open produced **6 focused failures**, including the read-first, compact-empty,
+  collapsed-composer and quick-create contracts. The defaults were restored and the focused and
+  full suites rerun green.
+- There is no lint or type-check script in `package.json`.
+
+## Browser verification
+
+Verified in the in-app browser with a **375 × 812 px** viewport override and disposable fixture
+data in its separate profile. This did not use or expose the owner's real browser data.
+
+- A long page opened as reading text with no textarea. Editing autofocuses the existing body,
+  saving multiline text returned to reading, reopening showed the saved value, and Cancel discarded
+  a replacement draft.
+- A sparse lexical item showed compact **Add note**, **Add an example** and **Add a media link**
+  actions. Saving a multiline note returned to **Edit note**; adding a bilingual personal example
+  displayed the row and collapsed the composer again.
+- A blank example and an invalid media URL left their composers open without adding a row. A valid
+  media URL and label saved on the page and restored the collapsed action.
+- A deliberately long unbroken token wrapped without horizontal overflow. In read, edit and
+  expanded-composer states, document `scrollWidth` equaled `clientWidth` (360 px inside the browser's
+  375 px viewport override).
+- The browser console returned **no warnings or errors** after the complete flow.

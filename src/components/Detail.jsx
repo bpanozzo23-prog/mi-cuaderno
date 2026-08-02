@@ -34,11 +34,14 @@ export default function Detail({
   const isPage = item.type === "page";
 
   const [editingHead, setEditingHead] = useState(false);
+  const [editingBody, setEditingBody] = useState(false);
   const [head, setHead] = useState({});
   const [bodyDraft, setBodyDraft] = useState("");
   const [bodyDirty, setBodyDirty] = useState(false);
+  const [addingExample, setAddingExample] = useState(false);
   const [exEs, setExEs] = useState("");
   const [exEn, setExEn] = useState("");
+  const [addingMedia, setAddingMedia] = useState(false);
   const [mUrl, setMUrl] = useState("");
   const [mLabel, setMLabel] = useState("");
   const [deleteArm, setDeleteArm] = useState(false);
@@ -107,6 +110,13 @@ export default function Detail({
     setBodyDraft(isPage ? item.body || "" : item.notes || "");
     setBodyDirty(false);
     setEditingHead(false);
+    setEditingBody(false);
+    setAddingExample(false);
+    setExEs("");
+    setExEn("");
+    setAddingMedia(false);
+    setMUrl("");
+    setMLabel("");
     setDeleteArm(false);
     setPicking(false);
     setHead(
@@ -129,7 +139,7 @@ export default function Detail({
 
   async function patch(fields, options) {
     await updateItem(item.id, fields, options);
-    onChanged();
+    await onChanged();
   }
 
   async function saveHead() {
@@ -147,9 +157,31 @@ export default function Detail({
   }
 
   async function saveBody() {
-    setBodyDirty(false);
     await patch(isPage ? { body: bodyDraft } : { notes: bodyDraft });
+    setBodyDirty(false);
+    setEditingBody(false);
   }
+
+  function cancelBody() {
+    setBodyDraft(isPage ? item.body || "" : item.notes || "");
+    setBodyDirty(false);
+    setEditingBody(false);
+  }
+
+  function cancelExample() {
+    setExEs("");
+    setExEn("");
+    setAddingExample(false);
+  }
+
+  function cancelMedia() {
+    setMUrl("");
+    setMLabel("");
+    setAddingMedia(false);
+  }
+
+  const savedBody = isPage ? item.body || "" : item.notes || "";
+  const hasSavedBody = savedBody.trim() !== "";
 
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
@@ -258,7 +290,11 @@ export default function Detail({
                 </div>
               )}
             </div>
-            <button onClick={() => setEditingHead(true)} aria-label="Edit" className="shrink-0 p-1">
+            <button
+              onClick={() => setEditingHead(true)}
+              aria-label={isPage ? "Edit page details" : "Edit word or phrase details"}
+              className="shrink-0 p-1"
+            >
               <Pencil size={15} style={{ color: C.mut }} />
             </button>
           </div>
@@ -298,24 +334,54 @@ export default function Detail({
 
       <SectionTitle>{isPage ? "Page" : "Notes"}</SectionTitle>
       <Card>
-        <textarea
-          value={bodyDraft}
-          onChange={(e) => {
-            setBodyDraft(e.target.value);
-            setBodyDirty(true);
-          }}
-          placeholder={
-            isPage
-              ? "Write the page — grammar rules, a source, what happened today…"
-              : "Your notes — mnemonics, gotchas, where you heard it…"
-          }
-          className="w-full bg-transparent outline-none text-sm resize-y"
-          style={{ color: C.ink, minHeight: isPage ? 160 : 96 }}
-        />
-        {bodyDirty && (
-          <Button onClick={saveBody} className="mt-1">
-            Save {isPage ? "page" : "note"}
-          </Button>
+        {editingBody ? (
+          <>
+            <textarea
+              autoFocus
+              aria-label={isPage ? "Page body" : "Note"}
+              value={bodyDraft}
+              onChange={(e) => {
+                setBodyDraft(e.target.value);
+                setBodyDirty(true);
+              }}
+              placeholder={
+                isPage
+                  ? "Write the page — grammar rules, a source, what happened today…"
+                  : "Your notes — mnemonics, gotchas, where you heard it…"
+              }
+              className="w-full bg-transparent outline-none text-sm resize-y"
+              style={{ color: C.ink, minHeight: isPage ? 160 : 96 }}
+            />
+            <div className="mt-2 flex gap-2">
+              <Button onClick={saveBody} disabled={!bodyDirty}>
+                Save {isPage ? "page" : "note"}
+              </Button>
+              <Button tone="quiet" onClick={cancelBody}>
+                Cancel
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-start justify-between gap-3">
+            <div
+              className={`min-w-0 flex-1 text-sm whitespace-pre-wrap break-words ${hasSavedBody ? "" : "italic"}`}
+              style={{ color: hasSavedBody ? C.ink : C.mut }}
+            >
+              {hasSavedBody ? savedBody : isPage ? "This page is empty." : "No notes yet."}
+            </div>
+            <Button
+              tone="quiet"
+              className="shrink-0"
+              onClick={() => {
+                setBodyDraft(savedBody);
+                setBodyDirty(false);
+                setEditingBody(true);
+              }}
+            >
+              <Pencil size={14} />
+              {hasSavedBody ? `Edit ${isPage ? "page" : "note"}` : isPage ? "Write page" : "Add note"}
+            </Button>
+          </div>
         )}
       </Card>
 
@@ -344,32 +410,49 @@ export default function Detail({
                 />
               </Card>
             ))}
-            <Card className="space-y-2">
-              <input
-                value={exEs}
-                onChange={(e) => setExEs(e.target.value)}
-                placeholder="Sentence in Spanish"
-                className="w-full text-sm bg-transparent outline-none"
-                style={{ color: C.ink }}
-              />
-              <input
-                value={exEn}
-                onChange={(e) => setExEn(e.target.value)}
-                placeholder="English (optional)"
-                className="w-full text-sm bg-transparent outline-none border-t pt-2"
-                style={{ color: C.ink, borderColor: C.line }}
-              />
-              <Button
-                onClick={() => {
-                  if (!exEs.trim()) return;
-                  patch({ myExamples: [...item.myExamples, { es: exEs.trim(), en: exEn.trim() }] });
-                  setExEs("");
-                  setExEn("");
-                }}
-              >
-                Add example
-              </Button>
-            </Card>
+            <Button
+              tone="quiet"
+              aria-expanded={addingExample}
+              aria-controls="example-composer"
+              onClick={() => (addingExample ? cancelExample() : setAddingExample(true))}
+            >
+              <Plus size={14} /> {addingExample ? "Close example form" : "Add an example"}
+            </Button>
+            {addingExample && (
+              <Card id="example-composer" className="space-y-2">
+                <input
+                  autoFocus
+                  aria-label="Sentence in Spanish"
+                  value={exEs}
+                  onChange={(e) => setExEs(e.target.value)}
+                  placeholder="Sentence in Spanish"
+                  className="w-full text-sm bg-transparent outline-none"
+                  style={{ color: C.ink }}
+                />
+                <input
+                  aria-label="English (optional)"
+                  value={exEn}
+                  onChange={(e) => setExEn(e.target.value)}
+                  placeholder="English (optional)"
+                  className="w-full text-sm bg-transparent outline-none border-t pt-2"
+                  style={{ color: C.ink, borderColor: C.line }}
+                />
+                <div className="flex gap-2">
+                  <Button
+                    onClick={async () => {
+                      if (!exEs.trim()) return;
+                      await patch({ myExamples: [...item.myExamples, { es: exEs.trim(), en: exEn.trim() }] });
+                      cancelExample();
+                    }}
+                  >
+                    Add example
+                  </Button>
+                  <Button tone="quiet" onClick={cancelExample}>
+                    Cancel
+                  </Button>
+                </div>
+              </Card>
+            )}
           </div>
         </>
       )}
@@ -396,33 +479,50 @@ export default function Detail({
             />
           </Card>
         ))}
-        <Card className="space-y-2">
-          <input
-            value={mUrl}
-            onChange={(e) => setMUrl(e.target.value)}
-            placeholder="https:// link to video, image, article…"
-            className="w-full text-sm bg-transparent outline-none"
-            style={{ color: C.ink }}
-          />
-          <input
-            value={mLabel}
-            onChange={(e) => setMLabel(e.target.value)}
-            placeholder="Label (optional)"
-            className="w-full text-sm bg-transparent outline-none border-t pt-2"
-            style={{ color: C.ink, borderColor: C.line }}
-          />
-          <Button
-            onClick={() => {
-              const url = mUrl.trim();
-              if (!/^https?:\/\//.test(url)) return;
-              patch({ mediaLinks: [...item.mediaLinks, { url, label: mLabel.trim() }] });
-              setMUrl("");
-              setMLabel("");
-            }}
-          >
-            Add link
-          </Button>
-        </Card>
+        <Button
+          tone="quiet"
+          aria-expanded={addingMedia}
+          aria-controls="media-composer"
+          onClick={() => (addingMedia ? cancelMedia() : setAddingMedia(true))}
+        >
+          <Plus size={14} /> {addingMedia ? "Close media form" : "Add a media link"}
+        </Button>
+        {addingMedia && (
+          <Card id="media-composer" className="space-y-2">
+            <input
+              autoFocus
+              aria-label="Media URL"
+              value={mUrl}
+              onChange={(e) => setMUrl(e.target.value)}
+              placeholder="https:// link to video, image, article…"
+              className="w-full text-sm bg-transparent outline-none"
+              style={{ color: C.ink }}
+            />
+            <input
+              aria-label="Media label"
+              value={mLabel}
+              onChange={(e) => setMLabel(e.target.value)}
+              placeholder="Label (optional)"
+              className="w-full text-sm bg-transparent outline-none border-t pt-2"
+              style={{ color: C.ink, borderColor: C.line }}
+            />
+            <div className="flex gap-2">
+              <Button
+                onClick={async () => {
+                  const url = mUrl.trim();
+                  if (!/^https?:\/\//.test(url)) return;
+                  await patch({ mediaLinks: [...item.mediaLinks, { url, label: mLabel.trim() }] });
+                  cancelMedia();
+                }}
+              >
+                Add link
+              </Button>
+              <Button tone="quiet" onClick={cancelMedia}>
+                Cancel
+              </Button>
+            </div>
+          </Card>
+        )}
       </div>
 
       <SectionTitle>Linked</SectionTitle>

@@ -59,6 +59,172 @@ describe("labels shared by lexical items and pages", () => {
   });
 });
 
+describe("scan-first notes and page bodies", () => {
+  it("reads a multiline note first, then cancels or explicitly saves without changing event rules", async () => {
+    const user = userEvent.setup();
+    const original = "Primera línea\nSegunda línea";
+    const word = await createItem(newLexical({ term: "madrugar", notes: original }));
+
+    renderDetail(word);
+
+    const reading = screen.getByText(/Primera línea/);
+    expect(reading.textContent).toBe(original);
+    expect(reading.className).toContain("whitespace-pre-wrap");
+    expect(reading.className).toContain("break-words");
+    await waitFor(() => expect(screen.queryByRole("textbox", { name: "Note" })).toBeNull());
+
+    await user.click(screen.getByRole("button", { name: "Edit note" }));
+    let editor = screen.getByRole("textbox", { name: "Note" });
+    expect(editor.value).toBe(original);
+    await user.clear(editor);
+    await user.type(editor, "Discard me");
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByRole("textbox", { name: "Note" })).toBeNull();
+    expect(screen.getByText(/Primera línea/).textContent).toBe(original);
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(0);
+
+    await user.click(screen.getByRole("button", { name: "Edit note" }));
+    editor = screen.getByRole("textbox", { name: "Note" });
+    await user.clear(editor);
+    await user.type(editor, "  Nueva línea{enter}Otra línea  ");
+    await user.click(screen.getByRole("button", { name: "Save note" }));
+
+    await waitFor(async () => {
+      const saved = (await allItems()).find((candidate) => candidate.id === word.id);
+      expect(saved.notes).toBe("  Nueva línea\nOtra línea  ");
+    });
+    await waitFor(() => expect(screen.queryByRole("textbox", { name: "Note" })).toBeNull());
+    expect(screen.getByText(/Nueva línea/).textContent).toBe("  Nueva línea\nOtra línea  ");
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(1);
+  });
+
+  it("writes and saves a page body through the existing body field", async () => {
+    const user = userEvent.setup();
+    const page = await createItem(newPage({ title: "Study source", body: "Uno\nDos" }));
+
+    renderDetail(page);
+
+    expect(screen.getByText(/Uno/).textContent).toBe("Uno\nDos");
+    await waitFor(() => expect(screen.queryByRole("textbox", { name: "Page body" })).toBeNull());
+    await user.click(screen.getByRole("button", { name: "Edit page" }));
+    const editor = screen.getByRole("textbox", { name: "Page body" });
+    await user.clear(editor);
+    await user.type(editor, "Tres{enter}Cuatro");
+    await user.click(screen.getByRole("button", { name: "Save page" }));
+
+    await waitFor(async () => {
+      const saved = (await allItems()).find((candidate) => candidate.id === page.id);
+      expect(saved.body).toBe("Tres\nCuatro");
+    });
+    await waitFor(() => expect(screen.queryByRole("textbox", { name: "Page body" })).toBeNull());
+    expect(screen.getByText(/Tres/).textContent).toBe("Tres\nCuatro");
+  });
+
+  it("keeps empty notes and pages compact until their explicit action", async () => {
+    const word = await createItem(newLexical({ term: "vacío" }));
+    const page = await createItem(newPage({ title: "Blank page" }));
+
+    renderDetail(word);
+    expect(screen.getByText("No notes yet.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Add note" })).toBeTruthy();
+    expect(screen.queryByRole("textbox", { name: "Note" })).toBeNull();
+
+    cleanup();
+    renderDetail(page);
+    expect(screen.getByText("This page is empty.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Write page" })).toBeTruthy();
+    expect(screen.queryByRole("textbox", { name: "Page body" })).toBeNull();
+  });
+});
+
+describe("collapsed optional-field composers", () => {
+  it("keeps saved rows visible and collapses each composer again after a valid add", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(
+      newLexical({
+        term: "madrugar",
+        myExamples: [{ es: "Madrugo mucho.", en: "I get up early a lot." }],
+        mediaLinks: [{ url: "https://example.com/old", label: "Existing source" }],
+      })
+    );
+
+    renderDetail(word);
+
+    expect(screen.getByText("Madrugo mucho.")).toBeTruthy();
+    expect(screen.getByText("Existing source")).toBeTruthy();
+    expect(screen.queryByRole("textbox", { name: "Sentence in Spanish" })).toBeNull();
+    expect(screen.queryByRole("textbox", { name: "Media URL" })).toBeNull();
+
+    const exampleDisclosure = screen.getByRole("button", { name: "Add an example" });
+    expect(exampleDisclosure.getAttribute("aria-expanded")).toBe("false");
+    await user.click(exampleDisclosure);
+    expect(screen.getByRole("button", { name: "Close example form" }).getAttribute("aria-expanded")).toBe("true");
+    await user.type(screen.getByRole("textbox", { name: "Sentence in Spanish" }), "  Me levanto temprano.  ");
+    await user.type(screen.getByRole("textbox", { name: "English (optional)" }), "  I get up early.  ");
+    await user.click(screen.getByRole("button", { name: "Add example" }));
+
+    await waitFor(() => expect(screen.getByText("Me levanto temprano.")).toBeTruthy());
+    expect(screen.queryByRole("textbox", { name: "Sentence in Spanish" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Add an example" }).getAttribute("aria-expanded")).toBe("false");
+
+    await user.click(screen.getByRole("button", { name: "Add a media link" }));
+    expect(screen.getByRole("button", { name: "Close media form" }).getAttribute("aria-expanded")).toBe("true");
+    await user.type(screen.getByRole("textbox", { name: "Media URL" }), "  https://example.com/new  ");
+    await user.type(screen.getByRole("textbox", { name: "Media label" }), "  New source  ");
+    await user.click(screen.getByRole("button", { name: "Add link" }));
+
+    await waitFor(() => expect(screen.getByText("New source")).toBeTruthy());
+    expect(screen.queryByRole("textbox", { name: "Media URL" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Add a media link" }).getAttribute("aria-expanded")).toBe("false");
+
+    const saved = (await allItems()).find((candidate) => candidate.id === word.id);
+    expect(saved.myExamples.at(-1)).toEqual({ es: "Me levanto temprano.", en: "I get up early." });
+    expect(saved.mediaLinks.at(-1)).toEqual({ url: "https://example.com/new", label: "New source" });
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(2);
+  });
+
+  it("keeps invalid drafts open and lets Cancel discard them without writing", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({ term: "madrugar" }));
+
+    renderDetail(word);
+
+    await user.click(screen.getByRole("button", { name: "Add an example" }));
+    await user.click(screen.getByRole("button", { name: "Add example" }));
+    expect(screen.getByRole("textbox", { name: "Sentence in Spanish" })).toBeTruthy();
+    await user.type(screen.getByRole("textbox", { name: "Sentence in Spanish" }), "Unsaved");
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    await user.click(screen.getByRole("button", { name: "Add an example" }));
+    expect(screen.getByRole("textbox", { name: "Sentence in Spanish" }).value).toBe("");
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+
+    await user.click(screen.getByRole("button", { name: "Add a media link" }));
+    await user.type(screen.getByRole("textbox", { name: "Media URL" }), "HTTPS://example.com");
+    await user.click(screen.getByRole("button", { name: "Add link" }));
+    expect(screen.getByRole("textbox", { name: "Media URL" }).value).toBe("HTTPS://example.com");
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+
+    const saved = (await allItems()).find((candidate) => candidate.id === word.id);
+    expect(saved.myExamples).toEqual([]);
+    expect(saved.mediaLinks).toEqual([]);
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(0);
+  });
+
+  it("offers media but not personal examples on a page", async () => {
+    const page = await createItem(
+      newPage({ title: "Source", mediaLinks: [{ url: "https://example.com", label: "Article" }] })
+    );
+
+    renderDetail(page);
+
+    expect(screen.getByText("Article")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Add a media link" })).toBeTruthy();
+    expect(screen.queryByText("My examples")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Add an example" })).toBeNull();
+  });
+});
+
 describe("quick-create-and-link keeps the owner where they are", () => {
   it("creates, links, and leaves an unsaved draft untouched without navigating", async () => {
     const user = userEvent.setup();
@@ -69,7 +235,8 @@ describe("quick-create-and-link keeps the owner where they are", () => {
 
     // Start writing, and do NOT save. This is the work that must survive.
     const draft = "El pretérito para acciones terminadas";
-    const body = screen.getByPlaceholderText(/Write the page/);
+    await user.click(screen.getByRole("button", { name: "Write page" }));
+    const body = screen.getByRole("textbox", { name: "Page body" });
     await user.type(body, draft);
     expect(body.value).toBe(draft);
 
