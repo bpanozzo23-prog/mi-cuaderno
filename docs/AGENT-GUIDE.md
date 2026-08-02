@@ -11,19 +11,30 @@ no server. Simplicity and durability beat features.
 **Current state deliberately lives elsewhere.** This guide states no phase status, because a
 file that restates it is a copy that goes stale between commits.
 
-## Read before proposing anything
+## Read order
 
-1. `docs/mi-cuaderno-project-brief-v3.md` — **the contract.** Where it specifies exact behaviour
-   (IDs, search rules, import semantics, event rules), implement it as specified. Amendments are
-   marked inline with strikethrough plus the replacement, so the original stays readable.
-2. `README.md` → Status — which phases are done, and what is in progress.
-3. The newest `docs/PHASE-*-REPORT.md` — what shipped last and what was left open. Older reports
-   preserve historical figures on purpose; the newest one has current numbers.
-4. `DECISIONS.md` — every choice with its reason. Check here before re-litigating anything.
-5. `docs/mi-cuaderno.jsx` is a **look-and-feel reference only**. Its storage, linking and state
-   handling are superseded by the brief and the current application.
-6. Inspect the existing architecture, components and utilities before recommending changes or
-   introducing duplicates.
+Start every task with the current state:
+
+1. `README.md` → Status — which phases are done and what is in progress.
+2. Follow the report linked from the in-progress phase in that Status section. If no phase is in
+   progress, use the report linked from the most recently completed phase. Do not guess from file
+   timestamps: older reports deliberately keep their historical figures.
+3. Inspect the existing architecture, components and utilities relevant to the request before
+   recommending changes or introducing duplicates.
+
+Then load the durable references the task actually needs:
+
+- `docs/mi-cuaderno-project-brief-v3.md` is **the contract.** Read the sections governing a
+  proposed behaviour change before planning it. Read the whole brief before planning a new phase
+  or changing cross-cutting architecture, the data model, storage, identity, search, events,
+  backup, the reference-data seam or AI policy. Where it specifies exact behaviour, implement it
+  as written. Amendments use strikethrough plus the replacement so the original stays readable.
+- `DECISIONS.md` is the append-only reasoning record, not an always-load checklist. Scan its
+  headings or search it for the affected phase, component and concept; read the matching entries
+  before re-litigating a choice. Read current-phase and Tooling entries when they affect the work.
+- `docs/mi-cuaderno.jsx` is a **look-and-feel reference only** and only needs to be read for visual
+  or interaction work. Its storage, linking and state handling are superseded by the brief and
+  the current application.
 
 ## Working agreement (brief §2)
 
@@ -76,6 +87,8 @@ this summary.
 ## Environment and checks
 
 - npm is the package manager (`package-lock.json`).
+- Commands below use npm's conventional spelling; a tool entry file may give the spelling needed
+  by its shell on this machine.
 - `npm test` — Vitest. Node is the default test environment; component tests opt into `jsdom`
   with a per-file `@vitest-environment` pragma. There is no lint or type-check script.
 - `npm run build` — production build. Run the relevant checks after code changes.

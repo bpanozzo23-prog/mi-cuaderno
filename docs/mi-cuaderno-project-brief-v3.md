@@ -1,9 +1,11 @@
 # Mi Cuaderno — Project Brief (v3)
 
-**For:** Claude Code. Read this entire brief before proposing any plan or writing any code.
+**For:** Coding agents working through Claude Code or Codex. Use the task-sensitive read order in
+`docs/AGENT-GUIDE.md`; this brief remains the product contract.
 **Owner:** The sole builder and only user of this app.
 **Companion file:** `mi-cuaderno.jsx` — a working single-file prototype of the notebook layer. It is the reference for features, interaction patterns, and visual design of **lexical entries**. Pages (§7) do not exist in the prototype and are new in v3. Where this brief contradicts the prototype's *implementation* (ID scheme, search normalization, the `struggling` field, event rules), **this brief wins** — the prototype shows what the app should feel like, not how it must be built.
-**Version:** v3 — revised after lock-in review. Last updated: July 30, 2026.
+**Version:** v3 — revised after lock-in review. Product contract last amended July 31, 2026;
+agent-facing framing refreshed August 2, 2026.
 **Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
 
 ---
@@ -19,7 +21,7 @@ It is inspired by the *scope* of SpanishDict but built entirely from open data s
 ## 2. The owner, and how to work with them
 
 - Solo personal project. The owner has ~2 years of experience directing AI tools and is comfortable following technical steps, but is not an expert programmer.
-- **Always propose a plan before implementing each phase** (use Plan Mode). Wait for approval.
+- **Always propose a plan before implementing each phase or sub-phase.** Wait for approval.
 - Explain choices in plain language. Define jargon the first time it appears.
 - Work in small, verifiable steps. After each change, state exactly how the owner can see or test it.
 - Commit per completed feature with clear messages, so anything can be undone.
@@ -200,6 +202,16 @@ No accounts, no server, no analytics, no multi-user, no native Android build, no
 
 Whether and when to build the Attachment model; cross-device sync; review scheduling beyond Leitner; sense-level annotations; importing multiword expressions into the reference layer; merge-mode import.
 
-## 15. First instruction
+## 15. How to use this brief now
 
-Read this brief and `mi-cuaderno.jsx`, then propose, in plain language and before writing any code: a Phase 0 plan (file layout, dependency list with one-line justifications, deploy setup) and a Phase 0.5 spike plan (data samples to pull, what you'll verify, what you'll show the owner). Remember that pages are not in the prototype — plan their minimal UI fresh, matching the prototype's visual style.
+~~Read this brief and `mi-cuaderno.jsx`, then propose, in plain language and before writing any
+code: a Phase 0 plan (file layout, dependency list with one-line justifications, deploy setup)
+and a Phase 0.5 spike plan (data samples to pull, what you'll verify, what you'll show the
+owner). Remember that pages are not in the prototype — plan their minimal UI fresh, matching the
+prototype's visual style.~~
+
+**Superseded August 2, 2026.** That was the bootstrap instruction before any application code
+existed; Phases 0 and 0.5 are complete. For current work, follow `docs/AGENT-GUIDE.md`: establish
+the current phase from `README.md` and its linked report, load the contract and decision history
+relevant to the request, inspect the current implementation, and address the owner's approved
+scope. The prototype remains a visual reference, not the current application or a work queue.

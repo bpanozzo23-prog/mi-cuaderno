@@ -10,6 +10,7 @@ Codex-specific notes only:
 - **The owner's real browser data is not available in Codex's test browser.** Verify against
   seeded fixture data as the guide describes; never treat an empty notebook as the owner's
   actual state.
-- Current phase status is deliberately not written in any agent file — read `README.md` → Status
-  and the newest `docs/PHASE-*-REPORT.md`, per the guide's read-order.
-- Log meaningful decisions in `DECISIONS.md` as you go, and commit per sub-phase, per the guide.
+- **This Codex shell is Windows PowerShell 5.1.** Use `npm.cmd test`, `npm.cmd run build` and
+  `npm.cmd run dev`; plain `npm` resolves to `npm.ps1`, which this machine's execution policy
+  blocks. When reading the repository's UTF-8 files with `Get-Content`, pass `-Encoding UTF8`
+  (or use `rg`) so ñ, section signs and punctuation are not garbled.

@@ -13,5 +13,6 @@ Claude-Code-specific notes only:
   `PATH="/c/Program Files/nodejs:$PATH" npm test` — and call gh by full path:
   `"C:/Program Files/GitHub CLI/gh.exe"`.
 - **Dev server: use the preview/browser tools, never Bash.** `.claude/launch.json` (gitignored,
-  this machine only) defines the `mi-cuaderno-dev` configuration.
-- Log meaningful decisions in `DECISIONS.md` as you go, and commit per sub-phase, per the guide.
+  this machine only) defines the `mi-cuaderno-dev` configuration. If it is missing after a fresh
+  clone, recreate it from `docs/claude-launch.example.json` and adjust `runtimeExecutable` if
+  Node is installed elsewhere.
