@@ -178,6 +178,18 @@ console errors; production build clean.
 Nothing on the friction list asked for link suggestions, and two of the three items pointed
 elsewhere. It stays parked until the list asks for it.
 
+### What happens next
+
+The friction list is a **standing input, not a one-off** — brief §12 calls it "a running list…
+collected while using the app daily", and this batch is the first round rather than the whole of
+it. Keep using the app; when a few more real items accumulate, they become the next batch,
+planned and shipped as their own small sub-phases exactly as `4f`–`4h` were.
+
+There is no need to wait for a "complete" list. Three real items produced three shipped fixes in
+an afternoon, and a short list of things that actually annoyed you is worth more than a long one
+imagined in advance. A later round decides what remains of Phase 4 — including whether
+requirement 7 is ever worth building — and may well open a phase not yet written down.
+
 ---
 
 ## Where things are

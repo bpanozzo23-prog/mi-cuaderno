@@ -6,8 +6,28 @@ running list of friction the owner collects while using the app daily" — and n
 core scope and settled the requirements below. This file sits under the brief, not
 beside it: every §5/§7 rule still binds, and nothing here amends the contract.
 
-**The friction list is still to be collected.** Before proposing a plan, ask the owner
-for it. Items on it may join, reorder, or displace parts of this package.
+~~**The friction list is still to be collected.** Before proposing a plan, ask the owner
+for it. Items on it may join, reorder, or displace parts of this package.~~
+
+**Updated 2026-08-01 — the first friction list arrived and shipped.** The owner chose to
+build the linking package first and collect friction afterwards; the list then opened with
+three items, all of which shipped as sub-phases `4f`–`4h`:
+
+| Friction | Shipped as |
+|---|---|
+| The word/phrase choice at creation had no effect on the list | **4g** — separate *palabras* and *frases* tabs |
+| A phrase's meaning could only be one running line | **4h** — meanings can hold several lines |
+| Typing a tag gave no hint that a similar one already existed | **4f** — suggestions from the tags already in use |
+
+Two of the three were not about linking at all. That is the most useful thing the list said,
+and it is why requirement 7 below stays parked.
+
+**The friction list is a standing input, not a one-off.** Brief §12 describes it as "a running
+list… collected while using the app daily", and it works that way: the owner keeps using the
+app, friction accumulates, and a later batch drives the next work — whether that is the rest of
+Phase 4, requirement 7, or a phase not yet written down. Each batch is planned and shipped on
+its own, in small committed sub-phases, the same way `4f`–`4h` were. There is no need to wait
+for a "complete" list; a few real items are worth more than a long speculative one.
 
 The package stays inside the existing item-level linking architecture (`linkedKeys[]`,
 §6/§7). No graph database, no new link entity, and no graph visualization this phase.
