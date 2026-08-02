@@ -4,7 +4,7 @@ import {
   Highlighter, Eye, Clock, Plus,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button } from "../theme.jsx";
-import { POS_OPTIONS, POS_ABBR } from "./ItemCard.jsx";
+import { POS_OPTIONS, personalHeadingSuffix, personalLexicalForm } from "./ItemCard.jsx";
 import DictAttachment from "./DictAttachment.jsx";
 import LinkPicker from "./LinkPicker.jsx";
 import TagInput from "./TagInput.jsx";
@@ -32,6 +32,8 @@ export default function Detail({
   onChanged,
 }) {
   const isPage = item.type === "page";
+  const headingSuffix = isPage ? "" : personalHeadingSuffix(item);
+  const itemKind = isPage ? "page" : personalLexicalForm(item);
 
   const [editingHead, setEditingHead] = useState(false);
   const [editingBody, setEditingBody] = useState(false);
@@ -267,15 +269,13 @@ export default function Detail({
               <div className="text-2xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
                 {isPage && <FileText size={16} className="inline mr-2 -mt-1" style={{ color: C.mut }} />}
                 <Hi on={state.tricky}>{isPage ? item.title || "Untitled page" : item.term}</Hi>
-                {!isPage && item.form === "phrase" && (
-                  <span className="italic font-normal text-base ml-2" style={{ color: C.mut }}>
-                    loc.
-                  </span>
-                )}
-                {!isPage && item.form !== "phrase" && POS_ABBR[item.pos] && (
-                  <span className="italic font-normal text-base ml-2" style={{ color: C.mut }}>
-                    {POS_ABBR[item.pos]}
-                  </span>
+                {headingSuffix && (
+                  <>
+                    {" "}
+                    <span className="italic font-normal text-base ml-2" style={{ color: C.mut }}>
+                      {headingSuffix}
+                    </span>
+                  </>
                 )}
               </div>
               {/* Shown in full: this screen is where the owner reads what they wrote. */}
@@ -530,8 +530,8 @@ export default function Detail({
       {groups.length === 0 && !picking && (
         <div className="text-xs mb-2" style={{ color: C.mut }}>
           {isPage
-            ? "Nothing linked yet. Link the words this page is about."
-            : "Nothing linked yet. Link the pages and words this one belongs with."}
+            ? "Nothing linked yet. Link the words and phrases this page is about."
+            : "Nothing linked yet. Link the pages, words and phrases this one belongs with."}
         </div>
       )}
 
@@ -615,7 +615,7 @@ export default function Detail({
             onChanged();
           }}
         >
-          <Trash2 size={14} /> {deleteArm ? "Tap again to confirm" : `Delete ${isPage ? "page" : "word"}`}
+          <Trash2 size={14} /> {deleteArm ? "Tap again to confirm" : `Delete ${itemKind}`}
         </Button>
       </div>
     </div>

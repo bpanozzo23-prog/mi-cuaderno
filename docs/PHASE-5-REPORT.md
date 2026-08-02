@@ -1,7 +1,7 @@
 # Phase 5 — organizational improvements
 
-**This report is cumulative and dated.** Phase 5 is active; each completed sub-phase will add a
-part rather than rewriting earlier verification.
+**This report is cumulative and dated.** Phase 5 is complete; each part retains the verification
+performed when that sub-phase finished.
 
 ---
 
@@ -349,3 +349,78 @@ data in its separate profile. This did not use or expose the owner's real browse
   expanded-composer states, document `scrollWidth` equaled `clientWidth` (360 px inside the browser's
   375 px viewport override).
 - The browser console returned **no warnings or errors** after the complete flow.
+
+---
+
+# Part six — 5f duplicate guardrails (2026-08-02)
+
+## Status
+
+Sub-phase 5f and Phase 5 are **complete**. Add Sheet and quick-create now warn about exact
+personal-heading duplicates without blocking intentional homographs or hiding personal creation
+beside dictionary results.
+
+`SCHEMA_VERSION` remains **1**. Duplicate detection derives from the personal items already in
+memory; no item, event, link, dictionary, backup, preference or browser-storage shape changed.
+
+## What 5f does
+
+- A shared comparison normalizes headings to NFC, trims their ends, collapses internal whitespace
+  and compares with Spanish case folding. It deliberately preserves accents and punctuation, so
+  `si`/`sí`, `el`/`él`, `tu`/`tú` and `verguenza`/`vergüenza` remain distinct.
+- Word and phrase headings share one lexical comparison group because the same spelling may be
+  legitimately stored under either form. Pages compare only with page titles. Blank headings,
+  dictionary rows and unknown item shapes do not warn.
+- Add Sheet and both quick-create choices show the same advisory status message when their proposed
+  personal heading matches. Their create buttons remain enabled; the warning never prevents an
+  intentional duplicate.
+- Dictionary search remains independent. A dictionary-only match still leaves the relevant
+  personal word/phrase create action visible and enabled.
+- Personal lexical labels consistently say **word** or **phrase** in Add Sheet, link pickers,
+  notebook/link cards, detail screens and review cards. Dictionary abbreviations such as `s.` and
+  `loc.` remain dictionary terminology.
+- Quick-create still creates and one-sidedly links in place, preserves unsaved source drafts, logs
+  the existing events and does not navigate. Search ordering and matching are unchanged.
+
+## Files
+
+- `src/lib/duplicateGuard.js` and `src/lib/duplicateGuard.test.js` — pure personal-heading
+  normalization, comparison and edge-case contracts.
+- `src/components/DuplicateWarning.jsx` — shared accessible advisory message.
+- `src/components/AddSheet.jsx` and `src/components/AddSheet.test.jsx` — duplicate feedback while
+  preserving ordinary creation and detail navigation.
+- `src/components/LinkPicker.jsx` and `src/components/LinkPicker.test.jsx` — independent lexical and
+  page warnings, dictionary-only creation, and quick-create draft/navigation/link contracts.
+- `src/components/ItemCard.jsx`, `LinkCard.jsx`, `Detail.jsx`, `ReviewSession.jsx`,
+  `PersonalTerminology.test.jsx` and `Detail.test.jsx` — consistent personal word/phrase wording.
+
+## Automated verification
+
+- Focused guardrail/component tests: **31 passed across 5 files**.
+- Related component tests: **95 passed across 7 files**.
+- Full suite: **295 passed across 27 files**.
+- Production build: clean; PWA precache **433.79 KiB**.
+- The accent rule was proved rather than trusted: temporarily using accent-folding normalization
+  produced four intended failures covering `si`/`sí`, `el`/`él`, `tu`/`tú` and
+  `verguenza`/`vergüenza`. The accent-sensitive comparator was restored and rerun green.
+- The dictionary-only rule was also proved: temporarily hiding personal creation whenever picker
+  results existed made the seeded `casa` dictionary-only test fail. The independent create action
+  was restored and rerun green.
+- There is no lint or type-check script in `package.json`.
+
+## Browser verification
+
+Verified in the in-app browser with a **375 × 812 px** viewport override and seeded fixture data in
+its disposable separate profile. This did not inspect or overwrite the owner's real browser data.
+
+- Add Sheet warned for a whitespace- and case-varied `tener ganas de`, did not warn for unaccented
+  `si` beside personal `sí`, and did not cross-match the page title `Roma`. The warned phrase still
+  created and opened normally.
+- Quick-create warned for `tener ganas de`, kept its create action enabled, created and linked the
+  duplicate without navigating away from the source page, and preserved the source's unsaved body
+  draft.
+- Searching the fixture dictionary for `casa` showed its dictionary row, no personal-duplicate
+  warning, and an enabled **Create word “casa” and link it** action.
+- Personal phrase rows consistently exposed the `phrase` label. Document `scrollWidth` (360 px)
+  equaled `clientWidth` inside the 375 px viewport, and the console returned **no warnings or
+  errors**.

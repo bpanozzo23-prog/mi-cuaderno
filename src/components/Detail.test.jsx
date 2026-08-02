@@ -30,9 +30,9 @@ afterEach(cleanup);
  * Mounts Detail the way Cuaderno does, and — like Cuaderno — re-reads items from the
  * database when the screen reports a change, keeping the same `item.id` throughout.
  */
-function renderDetail(item, onOpen = vi.fn(), state) {
+function renderDetail(item, onOpen = vi.fn(), state, initialItems = [item]) {
   function Harness() {
-    const [items, setItems] = useState([item]);
+    const [items, setItems] = useState(initialItems);
     const current = items.find((i) => i.id === item.id) || item;
     return (
       <Detail
@@ -226,6 +226,55 @@ describe("collapsed optional-field composers", () => {
 });
 
 describe("quick-create-and-link keeps the owner where they are", () => {
+  it("warns about a homograph but still creates and links it without losing the draft", async () => {
+    const user = userEvent.setup();
+    const page = await createItem(newPage({ title: "Grammar notes" }));
+    const existing = await createItem(
+      newLexical({ term: "de repente", form: "phrase" })
+    );
+    const onOpen = vi.fn();
+
+    renderDetail(page, onOpen, undefined, [page, existing]);
+
+    await user.click(screen.getByRole("button", { name: "Write page" }));
+    const body = screen.getByRole("textbox", { name: "Page body" });
+    await user.type(body, "Un borrador que todavía no está guardado");
+
+    await user.click(screen.getByText("link something"));
+    await user.type(
+      screen.getByPlaceholderText(/Link a word, phrase, page or dictionary entry/),
+      "DE   REPENTE"
+    );
+    expect(screen.getByRole("status").textContent).toMatch(/word or phrase/i);
+
+    const create = screen.getByRole("button", {
+      name: /Create phrase .*DE REPENTE.* and link it/,
+    });
+    expect(create.disabled).toBe(false);
+    await user.click(create);
+
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole("button", { name: /^DE REPENTE phrase/ }).length
+      ).toBeGreaterThan(1)
+    );
+
+    expect(body.value).toBe("Un borrador que todavía no está guardado");
+    expect(onOpen).not.toHaveBeenCalled();
+
+    const items = await allItems();
+    const source = items.find((item) => item.id === page.id);
+    const created = items.find((item) => item.term === "DE   REPENTE");
+    expect(created.form).toBe("phrase");
+    expect(source.linkedKeys).toEqual([created.id]);
+    expect(created.linkedKeys).toEqual([]);
+    expect(existing.linkedKeys).toEqual([]);
+
+    const events = await allEvents();
+    expect(events.filter((event) => event.type === EVENT_TYPES.create)).toHaveLength(3);
+    expect(events.filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(0);
+  });
+
   it("creates, links, and leaves an unsaved draft untouched without navigating", async () => {
     const user = userEvent.setup();
     const page = await createItem(newPage({ title: "Preterite vs imperfect" }));
@@ -242,7 +291,7 @@ describe("quick-create-and-link keeps the owner where they are", () => {
 
     // Link something that does not exist yet.
     await user.click(screen.getByText("link something"));
-    await user.type(screen.getByPlaceholderText(/Link a word, page or dictionary entry/), "madrugar");
+    await user.type(screen.getByPlaceholderText(/Link a word, phrase, page or dictionary entry/), "madrugar");
     await user.click(await screen.findByText(/Create word .*madrugar.* and link it/));
 
     /**
@@ -271,7 +320,7 @@ describe("quick-create-and-link keeps the owner where they are", () => {
     renderDetail(page);
 
     await user.click(screen.getByText("link something"));
-    await user.type(screen.getByPlaceholderText(/Link a word, page or dictionary entry/), "de repente");
+    await user.type(screen.getByPlaceholderText(/Link a word, phrase, page or dictionary entry/), "de repente");
     await user.click(await screen.findByText(/Create phrase .*de repente.* and link it/));
 
     await waitFor(async () => {
@@ -292,7 +341,7 @@ describe("quick-create-and-link keeps the owner where they are", () => {
     renderDetail(page);
 
     await user.click(screen.getByText("link something"));
-    const input = screen.getByPlaceholderText(/Link a word, page or dictionary entry/);
+    const input = screen.getByPlaceholderText(/Link a word, phrase, page or dictionary entry/);
     await user.type(input, "de repente");
     await user.click(await screen.findByText(/Create phrase/));
 

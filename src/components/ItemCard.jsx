@@ -5,8 +5,14 @@ import { emptyItemState } from "../useNotebook.js";
 export const POS_OPTIONS = ["", "noun", "verb", "adjective", "adverb", "other"];
 export const POS_ABBR = { noun: "s.", verb: "v.", adjective: "adj.", adverb: "adv.", other: "" };
 
+/** Personal `form` terminology. Dictionary part-of-speech labels remain separate. */
+export const personalLexicalForm = (item) => (item?.form === "phrase" ? "phrase" : "word");
+export const personalHeadingSuffix = (item) =>
+  personalLexicalForm(item) === "phrase" ? "phrase" : POS_ABBR[item?.pos] || "";
+
 export default function ItemCard({ item, state = emptyItemState, onOpen, reason }) {
   const isPage = item.type === "page";
+  const headingSuffix = isPage ? "" : personalHeadingSuffix(item);
   return (
     <button
       onClick={() => onOpen(item.id)}
@@ -17,15 +23,13 @@ export default function ItemCard({ item, state = emptyItemState, onOpen, reason 
         <div className="text-lg min-w-0" style={{ fontFamily: SERIF, color: C.ink, fontWeight: 700 }}>
           {isPage && <FileText size={14} className="inline mr-1.5 -mt-0.5" style={{ color: C.mut }} />}
           <Hi on={state.tricky}>{isPage ? item.title || "Untitled page" : item.term}</Hi>
-          {!isPage && item.form === "phrase" && (
-            <span className="italic font-normal text-sm ml-2" style={{ color: C.mut }}>
-              loc.
-            </span>
-          )}
-          {!isPage && item.form !== "phrase" && POS_ABBR[item.pos] && (
-            <span className="italic font-normal text-sm ml-2" style={{ color: C.mut }}>
-              {POS_ABBR[item.pos]}
-            </span>
+          {headingSuffix && (
+            <>
+              {" "}
+              <span className="italic font-normal text-sm ml-2" style={{ color: C.mut }}>
+                {headingSuffix}
+              </span>
+            </>
           )}
         </div>
         {state.views > 0 && (

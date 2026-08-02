@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Search, X, Check, FileText, BookMarked, CalendarDays, Type, Plus } from "lucide-react";
 import { C, SERIF, MONO, Card } from "../theme.jsx";
-import { POS_ABBR } from "./ItemCard.jsx";
+import { personalHeadingSuffix } from "./ItemCard.jsx";
 import { POS_LABEL } from "./DictCard.jsx";
+import DuplicateWarning from "./DuplicateWarning.jsx";
 import { pickerMatches } from "../lib/links.js";
 import { mergeResults } from "../lib/search.js";
+import { findPersonalHeadingDuplicates } from "../lib/duplicateGuard.js";
 import { searchDictionary } from "../db/ref/search.js";
 
 /**
@@ -55,9 +57,12 @@ function Row({ icon: Icon, heading, suffix, context, reason, linked, onPick }) {
       <div className="min-w-0 flex-1">
         <span style={{ fontFamily: SERIF, color: C.ink, fontWeight: 600 }}>{heading}</span>
         {suffix && (
-          <span className="italic text-xs ml-1.5" style={{ color: C.mut }}>
-            {suffix}
-          </span>
+          <>
+            {" "}
+            <span className="italic text-xs ml-1.5" style={{ color: C.mut }}>
+              {suffix}
+            </span>
+          </>
         )}
         {context && (
           <div className="text-xs truncate" style={{ color: C.mut }}>
@@ -115,6 +120,14 @@ export default function LinkPicker({ item, items, linkedKeys, onPick, onCancel, 
     () => pickerMatches(items, query, { excludeId: item.id, limit: LIMIT }),
     [items, query, item.id]
   );
+  const lexicalDuplicates = useMemo(
+    () => findPersonalHeadingDuplicates(items, "lexical", typed),
+    [items, typed]
+  );
+  const pageDuplicates = useMemo(
+    () => findPersonalHeadingDuplicates(items, "page", typed),
+    [items, typed]
+  );
 
   useEffect(() => {
     let current = true;
@@ -148,7 +161,7 @@ export default function LinkPicker({ item, items, linkedKeys, onPick, onCancel, 
           autoFocus
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Link a word, page or dictionary entry…"
+          placeholder="Link a word, phrase, page or dictionary entry…"
           className="flex-1 bg-transparent outline-none text-sm"
           style={{ color: C.ink }}
         />
@@ -181,7 +194,7 @@ export default function LinkPicker({ item, items, linkedKeys, onPick, onCancel, 
               key={row.key}
               icon={row.item.type === "page" ? (row.item.pageDate ? CalendarDays : FileText) : Type}
               heading={row.item.type === "page" ? row.item.title || "Untitled page" : row.item.term}
-              suffix={row.item.type === "page" ? null : POS_ABBR[row.item.pos]}
+              suffix={row.item.type === "page" ? null : personalHeadingSuffix(row.item)}
               context={contextLine(row.item)}
               reason={row.reason}
               linked={linkedKeys.has(row.item.id)}
@@ -193,16 +206,22 @@ export default function LinkPicker({ item, items, linkedKeys, onPick, onCancel, 
 
       {typed && (
         <div className="mt-2 pt-2 space-y-1 border-t" style={{ borderColor: C.line }}>
-          <CreateRow
-            icon={Plus}
-            label={`Create ${typed.includes(" ") ? "phrase" : "word"} “${typed}” and link it`}
-            onClick={() => onCreate("lexical", typed)}
-          />
-          <CreateRow
-            icon={Plus}
-            label={`Create page “${typed}” and link it`}
-            onClick={() => onCreate("page", typed)}
-          />
+          <div className="space-y-1">
+            {lexicalDuplicates.length > 0 && <DuplicateWarning kind="lexical" />}
+            <CreateRow
+              icon={Plus}
+              label={`Create ${typed.includes(" ") ? "phrase" : "word"} “${typed}” and link it`}
+              onClick={() => onCreate("lexical", typed)}
+            />
+          </div>
+          <div className="space-y-1">
+            {pageDuplicates.length > 0 && <DuplicateWarning kind="page" />}
+            <CreateRow
+              icon={Plus}
+              label={`Create page “${typed}” and link it`}
+              onClick={() => onCreate("page", typed)}
+            />
+          </div>
         </div>
       )}
     </Card>

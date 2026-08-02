@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, Check, X, Eye, Highlighter, BookOpen, RotateCcw } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, Card, Button } from "../theme.jsx";
-import { POS_ABBR } from "./ItemCard.jsx";
+import { personalHeadingSuffix } from "./ItemCard.jsx";
 import { logReview } from "../db/events.js";
 
 /**
@@ -85,16 +85,13 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
         <div className="text-center">
           <div className="text-3xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
             <Hi on={item.tricky}>{item.term}</Hi>
-            {item.form === "phrase" ? (
-              <span className="italic font-normal text-base ml-2" style={{ color: C.mut }}>
-                loc.
-              </span>
-            ) : (
-              POS_ABBR[item.pos] && (
+            {personalHeadingSuffix(item) && (
+              <>
+                {" "}
                 <span className="italic font-normal text-base ml-2" style={{ color: C.mut }}>
-                  {POS_ABBR[item.pos]}
+                  {personalHeadingSuffix(item)}
                 </span>
-              )
+              </>
             )}
           </div>
           <div className="mt-1.5 text-xs inline-flex items-center gap-2" style={{ fontFamily: MONO, color: C.mut }}>

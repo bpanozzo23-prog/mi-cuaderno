@@ -1,6 +1,6 @@
 import { X, FileText, CalendarDays, Type, BookMarked, Unlink } from "lucide-react";
 import { C, SERIF, MONO } from "../theme.jsx";
-import { POS_ABBR } from "./ItemCard.jsx";
+import { personalHeadingSuffix } from "./ItemCard.jsx";
 import { POS_LABEL } from "./DictCard.jsx";
 import { timeAgo } from "../lib/dates.js";
 
@@ -49,6 +49,7 @@ function Shell({ icon: Icon, onOpen, onRemove, removeLabel, children, dashed }) 
 export function ItemLinkCard({ item, attached, onOpen, onRemove }) {
   const isPage = item.type === "page";
   const preview = previewOf(item);
+  const headingSuffix = isPage ? "" : personalHeadingSuffix(item);
 
   return (
     <Shell
@@ -60,15 +61,13 @@ export function ItemLinkCard({ item, attached, onOpen, onRemove }) {
       <div className="flex items-baseline justify-between gap-2">
         <div className="min-w-0" style={{ fontFamily: SERIF, color: C.ink, fontWeight: 700 }}>
           {isPage ? item.title || "Untitled page" : item.term}
-          {!isPage && item.form === "phrase" && (
-            <span className="italic font-normal text-xs ml-1.5" style={{ color: C.mut }}>
-              loc.
-            </span>
-          )}
-          {!isPage && item.form !== "phrase" && POS_ABBR[item.pos] && (
-            <span className="italic font-normal text-xs ml-1.5" style={{ color: C.mut }}>
-              {POS_ABBR[item.pos]}
-            </span>
+          {headingSuffix && (
+            <>
+              {" "}
+              <span className="italic font-normal text-xs ml-1.5" style={{ color: C.mut }}>
+                {headingSuffix}
+              </span>
+            </>
           )}
           {attached && <BookMarked size={11} className="inline ml-1.5 -mt-0.5" style={{ color: C.mut }} />}
         </div>

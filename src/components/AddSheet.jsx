@@ -3,9 +3,11 @@ import { X } from "lucide-react";
 import { C, SERIF } from "../theme.jsx";
 import { POS_OPTIONS } from "./ItemCard.jsx";
 import TagInput from "./TagInput.jsx";
+import DuplicateWarning from "./DuplicateWarning.jsx";
 import { newLexical, newPage, createItem } from "../db/items.js";
 import { localDate } from "../lib/dates.js";
 import { allTagsIn } from "../lib/tags.js";
+import { findPersonalHeadingDuplicates } from "../lib/duplicateGuard.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
@@ -34,6 +36,16 @@ export default function AddSheet({ kind, items = [], onClose, onCreated }) {
   const [pageDate, setPageDate] = useState("");
   const [tags, setTags] = useState([]);
   const [notes, setNotes] = useState("");
+
+  const duplicates = useMemo(
+    () =>
+      findPersonalHeadingDuplicates(
+        items,
+        isPage ? "page" : "lexical",
+        isPage ? title : term
+      ),
+    [items, isPage, title, term]
+  );
 
   const ready = isPage ? title.trim() !== "" : term.trim() !== "";
 
@@ -75,6 +87,7 @@ export default function AddSheet({ kind, items = [], onClose, onCreated }) {
               className="w-full text-sm rounded-xl border px-3 py-2.5 outline-none"
               style={{ ...inputStyle, fontFamily: SERIF }}
             />
+            {duplicates.length > 0 && <DuplicateWarning kind="page" />}
             <Field>
               <label className="text-xs" style={{ color: C.mut }}>
                 Date — fill this in to make it a journal entry
@@ -113,6 +126,7 @@ export default function AddSheet({ kind, items = [], onClose, onCreated }) {
               className="w-full text-sm rounded-xl border px-3 py-2.5 outline-none"
               style={{ ...inputStyle, fontFamily: SERIF }}
             />
+            {duplicates.length > 0 && <DuplicateWarning kind="lexical" />}
             {/*
               A textarea, not an input: a phrase often has several readings, and one line
               forced them onto a single run-on line. `translation` is a plain string, so a
