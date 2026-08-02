@@ -84,6 +84,22 @@ this summary.
 - Pushing to `main` deploys to GitHub Pages automatically. **Push only when asked.** A failed
   deploy leaves the previously published site serving.
 
+## Git, when two tools share one working directory
+
+The owner switches between Claude Code and Codex in the **same checkout**, so the branch you
+start on may not be the branch the previous session used.
+
+- **Check `git status -sb` before your first commit, and again before pushing.** This has already
+  bitten once: a Codex-created branch was still checked out, two commits landed on it instead of
+  `main`, and `git push origin main` then reported "Everything up-to-date" — correctly, because
+  local `main` had not moved. Nothing was lost, but the push silently did nothing.
+- **A push that reports "Everything up-to-date" when you expected commits to go out is a signal,
+  not a success.** Check which branch HEAD is on before assuming the remote already had them.
+- Prefer `git merge --ff-only` when catching a branch up: it refuses rather than inventing a
+  merge commit if the history is not what you assumed.
+- **Do not delete or reset the other tool's branches**, and do not rebase shared history. A
+  branch you did not create may be mid-task. Leave it and say so.
+
 ## Verifying in the browser
 
 Tests are not enough for anything the owner can see; the project's habit is to check the running
