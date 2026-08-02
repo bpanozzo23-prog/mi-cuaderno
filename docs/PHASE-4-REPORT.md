@@ -1,18 +1,25 @@
-# Phase 4 — the linking package
+# Phase 4 — live-use polish
 
-**Date:** 2026-07-31
+**This report is written in dated parts, oldest first**, so the record shows what was known
+when rather than being rewritten as the phase went on. Part one is the linking package; part
+two is the friction list, which opened afterwards. Figures inside each part are correct as of
+its date — the current test count is always the one in the most recent part.
+
+---
+
+# Part one — the linking package (2026-07-31)
 
 Phase 4's core scope was the linking package in `docs/PHASE-4-DIRECTION.md`. Six of its seven
 requirements are built, committed and verified; requirement 7 is proposed for deferral, which
 the direction file explicitly allows. The friction list was deferred at the owner's direction
-and is still to be collected.
+at the start of this phase, and is collected in part two below.
 
 ## Verdict
 
-**Requirements 1–6 are complete.** `npm test` runs **217 tests** (184 at the end of Phase 3;
-34 new, one moved). `SCHEMA_VERSION` is still **1** — no schema change was needed, so §5's
-migration plan and export-first reminder never triggered, exactly as the package was shaped to
-ensure. Every decision is in `DECISIONS.md` under the Phase 4a–4e headings.
+**Requirements 1–6 are complete.** `npm test` runs **217 tests** at this point (184 at the end
+of Phase 3; 34 new, one moved). `SCHEMA_VERSION` is still **1** — no schema change was needed,
+so §5's migration plan and export-first reminder never triggered, exactly as the package was
+shaped to ensure. Every decision is in `DECISIONS.md` under the Phase 4a–4e headings.
 
 ## What shipped
 
@@ -109,11 +116,11 @@ does not need sorting. If a page ever accumulates enough links that the order st
 that is friction worth writing down.
 
 **Then the friction list.** It is the one input this phase deliberately went without, and it
-decides both requirement 7 and whatever Phase 4 does next.
+decides both requirement 7 and whatever Phase 4 does next. *(It opened the next day — part two.)*
 
 ---
 
-# The friction list opens (2026-08-01)
+# Part two — the friction list opens (2026-08-01)
 
 The owner used the app and reported the first three friction items. Two of the three were not
 about linking at all, which is itself the most useful thing the list said: the picker appears to

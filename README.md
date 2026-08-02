@@ -17,17 +17,29 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   [pipeline/spike/out/07-review-records.md](pipeline/spike/out/07-review-records.md).
 - **Phase 1 — done.** The notebook itself, in four subphases: data foundation and backup (1a),
   words, phrases and pages (1b), search and linking (1c), tracking and Repaso (1d).
-- **Phase 2 — next.** The bundled dictionary: the real pipeline, ~10k lemmas, offline download,
-  conjugations, and inflected-form search.
+- **Phase 2 — done.** The bundled dictionary: 10,278 lemmas with conjugations and examples,
+  installed offline in one explicit download, and two-layer search where an inflected form
+  finds its lemma. See [docs/PHASE-2-REPORT.md](docs/PHASE-2-REPORT.md).
+- **Phase 3 — done.** The Leitner review queue, derived entirely from the event log.
+  See [docs/PHASE-3-REPORT.md](docs/PHASE-3-REPORT.md).
+- **Phase 4 — in progress.** Live-use polish. The linking package (4a–4e) shipped first;
+  the owner's friction list then opened and drove 4f–4h. See
+  [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).
+- **Phase 5 — not started.** The AI assistant (brief §9).
+
+`SCHEMA_VERSION` is still **1**. No phase has yet needed a personal-layer schema change, so
+brief §5's migration plan and export-first reminder have never been triggered.
 
 ## Testing
 
 ```
-npm test        # Vitest — 74 tests over the data layer, search and event rules
+npm test        # Vitest — 240 tests over the data layer, search, review, linking and the pipeline
 ```
 
 The database tests run the real Dexie code against an in-memory IndexedDB
-(`fake-indexeddb`), so they exercise what ships rather than a mock.
+(`fake-indexeddb`), so they exercise what ships rather than a mock. The pipeline is tested too,
+because its conjugation extractor decides what ~1,250 verbs conjugate like. A handful of
+component tests opt into `jsdom` per file; everything else runs in plain Node.
 
 ## Development
 
