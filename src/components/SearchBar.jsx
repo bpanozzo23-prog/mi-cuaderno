@@ -49,6 +49,7 @@ export default function SearchBar({
     >
       <Search size={16} style={{ color: C.mut }} />
       <input
+        aria-label="Search notebook"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}

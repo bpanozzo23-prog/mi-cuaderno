@@ -12,16 +12,40 @@ import { searchItems, mergeResults } from "../lib/search.js";
 import { searchDictionary } from "../db/ref/search.js";
 import { isDictKey, installedMeta } from "../db/ref/entries.js";
 import { TYPE_FILTERS, FILTERS, matchesTypeFilter, wantsDictionary } from "../lib/filters.js";
+import {
+  BROWSE_ORDERS,
+  MAINTENANCE_VIEWS,
+  maintenanceItems,
+  orderItems,
+  tagCountsIn,
+} from "../lib/organization.js";
 import { emptyItemState } from "../useNotebook.js";
 
 /** Long enough that a fast typist does not fire a query per keystroke, short enough to feel instant. */
 const SEARCH_DEBOUNCE_MS = 140;
+
+const BROWSE_OPTIONS = [
+  { value: BROWSE_ORDERS.touched, label: "Recently touched" },
+  { value: BROWSE_ORDERS.added, label: "Recently added" },
+  { value: BROWSE_ORDERS.alphabetical, label: "A–Z" },
+];
+
+const MAINTENANCE_OPTIONS = [
+  { value: MAINTENANCE_VIEWS.all, label: "All items" },
+  { value: MAINTENANCE_VIEWS.missingMeaning, label: "Missing meaning" },
+  { value: MAINTENANCE_VIEWS.missingExamples, label: "Missing examples" },
+  { value: MAINTENANCE_VIEWS.unlinked, label: "No links" },
+];
+
+const controlStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
 export default function Cuaderno({ notebook, selectedId, onSelect, onBack, hasDetailOrigin, onOpenSettings }) {
   const { items, itemState, reload } = notebook;
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState(FILTERS.all);
   const [tagFilter, setTagFilter] = useState(null);
+  const [browseOrder, setBrowseOrder] = useState(BROWSE_ORDERS.touched);
+  const [maintenanceView, setMaintenanceView] = useState(MAINTENANCE_VIEWS.all);
   const [addKind, setAddKind] = useState(null);
   const [askKind, setAskKind] = useState(false);
   const [dictionary, setDictionary] = useState(null);
@@ -34,22 +58,46 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, hasDe
     installedMeta().then(setDictionary);
   }, [selectedId]);
 
-  const allTags = useMemo(() => {
-    const set = new Set();
-    items.forEach((i) => i.tags.forEach((t) => set.add(t)));
-    return [...set].sort();
-  }, [items]);
+  // Maintenance must see the COMPLETE personal notebook. A page filtered out by the type
+  // controls may still be the only item linking back to a word.
+  const maintenanceSet = useMemo(
+    () => maintenanceItems(items, maintenanceView),
+    [items, maintenanceView]
+  );
+
+  const contextItems = useMemo(
+    () => maintenanceSet.filter((item) => matchesTypeFilter(item, typeFilter)),
+    [maintenanceSet, typeFilter]
+  );
+
+  // Tag choices describe the type/maintenance context, not the already-selected tag or query.
+  // That keeps the picker useful while a tag narrows the cards and while the owner searches.
+  const tagCounts = useMemo(() => tagCountsIn(contextItems), [contextItems]);
+  const tagAvailable = tagFilter && tagCounts.some(({ tag }) => tag === tagFilter);
+  const effectiveTag = tagAvailable ? tagFilter : null;
+
+  // The derived value above prevents a one-render empty state. The effect only synchronizes the
+  // stored control state after another filter or a notebook reload makes an exact tag impossible.
+  useEffect(() => {
+    if (tagFilter && !tagAvailable) setTagFilter(null);
+  }, [tagAvailable, tagFilter]);
 
   const filtered = useMemo(
-    () => items.filter((i) => matchesTypeFilter(i, typeFilter) && (!tagFilter || i.tags.includes(tagFilter))),
-    [items, typeFilter, tagFilter]
+    () =>
+      effectiveTag
+        ? contextItems.filter((item) => item.tags.includes(effectiveTag))
+        : contextItems,
+    [contextItems, effectiveTag]
   );
 
   // Searching ranks across everything the filters allow, so a tag filter narrows
   // the search rather than being silently ignored by it.
   const personalResults = useMemo(
-    () => (searching ? searchItems(filtered, query) : filtered.map((item) => ({ item, reason: null }))),
-    [filtered, query, searching]
+    () =>
+      searching
+        ? searchItems(filtered, query)
+        : orderItems(filtered, browseOrder).map((item) => ({ item, reason: null })),
+    [browseOrder, filtered, query, searching]
   );
 
   /**
@@ -63,7 +111,9 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, hasDe
    */
   const [dictResults, setDictResults] = useState([]);
   const [dictPending, setDictPending] = useState(false);
-  const dictionaryWanted = searching && wantsDictionary(typeFilter, tagFilter);
+  const dictionaryEligible =
+    maintenanceView === MAINTENANCE_VIEWS.all && wantsDictionary(typeFilter, effectiveTag);
+  const dictionaryWanted = searching && dictionaryEligible;
 
   useEffect(() => {
     if (!dictionaryWanted) {
@@ -88,9 +138,9 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, hasDe
   const visible = useMemo(
     () =>
       searching
-        ? mergeResults(personalResults, dictResults, items)
+        ? mergeResults(personalResults, dictionaryWanted ? dictResults : [], items)
         : personalResults.map((r) => ({ ...r, kind: "item", key: r.item.id })),
-    [personalResults, dictResults, items, searching]
+    [personalResults, dictResults, items, searching, dictionaryWanted]
   );
 
   const selected = items.find((i) => i.id === selectedId) || null;
@@ -152,18 +202,65 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, hasDe
             {visible.length}
           </span>
         </div>
-        {allTags.length > 0 && (
-          <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
-            <Chip active={!tagFilter} onClick={() => setTagFilter(null)}>
-              all tags
-            </Chip>
-            {allTags.map((t) => (
-              <Chip key={t} active={tagFilter === t} onClick={() => setTagFilter(tagFilter === t ? null : t)}>
-                {t}
-              </Chip>
-            ))}
-          </div>
-        )}
+
+        <div className="grid grid-cols-2 gap-2 mt-3">
+          <label className="min-w-0 text-xs" style={{ color: C.mut }}>
+            <span className="block mb-1">View</span>
+            <select
+              aria-label="View"
+              value={maintenanceView}
+              onChange={(event) => setMaintenanceView(event.target.value)}
+              className="w-full min-w-0 min-h-11 rounded-lg border px-2 text-sm outline-none"
+              style={controlStyle}
+            >
+              {MAINTENANCE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="min-w-0 text-xs" style={{ color: C.mut }}>
+            <span className="block mb-1">Order</span>
+            <select
+              aria-label="Order"
+              value={searching ? "relevance" : browseOrder}
+              onChange={(event) => setBrowseOrder(event.target.value)}
+              disabled={searching}
+              className="w-full min-w-0 min-h-11 rounded-lg border px-2 text-sm outline-none disabled:opacity-70"
+              style={controlStyle}
+            >
+              {searching && <option value="relevance">Search relevance</option>}
+              {BROWSE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="col-span-2 min-w-0 text-xs" style={{ color: C.mut }}>
+            <span className="block mb-1">Tag</span>
+            <select
+              aria-label="Tag"
+              value={effectiveTag || ""}
+              onChange={(event) => setTagFilter(event.target.value || null)}
+              disabled={tagCounts.length === 0}
+              className="w-full min-w-0 min-h-11 rounded-lg border px-2 text-sm outline-none disabled:opacity-70"
+              style={controlStyle}
+            >
+              <option value="">
+                {tagCounts.length === 0 ? "No tags in this view" : "All tags"}
+              </option>
+              {tagCounts.map(({ tag, count }) => (
+                <option key={tag} value={tag}>
+                  {tag} · {count}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </div>
 
       <div className="px-4 py-4 space-y-2.5 pb-28" style={dotGrid}>
@@ -173,6 +270,7 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, hasDe
             searching={searching}
             query={query}
             dictionary={dictionary}
+            dictionaryEligible={dictionaryEligible}
             onOpenSettings={onOpenSettings}
           />
         )}

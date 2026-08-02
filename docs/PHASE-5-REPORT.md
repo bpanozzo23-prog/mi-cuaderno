@@ -134,3 +134,81 @@ No browser pass applies to 5b: the phase-wide criterion requires seeded 375 px c
 sub-phases, while this slice only adds unreferenced pure helpers and tests. It changes no rendered
 component, runtime navigation, storage or browser interaction. The first visible consumer is 5c,
 which will receive the full 375 px overflow, interaction and console check.
+
+---
+
+# Part three — 5c Cuaderno retrieval controls (2026-08-02)
+
+## Status
+
+Sub-phase 5c is **complete**. Cuaderno now exposes 5b's browse orders, maintenance views and
+contextual exact-tag counts through phone-sized native controls. Search relevance remains
+authoritative, and maintenance views remain personal-notebook views even when the local dictionary
+is installed.
+
+`SCHEMA_VERSION` remains **1**. The new choices are component-local React state: they are not added
+to Dexie, preferences, backups or any browser-storage format, and they reset when Cuaderno is
+unmounted.
+
+## What 5c does
+
+- Cuaderno derives visible personal items in one explicit sequence: maintenance view over the full
+  notebook, type filter, contextual tag counts, exact selected-tag filter, then either search
+  relevance or the chosen browse order.
+- **View** offers all items, missing meaning, missing examples and no links. Link maintenance sees
+  backlinks from hidden item types because it is derived before the type filter.
+- **Order** offers recently touched, recently added and A–Z while browsing. During search it becomes
+  a disabled **Search relevance** control, making the existing ranking contract visible instead of
+  implying that a browse sort still applies.
+- **Tag** offers exact stored spellings with contextual item counts. Counts respond to View and type
+  but not to the search query or the selected tag. If a context change makes the selected exact tag
+  impossible, the selection clears rather than hiding every card behind stale state.
+- Dictionary results remain available for eligible normal searches. Maintenance views suppress both
+  pending and already-resolved dictionary rows, and their empty states do not invite the owner to
+  install or search the dictionary for a personal-notebook maintenance problem.
+- The controls use native selects, a two-column View/Order row and a full-width tag row so long tags
+  remain bounded at the required phone width.
+
+## Files
+
+- `src/components/Cuaderno.jsx` — retrieval-state ownership, derivation sequence, native controls and
+  dictionary-result eligibility.
+- `src/components/EmptyState.jsx` — dictionary prompts are conditional on the active view being
+  dictionary-eligible.
+- `src/components/SearchBar.jsx` — an explicit accessible label for the notebook search field.
+- `src/components/Cuaderno.test.jsx` — component-level contracts for ordering, maintenance,
+  dictionary suppression, exact contextual tags and session-local reset behavior.
+
+## Automated verification
+
+- Focused 5c component tests: **5 passed**.
+- Related organization, filter and search suite: **47 passed across 4 files**.
+- Full suite: **263 passed across 22 files**.
+- Production build: clean; PWA precache **430.05 KiB**.
+- Search ordering was proved by temporarily applying alphabetical order to merged search rows; the
+  relevance assertion failed and passed again after restoration. Dictionary gating was proved by
+  temporarily allowing maintenance views to request dictionary results; the seeded installed
+  dictionary row appeared, the assertion failed, and the restored gate passed.
+- There is no lint or type-check script in `package.json`.
+
+## Browser verification
+
+Verified in the in-app browser at a **375 × 812 px** viewport with disposable personal entries and
+the local 10,278-entry dictionary. This did not use or expose the owner's real browser data.
+
+- Recently added, A–Z and recently touched each produced the expected distinct order after editing an
+  older entry. Searching `zorro` kept the exact personal result ahead of a page body match and showed
+  the disabled **Search relevance** order.
+- Exact tag spellings `Mexico` and `mexico` remained separate with counts of one. Selecting `Mexico`
+  showed only its matching entry; changing to the phrase type cleared that now-impossible selection.
+  Search text did not alter the contextual tag choices or their counts.
+- **No links** correctly excluded a word with a backlink from a page even while pages were hidden by
+  the word type filter. Missing-meaning and missing-example views selected their expected personal
+  subsets.
+- A normal `casa` search showed installed dictionary rows. Switching to a maintenance view while the
+  query remained active removed them immediately and they stayed absent after the asynchronous read
+  settled; the empty message contained no misleading dictionary prompt.
+- Leaving Cuaderno for Ajustes and returning reset View, Order and Tag to their defaults. A deliberately
+  long tag remained inside the 375 px viewport. Every checked state had equal document `scrollWidth`
+  and `clientWidth`.
+- The browser console returned **no warnings or errors** after the complete flow.

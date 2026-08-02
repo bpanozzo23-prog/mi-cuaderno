@@ -22,7 +22,14 @@ function Hint({ icon: Icon, children }) {
   );
 }
 
-export default function EmptyState({ hasItems, searching, query, dictionary, onOpenSettings }) {
+export default function EmptyState({
+  hasItems,
+  searching,
+  query,
+  dictionary,
+  dictionaryEligible = true,
+  onOpenSettings,
+}) {
   const installed = Boolean(dictionary);
   const wordCount = dictionary?.counts?.entries?.toLocaleString();
 
@@ -32,7 +39,7 @@ export default function EmptyState({ hasItems, searching, query, dictionary, onO
         <div className="text-sm" style={{ color: C.mut }}>
           Nothing matches “{query.trim()}”.
         </div>
-        {!installed && (
+        {dictionaryEligible && !installed && (
           <div className="space-y-2.5 pt-1">
             <Hint icon={BookMarked}>
               The dictionary is not on this device yet — that is where most words live. It is a one-time
@@ -56,7 +63,7 @@ export default function EmptyState({ hasItems, searching, query, dictionary, onO
 
         <div className="mt-4 space-y-2.5 max-w-xs mx-auto">
           <Hint icon={Plus}>Add a word, a phrase or a page with the + button.</Hint>
-          {installed ? (
+          {dictionaryEligible && (installed ? (
             <Hint icon={Search}>
               Or look something up — {wordCount} words are on this device. Try <em>casa</em>, an inflected
               form like <em>tuvimos</em>, or an English meaning like <em>take out</em>.
@@ -66,10 +73,10 @@ export default function EmptyState({ hasItems, searching, query, dictionary, onO
               Or download the dictionary once and look up thousands of words offline, conjugations and
               examples included.
             </Hint>
-          )}
+          ))}
         </div>
 
-        {!installed && (
+        {dictionaryEligible && !installed && (
           <div className="mt-4">
             <Button onClick={onOpenSettings}>
               <Download size={15} /> Get the dictionary

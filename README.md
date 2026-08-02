@@ -28,8 +28,8 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   suggestions remain deferred. See
   [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).
 - **Phase 5 — active development.** Organizational improvements that do not require real notebook
-  data; navigation continuity (5a) and organizational derivations (5b) are complete, with
-  Cuaderno retrieval controls (5c) next.
+  data; navigation continuity (5a), organizational derivations (5b), and Cuaderno retrieval
+  controls (5c) are complete, with activity navigation (5d) next.
   Its planned work is kept separate from Phase 4's friction-only maintenance stream. See
   [docs/PHASE-5-DIRECTION.md](docs/PHASE-5-DIRECTION.md) and
   [docs/PHASE-5-REPORT.md](docs/PHASE-5-REPORT.md).
@@ -41,7 +41,7 @@ brief §5's migration plan and export-first reminder have never been triggered.
 ## Testing
 
 ```
-npm test        # Vitest — 258 tests over the data layer, UI navigation, search, review, linking and the pipeline
+npm test        # Vitest — 263 tests over the data layer, UI navigation, search, review, linking and the pipeline
 ```
 
 The database tests run the real Dexie code against an in-memory IndexedDB
