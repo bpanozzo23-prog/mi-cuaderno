@@ -212,3 +212,72 @@ the local 10,278-entry dictionary. This did not use or expose the owner's real b
   long tag remained inside the 375 px viewport. Every checked state had equal document `scrollWidth`
   and `clientWidth`.
 - The browser console returned **no warnings or errors** after the complete flow.
+
+---
+
+# Part four — 5d actionable activity and consistent labels (2026-08-02)
+
+## Status
+
+Sub-phase 5d is **complete**. Recent activity now reopens destinations that still exist, handles
+dictionary history through the reference-data seam, leaves unavailable history static, and uses
+labels that remain true when the personal item is a page.
+
+`SCHEMA_VERSION` remains **1**. No item, event, database, backup, preference, dictionary or
+browser-storage shape changed. Dictionary aliases affect only the destination opened from a row;
+the append-only historical event keeps the key it originally recorded.
+
+## What 5d does
+
+- A known activity event for a surviving personal item is a full-width button that opens that item
+  through `App`'s existing selection path. The destination becomes a root Cuaderno detail with
+  **Todo el cuaderno**, preserving 5a's session-only navigation rules.
+- Recent dictionary keys resolve asynchronously through the existing installed/alias/orphan seam.
+  Direct and aliased entries show their lemma and open the current canonical entry. An installed
+  orphan says **reference unavailable**; a reference on a device without the dictionary remains a
+  neutral **dictionary entry**. Neither state is called deleted or rendered as a broken button.
+- Search misses and history belonging to deleted personal items remain visible and non-actionable.
+- Unknown event types are ignored before selecting the twelve newest recognized events, so a future
+  event neither leaks an internal label nor crowds known activity out of the feed.
+- Mixed personal-item view language is now **opened/opens**, **Most opened**, and **Highlighted
+  items**. Detail metadata uses the same language. Word-specific review scheduling and dictionary
+  suggestions retain their accurate lexical-only wording.
+
+## Files
+
+- `src/components/Repaso.jsx` — activity filtering, dictionary resolution, actionable/static row
+  rendering, canonical navigation and mixed-item labels.
+- `src/components/Repaso.test.jsx` — focused personal, deleted, search-miss, direct dictionary,
+  alias, orphan, not-installed and unknown-event contracts.
+- `src/components/Detail.jsx` and `src/components/Detail.test.jsx` — page-safe open-count wording and
+  its component check.
+
+## Automated verification
+
+- Focused activity/detail tests: **10 passed across 2 files**.
+- Full suite: **269 passed across 23 files**.
+- Production build: clean; PWA precache **431.00 KiB**.
+- The alias-navigation test was proved rather than trusted: temporarily navigating with the stale
+  event key made the test fail with `dict:wiktionary-es:casa:noun:old`; restoring canonical-key
+  navigation returned the focused and full suites to green.
+- An initial full-suite run was made concurrently with the production build; an unrelated 5c
+  asynchronous test exceeded its five-second limit under that CPU contention. Rerunning the full
+  suite by itself passed all 269 tests, and the build then passed separately.
+- There is no lint or type-check script in `package.json`.
+
+## Browser verification
+
+Verified in the in-app browser at a **375 × 812 px** viewport with disposable fixture data in its
+separate profile. This did not use or expose the owner's real browser data.
+
+- Existing page and lexical activity rows reopened **Aardvark source** and **zorro** as root
+  Cuaderno details; each showed **Todo el cuaderno** and the generalized **opened N×** metadata.
+- Seeded direct and aliased dictionary events both rendered as **Opened casa**. Opening the newer
+  aliased row reached the canonical `casa` dictionary detail. A seeded missing key rendered
+  **Opened (reference unavailable)** without a chevron or button, and a seeded unknown event did
+  not appear.
+- The existing **Couldn't find “casa”** search miss remained a static row while active destinations
+  showed chevrons and responded to taps.
+- The Repaso feed and dictionary detail had no horizontal overflow: document `scrollWidth` equaled
+  `clientWidth` in both checked states at the phone viewport.
+- The browser console returned **no warnings or errors** after the complete flow.

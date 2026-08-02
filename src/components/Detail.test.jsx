@@ -30,13 +30,14 @@ afterEach(cleanup);
  * Mounts Detail the way Cuaderno does, and — like Cuaderno — re-reads items from the
  * database when the screen reports a change, keeping the same `item.id` throughout.
  */
-function renderDetail(item, onOpen = vi.fn()) {
+function renderDetail(item, onOpen = vi.fn(), state) {
   function Harness() {
     const [items, setItems] = useState([item]);
     const current = items.find((i) => i.id === item.id) || item;
     return (
       <Detail
         item={current}
+        state={state}
         items={items}
         onBack={vi.fn()}
         onOpen={onOpen}
@@ -46,6 +47,17 @@ function renderDetail(item, onOpen = vi.fn()) {
   }
   return render(<Harness />);
 }
+
+describe("labels shared by lexical items and pages", () => {
+  it("describes a page view count as opens rather than lookups", async () => {
+    const page = await createItem(newPage({ title: "Study source" }));
+
+    renderDetail(page, vi.fn(), { views: 2, lastViewedAt: null, tricky: false });
+
+    expect(screen.getByText("opened 2×")).toBeTruthy();
+    expect(screen.queryByText(/lookups?/i)).toBeNull();
+  });
+});
 
 describe("quick-create-and-link keeps the owner where they are", () => {
   it("creates, links, and leaves an unsaved draft untouched without navigating", async () => {

@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { Highlighter, SearchX, Play, CheckCircle2, Eye } from "lucide-react";
+import { Highlighter, SearchX, Play, CheckCircle2, Eye, ChevronRight } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button } from "../theme.jsx";
 import ItemCard from "./ItemCard.jsx";
 import ReviewSession from "./ReviewSession.jsx";
 import { EVENT_TYPES } from "../db/events.js";
 import { createItem, newLexicalFromEntry } from "../db/items.js";
-import { getEntries } from "../db/ref/entries.js";
+import {
+  dictionaryInstalled,
+  getEntries,
+  isDictKey,
+  resolveEntry,
+} from "../db/ref/entries.js";
 import { emptyItemState } from "../useNotebook.js";
 import { timeAgo } from "../lib/dates.js";
 import { deriveReviewState, deriveDictSuggestions } from "../lib/review.js";
@@ -18,13 +23,21 @@ import { deriveReviewState, deriveDictSuggestions } from "../lib/review.js";
 const ACTIVITY_LABEL = {
   [EVENT_TYPES.create]: "Added",
   [EVENT_TYPES.edit]: "Edited",
-  [EVENT_TYPES.view]: "Looked up",
+  [EVENT_TYPES.view]: "Opened",
   [EVENT_TYPES.delete]: "Deleted",
   [EVENT_TYPES.trickyOn]: "Highlighted",
   [EVENT_TYPES.trickyOff]: "Unhighlighted",
   [EVENT_TYPES.reviewPass]: "Reviewed",
   [EVENT_TYPES.reviewFail]: "Missed in review",
 };
+
+const KNOWN_ACTIVITY_TYPES = new Set([
+  ...Object.keys(ACTIVITY_LABEL),
+  EVENT_TYPES.searchMiss,
+]);
+
+const itemHeading = (item) =>
+  item.type === "page" ? item.title || "Untitled page" : item.term;
 
 function Stat({ label, value }) {
   return (
@@ -102,7 +115,7 @@ export default function Repaso({ notebook, onSelect }) {
     [items, itemState]
   );
 
-  const mostLookedUp = useMemo(
+  const mostOpened = useMemo(
     () =>
       items
         .map((item) => ({ item, views: itemState.get(item.id)?.views || 0 }))
@@ -112,7 +125,7 @@ export default function Repaso({ notebook, onSelect }) {
     [items, itemState]
   );
 
-  const totalLookups = useMemo(
+  const totalOpens = useMemo(
     () => [...itemState.values()].reduce((sum, s) => sum + s.views, 0),
     [itemState]
   );
@@ -128,8 +141,60 @@ export default function Repaso({ notebook, onSelect }) {
     return [...seen.values()].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 8);
   }, [events]);
 
-  // Newest first; an event whose item is gone still shows, marked as deleted.
-  const recent = useMemo(() => [...events].reverse().slice(0, 12), [events]);
+  // Newest first. Unknown future event types are ignored before applying the limit,
+  // as brief section 7 requires of every event consumer.
+  const recent = useMemo(
+    () => [...events].reverse().filter((event) => KNOWN_ACTIVITY_TYPES.has(event.type)).slice(0, 12),
+    [events]
+  );
+
+  // Dictionary activity is not a missing personal item. Resolve it through the same
+  // alias/orphan seam used by attachments and linked entries, but never rewrite an event:
+  // the append-only log records the key that was actually opened at the time.
+  const recentDictKeys = useMemo(
+    () => [...new Set(recent.map((event) => event.itemKey).filter(isDictKey))],
+    [recent]
+  );
+  const [activityEntries, setActivityEntries] = useState(new Map());
+
+  useEffect(() => {
+    let alive = true;
+    setActivityEntries(new Map(recentDictKeys.map((key) => [key, { state: "loading" }])));
+
+    if (!recentDictKeys.length) return () => {
+      alive = false;
+    };
+
+    (async () => {
+      if (!(await dictionaryInstalled())) {
+        if (alive) {
+          setActivityEntries(
+            new Map(recentDictKeys.map((key) => [key, { state: "not-installed" }]))
+          );
+        }
+        return;
+      }
+
+      const resolved = await Promise.all(
+        recentDictKeys.map(async (key) => [key, await resolveEntry(key)])
+      );
+      if (!alive) return;
+      setActivityEntries(
+        new Map(
+          resolved.map(([key, result]) => [
+            key,
+            result.entry
+              ? { state: "resolved", entry: result.entry }
+              : { state: "orphaned" },
+          ])
+        )
+      );
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [recentDictKeys]);
 
   function startSession() {
     setSessionCards(review.due.map((item) => ({ ...item, ...review.states.get(item.id) })));
@@ -219,16 +284,16 @@ export default function Repaso({ notebook, onSelect }) {
 
       <div className="grid grid-cols-3 gap-2 mt-6">
         <Stat label="items" value={items.length} />
-        <Stat label="lookups" value={totalLookups} />
+        <Stat label="opens" value={totalOpens} />
         <Stat label="tricky" value={tricky.length} />
       </div>
 
-      <SectionTitle>Tricky words</SectionTitle>
+      <SectionTitle>Highlighted items</SectionTitle>
       {tricky.length === 0 ? (
         <Card>
           <div className="text-sm flex items-start gap-2" style={{ color: C.mut }}>
             <Highlighter size={15} style={{ marginTop: 2 }} />
-            Nothing highlighted yet. Use the highlighter on anything you keep forgetting.
+            Nothing highlighted yet. Use the highlighter on any item you want to revisit.
           </div>
         </Card>
       ) : (
@@ -244,16 +309,16 @@ export default function Repaso({ notebook, onSelect }) {
         </div>
       )}
 
-      <SectionTitle>Most looked up</SectionTitle>
-      {mostLookedUp.length === 0 ? (
+      <SectionTitle>Most opened</SectionTitle>
+      {mostOpened.length === 0 ? (
         <Card>
           <div className="text-sm" style={{ color: C.mut }}>
-            Lookup counts appear as you use the cuaderno.
+            Open counts appear as you use the cuaderno.
           </div>
         </Card>
       ) : (
         <div className="rounded-xl border divide-y" style={{ background: C.card, borderColor: C.line }}>
-          {mostLookedUp.map(({ item, views }) => (
+          {mostOpened.map(({ item, views }) => (
             <button
               key={item.id}
               onClick={() => onSelect(item.id)}
@@ -301,24 +366,53 @@ export default function Repaso({ notebook, onSelect }) {
         )}
         {recent.map((event) => {
           const item = event.itemKey ? byId.get(event.itemKey) : null;
-          const label = ACTIVITY_LABEL[event.type] || event.type;
-          const what =
-            event.type === EVENT_TYPES.searchMiss
-              ? `“${event.metadata?.query ?? ""}”`
-              : item
-                ? item.type === "page"
-                  ? item.title
-                  : item.term
-                : "(deleted)";
-          return (
-            <div key={event.id} className="px-4 py-2.5 flex justify-between items-baseline gap-3 text-sm">
+          const dictionary = isDictKey(event.itemKey)
+            ? activityEntries.get(event.itemKey)
+            : null;
+          const targetKey = item?.id || dictionary?.entry?.id || null;
+          const label =
+            event.type === EVENT_TYPES.searchMiss ? "Couldn't find" : ACTIVITY_LABEL[event.type];
+          const what = event.type === EVENT_TYPES.searchMiss
+            ? `“${event.metadata?.query ?? ""}”`
+            : item
+              ? itemHeading(item)
+              : dictionary?.state === "resolved"
+                ? dictionary.entry.lemma
+                : isDictKey(event.itemKey)
+                  ? dictionary?.state === "orphaned"
+                    ? "(reference unavailable)"
+                    : "(dictionary entry)"
+                  : event.type === EVENT_TYPES.delete
+                    ? "item"
+                    : "(deleted item)";
+          const content = (
+            <>
               <span style={{ color: C.ink }} className="min-w-0 truncate">
-                {event.type === EVENT_TYPES.searchMiss ? "Couldn't find" : label}{" "}
+                {label}{" "}
                 <span style={{ fontFamily: SERIF, fontWeight: 600 }}>{what}</span>
               </span>
-              <span className="text-xs shrink-0" style={{ fontFamily: MONO, color: C.mut }}>
-                {timeAgo(event.at)}
+              <span
+                className="text-xs shrink-0 inline-flex items-center gap-1"
+                style={{ fontFamily: MONO, color: C.mut }}
+              >
+                {timeAgo(event.at)} {targetKey && <ChevronRight size={13} />}
               </span>
+            </>
+          );
+          return targetKey ? (
+            <button
+              key={event.id}
+              onClick={() => onSelect(targetKey)}
+              className="w-full px-4 py-2.5 flex justify-between items-center gap-3 text-sm text-left"
+            >
+              {content}
+            </button>
+          ) : (
+            <div
+              key={event.id}
+              className="px-4 py-2.5 flex justify-between items-center gap-3 text-sm"
+            >
+              {content}
             </div>
           );
         })}

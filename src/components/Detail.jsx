@@ -116,7 +116,7 @@ export default function Detail({
     );
   }, [item.id]);
 
-  // A lookup is recorded when the owner intentionally opens an item — keyed on
+  // An open is recorded when the owner intentionally opens an item — keyed on
   // item.id alone, so rerenders and edits within this screen never re-fire it.
   // logView itself decides whether this counts as a new lookup; the refresh is
   // not tied to this component still being mounted, because the effect may be
@@ -268,7 +268,7 @@ export default function Detail({
           <>
             <div className="mt-3 flex items-center gap-4 text-xs" style={{ fontFamily: MONO, color: C.mut }}>
               <span className="inline-flex items-center gap-1">
-                <Eye size={12} /> {state.views} {state.views === 1 ? "lookup" : "lookups"}
+                <Eye size={12} /> opened {state.views}×
               </span>
               {state.lastViewedAt && (
                 <span className="inline-flex items-center gap-1">
