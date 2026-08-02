@@ -84,3 +84,53 @@ dictionary installation. This did not use or expose the owner's real browser dat
 The initial browser URL-policy denial was retried after browser access was corrected; the same
 development URL then loaded and was fully controllable. The disposable entries and replaceable
 dictionary remain only in the in-app browser's test profile.
+
+---
+
+# Part two — 5b organizational derivations (2026-08-02)
+
+## Status
+
+Sub-phase 5b is **complete**. It defines the pure organizational behavior that 5c will expose in
+Cuaderno; 5b itself makes no visible application change. `SCHEMA_VERSION` remains **1**, and no
+item, event, database, backup, preference, component or browser-storage shape changed.
+
+## What 5b defines
+
+- Browse ordering has three choices: recently touched copies the current `allItems()` order,
+  recently added sorts a copy by `createdAt`, and A–Z uses Spanish collation across lexical terms
+  and page titles. An untitled page sorts by the same **Untitled page** fallback shown in the UI.
+- Every order works on a fresh array. The shared `notebook.items` recency order remains intact for
+  the empty-query link picker, and search results remain under brief §8 relevance ordering.
+- Maintenance views select lexical items without a meaning, lexical items without personal
+  examples, or items without stored links or derived backlinks. They are derived from the full
+  notebook before a later type filter so a hidden page's backlink still counts.
+- A dictionary key in `linkedKeys[]` is a link. A lexical item's `dictKey` is still the separate
+  personal/reference attachment and does not by itself make that item linked.
+- Contextual tag counts preserve exact stored spelling, count each item once per tag, and are
+  intended to run after type/maintenance filtering but before the selected tag narrows cards.
+
+## Files
+
+- `src/lib/organization.js` — pure browse-order, maintenance-view and contextual tag-count
+  derivations.
+- `src/lib/organization.test.js` — focused contracts for ordering, immutability, link/backlink
+  boundaries, maintenance subsets and exact tag counts.
+
+## Automated verification
+
+- Focused tests: `src/lib/organization.test.js` — **12 passed**.
+- Full suite: **258 passed across 21 files**.
+- Production build: clean; PWA precache **427.10 KiB**.
+- The backlink test was proved rather than trusted: temporarily omitting the derived-backlink
+  check made the cross-type case fail by incorrectly including `linked-word`. The implementation
+  was restored and the focused and full suites rerun green.
+- An independent read-only review found no correctness or architecture gaps.
+- There is no lint or type-check script in `package.json`.
+
+## Browser verification
+
+No browser pass applies to 5b: the phase-wide criterion requires seeded 375 px checks for visible
+sub-phases, while this slice only adds unreferenced pure helpers and tests. It changes no rendered
+component, runtime navigation, storage or browser interaction. The first visible consumer is 5c,
+which will receive the full 375 px overflow, interaction and console check.
