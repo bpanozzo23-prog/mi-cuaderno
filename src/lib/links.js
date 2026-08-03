@@ -1,6 +1,7 @@
 import { normalize } from "./normalize.js";
 import { TIER } from "./search.js";
 import { meaningGlossText } from "./meanings.js";
+import { effectivePageKind, PAGE_KINDS } from "./pageProfiles.js";
 
 /**
  * Links, derived (brief section 7).
@@ -65,7 +66,7 @@ export const GROUPS = {
 
 const groupOf = (item) => {
   if (item.type !== "page") return GROUPS.palabras;
-  return item.pageDate ? GROUPS.diario : GROUPS.paginas;
+  return effectivePageKind(item) === PAGE_KINDS.journal ? GROUPS.diario : GROUPS.paginas;
 };
 
 /** Most recently updated first. ISO-8601 strings sort correctly as strings (Phase 1a). */

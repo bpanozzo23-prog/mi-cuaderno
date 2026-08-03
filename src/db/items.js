@@ -1,9 +1,11 @@
 import { db } from "./db.js";
 import { logEvent, EVENT_TYPES } from "./events.js";
-import { newUserKey } from "../lib/ids.js";
+import { isUserKey, newUserKey } from "../lib/ids.js";
 import { nowIso } from "../lib/dates.js";
 import { requestPersistence } from "../lib/persistence.js";
 import { cleanMeanings, newMeaning } from "../lib/meanings.js";
+import { pruneCollectionItemKeys, validateCollectionGroups } from "../lib/collections.js";
+import { isPageProfile, PAGE_PROFILES, PINNED_PAGE_IDS_PREF } from "../lib/pageProfiles.js";
 
 /**
  * Personal-layer CRUD (brief section 7). Every mutation logs its event, because
@@ -69,10 +71,16 @@ export function newPage({
   title,
   body = "",
   pageDate = null,
+  pageProfile = PAGE_PROFILES.general,
+  collection = { groups: [] },
   tags = [],
   mediaLinks = [],
   linkedKeys = [],
 } = {}) {
+  if (!isPageProfile(pageProfile)) throw new Error("Page profile must be general or collection.");
+  const groups = validateCollectionGroups(collection?.groups ?? [], {
+    allowedItemKeys: (linkedKeys || []).filter(isUserKey),
+  });
   const at = nowIso();
   return {
     id: newUserKey(),
@@ -80,6 +88,8 @@ export function newPage({
     title: String(title || "").trim(),
     body,
     pageDate: pageDate || null,
+    pageProfile,
+    collection: { groups },
     tags: cleanTags(tags),
     linkedKeys,
     mediaLinks,
@@ -123,16 +133,36 @@ export async function updateItem(id, patch, { logEdit = true } = {}) {
  * events stay in the log but are excluded from queues and statistics.
  */
 export async function deleteItem(id) {
-  await db.transaction("rw", db.items, async () => {
-    const linkers = await db.items.where("linkedKeys").equals(id).toArray();
+  await db.transaction("rw", db.items, db.prefs, async () => {
+    // A layout reference is not authoritative, but it must still be cleaned even if an older
+    // or malformed row has already lost the matching link. The personal notebook is small, so
+    // one scan makes that dormant-metadata cleanup reliable.
+    const candidates = await db.items.toArray();
+    const linkers = candidates.filter((item) => {
+      if (item.id === id) return false;
+      if ((item.linkedKeys || []).includes(id)) return true;
+      return item.type === "page" && (item.collection?.groups || []).some((group) =>
+        (group.itemKeys || []).includes(id)
+      );
+    });
     await Promise.all(
-      linkers.map((item) =>
-        db.items.update(item.id, {
-          linkedKeys: item.linkedKeys.filter((key) => key !== id),
+      linkers.map((item) => {
+        const next = {
+          linkedKeys: (item.linkedKeys || []).filter((key) => key !== id),
           updatedAt: nowIso(),
-        })
-      )
+        };
+        if (item.type === "page") {
+          const pruned = pruneCollectionItemKeys(item, [id]);
+          if (pruned.changed) next.collection = pruned.collection;
+        }
+        return db.items.update(item.id, next);
+      })
     );
+
+    const pinned = await db.prefs.get(PINNED_PAGE_IDS_PREF);
+    if (Array.isArray(pinned?.value) && pinned.value.includes(id)) {
+      await db.prefs.put({ ...pinned, value: pinned.value.filter((pageId) => pageId !== id) });
+    }
     await db.items.delete(id);
   });
   await logEvent(EVENT_TYPES.delete, id);
@@ -154,12 +184,22 @@ export async function unlinkItems(fromId, toKey) {
   const item = await db.items.get(fromId);
   if (!item) return item;
   if (item.linkedKeys.includes(toKey)) {
-    return updateItem(fromId, { linkedKeys: item.linkedKeys.filter((k) => k !== toKey) }, { logEdit: false });
+    const patch = { linkedKeys: item.linkedKeys.filter((k) => k !== toKey) };
+    if (item.type === "page") {
+      const pruned = pruneCollectionItemKeys(item, [toKey]);
+      if (pruned.changed) patch.collection = pruned.collection;
+    }
+    return updateItem(fromId, patch, { logEdit: false });
   }
   // The link may have been made from the other side; remove it there.
   const other = await db.items.get(toKey);
   if (other?.linkedKeys.includes(fromId)) {
-    return updateItem(toKey, { linkedKeys: other.linkedKeys.filter((k) => k !== fromId) }, { logEdit: false });
+    const patch = { linkedKeys: other.linkedKeys.filter((k) => k !== fromId) };
+    if (other.type === "page") {
+      const pruned = pruneCollectionItemKeys(other, [fromId]);
+      if (pruned.changed) patch.collection = pruned.collection;
+    }
+    return updateItem(toKey, patch, { logEdit: false });
   }
   return item;
 }

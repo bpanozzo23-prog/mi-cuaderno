@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { db, clearAllPersonalData } from "./db.js";
+import { db, clearAllPersonalData, getPref, setPref } from "./db.js";
 import {
   newLexical,
   newLexicalFromEntry,
@@ -14,6 +14,9 @@ import {
 import { allEvents, EVENT_TYPES } from "./events.js";
 import { localDate } from "../lib/dates.js";
 import { newMeaning } from "../lib/meanings.js";
+import { PINNED_PAGE_IDS_PREF } from "../lib/pageProfiles.js";
+
+const GROUP_ID = "page-group:11111111-1111-4111-8111-111111111111";
 
 beforeEach(async () => {
   await db.open();
@@ -102,12 +105,36 @@ describe("pages", () => {
     expect(stored.type).toBe("page");
     expect(stored.title).toBe("Preterite vs imperfect");
     expect(stored.pageDate).toBe("2026-07-30");
+    expect(stored.pageProfile).toBe("general");
+    expect(stored.collection).toEqual({ groups: [] });
     expect(displayTitle(stored)).toBe("Preterite vs imperfect");
   });
 
   it("leaves pageDate null when it is not a journal entry", async () => {
     const page = await createItem(newPage({ title: "Ser vs estar" }));
     expect((await getItem(page.id)).pageDate).toBeNull();
+  });
+
+  it("stores validated editable starter groups on a new Collection", async () => {
+    const page = await createItem(
+      newPage({
+        title: "Conversation",
+        pageProfile: "collection",
+        collection: { groups: [{ id: GROUP_ID, name: "  Questions  ", itemKeys: [] }] },
+      })
+    );
+    expect(await getItem(page.id)).toMatchObject({
+      pageProfile: "collection",
+      collection: { groups: [{ id: GROUP_ID, name: "Questions", itemKeys: [] }] },
+    });
+  });
+
+  it("rejects a saved group reference that is not also an outgoing page link", () => {
+    expect(() => newPage({
+      title: "Conversation",
+      pageProfile: "collection",
+      collection: { groups: [{ id: GROUP_ID, name: "Questions", itemKeys: ["user:missing"] }] },
+    })).toThrow(/current Collection members/i);
   });
 });
 
@@ -144,6 +171,43 @@ describe("deleting", () => {
     expect(events.map((e) => e.type)).toEqual([EVENT_TYPES.create, EVENT_TYPES.delete]);
     // The history survives even though the item does not.
     expect(events.every((e) => e.itemKey === item.id)).toBe(true);
+  });
+
+  it("prunes active or dormant Collection layout and a deleted page's pin", async () => {
+    const lexical = await createItem(newLexical({ term: "hola" }));
+    const page = await createItem(
+      newPage({
+        title: "Conversation",
+        pageProfile: "general",
+        linkedKeys: [lexical.id],
+        collection: { groups: [{ id: GROUP_ID, name: "Questions", itemKeys: [lexical.id] }] },
+      })
+    );
+    await setPref(PINNED_PAGE_IDS_PREF, [page.id]);
+
+    await deleteItem(lexical.id);
+    expect((await getItem(page.id)).linkedKeys).toEqual([]);
+    expect((await getItem(page.id)).collection.groups[0].itemKeys).toEqual([]);
+
+    await deleteItem(page.id);
+    expect(await getPref(PINNED_PAGE_IDS_PREF)).toEqual([]);
+  });
+
+  it("prunes a dormant layout reference even when its authoritative link was already absent", async () => {
+    const lexical = await createItem(newLexical({ term: "hola" }));
+    const page = await createItem(
+      newPage({
+        title: "Conversation",
+        linkedKeys: [lexical.id],
+        collection: { groups: [{ id: GROUP_ID, name: "Questions", itemKeys: [lexical.id] }] },
+      })
+    );
+    // Simulate an older/malformed row that lost its authoritative link before cleanup existed.
+    await db.items.update(page.id, { linkedKeys: [] });
+
+    await deleteItem(lexical.id);
+
+    expect((await getItem(page.id)).collection.groups[0].itemKeys).toEqual([]);
   });
 });
 

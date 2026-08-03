@@ -118,6 +118,21 @@ describe("the seam: one list across both layers (§8)", () => {
     expect(merged).toHaveLength(1);
   });
 
+  it("reuses an attachment through a dictionary alias after a dataset rename", async () => {
+    const oldKey = "dict:wiktionary-es:sacar:verb:1";
+    const currentKey = "dict:wiktionary-es:sacar:verb";
+    const attached = [newLexical({ term: "sacar", dictKey: oldKey })];
+    const merged = mergeResults(
+      searchItems(attached, "sacar"),
+      await searchDictionary("sacar"),
+      attached,
+      { previousIds: { [oldKey]: currentKey } }
+    );
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0]).toMatchObject({ kind: "item", item: { id: attached[0].id } });
+  });
+
   it("finds the owner's own word through an inflection the personal layer cannot resolve", async () => {
     // The notebook has no idea "fui" relates to "ir"; the reference layer does, and the
     // item is attached to that entry — so their note surfaces, labelled with the reason.

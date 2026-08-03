@@ -84,8 +84,18 @@ export async function logReview(itemKey, passed, when = new Date()) {
   );
 }
 
-export async function toggleTricky(itemKey, currentlyTricky) {
-  return logEvent(currentlyTricky ? EVENT_TYPES.trickyOff : EVENT_TYPES.trickyOn, itemKey);
+export async function toggleTricky(itemKey, currentlyTricky, when = new Date()) {
+  return db.transaction("rw", db.events, async () => {
+    const previous = await db.events.where("itemKey").equals(itemKey).toArray();
+    const latestTrickyMs = previous
+      .filter((event) => event.type === EVENT_TYPES.trickyOn || event.type === EVENT_TYPES.trickyOff)
+      .reduce((latest, event) => Math.max(latest, Date.parse(event.at)), Number.NEGATIVE_INFINITY);
+    const requestedMs = when.getTime();
+    // ISO timestamps have millisecond precision. Keep consecutive toggles strictly ordered so
+    // an immediate on→off sequence cannot be reconstructed in primary-key order by accident.
+    const effectiveWhen = new Date(requestedMs <= latestTrickyMs ? latestTrickyMs + 1 : requestedMs);
+    return logEvent(currentlyTricky ? EVENT_TYPES.trickyOff : EVENT_TYPES.trickyOn, itemKey, null, effectiveWhen);
+  });
 }
 
 export async function eventsFor(itemKey) {

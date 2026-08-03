@@ -101,6 +101,17 @@ describe("tricky state is derived, never stored", () => {
     expect(stored.struggling).toBeUndefined();
     expect(stored.tricky).toBeUndefined();
   });
+
+  it("keeps rapid toggles ordered when the clock has not advanced a millisecond", async () => {
+    const item = await createItem(newLexical({ term: "pues" }));
+    const sameInstant = new Date("2026-08-03T20:00:00.000Z");
+
+    const on = await toggleTricky(item.id, false, sameInstant);
+    const off = await toggleTricky(item.id, true, sameInstant);
+
+    expect(off.at > on.at).toBe(true);
+    expect(await isTricky(item.id)).toBe(false);
+  });
 });
 
 describe("every review event carries a grade", () => {

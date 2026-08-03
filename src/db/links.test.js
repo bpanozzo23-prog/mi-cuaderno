@@ -13,6 +13,8 @@ import {
 import { newMeaning } from "../lib/meanings.js";
 import { allEvents, EVENT_TYPES } from "./events.js";
 
+const GROUP_ID = "page-group:11111111-1111-4111-8111-111111111111";
+
 beforeEach(async () => {
   await db.open();
   await clearAllPersonalData();
@@ -68,6 +70,24 @@ describe("links are stored once and read in both directions", () => {
 
     expect((await getItem(page.id)).linkedKeys).not.toContain(preterite.id);
     expect(await backlinksFor(preterite.id)).toEqual([]);
+  });
+
+  it("unlinks from either side and prunes dormant Collection placement", async () => {
+    const lexical = await createItem(newLexical({ term: "hola" }));
+    const page = await createItem(
+      newPage({
+        title: "Conversation",
+        pageProfile: "general",
+        linkedKeys: [lexical.id],
+        collection: { groups: [{ id: GROUP_ID, name: "Questions", itemKeys: [lexical.id] }] },
+      })
+    );
+
+    // Asked from the lexical side even though the page owns the link and the dormant layout.
+    await unlinkItems(lexical.id, page.id);
+
+    expect((await getItem(page.id)).linkedKeys).toEqual([]);
+    expect((await getItem(page.id)).collection.groups[0].itemKeys).toEqual([]);
   });
 
   it("does not log an edit event for linking, which is bookkeeping rather than content", async () => {

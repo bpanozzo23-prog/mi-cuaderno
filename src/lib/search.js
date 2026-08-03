@@ -141,17 +141,20 @@ export function searchItems(items, query) {
  * `items` is every personal item, not just the ones that matched, because an item can only
  * be promoted this way if we can see it.
  */
-export function mergeResults(personal, dictionary, items = []) {
+export function mergeResults(personal, dictionary, items = [], { previousIds = {} } = {}) {
   const byDictKey = new Map();
   for (const item of items) {
-    if (item.dictKey && !byDictKey.has(item.dictKey)) byDictKey.set(item.dictKey, item);
+    if (!item.dictKey) continue;
+    if (!byDictKey.has(item.dictKey)) byDictKey.set(item.dictKey, item);
+    const canonicalKey = previousIds?.[item.dictKey];
+    if (canonicalKey && !byDictKey.has(canonicalKey)) byDictKey.set(canonicalKey, item);
   }
 
   const rows = personal.map((r) => ({ ...r, kind: "item", key: r.item.id, source: 0 }));
   const alreadyListed = new Set(personal.map((r) => r.item.id));
 
   for (const result of dictionary) {
-    const attached = byDictKey.get(result.entry.id);
+    const attached = byDictKey.get(result.entry.id) || byDictKey.get(previousIds?.[result.entry.id]);
     if (!attached) {
       rows.push({ ...result, kind: "entry", key: result.entry.id, source: 1 });
       continue;
