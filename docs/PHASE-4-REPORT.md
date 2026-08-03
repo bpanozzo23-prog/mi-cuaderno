@@ -306,3 +306,11 @@ its separate profile. This did not use or expose the owner's real browser data.
 
 The disposable database was removed afterwards, the temporary viewport override was reset, and the
 test tab and development server were closed.
+
+## Deployment closeout
+
+Commit `7b25b01` was fast-forwarded to `main` and deployed successfully by GitHub Pages workflow
+[30783910196](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/30783910196). A production
+smoke test at the public site used a **375 × 812 px** viewport in the in-app browser's separate
+profile: the app loaded normally, Ajustes reported **data schema v2**, document `scrollWidth`
+equaled `clientWidth`, and the console returned no warnings or errors.

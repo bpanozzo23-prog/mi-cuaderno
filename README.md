@@ -27,7 +27,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   See [docs/PHASE-3-REPORT.md](docs/PHASE-3-REPORT.md).
 - **Phase 4 — ongoing maintenance.** Live-use polish driven only by friction observed in daily use.
   The linking package (4a–4e) and first friction batch (4f–4h) shipped. Structured personal
-  meanings (4i) are complete and browser-verified; exact term/title link suggestions remain
+  meanings (4i) are shipped and browser-verified; exact term/title link suggestions remain
   deferred. See
   [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).
 - **Phase 5 — done.** Organizational improvements that do not require real notebook data:
