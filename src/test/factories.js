@@ -33,6 +33,8 @@ export function makePage(overrides = {}) {
     title: "Preterite vs imperfect",
     body: "",
     pageDate: null,
+    pageProfile: "general",
+    collection: { groups: [] },
     tags: [],
     linkedKeys: [],
     mediaLinks: [],

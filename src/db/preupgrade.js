@@ -1,10 +1,10 @@
 import Dexie from "dexie";
-import { APP_VERSION } from "../version.js";
+import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
 import { nowIso } from "../lib/dates.js";
 import { BACKUP_FORMAT, LAST_BACKUP_PREF, validateBackup } from "./backup.js";
 
 const DATABASE_NAME = "mi-cuaderno";
-const V1_STORES = {
+const LEGACY_STORES = {
   items: "id, type, term, title, updatedAt, *tags, *linkedKeys",
   events: "id, at, localDate, itemKey, type",
   prefs: "key",
@@ -48,24 +48,34 @@ export async function currentPersonalDatabaseVersion() {
 
 export async function preupgradeStatus() {
   const version = await currentPersonalDatabaseVersion();
+  const needsBackup = version === 1 || version === 2;
   return {
     version,
-    needsV1Backup: version === 1,
-    unsupported: typeof version === "number" && version > 2,
+    needsBackup,
+    // Kept while main.jsx still uses the original gate flag; it now covers both legacy schemas.
+    needsV1Backup: needsBackup,
+    unsupported: typeof version === "number" && version > SCHEMA_VERSION,
   };
 }
 
 /**
- * Opens schema v1 through an isolated connection and closes it before returning. The candidate is
- * validated through the normal importer, but the downloaded file intentionally remains v1: it is
- * the exact pre-migration recovery point.
+ * Opens the exact installed legacy schema through an isolated connection and closes it before
+ * returning. The candidate is validated through the normal importer, but the downloaded file
+ * intentionally remains at its source schema: it is the untouched pre-migration recovery point.
  */
-export async function buildPreupgradeV1Backup() {
+export async function buildPreupgradeBackup() {
+  const sourceVersion = await currentPersonalDatabaseVersion();
+  if (sourceVersion !== 1 && sourceVersion !== 2) {
+    throw new Error(`Expected schema 1 or 2 but found ${sourceVersion ?? "no notebook database"}.`);
+  }
+
   const legacy = new Dexie(DATABASE_NAME);
-  legacy.version(1).stores(V1_STORES);
+  legacy.version(sourceVersion).stores(LEGACY_STORES);
   try {
     await legacy.open();
-    if (legacy.verno !== 1) throw new Error(`Expected schema 1 but found schema ${legacy.verno}.`);
+    if (legacy.verno !== sourceVersion) {
+      throw new Error(`Expected schema ${sourceVersion} but found schema ${legacy.verno}.`);
+    }
     const [userItems, events, prefRows] = await Promise.all([
       legacy.table("items").toArray(),
       legacy.table("events").toArray(),
@@ -73,7 +83,7 @@ export async function buildPreupgradeV1Backup() {
     ]);
     const envelope = {
       format: BACKUP_FORMAT,
-      schemaVersion: 1,
+      schemaVersion: sourceVersion,
       exportedAt: nowIso(),
       appVersion: APP_VERSION,
       userItems,
@@ -88,3 +98,6 @@ export async function buildPreupgradeV1Backup() {
     legacy.close();
   }
 }
+
+// Compatibility for callers/tests from the schema-v2 release. New code should use the general name.
+export const buildPreupgradeV1Backup = buildPreupgradeBackup;

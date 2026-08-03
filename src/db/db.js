@@ -35,6 +35,33 @@ db.version(2)
   .stores(PERSONAL_STORES)
   .upgrade(migratePersonalDataToV2);
 
+/**
+ * Schema-v3 page defaults. Collection layout stays on every page even when its active profile
+ * is General, so switching profiles never discards the owner's organization.
+ */
+export function upgradePageItemV2(item) {
+  if (!item || item.type !== "page") return { ...item };
+  return {
+    ...item,
+    pageProfile: "general",
+    collection: { groups: [] },
+  };
+}
+
+export async function migratePersonalDataToV3(transaction) {
+  await transaction
+    .table("items")
+    .where("type")
+    .equals("page")
+    .modify((item) => {
+      Object.assign(item, upgradePageItemV2(item));
+    });
+}
+
+db.version(3)
+  .stores(PERSONAL_STORES)
+  .upgrade(migratePersonalDataToV3);
+
 export async function getPref(key, fallback = null) {
   const row = await db.prefs.get(key);
   return row === undefined ? fallback : row.value;

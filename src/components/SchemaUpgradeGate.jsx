@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Download, ShieldAlert, Check } from "lucide-react";
 import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
-import { buildPreupgradeV1Backup } from "../db/preupgrade.js";
+import { buildPreupgradeBackup } from "../db/preupgrade.js";
 import { backupFilename } from "../db/backup.js";
 import { downloadJson } from "../lib/file.js";
 
-export default function SchemaUpgradeGate({ onContinue }) {
+export default function SchemaUpgradeGate({ fromVersion = null, onContinue }) {
   const [downloaded, setDownloaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -14,8 +14,8 @@ export default function SchemaUpgradeGate({ onContinue }) {
     setBusy(true);
     setError("");
     try {
-      const envelope = await buildPreupgradeV1Backup();
-      downloadJson(`before-meaning-upgrade-${backupFilename(envelope)}`, envelope);
+      const envelope = await buildPreupgradeBackup();
+      downloadJson(`before-schema-v3-upgrade-${backupFilename(envelope)}`, envelope);
       setDownloaded(true);
     } catch (problem) {
       setError(problem instanceof Error ? problem.message : "The backup could not be created.");
@@ -32,11 +32,12 @@ export default function SchemaUpgradeGate({ onContinue }) {
             <ShieldAlert size={20} className="shrink-0 mt-0.5" style={{ color: C.pen }} />
             <div>
               <h1 className="text-xl font-bold" style={{ fontFamily: SERIF }}>
-                Back up before meanings are upgraded
+                Back up before your notebook is upgraded
               </h1>
               <p className="text-sm mt-2 leading-relaxed" style={{ color: C.mut }}>
-                This update turns each line of an existing meaning into a personal meaning block.
-                Download the untouched version of your notebook first so you can always return to it.
+                This update adds persistent page profiles and Collection organization. If your notebook
+                still uses the older meaning format, that is upgraded too. Download the untouched version
+                of your notebook first so you can always return to it.
               </p>
             </div>
           </div>
@@ -68,7 +69,7 @@ export default function SchemaUpgradeGate({ onContinue }) {
           )}
 
           <div className="mt-4 text-[11px]" style={{ fontFamily: MONO, color: C.mut }}>
-            personal data schema 1 → 2
+            personal data schema {fromVersion ?? "1 or 2"} → 3
           </div>
         </Card>
       </div>

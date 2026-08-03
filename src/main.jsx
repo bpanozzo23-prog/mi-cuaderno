@@ -22,8 +22,8 @@ async function boot() {
       root.render(<div className="p-6">This notebook was opened by a newer app version. Update the app first.</div>);
       return;
     }
-    if (status.needsV1Backup) {
-      root.render(<SchemaUpgradeGate onContinue={renderApp} />);
+    if (status.needsBackup) {
+      root.render(<SchemaUpgradeGate fromVersion={status.version} onContinue={renderApp} />);
       return;
     }
     await renderApp();

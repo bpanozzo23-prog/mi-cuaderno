@@ -4,6 +4,18 @@ import { buildBackup, validateBackup, importBackup, BACKUP_FORMAT } from "./back
 import { makeLexical, makePage, makeEvent } from "../test/factories.js";
 import { SCHEMA_VERSION } from "../version.js";
 
+const GROUP_ONE = "page-group:11111111-1111-4111-8111-111111111111";
+const GROUP_TWO = "page-group:22222222-2222-4222-8222-222222222222";
+const makeV3Page = (overrides = {}) => makePage({
+  pageProfile: "general",
+  collection: { groups: [] },
+  ...overrides,
+});
+const makeLegacyPage = (overrides = {}) => {
+  const { pageProfile: _pageProfile, collection: _collection, ...page } = makePage(overrides);
+  return page;
+};
+
 beforeEach(async () => {
   await db.open();
   await clearAllPersonalData();
@@ -22,7 +34,7 @@ describe("the database survives being closed and reopened", () => {
   });
 
   it("indexes tags and linkedKeys as multi-entry, so lookups by either are direct", async () => {
-    const page = makePage({ tags: ["grammar", "verbs"] });
+    const page = makeV3Page({ tags: ["grammar", "verbs"] });
     const word = makeLexical({ linkedKeys: [page.id] });
     await db.items.bulkAdd([page, word]);
 
@@ -53,7 +65,7 @@ describe("export", () => {
 describe("import: replace and restore", () => {
   it("round-trips everything through export, wipe and import", async () => {
     const word = makeLexical({ term: "sacar", tags: ["verbs"], myExamples: [{ es: "Saca la basura.", en: "Take out the trash." }] });
-    const page = makePage({ title: "Ser vs estar", body: "Permanent vs temporary.", pageDate: "2026-07-30", linkedKeys: [word.id] });
+    const page = makeV3Page({ title: "Ser vs estar", body: "Permanent vs temporary.", pageDate: "2026-07-30", linkedKeys: [word.id] });
     const events = [makeEvent({ type: "create", itemKey: word.id }), makeEvent({ type: "view", itemKey: word.id })];
     await db.items.bulkAdd([word, page]);
     await db.events.bulkAdd(events);
@@ -70,6 +82,42 @@ describe("import: replace and restore", () => {
     expect(await db.items.get(page.id)).toEqual(page);
     expect((await db.events.toArray()).map((e) => e.id).sort()).toEqual(events.map((e) => e.id).sort());
     expect(await getPref("storagePersisted")).toBe(true);
+  });
+
+  it("round-trips collection group/item order and pinned page preferences", async () => {
+    const first = makeLexical({ id: "user:first", term: "qué tal" });
+    const second = makeLexical({ id: "user:second", term: "cómo" });
+    const page = makeV3Page({
+      id: "user:collection",
+      title: "Questions",
+      pageProfile: "collection",
+      linkedKeys: [second.id, "dict:wiktionary-es:orphan", first.id],
+      collection: {
+        groups: [
+          { id: GROUP_ONE, name: "Follow-ups", itemKeys: [second.id] },
+          { id: GROUP_TWO, name: "Openers", itemKeys: [first.id] },
+        ],
+      },
+    });
+    await db.items.bulkAdd([first, second, page]);
+    await setPref("pinnedPageIds", [page.id]);
+
+    const exported = await buildBackup();
+    expect(exported.userItems.find((item) => item.id === page.id).collection.groups).toEqual([
+      { id: GROUP_ONE, name: "Follow-ups", itemKeys: [second.id] },
+      { id: GROUP_TWO, name: "Openers", itemKeys: [first.id] },
+    ]);
+    const text = JSON.stringify(exported);
+    await clearAllPersonalData();
+    await importBackup(text);
+
+    const restored = await db.items.get(page.id);
+    expect(restored.linkedKeys).toEqual([second.id, "dict:wiktionary-es:orphan", first.id]);
+    expect(restored.collection.groups).toEqual([
+      { id: GROUP_ONE, name: "Follow-ups", itemKeys: [second.id] },
+      { id: GROUP_TWO, name: "Openers", itemKeys: [first.id] },
+    ]);
+    expect(await getPref("pinnedPageIds")).toEqual([page.id]);
   });
 
   it("carries review grades through the file, so the schedule survives a restore", async () => {
@@ -130,20 +178,21 @@ describe("import: replace and restore", () => {
       myExamples: [{ es: "Saca la basura.", en: "Take out the trash." }],
     });
     const { meanings: _meanings, ...v1Item } = current;
+    const v1Page = makeLegacyPage({ id: "user:v1-page", title: "Legacy page", linkedKeys: [current.id] });
     const v1 = {
       format: BACKUP_FORMAT,
       schemaVersion: 1,
       exportedAt: "2026-07-30T10:00:00.000Z",
       appVersion: "0.1.0",
-      userItems: [{ ...v1Item, translation: "1. take out\r\n\r\nwithdraw; draw out" }],
+      userItems: [{ ...v1Item, translation: "1. take out\r\n\r\nwithdraw; draw out" }, v1Page],
       events: [],
       preferences: {},
     };
 
     const checked = validateBackup(v1);
     expect(checked.ok).toBe(true);
-    expect(checked.summary).toMatchObject({ schemaVersion: 1, targetSchemaVersion: 2, willUpgrade: true });
-    expect(checked.envelope.schemaVersion).toBe(2);
+    expect(checked.summary).toMatchObject({ schemaVersion: 1, targetSchemaVersion: 3, willUpgrade: true });
+    expect(checked.envelope.schemaVersion).toBe(3);
     expect(checked.envelope.userItems[0].meanings.map((entry) => entry.gloss)).toEqual([
       "1. take out",
       "withdraw; draw out",
@@ -151,9 +200,41 @@ describe("import: replace and restore", () => {
     expect(checked.envelope.userItems[0].notes).toBe("Entry note");
     expect(checked.envelope.userItems[0].myExamples).toEqual(current.myExamples);
     expect(checked.envelope.userItems[0]).not.toHaveProperty("translation");
+    expect(checked.envelope.userItems[1]).toEqual({
+      ...v1Page,
+      pageProfile: "general",
+      collection: { groups: [] },
+    });
 
     await importBackup(checked.envelope);
     expect((await db.items.get(current.id)).meanings).toHaveLength(2);
+  });
+
+  it("validates and upgrades a schema-v2 backup before restoring it", async () => {
+    const lexical = makeLexical({ id: "user:v2-word", term: "pensar" });
+    const page = makeLegacyPage({ id: "user:v2-page", title: "Thinking", linkedKeys: [lexical.id] });
+    const v2 = {
+      format: BACKUP_FORMAT,
+      schemaVersion: 2,
+      exportedAt: "2026-08-02T10:00:00.000Z",
+      appVersion: "0.1.0",
+      userItems: [lexical, page],
+      events: [],
+      preferences: { pinnedPageIds: [page.id] },
+    };
+
+    const checked = validateBackup(v2);
+
+    expect(checked.ok).toBe(true);
+    expect(checked.summary).toMatchObject({ schemaVersion: 2, targetSchemaVersion: 3, willUpgrade: true });
+    expect(checked.envelope.schemaVersion).toBe(3);
+    expect(checked.envelope.userItems[0]).toEqual(lexical);
+    expect(checked.envelope.userItems[1]).toEqual({
+      ...page,
+      pageProfile: "general",
+      collection: { groups: [] },
+    });
+    expect(checked.envelope.preferences.pinnedPageIds).toEqual([page.id]);
   });
 
   it("skips duplicate event ids rather than failing", async () => {
@@ -189,6 +270,24 @@ describe("validation happens before anything is written", () => {
     preferences: {},
   });
 
+  const collectionInput = ({
+    pageProfile = "collection",
+    collection = { groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: ["user:member"] }] },
+    linkedKeys = ["user:member"],
+    preferences = {},
+    extraItems = [],
+  } = {}) => {
+    const member = makeLexical({ id: "user:member", term: "qué" });
+    const page = makeV3Page({
+      id: "user:collection",
+      title: "Questions",
+      pageProfile,
+      collection,
+      linkedKeys,
+    });
+    return { ...baseline(), userItems: [member, ...extraItems, page], preferences };
+  };
+
   it.each([
     ["not JSON at all", "{ this is not json"],
     ["a different file's JSON", JSON.stringify({ hello: "world" })],
@@ -199,6 +298,52 @@ describe("validation happens before anything is written", () => {
     ["a malformed nested example", { ...baseline(), userItems: [{ ...makeLexical(), meanings: [{ ...makeLexical().meanings[0], examples: [{ es: "", en: 42 }] }] }] }],
     ["an event missing localDate", { ...baseline(), events: [{ ...makeEvent(), localDate: undefined }] }],
     ["duplicate item ids", { ...baseline(), userItems: [makeLexical({ id: "user:a" }), makeLexical({ id: "user:a" })] }],
+    ["an unknown page profile", collectionInput({ pageProfile: "source" })],
+    ["missing collection metadata", collectionInput({ collection: null })],
+    ["a malformed page-group id", collectionInput({
+      collection: { groups: [{ id: "page-group:not-a-uuid", name: "Questions", itemKeys: ["user:member"] }] },
+    })],
+    ["an untrimmed group name", collectionInput({
+      collection: { groups: [{ id: GROUP_ONE, name: " Questions ", itemKeys: ["user:member"] }] },
+    })],
+    ["Unicode-equivalent duplicate group names", collectionInput({
+      collection: { groups: [
+        { id: GROUP_ONE, name: "Café", itemKeys: ["user:member"] },
+        { id: GROUP_TWO, name: "Cafe\u0301", itemKeys: [] },
+      ] },
+    })],
+    ["duplicate page-group ids", collectionInput({
+      collection: { groups: [
+        { id: GROUP_ONE, name: "Questions", itemKeys: ["user:member"] },
+        { id: GROUP_ONE, name: "Answers", itemKeys: [] },
+      ] },
+    })],
+    ["duplicate collection placement", collectionInput({
+      collection: { groups: [
+        { id: GROUP_ONE, name: "Questions", itemKeys: ["user:member"] },
+        { id: GROUP_TWO, name: "Answers", itemKeys: ["user:member"] },
+      ] },
+    })],
+    ["a dictionary key used as a collection member", collectionInput({
+      collection: { groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: ["dict:wiktionary-es:que"] }] },
+      linkedKeys: ["dict:wiktionary-es:que"],
+    })],
+    ["a dangling collection member", collectionInput({
+      collection: { groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: ["user:missing"] }] },
+      linkedKeys: ["user:missing"],
+    })],
+    ["a grouped item without an outgoing page link", collectionInput({ linkedKeys: [] })],
+    ["a page used as a collection member", (() => {
+      const targetPage = makeV3Page({ id: "user:other-page", title: "Other" });
+      return collectionInput({
+        collection: { groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: [targetPage.id] }] },
+        linkedKeys: [targetPage.id],
+        extraItems: [targetPage],
+      });
+    })()],
+    ["a non-array pinnedPageIds preference", collectionInput({ preferences: { pinnedPageIds: "user:collection" } })],
+    ["a lexical id in pinnedPageIds", collectionInput({ preferences: { pinnedPageIds: ["user:member"] } })],
+    ["a dangling pinnedPageIds preference", collectionInput({ preferences: { pinnedPageIds: ["user:missing"] } })],
   ])("rejects %s without touching the database", async (_label, input) => {
     const survivor = makeLexical({ term: "superviviente" });
     await db.items.add(survivor);

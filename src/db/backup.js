@@ -1,4 +1,4 @@
-import { db, allPrefs, setPref } from "./db.js";
+import { db, allPrefs, setPref, upgradePageItemV2 } from "./db.js";
 import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
 import { nowIso } from "../lib/dates.js";
 import {
@@ -7,7 +7,8 @@ import {
   VERB_BEHAVIORS,
   upgradeLexicalItemV1,
 } from "../lib/meanings.js";
-import { isMeaningKey } from "../lib/ids.js";
+import { isMeaningKey, isPageGroupKey, isUserKey } from "../lib/ids.js";
+import { isPageProfile, PINNED_PAGE_IDS_PREF } from "../lib/pageProfiles.js";
 
 /**
  * Backup is the disaster-recovery mechanism, not a convenience (brief section 10).
@@ -16,6 +17,7 @@ import { isMeaningKey } from "../lib/ids.js";
  */
 export const BACKUP_FORMAT = "mi-cuaderno-backup";
 export const LAST_BACKUP_PREF = "lastBackupAt";
+export { PINNED_PAGE_IDS_PREF };
 
 export async function buildBackup() {
   const [userItems, events, preferences] = await Promise.all([
@@ -104,9 +106,53 @@ function validateMeaning(meaning, where, errors, seenMeaningIds) {
   validateExamples(meaning.examples, `${where}.examples`, errors);
 }
 
-function validateItem(item, index, errors, schemaVersion, seenMeaningIds) {
+const comparableGroupName = (name) => name.trim().normalize("NFKC").toLocaleLowerCase();
+
+function validateCollection(collection, where, errors, seenGroupIds) {
+  if (!collection || typeof collection !== "object" || Array.isArray(collection)) {
+    errors.push(`${where} must be an object`);
+    return;
+  }
+  if (!Array.isArray(collection.groups)) {
+    errors.push(`${where}.groups must be an array`);
+    return;
+  }
+
+  const seenNames = new Set();
+  collection.groups.forEach((group, groupIndex) => {
+    const groupWhere = `${where}.groups[${groupIndex}]`;
+    if (!group || typeof group !== "object" || Array.isArray(group)) {
+      errors.push(`${groupWhere} is not an object`);
+      return;
+    }
+
+    if (!isPageGroupKey(group.id)) {
+      errors.push(`${groupWhere}.id must be a page-group UUID`);
+    } else if (seenGroupIds.has(group.id)) {
+      errors.push(`Duplicate page group id "${group.id}".`);
+    } else {
+      seenGroupIds.add(group.id);
+    }
+
+    if (!isNonEmptyString(group.name)) {
+      errors.push(`${groupWhere}.name must be a nonblank string`);
+    } else {
+      if (group.name !== group.name.trim()) errors.push(`${groupWhere}.name must be trimmed`);
+      const comparableName = comparableGroupName(group.name);
+      if (seenNames.has(comparableName)) {
+        errors.push(`${where}.groups must have unique names`);
+      } else {
+        seenNames.add(comparableName);
+      }
+    }
+
+    validateStringArray(group.itemKeys, `${groupWhere}.itemKeys`, errors);
+  });
+}
+
+function validateItem(item, index, errors, schemaVersion, seenMeaningIds, seenGroupIds) {
   const where = `userItems[${index}]`;
-  if (!item || typeof item !== "object") return errors.push(`${where} is not an object`);
+  if (!item || typeof item !== "object" || Array.isArray(item)) return errors.push(`${where} is not an object`);
   if (!isNonEmptyString(item.id)) errors.push(`${where}.id is missing`);
   if (item.type !== "lexical" && item.type !== "page") {
     errors.push(`${where}.type must be "lexical" or "page"`);
@@ -146,8 +192,110 @@ function validateItem(item, index, errors, schemaVersion, seenMeaningIds) {
     if (item.pageDate !== null && item.pageDate !== undefined && !isString(item.pageDate)) {
       errors.push(`${where}.pageDate must be a string or null`);
     }
+    if (schemaVersion === 3) {
+      if (!isPageProfile(item.pageProfile)) {
+        errors.push(`${where}.pageProfile must be "general" or "collection"`);
+      }
+      validateCollection(item.collection, `${where}.collection`, errors, seenGroupIds);
+    }
   }
 }
+
+function validateV3References(userItems, preferences, errors) {
+  const itemsById = new Map(
+    userItems
+      .filter((item) => item && typeof item === "object" && !Array.isArray(item) && isNonEmptyString(item.id))
+      .map((item) => [item.id, item])
+  );
+
+  userItems.forEach((item, itemIndex) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return;
+    const where = `userItems[${itemIndex}]`;
+
+    if (Array.isArray(item.linkedKeys)) {
+      item.linkedKeys.forEach((key, keyIndex) => {
+        if (isUserKey(key) && !itemsById.has(key)) {
+          errors.push(`${where}.linkedKeys[${keyIndex}] points to a missing personal item`);
+        }
+      });
+    }
+
+    if (item.type !== "page" || !Array.isArray(item.collection?.groups)) return;
+    const placed = new Set();
+    item.collection.groups.forEach((group, groupIndex) => {
+      if (!Array.isArray(group?.itemKeys)) return;
+      group.itemKeys.forEach((key, keyIndex) => {
+        const keyWhere = `${where}.collection.groups[${groupIndex}].itemKeys[${keyIndex}]`;
+        if (!isUserKey(key)) {
+          errors.push(`${keyWhere} must be a personal lexical item id`);
+          return;
+        }
+        if (placed.has(key)) {
+          errors.push(`${where}.collection contains duplicate placement for "${key}"`);
+        } else {
+          placed.add(key);
+        }
+        const target = itemsById.get(key);
+        if (!target) {
+          errors.push(`${keyWhere} points to a missing personal item`);
+        } else if (target.type !== "lexical") {
+          errors.push(`${keyWhere} must point to a personal lexical item`);
+        }
+        if (!Array.isArray(item.linkedKeys) || !item.linkedKeys.includes(key)) {
+          errors.push(`${keyWhere} must also be an outgoing page link`);
+        }
+      });
+    });
+  });
+
+  if (!Object.prototype.hasOwnProperty.call(preferences, PINNED_PAGE_IDS_PREF)) return;
+  const pinnedPageIds = preferences[PINNED_PAGE_IDS_PREF];
+  if (!Array.isArray(pinnedPageIds)) {
+    errors.push(`preferences.${PINNED_PAGE_IDS_PREF} must be an array`);
+    return;
+  }
+  const seenPinnedIds = new Set();
+  pinnedPageIds.forEach((id, index) => {
+    const where = `preferences.${PINNED_PAGE_IDS_PREF}[${index}]`;
+    if (!isUserKey(id)) {
+      errors.push(`${where} must be a personal page id`);
+      return;
+    }
+    if (seenPinnedIds.has(id)) errors.push(`preferences.${PINNED_PAGE_IDS_PREF} must not contain duplicates`);
+    else seenPinnedIds.add(id);
+    const target = itemsById.get(id);
+    if (!target) errors.push(`${where} points to a missing page`);
+    else if (target.type !== "page") errors.push(`${where} must point to a page`);
+  });
+}
+
+function validateSchemaState(userItems, events, preferences, schemaVersion, errors) {
+  const seenMeaningIds = new Set();
+  const seenGroupIds = new Set();
+  userItems.forEach((item, index) =>
+    validateItem(item, index, errors, schemaVersion, seenMeaningIds, seenGroupIds)
+  );
+  events.forEach((event, index) => validateEvent(event, index, errors));
+
+  const seenItemIds = new Set();
+  for (const item of userItems) {
+    if (item && seenItemIds.has(item.id)) errors.push(`Duplicate item id "${item.id}".`);
+    if (item) seenItemIds.add(item.id);
+  }
+
+  if (schemaVersion === 3) validateV3References(userItems, preferences, errors);
+}
+
+function upgradeItemsV1ToV2(userItems) {
+  return userItems.map((item) => {
+    const upgraded = upgradeLexicalItemV1(item);
+    if (upgraded.type !== "lexical") return upgraded;
+    const { translation: _translation, ...withoutTranslation } = upgraded;
+    return withoutTranslation;
+  });
+}
+
+const upgradeItemsV2ToV3 = (userItems) => userItems.map((item) => upgradePageItemV2(item));
 
 function validateEvent(event, index, errors) {
   const where = `events[${index}]`;
@@ -188,7 +336,7 @@ export function validateBackup(raw) {
     errors.push(
       `This backup is schema version ${parsed.schemaVersion}, newer than this app understands (${SCHEMA_VERSION}). Update the app first.`
     );
-  } else if (parsed.schemaVersion !== 1 && parsed.schemaVersion !== 2) {
+  } else if (![1, 2, 3].includes(parsed.schemaVersion)) {
     errors.push(`Schema version ${parsed.schemaVersion} is not supported.`);
   }
   if (!Array.isArray(parsed.userItems)) errors.push("userItems must be an array.");
@@ -200,15 +348,27 @@ export function validateBackup(raw) {
   if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
 
   const sourceSchemaVersion = parsed.schemaVersion;
-  const seenMeaningIds = new Set();
-  parsed.userItems.forEach((item, i) => validateItem(item, i, errors, sourceSchemaVersion, seenMeaningIds));
-  parsed.events.forEach((event, i) => validateEvent(event, i, errors));
+  const preferences = parsed.preferences ?? {};
+  validateSchemaState(parsed.userItems, parsed.events, preferences, sourceSchemaVersion, errors);
+  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
 
-  const seenItemIds = new Set();
-  for (const item of parsed.userItems) {
-    if (item && seenItemIds.has(item.id)) errors.push(`Duplicate item id "${item.id}".`);
-    if (item) seenItemIds.add(item.id);
+  // Upgrade one schema at a time and deeply validate each resulting shape. Import cannot rely on
+  // Dexie's migration because the currently open database is already at the newest schema.
+  let upgradedItems = parsed.userItems.map((item) => ({ ...item }));
+  let upgradedSchemaVersion = sourceSchemaVersion;
+  if (upgradedSchemaVersion === 1) {
+    upgradedItems = upgradeItemsV1ToV2(upgradedItems);
+    upgradedSchemaVersion = 2;
+    validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
   }
+  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
+
+  if (upgradedSchemaVersion === 2) {
+    upgradedItems = upgradeItemsV2ToV3(upgradedItems);
+    upgradedSchemaVersion = 3;
+    validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
+  }
+  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
 
   // Duplicate EVENT ids are skipped rather than rejected, per brief section 10.
   const seenEventIds = new Set();
@@ -223,27 +383,12 @@ export function validateBackup(raw) {
     events.push(event);
   }
 
-  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
-
-  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
-
-  const upgradedItems = sourceSchemaVersion === 1
-    ? parsed.userItems.map((item) => upgradeLexicalItemV1(item))
-    : parsed.userItems.map((item) => ({ ...item }));
-
-  if (sourceSchemaVersion === 1) {
-    const upgradedMeaningIds = new Set();
-    upgradedItems.forEach((item, i) => validateItem(item, i, errors, 2, upgradedMeaningIds));
-  }
-
-  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
-
   const envelope = {
     ...parsed,
     schemaVersion: SCHEMA_VERSION,
     userItems: upgradedItems,
     events,
-    preferences: parsed.preferences ?? {},
+    preferences,
   };
   const summary = {
     items: envelope.userItems.length,
