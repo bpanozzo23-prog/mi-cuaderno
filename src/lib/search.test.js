@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { searchItems, TIER } from "./search.js";
 import { newLexical, newPage } from "../db/items.js";
+import { meaningsFromTranslation, newMeaning } from "./meanings.js";
 
-const lexical = (fields) => newLexical(fields);
+const lexical = ({ translation = "", ...fields }) =>
+  newLexical({ ...fields, meanings: meaningsFromTranslation(translation) });
 const page = (fields) => newPage(fields);
 
 const notebook = [
@@ -93,10 +95,8 @@ describe("match reasons", () => {
   });
 });
 
-describe("meanings written on several lines", () => {
-  // A phrase's readings are stored as newlines inside `translation`. A query is typed on one
-  // line, so matching has to read across the break — otherwise "suddenly all" would fail
-  // against a meaning whose two readings happen to sit on consecutive lines.
+describe("structured meanings", () => {
+  // A query is typed on one line, so gloss search joins adjacent personal meanings with spaces.
   const multi = [lexical({ term: "de repente", translation: "suddenly\nall at once" })];
 
   it("finds a reading on any line", () => {
@@ -110,6 +110,31 @@ describe("meanings written on several lines", () => {
 
   it("still refuses a phrase that is not there", () => {
     expect(searchItems(multi, "suddenly never")).toEqual([]);
+  });
+});
+
+describe("meaning-level context", () => {
+  const structured = [newLexical({
+    term: "sacar",
+    meanings: [newMeaning({
+      gloss: "withdraw",
+      usageCue: "sacar dinero",
+      regions: ["Mexico"],
+      usageLabels: ["figurative"],
+      note: "Usually from an account",
+      examples: [{ es: "Saqué efectivo.", en: "I withdrew cash." }],
+    })],
+  })];
+
+  it.each([
+    ["withdraw", "English meaning"],
+    ["account", "in your notes"],
+    ["withdrew cash", "in your examples"],
+    ["sacar dinero", "in a meaning"],
+    ["Mexico", "in a meaning"],
+    ["figurative", "in a meaning"],
+  ])("finds %s with its visible reason", (query, reason) => {
+    expect(searchItems(structured, query)[0]).toMatchObject({ reason });
   });
 });
 

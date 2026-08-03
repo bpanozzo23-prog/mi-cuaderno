@@ -222,3 +222,87 @@ the brief's concurrent-work amendment. Overlapping files or behaviours are seque
 **Subsequent closeout, 2026-08-02.** Phase 5 completed through 5f and deployed from `main` at
 `079e0fb`. Phase 4 remains open only for observed live-use friction; the earlier “active Phase 5”
 status above is retained as a dated record rather than rewritten.
+
+---
+
+# Part four — Phase 4i: structured personal meaning blocks (2026-08-02)
+
+## Status
+
+**Complete and verified.** The automated suite, production build and seeded 375 px in-app browser
+acceptance all pass. Codex cannot access the owner's real Chrome data and did not inspect or alter
+it; the browser pass used a disposable fixture in the in-app browser's separate profile.
+
+## What changed
+
+- `SCHEMA_VERSION` moved from 1 to 2. The Dexie upgrade converts every trimmed nonblank line of a
+  lexical `translation` into an ordered personal meaning, preserves bullets/numbers and punctuation,
+  leaves entry notes/examples general, removes only `translation`, and does not touch timestamps,
+  pages, links, events or preferences.
+- Startup checks the IndexedDB version before rendering the app. A schema-v1 notebook is opened
+  through an isolated v1 connection, validated and offered as an untouched JSON download; the owner
+  must acknowledge saving it before the v2 Dexie connection is allowed to open.
+- Backup validation now understands exactly schemas 1 and 2 and deeply validates structured
+  meanings. V1 files upgrade and revalidate in memory before preview/import. Replace-and-restore
+  still validates everything first and now pauses after downloading the current validated safety
+  backup for explicit confirmation.
+- Each personal meaning has `meaning:<uuid>`, English gloss, optional Spanish usage cue, regions,
+  fixed usage labels, optional POS override, verb behavior, note and examples. IDs never reference
+  dictionary senses. Dictionary addition copies only the first gloss into an independent meaning.
+- Detail reading shows all glosses and cues, with context collapsed. One meaning can be edited at a
+  time. Organize meanings keeps a local draft for add, arrow reorder, neighboring merge and delete;
+  one Save creates one item update/edit event, while Cancel writes nothing. Delete can preserve its
+  note/examples at entry level. General and meaning examples can be reassigned.
+- Search keeps glosses at tier 4; cues, labels, notes and nested examples participate in tier 6.
+  Missing-meaning and missing-example views understand the nested shape. Cards and LinkPicker use
+  compact gloss summaries. The shared ñ-preserving normalizer is unchanged.
+- Repaso remains entry-level: reveal shows every gloss/cue together, optional meaning context stays
+  collapsed, and grading continues to write the lexical item ID only.
+
+## Automated verification
+
+- `npm.cmd test`: **322 passing tests across 33 files**.
+- `npm.cmd run build`: clean production build; PWA precache **462.73 KiB**.
+- A real fake-IndexedDB Dexie v1→v2 upgrade test proves lexical conversion while pages, events,
+  preferences and timestamps remain unchanged.
+- Backup tests cover v2 round-trip, v1 in-memory conversion, CRLF/blank lines, marker/punctuation
+  preservation, stable personal IDs, nested validation and duplicate meaning IDs.
+- Component tests cover creation with zero/multiple meanings, collapsed reading, one-meaning edit,
+  organizer Cancel/Save, reorder, merge, delete-preserve, all-meaning Repaso reveal and entry-level
+  grading.
+- Deliberate failure proof temporarily truncated multiline migration, graded a meaning ID, and made
+  organizer Cancel write. Four targeted tests failed for those breaks; after restoration all 11
+  targeted tests and the full suite passed.
+
+## Browser acceptance
+
+Verified in the in-app browser at **375 × 812 px** with a disposable schema-v1 `sacar` fixture in
+its separate profile. This did not use or expose the owner's real browser data.
+
+- Startup stopped at the export-first gate while IndexedDB remained at Dexie schema v1 (raw
+  IndexedDB version 10). The downloaded, parsed recovery file was a valid schema-v1 envelope with
+  the untouched three-line `translation`, no `meanings`, all three seeded events and the seeded
+  preference. Only after the explicit saved-file acknowledgement did IndexedDB advance to schema
+  v2 (raw version 20).
+- The migrated row retained its item ID, timestamps, entry note, general example, events and
+  preference; removed `translation`; and produced three ordered, independent `meaning:<uuid>`
+  records with the exact nonblank source lines.
+- Reading displayed every gloss and cue with context collapsed. Editing saved a cue, labels, POS
+  override, verb behavior, note and bilingual example. The organizer then reordered, merged and
+  deleted meanings through its local draft and one explicit Save.
+- Searching a nested example (`mochila`) returned the item as an examples match; searching a gloss
+  (`withdraw`) returned it as an English-meaning match. Missing-examples correctly excluded the
+  item after its meaning example was saved, while No-links included it.
+- Repaso enrolled the lexical entry from three distinct lookup days, kept meaning context behind
+  its disclosure, and wrote the review event against `user:sacar-fixture` with grade 2 — never
+  against a meaning ID.
+- A parsed schema-v2 export contained the surviving personal meaning and all nested fields. Import
+  validation showed the correct preview, required and downloaded a valid `before-import` safety
+  backup, restored one item and seven events, and preserved the meaning ID and entry-level review
+  key in the restored IndexedDB row.
+- List, detail, expanded context, editor, organizer and settings states all had equal document
+  `scrollWidth` and `clientWidth` (375 px without a scrollbar, 360 px where the vertical scrollbar
+  occupied the remaining 15 px). The browser console returned **no warnings or errors**.
+
+The disposable database was removed afterwards, the temporary viewport override was reset, and the
+test tab and development server were closed.

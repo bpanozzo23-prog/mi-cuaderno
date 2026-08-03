@@ -1,4 +1,10 @@
 import { normalize } from "./normalize.js";
+import {
+  allPersonalExamples,
+  meaningContextText,
+  meaningGlossText,
+  meaningNotes,
+} from "./meanings.js";
 
 /**
  * Search over the personal layer, per brief section 8.
@@ -9,7 +15,7 @@ import { normalize } from "./normalize.js";
  *   3 inflected-form alias  — reference layer only (src/db/ref/search.js); the tier
  *                             number is shared so personal and dictionary results
  *                             interleave into a single ranked list
- *   4 English gloss or personal translation — English to Spanish is first-class
+ *   4 English dictionary gloss or personal meaning gloss — English to Spanish is first-class
  *   5 tags
  *   6 notes, personal examples, page titles and page bodies
  *
@@ -34,6 +40,7 @@ const REASONS = {
   tag: "tag",
   notes: "in your notes",
   examples: "in your examples",
+  meaning: "in a meaning",
   body: "in the page",
 };
 
@@ -73,7 +80,7 @@ function bestMatch(item, query) {
   // lines, and "jacket sack" should find one reading "jacket" above another reading "sack".
   // normalize() itself must not change — the pipeline imports it and it decides the shipped
   // dictionary index, so collapsing whitespace there would alter what 10,278 entries match.
-  if (!isPage && flattenSpace(normalize(item.translation)).includes(q)) {
+  if (!isPage && flattenSpace(normalize(meaningGlossText(item, " "))).includes(q)) {
     return { tier: TIER.translation, reason: REASONS.translation, offset: 0 };
   }
 
@@ -82,11 +89,14 @@ function bestMatch(item, query) {
   if (tag) return { tier: TIER.tag, reason: `${REASONS.tag} "${tag}"`, offset: 0 };
 
   // Tier 6: free text — notes, personal examples, page bodies.
-  if (!isPage && normalize(item.notes).includes(q)) {
+  if (!isPage && normalize([item.notes, meaningNotes(item)].filter(Boolean).join("\n")).includes(q)) {
     return { tier: TIER.text, reason: REASONS.notes, offset: 0 };
   }
-  if (!isPage && item.myExamples.some((x) => normalize(x.es).includes(q) || normalize(x.en).includes(q))) {
+  if (!isPage && allPersonalExamples(item).some((x) => normalize(x.es).includes(q) || normalize(x.en).includes(q))) {
     return { tier: TIER.text, reason: REASONS.examples, offset: 1 };
+  }
+  if (!isPage && normalize(meaningContextText(item)).includes(q)) {
+    return { tier: TIER.text, reason: REASONS.meaning, offset: 2 };
   }
   if (isPage && normalize(item.body).includes(q)) {
     return { tier: TIER.text, reason: REASONS.body, offset: 0 };

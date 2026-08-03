@@ -10,6 +10,7 @@ import {
   unlinkItems,
   backlinksFor,
 } from "./items.js";
+import { newMeaning } from "../lib/meanings.js";
 import { allEvents, EVENT_TYPES } from "./events.js";
 
 beforeEach(async () => {
@@ -19,8 +20,8 @@ beforeEach(async () => {
 
 async function scenario() {
   // The brief's acceptance case: a grammar page linking two words.
-  const preterite = await createItem(newLexical({ term: "sacó", translation: "he/she took out" }));
-  const imperfect = await createItem(newLexical({ term: "sacaba", translation: "he/she used to take out" }));
+  const preterite = await createItem(newLexical({ term: "sacó", meanings: [newMeaning({ gloss: "he/she took out" })] }));
+  const imperfect = await createItem(newLexical({ term: "sacaba", meanings: [newMeaning({ gloss: "he/she used to take out" })] }));
   const page = await createItem(newPage({ title: "Preterite vs imperfect" }));
   await linkItems(page.id, preterite.id);
   await linkItems(page.id, imperfect.id);

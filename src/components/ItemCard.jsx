@@ -1,6 +1,7 @@
 import { FileText, CalendarDays } from "lucide-react";
 import { C, SERIF, MONO, Hi } from "../theme.jsx";
 import { emptyItemState } from "../useNotebook.js";
+import { meaningGlossText } from "../lib/meanings.js";
 
 export const POS_OPTIONS = ["", "noun", "verb", "adjective", "adverb", "other"];
 export const POS_ABBR = { noun: "s.", verb: "v.", adjective: "adj.", adverb: "adv.", other: "" };
@@ -13,6 +14,7 @@ export const personalHeadingSuffix = (item) =>
 export default function ItemCard({ item, state = emptyItemState, onOpen, reason }) {
   const isPage = item.type === "page";
   const headingSuffix = isPage ? "" : personalHeadingSuffix(item);
+  const glosses = isPage ? "" : meaningGlossText(item);
   return (
     <button
       onClick={() => onOpen(item.id)}
@@ -40,9 +42,9 @@ export default function ItemCard({ item, state = emptyItemState, onOpen, reason 
       </div>
 
       {/* Clamped: a meaning with several lines must not stretch a row in a long list. */}
-      {!isPage && item.translation && (
+      {!isPage && glosses && (
         <div className="text-sm mt-0.5 whitespace-pre-wrap line-clamp-2" style={{ color: C.ink }}>
-          — {item.translation}
+          — {glosses}
         </div>
       )}
       {isPage && item.pageDate && (

@@ -9,6 +9,7 @@ import { db as personalDb } from "../db.js";
 import { createItem } from "../items.js";
 import { buildFixtureDictionary, installFetchStub } from "../../test/dictFixture.js";
 import { newLexical } from "../items.js";
+import { newMeaning } from "../../lib/meanings.js";
 
 const realFetch = globalThis.fetch;
 
@@ -185,7 +186,7 @@ describe("the seam between the layers (§5)", () => {
     installFetchStub(await buildFixtureDictionary());
     await installDictionary(await fetchManifest());
 
-    const item = await createItem(newLexical({ term: "sacar", translation: "to take out", dictKey: "dict:wiktionary-es:sacar:verb" }));
+    const item = await createItem(newLexical({ term: "sacar", meanings: [newMeaning({ gloss: "to take out" })], dictKey: "dict:wiktionary-es:sacar:verb" }));
 
     await removeDictionary();
 
@@ -197,7 +198,7 @@ describe("the seam between the layers (§5)", () => {
   });
 
   it("installing a dictionary does not touch personal data", async () => {
-    const item = await createItem(newLexical({ term: "chamba", translation: "work" }));
+    const item = await createItem(newLexical({ term: "chamba", meanings: [newMeaning({ gloss: "work" })] }));
     const eventsBefore = await personalDb.events.count();
 
     installFetchStub(await buildFixtureDictionary());

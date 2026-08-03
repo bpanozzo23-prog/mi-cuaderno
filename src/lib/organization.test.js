@@ -8,22 +8,27 @@ import {
   orderItems,
   tagCountsIn,
 } from "./organization.js";
+import { meaningsFromTranslation } from "./meanings.js";
 
 const at = (day) => `2026-07-${String(day).padStart(2, "0")}T10:00:00.000Z`;
 
-const word = (id, over = {}) => ({
-  id,
-  type: "lexical",
-  form: "word",
-  term: id,
-  translation: "meaning",
-  myExamples: [{ es: "ejemplo", en: "example" }],
-  tags: [],
-  linkedKeys: [],
-  createdAt: at(1),
-  updatedAt: at(1),
-  ...over,
-});
+const word = (id, over = {}) => {
+  const hasTranslation = Object.prototype.hasOwnProperty.call(over, "translation");
+  const { translation, meanings, ...rest } = over;
+  return {
+    id,
+    type: "lexical",
+    form: "word",
+    term: id,
+    meanings: meanings ?? meaningsFromTranslation(hasTranslation ? translation : "meaning"),
+    myExamples: [{ es: "ejemplo", en: "example" }],
+    tags: [],
+    linkedKeys: [],
+    createdAt: at(1),
+    updatedAt: at(1),
+    ...rest,
+  };
+};
 
 const page = (id, over = {}) => ({
   id,
@@ -131,6 +136,7 @@ describe("Phase 5b maintenance views", () => {
       word("empty", { myExamples: [] }),
       word("missing", { myExamples: undefined }),
       word("attached", { myExamples: [], dictKey: "dict:wiktionary-es:casa:noun" }),
+      word("assigned", { myExamples: [], meanings: [{ ...meaningsFromTranslation("meaning")[0], examples: [{ es: "Ejemplo.", en: "Example." }] }] }),
       word("complete"),
       page("page-without-examples"),
     ];

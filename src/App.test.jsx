@@ -8,6 +8,7 @@ import { createItem, linkItems, newLexical, newPage } from "./db/items.js";
 import { removeDictionary } from "./db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "./db/ref/refdb.js";
 import { FIXTURE_ENTRIES } from "./test/dictFixture.js";
+import { newMeaning } from "./lib/meanings.js";
 
 const CASA = "dict:wiktionary-es:casa:noun";
 
@@ -43,7 +44,7 @@ async function seedDictionary(entryIds = [CASA]) {
 
 async function linkedTrail() {
   const phrase = await createItem(newLexical({ term: "de repente", form: "phrase" }));
-  const word = await createItem(newLexical({ term: "madrugar", translation: "to get up early" }));
+  const word = await createItem(newLexical({ term: "madrugar", meanings: [newMeaning({ gloss: "to get up early" })] }));
   const page = await createItem(newPage({ title: "Study source" }));
   await linkItems(word.id, phrase.id);
   await linkItems(page.id, word.id);

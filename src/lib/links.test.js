@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { relatedTo, relatedToKey, pickerMatches, groupRelated, GROUPS } from "./links.js";
+import { meaningsFromTranslation } from "./meanings.js";
 
 /**
  * The Phase 1c contract, asserted against the pure derivation the screens actually use:
@@ -8,15 +9,18 @@ import { relatedTo, relatedToKey, pickerMatches, groupRelated, GROUPS } from "./
  * index answers the reverse direction.
  */
 
-const word = (id, over = {}) => ({
-  id,
-  type: "lexical",
-  term: id,
-  translation: "",
-  linkedKeys: [],
-  updatedAt: "2026-07-31T10:00:00.000Z",
-  ...over,
-});
+const word = (id, over = {}) => {
+  const { translation = "", ...rest } = over;
+  return {
+    id,
+    type: "lexical",
+    term: id,
+    meanings: meaningsFromTranslation(translation),
+    linkedKeys: [],
+    updatedAt: "2026-07-31T10:00:00.000Z",
+    ...rest,
+  };
+};
 const page = (id, over = {}) => ({
   id,
   type: "page",
@@ -98,7 +102,7 @@ describe("pickerMatches finds the one item you mean", () => {
     expect(ids(pickerMatches([sacar, grammar], "sacar"))).toEqual(["w1", "p1"]);
   });
 
-  it("matches the English translation, because looking up from English is first-class", () => {
+  it("matches personal English meaning glosses, because looking up from English is first-class", () => {
     const sacar = word("w1", { term: "sacar", translation: "to take out" });
 
     expect(ids(pickerMatches([sacar], "take out"))).toEqual(["w1"]);

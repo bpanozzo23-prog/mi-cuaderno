@@ -38,7 +38,7 @@ Useful information to retain for each idea:
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
 | Source-oriented page templates | 2026-08-02 | Captured | Can discuss now; validate permanent structure with real pages |
-| Meaning-block presentation | 2026-08-02 | Captured | Visual options can be discussed now; structured meanings need real data |
+| Meaning-block presentation | 2026-08-02 | Implemented locally | Phase 4i; final seeded browser acceptance pending |
 | Typed or explained relationships | 2026-08-02 | Captured | After observing real links and dense hubs |
 | Saved views | 2026-08-02 | Captured | After observing repeated retrieval/filter patterns |
 | Persistent page kinds | 2026-08-02 | Captured | After reviewing how real pages cluster and overlap |
@@ -120,7 +120,7 @@ migration/storage discussion.
 
 - **Date added:** 2026-08-02
 - **Last reviewed:** 2026-08-02
-- **Status:** Captured
+- **Status:** Implemented locally — final seeded browser acceptance pending
 - **Origin:** Preliminary information-architecture review and follow-up discussion
 - **Potential data impact:** Low for visual treatment of the existing string; high for structured
   meanings or sense-level examples, notes, and provenance
@@ -180,6 +180,19 @@ content shape before the owner has validated it.
 - Is the goal mainly faster scanning, or attaching notes and examples to individual meanings?
 - Should blank lines or numbered text retain special meaning?
 - How should personal meanings relate to a replaceable dictionary entry?
+
+### Approved direction — 2026-08-02
+
+The owner approved structured personal meaning blocks after workshopping the polysemous verb
+*sacar*. The lexical entry remains the review and scheduling unit. Each ordered meaning has a
+stable personal ID independent of dictionary senses, an English gloss, optional short Spanish
+usage cue, compact region/usage/grammar labels, and optional note and assigned examples. Entry-wide
+notes and general examples remain; example assignment is optional. Reading shows every gloss and
+cue with context collapsed, routine editing expands one meaning, and a draft-based organizer owns
+add/reorder/neighbor-merge/delete behavior. Schema-v1 multiline translations migrate one nonblank
+line at a time without automatically assigning existing notes or examples. The complete storage,
+backup, import, search, Repaso and verification decisions are recorded under Phase 4i in
+`DECISIONS.md`.
 
 ---
 
@@ -456,3 +469,8 @@ backup plan.
 
 - **2026-08-02 — Created.** Established the planning-record format and added the first six ideas
   from the preliminary information-architecture discussion. No idea was approved for implementation.
+- **2026-08-02 — Meaning blocks approved.** Promoted meaning-block presentation from Captured to
+  Planned after the owner selected the structured option and approved the implementation plan.
+- **2026-08-02 — Phase 4i implemented locally.** Schema v2, export-first migration, v1 backup
+  upgrading, structured creation/detail/organization, search, maintenance and entry-level Repaso
+  are implemented and automated tests/build pass. Final seeded 375 px browser acceptance remains.

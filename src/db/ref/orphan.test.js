@@ -4,6 +4,7 @@ import { installDictionary, fetchManifest, removeDictionary } from "./install.js
 import { buildFixtureDictionary, installFetchStub } from "../../test/dictFixture.js";
 import { db } from "../db.js";
 import { createItem, newLexical, updateItem } from "../items.js";
+import { newMeaning } from "../../lib/meanings.js";
 
 /**
  * Brief §5: "if a dataset update removes a referenced dictionary entry and the alias map
@@ -36,16 +37,16 @@ async function install(overrides = {}) {
 }
 
 describe("a personal item whose dictionary entry vanishes", () => {
-  it("keeps its own term and translation — the item is not the entry (§5 seam rule)", async () => {
+  it("keeps its own term and personal meaning — the item is not the entry (§5 seam rule)", async () => {
     await install();
-    const item = await createItem(newLexical({ term: "sacar", translation: "to take out", dictKey: SACAR }));
+    const item = await createItem(newLexical({ term: "sacar", meanings: [newMeaning({ gloss: "to take out" })], dictKey: SACAR }));
 
     // rebuild the dictionary without sacar
     await install({ dropEntries: [SACAR] });
 
     const stored = await db.items.get(item.id);
     expect(stored.term).toBe("sacar");
-    expect(stored.translation).toBe("to take out");
+    expect(stored.meanings[0].gloss).toBe("to take out");
     expect((await resolveEntry(stored.dictKey)).entry).toBeNull();
   });
 

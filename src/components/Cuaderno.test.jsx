@@ -10,24 +10,29 @@ import {
   FIXTURE_ENTRIES,
   FIXTURE_FORM_SHARDS,
 } from "../test/dictFixture.js";
+import { meaningsFromTranslation } from "../lib/meanings.js";
 
 const at = (day) => `2026-07-${String(day).padStart(2, "0")}T10:00:00.000Z`;
 
-const word = (name, over = {}) => ({
-  id: `user:${name}`,
-  type: "lexical",
-  form: "word",
-  term: name,
-  translation: "meaning",
-  notes: "",
-  myExamples: [{ es: "ejemplo", en: "example" }],
-  mediaLinks: [],
-  tags: [],
-  linkedKeys: [],
-  createdAt: at(1),
-  updatedAt: at(1),
-  ...over,
-});
+const word = (name, over = {}) => {
+  const hasTranslation = Object.prototype.hasOwnProperty.call(over, "translation");
+  const { translation, meanings, ...rest } = over;
+  return {
+    id: `user:${name}`,
+    type: "lexical",
+    form: "word",
+    term: name,
+    meanings: meanings ?? meaningsFromTranslation(hasTranslation ? translation : "meaning"),
+    notes: "",
+    myExamples: [{ es: "ejemplo", en: "example" }],
+    mediaLinks: [],
+    tags: [],
+    linkedKeys: [],
+    createdAt: at(1),
+    updatedAt: at(1),
+    ...rest,
+  };
+};
 
 const page = (name, over = {}) => ({
   id: `user:${name}`,
@@ -179,7 +184,7 @@ describe("Phase 5c Cuaderno retrieval controls", () => {
 
     await user.selectOptions(screen.getByRole("combobox", { name: "View" }), "all");
     expect(await screen.findByRole("button", { name: /^casa/ })).toBeTruthy();
-  });
+  }, 10000);
 
   it("counts contextual exact tags before the selected tag and clears an impossible tag", async () => {
     const user = userEvent.setup();

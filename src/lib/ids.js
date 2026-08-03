@@ -15,10 +15,19 @@ export function newEventId() {
   return newId();
 }
 
+/** Stable personal meaning identity; deliberately unrelated to dictionary sense IDs. */
+export function newMeaningKey() {
+  return `meaning:${newId()}`;
+}
+
 export function isUserKey(key) {
   return typeof key === "string" && key.startsWith("user:");
 }
 
 export function isDictKey(key) {
   return typeof key === "string" && key.startsWith("dict:");
+}
+
+export function isMeaningKey(key) {
+  return typeof key === "string" && key.startsWith("meaning:");
 }

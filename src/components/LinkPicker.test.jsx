@@ -12,7 +12,7 @@ const lexical = (id, term, form = "word") => ({
   type: "lexical",
   form,
   term,
-  translation: "",
+  meanings: [],
   pos: "",
   notes: "",
   tags: [],

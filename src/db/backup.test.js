@@ -108,10 +108,7 @@ describe("import: replace and restore", () => {
     expect(restored[0].term).toBe("año");
   });
 
-  it("preserves the line breaks in a multi-line meaning", async () => {
-    // A phrase's several readings are stored as newlines inside `translation` — no schema
-    // field, just a string. If a restore flattened them the owner would silently lose the
-    // distinction between readings, so it is pinned the same way review grades are.
+  it("preserves ordered structured meanings", async () => {
     const meaning = "suddenly\nall at once\nout of nowhere";
     await db.items.add(makeLexical({ term: "de repente", translation: meaning }));
 
@@ -122,8 +119,41 @@ describe("import: replace and restore", () => {
     await importBackup(envelope);
 
     const restored = await db.items.toArray();
-    expect(restored[0].translation).toBe(meaning);
-    expect(restored[0].translation.split("\n")).toHaveLength(3);
+    expect(restored[0].meanings.map((entry) => entry.gloss)).toEqual(meaning.split("\n"));
+    expect(restored[0]).not.toHaveProperty("translation");
+  });
+
+  it("validates and upgrades a schema-v1 backup before restoring it", async () => {
+    const current = makeLexical({
+      term: "sacar",
+      notes: "Entry note",
+      myExamples: [{ es: "Saca la basura.", en: "Take out the trash." }],
+    });
+    const { meanings: _meanings, ...v1Item } = current;
+    const v1 = {
+      format: BACKUP_FORMAT,
+      schemaVersion: 1,
+      exportedAt: "2026-07-30T10:00:00.000Z",
+      appVersion: "0.1.0",
+      userItems: [{ ...v1Item, translation: "1. take out\r\n\r\nwithdraw; draw out" }],
+      events: [],
+      preferences: {},
+    };
+
+    const checked = validateBackup(v1);
+    expect(checked.ok).toBe(true);
+    expect(checked.summary).toMatchObject({ schemaVersion: 1, targetSchemaVersion: 2, willUpgrade: true });
+    expect(checked.envelope.schemaVersion).toBe(2);
+    expect(checked.envelope.userItems[0].meanings.map((entry) => entry.gloss)).toEqual([
+      "1. take out",
+      "withdraw; draw out",
+    ]);
+    expect(checked.envelope.userItems[0].notes).toBe("Entry note");
+    expect(checked.envelope.userItems[0].myExamples).toEqual(current.myExamples);
+    expect(checked.envelope.userItems[0]).not.toHaveProperty("translation");
+
+    await importBackup(checked.envelope);
+    expect((await db.items.get(current.id)).meanings).toHaveLength(2);
   });
 
   it("skips duplicate event ids rather than failing", async () => {
@@ -165,6 +195,8 @@ describe("validation happens before anything is written", () => {
     ["a newer schema version", { ...baseline(), schemaVersion: SCHEMA_VERSION + 1 }],
     ["an item missing its term", { ...baseline(), userItems: [{ ...makeLexical(), term: "" }] }],
     ["an item with an unknown type", { ...baseline(), userItems: [{ ...makeLexical(), type: "recipe" }] }],
+    ["a meaning with a blank gloss", { ...baseline(), userItems: [{ ...makeLexical(), meanings: [{ ...makeLexical().meanings[0], gloss: " " }] }] }],
+    ["a malformed nested example", { ...baseline(), userItems: [{ ...makeLexical(), meanings: [{ ...makeLexical().meanings[0], examples: [{ es: "", en: 42 }] }] }] }],
     ["an event missing localDate", { ...baseline(), events: [{ ...makeEvent(), localDate: undefined }] }],
     ["duplicate item ids", { ...baseline(), userItems: [makeLexical({ id: "user:a" }), makeLexical({ id: "user:a" })] }],
   ])("rejects %s without touching the database", async (_label, input) => {
@@ -175,6 +207,20 @@ describe("validation happens before anything is written", () => {
     expect(ok).toBe(false);
     expect(errors.length).toBeGreaterThan(0);
 
+    await expect(importBackup(input)).rejects.toThrow(/Refusing to import/);
+    expect(await db.items.toArray()).toEqual([survivor]);
+  });
+
+  it("rejects duplicate personal meaning ids before writing", async () => {
+    const survivor = makeLexical({ term: "superviviente" });
+    await db.items.add(survivor);
+    const first = makeLexical({ id: "user:first" });
+    const second = makeLexical({ id: "user:second", meanings: [{ ...first.meanings[0] }] });
+    const input = { ...baseline(), userItems: [first, second] };
+
+    const checked = validateBackup(input);
+    expect(checked.ok).toBe(false);
+    expect(checked.errors.join(" ")).toMatch(/Duplicate meaning id/);
     await expect(importBackup(input)).rejects.toThrow(/Refusing to import/);
     expect(await db.items.toArray()).toEqual([survivor]);
   });

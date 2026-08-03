@@ -46,11 +46,42 @@ describe("AddSheet duplicate guard", () => {
     const created = items.find((item) => item.id === onCreated.mock.calls[0][0]);
     expect(created.term).toBe("BUENOS   DÍAS");
     expect(created.form).toBe("word");
+    expect(created.meanings).toEqual([]);
     expect(items).toHaveLength(2);
 
     const events = await allEvents();
     expect(events.filter((event) => event.type === EVENT_TYPES.create)).toHaveLength(2);
     expect(events.filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(0);
+  });
+
+  it("creates ordered meaning blocks with stable personal ids", async () => {
+    const user = userEvent.setup();
+    const onCreated = vi.fn();
+    render(
+      <AddSheet
+        kind="lexical"
+        items={[]}
+        onClose={vi.fn()}
+        onCreated={onCreated}
+      />
+    );
+
+    await user.type(screen.getByPlaceholderText("Spanish word or phrase *"), "sacar");
+    await user.type(screen.getByRole("textbox", { name: "English gloss" }), "take out");
+    await user.type(screen.getByRole("textbox", { name: "Spanish usage cue" }), "sacar la basura");
+    await user.click(screen.getByRole("button", { name: "Add meaning" }));
+    const glosses = screen.getAllByRole("textbox", { name: "English gloss" });
+    await user.type(glosses[1], "withdraw");
+    const cues = screen.getAllByRole("textbox", { name: "Spanish usage cue" });
+    await user.type(cues[1], "sacar dinero");
+    await user.click(screen.getByRole("button", { name: "Add to cuaderno" }));
+
+    await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));
+    const created = await db.items.get(onCreated.mock.calls[0][0]);
+    expect(created.meanings.map((meaning) => meaning.gloss)).toEqual(["take out", "withdraw"]);
+    expect(created.meanings.map((meaning) => meaning.usageCue)).toEqual(["sacar la basura", "sacar dinero"]);
+    expect(created.meanings.every((meaning) => /^meaning:/.test(meaning.id))).toBe(true);
+    expect(created).not.toHaveProperty("translation");
   });
 
   it("warns pages only for page titles, not lexical or accent-distinct headings", async () => {

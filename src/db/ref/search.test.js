@@ -4,6 +4,7 @@ import { installDictionary, fetchManifest, removeDictionary } from "./install.js
 import { buildFixtureDictionary, installFetchStub } from "../../test/dictFixture.js";
 import { searchItems, mergeResults, TIER } from "../../lib/search.js";
 import { newLexical, newPage } from "../items.js";
+import { newMeaning } from "../../lib/meanings.js";
 
 const realFetch = globalThis.fetch;
 
@@ -92,8 +93,8 @@ describe("ranking and shape", () => {
 
 describe("the seam: one list across both layers (§8)", () => {
   const notebook = [
-    newLexical({ term: "sacar", translation: "my own note about sacar" }),
-    newLexical({ term: "chamba", translation: "work", notes: "heard in Mexico" }),
+    newLexical({ term: "sacar", meanings: [newMeaning({ gloss: "my own note about sacar" })] }),
+    newLexical({ term: "chamba", meanings: [newMeaning({ gloss: "work" })], notes: "heard in Mexico" }),
     newPage({ title: "Preterite vs imperfect", body: "sacar is regular" }),
   ];
 

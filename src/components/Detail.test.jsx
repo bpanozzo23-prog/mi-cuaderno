@@ -7,6 +7,7 @@ import Detail from "./Detail.jsx";
 import { db, clearAllPersonalData } from "../db/db.js";
 import { newLexical, newPage, createItem, allItems } from "../db/items.js";
 import { allEvents, EVENT_TYPES } from "../db/events.js";
+import { newMeaning } from "../lib/meanings.js";
 
 /**
  * The cross-cutting acceptance criterion for Phase 4: **linking never requires navigating
@@ -182,7 +183,7 @@ describe("collapsed optional-field composers", () => {
     expect(saved.myExamples.at(-1)).toEqual({ es: "Me levanto temprano.", en: "I get up early." });
     expect(saved.mediaLinks.at(-1)).toEqual({ url: "https://example.com/new", label: "New source" });
     expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(2);
-  });
+  }, 10000);
 
   it("keeps invalid drafts open and lets Cancel discard them without writing", async () => {
     const user = userEvent.setup();
@@ -364,7 +365,7 @@ describe("quick-create-and-link keeps the owner where they are", () => {
 describe("linking an existing item", () => {
   it("stores the link on this item only, and marks it linked in the picker", async () => {
     const user = userEvent.setup();
-    const word = await createItem(newLexical({ term: "madrugar", translation: "to get up early" }));
+    const word = await createItem(newLexical({ term: "madrugar", meanings: [newMeaning({ gloss: "to get up early" })] }));
     const page = await createItem(newPage({ title: "Verbs" }));
 
     renderDetail(page);

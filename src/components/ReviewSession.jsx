@@ -3,6 +3,7 @@ import { ChevronLeft, Check, X, Eye, Highlighter, BookOpen, RotateCcw } from "lu
 import { C, SERIF, MONO, dotGrid, Hi, Card, Button } from "../theme.jsx";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
 import { logReview } from "../db/events.js";
+import { meaningLabels } from "../lib/meanings.js";
 
 /**
  * One pass through today's due words (brief section 12).
@@ -21,6 +22,7 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [showContext, setShowContext] = useState(false);
   const [tally, setTally] = useState({ passed: 0, failed: 0 });
 
   const item = cards[index] || null;
@@ -35,6 +37,7 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
       failed: t.failed + (passed ? 0 : 1),
     }));
     setRevealed(false);
+    setShowContext(false);
     setIndex((i) => i + 1);
     setBusy(false);
     onGraded?.();
@@ -124,13 +127,53 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
               three readings is exactly the case where clipping would hide the thing being
               tested.
             */}
-            <div className="text-lg text-center whitespace-pre-wrap" style={{ color: C.ink }}>
-              {item.translation || (
+            <div className="space-y-2">
+              {item.meanings?.length ? item.meanings.map((meaning, meaningIndex) => (
+                <div key={meaning.id} className="text-left rounded-lg px-2 py-1.5" style={{ background: C.paper }}>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xs" style={{ fontFamily: MONO, color: C.mut }}>{meaningIndex + 1}</span>
+                    <span className="text-lg" style={{ fontFamily: SERIF, color: C.ink }}>{meaning.gloss}</span>
+                  </div>
+                  {meaning.usageCue && <div className="text-sm ml-5" style={{ color: C.mut }}>{meaning.usageCue}</div>}
+                  {meaningLabels(meaning).length > 0 && (
+                    <div className="flex flex-wrap gap-1 ml-5 mt-1">
+                      {meaningLabels(meaning).map((label) => (
+                        <span key={label} className="text-[11px] rounded-full px-1.5 py-0.5" style={{ background: C.penPale, color: C.penDark }}>{label}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )) : (
                 <span className="text-sm italic" style={{ color: C.mut }}>
                   No meaning written down for this one yet.
                 </span>
               )}
             </div>
+
+            {item.meanings?.some((meaning) => meaning.note || meaning.examples?.length) && (
+              <button
+                onClick={() => setShowContext((shown) => !shown)}
+                className="text-xs underline underline-offset-2"
+                style={{ color: C.pen }}
+              >
+                {showContext ? "Hide meaning context" : "Show meaning notes and examples"}
+              </button>
+            )}
+
+            {showContext && item.meanings?.map((meaning) =>
+              meaning.note || meaning.examples?.length ? (
+                <div key={meaning.id} className="text-sm rounded-lg p-2" style={{ background: C.paper }}>
+                  <div className="text-xs font-semibold" style={{ color: C.mut }}>{meaning.gloss}</div>
+                  {meaning.note && <div className="whitespace-pre-wrap mt-1">{meaning.note}</div>}
+                  {meaning.examples?.map((example, exampleIndex) => (
+                    <div key={exampleIndex} className="mt-1.5">
+                      <div style={{ fontFamily: SERIF }}>{example.es}</div>
+                      {example.en && <div className="text-xs" style={{ color: C.mut }}>{example.en}</div>}
+                    </div>
+                  ))}
+                </div>
+              ) : null
+            )}
 
             {item.notes && (
               <div className="text-sm whitespace-pre-wrap" style={{ color: C.mut }}>

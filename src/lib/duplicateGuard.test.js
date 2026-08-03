@@ -6,7 +6,7 @@ const lexical = (id, term, form = "word", over = {}) => ({
   type: "lexical",
   form,
   term,
-  translation: "",
+  meanings: [],
   tags: [],
   ...over,
 });
@@ -63,9 +63,9 @@ describe("strong personal-heading duplicate guard", () => {
     expect(ids(items, "page", "roma")).toEqual(["page"]);
   });
 
-  it("checks headings only, ignoring translations, tags, bodies and dictionary rows", () => {
+  it("checks headings only, ignoring meanings, tags, bodies and dictionary rows", () => {
     const items = [
-      lexical("translation", "correr", "word", { translation: "casa", tags: ["casa"] }),
+      lexical("meaning", "correr", "word", { meanings: [{ gloss: "casa" }], tags: ["casa"] }),
       page("body", "Grammar", { body: "casa", tags: ["casa"] }),
       { id: "dict:casa", lemma: "casa", senses: [{ gloss: "house" }] },
     ];

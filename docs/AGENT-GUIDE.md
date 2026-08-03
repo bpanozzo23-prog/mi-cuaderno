@@ -57,10 +57,11 @@ this summary.
 - **The event log is the single source of truth** (§7). No stored counters, no state flags.
   Tricky state, lookup counts, review box and due date are all *derived at render*
   (`src/lib/review.js`, `src/db/events.js`).
-- **`SCHEMA_VERSION` is 1 and has never moved.** A personal-layer schema change triggers §5 in
-  full: migration plan, export-first reminder, version bump, and matching validation in
-  `src/db/backup.js`. **If you conclude one is needed, stop and raise it** — every phase so far
-  has found a way not to need one.
+- **`SCHEMA_VERSION` is 2.** Phase 4i was the first personal-layer migration: startup exports v1
+  before Dexie opens, the database upgrade converts flat translations to personal meanings, and
+  v1 backup imports upgrade separately in `src/db/backup.js`. Any further personal schema change
+  still triggers §5 in full: migration plan, export-first safety, version bump and matching backup
+  validation. **If you conclude another is needed, stop and raise it.**
 - **`src/lib/normalize.js` preserves ñ** — "año" must never match "ano", anywhere new. All
   matching goes through it. **Do not change it:** the pipeline imports the same file, so it also
   decides what the 10,278 shipped dictionary entries match.
@@ -69,7 +70,8 @@ this summary.
   page is a journal entry; films, podcasts and grammar notes are ordinary pages.
 - **Identity:** personal IDs are `user:<uuid>`; dictionary IDs are namespaced `dict:` keys. A
   lexical item's optional `dictKey` is a reversible attachment, never its identity — the item
-  keeps its own `term` and `translation` and stays meaningful alone.
+  keeps its own `term` and owns stable `meaning:<uuid>` records that never reference dictionary
+  sense IDs or ordering, so it stays meaningful alone.
 - **Links are stored once**, in `linkedKeys[]` on the item where the link was made; backlinks
   are derived from the `*linkedKeys` index. Never store a reciprocal copy. **Linking and
   unlinking log no `edit` event** — bookkeeping, not content. Tags and notes *are* content and

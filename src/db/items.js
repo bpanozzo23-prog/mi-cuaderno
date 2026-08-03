@@ -3,14 +3,15 @@ import { logEvent, EVENT_TYPES } from "./events.js";
 import { newUserKey } from "../lib/ids.js";
 import { nowIso } from "../lib/dates.js";
 import { requestPersistence } from "../lib/persistence.js";
+import { cleanMeanings, newMeaning } from "../lib/meanings.js";
 
 /**
  * Personal-layer CRUD (brief section 7). Every mutation logs its event, because
  * the log — not any field on the record — is what statistics and state are read from.
  *
- * The seam rule (section 5): a lexical item always stores its own `term` and
- * `translation`, even when `dictKey` attaches it to a dictionary entry, so it stays
- * meaningful on its own if that entry ever disappears.
+ * The seam rule (section 5): a lexical item always stores its own `term` and personal
+ * `meanings`, even when `dictKey` attaches it to a dictionary entry, so it stays meaningful
+ * on its own if that entry ever disappears. Meaning IDs never come from dictionary senses.
  */
 
 const cleanTags = (tags) =>
@@ -18,7 +19,7 @@ const cleanTags = (tags) =>
 
 export function newLexical({
   term,
-  translation = "",
+  meanings = [],
   form = "word",
   pos = "",
   notes = "",
@@ -35,7 +36,7 @@ export function newLexical({
     dictKey,
     form: form === "phrase" ? "phrase" : "word",
     term: String(term || "").trim(),
-    translation: String(translation || "").trim(),
+    meanings: cleanMeanings(meanings),
     pos,
     notes,
     myExamples,
@@ -53,12 +54,12 @@ export function newLexical({
  * import, so it can be reused wherever an entry needs a one-tap way into the cuaderno
  * (the entry's own "Add to my cuaderno" button, and the Repaso "keep looking these up"
  * rail alike). The seam rule (section 5) is why this only ever seeds the item — term and
- * translation are copied in, not referenced, so the item stays meaningful on its own.
+ * gloss are copied into independent personal records, not referenced.
  */
 export function newLexicalFromEntry(entry) {
   return newLexical({
     term: entry.lemma,
-    translation: entry.senses?.[0]?.gloss || "",
+    meanings: entry.senses?.[0]?.gloss ? [newMeaning({ gloss: entry.senses[0].gloss })] : [],
     pos: entry.pos === "adj" ? "adjective" : entry.pos === "adv" ? "adverb" : entry.pos,
     dictKey: entry.id,
   });
@@ -110,6 +111,7 @@ export async function allItems() {
 export async function updateItem(id, patch, { logEdit = true } = {}) {
   const next = { ...patch, updatedAt: nowIso() };
   if (next.tags) next.tags = cleanTags(next.tags);
+  if (next.meanings) next.meanings = cleanMeanings(next.meanings);
   await db.items.update(id, next);
   if (logEdit) await logEvent(EVENT_TYPES.edit, id);
   return db.items.get(id);

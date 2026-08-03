@@ -1,5 +1,6 @@
 import { normalize } from "./normalize.js";
 import { TIER } from "./search.js";
+import { meaningGlossText } from "./meanings.js";
 
 /**
  * Links, derived (brief section 7).
@@ -109,7 +110,7 @@ export function groupRelated(items = [], entries = [], order = [GROUPS.palabras,
  * Matches for the link picker: "find the one item I mean".
  *
  * Deliberately narrower than search (src/lib/search.js). It matches **term, title and
- * translation only** — NOT tags, notes or page bodies. A picker is not a search screen: tag
+ * meaning glosses only** — NOT tags, notes or page bodies. A picker is not a search screen: tag
  * matches are noise there, because typing "verb" would offer every item tagged `verbs` when
  * the owner is trying to pick one word. (The tag-filter chips on the Cuaderno screen are a
  * different feature and are untouched.)
@@ -143,7 +144,7 @@ export function pickerMatches(items, query, { excludeId = null, limit = 8 } = {}
     else if (nHeading === q) rows.push({ item, tier: TIER.normalizedTerm, offset: 0 });
     else if (nHeading.startsWith(q)) rows.push({ item, tier: TIER.normalizedTerm, offset: 1 });
     else if (nHeading.includes(q)) rows.push({ item, tier: TIER.normalizedTerm, offset: 2 });
-    else if (item.type !== "page" && normalize(item.translation).includes(q)) {
+    else if (item.type !== "page" && normalize(meaningGlossText(item, " ")).includes(q)) {
       rows.push({ item, tier: TIER.translation, offset: 0 });
     }
   }

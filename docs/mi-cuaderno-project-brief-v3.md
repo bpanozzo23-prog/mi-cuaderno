@@ -6,7 +6,7 @@
 **Companion file:** `mi-cuaderno.jsx` — a working single-file prototype of the notebook layer. It is the reference for features, interaction patterns, and visual design of **lexical entries**. Pages (§7) do not exist in the prototype and are new in v3. Where this brief contradicts the prototype's *implementation* (ID scheme, search normalization, the `struggling` field, event rules), **this brief wins** — the prototype shows what the app should feel like, not how it must be built.
 **Version:** v3 — revised after lock-in review. Product contract last amended August 2, 2026;
 agent-facing framing refreshed August 2, 2026.
-**Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. §§3, 9 and 12 — 2026-08-02: organizational improvements became Phase 5 and the AI assistant moved to Phase 6. §12 — 2026-08-02: independently scoped phases may proceed concurrently under explicit coordination rules. Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
+**Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. §§3, 9 and 12 — 2026-08-02: organizational improvements became Phase 5 and the AI assistant moved to Phase 6. §12 — 2026-08-02: independently scoped phases may proceed concurrently under explicit coordination rules. §§5, 7, 8, 10, 12 and 14 — 2026-08-02: personal lexical meanings became stable, structured annotations in schema v2 while review remains entry-level and dictionary senses remain replaceable reference data. Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
 
 ---
 
@@ -60,7 +60,7 @@ The app code and the bundled reference data are licensed separately. Reference-d
 
 - **Reference layer (read-only):** imported dictionary entries, conjugations, and stock examples. Produced by the pipeline; versioned; regenerated or upgraded wholesale; never edited in-app.
 - **Personal layer (read-write):** everything the owner creates. Rebuilding or replacing reference data must never touch personal data. Any personal-layer schema change requires a migration plan and a reminder to export a backup first.
-- **The seam rule:** *personal items always have their own stable ID; attaching one to a dictionary entry is a reversible relationship, not its identity.* Lexical items always store their own `term` (and `translation`, when given) even while attached, so they stay meaningful on their own.
+- **The seam rule:** *personal items always have their own stable ID; attaching one to a dictionary entry is a reversible relationship, not its identity.* ~~Lexical items always store their own `term` (and `translation`, when given) even while attached, so they stay meaningful on their own.~~ **Amended 2026-08-02:** lexical items always store their own `term` and ordered personal `meanings[]` even while attached. Each personal meaning has its own `meaning:<uuid>` identity and never stores or derives its identity from a dictionary sense ID, index or ordering.
 - **Orphan behavior:** if a dataset update removes a referenced dictionary entry and the alias map (§6) cannot resolve it, the personal item keeps working as a standalone lexical item, is subtly marked "reference unlinked," and can be re-attached later. Personal data never breaks because reference data changed.
 
 ## 6. Identity and keys
@@ -80,7 +80,7 @@ The app code and the bundled reference data are licensed separately. Reference-d
 | Identity | UUIDs for all personal records, independent of dictionary records; namespaced keys per §6 |
 | Reference attachment | Optional and reversible (§5 seam rule); orphan-safe |
 | Lexical form | `form: word \| phrase` |
-| Annotation level | Entry-level only. **Do not add a `senseId` field** — imported sense IDs are not stable across dataset updates; sense-level notes stay deferred until that's solved |
+| Annotation level | ~~Entry-level only. **Do not add a `senseId` field** — imported sense IDs are not stable across dataset updates; sense-level notes stay deferred until that's solved.~~ **Amended 2026-08-02:** personal lexical entries contain ordered meaning-level annotations with stable, locally generated IDs. Do not add a dictionary `senseId`: personal meaning identity remains independent of replaceable dictionary sense IDs and ordering. Review scheduling and activity remain entry-level. |
 | Links | Any personal item can link to any item in either layer |
 | Deletion | Confirm first; **hard-delete the record and log a `delete` event** — the append-only event log is the tombstone. No soft-delete flags. Remove links pointing to the deleted item; keep its historical events but exclude them from active queues and statistics |
 | Media | `mediaLinks[]` (URLs) only for now. **Reserved:** a separate `Attachment` store for future files. Items will reference attachments by ID; binary data is never embedded in item records; nothing in the schema may assume links are the only media type |
@@ -100,7 +100,10 @@ UserItem    { id, type: lexical | page,
               tags[], linkedKeys[], mediaLinks[{ url, label }],
               createdAt, updatedAt,
               // lexical only:
-              dictKey?, form: word | phrase, term, translation?, pos?,
+              dictKey?, form: word | phrase, term, pos?,
+              meanings[{ id, gloss, usageCue, regions[], usageLabels[],
+                         posOverride?, verbBehavior[], note,
+                         examples[{ es, en }] }],
               notes, myExamples[{ es, en }],
               // page only:
               title, body, pageDate? }
@@ -111,6 +114,16 @@ Event       { id, type: view | create | edit | delete | tricky_on | tricky_off |
               review_pass | review_fail | search_miss,
               itemKey?, at, localDate, metadata? }
 ```
+
+**Meaning-block amendment, 2026-08-02.** `meanings[]` is the owner's small personal vocabulary,
+not a copy of the dictionary's taxonomy. `gloss` is the English meaning and `usageCue` is an
+optional short Spanish cue. Regions are owner-written labels; usage labels are limited to formal,
+informal, colloquial, slang, vulgar, offensive, dated, archaic, rare, humorous, figurative and
+literal. A meaning may override the entry's part of speech with noun, verb, adjective, adverb or
+other, and may record transitive, intransitive, reflexive, pronominal or impersonal verb behavior.
+Entry-wide notes and unassigned examples remain valid. An entry may have no meanings; a saved
+meaning must have a nonblank gloss. Meaning IDs survive editing and reordering, while merging two
+neighboring meanings keeps the upper meaning's ID.
 
 ### Event rules
 
@@ -127,9 +140,9 @@ Event       { id, type: view | create | edit | delete | tricky_on | tricky_off |
   1. Exact Spanish term
   2. Accent-normalized Spanish term
   3. Inflected-form alias (reference layer: form→lemma index from kaikki forms + conjugation tables, so "fui" resolves to *ir* and *ser*, "tuvimos" to *tener*, "casas" to *casa*, "rápidas" to *rápido*)
-  4. English gloss or personal translation — **English→Spanish lookup is first-class**
+  4. ~~English gloss or personal translation~~ **English dictionary gloss or personal meaning gloss — English→Spanish lookup is first-class**
   5. Tags
-  6. Notes, personal examples, page titles and page bodies
+  6. Notes, personal examples, personal meaning cues and labels, page titles and page bodies
 - Each result shows *why* it matched (e.g., "form of ir", "English meaning", "in your notes").
 
 ## 9. AI assistant policy (~~Phase 5~~ **Phase 6**)
@@ -146,7 +159,7 @@ Backup envelope:
 ```json
 {
   "format": "mi-cuaderno-backup",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "exportedAt": "ISO timestamp",
   "appVersion": "version",
   "userItems": [],
@@ -158,6 +171,11 @@ Backup envelope:
 - Contains all personal-layer data, events, and preferences. **Excludes** the reference dictionary (replaceable) and the API key (never exported).
 - If attachments are ever built, the backup upgrades to an archive (zip: this JSON envelope + attachment files) with a `schemaVersion` bump; until then it stays a single JSON file.
 - Import validates the entire file before touching the database, runs in a transaction, and its first supported mode is **replace-and-restore** — no merge mode in v1. Duplicate event IDs are skipped. The owner sees a summary and confirms before anything is written, and the existing database is auto-exported first so the pre-import state is recoverable.
+- **Schema-v2 amendment, 2026-08-02:** the first personal-data migration converts each nonblank line
+  of a v1 lexical `translation` into an ordered personal meaning and leaves existing entry notes and
+  examples unassigned. The upgraded app must offer and require a validated v1 export before it opens
+  the database for migration. A v2 app accepts v1 backups by validating them, upgrading them in
+  memory, validating the resulting v2 envelope, and only then offering replace-and-restore.
 - On first meaningful use, request persistent storage (`navigator.storage.persist()`), surface whether it was granted, and tell the owner plainly that clearing browser data, uninstalling, or losing the device destroys local data — which is why export is one tap away and the settings screen shows "last backup: N days ago".
 
 ## 11. Reference-data delivery and caching
@@ -198,6 +216,18 @@ pass its relevant verification before dependent work is merged.
 
 **Phase 4 — Live-use polish.** Driven by a running list of friction the owner collects while using the app daily. Candidates: a journal view (dated pages, newest first), YouTube links opening at a timestamp, richer linking, better stats, a "words I couldn't find" list from `search_miss` events.
 
+**Amended 2026-08-02 — Phase 4i: structured personal meaning blocks.** Replace the flat personal
+translation string with ordered meaning blocks whose IDs are independent of dictionary senses.
+Meanings may carry a Spanish usage cue, compact descriptive labels, a note and assigned examples;
+entry-wide notes and general examples remain. This is the first personal schema migration, so
+schema-v1 data and backups receive an export-first, validated upgrade path. Repaso remains entry-
+level and reveals all glosses and cues together. The approved direction is recorded in
+`docs/IMPROVEMENT-IDEAS.md` and `DECISIONS.md`.
+*Done when:* schema-v1 personal data and backups upgrade losslessly; structured meanings can be
+created, read, edited, reordered, merged and deleted with explicit preservation choices; every
+personal-data consumer uses the new model; entry-level search and review remain correct; and the
+seeded schema-v1 `sacar` fixture passes the full 375 px browser flow without overflow or errors.
+
 ~~**Phase 5 — AI assistant.** Implement per §9.~~
 
 **Amended 2026-08-02 — Phase 5: organizational improvements.** Improve navigation continuity,
@@ -220,7 +250,7 @@ No accounts, no server, no analytics, no multi-user, no native Android build, no
 
 ## 14. Deferred decisions — do not solve early
 
-Whether and when to build the Attachment model; cross-device sync; review scheduling beyond Leitner; sense-level annotations; importing multiword expressions into the reference layer; merge-mode import.
+Whether and when to build the Attachment model; cross-device sync; review scheduling beyond Leitner; ~~sense-level annotations;~~ **dictionary-sense attachment or synchronization (personal meaning annotations are now built independently);** importing multiword expressions into the reference layer; merge-mode import.
 
 ## 15. How to use this brief now
 

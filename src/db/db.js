@@ -1,4 +1,5 @@
 import Dexie from "dexie";
+import { upgradeLexicalItemV1 } from "../lib/meanings.js";
 
 /**
  * Personal-layer database (brief section 5). Reference-layer tables arrive in Phase 2
@@ -10,11 +11,29 @@ import Dexie from "dexie";
  */
 export const db = new Dexie("mi-cuaderno");
 
-db.version(1).stores({
+export const PERSONAL_STORES = {
   items: "id, type, term, title, updatedAt, *tags, *linkedKeys",
   events: "id, at, localDate, itemKey, type",
   prefs: "key",
-});
+};
+
+db.version(1).stores(PERSONAL_STORES);
+
+export async function migratePersonalDataToV2(transaction) {
+  await transaction
+    .table("items")
+    .where("type")
+    .equals("lexical")
+    .modify((item) => {
+      const upgraded = upgradeLexicalItemV1(item);
+      Object.assign(item, upgraded);
+      delete item.translation;
+    });
+}
+
+db.version(2)
+  .stores(PERSONAL_STORES)
+  .upgrade(migratePersonalDataToV2);
 
 export async function getPref(key, fallback = null) {
   const row = await db.prefs.get(key);

@@ -1,6 +1,13 @@
 import { db, allPrefs, setPref } from "./db.js";
 import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
 import { nowIso } from "../lib/dates.js";
+import {
+  MEANING_POS_OPTIONS,
+  USAGE_LABELS,
+  VERB_BEHAVIORS,
+  upgradeLexicalItemV1,
+} from "../lib/meanings.js";
+import { isMeaningKey } from "../lib/ids.js";
 
 /**
  * Backup is the disaster-recovery mechanism, not a convenience (brief section 10).
@@ -16,7 +23,7 @@ export async function buildBackup() {
     db.events.toArray(),
     allPrefs(),
   ]);
-  return {
+  const candidate = {
     format: BACKUP_FORMAT,
     schemaVersion: SCHEMA_VERSION,
     exportedAt: nowIso(),
@@ -25,6 +32,9 @@ export async function buildBackup() {
     events,
     preferences,
   };
+  const checked = validateBackup(candidate);
+  if (!checked.ok) throw new Error(`The current notebook could not be backed up: ${checked.errors.join(" ")}`);
+  return checked.envelope;
 }
 
 export function backupFilename(envelope) {
@@ -41,7 +51,60 @@ export async function recordBackupTaken(at = nowIso()) {
 const isString = (v) => typeof v === "string";
 const isNonEmptyString = (v) => isString(v) && v.trim() !== "";
 
-function validateItem(item, index, errors) {
+function validateStringArray(value, where, errors, allowed = null) {
+  if (!Array.isArray(value)) return errors.push(`${where} must be an array`);
+  value.forEach((entry, index) => {
+    if (!isNonEmptyString(entry)) errors.push(`${where}[${index}] must be a nonblank string`);
+    else if (allowed && !allowed.includes(entry)) errors.push(`${where}[${index}] is not supported`);
+  });
+}
+
+function validateExample(example, where, errors) {
+  if (!example || typeof example !== "object" || Array.isArray(example)) {
+    return errors.push(`${where} is not an object`);
+  }
+  if (!isNonEmptyString(example.es)) errors.push(`${where}.es is missing`);
+  if (!isString(example.en)) errors.push(`${where}.en must be a string`);
+}
+
+function validateExamples(value, where, errors) {
+  if (!Array.isArray(value)) return errors.push(`${where} must be an array`);
+  value.forEach((example, index) => validateExample(example, `${where}[${index}]`, errors));
+}
+
+function validateMediaLinks(value, where, errors) {
+  if (!Array.isArray(value)) return errors.push(`${where} must be an array`);
+  value.forEach((media, index) => {
+    const mediaWhere = `${where}[${index}]`;
+    if (!media || typeof media !== "object" || Array.isArray(media)) {
+      errors.push(`${mediaWhere} is not an object`);
+      return;
+    }
+    if (!isNonEmptyString(media.url) || !/^https?:\/\//i.test(media.url)) {
+      errors.push(`${mediaWhere}.url must be an http(s) URL`);
+    }
+    if (!isString(media.label)) errors.push(`${mediaWhere}.label must be a string`);
+  });
+}
+
+function validateMeaning(meaning, where, errors, seenMeaningIds) {
+  if (!meaning || typeof meaning !== "object" || Array.isArray(meaning)) {
+    return errors.push(`${where} is not an object`);
+  }
+  if (!isMeaningKey(meaning.id)) errors.push(`${where}.id must be a personal meaning id`);
+  else if (seenMeaningIds.has(meaning.id)) errors.push(`Duplicate meaning id "${meaning.id}".`);
+  else seenMeaningIds.add(meaning.id);
+  if (!isNonEmptyString(meaning.gloss)) errors.push(`${where}.gloss is missing`);
+  if (!isString(meaning.usageCue)) errors.push(`${where}.usageCue must be a string`);
+  validateStringArray(meaning.regions, `${where}.regions`, errors);
+  validateStringArray(meaning.usageLabels, `${where}.usageLabels`, errors, USAGE_LABELS);
+  if (!MEANING_POS_OPTIONS.includes(meaning.posOverride)) errors.push(`${where}.posOverride is not supported`);
+  validateStringArray(meaning.verbBehavior, `${where}.verbBehavior`, errors, VERB_BEHAVIORS);
+  if (!isString(meaning.note)) errors.push(`${where}.note must be a string`);
+  validateExamples(meaning.examples, `${where}.examples`, errors);
+}
+
+function validateItem(item, index, errors, schemaVersion, seenMeaningIds) {
   const where = `userItems[${index}]`;
   if (!item || typeof item !== "object") return errors.push(`${where} is not an object`);
   if (!isNonEmptyString(item.id)) errors.push(`${where}.id is missing`);
@@ -50,17 +113,39 @@ function validateItem(item, index, errors) {
   }
   if (!isString(item.createdAt)) errors.push(`${where}.createdAt is missing`);
   if (!isString(item.updatedAt)) errors.push(`${where}.updatedAt is missing`);
-  if (!Array.isArray(item.tags)) errors.push(`${where}.tags must be an array`);
-  if (!Array.isArray(item.linkedKeys)) errors.push(`${where}.linkedKeys must be an array`);
-  if (!Array.isArray(item.mediaLinks)) errors.push(`${where}.mediaLinks must be an array`);
+  validateStringArray(item.tags, `${where}.tags`, errors);
+  validateStringArray(item.linkedKeys, `${where}.linkedKeys`, errors);
+  validateMediaLinks(item.mediaLinks, `${where}.mediaLinks`, errors);
   if (item.type === "lexical") {
     if (!isNonEmptyString(item.term)) errors.push(`${where}.term is missing`);
     if (item.form !== "word" && item.form !== "phrase") {
       errors.push(`${where}.form must be "word" or "phrase"`);
     }
+    if (item.dictKey !== null && item.dictKey !== undefined && !isString(item.dictKey)) {
+      errors.push(`${where}.dictKey must be a string or null`);
+    }
+    if (schemaVersion === 1) {
+      if (item.pos !== undefined && !MEANING_POS_OPTIONS.includes(item.pos)) errors.push(`${where}.pos is not supported`);
+    } else if (!MEANING_POS_OPTIONS.includes(item.pos)) errors.push(`${where}.pos is not supported`);
+    if (!isString(item.notes)) errors.push(`${where}.notes must be a string`);
+    validateExamples(item.myExamples, `${where}.myExamples`, errors);
+    if (schemaVersion === 1) {
+      if (item.translation !== undefined && !isString(item.translation)) {
+        errors.push(`${where}.translation must be a string`);
+      }
+    } else {
+      if (!Array.isArray(item.meanings)) errors.push(`${where}.meanings must be an array`);
+      else item.meanings.forEach((meaning, meaningIndex) =>
+        validateMeaning(meaning, `${where}.meanings[${meaningIndex}]`, errors, seenMeaningIds)
+      );
+    }
   }
-  if (item.type === "page" && !isString(item.title)) {
-    errors.push(`${where}.title is missing`);
+  if (item.type === "page") {
+    if (!isString(item.title)) errors.push(`${where}.title is missing`);
+    if (!isString(item.body)) errors.push(`${where}.body must be a string`);
+    if (item.pageDate !== null && item.pageDate !== undefined && !isString(item.pageDate)) {
+      errors.push(`${where}.pageDate must be a string or null`);
+    }
   }
 }
 
@@ -71,6 +156,9 @@ function validateEvent(event, index, errors) {
   if (!isNonEmptyString(event.type)) errors.push(`${where}.type is missing`);
   if (!isString(event.at)) errors.push(`${where}.at is missing`);
   if (!isString(event.localDate)) errors.push(`${where}.localDate is missing`);
+  if (event.itemKey !== null && event.itemKey !== undefined && !isString(event.itemKey)) {
+    errors.push(`${where}.itemKey must be a string or null`);
+  }
 }
 
 /**
@@ -100,15 +188,20 @@ export function validateBackup(raw) {
     errors.push(
       `This backup is schema version ${parsed.schemaVersion}, newer than this app understands (${SCHEMA_VERSION}). Update the app first.`
     );
+  } else if (parsed.schemaVersion !== 1 && parsed.schemaVersion !== 2) {
+    errors.push(`Schema version ${parsed.schemaVersion} is not supported.`);
   }
   if (!Array.isArray(parsed.userItems)) errors.push("userItems must be an array.");
   if (!Array.isArray(parsed.events)) errors.push("events must be an array.");
-  if (parsed.preferences !== undefined && (typeof parsed.preferences !== "object" || parsed.preferences === null)) {
+  if (parsed.preferences !== undefined &&
+      (typeof parsed.preferences !== "object" || parsed.preferences === null || Array.isArray(parsed.preferences))) {
     errors.push("preferences must be an object.");
   }
   if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
 
-  parsed.userItems.forEach((item, i) => validateItem(item, i, errors));
+  const sourceSchemaVersion = parsed.schemaVersion;
+  const seenMeaningIds = new Set();
+  parsed.userItems.forEach((item, i) => validateItem(item, i, errors, sourceSchemaVersion, seenMeaningIds));
   parsed.events.forEach((event, i) => validateEvent(event, i, errors));
 
   const seenItemIds = new Set();
@@ -132,7 +225,26 @@ export function validateBackup(raw) {
 
   if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
 
-  const envelope = { ...parsed, events, preferences: parsed.preferences ?? {} };
+  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
+
+  const upgradedItems = sourceSchemaVersion === 1
+    ? parsed.userItems.map((item) => upgradeLexicalItemV1(item))
+    : parsed.userItems.map((item) => ({ ...item }));
+
+  if (sourceSchemaVersion === 1) {
+    const upgradedMeaningIds = new Set();
+    upgradedItems.forEach((item, i) => validateItem(item, i, errors, 2, upgradedMeaningIds));
+  }
+
+  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
+
+  const envelope = {
+    ...parsed,
+    schemaVersion: SCHEMA_VERSION,
+    userItems: upgradedItems,
+    events,
+    preferences: parsed.preferences ?? {},
+  };
   const summary = {
     items: envelope.userItems.length,
     lexical: envelope.userItems.filter((i) => i.type === "lexical").length,
@@ -141,7 +253,9 @@ export function validateBackup(raw) {
     skippedEvents,
     exportedAt: envelope.exportedAt ?? null,
     appVersion: envelope.appVersion ?? null,
-    schemaVersion: envelope.schemaVersion,
+    schemaVersion: sourceSchemaVersion,
+    targetSchemaVersion: SCHEMA_VERSION,
+    willUpgrade: sourceSchemaVersion < SCHEMA_VERSION,
   };
   return { ok: true, errors: [], envelope, summary };
 }

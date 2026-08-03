@@ -19,6 +19,8 @@ import { emptyItemState } from "../useNotebook.js";
 import { relatedTo, groupRelated, GROUPS } from "../lib/links.js";
 import { allTagsIn } from "../lib/tags.js";
 import { timeAgo } from "../lib/dates.js";
+import { cloneMeanings } from "../lib/meanings.js";
+import MeaningsSection from "./MeaningsSection.jsx";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
@@ -124,7 +126,7 @@ export default function Detail({
     setHead(
       isPage
         ? { title: item.title, pageDate: item.pageDate || "" }
-        : { term: item.term, translation: item.translation, pos: item.pos || "", form: item.form }
+        : { term: item.term, pos: item.pos || "", form: item.form }
     );
   }, [item.id]);
 
@@ -149,7 +151,6 @@ export default function Detail({
       ? { title: head.title.trim(), pageDate: head.pageDate || null }
       : {
           term: head.term.trim(),
-          translation: head.translation.trim(),
           pos: head.pos,
           form: head.form,
         };
@@ -218,14 +219,6 @@ export default function Detail({
                   className="w-full text-lg rounded-xl border px-3 py-2 outline-none"
                   style={{ ...inputStyle, fontFamily: SERIF }}
                 />
-                <textarea
-                  value={head.translation}
-                  onChange={(e) => setHead({ ...head, translation: e.target.value })}
-                  placeholder="English meaning — one per line if it has several"
-                  rows={2}
-                  className="w-full text-sm rounded-xl border px-3 py-2 outline-none resize-y"
-                  style={inputStyle}
-                />
                 <div className="flex gap-2">
                   <div className="flex rounded-xl border overflow-hidden" style={{ borderColor: C.line }}>
                     {["word", "phrase"].map((f) => (
@@ -278,12 +271,6 @@ export default function Detail({
                   </>
                 )}
               </div>
-              {/* Shown in full: this screen is where the owner reads what they wrote. */}
-              {!isPage && item.translation && (
-                <div className="mt-1 whitespace-pre-wrap" style={{ color: C.ink }}>
-                  — {item.translation}
-                </div>
-              )}
               {isPage && item.pageDate && (
                 <div className="mt-1 text-xs inline-flex items-center gap-1" style={{ fontFamily: MONO, color: C.mut }}>
                   <CalendarDays size={12} /> {item.pageDate}
@@ -331,6 +318,13 @@ export default function Detail({
           </>
         )}
       </Card>
+
+      {!isPage && (
+        <>
+          <SectionTitle>Meanings</SectionTitle>
+          <MeaningsSection item={item} onPatch={patch} />
+        </>
+      )}
 
       <SectionTitle>{isPage ? "Page" : "Notes"}</SectionTitle>
       <Card>
@@ -390,16 +384,38 @@ export default function Detail({
 
       {!isPage && (
         <>
-          <SectionTitle>My examples</SectionTitle>
+          <SectionTitle>General examples</SectionTitle>
           <div className="space-y-2">
             {item.myExamples.map((x, i) => (
               <Card key={i} className="flex justify-between gap-2">
-                <div>
+                <div className="min-w-0 flex-1">
                   <div style={{ fontFamily: SERIF, color: C.ink }}>{x.es}</div>
                   {x.en && (
                     <div className="text-xs mt-0.5" style={{ color: C.mut }}>
                       {x.en}
                     </div>
+                  )}
+                  {item.meanings.length > 0 && (
+                    <select
+                      aria-label="Assign general example to meaning"
+                      defaultValue=""
+                      onChange={async (event) => {
+                        if (!event.target.value) return;
+                        const nextMeanings = cloneMeanings(item.meanings);
+                        nextMeanings.find((meaning) => meaning.id === event.target.value).examples.push(x);
+                        await patch({
+                          meanings: nextMeanings,
+                          myExamples: item.myExamples.filter((_, itemIndex) => itemIndex !== i),
+                        });
+                      }}
+                      className="mt-1 text-xs rounded border px-1.5 py-1 max-w-full"
+                      style={{ background: C.card, borderColor: C.line, color: C.mut }}
+                    >
+                      <option value="">Assign to meaning…</option>
+                      {item.meanings.map((meaning) => (
+                        <option key={meaning.id} value={meaning.id}>{meaning.gloss}</option>
+                      ))}
+                    </select>
                   )}
                 </div>
                 <X

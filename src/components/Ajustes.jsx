@@ -31,6 +31,7 @@ export default function Ajustes({ onDataReplaced }) {
   const [lastBackup, setLastBackup] = useState(null);
   const [counts, setCounts] = useState({ items: 0, events: 0 });
   const [pending, setPending] = useState(null); // { envelope, summary }
+  const [safetyReady, setSafetyReady] = useState(false);
   const [problems, setProblems] = useState([]);
   const [note, setNote] = useState("");
   const [dictionary, setDictionary] = useState(null);
@@ -71,6 +72,7 @@ export default function Ajustes({ onDataReplaced }) {
     setNote("");
     setProblems([]);
     setPending(null);
+    setSafetyReady(false);
 
     const text = await readFileAsText(file);
     const { ok, errors, envelope, summary } = validateBackup(text);
@@ -81,14 +83,17 @@ export default function Ajustes({ onDataReplaced }) {
     setPending({ envelope, summary });
   }
 
-  async function confirmImport() {
-    const { envelope, summary } = pending;
-    // Auto-export the current database first, so the pre-import state is recoverable.
+  async function prepareImportSafetyBackup() {
     const safety = await buildBackup();
     downloadJson(`before-import-${backupFilename(safety)}`, safety);
+    setSafetyReady(true);
+  }
 
+  async function confirmImport() {
+    const { envelope, summary } = pending;
     await importBackup(envelope);
     setPending(null);
+    setSafetyReady(false);
     setNote(
       `Restored ${summary.items} items and ${summary.events} events. Your previous data was downloaded as a "before-import" file first.`
     );
@@ -157,6 +162,11 @@ export default function Ajustes({ onDataReplaced }) {
               {pending.summary.items} items ({pending.summary.lexical} words/phrases, {pending.summary.pages} pages)
             </div>
             <div>{pending.summary.events} events</div>
+            {pending.summary.willUpgrade && (
+              <div style={{ color: C.pen }}>
+                Schema {pending.summary.schemaVersion} will be upgraded to {pending.summary.targetSchemaVersion}
+              </div>
+            )}
             {pending.summary.skippedEvents > 0 && (
               <div style={{ color: C.mut }}>{pending.summary.skippedEvents} duplicate events will be skipped</div>
             )}
@@ -165,15 +175,24 @@ export default function Ajustes({ onDataReplaced }) {
             </div>
           </div>
           <div className="mt-2 text-xs" style={{ color: C.red }}>
-            This replaces your current {counts.items} items and {counts.events} events. They will be downloaded as a
+            This replaces your current {counts.items} items and {counts.events} events. Save a validated
             "before-import" file first.
           </div>
           <div className="mt-3 flex gap-2">
-            <Button onClick={confirmImport}>Replace and restore</Button>
-            <Button tone="quiet" onClick={() => setPending(null)}>
+            {!safetyReady ? (
+              <Button onClick={prepareImportSafetyBackup}><Download size={15} /> Download current backup</Button>
+            ) : (
+              <Button onClick={confirmImport}>I saved it — replace and restore</Button>
+            )}
+            <Button tone="quiet" onClick={() => { setPending(null); setSafetyReady(false); }}>
               Cancel
             </Button>
           </div>
+          {safetyReady && (
+            <div className="mt-2 text-xs" style={{ color: C.green }}>
+              Check that the before-import JSON file was saved, then continue.
+            </div>
+          )}
         </Card>
       )}
 

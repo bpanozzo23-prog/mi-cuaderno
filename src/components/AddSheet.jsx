@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { X } from "lucide-react";
-import { C, SERIF } from "../theme.jsx";
+import { Plus, X } from "lucide-react";
+import { C, SERIF, Card, Button } from "../theme.jsx";
 import { POS_OPTIONS } from "./ItemCard.jsx";
 import TagInput from "./TagInput.jsx";
 import DuplicateWarning from "./DuplicateWarning.jsx";
@@ -8,6 +8,8 @@ import { newLexical, newPage, createItem } from "../db/items.js";
 import { localDate } from "../lib/dates.js";
 import { allTagsIn } from "../lib/tags.js";
 import { findPersonalHeadingDuplicates } from "../lib/duplicateGuard.js";
+import { newMeaning } from "../lib/meanings.js";
+import MeaningEditor from "./MeaningEditor.jsx";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
@@ -20,7 +22,8 @@ export default function AddSheet({ kind, items = [], onClose, onCreated }) {
   const allTags = useMemo(() => allTagsIn(items), [items]);
 
   const [term, setTerm] = useState("");
-  const [translation, setTranslation] = useState("");
+  const [meanings, setMeanings] = useState([newMeaning()]);
+  const [problem, setProblem] = useState("");
 
   /**
    * The word/phrase toggle follows the term until the owner touches it — a term with a space
@@ -51,11 +54,15 @@ export default function AddSheet({ kind, items = [], onClose, onCreated }) {
 
   async function submit() {
     if (!ready) return;
-    const item = isPage
-      ? newPage({ title, body, pageDate: pageDate || null, tags })
-      : newLexical({ term, translation, form, pos, notes, tags });
-    await createItem(item);
-    onCreated(item.id);
+    try {
+      const item = isPage
+        ? newPage({ title, body, pageDate: pageDate || null, tags })
+        : newLexical({ term, meanings, form, pos, notes, tags });
+      await createItem(item);
+      onCreated(item.id);
+    } catch (error) {
+      setProblem(error instanceof Error ? error.message : "This entry could not be created.");
+    }
   }
 
   return (
@@ -127,20 +134,32 @@ export default function AddSheet({ kind, items = [], onClose, onCreated }) {
               style={{ ...inputStyle, fontFamily: SERIF }}
             />
             {duplicates.length > 0 && <DuplicateWarning kind="lexical" />}
-            {/*
-              A textarea, not an input: a phrase often has several readings, and one line
-              forced them onto a single run-on line. `translation` is a plain string, so a
-              newline needs nothing from the schema — the same shape `notes` and page bodies
-              have always had.
-            */}
-            <textarea
-              value={translation}
-              onChange={(e) => setTranslation(e.target.value)}
-              placeholder="English meaning (optional) — one per line if it has several"
-              rows={2}
-              className="w-full text-sm rounded-xl border px-3 py-2.5 outline-none resize-y"
-              style={inputStyle}
-            />
+            <div className="space-y-2">
+              <div className="text-xs" style={{ color: C.mut }}>Meanings — blank rows will not be saved</div>
+              {meanings.map((meaning, index) => (
+                <Card key={meaning.id} style={{ background: C.paper }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs" style={{ color: C.mut }}>Meaning {index + 1}</span>
+                    {meanings.length > 1 && (
+                      <button
+                        type="button"
+                        aria-label={`Remove meaning ${index + 1}`}
+                        onClick={() => setMeanings(meanings.filter((_, itemIndex) => itemIndex !== index))}
+                      >
+                        <X size={13} style={{ color: C.mut }} />
+                      </button>
+                    )}
+                  </div>
+                  <MeaningEditor
+                    meaning={meaning}
+                    onChange={(changed) => setMeanings(meanings.map((entry, itemIndex) => itemIndex === index ? changed : entry))}
+                  />
+                </Card>
+              ))}
+              <Button type="button" tone="quiet" onClick={() => setMeanings([...meanings, newMeaning()])}>
+                <Plus size={14} /> Add meaning
+              </Button>
+            </div>
             <div className="flex gap-2">
               <div className="flex rounded-xl border overflow-hidden" style={{ borderColor: C.line }}>
                 {["word", "phrase"].map((f) => (
@@ -182,6 +201,8 @@ export default function AddSheet({ kind, items = [], onClose, onCreated }) {
         )}
 
         <TagInput tags={tags} allTags={allTags} onChange={setTags} placeholder="add a tag" />
+
+        {problem && <div className="text-xs" style={{ color: C.red }}>{problem}</div>}
 
         <button
           onClick={submit}

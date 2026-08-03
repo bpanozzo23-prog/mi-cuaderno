@@ -10,7 +10,7 @@ import { updateItem } from "../db/items.js";
  * The §5 seam, seen from the personal side.
  *
  * A lexical item may be attached to a dictionary entry. That attachment is a relationship,
- * not the item's identity: the item keeps its own term and translation, and if the entry
+ * not the item's identity: the item keeps its own term and personal meanings, and if the entry
  * disappears in a dataset rebuild the item keeps working. The three states:
  *
  *   attached    the entry resolves — show it, and offer to open it

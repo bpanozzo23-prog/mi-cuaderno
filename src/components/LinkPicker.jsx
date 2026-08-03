@@ -8,6 +8,7 @@ import { pickerMatches } from "../lib/links.js";
 import { mergeResults } from "../lib/search.js";
 import { findPersonalHeadingDuplicates } from "../lib/duplicateGuard.js";
 import { searchDictionary } from "../db/ref/search.js";
+import { meaningGlossText } from "../lib/meanings.js";
 
 /**
  * One box for linking anything (Phase 4, requirement 1).
@@ -42,7 +43,8 @@ function contextLine(item) {
     if (item.pageDate) return item.pageDate;
     return item.body ? flatten(item.body).slice(0, 60) : "page";
   }
-  return item.translation ? flatten(item.translation) : item.notes ? flatten(item.notes).slice(0, 60) : "";
+  const glosses = meaningGlossText(item, " · ");
+  return glosses ? flatten(glosses) : item.notes ? flatten(item.notes).slice(0, 60) : "";
 }
 
 function Row({ icon: Icon, heading, suffix, context, reason, linked, onPick }) {

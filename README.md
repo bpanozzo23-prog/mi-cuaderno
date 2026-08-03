@@ -26,8 +26,9 @@ installable web app (PWA). Private tool for one person; the code is public, the 
 - **Phase 3 — done.** The Leitner review queue, derived entirely from the event log.
   See [docs/PHASE-3-REPORT.md](docs/PHASE-3-REPORT.md).
 - **Phase 4 — ongoing maintenance.** Live-use polish driven only by friction observed in daily use.
-  The linking package (4a–4e) and first friction batch (4f–4h) shipped; exact term/title link
-  suggestions remain deferred. See
+  The linking package (4a–4e) and first friction batch (4f–4h) shipped. Structured personal
+  meanings (4i) are complete and browser-verified; exact term/title link suggestions remain
+  deferred. See
   [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).
 - **Phase 5 — done.** Organizational improvements that do not require real notebook data:
   navigation continuity (5a), organizational derivations (5b), Cuaderno retrieval controls (5c),
@@ -37,13 +38,14 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   [docs/PHASE-5-REPORT.md](docs/PHASE-5-REPORT.md).
 - **Phase 6 — not started.** The AI assistant (brief §9).
 
-`SCHEMA_VERSION` is still **1**. No phase has yet needed a personal-layer schema change, so
-brief §5's migration plan and export-first reminder have never been triggered.
+`SCHEMA_VERSION` is **2**. Phase 4i is the first personal-layer migration: schema-v1 owners receive
+a blocking validated export step before Dexie opens the database, and v1 backup files upgrade in
+memory before replace-and-restore.
 
 ## Testing
 
 ```
-npm test        # Vitest — 295 tests over the data layer, UI navigation, search, review, linking and the pipeline
+npm test        # Vitest — 322 tests over the data layer, UI navigation, search, review, linking and the pipeline
 ```
 
 The database tests run the real Dexie code against an in-memory IndexedDB

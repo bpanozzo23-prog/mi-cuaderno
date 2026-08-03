@@ -3,13 +3,14 @@ import { C, SERIF, MONO } from "../theme.jsx";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
 import { POS_LABEL } from "./DictCard.jsx";
 import { timeAgo } from "../lib/dates.js";
+import { meaningGlossText } from "../lib/meanings.js";
 
 /**
  * One link, shown as something you can recognise (requirement 4).
  *
  * A chip carrying only a word was fine when links were rare; with a page linking eight verbs
  * it stops answering "is this the one I meant". So each row shows type, term or title,
- * translation or gloss, when it was last touched, a notes preview, and whether it is attached
+ * personal meaning glosses, when it was last touched, a notes preview, and whether it is attached
  * to the dictionary.
  *
  * Deliberately **no tags**: on a phone the space is better spent, and tags are the least
@@ -50,6 +51,7 @@ export function ItemLinkCard({ item, attached, onOpen, onRemove }) {
   const isPage = item.type === "page";
   const preview = previewOf(item);
   const headingSuffix = isPage ? "" : personalHeadingSuffix(item);
+  const glosses = isPage ? "" : meaningGlossText(item);
 
   return (
     <Shell
@@ -77,9 +79,9 @@ export function ItemLinkCard({ item, attached, onOpen, onRemove }) {
       </div>
 
       {/* Clamped, for the same reason as the list card: a link row should stay a row. */}
-      {!isPage && item.translation && (
+      {!isPage && glosses && (
         <div className="text-sm whitespace-pre-wrap line-clamp-2" style={{ color: C.ink }}>
-          — {item.translation}
+          — {glosses}
         </div>
       )}
       {preview && (

@@ -13,6 +13,7 @@ import {
 } from "./items.js";
 import { allEvents, EVENT_TYPES } from "./events.js";
 import { localDate } from "../lib/dates.js";
+import { newMeaning } from "../lib/meanings.js";
 
 beforeEach(async () => {
   await db.open();
@@ -25,14 +26,16 @@ const typesOf = async () => (await allEvents()).map((e) => e.type);
 describe("lexical items", () => {
   it("stores the brief's shape and logs a create event", async () => {
     const item = await createItem(
-      newLexical({ term: " sacar ", translation: " to take out ", pos: "verb", tags: ["verbs", "verbs", " "] })
+      newLexical({ term: " sacar ", meanings: [newMeaning({ gloss: " to take out " })], pos: "verb", tags: ["verbs", "verbs", " "] })
     );
 
     const stored = await getItem(item.id);
     expect(stored.id).toMatch(/^user:/);
     expect(stored.type).toBe("lexical");
     expect(stored.term).toBe("sacar");
-    expect(stored.translation).toBe("to take out");
+    expect(stored.meanings).toHaveLength(1);
+    expect(stored.meanings[0].gloss).toBe("to take out");
+    expect(stored.meanings[0].id).toMatch(/^meaning:/);
     expect(stored.form).toBe("word");
     expect(stored.tags).toEqual(["verbs"]); // trimmed, deduplicated, blanks dropped
     expect(stored.dictKey).toBeNull();
@@ -48,9 +51,9 @@ describe("lexical items", () => {
     expect((await getItem(item.id)).form).toBe("phrase");
   });
 
-  it("allows a term with no translation", async () => {
+  it("allows a term with no meanings", async () => {
     const item = await createItem(newLexical({ term: "por si acaso" }));
-    expect((await getItem(item.id)).translation).toBe("");
+    expect((await getItem(item.id)).meanings).toEqual([]);
   });
 });
 
@@ -66,7 +69,9 @@ describe("newLexicalFromEntry", () => {
     const item = newLexicalFromEntry(entry);
 
     expect(item.term).toBe("chamba");
-    expect(item.translation).toBe("job, work (Mexico)");
+    expect(item.meanings).toHaveLength(1);
+    expect(item.meanings[0].gloss).toBe("job, work (Mexico)");
+    expect(item.meanings[0]).not.toHaveProperty("senseId");
     expect(item.pos).toBe("noun");
     expect(item.dictKey).toBe(entry.id);
   });
@@ -77,8 +82,8 @@ describe("newLexicalFromEntry", () => {
     expect(newLexicalFromEntry({ id: "dict:x", lemma: "x", pos: "verb", senses: [] }).pos).toBe("verb");
   });
 
-  it("leaves the translation blank when the entry has no senses", () => {
-    expect(newLexicalFromEntry({ id: "dict:x", lemma: "x", pos: "noun", senses: [] }).translation).toBe("");
+  it("leaves meanings empty when the entry has no senses", () => {
+    expect(newLexicalFromEntry({ id: "dict:x", lemma: "x", pos: "noun", senses: [] }).meanings).toEqual([]);
   });
 
   it("is only a builder — nothing is written until createItem is called", async () => {

@@ -1,14 +1,18 @@
 import { newUserKey, newEventId } from "../lib/ids.js";
 import { nowIso, localDate } from "../lib/dates.js";
+import { meaningsFromTranslation, newMeaning } from "../lib/meanings.js";
 
 export function makeLexical(overrides = {}) {
   const at = nowIso();
+  const { translation, meanings, ...rest } = overrides;
   return {
     id: newUserKey(),
     type: "lexical",
     form: "word",
     term: "sacar",
-    translation: "to take out",
+    meanings: meanings ?? (translation !== undefined
+      ? meaningsFromTranslation(translation)
+      : [newMeaning({ gloss: "to take out" })]),
     pos: "verb",
     notes: "",
     myExamples: [],
@@ -17,7 +21,7 @@ export function makeLexical(overrides = {}) {
     mediaLinks: [],
     createdAt: at,
     updatedAt: at,
-    ...overrides,
+    ...rest,
   };
 }
 

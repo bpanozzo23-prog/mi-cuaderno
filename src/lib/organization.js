@@ -1,5 +1,6 @@
 import { relatedTo } from "./links.js";
 import { allTagsIn } from "./tags.js";
+import { allPersonalExamples } from "./meanings.js";
 
 /**
  * Phase 5b's organizational views are render-time derivations over the notebook already in
@@ -57,13 +58,11 @@ export function maintenanceItems(items = [], view = MAINTENANCE_VIEWS.all) {
   const candidates = [...items];
 
   if (view === MAINTENANCE_VIEWS.missingMeaning) {
-    return candidates.filter(
-      (item) => item.type === "lexical" && String(item.translation ?? "").trim() === ""
-    );
+    return candidates.filter((item) => item.type === "lexical" && !(item.meanings || []).length);
   }
 
   if (view === MAINTENANCE_VIEWS.missingExamples) {
-    return candidates.filter((item) => item.type === "lexical" && !(item.myExamples || []).length);
+    return candidates.filter((item) => item.type === "lexical" && allPersonalExamples(item).length === 0);
   }
 
   if (view === MAINTENANCE_VIEWS.unlinked) {
