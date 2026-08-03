@@ -8,6 +8,7 @@ import { pickerMatches } from "../lib/links.js";
 import { mergeResults } from "../lib/search.js";
 import { findPersonalHeadingDuplicates } from "../lib/duplicateGuard.js";
 import { searchDictionary } from "../db/ref/search.js";
+import { installedMeta } from "../db/ref/entries.js";
 import { meaningGlossText } from "../lib/meanings.js";
 
 /**
@@ -116,6 +117,7 @@ function CreateRow({ icon: Icon, label, onClick }) {
 export default function LinkPicker({ item, items, linkedKeys, onPick, onCancel, onCreate }) {
   const [query, setQuery] = useState("");
   const [dictResults, setDictResults] = useState([]);
+  const [dictionaryMeta, setDictionaryMeta] = useState(null);
   const typed = query.trim();
 
   const personal = useMemo(
@@ -130,6 +132,14 @@ export default function LinkPicker({ item, items, linkedKeys, onPick, onCancel, 
     () => findPersonalHeadingDuplicates(items, "page", typed),
     [items, typed]
   );
+
+  useEffect(() => {
+    let current = true;
+    installedMeta().then((meta) => {
+      if (current) setDictionaryMeta(meta);
+    });
+    return () => { current = false; };
+  }, []);
 
   useEffect(() => {
     let current = true;
@@ -151,8 +161,10 @@ export default function LinkPicker({ item, items, linkedKeys, onPick, onCancel, 
    * rather than their own note is almost never what they meant.
    */
   const rows = useMemo(
-    () => mergeResults(personal, dictResults, items).slice(0, LIMIT),
-    [personal, dictResults, items]
+    () => mergeResults(personal, dictResults, items, {
+      previousIds: dictionaryMeta?.previousIds,
+    }).slice(0, LIMIT),
+    [personal, dictResults, items, dictionaryMeta]
   );
 
   return (

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft, Trash2, X, ExternalLink, Pencil, CalendarDays, FileText, Check,
-  Highlighter, Eye, Clock, Plus,
+  Highlighter, Eye, Clock, Plus, Bookmark, BookmarkCheck, Library,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button } from "../theme.jsx";
 import { POS_OPTIONS, personalHeadingSuffix, personalLexicalForm } from "./ItemCard.jsx";
@@ -21,10 +21,31 @@ import { allTagsIn } from "../lib/tags.js";
 import { timeAgo } from "../lib/dates.js";
 import { cloneMeanings } from "../lib/meanings.js";
 import MeaningsSection from "./MeaningsSection.jsx";
+import CollectionPage from "./CollectionPage.jsx";
+import { effectivePageKind, PAGE_KINDS, PAGE_PROFILES } from "../lib/pageProfiles.js";
+import { getCollectionPlacements } from "../lib/collections.js";
+import { setPageProfile } from "../db/collections.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
-export default function Detail({
+export default function Detail(props) {
+  if (props.item.type === "page") return <PageDetail {...props} />;
+  return <StandardDetail {...props} />;
+}
+
+/** Page-specific dispatch stays below App so the existing detail trail and scroll rules remain shared. */
+export function PageDetail(props) {
+  return effectivePageKind(props.item) === PAGE_KINDS.collection
+    ? <CollectionPage {...props} />
+    : <GeneralPageDetail {...props} />;
+}
+
+/** General and dated-Journal pages deliberately keep the pre-profile detail experience. */
+export function GeneralPageDetail(props) {
+  return <StandardDetail {...props} />;
+}
+
+function StandardDetail({
   item,
   state = emptyItemState,
   items = [],
@@ -32,6 +53,8 @@ export default function Detail({
   backLabel = "Todo el cuaderno",
   onOpen,
   onChanged,
+  pagePinned = false,
+  onPagePinnedChange,
 }) {
   const isPage = item.type === "page";
   const headingSuffix = isPage ? "" : personalHeadingSuffix(item);
@@ -57,14 +80,25 @@ export default function Detail({
 
   // Both directions at once: links this item made, and links made to it from
   // elsewhere. Which side stores the link is bookkeeping the owner shouldn't see.
-  const related = useMemo(() => relatedTo(item, items), [items, item]);
+  const collectionPlacements = useMemo(
+    () => isPage ? [] : getCollectionPlacements(item.id, items),
+    [isPage, item.id, items]
+  );
+  const placementPageIds = useMemo(
+    () => new Set(collectionPlacements.map((placement) => placement.page.id)),
+    [collectionPlacements]
+  );
+  const related = useMemo(
+    () => relatedTo(item, items).filter((candidate) => !placementPageIds.has(candidate.id)),
+    [items, item, placementPageIds]
+  );
 
   // Everything already connected, in one set, so the picker can mark it rather than hide it:
   // seeing "linked ✓" answers "have I already done this?" where a missing row just looks
   // like the search failed. Dictionary keys are in here too — they live in linkedKeys.
   const linkedKeys = useMemo(
-    () => new Set([...related.map((r) => r.id), ...item.linkedKeys]),
-    [related, item.linkedKeys]
+    () => new Set([...related.map((r) => r.id), ...item.linkedKeys, ...placementPageIds]),
+    [related, item.linkedKeys, placementPageIds]
   );
 
   // linkedKeys may point into the reference layer (§6). Those entries cannot hold a
@@ -277,13 +311,39 @@ export default function Detail({
                 </div>
               )}
             </div>
-            <button
-              onClick={() => setEditingHead(true)}
-              aria-label={isPage ? "Edit page details" : "Edit word or phrase details"}
-              className="shrink-0 p-1"
-            >
-              <Pencil size={15} style={{ color: C.mut }} />
-            </button>
+            <div className="flex shrink-0 items-center gap-1">
+              {isPage && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => onPagePinnedChange?.(!pagePinned)}
+                    aria-label={pagePinned ? "Unpin page" : "Pin page"}
+                    aria-pressed={pagePinned}
+                    className="p-1.5"
+                  >
+                    {pagePinned ? <BookmarkCheck size={16} style={{ color: C.pen }} /> : <Bookmark size={16} style={{ color: C.mut }} />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await setPageProfile(item.id, PAGE_PROFILES.collection);
+                      await onChanged();
+                    }}
+                    aria-label="Change to Vocabulary Collection"
+                    className="p-1.5"
+                  >
+                    <Library size={16} style={{ color: C.mut }} />
+                  </button>
+                </>
+              )}
+              <button
+                onClick={() => setEditingHead(true)}
+                aria-label={isPage ? "Edit page details" : "Edit word or phrase details"}
+                className="p-1.5"
+              >
+                <Pencil size={15} style={{ color: C.mut }} />
+              </button>
+            </div>
           </div>
         )}
 
@@ -540,6 +600,26 @@ export default function Detail({
           </Card>
         )}
       </div>
+
+      {!isPage && collectionPlacements.length > 0 && (
+        <>
+          <SectionTitle>Collections</SectionTitle>
+          <div className="space-y-1.5">
+            {collectionPlacements.map((placement) => (
+              <button
+                type="button"
+                key={placement.page.id}
+                onClick={() => onOpen(placement.page.id)}
+                className="w-full rounded-xl border p-3 text-left"
+                style={{ background: C.card, borderColor: C.line }}
+              >
+                <div className="text-sm font-semibold" style={{ color: C.ink }}>{placement.page.title || "Untitled page"}</div>
+                <div className="mt-0.5 text-xs" style={{ color: C.mut }}>{placement.groupName}</div>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       <SectionTitle>Linked</SectionTitle>
 

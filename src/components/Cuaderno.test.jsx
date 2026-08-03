@@ -11,6 +11,8 @@ import {
   FIXTURE_FORM_SHARDS,
 } from "../test/dictFixture.js";
 import { meaningsFromTranslation } from "../lib/meanings.js";
+import { db, clearAllPersonalData } from "../db/db.js";
+import { setPagePinned } from "../db/collections.js";
 
 const at = (day) => `2026-07-${String(day).padStart(2, "0")}T10:00:00.000Z`;
 
@@ -42,6 +44,8 @@ const page = (name, over = {}) => ({
   mediaLinks: [],
   tags: [],
   linkedKeys: [],
+  pageProfile: "general",
+  collection: { groups: [] },
   createdAt: at(1),
   updatedAt: at(1),
   ...over,
@@ -83,6 +87,8 @@ async function seedCasaDictionary() {
 }
 
 beforeEach(async () => {
+  await db.open();
+  await clearAllPersonalData();
   await removeDictionary();
   localStorage.clear();
 });
@@ -239,5 +245,100 @@ describe("Phase 5c Cuaderno retrieval controls", () => {
     expect(screen.getByRole("combobox", { name: "Order" }).value).toBe("touched");
     expect(screen.getByRole("combobox", { name: "View" }).value).toBe("all");
     expect(screen.getByRole("combobox", { name: "Tag" }).value).toBe("");
+  });
+});
+
+describe("Collection page retrieval and starters", () => {
+  it("filters page profiles before contextual tag counts and clears the choice on leaving Pages", async () => {
+    const user = userEvent.setup();
+    const general = page("general", { tags: ["general-tag"] });
+    const journal = page("journal", {
+      pageDate: "2026-08-03",
+      tags: ["journal-tag"],
+    });
+    const collection = page("collection", {
+      pageProfile: "collection",
+      pageDate: "2026-08-03",
+      collection: { groups: [] },
+      tags: ["collection-tag"],
+    });
+    render(<Cuaderno {...propsFor([general, journal, collection, word("lexical")])} />);
+
+    await user.click(screen.getByRole("button", { name: "páginas" }));
+    const profile = screen.getByRole("combobox", { name: "Profile" });
+    expect(screen.getByRole("option", { name: "All pages" })).toBeTruthy();
+    expect(screen.getByRole("option", { name: "General" })).toBeTruthy();
+    expect(screen.getByRole("option", { name: "Collections" })).toBeTruthy();
+    expect(screen.getByRole("option", { name: "Journal entries" })).toBeTruthy();
+
+    await user.selectOptions(profile, "general");
+    expect(card("general")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^journal/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^collection/ })).toBeNull();
+    expect(screen.getByRole("option", { name: "general-tag · 1" })).toBeTruthy();
+    expect(screen.queryByRole("option", { name: /journal-tag/ })).toBeNull();
+
+    await user.selectOptions(profile, "journal");
+    expect(card("journal")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^general/ })).toBeNull();
+
+    await user.selectOptions(profile, "collection");
+    expect(card("collection")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^journal/ })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "palabras" }));
+    expect(screen.queryByRole("combobox", { name: "Profile" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "páginas" }));
+    expect(screen.getByRole("combobox", { name: "Profile" }).value).toBe("all");
+  });
+
+  it("stable-partitions pinned pages after browse ordering but never boosts search relevance", async () => {
+    const user = userEvent.setup();
+    const bodyMatch = page("misc", {
+      body: "A note about zorro.",
+      createdAt: at(1),
+      updatedAt: at(1),
+    });
+    const exactMatch = page("zorro", { createdAt: at(2), updatedAt: at(2) });
+    const otherPinned = page("abeja", { createdAt: at(3), updatedAt: at(3) });
+    await db.items.bulkPut([bodyMatch, exactMatch, otherPinned]);
+    await setPagePinned(bodyMatch.id, true);
+    await setPagePinned(otherPinned.id, true);
+
+    render(<Cuaderno {...propsFor([exactMatch, bodyMatch, otherPinned])} />);
+    await user.click(screen.getByRole("button", { name: "páginas" }));
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Order" }), "alphabetical");
+    await waitFor(() => expectBefore(card("abeja"), card("misc")));
+    expectBefore(card("misc"), card("zorro"));
+
+    expect(screen.getByRole("button", { name: "Unpin misc" }).getAttribute("aria-pressed")).toBe("true");
+    await user.click(screen.getByRole("button", { name: "Unpin misc" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Pin misc" })).toBeTruthy());
+    expectBefore(card("abeja"), card("misc"));
+    expectBefore(card("misc"), card("zorro"));
+    expect(screen.getByRole("button", { name: "Pin misc" }).getAttribute("aria-pressed")).toBe("false");
+
+    // Re-pin the body-only result, then prove the exact-title result remains first in search.
+    await user.click(screen.getByRole("button", { name: "Pin misc" }));
+    await user.type(screen.getByRole("textbox", { name: "Search notebook" }), "zorro");
+    expectBefore(card("zorro"), card("misc"));
+    expect(screen.getByRole("combobox", { name: "Order" }).value).toBe("relevance");
+  });
+
+  it("opens the page starting-point gallery before the page form", async () => {
+    const user = userEvent.setup();
+    render(<Cuaderno {...propsFor([])} />);
+
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    await user.click(screen.getByRole("button", { name: /^Page/ }));
+    expect(screen.getByRole("dialog", { name: "Choose a starting point" })).toBeTruthy();
+    expect(screen.queryByText("New page")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: /Conversational function/ }));
+    expect(screen.getByText("New collection")).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Group 1 name" }).value).toBe("Questions");
+    expect(screen.getByRole("textbox", { name: "Group 2 name" }).value).toBe("Answers");
+    expect(screen.getByRole("textbox", { name: "Group 3 name" }).value).toBe("Reactions and follow-ups");
   });
 });

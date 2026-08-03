@@ -111,4 +111,71 @@ describe("AddSheet duplicate guard", () => {
     expect(screen.getByRole("status").textContent).toMatch(/page with this title/i);
     expect(screen.getByRole("button", { name: "Add page" }).disabled).toBe(false);
   });
+
+  it("creates a Collection from editable group seeds without persisting template identity", async () => {
+    const user = userEvent.setup();
+    const onCreated = vi.fn();
+    render(
+      <AddSheet
+        kind="page"
+        pageStarter={{
+          pageProfile: "collection",
+          groupNames: ["Questions", "Answers", "Reactions and follow-ups"],
+        }}
+        items={[]}
+        onClose={vi.fn()}
+        onCreated={onCreated}
+      />
+    );
+
+    await user.type(screen.getByPlaceholderText("Title *"), "Conversation tools");
+    const firstGroup = screen.getByRole("textbox", { name: "Group 1 name" });
+    await user.clear(firstGroup);
+    await user.type(firstGroup, "  Prompts  ");
+    await user.click(screen.getByRole("button", { name: "Add collection" }));
+
+    await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));
+    const created = await db.items.get(onCreated.mock.calls[0][0]);
+    expect(created.pageProfile).toBe("collection");
+    expect(created.pageDate).toBeNull();
+    expect(created.collection.groups.map((group) => group.name)).toEqual([
+      "Prompts",
+      "Answers",
+      "Reactions and follow-ups",
+    ]);
+    expect(created.collection.groups.every((group) => /^page-group:[0-9a-f-]+$/i.test(group.id))).toBe(true);
+    expect(created.collection.groups.every((group) => group.itemKeys.length === 0)).toBe(true);
+    expect(created).not.toHaveProperty("templateId");
+
+    const events = await allEvents();
+    expect(events.filter((event) => event.type === EVENT_TYPES.create)).toHaveLength(1);
+    expect(events.filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(0);
+  });
+
+  it("blocks blank or Unicode-normalized duplicate Collection group names", async () => {
+    const user = userEvent.setup();
+    render(
+      <AddSheet
+        kind="page"
+        pageStarter={{
+          pageProfile: "collection",
+          groupNames: ["Neutral", "Ｎｅｕｔｒａｌ"],
+        }}
+        items={[]}
+        onClose={vi.fn()}
+        onCreated={vi.fn()}
+      />
+    );
+
+    await user.type(screen.getByPlaceholderText("Title *"), "Register");
+    expect(screen.getByRole("button", { name: "Add collection" }).disabled).toBe(true);
+    expect(screen.getByRole("alert").textContent).toMatch(/unique|duplicate/i);
+
+    const second = screen.getByRole("textbox", { name: "Group 2 name" });
+    await user.clear(second);
+    expect(screen.getByRole("button", { name: "Add collection" }).disabled).toBe(true);
+    await user.type(second, "Formal");
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.getByRole("button", { name: "Add collection" }).disabled).toBe(false);
+  });
 });

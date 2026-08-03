@@ -57,7 +57,7 @@ describe("Phase 5a navigation continuity", () => {
     await linkedTrail();
     render(<App />);
 
-    await user.click(await screen.findByRole("button", { name: /Study source/ }));
+    await user.click(await screen.findByRole("button", { name: /^Study source$/ }));
     expect(screen.getByRole("button", { name: "Todo el cuaderno" })).toBeTruthy();
     await waitFor(() => expect(window.scrollTo).toHaveBeenLastCalledWith(0, 0));
 
@@ -87,7 +87,7 @@ describe("Phase 5a navigation continuity", () => {
     await linkedTrail();
     render(<App />);
 
-    await user.click(await screen.findByRole("button", { name: /Study source/ }));
+    await user.click(await screen.findByRole("button", { name: /^Study source$/ }));
     await user.click(screen.getByRole("button", { name: /^madrugar/ }));
     expect(screen.getByRole("button", { name: "Atrás" })).toBeTruthy();
 
@@ -104,7 +104,7 @@ describe("Phase 5a navigation continuity", () => {
     await linkedTrail();
     render(<App />);
 
-    await user.click(await screen.findByRole("button", { name: /Study source/ }));
+    await user.click(await screen.findByRole("button", { name: /^Study source$/ }));
     await user.click(screen.getByRole("button", { name: /^madrugar/ }));
     await user.click(screen.getByRole("button", { name: "Add an example" }));
     await user.type(screen.getByRole("textbox", { name: "Sentence in Spanish" }), "Me levanto temprano.");
@@ -122,7 +122,7 @@ describe("Phase 5a navigation continuity", () => {
     await linkItems(page.id, word.id);
     render(<App />);
 
-    await user.click(await screen.findByRole("button", { name: /Study source/ }));
+    await user.click(await screen.findByRole("button", { name: /^Study source$/ }));
     await user.click(screen.getByRole("button", { name: /^madrugar/ }));
     await user.click(await screen.findByRole("button", { name: /^casa/ }));
 

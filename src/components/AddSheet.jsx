@@ -9,6 +9,8 @@ import { localDate } from "../lib/dates.js";
 import { allTagsIn } from "../lib/tags.js";
 import { findPersonalHeadingDuplicates } from "../lib/duplicateGuard.js";
 import { newMeaning } from "../lib/meanings.js";
+import { PAGE_PROFILES } from "../lib/pageProfiles.js";
+import { newPageGroup, validateCollectionGroups } from "../lib/collections.js";
 import MeaningEditor from "./MeaningEditor.jsx";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
@@ -17,8 +19,13 @@ function Field({ children }) {
   return <div className="space-y-1">{children}</div>;
 }
 
-export default function AddSheet({ kind, items = [], onClose, onCreated }) {
+export default function AddSheet({ kind, pageStarter = null, items = [], onClose, onCreated }) {
   const isPage = kind === "page";
+  const pageProfile =
+    isPage && pageStarter?.pageProfile === PAGE_PROFILES.collection
+      ? PAGE_PROFILES.collection
+      : PAGE_PROFILES.general;
+  const isCollection = pageProfile === PAGE_PROFILES.collection;
   const allTags = useMemo(() => allTagsIn(items), [items]);
 
   const [term, setTerm] = useState("");
@@ -37,6 +44,9 @@ export default function AddSheet({ kind, items = [], onClose, onCreated }) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [pageDate, setPageDate] = useState("");
+  const [groupNames, setGroupNames] = useState(() =>
+    isCollection ? [...(pageStarter?.groupNames || [])] : []
+  );
   const [tags, setTags] = useState([]);
   const [notes, setNotes] = useState("");
 
@@ -50,13 +60,37 @@ export default function AddSheet({ kind, items = [], onClose, onCreated }) {
     [items, isPage, title, term]
   );
 
-  const ready = isPage ? title.trim() !== "" : term.trim() !== "";
+  const collectionDraft = useMemo(() => {
+    if (!isCollection) return { groups: [], error: "" };
+    try {
+      return {
+        groups: validateCollectionGroups(groupNames.map((name) => newPageGroup(name))),
+        error: "",
+      };
+    } catch (error) {
+      return {
+        groups: [],
+        error: error instanceof Error ? error.message : "Every group needs a unique name.",
+      };
+    }
+  }, [groupNames, isCollection]);
+
+  const ready = isPage
+    ? title.trim() !== "" && collectionDraft.error === ""
+    : term.trim() !== "";
 
   async function submit() {
     if (!ready) return;
     try {
       const item = isPage
-        ? newPage({ title, body, pageDate: pageDate || null, tags })
+        ? newPage({
+            title,
+            body,
+            pageDate: pageDate || null,
+            tags,
+            pageProfile,
+            collection: { groups: collectionDraft.groups },
+          })
         : newLexical({ term, meanings, form, pos, notes, tags });
       await createItem(item);
       onCreated(item.id);
@@ -78,7 +112,7 @@ export default function AddSheet({ kind, items = [], onClose, onCreated }) {
       >
         <div className="flex justify-between items-center">
           <div className="font-semibold" style={{ fontFamily: SERIF, color: C.ink, fontSize: 18 }}>
-            {isPage ? "New page" : "New word or phrase"}
+            {isCollection ? "New collection" : isPage ? "New page" : "New word or phrase"}
           </div>
           <button onClick={onClose} aria-label="Close">
             <X size={18} style={{ color: C.mut }} />
@@ -97,7 +131,7 @@ export default function AddSheet({ kind, items = [], onClose, onCreated }) {
             {duplicates.length > 0 && <DuplicateWarning kind="page" />}
             <Field>
               <label className="text-xs" style={{ color: C.mut }}>
-                Date — fill this in to make it a journal entry
+                {isCollection ? "Date (optional)" : "Date — fill this in to make it a journal entry"}
               </label>
               <div className="flex gap-2">
                 <input
@@ -119,10 +153,59 @@ export default function AddSheet({ kind, items = [], onClose, onCreated }) {
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              placeholder="Notes — a grammar point, a film you watched, what happened today…"
+              placeholder={
+                isCollection
+                  ? "Overview — what belongs in this collection? (optional)"
+                  : "Notes — a grammar point, a film you watched, what happened today…"
+              }
               className="w-full text-sm rounded-xl border px-3 py-2.5 outline-none min-h-32"
               style={inputStyle}
             />
+            {isCollection && (
+              <div className="space-y-2">
+                <div>
+                  <div className="text-xs" style={{ color: C.mut }}>Groups — optional</div>
+                  <div className="text-xs mt-0.5" style={{ color: C.mut }}>
+                    Groups stay in this order and can be changed later.
+                  </div>
+                </div>
+                {groupNames.map((name, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <input
+                      value={name}
+                      onChange={(event) =>
+                        setGroupNames(
+                          groupNames.map((entry, itemIndex) =>
+                            itemIndex === index ? event.target.value : entry
+                          )
+                        )
+                      }
+                      aria-label={`Group ${index + 1} name`}
+                      placeholder={`Group ${index + 1}`}
+                      className="flex-1 min-w-0 text-sm rounded-xl border px-3 py-2.5 outline-none"
+                      style={inputStyle}
+                    />
+                    <button
+                      type="button"
+                      aria-label={`Remove group ${index + 1}`}
+                      onClick={() => setGroupNames(groupNames.filter((_, itemIndex) => itemIndex !== index))}
+                      className="min-w-11 min-h-11 inline-flex items-center justify-center rounded-lg border"
+                      style={inputStyle}
+                    >
+                      <X size={15} style={{ color: C.mut }} />
+                    </button>
+                  </div>
+                ))}
+                <Button type="button" tone="quiet" onClick={() => setGroupNames([...groupNames, ""])}>
+                  <Plus size={14} /> Add group
+                </Button>
+                {collectionDraft.error && (
+                  <div role="alert" className="text-xs" style={{ color: C.red }}>
+                    {collectionDraft.error}
+                  </div>
+                )}
+              </div>
+            )}
           </>
         ) : (
           <>
@@ -210,7 +293,7 @@ export default function AddSheet({ kind, items = [], onClose, onCreated }) {
           className="w-full py-3 rounded-xl text-white font-semibold text-sm"
           style={{ background: ready ? C.pen : "#B9C2D8" }}
         >
-          {isPage ? "Add page" : "Add to cuaderno"}
+          {isCollection ? "Add collection" : isPage ? "Add page" : "Add to cuaderno"}
         </button>
       </div>
     </div>

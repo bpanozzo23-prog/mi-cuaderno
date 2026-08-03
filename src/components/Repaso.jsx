@@ -302,6 +302,7 @@ export default function Repaso({ notebook, onSelect }) {
             <ItemCard
               key={item.id}
               item={item}
+              items={items}
               state={itemState.get(item.id) || emptyItemState}
               onOpen={onSelect}
             />

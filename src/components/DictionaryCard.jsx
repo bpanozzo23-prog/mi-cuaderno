@@ -19,6 +19,9 @@ import { runSearchSpeedTest, startupTiming } from "../lib/speedtest.js";
 
 const mb = (bytes) => `${(bytes / 1048576).toFixed(1)} MB`;
 
+const countText = (value, singular, plural = `${singular}s`) =>
+  Number.isFinite(value) ? `${value.toLocaleString()} ${value === 1 ? singular : plural}` : null;
+
 export default function DictionaryCard({ onInstalled }) {
   const [installed, setInstalled] = useState(null);
   const [pending, setPending] = useState(null);
@@ -112,6 +115,11 @@ export default function DictionaryCard({ onInstalled }) {
   const downloading = Boolean(progress);
   const updateAvailable = installed && manifest && manifest.datasetVersion !== installed.datasetVersion;
   const pct = progress?.totalBytes ? Math.round((progress.receivedBytes / progress.totalBytes) * 100) : 0;
+  const installedCountSummary = [
+    countText(installed?.counts?.entries, "word"),
+    countText(installed?.counts?.conjugations, "verb table"),
+    countText(installed?.counts?.examples, "example"),
+  ].filter(Boolean).join(" · ");
 
   return (
     <>
@@ -144,10 +152,7 @@ export default function DictionaryCard({ onInstalled }) {
             </div>
             <div className="mt-2 text-xs leading-relaxed" style={{ fontFamily: MONO, color: C.mut }}>
               <div>version {installed.datasetVersion}</div>
-              <div>
-                {installed.counts.entries.toLocaleString()} words · {installed.counts.conjugations.toLocaleString()} verb
-                tables · {installed.counts.examples.toLocaleString()} examples
-              </div>
+              <div>{installedCountSummary || "Entry counts unavailable for this older install"}</div>
             </div>
             {updateAvailable && (
               <div className="mt-3 text-xs rounded-lg p-2.5" style={{ background: C.penPale, color: C.penDark }}>
@@ -229,7 +234,7 @@ export default function DictionaryCard({ onInstalled }) {
         ) : (
           <>
             <div className="text-sm" style={{ color: C.ink }}>
-              Download the dictionary once and it works offline forever — {manifest ? manifest.counts.entries.toLocaleString() : "10,000"} words
+              Download the dictionary once and it works offline forever — {manifest?.counts?.entries?.toLocaleString?.() || "10,000"} words
               with meanings, verb conjugations and example sentences.
             </div>
             {manifest && (

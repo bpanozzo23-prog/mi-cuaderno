@@ -8,6 +8,7 @@ import { removeDictionary } from "../db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "../db/ref/refdb.js";
 import { FIXTURE_ENTRIES } from "../test/dictFixture.js";
 import { makeEvent, makeLexical, makePage } from "../test/factories.js";
+import { newPageGroup } from "../lib/collections.js";
 
 const CASA = "dict:wiktionary-es:casa:noun";
 const OLD_CASA = "dict:wiktionary-es:casa:noun:old";
@@ -55,7 +56,13 @@ describe("Phase 5d actionable activity", () => {
   it("reopens active lexical items and pages through the shared selection callback", async () => {
     const user = userEvent.setup();
     const word = makeLexical({ id: "user:word", term: "madrugar" });
-    const page = makePage({ id: "user:page", title: "Study source" });
+    const page = makePage({
+      id: "user:page",
+      title: "Study source",
+      pageProfile: "collection",
+      linkedKeys: [word.id],
+      collection: { groups: [newPageGroup("Study words", [word.id])] },
+    });
     const events = [
       makeEvent({ type: EVENT_TYPES.view, itemKey: word.id, at: at(1) }),
       makeEvent({ type: EVENT_TYPES.view, itemKey: page.id, at: at(2) }),
@@ -74,6 +81,7 @@ describe("Phase 5d actionable activity", () => {
     expect(onSelect).toHaveBeenLastCalledWith(word.id);
 
     expect(screen.getByText("Highlighted items")).toBeTruthy();
+    expect(screen.getByText("Collection · 1 item · 1 group")).toBeTruthy();
     expect(screen.getByText("Most opened")).toBeTruthy();
     expect(screen.getByText("opens")).toBeTruthy();
   });
