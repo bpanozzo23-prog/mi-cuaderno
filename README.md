@@ -6,6 +6,8 @@ installable web app (PWA). Private tool for one person; the code is public, the 
 - **Brief:** [docs/mi-cuaderno-project-brief-v3.md](docs/mi-cuaderno-project-brief-v3.md) (the contract for this build)
 - **Prototype:** [docs/mi-cuaderno.jsx](docs/mi-cuaderno.jsx) (look-and-feel reference for the notebook layer)
 - **Decision log:** [DECISIONS.md](DECISIONS.md)
+- **Improvement ideas:** [docs/IMPROVEMENT-IDEAS.md](docs/IMPROVEMENT-IDEAS.md) (captured
+  possibilities, not an approved roadmap)
 - **Agent workflow:** [docs/AGENT-GUIDE.md](docs/AGENT-GUIDE.md) (shared by Claude Code and Codex)
 
 ## Status

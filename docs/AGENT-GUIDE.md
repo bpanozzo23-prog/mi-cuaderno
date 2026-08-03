@@ -32,6 +32,9 @@ Then load the durable references the task actually needs:
 - `DECISIONS.md` is the append-only reasoning record, not an always-load checklist. Scan its
   headings or search it for the affected phase, component and concept; read the matching entries
   before re-litigating a choice. Read current-phase and Tooling entries when they affect the work.
+- `docs/IMPROVEMENT-IDEAS.md` is a dated record of unapproved planning possibilities. Read it when
+  the owner asks to discuss or develop one of those ideas, but never treat an entry there as an
+  approved phase, product requirement or implementation instruction.
 - `docs/mi-cuaderno.jsx` is a **look-and-feel reference only** and only needs to be read for visual
   or interaction work. Its storage, linking and state handling are superseded by the brief and
   the current application.

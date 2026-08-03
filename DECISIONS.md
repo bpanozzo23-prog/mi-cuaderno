@@ -297,3 +297,7 @@ One line per meaningful choice: date — decision — reason.
 ## Phase sequencing — concurrent independent work (2026-08-02)
 
 - 2026-08-02 — **BRIEF AMENDMENT (owner's decision): independently scoped phases may proceed concurrently when their boundaries, dependencies and integration order are documented first.** Parallel work uses separate branches or worktrees, and overlapping files or behaviours are sequenced rather than edited independently at the same time. — The owner uses Claude Code and Codex together; forbidding all overlap would serialize work that has no dependency, while uncoordinated overlap would create avoidable merge and behavioural conflicts. Sequential phases remain the default, and every integrated sub-phase must still leave the app usable and verified.
+
+## Planning — improvement ideas (2026-08-02)
+
+- 2026-08-02 — **`docs/IMPROVEMENT-IDEAS.md` is the dated, cross-chat record for unapproved planning ideas; it records options, benefits, risks, dependencies, evidence needs and possible timing without turning them into roadmap commitments.** — The owner wants future chats to resume product discussions without reconstructing their background. Keeping captured ideas explicitly separate from the brief, phase directions and `DECISIONS.md` preserves the difference between exploration, approval and implemented behavior.
