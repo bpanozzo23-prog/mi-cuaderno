@@ -28,10 +28,10 @@ installable web app (PWA). Private tool for one person; the code is public, the 
 - **Phase 4 — ongoing maintenance.** Live-use polish driven only by friction observed in daily use.
   The linking package (4a–4e) and first friction batch (4f–4h) shipped. Structured personal
   meanings (4i) are shipped and browser-verified. Persistent page profiles and the first
-  specialized profile, Vocabulary Collection (4j–4o), are implemented and locally accepted with
-  the complete serial suite plus a disposable 375×812 browser flow. They are not deployed yet.
-  Source, Grammar, richer
-  Journal profiles, user-authored templates, and exact term/title link suggestions remain deferred.
+  specialized profile, Vocabulary Collection (4j–4o), are shipped and production-verified after
+  the complete serial suite plus disposable local and production 375×812 browser flows. Source,
+  Grammar, richer Journal profiles, user-authored templates, and exact term/title link suggestions
+  remain deferred.
   See [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).
 - **Phase 5 — done.** Organizational improvements that do not require real notebook data:
   navigation continuity (5a), organizational derivations (5b), Cuaderno retrieval controls (5c),

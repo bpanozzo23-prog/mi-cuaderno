@@ -321,11 +321,11 @@ equaled `clientWidth`, and the console returned no warnings or errors.
 
 ## Status
 
-**Implementation and local release acceptance are complete; deployment remains pending.** The
-schema, domain, creation, Collection Read/Add/Organize/Practice interfaces, placements, retrieval
-filters, pins, migration/import safety, and General-page compatibility are integrated. The final
-serial suite, production build, deliberate failure proofs, and disposable 375×812 browser flow all
-pass. No production deployment is claimed by this part.
+**Complete, deployed, and production-verified.** The schema, domain, creation, Collection
+Read/Add/Organize/Practice interfaces, placements, retrieval filters, pins, migration/import safety,
+and General-page compatibility are integrated. The final serial suite, production build,
+deliberate failure proofs, disposable acceptance flow, deployment workflow, and production
+375×812 smoke test all pass.
 
 ## Release boundary
 
@@ -394,7 +394,20 @@ authority; groups only arrange outgoing personal lexical members.
   browser's scrollbar allowance), touch controls remained usable, and a clean final tab reported
   **no console warnings or errors**. The pass also caught and fixed an older dictionary-metadata
   count assumption in Settings and removed an unnecessary Show-more control from short overviews.
-- **Pending:** deployment handoff. No production deployment is claimed by this part.
+
+## Deployment closeout
+
+Feature head `df8a454` was fast-forwarded to `main` and deployed successfully by GitHub Pages
+workflow [30859248672](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/30859248672).
+The workflow's clean install, production build, artifact upload and Pages deployment all passed.
+
+The production smoke test used the in-app browser's separate empty profile at **375×812**; it did
+not inspect or alter the owner's real browser data. Because that profile still held the prior v2
+service worker, its first request rendered the previous cached shell. One reload activated the
+newly deployed asset, which correctly stopped at the untouched-backup gate and identified
+**personal data schema 2 → 3**. After the disposable empty notebook requested its backup and
+continued, Ajustes reported **data schema v3**. The document and body widths matched the 360 px
+content width within the 375 px viewport, and the console reported **no warnings or errors**.
 
 ## Explicitly deferred
 

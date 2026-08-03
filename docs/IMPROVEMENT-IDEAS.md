@@ -41,7 +41,7 @@ Useful information to retain for each idea:
 | Meaning-block presentation | 2026-08-02 | Implemented and shipped | Phase 4i |
 | Typed or explained relationships | 2026-08-02 | Captured | After observing real links and dense hubs |
 | Saved views | 2026-08-02 | Captured | After observing repeated retrieval/filter patterns |
-| Persistent page profiles | 2026-08-02 | Implemented and pushed on feature branch; deployment pending | General and Vocabulary Collection in Phase 4j–4o; richer profiles deferred |
+| Persistent page profiles | 2026-08-02 | Implemented and shipped | General and Vocabulary Collection in Phase 4j–4o; richer profiles deferred |
 | Personal-content provenance | 2026-08-02 | Captured | Before or alongside Phase 6 AI design; source needs can be studied earlier |
 
 ---
@@ -376,12 +376,10 @@ behavior, stale-reference handling, and a separately approved plan.
 
 - **Date added:** 2026-08-02
 - **Last reviewed:** 2026-08-03
-- **Status:** Implemented, accepted, and pushed on `codex/page-profiles-collections`; not yet merged
-  or deployed
+- **Status:** Implemented and shipped
 - **Origin:** Preliminary information-architecture review and follow-up discussion
 - **Potential data impact:** Implemented as schema v3 without new stores or indexes; migration,
-  export-first gating, backup upgrading, and brief decisions are complete on the pushed feature
-  branch
+  export-first gating, backup upgrading, and brief decisions are shipped
 
 ### Description and current context
 
@@ -590,3 +588,7 @@ backup plan.
   future questions to composable page behavior, richer profiles, reusable starters, provenance,
   and possible Practice expansion. The accepted commits are pushed on
   `codex/page-profiles-collections`; production deployment remains pending.
+- **2026-08-03 — Phase 4j–4o shipped.** Fast-forwarded General and Vocabulary Collection to
+  `main`; GitHub Pages deployment and the production 375×812 schema-v3 smoke test passed. The
+  original Collection problem is closed, while the Source-specific and composable-profile
+  questions above remain deliberate future work.
