@@ -41,7 +41,7 @@ Useful information to retain for each idea:
 | Meaning-block presentation | 2026-08-02 | Implemented and shipped | Phase 4i |
 | Typed or explained relationships | 2026-08-02 | Captured | After observing real links and dense hubs |
 | Saved views | 2026-08-02 | Captured | After observing repeated retrieval/filter patterns |
-| Persistent page profiles | 2026-08-02 | Implemented (accepted locally) | General and Vocabulary Collection in Phase 4j–4o; deployment pending and richer profiles deferred |
+| Persistent page profiles | 2026-08-02 | Implemented and pushed on feature branch; deployment pending | General and Vocabulary Collection in Phase 4j–4o; richer profiles deferred |
 | Personal-content provenance | 2026-08-02 | Captured | Before or alongside Phase 6 AI design; source needs can be studied earlier |
 
 ---
@@ -71,6 +71,34 @@ vocabulary-Collection starting points. Those starters seed editable Collection g
 template identity. They are not Source or Grammar templates. A Source profile, structured source
 fields, Grammar profile, richer Journal profile, and user-authored templates remain explicitly
 deferred until real use establishes their recurring structure.
+
+### What Phase 4j–4o addressed
+
+- The starting-point gallery established a safe creation-only template pattern: a starter can seed
+  editable content without permanently classifying the page or storing a template ID.
+- Vocabulary Collection addressed the part of the original source-page idea concerned with making
+  linked vocabulary prominent. A Collection leads with ordered vocabulary groups instead of
+  presenting lexical links as secondary generic relationships.
+- The persistent-profile foundation, General-page compatibility, and reversible conversion provide
+  a safe base on which a later Source design could build.
+
+These are enabling pieces, not an implementation of Source-oriented pages themselves.
+
+### Source-specific needs still open
+
+These remain exploratory needs from the page examples, not repeated-use friction established by a
+real-source-page audit.
+
+- A book, film, podcast, article, or lesson page still begins as a General page without
+  source-specific prompts or structured source identity.
+- Passages, notable vocabulary, and personal reflections still share the general body-and-links
+  layout; there is no dedicated repeatable structure for those different kinds of material.
+- A page link can show that vocabulary is related to a source, but not where it was encountered or
+  whether the source supports a particular meaning, example, or reflection.
+- A future source page may also need Collection behavior. The current one-profile model does not
+  yet answer whether Source should be an exclusive profile, optional metadata layered onto another
+  profile, or a composable capability.
+- Owners cannot yet create, save, or reuse their own starters.
 
 ### Potential options
 
@@ -118,9 +146,19 @@ migration/storage plan.
 
 ### Questions for a future discussion
 
-- Which two or three source categories actually recur?
-- Should a template only insert prompts, or should it affect later display?
-- Is a linked source page sufficient provenance for a word, or is more detail needed?
+- Which source categories and details actually recur in real use?
+- Is a creation-only starter sufficient, or does Source need lasting display, capture, validation,
+  or retrieval behavior?
+- Should source structure be editable headings in `body`, a source-specific form, repeated
+  passage/reflection blocks, or a structured submodel?
+- How should Source and Vocabulary Collection behavior combine on one page?
+- Which details matter after capture: creator, episode/chapter, URL, encounter date, Spanish
+  variety, or something else?
+- Is a linked source page sufficient provenance, or is source information needed on a lexical
+  entry, meaning, example, or individual encounter?
+- Should owners eventually create reusable starters, and if so, does template identity or
+  configuration need to survive backup and later editing?
+- How should existing General source pages opt into future behavior without forced classification?
 
 ---
 
@@ -338,10 +376,12 @@ behavior, stale-reference handling, and a separately approved plan.
 
 - **Date added:** 2026-08-02
 - **Last reviewed:** 2026-08-03
-- **Status:** Implemented and accepted locally; deployment pending
+- **Status:** Implemented, accepted, and pushed on `codex/page-profiles-collections`; not yet merged
+  or deployed
 - **Origin:** Preliminary information-architecture review and follow-up discussion
 - **Potential data impact:** Implemented as schema v3 without new stores or indexes; migration,
-  export-first gating, backup upgrading, and brief decisions are complete locally
+  export-first gating, backup upgrading, and brief decisions are complete on the pushed feature
+  branch
 
 ### Description and current context
 
@@ -376,28 +416,58 @@ is labeled, filtered, displayed, or validated after creation.
 - No template ID is stored; the built-in starter gallery only seeds editable groups during creation.
 - Source, Grammar, richer Journal, custom profiles, and user-authored templates remain Deferred.
 
-### Expected owner value
+### Problems addressed by Phase 4j–4o
 
-- Makes creation and labeling more predictable.
-- Enables clear page-kind filters and kind-specific empty states.
-- Could prioritize dates for journals, linked vocabulary for sources, or patterns for grammar pages.
-- Reduces dependence on remembering an exact tag spelling.
+The first row is the owner's reported friction. The remaining rows are product limitations and
+durability needs that had to be solved to make that workflow dependable.
 
-### Risks and tradeoffs
+| Problem | Implemented response |
+|---|---|
+| A “thinking and opinions” page still looked like a generic note, leaving its linked phrases as secondary content. | Vocabulary Collection makes outgoing personal lexical links the primary content, organized into groups with expandable vocabulary cards; other links are separated as Related. |
+| Pages had no durable identity that could change their display or retrieval. | Schema v3 stores `general | collection`; General retains existing behavior, dated General remains Journal, and Collections receive their own display, summaries, and filter. |
+| A vocabulary hub could not preserve meaningful sections or manual order. | Durable ordered groups, ordered members, a derived Not grouped yet bucket, visible empty groups, and the draft Organizer preserve the owner's structure. |
+| Adding several related words or phrases through the generic single-select linker was cumbersome. | A dedicated Collection picker keeps multi-selection across searches, supports personal and dictionary results plus staged quick-create, and commits the final selection atomically. |
+| Dictionary results could be linked but were not editable personal Collection members. | Adding a dictionary selection creates or reuses an independent personal lexical entry before adding membership. |
+| Experimenting with a specialized format risked losing organization or disrupting existing pages. | Every page retains dormant Collection metadata, conversion is reversible, and migrated pages safely default to General without changing their existing content. |
+| Topic vocabulary had no lightweight, in-context review path. | Collection Practice preserves group and item order, reveals answers independently, excludes Related, and prompts for missing meanings without creating review history. |
+| Important vocabulary hubs and their item placements were difficult to rediscover. | Page pins, profile filters, Collection card counts, and Collection placements on lexical details expose both the hubs and where each item belongs. |
+| A persistent page schema could endanger existing notebooks and backups. | Export-first v1/v2 startup gating, sequential v1→v2→v3 migration, deep schema-1/2/3 backup validation, transactional writes, and layout cleanup protect existing data. |
 
-- Many pages could fit more than one kind.
-- Capture gains an additional filing decision.
-- Existing pages need classification or a safe general default.
-- Fixed kinds can become restrictive; custom kinds can recreate tag inconsistency under another name.
-- Filtering at scale may require an indexed field and therefore a Dexie schema version change.
-- A subtype must not accidentally become a forbidden third top-level content type.
+### Expected owner value from the implemented release
 
-### Evidence needed
+- Makes a page useful as an organized vocabulary hub rather than just a note with links attached.
+- Speeds up capture of several related entries while keeping dictionary material independent and
+  editable.
+- Makes Collections easier to scan, practice, filter, pin, and revisit from either the page or a
+  lexical entry.
+- Adds specialized behavior without changing the two top-level item types or taking flexibility
+  away from General pages.
+- Preserves the owner's ability to experiment by making profile conversion nondestructive.
 
-- Whether real pages form stable, behaviorally meaningful clusters.
-- How many pages are ambiguous or combine source, grammar, and journal purposes.
-- Which existing tags are already acting like kinds.
-- Whether each proposed kind actually needs different display or retrieval behavior.
+### Remaining risks and tradeoffs
+
+- One exclusive profile may not compose well when a page is simultaneously a source, grammar topic,
+  journal reflection, and vocabulary collection.
+- Collection groups add maintenance; real use may show that some pages need less structure or that
+  large Collections need different organization controls.
+- Additional fixed profiles can become restrictive, while custom profiles can recreate tag
+  inconsistency and configuration work under another name.
+- Any future stored fields still require migration, export-first safety, backup validation, and
+  compatibility with the two-item-type architecture.
+- Lightweight Collection Practice is intentionally separate from Repaso; expanding it could blur
+  the distinction between browsing a topic and scheduled study.
+
+### Evidence to collect from real use
+
+- Whether Collections solve the thinking/opinions, situation, register, slang, and similar
+  vocabulary-hub use cases without creating too much organizing work.
+- Which group structures recur, how often Not grouped yet remains populated, and whether manual
+  ordering stays useful as Collections grow.
+- Whether reveal-only Practice is sufficient or produces real demand for shuffle, grading, history,
+  scheduling, or Repaso integration.
+- Which General pages repeatedly need source, grammar, or richer-journal behavior rather than only a
+  starter, date, tag, or body convention.
+- How often one page genuinely needs several specialized behaviors at once.
 
 ### Potential timing
 
@@ -409,9 +479,19 @@ profiles, and user-authored templates; creation-only distinctions should remain 
 
 ### Questions for a future discussion
 
-- What ongoing behavior would each kind change?
-- Can one page have multiple kinds, or is that a sign the distinction should be a tag?
-- How should existing pages be classified without forcing unnecessary cleanup?
+- Which future candidates have enough lasting behavior to justify persistence: Source, Grammar,
+  explicit/richer Journal, comparison, or something else?
+- What exact creation, display, validation, and retrieval behavior would distinguish each from a
+  General page with a starter or tag?
+- Should specialized behaviors remain mutually exclusive profiles, or should capabilities such as
+  source metadata and vocabulary grouping compose on the same page?
+- Should Journal remain a date-derived General page, or would richer reflection and practice
+  tracking eventually justify explicit fields or profile behavior?
+- Should existing General pages always convert only by owner choice when a future profile is added?
+- Would user-authored starters or custom profiles support recurring workflows, or mostly recreate
+  inconsistent tags and extra setup?
+- Does real Collection use justify any of the deliberately deferred Practice features: shuffle,
+  grading, history, scheduling, or Repaso integration?
 
 ---
 
@@ -505,3 +585,8 @@ backup plan.
   passed 393/393, the production build passed, and the disposable 375×812 browser flow covered
   upgrade, creation, capture, organization, Practice, conversion, retrieval and backup restore.
   Production deployment remains pending.
+- **2026-08-03 — Phase 4j–4o implementation-idea follow-up.** Recorded the concrete problems the
+  first profile release addressed, separated the still-unresolved Source use case, and narrowed
+  future questions to composable page behavior, richer profiles, reusable starters, provenance,
+  and possible Practice expansion. The accepted commits are pushed on
+  `codex/page-profiles-collections`; production deployment remains pending.
