@@ -314,3 +314,90 @@ Commit `7b25b01` was fast-forwarded to `main` and deployed successfully by GitHu
 smoke test at the public site used a **375 × 812 px** viewport in the in-app browser's separate
 profile: the app loaded normally, Ajustes reported **data schema v2**, document `scrollWidth`
 equaled `clientWidth`, and the console returned no warnings or errors.
+
+---
+
+# Part five — Phase 4j–4o: persistent page profiles and Vocabulary Collections (2026-08-03)
+
+## Status
+
+**Implementation and local release acceptance are complete; deployment remains pending.** The
+schema, domain, creation, Collection Read/Add/Organize/Practice interfaces, placements, retrieval
+filters, pins, migration/import safety, and General-page compatibility are integrated. The final
+serial suite, production build, deliberate failure proofs, and disposable 375×812 browser flow all
+pass. No production deployment is claimed by this part.
+
+## Release boundary
+
+The personal layer still has exactly two top-level types: lexical items and pages. Pages now store
+only two profiles, `general | collection`. Collection is the first specialized profile; General
+preserves the old page behavior, and a dated General page remains a derived Journal entry.
+Collection wins over a date. Source, Grammar, richer Journal, custom profiles, and user-authored
+templates are not part of this release.
+
+Every page stores dormant Collection layout so switching profile never destroys organization. A
+group has `page-group:<uuid>`, a Unicode-normalized case-insensitively unique nonblank name, and
+ordered personal lexical `itemKeys`. `linkedKeys[]` remains the sole relationship and membership
+authority; groups only arrange outgoing personal lexical members.
+
+## What changed
+
+| Sub-phase | Implemented |
+|---|---|
+| 4j — contract and durability | Schema v3 with unchanged Dexie stores/indexes; v2→v3 page migration and direct sequential v1→v3; untouched export-first gate for v1/v2; backup schemas 1/2/3 upgrade and deep v3 validation |
+| 4k — domain and General parity | Effective General/Collection/Journal derivation; group, membership, ordering, placement, pin, profile, transaction and cleanup helpers; page rendering delegated without changing App's detail trail or scroll ownership |
+| 4l — creation and reading | Five creation starting points; editable group seeds with no stored template ID; Collection Read mode, overview, ordered/empty groups, independent card expansion, Related separation, lexical placement backlinks, and reversible profile conversion |
+| 4m — vocabulary capture | Dedicated personal/dictionary lexical search, query-persistent multi-selection tray, disabled existing members, incoming-edge promotion, dictionary materialization/reuse, staged quick-create, and one atomic final Add |
+| 4n — organization | Deep local draft; add/rename/reorder/delete groups; item up/down and Move to; populated-group deletion to Not grouped; membership removal without lexical deletion; explicit Save/Cancel and no-op detection |
+| 4o — practice and retrieval | Ordered reveal-only Practice with missing-meaning prompts and no history; Pages-only profile filters; stable preference-backed pin partition while browsing; Collection card summaries and page/detail pin controls |
+
+## Relationship, order, and event behavior
+
+- Outgoing page→personal-lexical links are Collection members. Incoming lexical backlinks, page
+  links, and dictionary links remain Related. Selecting an incoming lexical item moves the single
+  stored edge; selecting a dictionary row creates or reuses a personal lexical entry first.
+- Saved group order and item order drive Read and Practice. Not grouped yet derives from member
+  links absent from groups. Organizer Save can reorder those member slots while preserving
+  nonmember link order. Unlink and delete prune active or dormant layout references.
+- New pages and newly materialized lexical rows keep their existing `create` events. Profile
+  changes and changed Organizer saves write one page `edit`. Migration, pins, expansion, mode
+  changes, Practice, ordinary member add/remove, Cancel, and no-op Save write no events.
+- Pins live in the backed-up `pinnedPageIds` preference. They do not touch page timestamps, affect
+  only empty-query Pages browsing, preserve the selected order within pinned/unpinned partitions,
+  and never boost search relevance.
+
+## Verification status
+
+- `npm.cmd test -- --maxWorkers=1` passed **393/393 tests across 39 files**. Focused schema,
+  migration, backup, Collection-domain and component suites also passed throughout implementation.
+- `npm.cmd run build` passed after the final source change; the generated PWA precache contains 13
+  entries (about 520 KiB).
+- Real fake-IndexedDB tests cover v2→v3 and direct sequential v1→v3 upgrades, untouched
+  export-first gating for both legacy schemas, schema 1/2/3 backup upgrades, deep v3 rejection,
+  group/member ordering, alias-aware dictionary reuse, pins, cleanup and exact event behavior.
+- Deliberate red/green failure proof was demonstrated for the v2 export-first gate, backup group
+  order, unlink/delete layout cleanup, and Practice event suppression. Each altered behavior made
+  its focused test fail, and each test passed again after restoring the implementation.
+- In the in-app browser's separate data profile, a **375×812** pass began at a real schema-v1 gate,
+  requested its untouched backup, upgraded to v3, and preserved the existing notebook. Automated
+  coverage independently exercises the approved schema-v2 “Thinking and opinions” migration
+  fixture.
+- The browser pass created “Thinking and opinions” from the Conversational function starter,
+  edited its groups, staged two quick-created phrases across different searches, committed them
+  together, kept multiple cards expanded, moved and renamed groups in Organizer, revealed one
+  Practice answer independently, and verified pins, page-profile filtering and lexical Collection
+  placements.
+- Profile conversion Collection→General→Collection restored dormant group names, order and
+  placements. A schema-v3 safety import then replaced the disposable notebook and restored a
+  pinned two-group Collection in saved order, including an orphan dictionary link shown as Related.
+- The phone-width document and body widths matched the viewport content width (360 px after the
+  browser's scrollbar allowance), touch controls remained usable, and a clean final tab reported
+  **no console warnings or errors**. The pass also caught and fixed an older dictionary-metadata
+  count assumption in Settings and removed an unnecessary Show-more control from short overviews.
+- **Pending:** deployment handoff. No production deployment is claimed by this part.
+
+## Explicitly deferred
+
+Source, Grammar, explicit/richer Journal and custom page profiles; source/passage/reflection
+submodels; source identity and provenance; user-authored templates; typed relationships; practice
+history, grading, scoring, scheduling or Repaso integration; and AI assistance remain future work.

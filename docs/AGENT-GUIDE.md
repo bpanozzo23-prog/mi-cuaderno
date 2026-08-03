@@ -57,17 +57,20 @@ this summary.
 - **The event log is the single source of truth** (§7). No stored counters, no state flags.
   Tricky state, lookup counts, review box and due date are all *derived at render*
   (`src/lib/review.js`, `src/db/events.js`).
-- **`SCHEMA_VERSION` is 2.** Phase 4i was the first personal-layer migration: startup exports v1
-  before Dexie opens, the database upgrade converts flat translations to personal meanings, and
-  v1 backup imports upgrade separately in `src/db/backup.js`. Any further personal schema change
-  still triggers §5 in full: migration plan, export-first safety, version bump and matching backup
-  validation. **If you conclude another is needed, stop and raise it.**
+- **`SCHEMA_VERSION` is 3.** Phase 4i introduced v1→v2 structured meanings; Phase 4j–4o adds
+  v2→v3 page profiles. Startup requires an untouched validated v1 or v2 export before Dexie opens;
+  direct v1→v3 runs the meanings migration before the page migration. Backup schemas 1, 2, and 3
+  upgrade sequentially in memory and are deeply validated as v3 before any write; versions newer
+  than 3 remain blocked. Any further personal schema change still triggers §5 in full: migration
+  plan, export-first safety, version bump and matching backup validation. **If you conclude another
+  is needed, stop and raise it.**
 - **`src/lib/normalize.js` preserves ñ** — "año" must never match "ano", anywhere new. All
   matching goes through it. **Do not change it:** the pipeline imports the same file, so it also
   decides what the 10,278 shipped dictionary entries match.
 - **Personal content has exactly two types** — lexical items and pages (§7 forbids a third
-  without a brief amendment). Words and phrases are both lexical, told apart by `form`. A dated
-  page is a journal entry; films, podcasts and grammar notes are ordinary pages.
+  without a brief amendment). Words and phrases are both lexical, told apart by `form`. Pages store
+  only `general | collection` profiles: Collection wins over a date, a dated General page is a
+  Journal entry, and films, podcasts and grammar notes remain General pages.
 - **Identity:** personal IDs are `user:<uuid>`; dictionary IDs are namespaced `dict:` keys. A
   lexical item's optional `dictKey` is a reversible attachment, never its identity — the item
   keeps its own `term` and owns stable `meaning:<uuid>` records that never reference dictionary

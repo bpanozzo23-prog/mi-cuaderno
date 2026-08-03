@@ -27,9 +27,12 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   See [docs/PHASE-3-REPORT.md](docs/PHASE-3-REPORT.md).
 - **Phase 4 — ongoing maintenance.** Live-use polish driven only by friction observed in daily use.
   The linking package (4a–4e) and first friction batch (4f–4h) shipped. Structured personal
-  meanings (4i) are shipped and browser-verified; exact term/title link suggestions remain
-  deferred. See
-  [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).
+  meanings (4i) are shipped and browser-verified. Persistent page profiles and the first
+  specialized profile, Vocabulary Collection (4j–4o), are implemented and locally accepted with
+  the complete serial suite plus a disposable 375×812 browser flow. They are not deployed yet.
+  Source, Grammar, richer
+  Journal profiles, user-authored templates, and exact term/title link suggestions remain deferred.
+  See [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).
 - **Phase 5 — done.** Organizational improvements that do not require real notebook data:
   navigation continuity (5a), organizational derivations (5b), Cuaderno retrieval controls (5c),
   activity navigation (5d), scan-first detail pages (5e), and duplicate guardrails (5f).
@@ -38,14 +41,15 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   [docs/PHASE-5-REPORT.md](docs/PHASE-5-REPORT.md).
 - **Phase 6 — not started.** The AI assistant (brief §9).
 
-`SCHEMA_VERSION` is **2**. Phase 4i is the first personal-layer migration: schema-v1 owners receive
-a blocking validated export step before Dexie opens the database, and v1 backup files upgrade in
-memory before replace-and-restore.
+`SCHEMA_VERSION` is **3**. Before Dexie opens v3, schema-v1 and schema-v2 owners must save and
+acknowledge an untouched validated export. Direct v1→v3 upgrades run the meanings migration before
+the page-profile migration. Backup schemas 1, 2, and 3 are accepted, upgraded sequentially in
+memory, deeply validated as v3, and only then offered for replace-and-restore.
 
 ## Testing
 
 ```
-npm test        # Vitest — 322 tests over the data layer, UI navigation, search, review, linking and the pipeline
+npm test        # Vitest over the data layer, UI navigation, search, review, linking and the pipeline
 ```
 
 The database tests run the real Dexie code against an in-memory IndexedDB

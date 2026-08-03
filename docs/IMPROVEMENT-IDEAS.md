@@ -37,11 +37,11 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
-| Source-oriented page templates | 2026-08-02 | Captured | Can discuss now; validate permanent structure with real pages |
-| Meaning-block presentation | 2026-08-02 | Implemented locally | Phase 4i; final seeded browser acceptance pending |
+| Source-oriented page templates | 2026-08-02 | Deferred | Source/Grammar profiles and user-authored templates remain outside Phase 4j–4o |
+| Meaning-block presentation | 2026-08-02 | Implemented and shipped | Phase 4i |
 | Typed or explained relationships | 2026-08-02 | Captured | After observing real links and dense hubs |
 | Saved views | 2026-08-02 | Captured | After observing repeated retrieval/filter patterns |
-| Persistent page kinds | 2026-08-02 | Captured | After reviewing how real pages cluster and overlap |
+| Persistent page profiles | 2026-08-02 | Implemented (accepted locally) | General and Vocabulary Collection in Phase 4j–4o; deployment pending and richer profiles deferred |
 | Personal-content provenance | 2026-08-02 | Captured | Before or alongside Phase 6 AI design; source needs can be studied earlier |
 
 ---
@@ -49,8 +49,8 @@ Useful information to retain for each idea:
 ## Source-oriented page templates
 
 - **Date added:** 2026-08-02
-- **Last reviewed:** 2026-08-02
-- **Status:** Captured
+- **Last reviewed:** 2026-08-03
+- **Status:** Deferred
 - **Origin:** Preliminary information-architecture review and follow-up discussion
 - **Potential data impact:** None for a text-only template; potentially significant for structured
   source fields or a persistent page kind
@@ -65,6 +65,12 @@ blank page and may not consistently prompt for useful context.
 A source-oriented template would help initialize a page used to capture a source and the vocabulary
 encountered there. A template affects how a page starts; it does not necessarily define what that
 page permanently is.
+
+**Phase 4j–4o update (2026-08-03):** the creation gallery now offers Blank page plus four
+vocabulary-Collection starting points. Those starters seed editable Collection groups and store no
+template identity. They are not Source or Grammar templates. A Source profile, structured source
+fields, Grammar profile, richer Journal profile, and user-authored templates remain explicitly
+deferred until real use establishes their recurring structure.
 
 ### Potential options
 
@@ -104,9 +110,11 @@ page permanently is.
 
 ### Potential timing
 
-A text-only template could be prototyped without a schema change once the owner wants to evaluate
-the workflow. Persistent fields or source kinds should wait for a real-page audit and a separate
-migration/storage discussion.
+~~A text-only template could be prototyped without a schema change once the owner wants to evaluate
+the workflow.~~ **Deferred 2026-08-03:** Phase 4j–4o used built-in, creation-only vocabulary
+starters and deliberately did not generalize them into Source/Grammar or user-authored templates.
+Persistent source fields or a Source profile still require a real-page audit and their own approved
+migration/storage plan.
 
 ### Questions for a future discussion
 
@@ -120,7 +128,7 @@ migration/storage discussion.
 
 - **Date added:** 2026-08-02
 - **Last reviewed:** 2026-08-02
-- **Status:** Implemented locally — final seeded browser acceptance pending
+- **Status:** Implemented and shipped
 - **Origin:** Preliminary information-architecture review and follow-up discussion
 - **Potential data impact:** Low for visual treatment of the existing string; high for structured
   meanings or sense-level examples, notes, and provenance
@@ -326,20 +334,23 @@ behavior, stale-reference handling, and a separately approved plan.
 
 ---
 
-## Persistent page kinds
+## Persistent page profiles
 
 - **Date added:** 2026-08-02
-- **Last reviewed:** 2026-08-02
-- **Status:** Captured
+- **Last reviewed:** 2026-08-03
+- **Status:** Implemented and accepted locally; deployment pending
 - **Origin:** Preliminary information-architecture review and follow-up discussion
-- **Potential data impact:** Personal-item shape change; may require indexing, migration, backup, and
-  brief decisions
+- **Potential data impact:** Implemented as schema v3 without new stores or indexes; migration,
+  export-first gating, backup upgrading, and brief decisions are complete locally
 
 ### Description and current context
 
-The personal layer has exactly two top-level content types: lexical items and pages. Words and
-phrases are lexical forms; a dated page acts as a journal entry, while sources and grammar notes are
-ordinary pages. There is no persistent source, grammar, comparison, or topic-hub subtype.
+The personal layer still has exactly two top-level content types: lexical items and pages. Words and
+phrases are lexical forms. ~~A dated page acts as a journal entry, while sources and grammar notes
+are ordinary pages. There is no persistent source, grammar, comparison, or topic-hub subtype.~~
+**Phase 4j–4o implemented two stored page profiles: General and Vocabulary Collection.** A dated
+General page remains a derived Journal entry, while sources and grammar notes remain General pages.
+There is still no stored Source, Grammar, explicit/richer Journal, comparison, or topic-hub profile.
 
 A persistent page kind differs from a creation template because it continues to affect how a page
 is labeled, filtered, displayed, or validated after creation.
@@ -353,6 +364,17 @@ is labeled, filtered, displayed, or validated after creation.
 4. **Custom kinds.** Let the owner define names or behavior.
 5. **Behavior-specific submodels.** Give source or journal pages their own structured fields while
    retaining `type: page` at the top level.
+6. **Selected first release — narrow built-ins.** Store only `general | collection`; keep Journal
+   derived from a date and defer every richer profile and custom profile/template mechanism.
+
+### Implementation decision (2026-08-03)
+
+- General preserves the existing page editor and dated-Journal behavior.
+- Vocabulary Collection adds durable ordered groups, vocabulary-first Read/Organize/Practice modes,
+  Collection placements on lexical entries, page-profile retrieval, and preference-backed pins.
+- Every page carries empty or dormant Collection structure so profile switching is reversible.
+- No template ID is stored; the built-in starter gallery only seeds editable groups during creation.
+- Source, Grammar, richer Journal, custom profiles, and user-authored templates remain Deferred.
 
 ### Expected owner value
 
@@ -379,8 +401,11 @@ is labeled, filtered, displayed, or validated after creation.
 
 ### Potential timing
 
-Defer persistence until a real-page audit demonstrates stable categories and benefits beyond initial
-prompts. If a distinction only changes the starter text, use a template instead of a stored kind.
+~~Defer persistence until a real-page audit demonstrates stable categories and benefits beyond
+initial prompts.~~ **Partially superseded 2026-08-03:** the owner approved General plus Vocabulary
+Collection because Collection has distinct lasting organization, capture, retrieval, and Practice
+behavior. The evidence requirement still applies to Source, Grammar, richer Journal, custom
+profiles, and user-authored templates; creation-only distinctions should remain starters.
 
 ### Questions for a future discussion
 
@@ -474,3 +499,9 @@ backup plan.
 - **2026-08-02 — Phase 4i implemented locally.** Schema v2, export-first migration, v1 backup
   upgrading, structured creation/detail/organization, search, maintenance and entry-level Repaso
   are implemented and automated tests/build pass. Final seeded 375 px browser acceptance remains.
+- **2026-08-03 — Phase 4j–4o implemented and accepted locally.** Promoted persistent page profiles
+  for General and Vocabulary Collection, and marked Source/Grammar, richer Journal,
+  custom/user-authored templates, and richer structured submodels Deferred. The final serial suite
+  passed 393/393, the production build passed, and the disposable 375×812 browser flow covered
+  upgrade, creation, capture, organization, Practice, conversion, retrieval and backup restore.
+  Production deployment remains pending.
