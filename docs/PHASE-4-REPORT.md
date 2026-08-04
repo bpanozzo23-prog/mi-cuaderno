@@ -618,3 +618,44 @@ relationship-only edit refreshes their rows.
 
 The implementation, automated/build acceptance, and production deployment are complete. The
 brief's disposable browser condition remains open until the browser-control runtime can initialize.
+
+---
+
+## Phase 4y — Add to Collection from a word or phrase
+
+### Observed problem and boundary
+
+The owner could add vocabulary while viewing a Collection and could see existing Collection
+placements from a lexical detail, but could not create membership from the word or phrase itself.
+Phase 4y adds that reverse capture path for active Vocabulary Collections only. General and Diario
+pages remain ordinary Connections; creating Collections, multi-Collection saves, and moving or
+removing placements from the lexical screen remain outside this slice.
+
+### Implemented behavior
+
+- A lexical detail derives active nonmember Collections in deterministic title order and shows
+  **Add to Collection** alongside existing placement cards.
+- One available destination is selected automatically; several require a choice. Not grouped yet
+  is the default, followed by named groups in their saved order. Save remains on the entry, while
+  existing placement cards continue to navigate without exposing move/remove controls.
+- The flow reuses `commitCollectionAdd` as the sole membership writer. An older lexical→Collection
+  link is promoted atomically to page-owned membership, with directional annotation reorientation
+  and dormant metadata preservation unchanged.
+- Active Collections are excluded from a lexical entry's generic Connections picker so new
+  membership cannot accidentally become an incoming ordinary link. General and Diario pages are
+  unaffected.
+- Deleted groups, profile changes, and deleted Collections fail inline, retain the form choices,
+  and leave no partial write. Schema v4, stores, indexes, backups, timestamps, and event rules are
+  unchanged.
+
+### Verification
+
+- The destination-helper test was observed red before implementation and green after restoration;
+  the first reverse-assignment component test followed the same deliberate red/green proof.
+- Focused Collection domain/detail suites pass **59/59 tests across four files**.
+- `npm.cmd test -- --no-file-parallelism` passes **501/501 tests across 49 files**.
+- `npm.cmd run build` passes with a 13-entry PWA precache (about 582 KiB).
+- The disposable 375×812 attempt remains unclaimed because the browser-control connection again
+  failed before fixture setup with `failed to write kernel assets: The system cannot find the path
+  specified`. No owner browser data was inspected or changed.
+- No push or deployment was performed.

@@ -291,4 +291,191 @@ describe("lexical Collection placement", () => {
     expect(screen.getByText("Questions")).toBeTruthy();
     expect(screen.getAllByText("Thinking and opinions")).toHaveLength(1);
   });
+
+  it("assigns a phrase to a chosen Collection group and stays on the phrase", async () => {
+    const user = userEvent.setup();
+    const onOpen = vi.fn();
+    const phrase = await createItem(newLexical({ term: "¿Dónde queda?", form: "phrase" }));
+    const essentials = newPageGroupKey();
+    const extras = newPageGroupKey();
+    const page = await createItem(newPage({
+      title: "Travel",
+      pageProfile: "collection",
+      collection: {
+        groups: [
+          { id: essentials, name: "Essentials", itemKeys: [] },
+          { id: extras, name: "Extras", itemKeys: [] },
+        ],
+      },
+    }));
+    const beforeEdits = (await allEvents()).filter((event) => event.type === EVENT_TYPES.edit).length;
+
+    renderDetail(phrase, await allItems(), onOpen);
+    await user.click(screen.getByRole("button", { name: "Add to Collection" }));
+
+    expect(screen.getByRole("combobox", { name: "Collection" }).value).toBe(page.id);
+    const group = screen.getByRole("combobox", { name: "Collection group" });
+    expect(group.value).toBe("");
+    expect([...group.options].map((option) => option.textContent)).toEqual([
+      "Not grouped yet",
+      "Essentials",
+      "Extras",
+    ]);
+
+    await user.selectOptions(group, extras);
+    await user.click(screen.getByRole("button", { name: "Save Collection assignment" }));
+
+    await waitFor(async () => {
+      const stored = await getItem(page.id);
+      expect(stored.linkedKeys).toEqual([phrase.id]);
+      expect(stored.collection.groups[1].itemKeys).toEqual([phrase.id]);
+    });
+    expect(onOpen).not.toHaveBeenCalled();
+    expect(screen.queryByRole("combobox", { name: "Collection" })).toBeNull();
+    expect(screen.getByText("Travel")).toBeTruthy();
+    expect(screen.getByText("Extras")).toBeTruthy();
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(beforeEdits);
+  });
+
+  it("requires a choice among several destinations and omits an existing placement", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({ term: "rumbo" }));
+    const existing = await createItem(newPage({
+      title: "Already placed",
+      pageProfile: "collection",
+      linkedKeys: [word.id],
+      collection: { groups: [] },
+    }));
+    const alpha = await createItem(newPage({
+      title: "Alpha",
+      pageProfile: "collection",
+      collection: { groups: [] },
+    }));
+    const beta = await createItem(newPage({
+      title: "Beta",
+      pageProfile: "collection",
+      collection: { groups: [] },
+    }));
+
+    renderDetail(word, await allItems());
+    await user.click(screen.getByRole("button", { name: "Add to Collection" }));
+
+    const collection = screen.getByRole("combobox", { name: "Collection" });
+    expect(collection.value).toBe("");
+    expect([...collection.options].map((option) => option.textContent)).toEqual([
+      "Choose a Collection",
+      "Alpha",
+      "Beta",
+    ]);
+    expect([...collection.options].some((option) => option.value === existing.id)).toBe(false);
+    expect(screen.getByRole("button", { name: "Save Collection assignment" }).disabled).toBe(true);
+
+    await user.selectOptions(collection, beta.id);
+    expect(screen.getByRole("combobox", { name: "Collection group" }).value).toBe("");
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect((await getItem(alpha.id)).linkedKeys).toEqual([]);
+    expect((await getItem(beta.id)).linkedKeys).toEqual([]);
+  });
+
+  it("keeps active Collections out of lexical Connections while retaining General and Diario pages", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({ term: "viaje" }));
+    await createItem(newPage({
+      title: "Travel Collection",
+      pageProfile: "collection",
+      collection: { groups: [] },
+    }));
+    await createItem(newPage({ title: "Travel notes" }));
+    await createItem(newPage({ title: "Travel diary", pageDate: "2026-08-04" }));
+
+    renderDetail(word, await allItems());
+    await user.click(screen.getByRole("button", { name: "link something" }));
+    await user.type(
+      screen.getByPlaceholderText(/Link a word, phrase, page or dictionary entry/),
+      "Travel"
+    );
+
+    expect(screen.queryByRole("button", { name: /Travel Collection/ })).toBeNull();
+    expect(screen.getByRole("button", { name: /Travel notes/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Travel diary/ })).toBeTruthy();
+  });
+
+  it("promotes an incoming typed connection and keeps its annotation dormant", async () => {
+    const user = userEvent.setup();
+    const groupId = newPageGroupKey();
+    const page = await createItem(newPage({
+      title: "Work vocabulary",
+      pageProfile: "collection",
+      collection: { groups: [{ id: groupId, name: "Meetings", itemKeys: [] }] },
+    }));
+    const phrase = await createItem(newLexical({
+      term: "quedamos en eso",
+      form: "phrase",
+      linkedKeys: [page.id],
+      linkAnnotations: [{
+        targetKey: page.id,
+        type: "found_in",
+        subject: "owner",
+        note: "From a team meeting.",
+      }],
+    }));
+
+    renderDetail(phrase, await allItems());
+    expect(screen.getByText("From a team meeting.")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Add to Collection" }));
+    await user.selectOptions(screen.getByRole("combobox", { name: "Collection group" }), groupId);
+    await user.click(screen.getByRole("button", { name: "Save Collection assignment" }));
+
+    await waitFor(async () => {
+      expect((await getItem(phrase.id))).toMatchObject({ linkedKeys: [], linkAnnotations: [] });
+      expect((await getItem(page.id))).toMatchObject({
+        linkedKeys: [phrase.id],
+        linkAnnotations: [{
+          targetKey: phrase.id,
+          type: "found_in",
+          subject: "target",
+          note: "From a team meeting.",
+        }],
+        collection: { groups: [{ id: groupId, name: "Meetings", itemKeys: [phrase.id] }] },
+      });
+    });
+    expect(screen.getByText("Work vocabulary")).toBeTruthy();
+    expect(screen.getByText("Meetings")).toBeTruthy();
+    expect(screen.queryByText("From a team meeting.")).toBeNull();
+  });
+
+  it.each([
+    "deleted group",
+    "changed profile",
+    "deleted Collection",
+  ])("keeps the assignment form and writes nothing for a %s", async (failure) => {
+    const user = userEvent.setup();
+    const groupId = newPageGroupKey();
+    const word = await createItem(newLexical({ term: `stale ${failure}` }));
+    const page = await createItem(newPage({
+      title: "Changing Collection",
+      pageProfile: "collection",
+      collection: { groups: [{ id: groupId, name: "Target", itemKeys: [] }] },
+    }));
+    renderDetail(word, await allItems());
+    await user.click(screen.getByRole("button", { name: "Add to Collection" }));
+    await user.selectOptions(screen.getByRole("combobox", { name: "Collection group" }), groupId);
+
+    if (failure === "deleted group") {
+      await db.items.update(page.id, { collection: { groups: [] } });
+    } else if (failure === "changed profile") {
+      await db.items.update(page.id, { pageProfile: "general" });
+    } else {
+      await db.items.delete(page.id);
+    }
+
+    await user.click(screen.getByRole("button", { name: "Save Collection assignment" }));
+
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    expect(screen.getByRole("combobox", { name: "Collection" }).value).toBe(page.id);
+    expect(screen.getByRole("combobox", { name: "Collection group" }).value).toBe(groupId);
+    expect((await getItem(word.id)).linkedKeys).toEqual([]);
+    const storedPage = await getItem(page.id);
+    if (storedPage) expect(storedPage.linkedKeys).toEqual([]);
+  });
 });

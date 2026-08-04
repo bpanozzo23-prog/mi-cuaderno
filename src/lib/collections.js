@@ -144,6 +144,29 @@ export function getCollectionPlacements(itemId, items = []) {
   return placements;
 }
 
+/** Active Collections that can accept this lexical item from its own detail screen. */
+export function getAvailableCollectionDestinations(itemId, items = []) {
+  const destinations = [];
+  for (const page of items) {
+    if (page.type !== "page" || page.pageProfile !== PAGE_PROFILES.collection) continue;
+    const derived = deriveCollection(page, items);
+    if (derived.memberKeys.includes(itemId)) continue;
+    destinations.push({
+      page,
+      pageId: page.id,
+      pageTitle: page.title || "Untitled page",
+      groups: [
+        { id: null, name: NOT_GROUPED_LABEL },
+        ...derived.groups.map((group) => ({ id: group.id, name: group.name })),
+      ],
+    });
+  }
+  return destinations.sort((a, b) =>
+    a.pageTitle.localeCompare(b.pageTitle, "es", { sensitivity: "base" })
+    || a.pageId.localeCompare(b.pageId)
+  );
+}
+
 /** Removes layout references without deciding whether the active profile is Collection. */
 export function pruneCollectionItemKeys(page, removedItemKeys) {
   const removed = new Set(removedItemKeys || []);

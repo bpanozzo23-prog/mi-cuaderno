@@ -418,7 +418,7 @@ behavior, stale-reference handling, and a separately approved plan.
 ## Persistent page profiles
 
 - **Date added:** 2026-08-02
-- **Last reviewed:** 2026-08-03
+- **Last reviewed:** 2026-08-04
 - **Status:** Implemented and shipped
 - **Origin:** Preliminary information-architecture review and follow-up discussion
 - **Potential data impact:** Implemented as schema v3 without new stores or indexes; migration,
@@ -456,6 +456,21 @@ is labeled, filtered, displayed, or validated after creation.
 - Every page carries empty or dormant Collection structure so profile switching is reversible.
 - No template ID is stored; the built-in starter gallery only seeds editable groups during creation.
 - Source, Grammar, richer Journal, custom profiles, and user-authored templates remain Deferred.
+
+### Phase 4y reverse-capture outcome (2026-08-04)
+
+The owner observed that vocabulary could be added while viewing its target Collection, but not
+while viewing the word or phrase itself. Phase 4y closes that asymmetry without changing schema v4:
+
+- Lexical details offer one active Collection at a time, default to Not grouped yet, preserve saved
+  group order, stay on the entry after Save, and keep move/remove inside Collection Organize.
+- Existing incoming typed links remain visible until assignment; the established transaction then
+  promotes the edge, reorients its annotation, and preserves that metadata dormantly.
+- Active Collections are no longer offered as ordinary Connection targets from a lexical entry;
+  General and Diario pages remain available there.
+- The complete serial suite passes 501/501 tests across 49 files and the production build passes.
+  The disposable phone check remains unclaimed because browser control still fails before fixture
+  setup with the recorded missing local asset path.
 
 ### Follow-up Diario decision (2026-08-03)
 
@@ -546,6 +561,7 @@ durability needs that had to be solved to make that workflow dependable.
 | Pages had no durable identity that could change their display or retrieval. | Schema v3 stores `general | collection`; General retains existing behavior, dated General remains Journal, and Collections receive their own display, summaries, and filter. |
 | A vocabulary hub could not preserve meaningful sections or manual order. | Durable ordered groups, ordered members, a derived Not grouped yet bucket, visible empty groups, and the draft Organizer preserve the owner's structure. |
 | Adding several related words or phrases through the generic single-select linker was cumbersome. | A dedicated Collection picker keeps multi-selection across searches, supports personal and dictionary results plus staged quick-create, and commits the final selection atomically. |
+| A word or phrase could show its Collection placements but could not add itself to another Collection. | Phase 4y adds a lexical-side assignment form using the same atomic membership transaction, including group choice and lossless reverse-link promotion. |
 | Dictionary results could be linked but were not editable personal Collection members. | Adding a dictionary selection creates or reuses an independent personal lexical entry before adding membership. |
 | Experimenting with a specialized format risked losing organization or disrupting existing pages. | Every page retains dormant Collection metadata, conversion is reversible, and migrated pages safely default to General without changing their existing content. |
 | Topic vocabulary had no lightweight, in-context review path. | Collection Practice preserves group and item order, reveals answers independently, excludes Related, and prompts for missing meanings without creating review history. |
@@ -557,8 +573,8 @@ durability needs that had to be solved to make that workflow dependable.
 - Makes a page useful as an organized vocabulary hub rather than just a note with links attached.
 - Speeds up capture of several related entries while keeping dictionary material independent and
   editable.
-- Makes Collections easier to scan, practice, filter, pin, and revisit from either the page or a
-  lexical entry.
+- Makes Collections easier to scan, practice, filter, pin, add to, and revisit from either the page
+  or a lexical entry.
 - Adds specialized behavior without changing the two top-level item types or taking flexibility
   away from General pages.
 - Preserves the owner's ability to experiment by making profile conversion nondestructive.
@@ -690,6 +706,11 @@ backup plan.
 ---
 
 ## Document history
+
+- **2026-08-04 — Phase 4y implemented locally.** Recorded the owner-observed reverse-capture gap,
+  the schema-free Add to Collection flow, ordinary-picker guard, lossless promotion behavior,
+  501-test serial suite and production build. Phone-width browser verification remains pending;
+  no push or deployment is claimed.
 
 - **2026-08-04 — Phase 4t–4x deployed.** Fast-forwarded and pushed `main` at `eb93c90`; GitHub
   Pages workflow run 30949552774 passed both jobs, and the live site returned HTTP 200 with the

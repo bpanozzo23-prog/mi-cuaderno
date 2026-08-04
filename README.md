@@ -34,9 +34,11 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   local 375×812 closeout, and a successful GitHub Pages deployment check. Typed and explained
   ordinary Connections (4t–4x) are shipped on schema v4 after the complete serial suite, production
   build, and a successful GitHub Pages deployment check; the disposable 375×812 browser closeout
-  remains pending because the local browser-control kernel could not initialize. Source, Grammar,
-  richer stored Journal profiles, user-authored templates, and exact term/title link suggestions
-  remain deferred. See
+  remains pending because the local browser-control kernel could not initialize. Lexical-side
+  **Add to Collection** (4y) is implemented locally without a schema change after the 501-test
+  serial suite and production build; its disposable phone check is pending for the same browser
+  limitation. Source, Grammar, richer stored Journal profiles, user-authored templates, and exact
+  term/title link suggestions remain deferred. See
   [docs/PHASE-4-JOURNAL-DIRECTION.md](docs/PHASE-4-JOURNAL-DIRECTION.md) and
   [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).
 - **Phase 5 — done.** Organizational improvements that do not require real notebook data:

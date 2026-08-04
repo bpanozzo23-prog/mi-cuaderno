@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   NOT_GROUPED_LABEL,
   deriveCollection,
+  getAvailableCollectionDestinations,
   getCollectionPlacements,
   newPageGroup,
   pruneCollectionItemKeys,
@@ -142,6 +143,55 @@ describe("Collection placements", () => {
     expect(placements.map(({ pageId, groupId, groupName }) => ({ pageId, groupId, groupName }))).toEqual([
       { pageId: grouped.id, groupId: GROUP_ONE, groupName: "Questions" },
       { pageId: ungrouped.id, groupId: null, groupName: NOT_GROUPED_LABEL },
+    ]);
+  });
+
+  it("offers active nonmember Collections in title order with Not grouped first", () => {
+    const lexical = makeLexical({
+      id: "user:word",
+      linkedKeys: ["user:alpha"],
+    });
+    const alpha = makePage({
+      id: "user:alpha",
+      title: "Álbum",
+      pageProfile: "collection",
+      collection: {
+        groups: [
+          { id: GROUP_TWO, name: "Second", itemKeys: [] },
+          { id: GROUP_ONE, name: "First", itemKeys: [] },
+        ],
+      },
+    });
+    const zeta = makePage({
+      id: "user:zeta",
+      title: "Zeta",
+      pageProfile: "collection",
+      collection: { groups: [] },
+    });
+    const existing = makePage({
+      id: "user:existing",
+      title: "Already there",
+      pageProfile: "collection",
+      linkedKeys: [lexical.id],
+      collection: { groups: [] },
+    });
+    const dormant = makePage({
+      id: "user:dormant",
+      title: "Dormant",
+      pageProfile: "general",
+      collection: { groups: [] },
+    });
+
+    const destinations = getAvailableCollectionDestinations(
+      lexical.id,
+      [zeta, existing, dormant, lexical, alpha]
+    );
+
+    expect(destinations.map((destination) => destination.pageId)).toEqual([alpha.id, zeta.id]);
+    expect(destinations[0].groups).toEqual([
+      { id: null, name: NOT_GROUPED_LABEL },
+      { id: GROUP_TWO, name: "Second" },
+      { id: GROUP_ONE, name: "First" },
     ]);
   });
 });

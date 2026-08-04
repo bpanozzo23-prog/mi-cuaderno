@@ -30,10 +30,97 @@ import { cloneMeanings } from "../lib/meanings.js";
 import MeaningsSection from "./MeaningsSection.jsx";
 import CollectionPage from "./CollectionPage.jsx";
 import { effectivePageKind, PAGE_KINDS, PAGE_PROFILES } from "../lib/pageProfiles.js";
-import { getCollectionPlacements } from "../lib/collections.js";
-import { setPageProfile } from "../db/collections.js";
+import { getAvailableCollectionDestinations, getCollectionPlacements } from "../lib/collections.js";
+import { commitCollectionAdd, setPageProfile } from "../db/collections.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
+
+function CollectionAssignmentForm({ itemId, destinations, onCancel, onSaved }) {
+  const [pageId, setPageId] = useState(() => destinations.length === 1 ? destinations[0].pageId : "");
+  const [groupId, setGroupId] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const destination = destinations.find((candidate) => candidate.pageId === pageId);
+
+  const save = async (event) => {
+    event.preventDefault();
+    if (!destination || saving) return;
+    setSaving(true);
+    setError("");
+    try {
+      await commitCollectionAdd(pageId, {
+        targetGroupId: groupId || null,
+        candidates: [{ kind: "personal", itemId }],
+      });
+      await onSaved();
+    } catch (caught) {
+      setError(caught?.message || "Could not add this entry to the Collection.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card className="mt-2" style={{ borderColor: C.pen }}>
+      <form onSubmit={save} className="space-y-3">
+        <div>
+          <label htmlFor="collection-assignment-page" className="mb-1 block text-xs" style={{ color: C.mut }}>
+            Collection
+          </label>
+          <select
+            id="collection-assignment-page"
+            aria-label="Collection"
+            value={pageId}
+            onChange={(event) => {
+              setPageId(event.target.value);
+              setGroupId("");
+              setError("");
+            }}
+            disabled={saving}
+            className="min-h-11 w-full rounded-lg border px-2 text-sm"
+            style={inputStyle}
+          >
+            {destinations.length > 1 && <option value="">Choose a Collection</option>}
+            {destinations.map((candidate) => (
+              <option key={candidate.pageId} value={candidate.pageId}>{candidate.pageTitle}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="collection-assignment-group" className="mb-1 block text-xs" style={{ color: C.mut }}>
+            Group
+          </label>
+          <select
+            id="collection-assignment-group"
+            aria-label="Collection group"
+            value={groupId}
+            onChange={(event) => {
+              setGroupId(event.target.value);
+              setError("");
+            }}
+            disabled={!destination || saving}
+            className="min-h-11 w-full rounded-lg border px-2 text-sm"
+            style={inputStyle}
+          >
+            {(destination?.groups || [{ id: null, name: "Not grouped yet" }]).map((group) => (
+              <option key={group.id || "ungrouped"} value={group.id || ""}>{group.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {error && <div role="alert" className="text-xs" style={{ color: C.red }}>{error}</div>}
+
+        <div className="flex flex-wrap gap-2">
+          <Button type="submit" disabled={!destination || saving}>
+            {saving ? "Adding…" : "Save Collection assignment"}
+          </Button>
+          <Button type="button" tone="quiet" disabled={saving} onClick={onCancel}>Cancel</Button>
+        </div>
+      </form>
+    </Card>
+  );
+}
 
 export default function Detail(props) {
   if (props.item.type === "page") return <PageDetail {...props} />;
@@ -80,6 +167,7 @@ function StandardDetail({
   const [mLabel, setMLabel] = useState("");
   const [deleteArm, setDeleteArm] = useState(false);
   const [picking, setPicking] = useState(false);
+  const [assigningCollection, setAssigningCollection] = useState(false);
   const [linkedEntryLinks, setLinkedEntryLinks] = useState([]);
   const [orphanKeys, setOrphanKeys] = useState([]);
   const [linkConflicts, setLinkConflicts] = useState([]);
@@ -92,6 +180,10 @@ function StandardDetail({
   // elsewhere. Which side stores the link is bookkeeping the owner shouldn't see.
   const collectionPlacements = useMemo(
     () => isPage ? [] : getCollectionPlacements(item.id, items),
+    [isPage, item.id, items]
+  );
+  const collectionDestinations = useMemo(
+    () => isPage ? [] : getAvailableCollectionDestinations(item.id, items),
     [isPage, item.id, items]
   );
   const placementPageIds = useMemo(
@@ -186,6 +278,7 @@ function StandardDetail({
     setMLabel("");
     setDeleteArm(false);
     setPicking(false);
+    setAssigningCollection(false);
     setHead(
       isPage
         ? { title: item.title, pageDate: item.pageDate || "" }
@@ -630,9 +723,25 @@ function StandardDetail({
         )}
       </div>
 
-      {!isPage && collectionPlacements.length > 0 && (
+      {!isPage && (collectionPlacements.length > 0 || collectionDestinations.length > 0) && (
         <>
           <SectionTitle>Collections</SectionTitle>
+          {collectionDestinations.length > 0 && !assigningCollection && (
+            <Button tone="quiet" onClick={() => setAssigningCollection(true)}>
+              <Plus size={14} /> Add to Collection
+            </Button>
+          )}
+          {assigningCollection && (
+            <CollectionAssignmentForm
+              itemId={item.id}
+              destinations={collectionDestinations}
+              onCancel={() => setAssigningCollection(false)}
+              onSaved={async () => {
+                setAssigningCollection(false);
+                await onChanged();
+              }}
+            />
+          )}
           <div className="space-y-1.5">
             {collectionPlacements.map((placement) => (
               <button
@@ -736,6 +845,9 @@ function StandardDetail({
         <LinkPicker
           item={item}
           items={items}
+          candidateFilter={(candidate) =>
+            isPage || candidate.type !== "page" || candidate.pageProfile !== PAGE_PROFILES.collection
+          }
           linkedKeys={linkedKeys}
           unresolvedKeys={unresolvedKeys}
           connections={connections}
