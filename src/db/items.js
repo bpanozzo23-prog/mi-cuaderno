@@ -1,11 +1,17 @@
 import { db } from "./db.js";
 import { logEvent, EVENT_TYPES } from "./events.js";
-import { isUserKey, newUserKey } from "../lib/ids.js";
+import { isDictKey, isUserKey, newUserKey } from "../lib/ids.js";
 import { nowIso } from "../lib/dates.js";
 import { requestPersistence } from "../lib/persistence.js";
 import { cleanMeanings, newMeaning } from "../lib/meanings.js";
 import { pruneCollectionItemKeys, validateCollectionGroups } from "../lib/collections.js";
 import { isPageProfile, PAGE_PROFILES, PINNED_PAGE_IDS_PREF } from "../lib/pageProfiles.js";
+import {
+  annotationForTarget,
+  makeLinkAnnotation,
+  normalizeRelationship,
+  reorientRelationship,
+} from "../lib/relationships.js";
 
 /**
  * Personal-layer CRUD (brief section 7). Every mutation logs its event, because
@@ -29,6 +35,7 @@ export function newLexical({
   myExamples = [],
   mediaLinks = [],
   linkedKeys = [],
+  linkAnnotations = [],
   dictKey = null,
 } = {}) {
   const at = nowIso();
@@ -44,6 +51,7 @@ export function newLexical({
     myExamples,
     tags: cleanTags(tags),
     linkedKeys,
+    linkAnnotations: [...(linkAnnotations || [])],
     mediaLinks,
     createdAt: at,
     updatedAt: at,
@@ -76,6 +84,7 @@ export function newPage({
   tags = [],
   mediaLinks = [],
   linkedKeys = [],
+  linkAnnotations = [],
 } = {}) {
   if (!isPageProfile(pageProfile)) throw new Error("Page profile must be general or collection.");
   const groups = validateCollectionGroups(collection?.groups ?? [], {
@@ -92,6 +101,7 @@ export function newPage({
     collection: { groups },
     tags: cleanTags(tags),
     linkedKeys,
+    linkAnnotations: [...(linkAnnotations || [])],
     mediaLinks,
     createdAt: at,
     updatedAt: at,
@@ -141,19 +151,31 @@ export async function deleteItem(id) {
     const linkers = candidates.filter((item) => {
       if (item.id === id) return false;
       if ((item.linkedKeys || []).includes(id)) return true;
+      if ((item.linkAnnotations || []).some((annotation) => annotation?.targetKey === id)) return true;
       return item.type === "page" && (item.collection?.groups || []).some((group) =>
         (group.itemKeys || []).includes(id)
       );
     });
     await Promise.all(
       linkers.map((item) => {
+        const linkedKeys = (item.linkedKeys || []).filter((key) => key !== id);
+        const linkAnnotations = (item.linkAnnotations || []).filter(
+          (annotation) => annotation?.targetKey !== id
+        );
+        const linkRemoved = linkedKeys.length !== (item.linkedKeys || []).length;
         const next = {
-          linkedKeys: (item.linkedKeys || []).filter((key) => key !== id),
-          updatedAt: nowIso(),
+          linkedKeys,
+          linkAnnotations,
         };
+        // Keep deletion's established link-removal recency behaviour. Defensive cleanup of an
+        // already-dangling annotation alone is metadata-only and does not move the item.
+        if (linkRemoved) next.updatedAt = nowIso();
         if (item.type === "page") {
           const pruned = pruneCollectionItemKeys(item, [id]);
-          if (pruned.changed) next.collection = pruned.collection;
+          if (pruned.changed) {
+            next.collection = pruned.collection;
+            next.updatedAt ||= nowIso();
+          }
         }
         return db.items.update(item.id, next);
       })
@@ -168,40 +190,130 @@ export async function deleteItem(id) {
   await logEvent(EVENT_TYPES.delete, id);
 }
 
+const annotationsWithoutTarget = (item, targetKey) =>
+  (item?.linkAnnotations || []).filter((annotation) => annotation?.targetKey !== targetKey);
+
+const annotationsWithRelationship = (item, targetKey, relationship) => {
+  const annotations = annotationsWithoutTarget(item, targetKey);
+  const annotation = makeLinkAnnotation(targetKey, relationship);
+  if (annotation) annotations.push(annotation);
+  return annotations;
+};
+
+const storedEdgeCandidates = (aKey, bKey, a, b) => {
+  const candidates = [];
+  if ((a?.linkedKeys || []).includes(bKey)) candidates.push({ owner: a, targetKey: bKey });
+  if ((b?.linkedKeys || []).includes(aKey)) candidates.push({ owner: b, targetKey: aKey });
+  return candidates;
+};
+
 /**
- * Links are stored once, on the item where the link was made. The reverse
- * direction is computed (see backlinksFor) because Phase 2 links may point at
- * read-only dictionary entries, which cannot store a reciprocal link.
+ * Links are stored once, on the item where the link was made. A sparse annotation may describe
+ * that physical edge, but never creates one. For personal targets the reverse side is checked so
+ * the mutation API cannot add a reciprocal copy over an existing backlink.
+ *
+ * `relationship.subject` is expressed from `fromId`'s perspective. Since a newly created edge is
+ * physically owned there, it is also the stored subject without conversion.
  */
-export async function linkItems(fromId, toKey) {
-  const item = await db.items.get(fromId);
-  if (!item || fromId === toKey) return item;
-  if (item.linkedKeys.includes(toKey)) return item;
-  return updateItem(fromId, { linkedKeys: [...item.linkedKeys, toKey] }, { logEdit: false });
+export async function linkItems(fromId, toKey, relationship = undefined) {
+  let result;
+  await db.transaction("rw", db.items, async () => {
+    const item = await db.items.get(fromId);
+    result = item;
+    if (!item || fromId === toKey) return;
+    if (!isUserKey(toKey) && !isDictKey(toKey)) return;
+
+    const linkedKeys = item.linkedKeys || [];
+    if (linkedKeys.includes(toKey)) return;
+
+    if (isUserKey(toKey)) {
+      const other = await db.items.get(toKey);
+      if (!other) return;
+      if ((other.linkedKeys || []).includes(fromId)) return;
+    }
+
+    const normalized = normalizeRelationship(relationship);
+    const next = {
+      ...item,
+      linkedKeys: [...linkedKeys, toKey],
+      linkAnnotations: annotationsWithRelationship(item, toKey, normalized),
+      updatedAt: nowIso(),
+    };
+    await db.items.put(next);
+    result = next;
+  });
+  return result;
 }
 
+/**
+ * Changes only the annotation on an existing conceptual connection. `aKey` is the endpoint whose
+ * perspective the editor is showing, so a backlink save is reoriented before it is written to the
+ * other row. No timestamp or activity event changes.
+ */
+export async function setLinkRelationship(aKey, bKey, relationship) {
+  const normalized = normalizeRelationship(relationship);
+  let result;
+
+  await db.transaction("rw", db.items, async () => {
+    const [a, b] = await Promise.all([
+      isUserKey(aKey) ? db.items.get(aKey) : undefined,
+      isUserKey(bKey) ? db.items.get(bKey) : undefined,
+    ]);
+    if ((isUserKey(aKey) && !a) || (isUserKey(bKey) && !b)) {
+      throw new Error("A relationship cannot target a missing personal item.");
+    }
+    const candidates = storedEdgeCandidates(aKey, bKey, a, b);
+    if (!candidates.length) throw new Error("A relationship can describe only an existing connection.");
+
+    // Valid v4 data has one annotation per conceptual pair. When an old reciprocal edge survives,
+    // keep the row that already owns the sole explicit value rather than silently moving it.
+    const chosen = candidates.find(({ owner, targetKey }) => annotationForTarget(owner, targetKey))
+      || candidates[0];
+    const stored = chosen.owner.id === aKey ? normalized : reorientRelationship(normalized);
+
+    for (const candidate of candidates) {
+      const base = await db.items.get(candidate.owner.id);
+      const nextAnnotations = candidate === chosen
+        ? annotationsWithRelationship(base, candidate.targetKey, stored)
+        : annotationsWithoutTarget(base, candidate.targetKey);
+      if (JSON.stringify(nextAnnotations) === JSON.stringify(base.linkAnnotations || [])) continue;
+      await db.items.update(base.id, { linkAnnotations: nextAnnotations });
+    }
+    result = await db.items.get(chosen.owner.id);
+  });
+
+  return result;
+}
+
+/** Removes every physical copy of a conceptual legacy connection and all matching annotations. */
 export async function unlinkItems(fromId, toKey) {
-  const item = await db.items.get(fromId);
-  if (!item) return item;
-  if (item.linkedKeys.includes(toKey)) {
-    const patch = { linkedKeys: item.linkedKeys.filter((k) => k !== toKey) };
-    if (item.type === "page") {
-      const pruned = pruneCollectionItemKeys(item, [toKey]);
-      if (pruned.changed) patch.collection = pruned.collection;
+  let result;
+  await db.transaction("rw", db.items, async () => {
+    const from = await db.items.get(fromId);
+    result = from;
+    if (!from) return;
+    const other = isUserKey(toKey) ? await db.items.get(toKey) : undefined;
+    const candidates = storedEdgeCandidates(fromId, toKey, from, other);
+    if (!candidates.length) return;
+
+    const at = nowIso();
+    for (const { owner, targetKey } of candidates) {
+      const current = await db.items.get(owner.id);
+      const linkedKeys = (current.linkedKeys || []).filter((key) => key !== targetKey);
+      const patch = {
+        linkedKeys,
+        linkAnnotations: annotationsWithoutTarget(current, targetKey),
+        updatedAt: at,
+      };
+      if (current.type === "page") {
+        const pruned = pruneCollectionItemKeys(current, [targetKey]);
+        if (pruned.changed) patch.collection = pruned.collection;
+      }
+      await db.items.update(current.id, patch);
     }
-    return updateItem(fromId, patch, { logEdit: false });
-  }
-  // The link may have been made from the other side; remove it there.
-  const other = await db.items.get(toKey);
-  if (other?.linkedKeys.includes(fromId)) {
-    const patch = { linkedKeys: other.linkedKeys.filter((k) => k !== fromId) };
-    if (other.type === "page") {
-      const pruned = pruneCollectionItemKeys(other, [fromId]);
-      if (pruned.changed) patch.collection = pruned.collection;
-    }
-    return updateItem(toKey, patch, { logEdit: false });
-  }
-  return item;
+    result = await db.items.get(fromId);
+  });
+  return result;
 }
 
 /**

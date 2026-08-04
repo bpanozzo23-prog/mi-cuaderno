@@ -7,6 +7,7 @@ import {
   getItem,
   deleteItem,
   linkItems,
+  setLinkRelationship,
   unlinkItems,
   backlinksFor,
 } from "./items.js";
@@ -95,6 +96,99 @@ describe("links are stored once and read in both directions", () => {
     const editEvents = (await allEvents()).filter((e) => e.type === EVENT_TYPES.edit);
     expect(editEvents).toEqual([]);
   });
+
+  it("stores a sparse normalized relationship with a newly created edge", async () => {
+    const word = await createItem(newLexical({ term: "por" }));
+    const page = await createItem(newPage({ title: "Por and para" }));
+
+    await linkItems(word.id, page.id, {
+      type: "explained_by",
+      subject: "owner",
+      note: "  This page has the decision guide.  ",
+    });
+
+    expect(await getItem(word.id)).toMatchObject({
+      linkedKeys: [page.id],
+      linkAnnotations: [{
+        targetKey: page.id,
+        type: "explained_by",
+        subject: "owner",
+        note: "This page has the decision guide.",
+      }],
+    });
+    expect((await getItem(page.id)).linkedKeys).toEqual([]);
+  });
+
+  it("edits through a backlink without reciprocal storage, timestamps or events", async () => {
+    const word = await createItem(newLexical({ term: "chamba" }));
+    const page = await createItem(newPage({ title: "Film notes" }));
+    await linkItems(word.id, page.id);
+    const beforeWord = await getItem(word.id);
+    const beforePage = await getItem(page.id);
+    const beforeEvents = await db.events.count();
+
+    // From the page's perspective, the page Contains chamba. The physical edge remains on chamba.
+    await setLinkRelationship(page.id, word.id, {
+      type: "found_in",
+      subject: "owner",
+      note: "Scene at the café.",
+    });
+
+    expect((await getItem(word.id)).linkAnnotations).toEqual([{
+      targetKey: page.id,
+      type: "found_in",
+      subject: "target",
+      note: "Scene at the café.",
+    }]);
+    expect((await getItem(word.id)).linkedKeys).toEqual([page.id]);
+    expect((await getItem(page.id)).linkedKeys).toEqual([]);
+    expect((await getItem(word.id)).updatedAt).toBe(beforeWord.updatedAt);
+    expect((await getItem(page.id)).updatedAt).toBe(beforePage.updatedAt);
+    expect(await db.events.count()).toBe(beforeEvents);
+  });
+
+  it("normalizes Related with no note by removing the explicit annotation", async () => {
+    const word = await createItem(newLexical({ term: "ser" }));
+    const other = await createItem(newLexical({ term: "estar" }));
+    await linkItems(word.id, other.id, { type: "often_confused", note: "Both mean to be." });
+
+    await setLinkRelationship(other.id, word.id, { type: "related", note: "   " });
+
+    expect((await getItem(word.id)).linkAnnotations).toEqual([]);
+    expect((await getItem(word.id)).linkedKeys).toEqual([other.id]);
+  });
+
+  it("does not create a reciprocal edge when linking from a backlink", async () => {
+    const word = await createItem(newLexical({ term: "ser" }));
+    const page = await createItem(newPage({ title: "Grammar" }));
+    await linkItems(page.id, word.id, { type: "explained_by" });
+
+    await linkItems(word.id, page.id, { type: "contrast" });
+
+    expect((await getItem(page.id)).linkedKeys).toEqual([word.id]);
+    expect((await getItem(word.id)).linkedKeys).toEqual([]);
+    expect((await getItem(page.id)).linkAnnotations[0].type).toBe("explained_by");
+  });
+
+  it("removes reciprocal legacy copies and both annotations in one unlink", async () => {
+    const first = await createItem(newLexical({ term: "first" }));
+    const second = await createItem(newLexical({ term: "second" }));
+    await db.items.update(first.id, {
+      linkedKeys: [second.id],
+      linkAnnotations: [{ targetKey: second.id, type: "contrast", subject: "owner", note: "A" }],
+    });
+    await db.items.update(second.id, {
+      linkedKeys: [first.id],
+      linkAnnotations: [{ targetKey: first.id, type: "contrast", subject: "owner", note: "B" }],
+    });
+
+    await unlinkItems(second.id, first.id);
+
+    expect((await getItem(first.id)).linkedKeys).toEqual([]);
+    expect((await getItem(first.id)).linkAnnotations).toEqual([]);
+    expect((await getItem(second.id)).linkedKeys).toEqual([]);
+    expect((await getItem(second.id)).linkAnnotations).toEqual([]);
+  });
 });
 
 describe("deletion leaves no dangling links", () => {
@@ -117,5 +211,24 @@ describe("deletion leaves no dangling links", () => {
 
     const its = (await allEvents()).filter((e) => e.itemKey === preterite.id).map((e) => e.type);
     expect(its).toEqual([EVENT_TYPES.create, EVENT_TYPES.delete]);
+  });
+
+  it("removes every annotation that targeted the deleted item", async () => {
+    const target = await createItem(newLexical({ term: "target" }));
+    const owner = await createItem(newPage({
+      title: "Owner",
+      linkedKeys: [target.id],
+      linkAnnotations: [{
+        targetKey: target.id,
+        type: "explained_by",
+        subject: "target",
+        note: "Explains the page.",
+      }],
+    }));
+
+    await deleteItem(target.id);
+
+    expect((await getItem(owner.id)).linkedKeys).toEqual([]);
+    expect((await getItem(owner.id)).linkAnnotations).toEqual([]);
   });
 });

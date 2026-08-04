@@ -15,12 +15,20 @@ import {
   PINNED_PAGE_IDS_PREF,
 } from "../lib/pageProfiles.js";
 import { requestPersistence } from "../lib/persistence.js";
+import {
+  annotationForTarget,
+  makeLinkAnnotation,
+  reorientRelationship,
+} from "../lib/relationships.js";
 import { installedMeta } from "./ref/entries.js";
 
 export { PINNED_PAGE_IDS_PREF } from "../lib/pageProfiles.js";
 
 const sameArray = (left, right) =>
   left.length === right.length && left.every((value, index) => value === right[index]);
+
+const withoutLinkAnnotation = (item, targetKey) =>
+  (item?.linkAnnotations || []).filter((annotation) => annotation?.targetKey !== targetKey);
 
 const assertPage = (item, pageId) => {
   if (!item || item.type !== "page") throw new Error(`Page ${pageId} does not exist.`);
@@ -178,30 +186,41 @@ export async function commitCollectionAdd(
     }
 
     const at = nowIso();
-    // An incoming lexical backlink is Related. Selecting it as a member atomically moves the
-    // single stored edge onto the page; a reciprocal pair is never left behind.
+    let nextPageAnnotations = [...(page.linkAnnotations || [])];
+    // Selecting an incoming lexical backlink as a member atomically moves both the edge and its
+    // annotation onto the page. Directional subject flips because the physical owner reverses,
+    // preserving which real endpoint receives the forward label.
     for (const itemId of memberIds) {
       const lexical = byId.get(itemId);
       if (!(lexical.linkedKeys || []).includes(pageId)) continue;
+      const incomingAnnotation = annotationForTarget(lexical, pageId);
       const nextLexical = {
         ...lexical,
         linkedKeys: lexical.linkedKeys.filter((key) => key !== pageId),
+        linkAnnotations: withoutLinkAnnotation(lexical, pageId),
         updatedAt: at,
       };
       await db.items.put(nextLexical);
       byId.set(itemId, nextLexical);
+
+      if (incomingAnnotation && !nextPageAnnotations.some((annotation) => annotation?.targetKey === itemId)) {
+        const moved = makeLinkAnnotation(itemId, reorientRelationship(incomingAnnotation));
+        if (moved) nextPageAnnotations.push(moved);
+      }
     }
 
     const existing = new Set(page.linkedKeys || []);
     const addedIds = memberIds.filter((itemId) => !existing.has(itemId));
+    const annotationsChanged = JSON.stringify(nextPageAnnotations) !== JSON.stringify(page.linkAnnotations || []);
     let nextPage = page;
-    if (addedIds.length) {
+    if (addedIds.length || annotationsChanged) {
       if (targetIndex >= 0) groups[targetIndex].itemKeys.push(...addedIds);
       nextPage = {
         ...page,
         linkedKeys: [...(page.linkedKeys || []), ...addedIds],
+        linkAnnotations: nextPageAnnotations,
         collection: { ...(page.collection || {}), groups },
-        updatedAt: at,
+        ...(addedIds.length ? { updatedAt: at } : {}),
       };
       await db.items.put(nextPage);
     }
@@ -260,8 +279,12 @@ export async function saveCollectionOrganization(
     );
     const groupsChanged = JSON.stringify(nextGroups) !== JSON.stringify(page.collection?.groups || []);
     const linksChanged = !sameArray(nextLinkedKeys, page.linkedKeys || []);
+    const nextLinkAnnotations = (page.linkAnnotations || []).filter(
+      (annotation) => !removed.includes(annotation?.targetKey)
+    );
+    const annotationsChanged = nextLinkAnnotations.length !== (page.linkAnnotations || []).length;
 
-    if (!groupsChanged && !linksChanged) {
+    if (!groupsChanged && !linksChanged && !annotationsChanged) {
       result = { page, changed: false, removedItemKeys: removed };
       return;
     }
@@ -269,6 +292,7 @@ export async function saveCollectionOrganization(
     const nextPage = {
       ...page,
       linkedKeys: nextLinkedKeys,
+      linkAnnotations: nextLinkAnnotations,
       collection: { ...(page.collection || {}), groups: nextGroups },
       updatedAt: nowIso(),
     };
@@ -298,6 +322,7 @@ export async function removeCollectionMember(pageId, itemId) {
     const nextPage = {
       ...page,
       linkedKeys: page.linkedKeys.filter((key) => key !== itemId),
+      linkAnnotations: withoutLinkAnnotation(page, itemId),
       ...(pruned.changed ? { collection: pruned.collection } : {}),
       updatedAt: nowIso(),
     };

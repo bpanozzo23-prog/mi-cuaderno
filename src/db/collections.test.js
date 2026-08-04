@@ -54,6 +54,25 @@ describe("setPageProfile", () => {
     expect(await eventTypes()).toEqual([EVENT_TYPES.create, EVENT_TYPES.edit]);
   });
 
+  it("preserves a dormant membership annotation through General and back to Collection", async () => {
+    const lexical = await createItem(newLexical({ term: "chamba" }));
+    const annotation = {
+      targetKey: lexical.id,
+      type: "found_in",
+      subject: "target",
+      note: "From the film notes.",
+    };
+    const page = await createItem(collectionPage({
+      linkedKeys: [lexical.id],
+      linkAnnotations: [annotation],
+    }));
+
+    await setPageProfile(page.id, "general");
+    expect((await getItem(page.id)).linkAnnotations).toEqual([annotation]);
+    await setPageProfile(page.id, "collection");
+    expect((await getItem(page.id)).linkAnnotations).toEqual([annotation]);
+  });
+
   it("rejects nonpage targets and future profiles without writing", async () => {
     const lexical = await createItem(newLexical({ term: "hola" }));
     await expect(setPageProfile(lexical.id, "collection")).rejects.toThrow(/Page/);
@@ -94,6 +113,34 @@ describe("commitCollectionAdd", () => {
     expect((await getItem(incoming.id)).linkedKeys).toEqual([]);
     expect((await getItem(page.id)).linkedKeys).toEqual([incoming.id]);
     expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toEqual([]);
+  });
+
+  it("moves an incoming annotation and flips its directional subject during promotion", async () => {
+    const page = await createItem(collectionPage());
+    const incoming = await createItem(newLexical({
+      term: "chamba",
+      linkedKeys: [page.id],
+      linkAnnotations: [{
+        targetKey: page.id,
+        type: "found_in",
+        subject: "owner",
+        note: "Heard in this film.",
+      }],
+    }));
+    const beforeEvents = await db.events.count();
+
+    await commitCollectionAdd(page.id, {
+      candidates: [{ kind: "personal", itemId: incoming.id }],
+    });
+
+    expect((await getItem(incoming.id)).linkAnnotations).toEqual([]);
+    expect((await getItem(page.id)).linkAnnotations).toEqual([{
+      targetKey: incoming.id,
+      type: "found_in",
+      subject: "target",
+      note: "Heard in this film.",
+    }]);
+    expect(await db.events.count()).toBe(beforeEvents);
   });
 
   it("reuses an attached personal entry and materializes dictionary/new selections only at commit", async () => {
@@ -296,6 +343,23 @@ describe("removeCollectionMember", () => {
     expect((await getItem(page.id)).collection.groups[0].itemKeys).toEqual([]);
     expect(await getItem(lexical.id)).toBeTruthy();
     expect(await db.events.count()).toBe(beforeEvents);
+  });
+
+  it("removes dormant relationship metadata with the member connection", async () => {
+    const lexical = await createItem(newLexical({ term: "hola" }));
+    const page = await createItem(collectionPage({
+      linkedKeys: [lexical.id],
+      linkAnnotations: [{
+        targetKey: lexical.id,
+        type: "similar_meaning",
+        subject: "owner",
+        note: "Greeting vocabulary.",
+      }],
+    }));
+
+    await removeCollectionMember(page.id, lexical.id);
+
+    expect((await getItem(page.id)).linkAnnotations).toEqual([]);
   });
 });
 
