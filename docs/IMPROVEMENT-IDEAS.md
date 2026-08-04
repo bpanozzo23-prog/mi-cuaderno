@@ -416,8 +416,8 @@ is labeled, filtered, displayed, or validated after creation.
 
 ### Follow-up Diario decision (2026-08-03)
 
-The owner approved and locally closeout-verified a separate Diario workspace over the existing
-derived dated-General behavior; see
+The owner approved, implemented and shipped a separate Diario workspace over the existing derived
+dated-General behavior; see
 [PHASE-4-JOURNAL-DIRECTION.md](PHASE-4-JOURNAL-DIRECTION.md). Phase 4p–4s improves creation,
 retrieval, writing and rereading without storing an explicit Journal profile or adding journal-only
 fields. The richer-profile question remains deferred until real use demonstrates a need for durable
@@ -674,3 +674,7 @@ backup plan.
   reflection-first purpose, completed creation/retrieval/writing/reading behavior, deliberate
   migration-free boundaries, and evidence-gated future possibilities. The complete 422-test suite,
   production build and disposable 375×812 closeout passed; push and deployment remain pending.
+- **2026-08-03 — Phase 4p–4s Diario shipped.** The final post-review autosave guard passes the
+  complete 423-test suite and production build. `main` deployed successfully through GitHub Pages,
+  the deployment points at the journal release commit, and the live application responds normally.
+  The richer-profile possibilities above remain evidence-gated future work.

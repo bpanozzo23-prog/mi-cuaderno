@@ -30,9 +30,10 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   meanings (4i) are shipped and browser-verified. Persistent page profiles and the first
   specialized profile, Vocabulary Collection (4j–4o), are shipped and production-verified after
   the complete serial suite plus disposable local and production 375×812 browser flows. The
-  migration-free Diario workspace (4p–4s) is complete and locally closeout-verified; it was not
-  pushed or deployed in this session. Source, Grammar, richer stored Journal profiles,
-  user-authored templates, and exact term/title link suggestions remain deferred. See
+  migration-free Diario workspace (4p–4s) is shipped after the complete serial suite, a disposable
+  local 375×812 closeout, and a successful GitHub Pages deployment check. Source, Grammar, richer
+  stored Journal profiles, user-authored templates, and exact term/title link suggestions remain
+  deferred. See
   [docs/PHASE-4-JOURNAL-DIRECTION.md](docs/PHASE-4-JOURNAL-DIRECTION.md) and
   [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).
 - **Phase 5 — done.** Organizational improvements that do not require real notebook data:

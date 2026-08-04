@@ -533,3 +533,15 @@ handler completion signal before checking the committed deletion. The complete s
 **423/423 tests across 44 files**, and the production build passes with a 13-entry PWA precache
 (about 555 KiB). A fresh browser rerun was attempted, but the local browser-control kernel could not
 initialize; no new browser result is claimed for this follow-up.
+
+## Diario production deployment
+
+The seven journal commits from 4p through the post-review autosave fix were pushed to `main` on
+2026-08-03. GitHub Actions run 30873311990 completed both its clean Node 24 build and GitHub Pages
+deployment successfully. The Pages deployment record identifies the journal release commit
+`820897d`, and the public application returned HTTP 200 with its app root after publication.
+
+This deployment changes no schema or personal data. The production interaction check is limited to
+the deployment record and live response because the browser-control kernel remained unavailable;
+the earlier disposable 375×812 local closeout and the full-App tab-exit regression remain the
+user-flow evidence for this release.

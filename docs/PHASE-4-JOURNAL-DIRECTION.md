@@ -1,8 +1,9 @@
 # Phase 4p–4s — Diario workspace
 
-**Approved 2026-08-03; complete and locally closeout-verified through 4s.** This direction records the journal outcome agreed with the owner before
-implementation. It is a focused workspace over the existing data model, not a richer stored page
-profile and not a third personal-content type.
+**Approved 2026-08-03; complete, shipped and production-deployment-verified through 4s.** This
+direction records the journal outcome agreed with the owner before implementation. It is a focused
+workspace over the existing data model, not a richer stored page profile and not a third
+personal-content type.
 
 ## Desired outcome
 
