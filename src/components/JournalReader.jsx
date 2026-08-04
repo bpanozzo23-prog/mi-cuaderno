@@ -117,7 +117,7 @@ export default function JournalReader({
     return () => {
       current = false;
     };
-  }, [entry.id, entry.linkedKeys]);
+  }, [entry.id, entry.linkedKeys, entry.linkAnnotations]);
 
   useEffect(() => {
     logView(entry.id).then((logged) => {

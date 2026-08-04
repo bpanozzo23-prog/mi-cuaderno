@@ -10,9 +10,9 @@
  * amendment): it surfaces a distinction the schema has always carried. Nothing is stored and
  * no migration is involved.
  *
- * Link grouping deliberately does NOT split this way — see GROUPS in src/lib/links.js. Three
- * groups was a settled Phase 4 requirement, and a list of five links does not need four
- * headings; this list can run to hundreds of items, which is what makes the tab worth it.
+ * This Cuaderno filter remains separate from connection presentation. Standard Detail and
+ * Collection screens group mixed item kinds by relationship type; Diario keeps its specialized
+ * kind sections and groups by relationship within each. None of those views changes this filter.
  */
 
 export const FILTERS = {

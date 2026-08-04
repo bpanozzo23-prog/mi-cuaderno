@@ -44,6 +44,15 @@ wording above records the coordination state when that phase opened; it is not c
 Phase 4 remains the open friction-driven stream, and requirement 7 still returns only if real use
 asks for it.
 
+**Supersession note, 2026-08-04.** Requirements 5 and 6 below record the kind-first presentation
+that shipped in 4d–4e. The owner-approved Phase 4t–4x direction intentionally supersedes that
+presentation on standard Detail and Collection Connection lists: mixed personal and dictionary
+targets are grouped by relationship type, with Related last. Existing unannotated connections
+therefore begin together under Related. Diario keeps its task-specific Vocabulary, Related moments,
+Page relations, and Dictionary links sections and groups by relationship within each. Collection
+membership also remains separate from ordinary Connections. The original requirements stay below
+as the historical record of what 4d–4e delivered.
+
 ---
 
 ## Requirements

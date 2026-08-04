@@ -66,6 +66,12 @@ export default function AliasConflictResolver({
     setError("");
     try {
       const result = await resolveConflict(itemId, conflict.canonicalKey, draft);
+      if (!result?.resolved) {
+        setError(result?.reason === "not_installed"
+          ? "The dictionary is no longer installed. Reinstall it before resolving this connection."
+          : "Could not resolve this dictionary connection.");
+        return;
+      }
       onResolved?.(result);
     } catch (caught) {
       setError(caught?.message || "Could not resolve this dictionary connection.");

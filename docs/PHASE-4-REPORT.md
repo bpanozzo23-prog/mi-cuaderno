@@ -194,8 +194,10 @@ requirement 7 is ever worth building — and may well open a phase not yet writt
 
 ## Where things are
 
-- `src/lib/links.js` — `relatedTo`, `relatedToKey`, `pickerMatches`, `groupRelated`, `GROUPS`.
-  Pure, database-free, `today`-free; tested in `src/lib/links.test.js`.
+- At the 4a–4e closeout, `src/lib/links.js` held `relatedTo`, `relatedToKey`, `pickerMatches`,
+  `groupRelated`, and `GROUPS`. Phase 4t–4x retired the unused bare-key and kind-grouping exports;
+  the module now owns only `relatedTo` and `pickerMatches`, while current grouping lives in
+  `src/lib/relationships.js`.
 - `src/db/linkedEntries.js` — the §5 seam for linked `dict:` keys (alias rewrite, orphans).
 - `src/components/LinkPicker.jsx` — the picker and quick-create.
 - `src/components/LinkCard.jsx` — `ItemLinkCard`, `EntryLinkCard`, `OrphanLinkCard`.
@@ -572,6 +574,12 @@ plus inline editing and removal from personal cards. Collection membership, Diar
 sections, and dictionary attachments remain separate; their ordinary connections gain the same
 grouping while dictionary detail stays read-only.
 
+That relationship-first grouping intentionally supersedes Phase 4d–4e's kind-first headings on
+standard Detail and Collection Connection lists. Existing unannotated connections therefore appear
+together under Related rather than being split into palabras, páginas, and diario. Diario retains
+its task-specific sections and groups by relationship within each; the difference is deliberate,
+not two screens implementing the same rule differently.
+
 A final independent integration review hardened the seams before closeout. Resolver-provided
 metadata now survives the render between an alias rewrite and the parent's refreshed item props;
 the mutation API blocks canonical or alternate-alias duplicates even over an unresolved conflict;
@@ -579,15 +587,26 @@ dictionary detail shows both conflicting values without editing either; Collecti
 reciprocal legacy copies; and Diario retains its body-first moment headings and human-readable
 dates while acknowledging dictionary connections that still need resolution.
 
+A post-implementation review then clarified and hardened four more edges. Relationship-first mixed
+grouping is now explicit as the standard Detail/Collection contract, and the unreachable
+`relatedToKey`, `groupRelated`, and `GROUPS` implementation and tests were retired. Physical-edge
+candidate discovery deduplicates a preserved legacy self-link before an annotation save; the alias
+resolver treats a dictionary disappearing during Save as an inline failure without discarding the
+owner's draft; and dictionary-resolution effects now depend explicitly on `linkAnnotations` so a
+relationship-only edit refreshes their rows.
+
 ### Phase 4t–4x verification
 
-- `npm.cmd test -- --no-file-parallelism` passes **497/497 tests across 49 files**.
+- `npm.cmd test -- --no-file-parallelism` passes **493/493 tests across 49 files**.
 - `npm.cmd run build` passes with a 13-entry PWA precache (about 579 KiB).
 - Deliberate red/green proofs covered an inverse-label break, a missing mandatory v4 annotation
   array, reciprocal creation during reverse editing, a missing Collection subject flip, an alias
   rewrite that stranded its annotation, rejection of an unresolved alias conflict during backup
   round-trip, stale annotation cleanup in `deleteItem`, and quick-create navigation. Each targeted
   test failed with the defect and passed after restoration.
+- Review-follow-up red/green proofs additionally covered editing a preserved legacy self-link only
+  once and refreshing dictionary rows when `linkAnnotations` changes while `linkedKeys` retains
+  the same identity.
 - A disposable schema-v3 fixture at **375×812** was attempted, but Codex's in-app browser-control
   kernel failed before fixture setup with `failed to write kernel assets: The system cannot find the
   path specified`. No phone-layout, console, or export→wipe→import browser result is claimed for this

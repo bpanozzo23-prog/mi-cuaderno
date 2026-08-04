@@ -133,4 +133,46 @@ describe("Detail dictionary alias safety", () => {
     expect(screen.getByRole("textbox", { name: "Connection note" }).value)
       .toBe("Collection source vocabulary.");
   });
+
+  it("refreshes dictionary rows when only relationship metadata changes", async () => {
+    await seedDictionary({});
+    const page = await createItem(newPage({
+      title: "Metadata refresh",
+      linkedKeys: [CASA],
+      linkAnnotations: [{
+        targetKey: CASA,
+        type: "found_in",
+        subject: "owner",
+        note: "Original relationship note.",
+      }],
+    }));
+    const stableLinkedKeys = page.linkedKeys;
+    const props = {
+      items: [page],
+      onBack: vi.fn(),
+      onOpen: vi.fn(),
+      onChanged: vi.fn(),
+    };
+    const view = render(<Detail {...props} item={page} />);
+
+    expect(await screen.findByText("Original relationship note.")).toBeTruthy();
+
+    const changedAnnotations = [{
+      targetKey: CASA,
+      type: "contrast",
+      subject: "owner",
+      note: "Changed relationship note.",
+    }];
+    await db.items.update(page.id, { linkAnnotations: changedAnnotations });
+    const changedPage = {
+      ...page,
+      linkedKeys: stableLinkedKeys,
+      linkAnnotations: changedAnnotations,
+    };
+    view.rerender(<Detail {...props} item={changedPage} items={[changedPage]} />);
+
+    expect(await screen.findByText("Changed relationship note.")).toBeTruthy();
+    expect(screen.getByText("Contrast")).toBeTruthy();
+    expect(screen.queryByText("Original relationship note.")).toBeNull();
+  });
 });

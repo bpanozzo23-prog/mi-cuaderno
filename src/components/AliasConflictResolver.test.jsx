@@ -82,6 +82,32 @@ describe("AliasConflictResolver", () => {
     expect(screen.getByRole("heading", { name: "Resolve dictionary connection" })).toBeTruthy();
   });
 
+  it("keeps the owner's draft and reports when the dictionary disappears before Save", async () => {
+    const user = userEvent.setup();
+    const resolveConflict = vi.fn().mockResolvedValue({ resolved: false, reason: "not_installed" });
+    const onResolved = vi.fn();
+    render(
+      <AliasConflictResolver
+        itemId="user:page"
+        conflict={conflict}
+        resolveConflict={resolveConflict}
+        onResolved={onResolved}
+      />
+    );
+
+    const note = screen.getByRole("textbox", { name: "Surviving shared note" });
+    await user.clear(note);
+    await user.type(note, "Keep this draft while I reinstall.");
+    await user.click(screen.getByRole("button", { name: "Resolve connection" }));
+
+    expect((await screen.findByRole("alert")).textContent)
+      .toBe("The dictionary is no longer installed. Reinstall it before resolving this connection.");
+    expect(onResolved).not.toHaveBeenCalled();
+    expect(screen.getByRole("textbox", { name: "Surviving shared note" }).value)
+      .toBe("Keep this draft while I reinstall.");
+    expect(screen.getByRole("heading", { name: "Resolve dictionary connection" })).toBeTruthy();
+  });
+
   it("keeps an edited survivor draft across an equivalent notebook reload", async () => {
     const user = userEvent.setup();
     const props = {

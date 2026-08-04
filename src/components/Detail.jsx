@@ -134,13 +134,14 @@ function StandardDetail({
     return () => {
       alive = false;
     };
-  }, [item.id, item.linkedKeys]);
+  }, [item.id, item.linkedKeys, item.linkAnnotations]);
 
   /**
-   * Grouped for display (requirement 5), and led by what THIS screen is for (requirement 6):
-   * a page leads with the words it is about — every page is then its own vocabulary sheet,
-   * which is what made deferring a "source" page type free. A word leads with the pages it
-   * turns up on. Fixed orders, derived at render, nothing stored and nothing configurable.
+   * Ordinary connections group in the fixed relationship order, with words, pages, Diario
+   * moments and dictionary entries mixed inside each group and Related last. Specialized
+   * surfaces keep their intentional outer structure: Collections separate membership, while
+   * Diario keeps its kind sections and groups by relationship inside them. All grouping is
+   * derived at render; no display group or order is stored.
    */
   const connections = useMemo(
     () => [

@@ -352,10 +352,11 @@ alias conflicts/orphans, and Journal/dictionary specialized surfaces preserve th
 seams; and the complete serial suite, production build, and disposable schema-v3 375×812
 export→wipe→import flow pass without overflow, warnings, or console errors.
 
-**Closeout status, 2026-08-04:** implementation, the complete 497-test serial suite, the production
-build, and deliberate migration/domain/seam failure proofs pass. The in-app browser-control kernel
-still fails before fixture setup with a missing local asset path, so the disposable schema-v3
-375×812 condition above is not yet claimed; no owner browser data was read or changed.
+**Closeout status, 2026-08-04:** implementation, the complete 493-test serial suite, the production
+build, and deliberate migration/domain/seam plus review-follow-up failure proofs pass. The in-app
+browser-control kernel still fails before fixture setup with a missing local asset path, so the
+disposable schema-v3 375×812 condition above is not yet claimed; no owner browser data was read or
+changed.
 
 ~~**Phase 5 — AI assistant.** Implement per §9.~~
 

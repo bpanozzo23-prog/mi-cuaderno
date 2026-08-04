@@ -416,7 +416,7 @@ export default function CollectionPage({
       if (rewritten) onChanged();
     });
     return () => { alive = false; };
-  }, [item.id, item.linkedKeys]);
+  }, [item.id, item.linkedKeys, item.linkAnnotations]);
 
   function enterMode(next) {
     setExpanded(new Set());

@@ -338,7 +338,11 @@ schema-v4 migration and backup plan.
 - Schema v4, relationship mutations, lossless dictionary-alias conflict handling, the shared
   phone-first Connections interface, and the Collection, Diario, and dictionary-detail seams are
   implemented.
-- The complete serial suite passes 497/497 tests across 49 files, the production build passes, and
+- A post-implementation review confirmed that relationship-first mixed grouping is intentional on
+  standard Detail and Collection screens. The unreachable kind-grouping helpers were retired, and
+  legacy self-link editing, disappearing-dictionary conflict resolution, and relationship-only
+  dictionary-row refreshes were hardened with regressions.
+- The complete serial suite passes 493/493 tests across 49 files, the production build passes, and
   the planned deliberate red/green proofs fail before restoration and pass afterward.
 - The disposable schema-v3 375×812 closeout remains unclaimed because Codex's in-app
   browser-control kernel fails before fixture setup with a missing local asset path. No owner data
@@ -687,7 +691,7 @@ backup plan.
 ## Document history
 
 - **2026-08-04 — Phase 4t–4x implemented locally.** Promoted typed and explained relationships from
-  Planned to Implemented locally after the 497-test serial suite, production build, and deliberate
+  Planned to Implemented locally after the 493-test serial suite, production build, and deliberate
   failure proofs passed. The disposable phone-width browser closeout remains pending because the
   browser-control runtime could not initialize; no deployment is claimed.
 

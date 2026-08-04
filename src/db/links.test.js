@@ -147,6 +147,38 @@ describe("links are stored once and read in both directions", () => {
     expect(await db.events.count()).toBe(beforeEvents);
   });
 
+  it("edits a preserved legacy self-link exactly once without changing recency or events", async () => {
+    const word = await createItem(newLexical({ term: "mismo" }));
+
+    // The current API refuses self-links, but schema v4 deliberately preserves any already stored
+    // by an older database. Seed that legacy topology directly so this remains a migration-safety
+    // regression rather than weakening the creation guard.
+    await db.items.update(word.id, {
+      linkedKeys: [word.id],
+      linkAnnotations: [],
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    });
+    const before = await getItem(word.id);
+    const beforeEvents = await db.events.count();
+
+    await setLinkRelationship(word.id, word.id, {
+      type: "contrast",
+      subject: "owner",
+      note: "Legacy self-reference.",
+    });
+
+    const after = await getItem(word.id);
+    expect(after.linkedKeys).toEqual([word.id]);
+    expect(after.linkAnnotations).toEqual([{
+      targetKey: word.id,
+      type: "contrast",
+      subject: "owner",
+      note: "Legacy self-reference.",
+    }]);
+    expect(after.updatedAt).toBe(before.updatedAt);
+    expect(await db.events.count()).toBe(beforeEvents);
+  });
+
   it("normalizes Related with no note by removing the explicit annotation", async () => {
     const word = await createItem(newLexical({ term: "ser" }));
     const other = await createItem(newLexical({ term: "estar" }));

@@ -204,8 +204,16 @@ const annotationsWithRelationship = (item, targetKey, relationship) => {
 
 const storedEdgeCandidates = (aKey, bKey, a, b) => {
   const candidates = [];
-  if ((a?.linkedKeys || []).includes(bKey)) candidates.push({ owner: a, targetKey: bKey });
-  if ((b?.linkedKeys || []).includes(aKey)) candidates.push({ owner: b, targetKey: aKey });
+  const addCandidate = (owner, targetKey) => {
+    if (!(owner?.linkedKeys || []).includes(targetKey)) return;
+    if (candidates.some((candidate) =>
+      candidate.owner.id === owner.id && candidate.targetKey === targetKey
+    )) return;
+    candidates.push({ owner, targetKey });
+  };
+
+  addCandidate(a, bKey);
+  addCandidate(b, aKey);
   return candidates;
 };
 
