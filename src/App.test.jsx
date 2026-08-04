@@ -130,7 +130,7 @@ describe("Phase 5a navigation continuity", () => {
     expect(screen.getByRole("button", { name: "Atrás" })).toBeTruthy();
     expect(await screen.findByText("casa", { selector: ".text-2xl" })).toBeTruthy();
 
-    await user.click(screen.getAllByRole("button", { name: /^madrugar/ })[0]);
+    await user.click((await screen.findAllByRole("button", { name: /^madrugar/ }))[0]);
     expect(screen.getByText("madrugar", { selector: ".text-2xl *" })).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Atrás" }));
@@ -157,7 +157,7 @@ describe("Phase 4p Diario foundation", () => {
     expect(screen.queryByRole("button", { name: /Morning check-in/ })).toBeNull();
 
     await user.click(within(navigation).getByRole("button", { name: "Diario" }));
-    expect(await screen.findByRole("button", { name: /Morning check-in/ })).toBeTruthy();
+    expect(await screen.findByRole("button", { name: "Open Morning check-in" })).toBeTruthy();
     expect(screen.queryByText("1 página")).toBeNull();
   });
 

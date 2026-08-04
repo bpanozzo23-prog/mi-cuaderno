@@ -56,6 +56,7 @@ async function seedCasaDictionary() {
     }),
   ]);
   setActiveSlot("a");
+  return casa;
 }
 
 beforeEach(async () => {
@@ -187,6 +188,68 @@ describe("LinkPicker duplicate guard", () => {
     expect(create.disabled).toBe(false);
     await user.click(create);
     expect(onCreate).toHaveBeenCalledWith("lexical", "casa");
+  });
+
+  it("does not reintroduce a filtered attached lexical item through its dictionary result", async () => {
+    const user = userEvent.setup();
+    const casa = await seedCasaDictionary();
+    const source = page("source", "Collection");
+    const attached = {
+      ...lexical("attached", "mi casa"),
+      dictKey: casa.id,
+    };
+    const onPick = vi.fn();
+
+    render(
+      <LinkPicker
+        {...pickerProps(source, [source, attached], {
+          candidateFilter: (candidate) => candidate.type === "page",
+          allowCreateLexical: false,
+          onPick,
+        })}
+      />
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Link a word, phrase, page or dictionary entry…"),
+      "casa"
+    );
+
+    const dictionaryRow = await screen.findByRole("button", { name: /^casa/ });
+    expect(screen.queryByRole("button", { name: /^mi casa/ })).toBeNull();
+    await user.click(dictionaryRow);
+    expect(onPick).toHaveBeenCalledWith(casa.id);
+  });
+
+  it("marks an unresolved canonical dictionary result connected even when only raw alias keys are stored", async () => {
+    const user = userEvent.setup();
+    const casa = await seedCasaDictionary();
+    const source = page("source", "Collection");
+    const onPick = vi.fn();
+
+    render(
+      <LinkPicker
+        {...pickerProps(source, [source], {
+          linkedKeys: new Set(["dict:wiktionary-es:casa:old-a", "dict:wiktionary-es:casa:old-b"]),
+          unresolvedKeys: new Set([
+            casa.id,
+            "dict:wiktionary-es:casa:old-a",
+            "dict:wiktionary-es:casa:old-b",
+          ]),
+          onPick,
+        })}
+      />
+    );
+
+    await user.type(
+      screen.getByPlaceholderText("Link a word, phrase, page or dictionary entry…"),
+      "casa"
+    );
+
+    const row = await screen.findByRole("button", { name: /casa.*Needs resolution/i });
+    expect(row.disabled).toBe(true);
+    await user.click(row);
+    expect(onPick).not.toHaveBeenCalled();
   });
 
   it("labels a personal phrase as phrase rather than a dictionary part of speech", async () => {

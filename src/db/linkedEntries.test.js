@@ -3,7 +3,7 @@ import { resolveLinkedEntryConflict, resolveLinkedKeys } from "./linkedEntries.j
 import { installDictionary, fetchManifest, removeDictionary } from "./ref/install.js";
 import { buildFixtureDictionary, installFetchStub } from "../test/dictFixture.js";
 import { db } from "./db.js";
-import { createItem, newLexical, newPage, getItem } from "./items.js";
+import { createItem, newLexical, newPage, getItem, linkItems } from "./items.js";
 import { allEvents, EVENT_TYPES } from "./events.js";
 
 /**
@@ -158,6 +158,77 @@ describe("resolving the dictionary entries an item links to", () => {
       targetKey: SACAR,
       ...relationship,
     }]);
+  });
+
+  it("repairs an existing alias instead of adding its canonical key as a second connection", async () => {
+    const oldKey = "dict:wiktionary-es:sacar:verb:1";
+    const otherOldKey = "dict:wiktionary-es:sacar:verb:2";
+    await install({ previousIds: { [oldKey]: SACAR, [otherOldKey]: SACAR } });
+    const originalRelationship = {
+      targetKey: oldKey,
+      type: "found_in",
+      subject: "owner",
+      note: "From an older source.",
+    };
+    const page = newPage({
+      title: "Verbs",
+      linkedKeys: [oldKey],
+      linkAnnotations: [originalRelationship],
+    });
+    page.updatedAt = "2026-04-05T06:07:08.000Z";
+    await createItem(page);
+    const beforeEvents = await db.events.count();
+
+    await linkItems(page.id, SACAR, {
+      type: "contrast",
+      subject: "owner",
+      note: "This new value must not replace the existing connection.",
+    });
+    // A stale caller may still submit a different historical alias. Conceptual identity must
+    // protect this path too, rather than relying on every UI to submit only canonical IDs.
+    await linkItems(page.id, otherOldKey, {
+      type: "variant",
+      subject: "owner",
+      note: "This alias must not become another physical copy.",
+    });
+
+    expect(await getItem(page.id)).toMatchObject({
+      linkedKeys: [SACAR],
+      linkAnnotations: [{
+        ...originalRelationship,
+        targetKey: SACAR,
+      }],
+      updatedAt: "2026-04-05T06:07:08.000Z",
+    });
+    expect(await db.events.count()).toBe(beforeEvents);
+  });
+
+  it("does not add a canonical key over an unresolved conflict between two old aliases", async () => {
+    const oldA = "dict:wiktionary-es:sacar:verb:old-a";
+    const oldB = "dict:wiktionary-es:sacar:verb:old-b";
+    await install({ previousIds: { [oldA]: SACAR, [oldB]: SACAR } });
+    const page = newPage({
+      title: "Verbs",
+      linkedKeys: [oldA, oldB],
+      linkAnnotations: [
+        { targetKey: oldA, type: "contrast", subject: "owner", note: "First description." },
+        { targetKey: oldB, type: "variant", subject: "owner", note: "Second description." },
+      ],
+    });
+    page.updatedAt = "2026-05-06T07:08:09.000Z";
+    await createItem(page);
+    const before = await getItem(page.id);
+    const beforeEvents = await db.events.count();
+
+    await linkItems(page.id, SACAR, {
+      type: "related",
+      subject: "owner",
+      note: "Do not append this.",
+    });
+
+    expect(await getItem(page.id)).toEqual(before);
+    expect((await getItem(page.id)).linkedKeys).not.toContain(SACAR);
+    expect(await db.events.count()).toBe(beforeEvents);
   });
 
   it("keeps conflicting alias annotations untouched and returns one visible entry plus resolver data", async () => {

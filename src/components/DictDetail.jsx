@@ -4,9 +4,11 @@ import { C, SERIF, MONO, dotGrid, SectionTitle, Card, Button } from "../theme.js
 import { POS_LABEL } from "./DictCard.jsx";
 import { ItemLinkCard } from "./LinkCard.jsx";
 import { getEntryWithConjugation, installedMeta, exampleAttribution } from "../db/ref/entries.js";
+import { resolveLinkedKeys } from "../db/linkedEntries.js";
 import { createItem, newLexicalFromEntry, displayTitle } from "../db/items.js";
 import { logView } from "../db/events.js";
-import { relatedToKey, groupRelated, GROUPS } from "../lib/links.js";
+import { groupConnections, normalizeRelationship, relationshipLabel } from "../lib/relationships.js";
+import { connectionsFromResolvedEntryLinks } from "../lib/resolvedConnections.js";
 import { SLOTS, COLLAPSED_SLOTS, SIMPLE_TENSES, PERFECT_TENSES } from "../lib/conjugation.js";
 
 /**
@@ -24,6 +26,50 @@ const TENSE_GROUPS = [
   { title: "Imperative", tenses: ["Imperative Affirmative/Present", "Imperative Negative/Present"] },
 ];
 const PERFECT_GROUP = { title: "Perfect tenses", tenses: Object.keys(PERFECT_TENSES) };
+
+function DictionaryAliasConflictCard({ item, conflict, onOpen }) {
+  return (
+    <Card className="mb-3" style={{ borderColor: "#E5C4BC" }}>
+      <div className="text-sm font-semibold" style={{ color: C.ink }}>
+        Connection needs resolution
+      </div>
+      <div className="mt-1 text-xs" style={{ color: C.mut }}>
+        A dictionary update found different descriptions from {displayTitle(item)}. Both remain
+        stored; resolve them from the personal item.
+      </div>
+      <div className="mt-2 grid min-w-0 gap-2">
+        {conflict.candidates.map((candidate) => {
+          const relationship = normalizeRelationship(candidate.relationship);
+          return (
+            <div
+              key={candidate.rawKey}
+              className="min-w-0 rounded-lg border p-2"
+              style={{ background: C.paper, borderColor: C.line }}
+            >
+              <div className="text-sm font-medium" style={{ color: C.ink }}>
+                {relationshipLabel(relationship, "target")}
+              </div>
+              <div className="mt-0.5 whitespace-pre-wrap break-words text-xs" style={{ color: relationship.note ? C.penDark : C.mut }}>
+                {relationship.note || "No shared note"}
+              </div>
+              <div className="mt-1 break-all text-[10px]" style={{ color: C.mut, fontFamily: MONO }}>
+                {candidate.rawKey}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <Button
+        type="button"
+        tone="quiet"
+        className="mt-3 min-h-11 max-w-full whitespace-normal break-words text-left"
+        onClick={() => onOpen(item.id)}
+      >
+        Open {displayTitle(item)} to resolve
+      </Button>
+    </Card>
+  );
+}
 
 /**
  * Tables are keyed "Mood/Tense", so the tense alone is the useful heading under a mood
@@ -121,6 +167,7 @@ export default function DictDetail({
   const [entry, setEntry] = useState(null);
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [resolvedPersonalLinks, setResolvedPersonalLinks] = useState([]);
 
   useEffect(() => {
     let alive = true;
@@ -145,15 +192,73 @@ export default function DictDetail({
     });
   }, [entryId]);
 
-  // Personal items already attached to this entry, and anything linking to it — the same
-  // derivation the detail screens use, so a link renders identically wherever it appears.
-  const related = useMemo(() => relatedToKey(entryId, items), [items, entryId]);
-
-  // A dictionary entry is a word, so it leads with the pages that word turns up on.
-  const groups = useMemo(
-    () => groupRelated(related, [], [GROUPS.paginas, GROUPS.diario, GROUPS.palabras]),
-    [related]
+  // A reversible dictKey attachment says "this is my copy of this dictionary entry"; it is
+  // deliberately separate from an ordinary connection. Include an old key when the installed
+  // dataset's alias map says it now names this entry.
+  const attachments = useMemo(
+    () => items.filter((item) =>
+      item.dictKey === entryId || meta?.previousIds?.[item.dictKey] === entryId
+    ),
+    [entryId, items, meta]
   );
+  const attachedIds = useMemo(
+    () => new Set(attachments.map((item) => item.id)),
+    [attachments]
+  );
+
+  const subjectKeys = useMemo(
+    () => [
+      entryId,
+      ...Object.entries(meta?.previousIds || {})
+        .filter(([, canonicalKey]) => canonicalKey === entryId)
+        .map(([oldKey]) => oldKey),
+    ],
+    [entryId, meta]
+  );
+
+  // Run every relevant personal row through the same alias seam as its editable detail screen.
+  // Safe aliases rewrite key + annotation atomically; conflicts return read-only candidate data
+  // and do not mutate either raw edge.
+  useEffect(() => {
+    let alive = true;
+    const relevantKeys = new Set(subjectKeys);
+    const relevantItems = items.filter((item) =>
+      (item.linkedKeys || []).some((key) => relevantKeys.has(key))
+    );
+    if (!meta || !relevantItems.length) {
+      setResolvedPersonalLinks([]);
+      return () => { alive = false; };
+    }
+
+    Promise.all(relevantItems.map(async (item) => ({
+      item,
+      result: await resolveLinkedKeys(item),
+    }))).then((rows) => {
+      if (!alive) return;
+      const scoped = rows.map(({ item, result }) => ({
+        item,
+        entryLinks: result.entryLinks.filter((link) => link.canonicalKey === entryId),
+        conflicts: result.conflicts.filter((conflict) => conflict.canonicalKey === entryId),
+      })).filter((row) => row.entryLinks.length || row.conflicts.length);
+      setResolvedPersonalLinks(scoped);
+      if (rows.some(({ result }) => result.rewritten)) onChanged?.();
+    });
+    return () => { alive = false; };
+  }, [entryId, items, meta, subjectKeys]);
+
+  const connections = useMemo(
+    () => resolvedPersonalLinks.flatMap(({ item, entryLinks }) =>
+      connectionsFromResolvedEntryLinks(item, entryLinks, { perspective: "target" })
+    ),
+    [resolvedPersonalLinks]
+  );
+  const aliasConflicts = useMemo(
+    () => resolvedPersonalLinks.flatMap(({ item, conflicts }) =>
+      conflicts.map((conflict) => ({ item, conflict }))
+    ),
+    [resolvedPersonalLinks]
+  );
+  const groups = useMemo(() => groupConnections(connections), [connections]);
 
   async function addToCuaderno() {
     const created = await createItem(newLexicalFromEntry(entry));
@@ -213,10 +318,10 @@ export default function DictDetail({
         </div>
 
         <div className="mt-3">
-          {related.length > 0 ? (
+          {attachments.length > 0 ? (
             <div className="text-xs" style={{ color: C.mut }}>
               In your cuaderno as{" "}
-              {related.map((r, i) => (
+              {attachments.map((r, i) => (
                 <span key={r.id}>
                   {i > 0 && ", "}
                   <button onClick={() => onOpen(r.id)} className="underline underline-offset-2" style={{ color: C.pen }}>
@@ -313,23 +418,32 @@ export default function DictDetail({
         </>
       )}
 
-      {groups.length > 0 && (
+      {(groups.length > 0 || aliasConflicts.length > 0) && (
         <>
-          <SectionTitle>Linked</SectionTitle>
+          <SectionTitle>Connections</SectionTitle>
+          {aliasConflicts.map(({ item, conflict }) => (
+            <DictionaryAliasConflictCard
+              key={`${item.id}:${conflict.canonicalKey}`}
+              item={item}
+              conflict={conflict}
+              onOpen={onOpen}
+            />
+          ))}
           {groups.map((group) => (
-            <div key={group.name} className="mb-3">
+            <div key={group.key} className="mb-3">
               <div
                 className="text-[11px] uppercase mb-1.5"
                 style={{ fontFamily: MONO, color: C.mut, letterSpacing: "0.08em" }}
               >
-                {group.name}
+                {group.label}
               </div>
               <div className="space-y-1.5">
-                {group.rows.map((row) => (
+                {group.rows.map((connection) => (
                   <ItemLinkCard
-                    key={row.key}
-                    item={row.item}
-                    attached={row.item.dictKey === entryId}
+                    key={connection.key}
+                    item={connection.item}
+                    attached={attachedIds.has(connection.item.id)}
+                    connection={connection}
                     onOpen={onOpen}
                   />
                 ))}

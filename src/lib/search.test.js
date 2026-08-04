@@ -138,7 +138,21 @@ describe("meaning-level context", () => {
   });
 });
 
-describe("empty queries", () => {
+describe("search exclusions and empty queries", () => {
+  it("does not index shared connection notes", () => {
+    const source = lexical({
+      term: "ser",
+      linkAnnotations: [{
+        targetKey: "user:target",
+        type: "often_confused",
+        subject: "owner",
+        note: "relationship-only-secret-phrase",
+      }],
+    });
+
+    expect(searchItems([source], "relationship-only-secret-phrase")).toEqual([]);
+  });
+
   it.each(["", "   ", null, undefined])("returns nothing for %s", (query) => {
     expect(searchItems(notebook, query)).toEqual([]);
   });

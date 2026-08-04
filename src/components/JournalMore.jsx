@@ -4,29 +4,37 @@ import {
   Clock,
   ExternalLink,
   Eye,
-  FileText,
   Highlighter,
   Plus,
   Trash2,
   X,
 } from "lucide-react";
 import { Button, C, Card, MONO, SectionTitle, SERIF } from "../theme.jsx";
-import { deleteItem, linkItems, unlinkItems, updateItem } from "../db/items.js";
+import {
+  deleteItem,
+  linkItems,
+  setLinkRelationship,
+  unlinkItems,
+  updateItem,
+} from "../db/items.js";
 import { toggleTricky } from "../db/events.js";
 import { allTagsIn } from "../lib/tags.js";
 import { timeAgo } from "../lib/dates.js";
+import { groupConnections } from "../lib/relationships.js";
 import TagInput from "./TagInput.jsx";
 import JournalLinkPicker from "./JournalLinkPicker.jsx";
-import { EntryLinkCard, OrphanLinkCard } from "./LinkCard.jsx";
+import { EntryLinkCard, ItemLinkCard, OrphanLinkCard } from "./LinkCard.jsx";
+import AliasConflictResolver from "./AliasConflictResolver.jsx";
 
 export default function JournalMore({
   entry,
   state,
   items,
-  pageRelations,
+  pageConnections = [],
   linkedIds,
-  dictionaryEntries,
-  orphanKeys,
+  connections = [],
+  dictionaryConnections = [],
+  aliasConflicts = [],
   onOpen,
   onChanged,
   onBack,
@@ -40,6 +48,11 @@ export default function JournalMore({
   const [moveArmed, setMoveArmed] = useState(false);
   const [deleteArmed, setDeleteArmed] = useState(false);
   const allTags = useMemo(() => allTagsIn(items), [items]);
+  const pageGroups = useMemo(() => groupConnections(pageConnections), [pageConnections]);
+  const dictionaryGroups = useMemo(
+    () => groupConnections(dictionaryConnections),
+    [dictionaryConnections]
+  );
 
   async function patch(fields, options) {
     await updateItem(entry.id, fields, options);
@@ -49,6 +62,11 @@ export default function JournalMore({
   async function removeLink(key) {
     await unlinkItems(entry.id, key);
     onChanged();
+  }
+
+  async function saveRelationship(key, relationship) {
+    await setLinkRelationship(entry.id, key, relationship);
+    await onChanged();
   }
 
   function closeMedia() {
@@ -137,16 +155,23 @@ export default function JournalMore({
 
       <SectionTitle>Page relations</SectionTitle>
       <div className="space-y-2">
-        {pageRelations.map((page) => (
-          <div key={page.id} className="rounded-xl border px-3 py-2 flex items-center gap-2" style={{ background: C.card, borderColor: C.line }}>
-            <FileText size={14} className="shrink-0" style={{ color: C.mut }} />
-            <button type="button" onClick={() => onOpen(page.id)} className="min-w-0 flex-1 text-left">
-              <div className="truncate text-sm font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>{page.title || "Untitled page"}</div>
-              {page.body && <div className="truncate text-xs" style={{ color: C.mut }}>{page.body.replace(/\s+/g, " ")}</div>}
-            </button>
-            <button type="button" onClick={() => removeLink(page.id)} aria-label={`Unlink ${page.title || "page"}`} className="p-1">
-              <X size={13} style={{ color: C.mut }} />
-            </button>
+        {pageGroups.map((group) => (
+          <div key={group.key} className="mb-3">
+            <div className="mb-1.5 text-[11px] uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.08em" }}>
+              {group.label}
+            </div>
+            <div className="space-y-2">
+              {group.rows.map((connection) => (
+                <ItemLinkCard
+                  key={connection.key}
+                  item={connection.item}
+                  connection={connection}
+                  onOpen={onOpen}
+                  onSaveRelationship={(relationship) => saveRelationship(connection.key, relationship)}
+                  onRemove={() => removeLink(connection.key)}
+                />
+              ))}
+            </div>
           </div>
         ))}
         {!pickingPage && (
@@ -160,31 +185,55 @@ export default function JournalMore({
             item={entry}
             items={items}
             linkedIds={linkedIds}
+            connections={connections}
             onClose={() => setPickingPage(false)}
-            onPick={async (key) => {
-              await linkItems(entry.id, key);
+            onPick={async (key, relationship) => {
+              await linkItems(entry.id, key, relationship);
               onChanged();
             }}
           />
         )}
       </div>
 
-      {(dictionaryEntries.length > 0 || orphanKeys.length > 0) && (
+      {(dictionaryConnections.length > 0 || aliasConflicts.length > 0) && (
         <>
           <SectionTitle>Dictionary links</SectionTitle>
-          <div className="space-y-2">
-            {dictionaryEntries.map((dictionaryEntry) => (
-              <EntryLinkCard
-                key={dictionaryEntry.id}
-                entry={dictionaryEntry}
-                onOpen={onOpen}
-                onRemove={() => removeLink(dictionaryEntry.id)}
+          {aliasConflicts.map((conflict) => (
+            <div key={conflict.canonicalKey} className="mb-3">
+              <AliasConflictResolver
+                itemId={entry.id}
+                conflict={conflict}
+                onResolved={() => onChanged()}
               />
-            ))}
-            {orphanKeys.map((key) => (
-              <OrphanLinkCard key={key} dictKey={key} onRemove={() => removeLink(key)} />
-            ))}
-          </div>
+            </div>
+          ))}
+          {dictionaryGroups.map((group) => (
+            <div key={group.key} className="mb-3">
+              <div className="mb-1.5 text-[11px] uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.08em" }}>
+                {group.label}
+              </div>
+              <div className="space-y-2">
+                {group.rows.map((connection) => connection.kind === "entry" ? (
+                  <EntryLinkCard
+                    key={connection.key}
+                    entry={connection.entry}
+                    connection={connection}
+                    onOpen={onOpen}
+                    onSaveRelationship={(relationship) => saveRelationship(connection.key, relationship)}
+                    onRemove={() => removeLink(connection.key)}
+                  />
+                ) : (
+                  <OrphanLinkCard
+                    key={connection.key}
+                    dictKey={connection.key}
+                    connection={connection}
+                    onSaveRelationship={(relationship) => saveRelationship(connection.key, relationship)}
+                    onRemove={() => removeLink(connection.key)}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
         </>
       )}
 

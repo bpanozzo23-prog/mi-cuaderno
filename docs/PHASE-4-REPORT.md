@@ -545,3 +545,54 @@ This deployment changes no schema or personal data. The production interaction c
 the deployment record and live response because the browser-control kernel remained unavailable;
 the earlier disposable 375×812 local closeout and the full-App tab-exit regression remain the
 user-flow evidence for this release.
+
+## Phase 4t–4x — typed and explained link relationships
+
+Phase 4t–4x adds one fixed relationship type and one optional shared note to every ordinary
+connection through schema v4. Mandatory sparse `linkAnnotations[]` describe existing edges while
+`linkedKeys[]` remains authoritative for connection existence and Collection membership. Existing
+unannotated edges therefore derive as Related without dense backfill, and the v3→v4 migration adds
+only an empty annotation array to every item.
+
+The relationship domain centralizes the seven-type order, directional inverse labels, perspective
+conversion, sparse normalization and mixed-target grouping. Owners can create or edit a connection
+from either personal endpoint without creating reciprocal storage; metadata-only edits change
+neither timestamps nor activity. Explicit unlink and item deletion clean all physical legacy copies
+and their annotations. Collection promotion carries relationship metadata with the edge and flips
+directional subjects when physical ownership reverses.
+
+Dictionary alias rewrites now carry annotations when unambiguous. Conflicting explicit alias and
+canonical values remain lossless and exportable until the owner chooses or edits the survivor;
+installed orphans retain their type and note. Dictionary attachment remains separate from an
+ordinary typed dictionary connection.
+
+The shared phone-first UI calls ordinary links Connections, offers the relationship selector during
+linking, groups mixed personal and dictionary targets by relationship, and provides bounded notes
+plus inline editing and removal from personal cards. Collection membership, Diario's established
+sections, and dictionary attachments remain separate; their ordinary connections gain the same
+grouping while dictionary detail stays read-only.
+
+A final independent integration review hardened the seams before closeout. Resolver-provided
+metadata now survives the render between an alias rewrite and the parent's refreshed item props;
+the mutation API blocks canonical or alternate-alias duplicates even over an unresolved conflict;
+dictionary detail shows both conflicting values without editing either; Collection removal cleans
+reciprocal legacy copies; and Diario retains its body-first moment headings and human-readable
+dates while acknowledging dictionary connections that still need resolution.
+
+### Phase 4t–4x verification
+
+- `npm.cmd test -- --no-file-parallelism` passes **497/497 tests across 49 files**.
+- `npm.cmd run build` passes with a 13-entry PWA precache (about 579 KiB).
+- Deliberate red/green proofs covered an inverse-label break, a missing mandatory v4 annotation
+  array, reciprocal creation during reverse editing, a missing Collection subject flip, an alias
+  rewrite that stranded its annotation, rejection of an unresolved alias conflict during backup
+  round-trip, stale annotation cleanup in `deleteItem`, and quick-create navigation. Each targeted
+  test failed with the defect and passed after restoration.
+- A disposable schema-v3 fixture at **375×812** was attempted, but Codex's in-app browser-control
+  kernel failed before fixture setup with `failed to write kernel assets: The system cannot find the
+  path specified`. No phone-layout, console, or export→wipe→import browser result is claimed for this
+  phase. The failure did not touch the owner's real browser data.
+- No push or deployment was performed.
+
+The implementation and automated/build acceptance are complete. The brief's disposable browser
+condition remains open until the browser-control runtime can initialize.

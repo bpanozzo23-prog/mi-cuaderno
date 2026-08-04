@@ -69,6 +69,43 @@ async function collectionFixture() {
 }
 
 describe("Collection reading and practice", () => {
+  it("keeps incoming lexical connections manageable but routes new vocabulary through Add vocabulary", async () => {
+    const user = userEvent.setup();
+    const page = await createItem(newPage({
+      title: "Sources",
+      pageProfile: "collection",
+      collection: { groups: [] },
+    }));
+    const incoming = await createItem(newLexical({
+      term: "legacy word",
+      linkedKeys: [page.id],
+      linkAnnotations: [{
+        targetKey: page.id,
+        type: "contrast",
+        subject: "owner",
+        note: "An older incoming connection",
+      }],
+    }));
+    await createItem(newLexical({ term: "outside word" }));
+
+    renderDetail(page, await allItems());
+
+    expect(screen.getByText("Connections")).toBeTruthy();
+    expect(screen.getByText("Contrast")).toBeTruthy();
+    expect(screen.getByText("An older incoming connection")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Edit connection to legacy word" })).toBeTruthy();
+
+    await user.click(screen.getByText("link something related"));
+    await user.type(
+      screen.getByPlaceholderText(/Link a word, phrase, page or dictionary entry/),
+      "outside word"
+    );
+    expect(screen.queryByRole("button", { name: /^outside word/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Create word .*outside word/i })).toBeNull();
+    expect(screen.getByText(/Use Add vocabulary/)).toBeTruthy();
+    expect((await getItem(incoming.id)).linkedKeys).toEqual([page.id]);
+  });
+
   it("leads with grouped vocabulary, keeps empty groups useful, expands several cards, and separates Related", async () => {
     const user = userEvent.setup();
     const fixture = await collectionFixture();

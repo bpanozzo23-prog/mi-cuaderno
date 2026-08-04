@@ -27,7 +27,22 @@ export default function AliasConflictResolver({
   const [draft, setDraft] = useState(() => initialChoice(conflict));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const conflictContentKey = JSON.stringify({
+    canonicalKey: conflict?.canonicalKey || "",
+    candidates: (conflict?.candidates || []).map((candidate) => {
+      const relationship = normalizeRelationship(candidate.relationship);
+      return [
+        candidate.rawKey,
+        Boolean(candidate.explicit),
+        relationship.type,
+        relationship.subject,
+        relationship.note,
+      ];
+    }),
+  });
 
+  // Notebook reloads recreate plain conflict objects even when their stored content is unchanged.
+  // Key this reset to that content so a view/event refresh cannot erase an in-progress owner draft.
   useEffect(() => {
     const first = conflict?.candidates?.find((candidate) => candidate.explicit)
       || conflict?.candidates?.[0];
@@ -35,7 +50,7 @@ export default function AliasConflictResolver({
     setDraft(normalizeRelationship(first?.relationship || {}));
     setSaving(false);
     setError("");
-  }, [conflict]);
+  }, [conflictContentKey]);
 
   if (!conflict) return null;
 

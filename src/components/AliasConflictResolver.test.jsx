@@ -81,4 +81,33 @@ describe("AliasConflictResolver", () => {
     expect((await screen.findByRole("alert")).textContent).toBe("The connection changed.");
     expect(screen.getByRole("heading", { name: "Resolve dictionary connection" })).toBeTruthy();
   });
+
+  it("keeps an edited survivor draft across an equivalent notebook reload", async () => {
+    const user = userEvent.setup();
+    const props = {
+      itemId: "user:page",
+      conflict,
+      resolveConflict: vi.fn(),
+    };
+    const view = render(<AliasConflictResolver {...props} />);
+
+    await user.click(screen.getByRole("radio", { name: `Use Explains from ${CANONICAL_KEY}` }));
+    await user.selectOptions(screen.getByRole("combobox", { name: "Relationship" }), "contrast:owner");
+    const note = screen.getByRole("textbox", { name: "Surviving shared note" });
+    await user.clear(note);
+    await user.type(note, "Unsaved owner choice");
+
+    // allItems() returns newly materialized objects after an event or unrelated save. The values
+    // are unchanged, so this must not be treated as a new conflict and reset the form.
+    view.rerender(
+      <AliasConflictResolver
+        {...props}
+        conflict={JSON.parse(JSON.stringify(conflict))}
+      />
+    );
+
+    expect(screen.getByRole("combobox", { name: "Relationship" }).value).toBe("contrast:owner");
+    expect(screen.getByRole("textbox", { name: "Surviving shared note" }).value)
+      .toBe("Unsaved owner choice");
+  });
 });

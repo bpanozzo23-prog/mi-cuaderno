@@ -6,12 +6,20 @@ import {
 import { C, SERIF, MONO, dotGrid, Card, SectionTitle, Button } from "../theme.jsx";
 import { allTagsIn } from "../lib/tags.js";
 import { deriveCollection, NOT_GROUPED_LABEL } from "../lib/collections.js";
-import { groupRelated, GROUPS, relatedTo } from "../lib/links.js";
+import {
+  connectionsFor,
+  groupConnections,
+  relationshipForTarget,
+  relationshipLabel,
+} from "../lib/relationships.js";
+import { connectionsFromResolvedEntryLinks } from "../lib/resolvedConnections.js";
 import { resolveLinkedKeys } from "../db/linkedEntries.js";
 import {
   commitCollectionAdd, saveCollectionOrganization, setPageProfile,
 } from "../db/collections.js";
-import { updateItem, deleteItem, linkItems, unlinkItems, createItem, newPage } from "../db/items.js";
+import {
+  updateItem, deleteItem, linkItems, unlinkItems, setLinkRelationship, createItem, newPage,
+} from "../db/items.js";
 import { logView } from "../db/events.js";
 import { PAGE_PROFILES } from "../lib/pageProfiles.js";
 import { ItemLinkCard, EntryLinkCard, OrphanLinkCard } from "./LinkCard.jsx";
@@ -19,6 +27,7 @@ import CollectionVocabularyCard from "./CollectionVocabularyCard.jsx";
 import CollectionAddVocabularySheet from "./CollectionAddVocabularySheet.jsx";
 import CollectionOrganizer from "./CollectionOrganizer.jsx";
 import LinkPicker from "./LinkPicker.jsx";
+import AliasConflictResolver from "./AliasConflictResolver.jsx";
 import TagInput from "./TagInput.jsx";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
@@ -193,18 +202,60 @@ function CollectionDetailsEditor({ item, items, onCancel, onSaved }) {
   );
 }
 
-function RelatedSection({ item, items, relatedItems, linkedEntries, orphanKeys, onOpen, onChanged }) {
+function ConnectionsSection({
+  item,
+  items,
+  relatedItems,
+  linkedEntryLinks,
+  orphanKeys,
+  linkConflicts,
+  onOpen,
+  onChanged,
+}) {
   const [picking, setPicking] = useState(false);
+  const relatedItemIds = useMemo(
+    () => new Set(relatedItems.map((candidate) => candidate.id)),
+    [relatedItems]
+  );
   const relatedKeys = useMemo(
-    () => new Set([...relatedTo(item, items).map((candidate) => candidate.id), ...(item.linkedKeys || [])]),
-    [item, items]
+    () => new Set([
+      ...connectionsFor(item, items).map((connection) => connection.key),
+      ...(item.linkedKeys || []),
+      ...linkedEntryLinks.map((link) => link.canonicalKey),
+    ]),
+    [item, items, linkedEntryLinks]
+  );
+  const unresolvedKeys = useMemo(
+    () => new Set(linkConflicts.flatMap((conflict) => [
+      conflict.canonicalKey,
+      ...(conflict.rawKeys || []),
+    ])),
+    [linkConflicts]
+  );
+  const connections = useMemo(
+    () => [
+      ...connectionsFor(item, items),
+      ...connectionsFromResolvedEntryLinks(item, linkedEntryLinks),
+    ].filter((connection) => connection.kind !== "item" || relatedItemIds.has(connection.key)),
+    [item, items, linkedEntryLinks, relatedItemIds]
+  );
+  const orphanConnections = useMemo(
+    () => orphanKeys.map((key) => {
+      const relationship = relationshipForTarget(item, key);
+      return {
+        kind: "orphan",
+        key,
+        relationship,
+        ...relationship,
+        label: relationshipLabel(relationship),
+      };
+    }),
+    [item, orphanKeys]
   );
   const groups = useMemo(
-    () => groupRelated(relatedItems, linkedEntries, [GROUPS.paginas, GROUPS.diario, GROUPS.palabras]),
-    [relatedItems, linkedEntries]
+    () => groupConnections([...connections, ...orphanConnections]),
+    [connections, orphanConnections]
   );
-  const hasRelated = groups.length > 0 || orphanKeys.length > 0;
-
   async function unlink(key) {
     await unlinkItems(item.id, key);
     await onChanged();
@@ -212,57 +263,98 @@ function RelatedSection({ item, items, relatedItems, linkedEntries, orphanKeys, 
 
   return (
     <>
-      {hasRelated && <SectionTitle>Related</SectionTitle>}
+      <SectionTitle>Connections</SectionTitle>
+      {groups.length === 0 && linkConflicts.length === 0 && !picking && (
+        <div className="mb-2 text-xs" style={{ color: C.mut }}>
+          No ordinary connections yet. Collection vocabulary stays in the groups above.
+        </div>
+      )}
+      {linkConflicts.length > 0 && (
+        <div className="mb-3 space-y-2">
+          {linkConflicts.map((conflict) => (
+            <AliasConflictResolver
+              key={conflict.canonicalKey}
+              itemId={item.id}
+              conflict={conflict}
+              onResolved={onChanged}
+            />
+          ))}
+        </div>
+      )}
       {groups.map((group) => (
         <div key={group.name} className="mb-3">
           <div className="mb-1.5 text-[11px] uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.08em" }}>{group.name}</div>
           <div className="space-y-1.5">
             {group.rows.map((row) => row.kind === "entry" ? (
-              <EntryLinkCard key={row.key} entry={row.entry} onOpen={onOpen} onRemove={() => unlink(row.key)} />
+              <EntryLinkCard
+                key={row.key}
+                entry={row.entry}
+                connection={row}
+                onOpen={onOpen}
+                onSaveRelationship={async (relationship) => {
+                  await setLinkRelationship(item.id, row.key, relationship);
+                  await onChanged();
+                }}
+                onRemove={() => unlink(row.key)}
+              />
+            ) : row.kind === "orphan" ? (
+              <OrphanLinkCard
+                key={row.key}
+                dictKey={row.key}
+                connection={row}
+                onSaveRelationship={async (relationship) => {
+                  await setLinkRelationship(item.id, row.key, relationship);
+                  await onChanged();
+                }}
+                onRemove={() => unlink(row.key)}
+              />
             ) : (
-              <ItemLinkCard key={row.key} item={row.item} attached={Boolean(row.item.dictKey)} onOpen={onOpen} onRemove={() => unlink(row.key)} />
+              <ItemLinkCard
+                key={row.key}
+                item={row.item}
+                attached={Boolean(row.item.dictKey)}
+                connection={row}
+                onOpen={onOpen}
+                onSaveRelationship={async (relationship) => {
+                  await setLinkRelationship(item.id, row.key, relationship);
+                  await onChanged();
+                }}
+                onRemove={() => unlink(row.key)}
+              />
             ))}
           </div>
         </div>
       ))}
-      {orphanKeys.length > 0 && (
-        <div className="mb-3 space-y-1.5">
-          {orphanKeys.map((key) => <OrphanLinkCard key={key} dictKey={key} onRemove={() => unlink(key)} />)}
-        </div>
-      )}
       {!picking && (
         <button type="button" onClick={() => setPicking(true)} className="inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs" style={{ background: C.card, borderColor: C.line, color: C.mut }}>
           <Plus size={11} /> link something related
         </button>
       )}
       {picking && (
-        <LinkPicker
-          item={item}
-          items={items}
-          linkedKeys={relatedKeys}
-          onCancel={() => setPicking(false)}
-          onPick={async (key) => {
-            const personal = items.find((candidate) => candidate.id === key);
-            if (personal?.type === "lexical") {
-              await commitCollectionAdd(item.id, { targetGroupId: null, candidates: [{ kind: "personal", itemId: key }] });
-            } else {
-              await linkItems(item.id, key);
-            }
-            await onChanged();
-          }}
-          onCreate={async (kind, text) => {
-            if (kind === "lexical") {
-              await commitCollectionAdd(item.id, {
-                targetGroupId: null,
-                candidates: [{ kind: "new", term: text, form: text.includes(" ") ? "phrase" : "word", meanings: [] }],
-              });
-            } else {
+        <>
+          <LinkPicker
+            item={item}
+            items={items}
+            linkedKeys={relatedKeys}
+            connections={connections}
+            unresolvedKeys={unresolvedKeys}
+            candidateFilter={(candidate) => candidate.type === "page"}
+            allowCreateLexical={false}
+            onCancel={() => setPicking(false)}
+            onPick={async (key, relationship) => {
+              await linkItems(item.id, key, relationship);
+              await onChanged();
+            }}
+            onCreate={async (_kind, text, relationship) => {
               const created = await createItem(newPage({ title: text }));
-              await linkItems(item.id, created.id);
-            }
-            await onChanged();
-          }}
-        />
+              await linkItems(item.id, created.id, relationship);
+              await onChanged();
+            }}
+          />
+          <div className="mt-2 text-[11px]" style={{ color: C.mut }}>
+            Use Add vocabulary to put personal words and phrases in this Collection.
+          </div>
+        </>
       )}
     </>
   );
@@ -286,8 +378,9 @@ export default function CollectionPage({
   const [editingDetails, setEditingDetails] = useState(false);
   const [startWithNewGroup, setStartWithNewGroup] = useState(false);
   const [deleteArm, setDeleteArm] = useState(false);
-  const [linkedEntries, setLinkedEntries] = useState([]);
+  const [linkedEntryLinks, setLinkedEntryLinks] = useState([]);
   const [orphanKeys, setOrphanKeys] = useState([]);
+  const [linkConflicts, setLinkConflicts] = useState([]);
 
   const collection = useMemo(() => deriveCollection(item, items), [item, items]);
   const itemById = useMemo(() => new Map(items.map((candidate) => [candidate.id, candidate])), [items]);
@@ -315,10 +408,11 @@ export default function CollectionPage({
 
   useEffect(() => {
     let alive = true;
-    resolveLinkedKeys(item).then(({ entries, orphans, rewritten }) => {
+    resolveLinkedKeys(item).then(({ entryLinks, orphans, conflicts, rewritten }) => {
       if (!alive) return;
-      setLinkedEntries(entries);
+      setLinkedEntryLinks(entryLinks);
       setOrphanKeys(orphans);
+      setLinkConflicts(conflicts || []);
       if (rewritten) onChanged();
     });
     return () => { alive = false; };
@@ -586,12 +680,13 @@ export default function CollectionPage({
             enterMode("organize");
           }}><Plus size={14} /> Add group</Button>
 
-          <RelatedSection
+          <ConnectionsSection
             item={item}
             items={items}
             relatedItems={collection.relatedItems}
-            linkedEntries={linkedEntries}
+            linkedEntryLinks={linkedEntryLinks}
             orphanKeys={orphanKeys}
+            linkConflicts={linkConflicts}
             onOpen={onOpen}
             onChanged={onChanged}
           />

@@ -284,6 +284,48 @@ describe("saveCollectionOrganization", () => {
     expect(afterEdits - beforeEdits).toBe(1);
   });
 
+  it("removes a reciprocal legacy copy and both annotations with an organized member", async () => {
+    const lexical = await createItem(newLexical({ term: "legacy member" }));
+    const page = await createItem(collectionPage({
+      linkedKeys: [lexical.id],
+      linkAnnotations: [{
+        targetKey: lexical.id,
+        type: "contrast",
+        subject: "owner",
+        note: "Page copy.",
+      }],
+      collection: { groups: [{ id: QUESTIONS, name: "Questions", itemKeys: [lexical.id] }] },
+    }));
+    await db.items.update(lexical.id, {
+      linkedKeys: [page.id, page.id],
+      linkAnnotations: [{
+        targetKey: page.id,
+        type: "variant",
+        subject: "owner",
+        note: "Legacy reverse copy.",
+      }],
+    });
+    const beforeEdits = (await allEvents()).filter((event) => event.type === EVENT_TYPES.edit).length;
+
+    await saveCollectionOrganization(page.id, {
+      groups: [],
+      ungroupedItemKeys: [],
+      removedItemKeys: [lexical.id],
+    });
+
+    expect((await getItem(page.id))).toMatchObject({
+      linkedKeys: [],
+      linkAnnotations: [],
+      collection: { groups: [] },
+    });
+    expect((await getItem(lexical.id))).toMatchObject({
+      linkedKeys: [],
+      linkAnnotations: [],
+    });
+    const afterEdits = (await allEvents()).filter((event) => event.type === EVENT_TYPES.edit).length;
+    expect(afterEdits - beforeEdits).toBe(1);
+  });
+
   it("does no write and logs no event for an unchanged draft", async () => {
     const { page, a, b, c, relatedPage } = await organizedScenario();
     // Grouped layout order is independent of linkedKeys. This is still a no-op draft: c is
@@ -360,6 +402,43 @@ describe("removeCollectionMember", () => {
     await removeCollectionMember(page.id, lexical.id);
 
     expect((await getItem(page.id)).linkAnnotations).toEqual([]);
+  });
+
+  it("atomically removes a reciprocal legacy copy and its annotation", async () => {
+    const lexical = await createItem(newLexical({ term: "hola" }));
+    const page = await createItem(collectionPage({
+      linkedKeys: [lexical.id],
+      linkAnnotations: [{
+        targetKey: lexical.id,
+        type: "found_in",
+        subject: "target",
+        note: "Page copy.",
+      }],
+      collection: { groups: [{ id: QUESTIONS, name: "Questions", itemKeys: [lexical.id] }] },
+    }));
+    await db.items.update(lexical.id, {
+      linkedKeys: [page.id, page.id],
+      linkAnnotations: [{
+        targetKey: page.id,
+        type: "found_in",
+        subject: "owner",
+        note: "Reverse copy.",
+      }],
+    });
+    const beforeEvents = await db.events.count();
+
+    await removeCollectionMember(page.id, lexical.id);
+
+    expect((await getItem(page.id))).toMatchObject({
+      linkedKeys: [],
+      linkAnnotations: [],
+      collection: { groups: [{ id: QUESTIONS, name: "Questions", itemKeys: [] }] },
+    });
+    expect((await getItem(lexical.id))).toMatchObject({
+      linkedKeys: [],
+      linkAnnotations: [],
+    });
+    expect(await db.events.count()).toBe(beforeEvents);
   });
 });
 

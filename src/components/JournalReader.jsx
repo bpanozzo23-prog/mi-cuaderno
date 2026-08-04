@@ -1,21 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, MoreHorizontal, Pencil, Plus, RotateCcw, X } from "lucide-react";
+import { ChevronLeft, MoreHorizontal, Pencil, Plus, RotateCcw } from "lucide-react";
 import { C, MONO, SERIF, dotGrid } from "../theme.jsx";
-import { linkItems, unlinkItems } from "../db/items.js";
+import { linkItems, setLinkRelationship, unlinkItems } from "../db/items.js";
 import { logView } from "../db/events.js";
 import { resolveLinkedKeys } from "../db/linkedEntries.js";
 import { localDate } from "../lib/dates.js";
 import { isJournalEntry, sortJournalEntries } from "../lib/journal.js";
-import { relatedTo } from "../lib/links.js";
+import {
+  connectionsFor,
+  groupConnections,
+  relationshipForTarget,
+  relationshipLabel,
+} from "../lib/relationships.js";
+import { connectionsFromResolvedEntryLinks } from "../lib/resolvedConnections.js";
 import { emptyItemState } from "../useNotebook.js";
 import { EntryLinkCard, ItemLinkCard } from "./LinkCard.jsx";
 import JournalLinkPicker from "./JournalLinkPicker.jsx";
 import JournalMore from "./JournalMore.jsx";
 import { journalDateLabel } from "./JournalHome.jsx";
 
-function momentHeading(entry) {
-  if (entry.title?.trim()) return entry.title.trim();
-  return entry.body?.split(/\r?\n/).find((line) => line.trim())?.trim().slice(0, 64) || "Untitled moment";
+function momentHeading(moment) {
+  if (moment.title?.trim()) return moment.title.trim();
+  return moment.body?.split(/\r?\n/).find((line) => line.trim())?.trim().slice(0, 64)
+    || "Untitled moment";
 }
 
 export default function JournalReader({
@@ -32,26 +39,79 @@ export default function JournalReader({
 }) {
   const [pickingVocabulary, setPickingVocabulary] = useState(false);
   const [showMore, setShowMore] = useState(false);
-  const [dictionaryEntries, setDictionaryEntries] = useState([]);
+  const [dictionaryEntryLinks, setDictionaryEntryLinks] = useState([]);
   const [orphanKeys, setOrphanKeys] = useState([]);
-  const related = useMemo(() => relatedTo(entry, items), [entry, items]);
-  const vocabulary = useMemo(() => related.filter((item) => item.type === "lexical"), [related]);
-  const relatedMoments = useMemo(() => sortJournalEntries(related), [related]);
-  const pageRelations = useMemo(
-    () => related.filter((item) => item.type === "page" && !isJournalEntry(item)),
-    [related]
+  const [aliasConflicts, setAliasConflicts] = useState([]);
+  const connections = useMemo(
+    () => [
+      ...connectionsFor(entry, items),
+      ...connectionsFromResolvedEntryLinks(entry, dictionaryEntryLinks),
+    ],
+    [entry, items, dictionaryEntryLinks]
+  );
+  const orphanConnections = useMemo(
+    () => orphanKeys.map((key) => {
+      const relationship = relationshipForTarget(entry, key);
+      return {
+        kind: "orphan",
+        key,
+        relationship,
+        ...relationship,
+        label: relationshipLabel(relationship),
+      };
+    }),
+    [entry, orphanKeys]
+  );
+  const vocabularyConnections = useMemo(
+    () => connections.filter((connection) =>
+      connection.kind === "entry" || connection.item?.type === "lexical"
+    ),
+    [connections]
+  );
+  const relatedMomentConnections = useMemo(() => {
+    const candidates = connections.filter((connection) =>
+      connection.kind === "item" && isJournalEntry(connection.item)
+    );
+    const byId = new Map(candidates.map((connection) => [connection.item.id, connection]));
+    return sortJournalEntries(candidates.map((connection) => connection.item))
+      .map((moment) => byId.get(moment.id));
+  }, [connections]);
+  const pageConnections = useMemo(
+    () => connections.filter((connection) =>
+      connection.kind === "item" && connection.item?.type === "page" && !isJournalEntry(connection.item)
+    ),
+    [connections]
+  );
+  const dictionaryConnections = useMemo(
+    () => [
+      ...connections.filter((connection) => connection.kind === "entry"),
+      ...orphanConnections,
+    ],
+    [connections, orphanConnections]
+  );
+  const vocabularyGroups = useMemo(
+    () => groupConnections(vocabularyConnections),
+    [vocabularyConnections]
+  );
+  const momentGroups = useMemo(
+    () => groupConnections(relatedMomentConnections),
+    [relatedMomentConnections]
   );
   const linkedIds = useMemo(
-    () => new Set([...related.map((item) => item.id), ...(entry.linkedKeys || [])]),
-    [entry.linkedKeys, related]
+    () => new Set([
+      ...connections.filter((connection) => connection.kind === "item").map((connection) => connection.key),
+      ...(entry.linkedKeys || []),
+    ]),
+    [connections, entry.linkedKeys]
   );
 
   useEffect(() => {
     let current = true;
-    resolveLinkedKeys(entry).then(({ entries, orphans, rewritten }) => {
+    resolveLinkedKeys(entry).then(({ entryLinks, orphans, conflicts, rewritten }) => {
       if (!current) return;
-      setDictionaryEntries(entries);
+      setDictionaryEntryLinks(entryLinks);
       setOrphanKeys(orphans);
+      setAliasConflicts(conflicts);
       if (rewritten) onChanged();
     });
     return () => {
@@ -70,7 +130,10 @@ export default function JournalReader({
     onChanged();
   }
 
-  const hasVocabulary = vocabulary.length > 0 || dictionaryEntries.length > 0;
+  async function saveRelationship(key, relationship) {
+    await setLinkRelationship(entry.id, key, relationship);
+    await onChanged();
+  }
 
   return (
     <article className="px-4 py-4 pb-28" style={dotGrid}>
@@ -146,27 +209,43 @@ export default function JournalReader({
             </button>
           )}
         </div>
-        {hasVocabulary ? (
-          <div className="space-y-2">
-            {vocabulary.map((item) => (
-              <ItemLinkCard
-                key={item.id}
-                item={item}
-                attached={Boolean(item.dictKey)}
-                onOpen={onOpen}
-                onRemove={() => removeLink(item.id)}
-              />
-            ))}
-            {dictionaryEntries.map((dictionaryEntry) => (
-              <EntryLinkCard
-                key={dictionaryEntry.id}
-                entry={dictionaryEntry}
-                onOpen={onOpen}
-                onRemove={() => removeLink(dictionaryEntry.id)}
-              />
-            ))}
+        {vocabularyGroups.map((group) => (
+          <div key={group.key} className="mb-3">
+            <div className="mb-1.5 text-[11px] uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.08em" }}>
+              {group.label}
+            </div>
+            <div className="space-y-2">
+              {group.rows.map((connection) => connection.kind === "entry" ? (
+                <EntryLinkCard
+                  key={connection.key}
+                  entry={connection.entry}
+                  connection={connection}
+                  onOpen={onOpen}
+                  onSaveRelationship={(relationship) => saveRelationship(connection.key, relationship)}
+                  onRemove={() => removeLink(connection.key)}
+                />
+              ) : (
+                <ItemLinkCard
+                  key={connection.key}
+                  item={connection.item}
+                  attached={Boolean(connection.item.dictKey)}
+                  connection={connection}
+                  onOpen={onOpen}
+                  onSaveRelationship={(relationship) => saveRelationship(connection.key, relationship)}
+                  onRemove={() => removeLink(connection.key)}
+                />
+              ))}
+            </div>
           </div>
-        ) : (
+        ))}
+        {aliasConflicts.length > 0 && (
+          <div className="mb-2 text-xs" style={{ color: C.mut }}>
+            {aliasConflicts.length === 1
+              ? "1 dictionary connection needs resolution in Más."
+              : `${aliasConflicts.length} dictionary connections need resolution in Más.`}
+          </div>
+        )}
+        {vocabularyConnections.length === 0 && aliasConflicts.length === 0 && (
           <div className="text-xs" style={{ color: C.mut }}>No vocabulary connected yet.</div>
         )}
         {pickingVocabulary && (
@@ -175,9 +254,10 @@ export default function JournalReader({
             item={entry}
             items={items}
             linkedIds={linkedIds}
+            connections={connections}
             onClose={() => setPickingVocabulary(false)}
-            onPick={async (key) => {
-              await linkItems(entry.id, key);
+            onPick={async (key, relationship) => {
+              await linkItems(entry.id, key, relationship);
               onChanged();
             }}
           />
@@ -204,20 +284,34 @@ export default function JournalReader({
             <RotateCcw size={13} /> Reflect
           </button>
         </div>
-        {relatedMoments.length > 0 ? (
-          <div className="space-y-2">
-            {relatedMoments.map((moment) => (
-              <div key={moment.id} className="rounded-xl border px-3 py-2 flex items-start gap-2" style={{ background: C.card, borderColor: C.line }}>
-                <button type="button" onClick={() => onOpen(moment.id)} className="min-w-0 flex-1 text-left">
-                  <div className="text-[11px]" style={{ color: C.mut, fontFamily: MONO }}>{journalDateLabel(moment.pageDate)}</div>
-                  <div className="mt-0.5 truncate text-sm font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>{momentHeading(moment)}</div>
-                </button>
-                <button type="button" onClick={() => removeLink(moment.id)} aria-label={`Unlink ${momentHeading(moment)}`} className="p-1">
-                  <X size={13} style={{ color: C.mut }} />
-                </button>
+        {relatedMomentConnections.length > 0 ? (
+          momentGroups.map((group) => (
+            <div key={group.key} className="mb-3">
+              <div className="mb-1.5 text-[11px] uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.08em" }}>
+                {group.label}
               </div>
-            ))}
-          </div>
+              <div className="space-y-2">
+                {group.rows.map((connection) => {
+                  const heading = momentHeading(connection.item);
+                  const date = journalDateLabel(connection.item.pageDate);
+                  return (
+                    <ItemLinkCard
+                      key={connection.key}
+                      item={connection.item}
+                      connection={connection}
+                      onOpen={onOpen}
+                      onSaveRelationship={(relationship) => saveRelationship(connection.key, relationship)}
+                      onRemove={() => removeLink(connection.key)}
+                      displayHeading={heading}
+                      displayMeta={date}
+                      suppressPreview
+                      editLabel={`Edit connection to ${heading} from ${date}`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          ))
         ) : (
           <div className="text-xs" style={{ color: C.mut }}>A reflection becomes a separate, linked moment.</div>
         )}
@@ -228,10 +322,11 @@ export default function JournalReader({
           entry={entry}
           state={state}
           items={items}
-          pageRelations={pageRelations}
+          pageConnections={pageConnections}
           linkedIds={linkedIds}
-          dictionaryEntries={dictionaryEntries}
-          orphanKeys={orphanKeys}
+          connections={connections}
+          dictionaryConnections={dictionaryConnections}
+          aliasConflicts={aliasConflicts}
           onOpen={onOpen}
           onChanged={onChanged}
           onBack={onBack}

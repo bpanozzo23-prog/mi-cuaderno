@@ -39,7 +39,7 @@ Useful information to retain for each idea:
 |---|---|---|---|
 | Source-oriented page templates | 2026-08-02 | Deferred | Source/Grammar profiles and user-authored templates remain outside Phase 4j–4o |
 | Meaning-block presentation | 2026-08-02 | Implemented and shipped | Phase 4i |
-| Typed or explained relationships | 2026-08-02 | Planned | Phase 4t–4x implementation in progress |
+| Typed or explained relationships | 2026-08-02 | Implemented locally | Phase 4t–4x browser closeout pending |
 | Saved views | 2026-08-02 | Captured | After observing repeated retrieval/filter patterns |
 | Persistent page profiles | 2026-08-02 | Implemented and shipped | General and Vocabulary Collection in Phase 4j–4o; richer profiles deferred |
 | Personal-content provenance | 2026-08-02 | Captured | Before or alongside Phase 6 AI design; source needs can be studied earlier |
@@ -246,7 +246,7 @@ backup, import, search, Repaso and verification decisions are recorded under Pha
 
 - **Date added:** 2026-08-02
 - **Last reviewed:** 2026-08-04
-- **Status:** Planned — Phase 4t–4x implementation in progress
+- **Status:** Implemented locally — Phase 4t–4x browser closeout pending
 - **Origin:** Preliminary information-architecture review and follow-up discussion
 - **Potential data impact:** ~~Low for clearer direction labels; high for persisted relationship
   types or explanations~~ **High and approved: schema v4 persists sparse relationship annotations**
@@ -332,6 +332,17 @@ schema-v4 migration and backup plan.
   resolves them.
 - Keep relationship notes out of search, filters, Repaso, and activity. No relationship hub,
   provenance model, custom/multiple types, or Example of/Part of types belongs to this release.
+
+### Implementation outcome — 2026-08-04
+
+- Schema v4, relationship mutations, lossless dictionary-alias conflict handling, the shared
+  phone-first Connections interface, and the Collection, Diario, and dictionary-detail seams are
+  implemented.
+- The complete serial suite passes 497/497 tests across 49 files, the production build passes, and
+  the planned deliberate red/green proofs fail before restoration and pass afterward.
+- The disposable schema-v3 375×812 closeout remains unclaimed because Codex's in-app
+  browser-control kernel fails before fixture setup with a missing local asset path. No owner data
+  was inspected, and no push or deployment was performed.
 
 ---
 
@@ -674,6 +685,11 @@ backup plan.
 ---
 
 ## Document history
+
+- **2026-08-04 — Phase 4t–4x implemented locally.** Promoted typed and explained relationships from
+  Planned to Implemented locally after the 497-test serial suite, production build, and deliberate
+  failure proofs passed. The disposable phone-width browser closeout remains pending because the
+  browser-control runtime could not initialize; no deployment is claimed.
 
 - **2026-08-04 — Typed and explained relationships approved.** Promoted the idea from Captured to
   Planned as Phase 4t–4x, recorded the owner's real-link-audit waiver and seven-type decision, and

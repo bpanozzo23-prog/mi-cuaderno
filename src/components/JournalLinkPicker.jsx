@@ -6,11 +6,26 @@ import { isJournalEntry } from "../lib/journal.js";
 import { meaningGlossText } from "../lib/meanings.js";
 import { effectivePageKind, PAGE_KINDS } from "../lib/pageProfiles.js";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
+import { isImplicitRelationship, normalizeRelationship } from "../lib/relationships.js";
+import RelationshipSelect from "./RelationshipSelect.jsx";
 
 const LIMIT = 8;
 
-export default function JournalLinkPicker({ mode, item, items, linkedIds, onPick, onClose }) {
+export default function JournalLinkPicker({
+  mode,
+  item,
+  items,
+  linkedIds,
+  connections = [],
+  onPick,
+  onClose,
+}) {
   const [query, setQuery] = useState("");
+  const [relationship, setRelationship] = useState(() => normalizeRelationship());
+  const connectionByKey = useMemo(
+    () => new Map(connections.map((connection) => [connection.key, connection])),
+    [connections]
+  );
   const candidates = useMemo(
     () => items.filter((candidate) => {
       if (candidate.id === item.id) return false;
@@ -26,7 +41,9 @@ export default function JournalLinkPicker({ mode, item, items, linkedIds, onPick
 
   return (
     <Card className="mt-2" style={{ borderColor: C.pen }}>
-      <div className="flex items-center gap-2 rounded-lg border px-2 py-1.5" style={{ borderColor: C.line }}>
+      <RelationshipSelect relationship={relationship} onChange={setRelationship} />
+
+      <div className="mt-2 flex items-center gap-2 rounded-lg border px-2 py-1.5" style={{ borderColor: C.line }}>
         <Search size={14} style={{ color: C.mut }} />
         <input
           autoFocus
@@ -61,7 +78,11 @@ export default function JournalLinkPicker({ mode, item, items, linkedIds, onPick
             <button
               type="button"
               key={candidate.id}
-              onClick={() => linked ? undefined : onPick(candidate.id)}
+              onClick={() => linked
+                ? undefined
+                : isImplicitRelationship(relationship)
+                  ? onPick(candidate.id)
+                  : onPick(candidate.id, relationship)}
               disabled={linked}
               aria-label={`${linked ? "Already linked" : "Link"} ${heading}`}
               className="w-full rounded-lg px-2 py-2 text-left flex items-start gap-2"
@@ -79,7 +100,11 @@ export default function JournalLinkPicker({ mode, item, items, linkedIds, onPick
                 </div>
                 {context && <div className="truncate text-xs" style={{ color: C.mut }}>{context}</div>}
               </div>
-              {linked && <Check size={13} className="mt-0.5 shrink-0" style={{ color: C.mut }} />}
+              {linked && (
+                <span className="mt-0.5 inline-flex shrink-0 items-center gap-1 text-[11px]" style={{ color: C.mut, fontFamily: MONO }}>
+                  <Check size={13} /> {connectionByKey.get(candidate.id)?.label || "Related"}
+                </span>
+              )}
             </button>
           );
         })}

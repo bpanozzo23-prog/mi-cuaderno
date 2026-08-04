@@ -85,4 +85,30 @@ describe("connection cards", () => {
     await user.click(screen.getByRole("button", { name: "Remove connection" }));
     expect(onRemove).toHaveBeenCalledOnce();
   });
+
+  it("accepts a specialized heading, meta line, preview rule, and accessible edit label", () => {
+    render(
+      <ItemLinkCard
+        item={{
+          ...page,
+          title: "",
+          body: "The first line normally identifies this untitled journal moment.",
+          pageDate: "2026-08-01",
+        }}
+        connection={{ type: "related", subject: "owner", note: "" }}
+        onOpen={vi.fn()}
+        onSaveRelationship={vi.fn()}
+        displayHeading="The first line normally identifies this moment"
+        displayMeta="August 1, 2026"
+        suppressPreview
+        editLabel="Edit connection to August 1 moment"
+      />
+    );
+
+    expect(screen.getByText("The first line normally identifies this moment")).toBeTruthy();
+    expect(screen.getByText("August 1, 2026")).toBeTruthy();
+    expect(screen.queryByText(/normally identifies this untitled journal moment/)).toBeNull();
+    expect(screen.getByRole("button", { name: "Edit connection to August 1 moment" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Edit connection to Untitled page" })).toBeNull();
+  });
 });

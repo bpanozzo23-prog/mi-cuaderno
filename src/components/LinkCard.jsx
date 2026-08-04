@@ -89,21 +89,36 @@ function Shell({ icon: Icon, onOpen, onEdit, editLabel, children, dashed, editor
 }
 
 /** A link to one of the owner's own items. */
-export function ItemLinkCard({ item, attached, connection, onOpen, onSaveRelationship, onRemove }) {
+export function ItemLinkCard({
+  item,
+  attached,
+  connection,
+  onOpen,
+  onSaveRelationship,
+  onRemove,
+  displayHeading,
+  displayMeta,
+  suppressPreview = false,
+  editLabel,
+}) {
   const isPage = item.type === "page";
   const preview = previewOf(item);
   const headingSuffix = isPage ? "" : personalHeadingSuffix(item);
   const glosses = isPage ? "" : meaningGlossText(item);
   const relationship = normalizeRelationship(connection?.relationship || connection);
   const [editing, setEditing] = useState(false);
-  const heading = isPage ? item.title || "page" : item.term;
+  const fallbackHeading = isPage ? item.title || "Untitled page" : item.term;
+  const heading = displayHeading ?? fallbackHeading;
+  const meta = displayMeta ?? (isPage && item.pageDate ? item.pageDate : timeAgo(item.updatedAt));
+  const defaultEditTarget = displayHeading ?? (isPage ? item.title || "page" : item.term);
+  const accessibleEditLabel = editLabel || `Edit connection to ${defaultEditTarget}`;
 
   return (
     <Shell
       icon={isPage ? (item.pageDate ? CalendarDays : FileText) : Type}
       onOpen={() => onOpen(item.id)}
       onEdit={onSaveRelationship ? () => setEditing((open) => !open) : null}
-      editLabel={`Edit connection to ${heading}`}
+      editLabel={accessibleEditLabel}
       editor={editing ? (
         <ConnectionEditor
           connection={relationship}
@@ -115,7 +130,7 @@ export function ItemLinkCard({ item, attached, connection, onOpen, onSaveRelatio
     >
       <div className="flex items-baseline justify-between gap-2">
         <div className="min-w-0" style={{ fontFamily: SERIF, color: C.ink, fontWeight: 700 }}>
-          {isPage ? item.title || "Untitled page" : item.term}
+          {heading}
           {headingSuffix && (
             <>
               {" "}
@@ -127,7 +142,7 @@ export function ItemLinkCard({ item, attached, connection, onOpen, onSaveRelatio
           {attached && <BookMarked size={11} className="inline ml-1.5 -mt-0.5" style={{ color: C.mut }} />}
         </div>
         <span className="text-[11px] shrink-0" style={{ fontFamily: MONO, color: C.mut }}>
-          {isPage && item.pageDate ? item.pageDate : timeAgo(item.updatedAt)}
+          {meta}
         </span>
       </div>
 
@@ -141,7 +156,7 @@ export function ItemLinkCard({ item, attached, connection, onOpen, onSaveRelatio
         <div className="mt-1 whitespace-pre-wrap break-words text-xs line-clamp-2" style={{ color: C.penDark }}>
           {relationship.note}
         </div>
-      ) : preview ? (
+      ) : preview && !suppressPreview ? (
         <div className="text-xs truncate mt-0.5" style={{ color: C.mut }}>
           {preview}
         </div>

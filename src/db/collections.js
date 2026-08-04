@@ -30,6 +30,21 @@ const sameArray = (left, right) =>
 const withoutLinkAnnotation = (item, targetKey) =>
   (item?.linkAnnotations || []).filter((annotation) => annotation?.targetKey !== targetKey);
 
+const physicalConnectionRemovalPatch = (item, targetKey, at) => {
+  const linkedKeys = (item?.linkedKeys || []).filter((key) => key !== targetKey);
+  const linkAnnotations = withoutLinkAnnotation(item, targetKey);
+  const linkChanged = linkedKeys.length !== (item?.linkedKeys || []).length;
+  const annotationsChanged = linkAnnotations.length !== (item?.linkAnnotations || []).length;
+  if (!linkChanged && !annotationsChanged) return null;
+  return {
+    linkedKeys,
+    linkAnnotations,
+    // Removing an actual physical edge keeps link removal's existing recency behaviour. Cleaning
+    // only malformed leftover metadata remains timestamp-neutral.
+    ...(linkChanged ? { updatedAt: at } : {}),
+  };
+};
+
 const assertPage = (item, pageId) => {
   if (!item || item.type !== "page") throw new Error(`Page ${pageId} does not exist.`);
   return item;
@@ -289,14 +304,23 @@ export async function saveCollectionOrganization(
       return;
     }
 
+    const at = nowIso();
     const nextPage = {
       ...page,
       linkedKeys: nextLinkedKeys,
       linkAnnotations: nextLinkAnnotations,
       collection: { ...(page.collection || {}), groups: nextGroups },
-      updatedAt: nowIso(),
+      updatedAt: at,
     };
     await db.items.put(nextPage);
+    // Schema v4 preserves untouched reciprocal legacy topology. Once the owner explicitly
+    // removes a member, however, every physical copy of that conceptual connection must go so it
+    // cannot immediately reappear as an incoming ordinary connection.
+    for (const itemId of removed) {
+      const member = all.find((candidate) => candidate.id === itemId);
+      const reversePatch = physicalConnectionRemovalPatch(member, pageId, at);
+      if (reversePatch) await db.items.update(itemId, reversePatch);
+    }
     await logEvent(EVENT_TYPES.edit, pageId);
     result = { page: nextPage, changed: true, removedItemKeys: removed };
   });
@@ -304,7 +328,7 @@ export async function saveCollectionOrganization(
   return result;
 }
 
-/** Removes a page-owned member link and any active or dormant layout reference; never the item. */
+/** Removes every stored copy of a member connection and dormant layout; never the lexical item. */
 export async function removeCollectionMember(pageId, itemId) {
   let result;
   await db.transaction("rw", db.items, async () => {
@@ -318,15 +342,18 @@ export async function removeCollectionMember(pageId, itemId) {
     if (!lexical || lexical.type !== "lexical") {
       throw new Error("Collection members must be personal lexical items.");
     }
+    const at = nowIso();
     const pruned = pruneCollectionItemKeys(page, [itemId]);
     const nextPage = {
       ...page,
       linkedKeys: page.linkedKeys.filter((key) => key !== itemId),
       linkAnnotations: withoutLinkAnnotation(page, itemId),
       ...(pruned.changed ? { collection: pruned.collection } : {}),
-      updatedAt: nowIso(),
+      updatedAt: at,
     };
     await db.items.put(nextPage);
+    const reversePatch = physicalConnectionRemovalPatch(lexical, pageId, at);
+    if (reversePatch) await db.items.update(itemId, reversePatch);
     result = nextPage;
   });
   return result;

@@ -12,6 +12,8 @@ import {
   normalizeRelationship,
   reorientRelationship,
 } from "../lib/relationships.js";
+import { resolveLinkedKeys } from "./linkedEntries.js";
+import { resolveEntry } from "./ref/entries.js";
 
 /**
  * Personal-layer CRUD (brief section 7). Every mutation logs its event, because
@@ -216,6 +218,25 @@ const storedEdgeCandidates = (aKey, bKey, a, b) => {
  * physically owned there, it is also the stored subject without conversion.
  */
 export async function linkItems(fromId, toKey, relationship = undefined) {
+  if (isDictKey(toKey)) {
+    const source = await db.items.get(fromId);
+    if (!source) return source;
+
+    // Dictionary aliases are conceptual identity, not separate connection targets. Resolve the
+    // current row before opening the personal write transaction: unambiguous groups may repair to
+    // their canonical key without recency/events, while conflicts remain untouched. Either way,
+    // an entryLink for this canonical target proves the connection already exists and prevents a
+    // third physical key from being appended over old aliases.
+    const [{ entryLinks }, target] = await Promise.all([
+      resolveLinkedKeys(source),
+      resolveEntry(toKey),
+    ]);
+    const conceptualTargetKey = target.entry?.id || toKey;
+    if (entryLinks.some((entryLink) => entryLink.canonicalKey === conceptualTargetKey)) {
+      return db.items.get(fromId);
+    }
+  }
+
   let result;
   await db.transaction("rw", db.items, async () => {
     const item = await db.items.get(fromId);

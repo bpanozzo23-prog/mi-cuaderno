@@ -333,9 +333,10 @@ semantics remain intact; Collection creation/read/capture/organize/practice and 
 pin and profile retrieval behavior is correct; and the disposable schema-v2 phone fixture completes
 migration plus export→wipe→import at 375×812 without overflow, console errors, or warnings.
 
-**Amended 2026-08-04 — Phase 4t–4x: typed and explained link relationships (approved;
-implementation in progress).** Add one fixed relationship type and one optional shared note to each
-ordinary connection while keeping `linkedKeys[]` authoritative for connection existence and
+**Amended 2026-08-04 — Phase 4t–4x: typed and explained link relationships (~~approved;
+implementation in progress~~ implemented locally; disposable browser closeout pending).** Add one
+fixed relationship type and one optional shared note to each ordinary connection while keeping
+`linkedKeys[]` authoritative for connection existence and
 Collection membership. Phase 4t introduces schema v4 and its export-first durability path; 4u owns
 the relationship domain and mutations; 4v protects dictionary aliases, conflicts, and orphans; 4w
 adds the shared phone-first Connections interface; and 4x integrates Collections, Diario, and
@@ -350,6 +351,11 @@ activity events, or metadata-only recency changes; Collection promotion/restorat
 alias conflicts/orphans, and Journal/dictionary specialized surfaces preserve their documented
 seams; and the complete serial suite, production build, and disposable schema-v3 375×812
 export→wipe→import flow pass without overflow, warnings, or console errors.
+
+**Closeout status, 2026-08-04:** implementation, the complete 497-test serial suite, the production
+build, and deliberate migration/domain/seam failure proofs pass. The in-app browser-control kernel
+still fails before fixture setup with a missing local asset path, so the disposable schema-v3
+375×812 condition above is not yet claimed; no owner browser data was read or changed.
 
 ~~**Phase 5 — AI assistant.** Implement per §9.~~
 

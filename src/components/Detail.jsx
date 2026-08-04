@@ -23,6 +23,7 @@ import {
   relationshipForTarget,
   relationshipLabel,
 } from "../lib/relationships.js";
+import { connectionsFromResolvedEntryLinks } from "../lib/resolvedConnections.js";
 import { allTagsIn } from "../lib/tags.js";
 import { timeAgo } from "../lib/dates.js";
 import { cloneMeanings } from "../lib/meanings.js";
@@ -79,6 +80,9 @@ function StandardDetail({
   const [mLabel, setMLabel] = useState("");
   const [deleteArm, setDeleteArm] = useState(false);
   const [picking, setPicking] = useState(false);
+  const [linkedEntryLinks, setLinkedEntryLinks] = useState([]);
+  const [orphanKeys, setOrphanKeys] = useState([]);
+  const [linkConflicts, setLinkConflicts] = useState([]);
 
   // The tag vocabulary already in use, derived from the notebook in memory (§7) — what makes
   // the tag field offer `expression` instead of letting a fourth spelling of it be created.
@@ -101,24 +105,28 @@ function StandardDetail({
     () => new Set([
       ...connectionsFor(item, items).map((connection) => connection.key),
       ...(item.linkedKeys || []),
+      ...linkedEntryLinks.map((link) => link.canonicalKey),
       ...placementPageIds,
     ]),
-    [item, items, placementPageIds]
+    [item, items, linkedEntryLinks, placementPageIds]
+  );
+  const unresolvedKeys = useMemo(
+    () => new Set(linkConflicts.flatMap((conflict) => [
+      conflict.canonicalKey,
+      ...(conflict.rawKeys || []),
+    ])),
+    [linkConflicts]
   );
 
   // linkedKeys may point into the reference layer (§6). Those entries cannot hold a
   // reciprocal link, which is exactly why links are stored on one side and read back
   // from both — the design Phase 1c chose for this moment. Resolving them goes through
   // the alias map and reports what it could not find (§5); see db/linkedEntries.js.
-  const [linkedEntries, setLinkedEntries] = useState([]);
-  const [orphanKeys, setOrphanKeys] = useState([]);
-  const [linkConflicts, setLinkConflicts] = useState([]);
-
   useEffect(() => {
     let alive = true;
-    resolveLinkedKeys(item).then(({ entries, orphans, conflicts, rewritten }) => {
+    resolveLinkedKeys(item).then(({ entryLinks, orphans, conflicts, rewritten }) => {
       if (!alive) return;
-      setLinkedEntries(entries);
+      setLinkedEntryLinks(entryLinks);
       setOrphanKeys(orphans);
       setLinkConflicts(conflicts || []);
       if (rewritten) onChanged();
@@ -135,11 +143,11 @@ function StandardDetail({
    * turns up on. Fixed orders, derived at render, nothing stored and nothing configurable.
    */
   const connections = useMemo(
-    () => connectionsFor(item, items, linkedEntries)
-      .filter((connection) => connection.kind !== "item" || !placementPageIds.has(connection.key))
-      .filter((connection) => connection.kind !== "entry"
-        || !linkConflicts.some((conflict) => conflict.canonicalKey === connection.key)),
-    [item, items, linkedEntries, placementPageIds, linkConflicts]
+    () => [
+      ...connectionsFor(item, items),
+      ...connectionsFromResolvedEntryLinks(item, linkedEntryLinks),
+    ].filter((connection) => connection.kind !== "item" || !placementPageIds.has(connection.key)),
+    [item, items, linkedEntryLinks, placementPageIds]
   );
   const orphanConnections = useMemo(
     () => orphanKeys.map((key) => {
@@ -728,6 +736,7 @@ function StandardDetail({
           item={item}
           items={items}
           linkedKeys={linkedKeys}
+          unresolvedKeys={unresolvedKeys}
           connections={connections}
           onCancel={() => setPicking(false)}
           onPick={async (key, relationship) => {

@@ -34,6 +34,7 @@ import RelationshipSelect from "./RelationshipSelect.jsx";
 
 const SEARCH_DEBOUNCE_MS = 140;
 const LIMIT = 8;
+const NO_UNRESOLVED_KEYS = new Set();
 
 /**
  * What tells two similar results apart, at a glance, on a phone. Always one line, so a
@@ -121,6 +122,7 @@ export default function LinkPicker({
   items,
   linkedKeys,
   connections = [],
+  unresolvedKeys = NO_UNRESOLVED_KEYS,
   candidateFilter = () => true,
   allowCreateLexical = true,
   allowCreatePage = true,
@@ -178,15 +180,18 @@ export default function LinkPicker({
   /**
    * The same merge the search screen uses (Phase 2e): tier decides first, the owner's own
    * item wins inside a tier, and a dictionary entry the owner has already attached to one of
-   * their items is REPLACED by that item. Without that last rule the picker would offer
+   * their eligible items is REPLACED by that item. `candidateFilter` applies at this seam too:
+   * a Collection's page/dictionary composer must not smuggle an attached personal word back in
+   * through a dictionary result after deliberately excluding lexical candidates. Without that
+   * last rule in the ordinary picker, the picker would offer
    * *sacar* twice — once as their word, once as the dictionary's — and linking the entry
    * rather than their own note is almost never what they meant.
    */
   const rows = useMemo(
-    () => mergeResults(personal, dictResults, items, {
+    () => mergeResults(personal, dictResults, personalCandidates, {
       previousIds: dictionaryMeta?.previousIds,
     }).slice(0, LIMIT),
-    [personal, dictResults, items, dictionaryMeta]
+    [personal, dictResults, personalCandidates, dictionaryMeta]
   );
 
   const pick = (key) => isImplicitRelationship(relationship)
@@ -231,8 +236,10 @@ export default function LinkPicker({
               suffix={POS_LABEL[row.entry.pos] || row.entry.pos}
               context={row.entry.senses?.[0]?.gloss}
               reason={row.reason}
-              linked={linkedKeys.has(row.entry.id)}
-              linkedLabel={connectionByKey.get(row.entry.id)?.label}
+              linked={linkedKeys.has(row.entry.id) || unresolvedKeys.has(row.entry.id)}
+              linkedLabel={unresolvedKeys.has(row.entry.id)
+                ? "Needs resolution"
+                : connectionByKey.get(row.entry.id)?.label}
               onPick={() => pick(row.entry.id)}
             />
           ) : (

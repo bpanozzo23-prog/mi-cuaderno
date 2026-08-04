@@ -31,9 +31,11 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   specialized profile, Vocabulary Collection (4j–4o), are shipped and production-verified after
   the complete serial suite plus disposable local and production 375×812 browser flows. The
   migration-free Diario workspace (4p–4s) is shipped after the complete serial suite, a disposable
-  local 375×812 closeout, and a successful GitHub Pages deployment check. Source, Grammar, richer
-  stored Journal profiles, user-authored templates, and exact term/title link suggestions remain
-  deferred. See
+  local 375×812 closeout, and a successful GitHub Pages deployment check. Typed and explained
+  ordinary Connections (4t–4x) are implemented locally on schema v4; the complete serial suite and
+  production build pass, while the disposable 375×812 browser closeout remains pending because the
+  local browser-control kernel could not initialize. Source, Grammar, richer stored Journal
+  profiles, user-authored templates, and exact term/title link suggestions remain deferred. See
   [docs/PHASE-4-JOURNAL-DIRECTION.md](docs/PHASE-4-JOURNAL-DIRECTION.md) and
   [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).
 - **Phase 5 — done.** Organizational improvements that do not require real notebook data:
@@ -44,10 +46,11 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   [docs/PHASE-5-REPORT.md](docs/PHASE-5-REPORT.md).
 - **Phase 6 — not started.** The AI assistant (brief §9).
 
-`SCHEMA_VERSION` is **3**. Before Dexie opens v3, schema-v1 and schema-v2 owners must save and
-acknowledge an untouched validated export. Direct v1→v3 upgrades run the meanings migration before
-the page-profile migration. Backup schemas 1, 2, and 3 are accepted, upgraded sequentially in
-memory, deeply validated as v3, and only then offered for replace-and-restore.
+`SCHEMA_VERSION` is **4**. Before Dexie opens v4, schema-v1, schema-v2, and schema-v3 owners must save
+and acknowledge an untouched validated export. Direct legacy upgrades run the meanings and
+page-profile migrations before the relationship migration. Backup schemas 1 through 4 are accepted,
+upgraded sequentially in memory, deeply validated as v4, and only then offered for
+replace-and-restore.
 
 ## Testing
 
