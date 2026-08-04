@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App.jsx";
 import { db, clearAllPersonalData } from "./db/db.js";
@@ -134,5 +134,46 @@ describe("Phase 5a navigation continuity", () => {
 
     await user.click(screen.getByRole("button", { name: "Atrás" }));
     expect(await screen.findByText("casa", { selector: ".text-2xl" })).toBeTruthy();
+  });
+});
+
+describe("Phase 4p Diario foundation", () => {
+  it("gives dated General pages their own tab and excludes them from the page count", async () => {
+    const user = userEvent.setup();
+    await createItem(newPage({ title: "Grammar note" }));
+    await createItem(newPage({ title: "Morning check-in", pageDate: "2026-08-03", body: "Hoy practiqué." }));
+    render(<App />);
+
+    const navigation = await screen.findByRole("navigation", { name: "Primary" });
+    expect(within(navigation).getAllByRole("button").map((button) => button.textContent)).toEqual([
+      "Cuaderno",
+      "Diario",
+      "Repaso",
+      "Ajustes",
+    ]);
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    expect(screen.getByLabelText("Notebook totals").textContent).toContain("1 página");
+    expect(screen.queryByRole("button", { name: /Morning check-in/ })).toBeNull();
+
+    await user.click(within(navigation).getByRole("button", { name: "Diario" }));
+    expect(await screen.findByRole("button", { name: /Morning check-in/ })).toBeTruthy();
+    expect(screen.queryByText("1 página")).toBeNull();
+  });
+
+  it("routes an intentional Cuaderno search result through Diario and back to that search", async () => {
+    const user = userEvent.setup();
+    await createItem(newPage({ title: "Morning check-in", pageDate: "2026-08-03", body: "Hoy practiqué." }));
+    render(<App />);
+
+    const search = await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.type(search, "Morning");
+    await user.click(screen.getByRole("button", { name: /Morning check-in/ }));
+
+    expect(screen.getByRole("button", { name: "Back to Cuaderno" })).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Diario surface" })).getByText("Hoy practiqué.")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Back to Cuaderno" }));
+
+    expect(screen.getByRole("textbox", { name: "Search notebook" }).value).toBe("Morning");
+    expect(screen.getByRole("button", { name: /Morning check-in/ })).toBeTruthy();
   });
 });

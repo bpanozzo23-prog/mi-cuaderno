@@ -129,34 +129,34 @@ export default function AddSheet({ kind, pageStarter = null, items = [], onClose
               style={{ ...inputStyle, fontFamily: SERIF }}
             />
             {duplicates.length > 0 && <DuplicateWarning kind="page" />}
-            <Field>
-              <label className="text-xs" style={{ color: C.mut }}>
-                {isCollection ? "Date (optional)" : "Date — fill this in to make it a journal entry"}
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  value={pageDate}
-                  onChange={(e) => setPageDate(e.target.value)}
-                  className="flex-1 text-sm rounded-xl border px-3 py-2.5 outline-none"
-                  style={inputStyle}
-                />
-                <button
-                  onClick={() => setPageDate(pageDate ? "" : localDate())}
-                  className="text-xs px-3 rounded-xl border"
-                  style={inputStyle}
-                >
-                  {pageDate ? "clear" : "today"}
-                </button>
-              </div>
-            </Field>
+            {isCollection && (
+              <Field>
+                <label className="text-xs" style={{ color: C.mut }}>Date (optional)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="date"
+                    value={pageDate}
+                    onChange={(e) => setPageDate(e.target.value)}
+                    className="flex-1 text-sm rounded-xl border px-3 py-2.5 outline-none"
+                    style={inputStyle}
+                  />
+                  <button
+                    onClick={() => setPageDate(pageDate ? "" : localDate())}
+                    className="text-xs px-3 rounded-xl border"
+                    style={inputStyle}
+                  >
+                    {pageDate ? "clear" : "today"}
+                  </button>
+                </div>
+              </Field>
+            )}
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
               placeholder={
                 isCollection
                   ? "Overview — what belongs in this collection? (optional)"
-                  : "Notes — a grammar point, a film you watched, what happened today…"
+                  : "Notes — a grammar point, a film, podcast, source, or topic…"
               }
               className="w-full text-sm rounded-xl border px-3 py-2.5 outline-none min-h-32"
               style={inputStyle}

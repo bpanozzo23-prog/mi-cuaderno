@@ -21,6 +21,7 @@ import {
   tagCountsIn,
 } from "../lib/organization.js";
 import { PAGE_KINDS, effectivePageKind } from "../lib/pageProfiles.js";
+import { isJournalEntry } from "../lib/journal.js";
 import { getPinnedPageIds, setPagePinned } from "../db/collections.js";
 import { emptyItemState } from "../useNotebook.js";
 
@@ -44,14 +45,12 @@ const PAGE_PROFILE_FILTERS = {
   all: "all",
   general: PAGE_KINDS.general,
   collection: PAGE_KINDS.collection,
-  journal: PAGE_KINDS.journal,
 };
 
 const PAGE_PROFILE_OPTIONS = [
   { value: PAGE_PROFILE_FILTERS.all, label: "All pages" },
   { value: PAGE_PROFILE_FILTERS.general, label: "General" },
   { value: PAGE_PROFILE_FILTERS.collection, label: "Collections" },
-  { value: PAGE_PROFILE_FILTERS.journal, label: "Journal entries" },
 ];
 
 function pinnedFirst(items, pinnedIds) {
@@ -63,7 +62,7 @@ function pinnedFirst(items, pinnedIds) {
 
 const controlStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
-export default function Cuaderno({ notebook, selectedId, onSelect, onBack, hasDetailOrigin, onOpenSettings }) {
+export default function Cuaderno({ notebook, selectedId, onSelect, onBack, backLabel = "Todo el cuaderno", onOpenSettings }) {
   const { items, itemState, reload } = notebook;
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState(FILTERS.all);
@@ -122,9 +121,16 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, hasDe
     [items, maintenanceView]
   );
 
+  // Empty-query browsing belongs to Cuaderno, not Diario. A typed query is intentional global
+  // retrieval, so journals rejoin the candidate set and can still be found from here.
+  const candidateSet = useMemo(
+    () => searching ? maintenanceSet : maintenanceSet.filter((item) => !isJournalEntry(item)),
+    [maintenanceSet, searching]
+  );
+
   const typeItems = useMemo(
-    () => maintenanceSet.filter((item) => matchesTypeFilter(item, typeFilter)),
-    [maintenanceSet, typeFilter]
+    () => candidateSet.filter((item) => matchesTypeFilter(item, typeFilter)),
+    [candidateSet, typeFilter]
   );
 
   // The page-profile choice is part of the page context, so it narrows the input to tag counts
@@ -228,7 +234,7 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, hasDe
         entryId={selectedId}
         items={items}
         onBack={onBack}
-        backLabel={hasDetailOrigin ? "Atrás" : "Todo el cuaderno"}
+        backLabel={backLabel}
         onOpen={onSelect}
         onChanged={reload}
       />
@@ -244,7 +250,7 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, hasDe
         state={itemState.get(selected.id) || emptyItemState}
         items={items}
         onBack={onBack}
-        backLabel={hasDetailOrigin ? "Atrás" : "Todo el cuaderno"}
+        backLabel={backLabel}
         onOpen={onSelect}
         onChanged={reload}
         pagePinned={pinnedPageIds.includes(selected.id)}
@@ -381,7 +387,7 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, hasDe
               reason={result.reason}
               items={items}
               pinned={pinnedPageIds.includes(result.item.id)}
-              onPinnedChange={(pinned) => changePagePinned(result.item.id, pinned)}
+              onPinnedChange={isJournalEntry(result.item) ? undefined : (pinned) => changePagePinned(result.item.id, pinned)}
             />
           )
         )}
@@ -417,7 +423,7 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, hasDe
             </div>
             {[
               { kind: "lexical", icon: BookOpen, title: "Word or phrase", sub: "With a meaning, notes and your own examples" },
-              { kind: "page", icon: FileText, title: "Page", sub: "A grammar topic, a film or podcast, or today's journal entry" },
+              { kind: "page", icon: FileText, title: "Page", sub: "A grammar topic, a film, podcast, source, or other note" },
             ].map(({ kind, icon: Icon, title, sub }) => (
               <button
                 key={kind}

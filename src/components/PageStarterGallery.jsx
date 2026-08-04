@@ -17,7 +17,7 @@ export const PAGE_STARTERS = [
   {
     id: "blank-page",
     title: "Blank page",
-    description: "A general page for notes, sources, grammar, or a dated journal entry.",
+    description: "A general page for notes, sources, grammar, or another topic.",
     pageProfile: "general",
     groupNames: [],
     icon: FileText,

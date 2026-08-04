@@ -29,10 +29,12 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   The linking package (4a–4e) and first friction batch (4f–4h) shipped. Structured personal
   meanings (4i) are shipped and browser-verified. Persistent page profiles and the first
   specialized profile, Vocabulary Collection (4j–4o), are shipped and production-verified after
-  the complete serial suite plus disposable local and production 375×812 browser flows. Source,
-  Grammar, richer Journal profiles, user-authored templates, and exact term/title link suggestions
-  remain deferred.
-  See [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).
+  the complete serial suite plus disposable local and production 375×812 browser flows. The
+  migration-free Diario workspace (4p–4s) is now in progress; its navigation foundation (4p) is
+  complete. Source, Grammar, richer stored Journal profiles, user-authored templates, and exact
+  term/title link suggestions remain deferred. See
+  [docs/PHASE-4-JOURNAL-DIRECTION.md](docs/PHASE-4-JOURNAL-DIRECTION.md) and
+  [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).
 - **Phase 5 — done.** Organizational improvements that do not require real notebook data:
   navigation continuity (5a), organizational derivations (5b), Cuaderno retrieval controls (5c),
   activity navigation (5d), scan-first detail pages (5e), and duplicate guardrails (5f).

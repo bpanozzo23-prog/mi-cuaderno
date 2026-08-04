@@ -249,7 +249,7 @@ describe("Phase 5c Cuaderno retrieval controls", () => {
 });
 
 describe("Collection page retrieval and starters", () => {
-  it("filters page profiles before contextual tag counts and clears the choice on leaving Pages", async () => {
+  it("keeps journals out of page browsing but findable by an intentional search", async () => {
     const user = userEvent.setup();
     const general = page("general", { tags: ["general-tag"] });
     const journal = page("journal", {
@@ -269,7 +269,11 @@ describe("Collection page retrieval and starters", () => {
     expect(screen.getByRole("option", { name: "All pages" })).toBeTruthy();
     expect(screen.getByRole("option", { name: "General" })).toBeTruthy();
     expect(screen.getByRole("option", { name: "Collections" })).toBeTruthy();
-    expect(screen.getByRole("option", { name: "Journal entries" })).toBeTruthy();
+    expect(screen.queryByRole("option", { name: "Journal entries" })).toBeNull();
+    expect(card("general")).toBeTruthy();
+    expect(card("collection")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^journal/ })).toBeNull();
+    expect(screen.queryByRole("option", { name: /journal-tag/ })).toBeNull();
 
     await user.selectOptions(profile, "general");
     expect(card("general")).toBeTruthy();
@@ -278,13 +282,14 @@ describe("Collection page retrieval and starters", () => {
     expect(screen.getByRole("option", { name: "general-tag · 1" })).toBeTruthy();
     expect(screen.queryByRole("option", { name: /journal-tag/ })).toBeNull();
 
-    await user.selectOptions(profile, "journal");
-    expect(card("journal")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /^general/ })).toBeNull();
-
     await user.selectOptions(profile, "collection");
     expect(card("collection")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /^journal/ })).toBeNull();
+
+    await user.selectOptions(profile, "all");
+    await user.type(screen.getByRole("textbox", { name: "Search notebook" }), "journal");
+    expect(card("journal")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^general/ })).toBeNull();
 
     await user.click(screen.getByRole("button", { name: "palabras" }));
     expect(screen.queryByRole("combobox", { name: "Profile" })).toBeNull();

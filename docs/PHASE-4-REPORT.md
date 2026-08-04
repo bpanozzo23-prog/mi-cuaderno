@@ -414,3 +414,31 @@ content width within the 375 px viewport, and the console reported **no warnings
 Source, Grammar, explicit/richer Journal and custom page profiles; source/passage/reflection
 submodels; source identity and provenance; user-authored templates; typed relationships; practice
 history, grading, scoring, scheduling or Repaso integration; and AI assistance remain future work.
+
+---
+
+# Part six — Phase 4p: Diario foundation (2026-08-03)
+
+The owner approved the migration-free Diario workspace recorded in
+`docs/PHASE-4-JOURNAL-DIRECTION.md`. Its first slice is complete; 4q–4s remain in progress.
+
+## What changed
+
+- Diario is a fourth primary tab between Cuaderno and Repaso. Dated General pages are canonical
+  there; dated Collections remain in Cuaderno.
+- Ordinary Cuaderno browsing, its Pages profile control, contextual tags and header page total no
+  longer include journals. A typed whole-notebook query still finds them and opens them in Diario.
+- App now owns one session route trail across surfaces. Cuaderno remains mounted during a linked
+  journal visit, so Back returns to the same local query and filters; manual tab changes still begin
+  that tab at its root.
+- General-page creation no longer offers a date or journal copy. Diario is the single new-entry
+  path, while existing dated pages require no migration or rewrite.
+- The pure `isJournalEntry` boundary centralizes the dated-General rule for every surface.
+
+## Verification at this slice
+
+- The focused domain, App, Cuaderno and Add Sheet suites pass **21/21 tests across four files**.
+  Coverage includes dated-Collection exclusion, tab order, adjusted page totals, hidden browse,
+  intentional search, and Cuaderno-search → Diario → Back state continuity.
+- `npm.cmd run build` passes; the generated PWA precache contains 13 entries (about 523 KiB).
+- Schema remains v3 and no item, event, preference, backup or reference-data shape changed.

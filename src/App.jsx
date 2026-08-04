@@ -1,10 +1,13 @@
-import { useLayoutEffect, useState } from "react";
-import { BookOpen, BarChart3, Settings, Loader2 } from "lucide-react";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { BookOpen, BarChart3, Settings, Loader2, PenLine } from "lucide-react";
 import { C, SERIF, MONO, Hi } from "./theme.jsx";
 import Cuaderno from "./components/Cuaderno.jsx";
+import Diario from "./components/Diario.jsx";
 import Repaso from "./components/Repaso.jsx";
 import Ajustes from "./components/Ajustes.jsx";
 import { useNotebook } from "./useNotebook.js";
+import { isJournalEntry } from "./lib/journal.js";
+import { isDictKey } from "./db/ref/entries.js";
 
 /**
  * Spanish pluralization for the header counts: only 1 takes the singular, 0 takes the plural.
@@ -15,46 +18,81 @@ const count = (n, singular) => `${n} ${n === 1 ? singular : `${singular}s`}`;
 
 const TABS = [
   { id: "cuaderno", label: "Cuaderno", icon: BookOpen },
+  { id: "diario", label: "Diario", icon: PenLine },
   { id: "repaso", label: "Repaso", icon: BarChart3 },
   { id: "ajustes", label: "Ajustes", icon: Settings },
 ];
 
+const baseRoute = (tab) => ({ tab, screen: "list", id: null });
+
 export default function App() {
-  const [tab, setTab] = useState("cuaderno");
-  // Detail navigation is a session-only trail. A related-item hop pushes a key; Back pops it.
-  // Nothing is stored and the browser URL stays unchanged — this is the smallest fix for
-  // source → word → back losing its origin without introducing a router.
-  const [detailTrail, setDetailTrail] = useState([]);
+  // Every destination, including a list, is part of one session-only trail. This preserves
+  // Cuaderno → Diario → word → Back without a URL router or any stored navigation state.
+  const [routeTrail, setRouteTrail] = useState([baseRoute("cuaderno")]);
   const notebook = useNotebook();
-  const selectedId = detailTrail[detailTrail.length - 1] || null;
+  const route = routeTrail[routeTrail.length - 1];
+  const tab = route.tab;
+  const selectedId = route.id;
 
   // Counted the way the tabs divide things, since a single "palabras" total that quietly
   // included phrases stopped being true the moment they got their own tab.
   const lexical = notebook.items.filter((i) => i.type === "lexical");
   const phraseCount = lexical.filter((i) => i.form === "phrase").length;
   const wordCount = lexical.length - phraseCount;
-  const pageCount = notebook.items.length - lexical.length;
+  const pageCount = notebook.items.filter((item) => item.type === "page" && !isJournalEntry(item)).length;
 
   function switchTab(next) {
-    setTab(next);
-    if (next !== "cuaderno") setDetailTrail([]);
+    setRouteTrail([baseRoute(next)]);
   }
 
   function openItem(id) {
     if (!id) return;
-    setDetailTrail((trail) => (trail[trail.length - 1] === id ? trail : [...trail, id]));
-    setTab("cuaderno");
+    const item = notebook.items.find((candidate) => candidate.id === id);
+    const targetTab = !isDictKey(id) && isJournalEntry(item) ? "diario" : "cuaderno";
+    const next = { tab: targetTab, screen: targetTab === "diario" ? "read" : "detail", id };
+    setRouteTrail((trail) => {
+      const current = trail[trail.length - 1];
+      return current.id === id && current.tab === targetTab ? trail : [...trail, next];
+    });
   }
 
   function backFromDetail() {
-    setDetailTrail((trail) => trail.slice(0, -1));
+    setRouteTrail((trail) => (trail.length > 1 ? trail.slice(0, -1) : [baseRoute(trail[0].tab)]));
   }
+
+  // A page can cross surfaces when its date or profile changes. Replace only the current route;
+  // the origin trail stays intact, so moving a journal back to Pages never loses Back.
+  useEffect(() => {
+    if (notebook.loading || !route.id || isDictKey(route.id)) return;
+    const item = notebook.items.find((candidate) => candidate.id === route.id);
+    if (!item) return;
+    const canonicalTab = isJournalEntry(item) ? "diario" : "cuaderno";
+    if (canonicalTab === route.tab) return;
+    setRouteTrail((trail) => [
+      ...trail.slice(0, -1),
+      { ...trail[trail.length - 1], tab: canonicalTab, screen: canonicalTab === "diario" ? "read" : "detail" },
+    ]);
+  }, [notebook.items, notebook.loading, route.id, route.tab]);
+
+  const previousRoute = routeTrail[routeTrail.length - 2] || null;
+  const backLabel = previousRoute?.id
+    ? "Atrás"
+    : previousRoute?.tab && previousRoute.tab !== route.tab
+      ? TABS.find((candidate) => candidate.id === previousRoute.tab)?.label
+      : route.tab === "diario"
+        ? "Diario"
+        : "Todo el cuaderno";
+
+  // Keep the two notebook surfaces mounted while the session trail crosses between them.
+  // Their local search/filter state then survives Journal → Back without becoming stored data.
+  const cuadernoRoute = [...routeTrail].reverse().find((candidate) => candidate.tab === "cuaderno") || baseRoute("cuaderno");
+  const diarioRoute = [...routeTrail].reverse().find((candidate) => candidate.tab === "diario") || baseRoute("diario");
 
   // The document is the scroll container. A newly selected tab or detail must never inherit
   // a long source page's scroll offset and appear to open halfway down the destination.
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
-  }, [tab, selectedId]);
+  }, [route.screen, tab, selectedId]);
 
   return (
     <div className="min-h-screen" style={{ background: C.paper, color: C.ink }}>
@@ -72,13 +110,19 @@ export default function App() {
                 Spanish notebook
               </div>
             </div>
-            <div className="text-right text-xs leading-relaxed" style={{ fontFamily: MONO, color: C.mut }}>
-              {count(wordCount, "palabra")}
-              <br />
-              {count(phraseCount, "frase")}
-              <br />
-              {count(pageCount, "página")}
-            </div>
+            {tab !== "diario" && (
+              <div
+                aria-label="Notebook totals"
+                className="text-right text-xs leading-relaxed"
+                style={{ fontFamily: MONO, color: C.mut }}
+              >
+                {count(wordCount, "palabra")}
+                <br />
+                {count(phraseCount, "frase")}
+                <br />
+                {count(pageCount, "página")}
+              </div>
+            )}
           </div>
         </header>
 
@@ -88,16 +132,25 @@ export default function App() {
           </div>
         ) : (
           <>
-            {tab === "cuaderno" && (
+            <section hidden={tab !== "cuaderno"} aria-label="Cuaderno surface">
               <Cuaderno
                 notebook={notebook}
-                selectedId={selectedId}
+                selectedId={cuadernoRoute.id}
                 onSelect={openItem}
                 onBack={backFromDetail}
-                hasDetailOrigin={detailTrail.length > 1}
+                backLabel={backLabel}
                 onOpenSettings={() => switchTab("ajustes")}
               />
-            )}
+            </section>
+            <section hidden={tab !== "diario"} aria-label="Diario surface">
+              <Diario
+                notebook={notebook}
+                selectedId={diarioRoute.id}
+                onSelect={openItem}
+                onBack={backFromDetail}
+                backLabel={backLabel}
+              />
+            </section>
             {tab === "repaso" && (
               <Repaso
                 notebook={notebook}
@@ -108,7 +161,7 @@ export default function App() {
           </>
         )}
 
-        <nav className="fixed bottom-0 inset-x-0 z-30">
+        <nav aria-label="Primary" className="fixed bottom-0 inset-x-0 z-30">
           <div className="max-w-md mx-auto flex border-t" style={{ background: C.card, borderColor: C.line }}>
             {TABS.map((t) => {
               const Icon = t.icon;
@@ -117,6 +170,7 @@ export default function App() {
                 <button
                   key={t.id}
                   onClick={() => switchTab(t.id)}
+                  aria-current={active ? "page" : undefined}
                   className="flex-1 py-2.5 flex flex-col items-center gap-0.5"
                 >
                   <Icon size={19} style={{ color: active ? C.pen : C.mut }} />

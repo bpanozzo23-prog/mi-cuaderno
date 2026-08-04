@@ -15,6 +15,23 @@ beforeEach(async () => {
 afterEach(cleanup);
 
 describe("AddSheet duplicate guard", () => {
+  it("keeps journal creation in Diario rather than the General page form", () => {
+    render(
+      <AddSheet
+        kind="page"
+        items={[]}
+        onClose={vi.fn()}
+        onCreated={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByLabelText(/date/i)).toBeNull();
+    expect(screen.queryByText(/journal entry/i)).toBeNull();
+    expect(
+      screen.getByPlaceholderText(/grammar point, a film, podcast, source, or topic/i)
+    ).toBeTruthy();
+  });
+
   it("warns for a cleaned lexical heading but still creates another with the chosen form", async () => {
     const user = userEvent.setup();
     const existing = await createItem(

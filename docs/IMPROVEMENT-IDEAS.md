@@ -414,6 +414,14 @@ is labeled, filtered, displayed, or validated after creation.
 - No template ID is stored; the built-in starter gallery only seeds editable groups during creation.
 - Source, Grammar, richer Journal, custom profiles, and user-authored templates remain Deferred.
 
+### Follow-up Diario decision (2026-08-03)
+
+The owner approved a separate Diario workspace over the existing derived dated-General behavior;
+see [PHASE-4-JOURNAL-DIRECTION.md](PHASE-4-JOURNAL-DIRECTION.md). This improves creation, retrieval,
+writing and rereading without storing an explicit Journal profile or adding journal-only fields.
+The richer-profile question remains deferred until real use demonstrates a need for durable
+structured metadata beyond the existing page shape.
+
 ### Problems addressed by Phase 4j–4o
 
 The first row is the owner's reported friction. The remaining rows are product limitations and
