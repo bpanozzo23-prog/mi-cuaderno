@@ -37,11 +37,11 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
-| Source-oriented page templates | 2026-08-02 | Deferred | Source/Grammar profiles and user-authored templates remain outside Phase 4j–4o |
+| Source-oriented page templates | 2026-08-02 | Planned | Phase 7 Source capability and built-in recipes; no stored template identity |
 | Meaning-block presentation | 2026-08-02 | Implemented and shipped | Phase 4i |
 | Typed or explained relationships | 2026-08-02 | Implemented locally | Phase 4t–4x browser closeout pending |
 | Saved views | 2026-08-02 | Captured | After observing repeated retrieval/filter patterns |
-| Persistent page profiles | 2026-08-02 | Implemented and shipped | General and Vocabulary Collection in Phase 4j–4o; richer profiles deferred |
+| Persistent page profiles | 2026-08-02 | Planned | Phase 7 composable-page evolution; General and Vocabulary Collection already shipped |
 | Personal-content provenance | 2026-08-02 | Captured | Before or alongside Phase 6 AI design; source needs can be studied earlier |
 
 ---
@@ -49,11 +49,11 @@ Useful information to retain for each idea:
 ## Source-oriented page templates
 
 - **Date added:** 2026-08-02
-- **Last reviewed:** 2026-08-03
-- **Status:** Deferred
+- **Last reviewed:** 2026-08-04
+- **Status:** Planned
 - **Origin:** Preliminary information-architecture review and follow-up discussion
-- **Potential data impact:** None for a text-only template; potentially significant for structured
-  source fields or a persistent page kind
+- **Potential data impact:** Approved schema-v5 Source and Grammar structures; no new stores or
+  indexes and no stored starter/template identity
 
 ### Description and current context
 
@@ -159,6 +159,33 @@ migration/storage plan.
 - Should owners eventually create reusable starters, and if so, does template identity or
   configuration need to survive backup and later editing?
 - How should existing General source pages opt into future behavior without forced classification?
+
+### Approved Phase 7 direction — 2026-08-04
+
+The owner approved the persistent Source workflow and creation approach after reviewing
+representative Source, Grammar and Pages-library experiences. The questions above remain as the
+history that led to this decision; they are no longer prerequisites for the first release.
+
+- Source becomes an independently enabled page capability, not an exclusive page kind. One page
+  may combine Source, Grammar and Vocabulary while retaining exactly one leading display focus.
+- The persistent Source structure holds a small optional identity (format, creator, scope, URL and
+  context) plus one flat ordered capture stream of passages, reflections, language notes and
+  questions. Text and URLs are enough for v1; attachments, source hierarchies, deep provenance and
+  reading progress remain outside scope.
+- Source starters are built-in, family-first creation recipes for book/written work, podcast/audio,
+  film/video and article/lesson. They enable Vocabulary by default but store no recipe or template
+  identity.
+- **Copy page structure** is the only reuse mechanism: it copies focus, enabled capabilities,
+  Collection group names and Grammar section names with fresh IDs, never personal content or Source
+  identity. A stored/user-authored template manager remains deferred.
+- Vocabulary attached to captures rolls up through the page's existing authoritative outgoing
+  personal lexical links. Grammar examples may point to one exact Source capture without expanding
+  this into a general provenance model.
+- Existing pages opt in manually. Disabling Source hides and preserves its data; hidden Source
+  content stays outside role filters, search and contextual summaries until re-enabled.
+
+The decision-complete scope and sequence are recorded in
+[PHASE-7-DIRECTION.md](PHASE-7-DIRECTION.md).
 
 ---
 
@@ -419,10 +446,10 @@ behavior, stale-reference handling, and a separately approved plan.
 
 - **Date added:** 2026-08-02
 - **Last reviewed:** 2026-08-04
-- **Status:** Implemented and shipped
+- **Status:** Planned
 - **Origin:** Preliminary information-architecture review and follow-up discussion
-- **Potential data impact:** Implemented as schema v3 without new stores or indexes; migration,
-  export-first gating, backup upgrading, and brief decisions are shipped
+- **Potential data impact:** General and Vocabulary Collection shipped in schema v3; Phase 7 plans
+  schema v5 composable focus/capabilities without new stores or indexes
 
 ### Description and current context
 
@@ -628,6 +655,36 @@ profiles, and user-authored templates; creation-only distinctions should remain 
 - Does real Collection use justify any of the deliberately deferred Practice features: shuffle,
   grading, history, scheduling, or Repaso integration?
 
+### Approved Phase 7 evolution — 2026-08-04
+
+General and Vocabulary Collection remain shipped history, but the owner approved replacing their
+exclusive `pageProfile` model with composable pages in schema v5:
+
+- Every page has one leading `pageFocus: notes | vocabulary | source | grammar`. Notes remain the
+  permanent body-based foundation; Vocabulary, Source and Grammar enable independently and may
+  coexist. Focus changes ordering and presentation rather than identity.
+- `pageProfile` is removed. Existing Collections migrate to Vocabulary focus with Vocabulary
+  enabled; every other page migrates to Notes focus with Vocabulary disabled, while dormant groups,
+  links, IDs, timestamps and content remain intact. Empty disabled Source and Grammar structures
+  are added without changing Dexie stores or indexes.
+- Disabling a populated structure hides rather than deletes it. Hidden content does not participate
+  in filters, search or contextual summaries, and existing pages gain new capabilities only by an
+  explicit owner action.
+- Diario stays separate and derived: only a dated page with no enabled structured capability is a
+  journal entry. A dated Source, Grammar or Vocabulary page remains in Pages.
+- The Pages library uses overlapping role filters (Sources, Grammar, Collections and Notes), while
+  one saved focus keeps reading order predictable. Notes filtering means Notes-led pages.
+- Built-in creation recipes and Copy page structure remain creation-only; there is no stored
+  template identity, custom page-kind builder or template manager.
+- Source and Grammar receive the durable behavior validated during brainstorming. Thinking and
+  opinions, situations, register, slang and profanity remain Vocabulary starter recipes rather
+  than new persistent subtypes.
+
+Phase 7 is staged from contract/schema durability through shared page foundations, creation,
+Source, Grammar, contextual retrieval and integration. See
+[PHASE-7-DIRECTION.md](PHASE-7-DIRECTION.md). The earlier questions and Phase 4j–4o outcomes above
+remain the historical rationale for this evolution.
+
 ---
 
 ## Personal-content provenance
@@ -706,6 +763,14 @@ backup plan.
 ---
 
 ## Document history
+
+- **2026-08-04 — Phase 7 approved for implementation.** Promoted Source-oriented page templates
+  and the composable evolution of persistent page profiles to Planned. The approved schema-v5
+  direction replaces exclusive page profiles with one focus plus independently enabled Vocabulary,
+  Source and Grammar structures; retains derived Diario; adds built-in creation recipes and
+  copy-empty-structure without template identity; and records contextual retrieval, migration,
+  backup and first-release exclusions in `PHASE-7-DIRECTION.md`. This is an approval record, not an
+  implementation or deployment claim.
 
 - **2026-08-04 — Phase 4y deployed.** Fast-forwarded and pushed `main` at `c716e9d`; GitHub Pages
   workflow run 30955868049 passed both jobs, and the live site returned HTTP 200 with the verified

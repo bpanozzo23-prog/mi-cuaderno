@@ -25,6 +25,21 @@ export function newPageGroupKey() {
   return `page-group:${newId()}`;
 }
 
+/** Stable identity for one captured passage, reflection, language note or question. */
+export function newSourceCaptureKey() {
+  return `source-capture:${newId()}`;
+}
+
+/** Stable identity for an editable section inside one Grammar guide. */
+export function newGrammarSectionKey() {
+  return `grammar-section:${newId()}`;
+}
+
+/** Stable identity for one example pair inside a Grammar guide section. */
+export function newGrammarExampleKey() {
+  return `grammar-example:${newId()}`;
+}
+
 export function isUserKey(key) {
   return typeof key === "string" && key.startsWith("user:");
 }
@@ -42,4 +57,16 @@ const UUID_PATTERN =
 
 export function isPageGroupKey(key) {
   return typeof key === "string" && key.startsWith("page-group:") && UUID_PATTERN.test(key.slice(11));
+}
+
+export function isSourceCaptureKey(key) {
+  return typeof key === "string" && key.startsWith("source-capture:") && UUID_PATTERN.test(key.slice(15));
+}
+
+export function isGrammarSectionKey(key) {
+  return typeof key === "string" && key.startsWith("grammar-section:") && UUID_PATTERN.test(key.slice(16));
+}
+
+export function isGrammarExampleKey(key) {
+  return typeof key === "string" && key.startsWith("grammar-example:") && UUID_PATTERN.test(key.slice(16));
 }

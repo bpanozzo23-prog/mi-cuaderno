@@ -6,7 +6,7 @@
 **Companion file:** `mi-cuaderno.jsx` — a working single-file prototype of the notebook layer. It is the reference for features, interaction patterns, and visual design of **lexical entries**. Pages (§7) do not exist in the prototype and are new in v3. Where this brief contradicts the prototype's *implementation* (ID scheme, search normalization, the `struggling` field, event rules), **this brief wins** — the prototype shows what the app should feel like, not how it must be built.
 **Version:** v3 — revised after lock-in review. Product contract last amended
 ~~August 3, 2026~~ **August 4, 2026**; agent-facing framing refreshed August 2, 2026.
-**Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. §§3, 9 and 12 — 2026-08-02: organizational improvements became Phase 5 and the AI assistant moved to Phase 6. §12 — 2026-08-02: independently scoped phases may proceed concurrently under explicit coordination rules. §§5, 7, 8, 10, 12 and 14 — 2026-08-02: personal lexical meanings became stable, structured annotations in schema v2 while review remains entry-level and dictionary senses remain replaceable reference data. **§§5, 7, 10, 12 and 14 — 2026-08-03: schema v3 adds durable `general | collection` page profiles and the first specialized profile, Vocabulary Collection, while dated General pages remain Journal entries and richer profiles stay deferred.** **§§5, 7, 10, 12 and 14 — 2026-08-04: schema v4 adds sparse typed and explained ordinary-connection annotations while `linkedKeys[]` remains authoritative for connection existence and Collection membership.** Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
+**Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. §§3, 9 and 12 — 2026-08-02: organizational improvements became Phase 5 and the AI assistant moved to Phase 6. §12 — 2026-08-02: independently scoped phases may proceed concurrently under explicit coordination rules. §§5, 7, 8, 10, 12 and 14 — 2026-08-02: personal lexical meanings became stable, structured annotations in schema v2 while review remains entry-level and dictionary senses remain replaceable reference data. **§§5, 7, 10, 12 and 14 — 2026-08-03: schema v3 adds durable `general | collection` page profiles and the first specialized profile, Vocabulary Collection, while dated General pages remain Journal entries and richer profiles stay deferred.** **§§5, 7, 10, 12 and 14 — 2026-08-04: schema v4 adds sparse typed and explained ordinary-connection annotations while `linkedKeys[]` remains authoritative for connection existence and Collection membership.** **§§5, 7, 8, 10, 12 and 14 — 2026-08-04: Phase 7 approves schema v5 composable pages with one leading focus, independently enabled Vocabulary, Source and Grammar structures, contextual retrieval, and sequential legacy backup upgrades.** Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
 
 ---
 
@@ -66,9 +66,14 @@ The app code and the bundled reference data are licensed separately. Reference-d
   untouched, fully validated export and receive explicit saved-file acknowledgement before the new
   schema opens it.
 - **The seam rule:** *personal items always have their own stable ID; attaching one to a dictionary entry is a reversible relationship, not its identity.* ~~Lexical items always store their own `term` (and `translation`, when given) even while attached, so they stay meaningful on their own.~~ **Amended 2026-08-02:** lexical items always store their own `term` and ordered personal `meanings[]` even while attached. Each personal meaning has its own `meaning:<uuid>` identity and never stores or derives its identity from a dictionary sense ID, index or ordering.
-- **Page-profile seam amendment, 2026-08-03:** Collection membership can contain only independent
+- ~~**Page-profile seam amendment, 2026-08-03:** Collection membership can contain only independent
   personal lexical items. A selected dictionary entry must first create or reuse its personal
-  attachment through the existing seam; raw `dict:` keys remain Related and never become members.
+  attachment through the existing seam; raw `dict:` keys remain Related and never become members.~~
+  **Composable-page seam replacement, 2026-08-04:** Vocabulary membership can contain only
+  independent personal lexical items, whether the item is placed in a Collection group or attached
+  to a Source capture or Grammar example. A selected dictionary entry must first create or reuse its
+  personal attachment through the existing seam; raw `dict:` keys remain ordinary Connections and
+  never become contextual vocabulary.
 - **Relationship-annotation seam amendment, 2026-08-04:** an ordinary typed dictionary connection
   stays separate from a lexical item's reversible `dictKey` attachment. Alias resolution rewrites
   an ordinary linked key and its annotation together only when that rewrite is unambiguous. If old
@@ -91,7 +96,7 @@ The app code and the bundled reference data are licensed separately. Reference-d
 
 | Area | Decision |
 |---|---|
-| Personal content scope | Two types: **lexical** items and **pages**. ~~A dated page is a journal entry; a page can be a grammar topic or a source (film, podcast, book).~~ **Amended 2026-08-03:** every page stores `pageProfile: general \| collection`. Collection wins over `pageDate`; a dated General page remains a Journal entry. Grammar topics and sources remain General pages in this release. No third top-level type without a brief amendment |
+| Personal content scope | Two types: **lexical** items and **pages**. ~~A dated page is a journal entry; a page can be a grammar topic or a source (film, podcast, book).~~ ~~**Amended 2026-08-03:** every page stores `pageProfile: general \| collection`. Collection wins over `pageDate`; a dated General page remains a Journal entry. Grammar topics and sources remain General pages in this release.~~ **Amended 2026-08-04 (Phase 7):** every page stores one leading `pageFocus: notes \| vocabulary \| source \| grammar` and independently enabled Vocabulary, Source and Grammar structures. Notes remain the permanent body-based foundation. A dated page is a Journal entry only when no structured capability is enabled; dated enhanced pages remain Pages. No third top-level type without a brief amendment |
 | Identity | UUIDs for all personal records, independent of dictionary records; namespaced keys per §6 |
 | Reference attachment | Optional and reversible (§5 seam rule); orphan-safe |
 | Lexical form | `form: word \| phrase` |
@@ -102,7 +107,7 @@ The app code and the bundled reference data are licensed separately. Reference-d
 | Review grades | Review events log a 4-point grade in `metadata` (0 again / 1 hard / 2 good / 3 easy) even while the UI shows only pass (→2) / fail (→0), so richer future schedulers have full history |
 | Sync-readiness | UUIDs, `createdAt`/`updatedAt` on every personal record, stable event IDs, schema + app versions in backups. No sync built |
 
-### Shapes (adapt details, keep the shape)
+### Shapes through schema v4 (historical)
 
 ```
 DictEntry   { id, sourceId, lemma, normalizedLemma, searchForms[], pos,
@@ -135,6 +140,45 @@ Event       { id, type: view | create | edit | delete | tricky_on | tricky_off |
               itemKey?, at, localDate, metadata? }
 ```
 
+~~Through schema v4, the page fragment above ended with exclusive `pageProfile: general |
+collection` plus dormant Collection groups.~~ **Schema-v5 page-shape replacement, 2026-08-04:**
+`pageProfile` is removed. The common `UserItem` fields and lexical shape remain unchanged; every
+page instead carries this composable fragment:
+
+```
+// page only:
+title, body, pageDate?, pageFocus: notes | vocabulary | source | grammar,
+collection{
+  enabled,
+  groups[{ id: page-group:<uuid>, name, itemKeys[] }]
+},
+source{
+  enabled,
+  format: "" | book | audio | video | article_lesson | other,
+  creator, scope, url, context,
+  captures[{
+    id: source-capture:<uuid>,
+    type: passage | reflection | language_note | question,
+    text, location, reflection, itemKeys[]
+  }]
+},
+grammar{
+  enabled, keyIdea,
+  sections[{
+    id: grammar-section:<uuid>, name, explanation, pattern,
+    examples[{
+      id: grammar-example:<uuid>, es, en, note, itemKeys[],
+      sourceCaptureRef: null | { pageId, captureId }
+    }]
+  }]
+}
+```
+
+Array order is display order. Source URLs are blank or HTTP(S). Saved Source captures require
+nonblank `text`; saved Grammar examples require nonblank Spanish `es`. Grammar section names are
+trimmed, nonblank and unique within the guide under the same Unicode NFKC plus case-folding rule as
+Collection group names. All nested IDs are stable through editing and reordering.
+
 ~~Through schema v3, `linkedKeys[]` was the complete stored shape for an ordinary link.~~
 **Relationship-shape amendment, 2026-08-04:** every schema-v4 `UserItem` has a mandatory
 `linkAnnotations[]` array in addition to `linkedKeys[]`. The array is sparse: no annotation for a
@@ -163,25 +207,49 @@ Entry-wide notes and unassigned examples remain valid. An entry may have no mean
 meaning must have a nonblank gloss. Meaning IDs survive editing and reordering, while merging two
 neighboring meanings keeps the upper meaning's ID.
 
-**Page-profile amendment, 2026-08-03.** Every page has both `pageProfile` and `collection`, so
+~~**Page-profile amendment, 2026-08-03.** Every page has both `pageProfile` and `collection`, so
 temporarily switching a Collection back to General never destroys its layout. Group array order
 and each group's `itemKeys` order are display order. Group names are trimmed, nonblank, and unique
 within the page under Unicode NFKC normalization plus case folding. A personal lexical item may
-belong to several Collection pages, but to at most one group in any one page.
+belong to several Collection pages, but to at most one group in any one page.~~
+
+**Composable-page amendment, 2026-08-04.** `pageFocus` controls section order and presentation,
+not page identity. Notes are always available through the existing body; Vocabulary, Source and
+Grammar enable independently and may coexist. Vocabulary, Source or Grammar focus is valid only
+while its matching structure is enabled. Disabling a populated structure hides it without deleting
+its fields, order or references; re-enabling restores it. Hidden structures do not participate in
+role filters, search or contextual summaries. Existing pages adopt Source or Grammar only through
+an explicit owner action; title, body, tags, dates and links never classify them automatically.
+
+Collection group rules remain unchanged. Source captures form one flat manually ordered stream.
+Grammar contains manually ordered named sections and examples. A Grammar example may attach at
+most one exact Source capture. A reference to another Source page requires an ordinary connection
+between the two pages; a reference to a capture on the same composable page requires no illegal
+self-link.
 
 ~~`linkedKeys[]` remains the sole relationship and Collection-membership authority.~~
-**Schema-v4 relationship-authority amendment, 2026-08-04:** `linkedKeys[]` remains the sole
+~~**Schema-v4 relationship-authority amendment, 2026-08-04:** `linkedKeys[]` remains the sole
 connection-existence and Collection-membership authority; annotations describe but never create a
 connection. Only an outgoing page link resolving to a personal lexical item is a member; group
 `itemKeys` are layout references to those members. **Not grouped yet** is derived from outgoing
 members absent from every group, in `linkedKeys` order. Active Collection membership hides any
 ordinary-link annotation but preserves it dormant; returning the Collection page to General
-restores it.
+restores it.~~
+**Schema-v5 relationship-authority replacement, 2026-08-04:** `linkedKeys[]` remains the sole
+connection-existence and page-vocabulary-membership authority; annotations describe but never
+create a connection. Only an outgoing page link resolving to a personal lexical item is vocabulary
+membership. Collection group, Source-capture and Grammar-example `itemKeys` are layout/context
+references to those members. **Not grouped yet** is still derived from outgoing members absent from
+every group, in `linkedKeys` order. Active Vocabulary membership hides any ordinary-link annotation
+but preserves it dormant; disabling Vocabulary restores that ordinary Connection presentation.
 Promoting an incoming lexical connection moves the stored edge to page→lexical and flips
 directional `subject`; a raw dictionary selection first creates or reuses an independent personal
 lexical entry. Unlinking or deleting an item prunes annotations plus active and dormant group
-references. `pinnedPageIds` is a backed-up UI preference, not page content; pinning changes no page
-timestamp and writes no event.
+and contextual references. Removing an item from a capture or example retains page membership;
+removing it from the page clears every active or hidden placement/attachment after an impact
+confirmation. Deleting a Source capture clears exact Grammar references to it without removing
+ordinary page connections. `pinnedPageIds` is a backed-up UI preference, not page content; pinning
+changes no page timestamp and writes no event.
 
 ### Event rules
 
@@ -190,15 +258,23 @@ timestamp and writes no event.
 - `search_miss` (no `itemKey`; query text in `metadata`) is logged when a search returns nothing — it feeds a future "words I couldn't find" list.
 - `localDate` (owner's local calendar day) is stored on every event; daily queues and streaks group by it, not UTC.
 - New event types may be added freely later; all consumers must ignore unknown types.
-- **Page-profile event amendment, 2026-08-03:** profile changes and changed Organizer saves write
+- ~~**Page-profile event amendment, 2026-08-03:** profile changes and changed Organizer saves write
   one page `edit`. New pages and newly materialized lexical entries keep their existing `create`
   events. Migration, pinning, card expansion, mode changes, Practice, ordinary membership
-  add/remove, Organizer Cancel, and no-op Save write no events. ~~Existing link/unlink event behavior
-  is unchanged.~~ **Relationship-event amendment, 2026-08-04:** ordinary link creation, removal,
-  type changes, note changes, alias rewrites, and alias-conflict resolution write no activity
-  events. A relationship note annotates the connection rather than becoming either item's prose.
-  Metadata-only relationship and conflict-resolution saves also preserve both endpoints'
-  `updatedAt`; link creation and removal keep their existing timestamp behavior.
+  add/remove, Organizer Cancel, and no-op Save write no events. Existing link/unlink event behavior
+  is unchanged.~~
+- **Relationship-event amendment, 2026-08-04:** ordinary link creation, removal, type changes, note
+  changes, alias rewrites, and alias-conflict resolution write no activity events. A relationship
+  note annotates the connection rather than becoming either item's prose. Metadata-only
+  relationship and conflict-resolution saves also preserve both endpoints' `updatedAt`; link
+  creation and removal keep their existing timestamp behavior.
+- **Composable-page event replacement, 2026-08-04:** a changed page-configuration save, persisted
+  focus change, Source-capture save, Grammar-guide save, or changed organizer save writes one page
+  `edit`; a new page or newly materialized lexical item keeps its existing single `create` event.
+  Migration, pinning, expansion, local mode/filter/search changes, Practice, membership-only
+  bookkeeping, automatic dependent-reference cleanup, Cancel and no-op Save write no events.
+  Explicit saves update the owning page normally; cleanup performed only because another item or
+  nested record changed is timestamp-neutral on the dependent page.
 
 ## 8. Search rules
 
@@ -209,8 +285,18 @@ timestamp and writes no event.
   3. Inflected-form alias (reference layer: form→lemma index from kaikki forms + conjugation tables, so "fui" resolves to *ir* and *ser*, "tuvimos" to *tener*, "casas" to *casa*, "rápidas" to *rápido*)
   4. ~~English gloss or personal translation~~ **English dictionary gloss or personal meaning gloss — English→Spanish lookup is first-class**
   5. Tags
-  6. Notes, personal examples, personal meaning cues and labels, page titles and page bodies
+  6. ~~Notes, personal examples, personal meaning cues and labels, page titles and page bodies~~
+     **Notes, personal examples, personal meaning cues and labels, page titles and bodies, plus
+     active Source metadata/captures and Grammar key ideas/sections/examples**
 - Each result shows *why* it matched (e.g., "form of ir", "English meaning", "in your notes").
+- **Composable-page search amendment, 2026-08-04:** Pages-only search may also match the Spanish
+  heading or personal-meaning gloss of vocabulary contained by the page and returns that page once
+  with its best contextual reason. Global search does not create extra page results from contained
+  vocabulary; the lexical result instead summarizes up to two active page contexts plus a remaining
+  count, while lexical detail shows the full active context list (Collection group, Source
+  capture/location, or Grammar section/example). Disabled structures contribute no search text or
+  context. Relationship notes remain outside search. Every new comparison uses the existing
+  normalization that preserves ñ.
 
 ## 9. AI assistant policy (~~Phase 5~~ **Phase 6**)
 
@@ -224,12 +310,13 @@ timestamp and writes no event.
 Backup envelope:
 
 ~~Through schema v3, the current envelope stored `"schemaVersion": 3`.~~
-**Schema-v4 replacement, 2026-08-04:**
+~~**Schema-v4 replacement, 2026-08-04:** the current envelope stores `"schemaVersion": 4`.~~
+**Schema-v5 replacement, 2026-08-04:**
 
 ```json
 {
   "format": "mi-cuaderno-backup",
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "exportedAt": "ISO timestamp",
   "appVersion": "version",
   "userItems": [],
@@ -260,12 +347,26 @@ Backup envelope:
   duplicate, or reciprocal edge exactly as stored. Before v4 opens, schema-v1, v2, and v3 owners
   must save and acknowledge an untouched validated export. Direct upgrades run meanings, page
   profiles, then relationship annotations in order. Backup schemas 1, 2, 3, and 4 are accepted,
-  upgraded sequentially in memory, and deeply validated as v4 before any write; versions newer
-  than 4 remain blocked. V4 validation requires the annotation array and validates target keys,
+  upgraded sequentially in memory, and deeply validated as v4 before any write; ~~versions newer
+  than 4 remain blocked.~~ V4 validation requires the annotation array and validates target keys,
   fixed types, `subject`, string notes, matching physical edges, dangling personal targets, and one
   annotation per conceptual personal pair. It continues to accept untouched redundant legacy
   topology, installed dictionary orphans with annotations, and unresolved old/canonical alias
   conflicts. Current v4 exports round-trip exactly.
+- **Schema-v5 amendment, 2026-08-04:** stores and indexes remain unchanged. V4 Collection pages
+  migrate to `pageFocus: vocabulary` with `collection.enabled: true`; every other page migrates to
+  Notes focus with `collection.enabled: false`, retaining any dormant groups and links. Every page
+  receives empty disabled Source and Grammar structures, and obsolete `pageProfile` is removed.
+  Existing dated Collections remain Pages and dated General pages remain Diario entries. Every ID,
+  common field, link, annotation, event, preference, timestamp, meaning and Collection order is
+  preserved. Before v5 opens, schema-v1 through v4 owners must save and acknowledge an untouched
+  validated export; direct legacy upgrades run all intervening migrations in order. Backup schemas
+  1 through 5 are accepted, upgraded sequentially in memory, and deeply validated as v5 before any
+  write; versions newer than 5 remain blocked. V5 validation covers focus/capability consistency,
+  enabled and hidden populated structures, fixed enums, HTTP(S) Source URLs, stable unique nested
+  IDs, ordered unique Grammar sections, vocabulary membership authority, dangling contextual
+  references, and exact same-page or externally linked Source-capture references. Current v5
+  exports round-trip exactly.
 - On first meaningful use, request persistent storage (`navigator.storage.persist()`), surface whether it was granted, and tell the owner plainly that clearing browser data, uninstalling, or losing the device destroys local data — which is why export is one tap away and the settings screen shows "last backup: N days ago".
 
 ## 11. Reference-data delivery and caching
@@ -374,13 +475,39 @@ and all of this ships with `SCHEMA_VERSION` still 1.
 **Phase 6 — AI assistant.** Implement per §9.
 *Done when:* the spend cap is set and the disclosure is visible before first send; the assistant correctly answers a question about the owner's tricky words; and a proposed entry lands in the notebook only after the approve tap.
 
+**Amended 2026-08-04 — Phase 7: composable pages, Source notebooks and Grammar guides.** Replace
+the exclusive General/Collection profile with one leading page focus plus independently enabled
+Vocabulary, Source and Grammar structures while retaining exactly two top-level item types. Notes
+remain the permanent body-based foundation; disabling a populated structure hides and preserves it.
+Diario remains a separate workspace derived from dated pages that have no enabled structured
+capability. Deliver this as 7a contract/schema-v5 durability, 7b composable-page foundation, 7c
+Pages library and creation, 7d Source notebook, 7e Grammar guide with exact Source-capture
+references, 7f contextual retrieval, and 7g integration/verification. Built-in creation recipes and
+copy-empty-structure store no template identity. The approved direction and first-release
+boundaries live in `docs/PHASE-7-DIRECTION.md`. This independently scoped phase may proceed while
+Phase 6 remains unstarted under the concurrency rules at the start of §12.
+*Done when:* schema-v1 through v4 databases and schema 1–5 backups reach deeply validated v5
+through the export-first gate; existing General, Journal and Collection content migrates without
+loss; focus changes, reversible capability configuration, overlapping Pages filters, role-aware
+creation/copying, Source capture, Grammar organization, vocabulary authority and exact Source
+references obey §§5 and 7; contextual Pages/global search obeys §8; disabled structures remain
+recoverable but invisible to retrieval; the complete serial suite and production build pass; and a
+disposable seeded 375×812 flow verifies migration, creation, organization, search and backup
+without horizontal overflow, warnings or console errors. If browser control still cannot
+initialize, that closeout remains explicitly unclaimed and no owner browser data is inspected.
+
 ## 13. Non-goals
 
 No accounts, no server, no analytics, no multi-user, no native Android build, no cloud sync (yet), no merge-mode import (yet), no file attachments (yet — model reserved), and no content from proprietary dictionaries.
 
+Phase 7 adds no third content type, folders, free-form block editor, custom page-kind builder,
+stored/user-authored template manager, rich-media catalog, deep provenance graph, reading tracker,
+Journal-only schema, or AI behavior. Source content remains text plus URLs; existing media links
+remain links only.
+
 ## 14. Deferred decisions — do not solve early
 
-Whether and when to build the Attachment model; cross-device sync; review scheduling beyond Leitner; ~~sense-level annotations;~~ **dictionary-sense attachment or synchronization (personal meaning annotations are now built independently);** importing multiword expressions into the reference layer; merge-mode import; Source, Grammar, or explicit/richer Journal page profiles; passages/reflections or source-identity structures; user-authored page templates; ~~typed relationships;~~ **typed and explained ordinary connections are approved as Phase 4t–4x;** Collection practice history, grading, scoring, or scheduling.
+Whether and when to build the Attachment model; cross-device sync; review scheduling beyond Leitner; ~~sense-level annotations;~~ **dictionary-sense attachment or synchronization (personal meaning annotations are now built independently);** importing multiword expressions into the reference layer; merge-mode import; ~~Source, Grammar, or explicit/richer Journal page profiles; passages/reflections or source-identity structures; user-authored page templates;~~ **Source and Grammar structures, Source captures, and built-in creation/copy-structure recipes are approved as Phase 7; an explicit/richer Journal schema, Source parent/child hierarchies, deep provenance, reading tracking, custom page kinds, and stored/user-authored template management remain deferred;** ~~typed relationships;~~ **typed and explained ordinary connections are approved as Phase 4t–4x;** Collection practice history, grading, scoring, or scheduling.
 
 ## 15. How to use this brief now
 

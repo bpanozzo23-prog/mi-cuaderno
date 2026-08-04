@@ -1,5 +1,6 @@
 import Dexie from "dexie";
 import { upgradeLexicalItemV1 } from "../lib/meanings.js";
+import { emptyGrammar, emptySource, PAGE_FOCUSES } from "../lib/pageKinds.js";
 
 /**
  * Personal-layer database (brief section 5). Reference-layer tables arrive in Phase 2
@@ -86,6 +87,46 @@ export async function migratePersonalDataToV4(transaction) {
 db.version(4)
   .stores(PERSONAL_STORES)
   .upgrade(migratePersonalDataToV4);
+
+/**
+ * Schema v5 replaces the exclusive pageProfile with one leading focus and three independently
+ * enabled structures. Existing Collections become Vocabulary-led pages; every other page remains
+ * Notes-led. Dormant Collection layout and every unrelated field are preserved byte-for-byte.
+ */
+export function upgradePageItemV4(item) {
+  if (!item || item.type !== "page") return { ...item };
+  const {
+    pageProfile,
+    pageFocus: _unrecognizedFocus,
+    source: _unrecognizedSource,
+    grammar: _unrecognizedGrammar,
+    collection,
+    ...withoutLegacyProfile
+  } = item;
+  const vocabularyEnabled = pageProfile === "collection";
+  return {
+    ...withoutLegacyProfile,
+    pageFocus: vocabularyEnabled ? PAGE_FOCUSES.vocabulary : PAGE_FOCUSES.notes,
+    collection: { enabled: vocabularyEnabled, groups: [...(collection?.groups || [])] },
+    source: emptySource(),
+    grammar: emptyGrammar(),
+  };
+}
+
+export async function migratePersonalDataToV5(transaction) {
+  await transaction
+    .table("items")
+    .where("type")
+    .equals("page")
+    .modify((item) => {
+      Object.assign(item, upgradePageItemV4(item));
+      delete item.pageProfile;
+    });
+}
+
+db.version(5)
+  .stores(PERSONAL_STORES)
+  .upgrade(migratePersonalDataToV5);
 
 export async function getPref(key, fallback = null) {
   const row = await db.prefs.get(key);

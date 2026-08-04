@@ -15,6 +15,7 @@ import { allEvents, EVENT_TYPES } from "./events.js";
 import { localDate } from "../lib/dates.js";
 import { newMeaning } from "../lib/meanings.js";
 import { PINNED_PAGE_IDS_PREF } from "../lib/pageProfiles.js";
+import { emptyGrammar, emptySource } from "../lib/pageKinds.js";
 
 const GROUP_ID = "page-group:11111111-1111-4111-8111-111111111111";
 
@@ -105,8 +106,11 @@ describe("pages", () => {
     expect(stored.type).toBe("page");
     expect(stored.title).toBe("Preterite vs imperfect");
     expect(stored.pageDate).toBe("2026-07-30");
-    expect(stored.pageProfile).toBe("general");
-    expect(stored.collection).toEqual({ groups: [] });
+    expect(stored.pageFocus).toBe("notes");
+    expect(stored).not.toHaveProperty("pageProfile");
+    expect(stored.collection).toEqual({ enabled: false, groups: [] });
+    expect(stored.source).toEqual(emptySource());
+    expect(stored.grammar).toEqual(emptyGrammar());
     expect(displayTitle(stored)).toBe("Preterite vs imperfect");
   });
 
@@ -124,9 +128,60 @@ describe("pages", () => {
       })
     );
     expect(await getItem(page.id)).toMatchObject({
-      pageProfile: "collection",
-      collection: { groups: [{ id: GROUP_ID, name: "Questions", itemKeys: [] }] },
+      pageFocus: "vocabulary",
+      collection: { enabled: true, groups: [{ id: GROUP_ID, name: "Questions", itemKeys: [] }] },
     });
+    expect(await getItem(page.id)).not.toHaveProperty("pageProfile");
+  });
+
+  it("stores composable Source and Grammar structures without a competing profile", async () => {
+    const lexical = newLexical({ term: "nomás" });
+    const page = newPage({
+      title: "Softening requests",
+      pageFocus: "grammar",
+      linkedKeys: [lexical.id],
+      collection: { enabled: true, groups: [] },
+      source: {
+        enabled: true,
+        format: "audio",
+        creator: "Radio Ambulante",
+        scope: "Episode 4",
+        url: "https://example.com/episode",
+        context: "Listening notes",
+        captures: [{
+          id: "source-capture:33333333-3333-4333-8333-333333333333",
+          type: "passage",
+          text: "Nomás dime.",
+          location: "18:42",
+          reflection: "",
+          itemKeys: [lexical.id],
+        }],
+      },
+      grammar: {
+        enabled: true,
+        keyIdea: "Softening",
+        sections: [{
+          id: "grammar-section:44444444-4444-4444-8444-444444444444",
+          name: "  Use  ",
+          explanation: "",
+          pattern: "nomás + imperative",
+          examples: [{
+            id: "grammar-example:55555555-5555-4555-8555-555555555555",
+            es: "Nomás dime.",
+            en: "Just tell me.",
+            note: "",
+            itemKeys: [lexical.id],
+            sourceCaptureRef: null,
+          }],
+        }],
+      },
+    });
+
+    expect(page.pageFocus).toBe("grammar");
+    expect(page.source.enabled).toBe(true);
+    expect(page.grammar.sections[0].name).toBe("Use");
+    expect(page.collection.enabled).toBe(true);
+    expect(page).not.toHaveProperty("pageProfile");
   });
 
   it("rejects a saved group reference that is not also an outgoing page link", () => {

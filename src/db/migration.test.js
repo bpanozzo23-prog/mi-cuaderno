@@ -4,8 +4,10 @@ import {
   migratePersonalDataToV2,
   migratePersonalDataToV3,
   migratePersonalDataToV4,
+  migratePersonalDataToV5,
   PERSONAL_STORES,
 } from "./db.js";
+import { emptyGrammar, emptySource } from "../lib/pageKinds.js";
 
 const at = "2026-08-01T11:00:00.000Z";
 
@@ -40,10 +42,20 @@ function declareCurrentSchema(database) {
   database.version(2).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV2);
   database.version(3).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV3);
   database.version(4).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV4);
+  database.version(5).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV5);
 }
 
-describe("personal-data schema v4 migrations", () => {
-  it("runs v1 → v2 → v3 → v4 in order without touching unrelated data", async () => {
+const upgradedNotesPage = (page, { linkAnnotations = [], groups = [] } = {}) => ({
+  ...page,
+  linkAnnotations,
+  pageFocus: "notes",
+  collection: { enabled: false, groups },
+  source: emptySource(),
+  grammar: emptyGrammar(),
+});
+
+describe("personal-data schema v5 migrations", () => {
+  it("runs v1 → v2 → v3 → v4 → v5 in order without touching unrelated data", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(1).stores(PERSONAL_STORES);
@@ -86,12 +98,7 @@ describe("personal-data schema v4 migrations", () => {
       expect(stored.updatedAt).toBe(lexical.updatedAt);
       expect(stored.linkedKeys).toEqual(lexical.linkedKeys);
       expect(stored.linkAnnotations).toEqual([]);
-      expect(await upgraded.items.get(page.id)).toEqual({
-        ...page,
-        pageProfile: "general",
-        collection: { groups: [] },
-        linkAnnotations: [],
-      });
+      expect(await upgraded.items.get(page.id)).toEqual(upgradedNotesPage(page));
       expect(await upgraded.events.toArray()).toEqual([event]);
       expect(await upgraded.prefs.toArray()).toEqual([{ key: "preference", value: true }]);
     } finally {
@@ -100,7 +107,7 @@ describe("personal-data schema v4 migrations", () => {
     }
   });
 
-  it("runs v2 → v3 → v4 while preserving structured content, events, preferences and timestamps", async () => {
+  it("runs v2 → v3 → v4 → v5 while preserving structured content, events, preferences and timestamps", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(2).stores(PERSONAL_STORES);
@@ -145,12 +152,7 @@ describe("personal-data schema v4 migrations", () => {
       await upgraded.open();
 
       expect(await upgraded.items.get(lexical.id)).toEqual({ ...lexical, linkAnnotations: [] });
-      expect(await upgraded.items.get(page.id)).toEqual({
-        ...page,
-        pageProfile: "general",
-        collection: { groups: [] },
-        linkAnnotations: [],
-      });
+      expect(await upgraded.items.get(page.id)).toEqual(upgradedNotesPage(page));
       expect(await upgraded.events.toArray()).toEqual([event]);
       expect(await upgraded.prefs.toArray()).toEqual([{ key: "preference", value: { nested: true } }]);
     } finally {
@@ -159,7 +161,7 @@ describe("personal-data schema v4 migrations", () => {
     }
   });
 
-  it("runs v3 → v4 by adding only empty annotations and preserves redundant legacy topology", async () => {
+  it("runs v3 → v4 → v5 and preserves redundant legacy topology", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(3).stores(PERSONAL_STORES);
@@ -210,7 +212,15 @@ describe("personal-data schema v4 migrations", () => {
       await upgraded.open();
 
       expect(await upgraded.items.get(lexical.id)).toEqual({ ...lexical, linkAnnotations: [] });
-      expect(await upgraded.items.get(page.id)).toEqual({ ...page, linkAnnotations: [] });
+      const { pageProfile: _pageProfile, collection, ...pageBase } = page;
+      expect(await upgraded.items.get(page.id)).toEqual({
+        ...pageBase,
+        linkAnnotations: [],
+        pageFocus: "vocabulary",
+        collection: { enabled: true, groups: collection.groups },
+        source: emptySource(),
+        grammar: emptyGrammar(),
+      });
       expect((await upgraded.items.get(lexical.id)).linkedKeys).toEqual([
         "user:page",
         "user:page",
@@ -218,6 +228,63 @@ describe("personal-data schema v4 migrations", () => {
       ]);
       expect(await upgraded.events.toArray()).toEqual([event]);
       expect(await upgraded.prefs.toArray()).toEqual([preference]);
+    } finally {
+      upgraded.close();
+      await Dexie.delete(name);
+    }
+  });
+
+  it("runs v4 → v5 by replacing only page identity and adding empty structures", async () => {
+    const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
+    const legacy = new Dexie(name);
+    legacy.version(4).stores(PERSONAL_STORES);
+    await legacy.open();
+
+    const group = {
+      id: "page-group:22222222-2222-4222-8222-222222222222",
+      name: "Questions",
+      itemKeys: ["user:sacar"],
+    };
+    const page = {
+      ...pageFixture(),
+      pageDate: "2026-08-04",
+      pageProfile: "collection",
+      collection: { groups: [group] },
+      // These keys were not part of schema v4 and must never opt a migrated page into a role.
+      pageFocus: "source",
+      source: { enabled: true, captures: [{ text: "unrecognized" }] },
+      grammar: { enabled: true, sections: [] },
+      linkAnnotations: [{
+        targetKey: "user:sacar",
+        type: "found_in",
+        subject: "target",
+        note: "Dormant metadata",
+      }],
+    };
+    await legacy.items.add(page);
+    legacy.close();
+
+    const upgraded = new Dexie(name);
+    declareCurrentSchema(upgraded);
+    try {
+      await upgraded.open();
+      const stored = await upgraded.items.get(page.id);
+      expect(stored).not.toHaveProperty("pageProfile");
+      expect(stored).toEqual({
+        ...((({
+          pageProfile: _pageProfile,
+          pageFocus: _pageFocus,
+          collection: _collection,
+          source: _source,
+          grammar: _grammar,
+          ...rest
+        }) => rest)(page)),
+        pageFocus: "vocabulary",
+        collection: { enabled: true, groups: [group] },
+        source: emptySource(),
+        grammar: emptyGrammar(),
+      });
+      expect(stored.updatedAt).toBe(page.updatedAt);
     } finally {
       upgraded.close();
       await Dexie.delete(name);

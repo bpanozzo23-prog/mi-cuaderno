@@ -44,9 +44,9 @@ export default function SchemaUpgradeGate({ fromVersion = null, onContinue }) {
               </h1>
               <p className="text-sm mt-2 leading-relaxed" style={{ color: C.mut }}>
                 Your notebook uses personal-data schema {sourceVersion}; this update needs schema {SCHEMA_VERSION}.
-                It adds relationship types and shared connection notes. Older meaning formats and missing page
-                profiles are upgraded along the way. Download the untouched version of your notebook first so
-                you can always return to it.
+                It replaces exclusive page profiles with composable Notes, Vocabulary, Source and Grammar
+                structures. Older meaning formats, missing page profiles and relationship metadata are upgraded
+                along the way. Download the untouched version of your notebook first so you can always return to it.
               </p>
             </div>
           </div>
@@ -71,7 +71,7 @@ export default function SchemaUpgradeGate({ fromVersion = null, onContinue }) {
             <div className="mt-4 pt-4 border-t" style={{ borderColor: C.line }}>
               <p className="text-xs mb-2" style={{ color: C.mut }}>
                 Continue only after confirming the file was saved. The upgrade itself is automatic and keeps your
-                entry IDs, notes, examples, links and review history.
+                entry IDs, notes, vocabulary groups, examples, links and review history.
               </p>
               <Button onClick={onContinue}>I saved it — upgrade my notebook</Button>
             </div>

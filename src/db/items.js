@@ -7,6 +7,12 @@ import { cleanMeanings, newMeaning } from "../lib/meanings.js";
 import { pruneCollectionItemKeys, validateCollectionGroups } from "../lib/collections.js";
 import { isPageProfile, PAGE_PROFILES, PINNED_PAGE_IDS_PREF } from "../lib/pageProfiles.js";
 import {
+  isPageFocus,
+  normalizePageStructures,
+  PAGE_FOCUSES,
+  validatePageStructures,
+} from "../lib/pageKinds.js";
+import {
   annotationForTarget,
   makeLinkAnnotation,
   normalizeRelationship,
@@ -14,6 +20,10 @@ import {
 } from "../lib/relationships.js";
 import { resolveLinkedKeys } from "./linkedEntries.js";
 import { resolveEntry } from "./ref/entries.js";
+import {
+  clearSourcePageReferences,
+  prunePageVocabularyReferences,
+} from "../lib/pageReferences.js";
 
 /**
  * Personal-layer CRUD (brief section 7). Every mutation logs its event, because
@@ -81,26 +91,57 @@ export function newPage({
   title,
   body = "",
   pageDate = null,
-  pageProfile = PAGE_PROFILES.general,
-  collection = { groups: [] },
+  pageFocus = undefined,
+  // Temporary creation compatibility while the schema-v4 UI is replaced. Never persisted.
+  pageProfile = undefined,
+  collection = undefined,
+  source = undefined,
+  grammar = undefined,
   tags = [],
   mediaLinks = [],
   linkedKeys = [],
   linkAnnotations = [],
 } = {}) {
-  if (!isPageProfile(pageProfile)) throw new Error("Page profile must be general or collection.");
-  const groups = validateCollectionGroups(collection?.groups ?? [], {
+  if (pageProfile !== undefined && !isPageProfile(pageProfile)) {
+    throw new Error("Page profile must be general or collection.");
+  }
+  if (pageFocus !== undefined && !isPageFocus(pageFocus)) {
+    throw new Error("Page focus must be notes, vocabulary, source or grammar.");
+  }
+
+  const requestedFocus = pageFocus
+    ?? (pageProfile === PAGE_PROFILES.collection ? PAGE_FOCUSES.vocabulary : PAGE_FOCUSES.notes);
+  const structures = normalizePageStructures({
+    pageFocus: requestedFocus,
+    pageProfile,
+    collection: {
+      ...(collection || {}),
+      enabled: typeof collection?.enabled === "boolean"
+        ? collection.enabled
+        : pageProfile === PAGE_PROFILES.collection,
+    },
+    source,
+    grammar,
+  });
+  structures.pageFocus = requestedFocus;
+  structures.collection.groups = validateCollectionGroups(structures.collection.groups ?? [], {
     allowedItemKeys: (linkedKeys || []).filter(isUserKey),
   });
+  if (Array.isArray(structures.grammar.sections)) {
+    structures.grammar.sections = structures.grammar.sections.map((section) => ({
+      ...section,
+      name: typeof section?.name === "string" ? section.name.trim() : section?.name,
+    }));
+  }
+
   const at = nowIso();
-  return {
+  const page = {
     id: newUserKey(),
     type: "page",
     title: String(title || "").trim(),
     body,
     pageDate: pageDate || null,
-    pageProfile,
-    collection: { groups },
+    ...structures,
     tags: cleanTags(tags),
     linkedKeys,
     linkAnnotations: [...(linkAnnotations || [])],
@@ -108,6 +149,27 @@ export function newPage({
     createdAt: at,
     updatedAt: at,
   };
+
+  const structureErrors = validatePageStructures(page);
+  if (structureErrors.length) throw new Error(structureErrors[0]);
+  const outgoing = new Set((linkedKeys || []).filter(isUserKey));
+  for (const capture of page.source.captures) {
+    if (capture.itemKeys.some((key) => !outgoing.has(key))) {
+      throw new Error("Source capture itemKeys must reference current page vocabulary members.");
+    }
+  }
+  for (const section of page.grammar.sections) {
+    for (const example of section.examples) {
+      if (example.itemKeys.some((key) => !outgoing.has(key))) {
+        throw new Error("Grammar example itemKeys must reference current page vocabulary members.");
+      }
+      const ref = example.sourceCaptureRef;
+      if (ref && ref.pageId !== page.id && !outgoing.has(ref.pageId)) {
+        throw new Error("An external Source capture reference requires an outgoing page link.");
+      }
+    }
+  }
+  return page;
 }
 
 export async function createItem(item) {
@@ -154,8 +216,13 @@ export async function deleteItem(id) {
       if (item.id === id) return false;
       if ((item.linkedKeys || []).includes(id)) return true;
       if ((item.linkAnnotations || []).some((annotation) => annotation?.targetKey === id)) return true;
-      return item.type === "page" && (item.collection?.groups || []).some((group) =>
-        (group.itemKeys || []).includes(id)
+      if (item.type !== "page") return false;
+      if ((item.collection?.groups || []).some((group) => (group.itemKeys || []).includes(id))) return true;
+      if ((item.source?.captures || []).some((capture) => (capture.itemKeys || []).includes(id))) return true;
+      return (item.grammar?.sections || []).some((section) =>
+        (section.examples || []).some((example) =>
+          (example.itemKeys || []).includes(id) || example.sourceCaptureRef?.pageId === id
+        )
       );
     });
     await Promise.all(
@@ -173,11 +240,21 @@ export async function deleteItem(id) {
         // already-dangling annotation alone is metadata-only and does not move the item.
         if (linkRemoved) next.updatedAt = nowIso();
         if (item.type === "page") {
-          const pruned = pruneCollectionItemKeys(item, [id]);
-          if (pruned.changed) {
-            next.collection = pruned.collection;
+          const collectionPruned = pruneCollectionItemKeys(item, [id]);
+          const vocabularyPruned = prunePageVocabularyReferences(item, [id]);
+          if (vocabularyPruned.changed) {
+            next.collection = vocabularyPruned.collection;
+            next.source = vocabularyPruned.source;
+            next.grammar = vocabularyPruned.grammar;
+          }
+          if (collectionPruned.changed) {
             next.updatedAt ||= nowIso();
           }
+          const sourcePruned = clearSourcePageReferences(
+            { ...item, grammar: next.grammar || item.grammar },
+            id
+          );
+          if (sourcePruned.changed) next.grammar = sourcePruned.grammar;
         }
         return db.items.update(item.id, next);
       })
@@ -335,10 +412,44 @@ export async function unlinkItems(fromId, toKey) {
         updatedAt: at,
       };
       if (current.type === "page") {
-        const pruned = pruneCollectionItemKeys(current, [targetKey]);
-        if (pruned.changed) patch.collection = pruned.collection;
+        const pruned = prunePageVocabularyReferences(current, [targetKey]);
+        if (pruned.changed) {
+          patch.collection = pruned.collection;
+          patch.source = pruned.source;
+          patch.grammar = pruned.grammar;
+        }
+        const sourcePruned = clearSourcePageReferences(
+          { ...current, grammar: patch.grammar || current.grammar },
+          targetKey
+        );
+        if (sourcePruned.changed) patch.grammar = sourcePruned.grammar;
       }
       await db.items.update(current.id, patch);
+    }
+
+    // A valid v5 contextual edge is outgoing from the page that owns the nested reference, but
+    // tolerate legacy/incomplete direction by cleaning either endpoint after physical removal.
+    const endpoints = await Promise.all([
+      isUserKey(fromId) ? db.items.get(fromId) : undefined,
+      isUserKey(toKey) ? db.items.get(toKey) : undefined,
+    ]);
+    for (const endpoint of endpoints) {
+      if (endpoint?.type !== "page") continue;
+      const otherKey = endpoint.id === fromId ? toKey : fromId;
+      const other = endpoints.find((candidate) => candidate?.id === otherKey);
+      const patch = {};
+      if (other?.type === "lexical") {
+        const pruned = prunePageVocabularyReferences(endpoint, [otherKey]);
+        if (pruned.changed) Object.assign(patch, {
+          collection: pruned.collection,
+          source: pruned.source,
+          grammar: pruned.grammar,
+        });
+      } else if (other?.type === "page") {
+        const pruned = clearSourcePageReferences(endpoint, otherKey);
+        if (pruned.changed) patch.grammar = pruned.grammar;
+      }
+      if (Object.keys(patch).length) await db.items.update(endpoint.id, patch);
     }
     result = await db.items.get(fromId);
   });

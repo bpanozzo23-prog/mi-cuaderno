@@ -1,6 +1,12 @@
 import { newUserKey, newEventId } from "../lib/ids.js";
 import { nowIso, localDate } from "../lib/dates.js";
 import { meaningsFromTranslation, newMeaning } from "../lib/meanings.js";
+import {
+  emptyCollection,
+  emptyGrammar,
+  emptySource,
+  PAGE_FOCUSES,
+} from "../lib/pageKinds.js";
 
 export function makeLexical(overrides = {}) {
   const at = nowIso();
@@ -28,21 +34,35 @@ export function makeLexical(overrides = {}) {
 
 export function makePage(overrides = {}) {
   const at = nowIso();
+  const {
+    pageProfile,
+    pageFocus,
+    collection,
+    source,
+    grammar,
+    ...rest
+  } = overrides;
+  const legacyCollection = pageProfile === "collection";
   return {
     id: newUserKey(),
     type: "page",
     title: "Preterite vs imperfect",
     body: "",
     pageDate: null,
-    pageProfile: "general",
-    collection: { groups: [] },
+    pageFocus: pageFocus ?? (legacyCollection ? PAGE_FOCUSES.vocabulary : PAGE_FOCUSES.notes),
+    collection: emptyCollection({
+      ...(collection || {}),
+      enabled: typeof collection?.enabled === "boolean" ? collection.enabled : legacyCollection,
+    }),
+    source: emptySource(source || {}),
+    grammar: emptyGrammar(grammar || {}),
     tags: [],
     linkedKeys: [],
     linkAnnotations: [],
     mediaLinks: [],
     createdAt: at,
     updatedAt: at,
-    ...overrides,
+    ...rest,
   };
 }
 

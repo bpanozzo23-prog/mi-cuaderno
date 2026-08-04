@@ -3,18 +3,32 @@ import { db, setPref, getPref, clearAllPersonalData } from "./db.js";
 import { buildBackup, validateBackup, importBackup, BACKUP_FORMAT } from "./backup.js";
 import { makeLexical, makePage, makeEvent } from "../test/factories.js";
 import { SCHEMA_VERSION } from "../version.js";
+import { emptyGrammar, emptySource } from "../lib/pageKinds.js";
 
 const GROUP_ONE = "page-group:11111111-1111-4111-8111-111111111111";
 const GROUP_TWO = "page-group:22222222-2222-4222-8222-222222222222";
-const makeV3Page = (overrides = {}) => makePage({
-  pageProfile: "general",
-  collection: { groups: [] },
-  ...overrides,
-});
+const CAPTURE_ONE = "source-capture:33333333-3333-4333-8333-333333333333";
+const SECTION_ONE = "grammar-section:44444444-4444-4444-8444-444444444444";
+const EXAMPLE_ONE = "grammar-example:55555555-5555-4555-8555-555555555555";
+const makeV3Page = (overrides = {}) => makePage(overrides);
+const makeV4Page = (overrides = {}) => {
+  const pageProfile = overrides.pageProfile === "collection" ? "collection" : "general";
+  const current = makePage({ ...overrides, pageProfile });
+  const {
+    pageFocus: _pageFocus,
+    source: _source,
+    grammar: _grammar,
+    collection,
+    ...legacy
+  } = current;
+  return { ...legacy, pageProfile, collection: { groups: collection.groups } };
+};
 const makeLegacyPage = (overrides = {}) => {
   const {
-    pageProfile: _pageProfile,
+    pageFocus: _pageFocus,
     collection: _collection,
+    source: _source,
+    grammar: _grammar,
     linkAnnotations: _linkAnnotations,
     ...page
   } = makePage(overrides);
@@ -24,6 +38,14 @@ const withoutAnnotations = (item) => {
   const { linkAnnotations: _linkAnnotations, ...legacy } = item;
   return legacy;
 };
+const upgradedGeneralPage = (legacyPage, linkAnnotations = []) => ({
+  ...legacyPage,
+  linkAnnotations,
+  pageFocus: "notes",
+  collection: { enabled: false, groups: [] },
+  source: emptySource(),
+  grammar: emptyGrammar(),
+});
 
 beforeEach(async () => {
   await db.open();
@@ -218,8 +240,8 @@ describe("import: replace and restore", () => {
 
     const checked = validateBackup(v1);
     expect(checked.ok).toBe(true);
-    expect(checked.summary).toMatchObject({ schemaVersion: 1, targetSchemaVersion: 4, willUpgrade: true });
-    expect(checked.envelope.schemaVersion).toBe(4);
+    expect(checked.summary).toMatchObject({ schemaVersion: 1, targetSchemaVersion: 5, willUpgrade: true });
+    expect(checked.envelope.schemaVersion).toBe(5);
     expect(checked.envelope.userItems[0].meanings.map((entry) => entry.gloss)).toEqual([
       "1. take out",
       "withdraw; draw out",
@@ -228,12 +250,7 @@ describe("import: replace and restore", () => {
     expect(checked.envelope.userItems[0].myExamples).toEqual(current.myExamples);
     expect(checked.envelope.userItems[0].linkAnnotations).toEqual([]);
     expect(checked.envelope.userItems[0]).not.toHaveProperty("translation");
-    expect(checked.envelope.userItems[1]).toEqual({
-      ...v1Page,
-      pageProfile: "general",
-      collection: { groups: [] },
-      linkAnnotations: [],
-    });
+    expect(checked.envelope.userItems[1]).toEqual(upgradedGeneralPage(v1Page));
 
     await importBackup(checked.envelope);
     expect((await db.items.get(current.id)).meanings).toHaveLength(2);
@@ -255,25 +272,20 @@ describe("import: replace and restore", () => {
     const checked = validateBackup(v2);
 
     expect(checked.ok).toBe(true);
-    expect(checked.summary).toMatchObject({ schemaVersion: 2, targetSchemaVersion: 4, willUpgrade: true });
-    expect(checked.envelope.schemaVersion).toBe(4);
+    expect(checked.summary).toMatchObject({ schemaVersion: 2, targetSchemaVersion: 5, willUpgrade: true });
+    expect(checked.envelope.schemaVersion).toBe(5);
     expect(checked.envelope.userItems[0]).toEqual({ ...lexical, linkAnnotations: [] });
-    expect(checked.envelope.userItems[1]).toEqual({
-      ...page,
-      pageProfile: "general",
-      collection: { groups: [] },
-      linkAnnotations: [],
-    });
+    expect(checked.envelope.userItems[1]).toEqual(upgradedGeneralPage(page));
     expect(checked.envelope.preferences.pinnedPageIds).toEqual([page.id]);
   });
 
-  it("validates and upgrades schema v3 by adding only empty annotations", () => {
+  it("validates and upgrades schema v3 through annotations and composable page structures", () => {
     const lexical = withoutAnnotations(makeLexical({
       id: "user:v3-word",
       term: "pensar",
       linkedKeys: ["user:v3-page", "user:v3-page", "user:v3-word"],
     }));
-    const page = withoutAnnotations(makeV3Page({
+    const page = withoutAnnotations(makeV4Page({
       id: "user:v3-page",
       title: "Thinking",
       linkedKeys: [lexical.id],
@@ -291,16 +303,16 @@ describe("import: replace and restore", () => {
     const checked = validateBackup(v3);
 
     expect(checked.ok).toBe(true);
-    expect(checked.summary).toMatchObject({ schemaVersion: 3, targetSchemaVersion: 4, willUpgrade: true });
+    expect(checked.summary).toMatchObject({ schemaVersion: 3, targetSchemaVersion: 5, willUpgrade: true });
     expect(checked.envelope.userItems).toEqual([
       { ...lexical, linkAnnotations: [] },
-      { ...page, linkAnnotations: [] },
+      upgradedGeneralPage((({ pageProfile: _pageProfile, collection: _collection, ...rest }) => rest)(page)),
     ]);
     expect(checked.envelope.userItems[0].linkedKeys).toEqual(lexical.linkedKeys);
     expect(checked.envelope.userItems[1].linkedKeys).toEqual(page.linkedKeys);
   });
 
-  it("round-trips an exact schema-v4 envelope including dictionary alias conflicts and orphans", () => {
+  it("upgrades schema v4 while preserving dictionary alias conflicts and orphans", () => {
     const oldKey = "dict:wiktionary-es:chamba:noun:old";
     const canonicalKey = "dict:wiktionary-es:chamba:noun";
     const item = makeLexical({
@@ -331,8 +343,75 @@ describe("import: replace and restore", () => {
     const checked = validateBackup(JSON.stringify(v4));
 
     expect(checked.ok).toBe(true);
-    expect(checked.envelope).toEqual(v4);
-    expect(checked.summary).toMatchObject({ schemaVersion: 4, targetSchemaVersion: 4, willUpgrade: false });
+    expect(checked.envelope).toEqual({ ...v4, schemaVersion: 5 });
+    expect(checked.summary).toMatchObject({ schemaVersion: 4, targetSchemaVersion: 5, willUpgrade: true });
+  });
+
+  it("round-trips exact schema-v5 Source and Grammar structures with stable contextual references", () => {
+    const word = makeLexical({ id: "user:word", term: "nomás" });
+    const sourcePage = makePage({
+      id: "user:source",
+      title: "Radio Ambulante — El hilo",
+      pageFocus: "source",
+      linkedKeys: [word.id],
+      collection: { enabled: true, groups: [] },
+      source: {
+        enabled: true,
+        format: "audio",
+        creator: "Radio Ambulante",
+        scope: "Episode 4",
+        url: "https://example.com/episode",
+        context: "Listening notes",
+        captures: [{
+          id: CAPTURE_ONE,
+          type: "passage",
+          text: "Nomás dime la verdad.",
+          location: "18:42",
+          reflection: "A useful softener.",
+          itemKeys: [word.id],
+        }],
+      },
+    });
+    const grammarPage = makePage({
+      id: "user:grammar",
+      title: "Softening requests",
+      pageFocus: "grammar",
+      linkedKeys: [word.id, sourcePage.id],
+      collection: { enabled: true, groups: [] },
+      grammar: {
+        enabled: true,
+        keyIdea: "Nomás can soften an instruction.",
+        sections: [{
+          id: SECTION_ONE,
+          name: "Pragmatics",
+          explanation: "Notice the relationship and tone.",
+          pattern: "nomás + imperative",
+          examples: [{
+            id: EXAMPLE_ONE,
+            es: "Nomás dime.",
+            en: "Just tell me.",
+            note: "Conversational.",
+            itemKeys: [word.id],
+            sourceCaptureRef: { pageId: sourcePage.id, captureId: CAPTURE_ONE },
+          }],
+        }],
+      },
+    });
+    const v5 = {
+      format: BACKUP_FORMAT,
+      schemaVersion: 5,
+      exportedAt: "2026-08-04T10:00:00.000Z",
+      appVersion: "0.1.0",
+      userItems: [word, sourcePage, grammarPage],
+      events: [],
+      preferences: {},
+    };
+
+    const checked = validateBackup(JSON.stringify(v5));
+
+    expect(checked.ok).toBe(true);
+    expect(checked.envelope).toEqual(v5);
+    expect(checked.summary).toMatchObject({ schemaVersion: 5, targetSchemaVersion: 5, willUpgrade: false });
   });
 
   it("skips duplicate event ids rather than failing", async () => {
@@ -369,20 +448,22 @@ describe("validation happens before anything is written", () => {
   });
 
   const collectionInput = ({
-    pageProfile = "collection",
-    collection = { groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: ["user:member"] }] },
+    pageFocus = "vocabulary",
+    collection = { enabled: true, groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: ["user:member"] }] },
     linkedKeys = ["user:member"],
     preferences = {},
     extraItems = [],
   } = {}) => {
     const member = makeLexical({ id: "user:member", term: "qué" });
-    const page = makeV3Page({
+    const page = {
+      ...makeV3Page({
       id: "user:collection",
       title: "Questions",
-      pageProfile,
-      collection,
       linkedKeys,
-    });
+      }),
+      pageFocus,
+      collection,
+    };
     return { ...baseline(), userItems: [member, ...extraItems, page], preferences };
   };
 
@@ -395,6 +476,55 @@ describe("validation happens before anything is written", () => {
     return { ...baseline(), userItems: includeTarget ? [owner, target] : [owner] };
   };
 
+  const contextualInput = ({ includeSourceLink = true, captureId = CAPTURE_ONE } = {}) => {
+    const word = makeLexical({ id: "user:context-word", term: "nomás" });
+    const sourcePage = makePage({
+      id: "user:context-source",
+      pageFocus: "source",
+      linkedKeys: [word.id],
+      source: {
+        enabled: true,
+        format: "book",
+        creator: "",
+        scope: "Chapter 1",
+        url: "",
+        context: "",
+        captures: [{
+          id: CAPTURE_ONE,
+          type: "passage",
+          text: "Nomás dime.",
+          location: "p. 4",
+          reflection: "",
+          itemKeys: [word.id],
+        }],
+      },
+    });
+    const grammarPage = makePage({
+      id: "user:context-grammar",
+      pageFocus: "grammar",
+      linkedKeys: includeSourceLink ? [word.id, sourcePage.id] : [word.id],
+      grammar: {
+        enabled: true,
+        keyIdea: "",
+        sections: [{
+          id: SECTION_ONE,
+          name: "Use",
+          explanation: "",
+          pattern: "",
+          examples: [{
+            id: EXAMPLE_ONE,
+            es: "Nomás dime.",
+            en: "",
+            note: "",
+            itemKeys: [word.id],
+            sourceCaptureRef: { pageId: sourcePage.id, captureId },
+          }],
+        }],
+      },
+    });
+    return { ...baseline(), userItems: [word, sourcePage, grammarPage] };
+  };
+
   it.each([
     ["not JSON at all", "{ this is not json"],
     ["a different file's JSON", JSON.stringify({ hello: "world" })],
@@ -403,7 +533,7 @@ describe("validation happens before anything is written", () => {
     ["an item with an unknown type", { ...baseline(), userItems: [{ ...makeLexical(), type: "recipe" }] }],
     ["a meaning with a blank gloss", { ...baseline(), userItems: [{ ...makeLexical(), meanings: [{ ...makeLexical().meanings[0], gloss: " " }] }] }],
     ["a malformed nested example", { ...baseline(), userItems: [{ ...makeLexical(), meanings: [{ ...makeLexical().meanings[0], examples: [{ es: "", en: 42 }] }] }] }],
-    ["a missing v4 annotation array", { ...baseline(), userItems: [{ ...makeLexical(), linkAnnotations: undefined }] }],
+    ["a missing annotation array", { ...baseline(), userItems: [{ ...makeLexical(), linkAnnotations: undefined }] }],
     ["a non-array annotation field", { ...baseline(), userItems: [{ ...makeLexical(), linkAnnotations: {} }] }],
     ["a malformed annotation", relationshipInput([null])],
     ["an annotation target without a supported namespace", relationshipInput([{
@@ -466,45 +596,81 @@ describe("validation happens before anything is written", () => {
     ])],
     ["an event missing localDate", { ...baseline(), events: [{ ...makeEvent(), localDate: undefined }] }],
     ["duplicate item ids", { ...baseline(), userItems: [makeLexical({ id: "user:a" }), makeLexical({ id: "user:a" })] }],
-    ["an unknown page profile", collectionInput({ pageProfile: "source" })],
+    ["a lingering schema-v4 pageProfile", { ...baseline(), userItems: [{ ...makePage(), pageProfile: "general" }] }],
+    ["an unknown page focus", collectionInput({ pageFocus: "worksheet" })],
+    ["a focus whose structure is disabled", { ...baseline(), userItems: [makePage({ pageFocus: "source" })] }],
     ["missing collection metadata", collectionInput({ collection: null })],
+    ["a non-http Source URL", { ...baseline(), userItems: [makePage({
+      pageFocus: "source",
+      source: { ...emptySource({ enabled: true }), url: "example.com/book" },
+    })] }],
+    ["a blank Source capture", (() => {
+      const input = contextualInput();
+      input.userItems[1].source.captures[0].text = " ";
+      return input;
+    })()],
+    ["a malformed Source capture id", (() => {
+      const input = contextualInput();
+      input.userItems[1].source.captures[0].id = "source-capture:not-a-uuid";
+      return input;
+    })()],
+    ["an external Source capture reference without its page link", contextualInput({ includeSourceLink: false })],
+    ["an exact reference to a missing Source capture", contextualInput({
+      captureId: "source-capture:66666666-6666-4666-8666-666666666666",
+    })],
+    ["a contextual vocabulary attachment without page membership", (() => {
+      const input = contextualInput();
+      input.userItems[1].linkedKeys = [];
+      return input;
+    })()],
+    ["Unicode-equivalent duplicate Grammar section names", (() => {
+      const input = contextualInput();
+      input.userItems[2].grammar.sections.push({
+        id: "grammar-section:77777777-7777-4777-8777-777777777777",
+        name: "u\u0073e",
+        explanation: "",
+        pattern: "",
+        examples: [],
+      });
+      return input;
+    })()],
     ["a malformed page-group id", collectionInput({
-      collection: { groups: [{ id: "page-group:not-a-uuid", name: "Questions", itemKeys: ["user:member"] }] },
+      collection: { enabled: true, groups: [{ id: "page-group:not-a-uuid", name: "Questions", itemKeys: ["user:member"] }] },
     })],
     ["an untrimmed group name", collectionInput({
-      collection: { groups: [{ id: GROUP_ONE, name: " Questions ", itemKeys: ["user:member"] }] },
+      collection: { enabled: true, groups: [{ id: GROUP_ONE, name: " Questions ", itemKeys: ["user:member"] }] },
     })],
     ["Unicode-equivalent duplicate group names", collectionInput({
-      collection: { groups: [
+      collection: { enabled: true, groups: [
         { id: GROUP_ONE, name: "Café", itemKeys: ["user:member"] },
         { id: GROUP_TWO, name: "Cafe\u0301", itemKeys: [] },
       ] },
     })],
     ["duplicate page-group ids", collectionInput({
-      collection: { groups: [
+      collection: { enabled: true, groups: [
         { id: GROUP_ONE, name: "Questions", itemKeys: ["user:member"] },
         { id: GROUP_ONE, name: "Answers", itemKeys: [] },
       ] },
     })],
     ["duplicate collection placement", collectionInput({
-      collection: { groups: [
+      collection: { enabled: true, groups: [
         { id: GROUP_ONE, name: "Questions", itemKeys: ["user:member"] },
         { id: GROUP_TWO, name: "Answers", itemKeys: ["user:member"] },
       ] },
     })],
     ["a dictionary key used as a collection member", collectionInput({
-      collection: { groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: ["dict:wiktionary-es:que"] }] },
+      collection: { enabled: true, groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: ["dict:wiktionary-es:que"] }] },
       linkedKeys: ["dict:wiktionary-es:que"],
     })],
     ["a dangling collection member", collectionInput({
-      collection: { groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: ["user:missing"] }] },
+      collection: { enabled: true, groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: ["user:missing"] }] },
       linkedKeys: ["user:missing"],
     })],
     ["a grouped item without an outgoing page link", collectionInput({ linkedKeys: [] })],
     ["a page used as a collection member", (() => {
       const targetPage = makeV3Page({ id: "user:other-page", title: "Other" });
       return collectionInput({
-        collection: { groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: [targetPage.id] }] },
+        collection: { enabled: true, groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: [targetPage.id] }] },
         linkedKeys: [targetPage.id],
         extraItems: [targetPage],
       });

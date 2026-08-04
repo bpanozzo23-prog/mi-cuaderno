@@ -1,4 +1,11 @@
-import { db, allPrefs, setPref, upgradeItemV3, upgradePageItemV2 } from "./db.js";
+import {
+  db,
+  allPrefs,
+  setPref,
+  upgradeItemV3,
+  upgradePageItemV2,
+  upgradePageItemV4,
+} from "./db.js";
 import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
 import { nowIso } from "../lib/dates.js";
 import {
@@ -7,8 +14,15 @@ import {
   VERB_BEHAVIORS,
   upgradeLexicalItemV1,
 } from "../lib/meanings.js";
-import { isDictKey, isMeaningKey, isPageGroupKey, isUserKey } from "../lib/ids.js";
+import {
+  isDictKey,
+  isMeaningKey,
+  isPageGroupKey,
+  isSourceCaptureKey,
+  isUserKey,
+} from "../lib/ids.js";
 import { isPageProfile, PINNED_PAGE_IDS_PREF } from "../lib/pageProfiles.js";
+import { validatePageStructures } from "../lib/pageKinds.js";
 import {
   isDirectionalRelationshipType,
   RELATIONSHIP_SUBJECTS,
@@ -196,7 +210,17 @@ function validateLinkAnnotations(value, where, errors) {
   });
 }
 
-function validateItem(item, index, errors, schemaVersion, seenMeaningIds, seenGroupIds) {
+function validateItem(
+  item,
+  index,
+  errors,
+  schemaVersion,
+  seenMeaningIds,
+  seenGroupIds,
+  seenCaptureIds,
+  seenSectionIds,
+  seenGrammarExampleIds
+) {
   const where = `userItems[${index}]`;
   if (!item || typeof item !== "object" || Array.isArray(item)) return errors.push(`${where} is not an object`);
   if (!isNonEmptyString(item.id)) errors.push(`${where}.id is missing`);
@@ -207,7 +231,7 @@ function validateItem(item, index, errors, schemaVersion, seenMeaningIds, seenGr
   if (!isString(item.updatedAt)) errors.push(`${where}.updatedAt is missing`);
   validateStringArray(item.tags, `${where}.tags`, errors);
   validateStringArray(item.linkedKeys, `${where}.linkedKeys`, errors);
-  if (schemaVersion === 4) validateLinkAnnotations(item.linkAnnotations, `${where}.linkAnnotations`, errors);
+  if (schemaVersion >= 4) validateLinkAnnotations(item.linkAnnotations, `${where}.linkAnnotations`, errors);
   validateMediaLinks(item.mediaLinks, `${where}.mediaLinks`, errors);
   if (item.type === "lexical") {
     if (!isNonEmptyString(item.term)) errors.push(`${where}.term is missing`);
@@ -239,11 +263,19 @@ function validateItem(item, index, errors, schemaVersion, seenMeaningIds, seenGr
     if (item.pageDate !== null && item.pageDate !== undefined && !isString(item.pageDate)) {
       errors.push(`${where}.pageDate must be a string or null`);
     }
-    if (schemaVersion >= 3) {
+    if (schemaVersion === 3 || schemaVersion === 4) {
       if (!isPageProfile(item.pageProfile)) {
         errors.push(`${where}.pageProfile must be "general" or "collection"`);
       }
       validateCollection(item.collection, `${where}.collection`, errors, seenGroupIds);
+    } else if (schemaVersion === 5) {
+      errors.push(...validatePageStructures(item, {
+        where,
+        seenGroupIds,
+        seenCaptureIds,
+        seenSectionIds,
+        seenExampleIds: seenGrammarExampleIds,
+      }));
     }
   }
 }
@@ -283,6 +315,82 @@ function validateV4References(userItems, errors) {
       } else {
         seenPersonalPairs.set(pairKey, annotationWhere);
       }
+    });
+  });
+}
+
+function validateV5VocabularyReferences(item, itemKeys, where, itemsById, errors) {
+  if (!Array.isArray(itemKeys)) return;
+  itemKeys.forEach((key, index) => {
+    if (!isUserKey(key)) return;
+    const keyWhere = `${where}[${index}]`;
+    const target = itemsById.get(key);
+    if (!target) {
+      errors.push(`${keyWhere} points to a missing personal item`);
+    } else if (target.type !== "lexical") {
+      errors.push(`${keyWhere} must point to a personal lexical item`);
+    }
+    if (!Array.isArray(item.linkedKeys) || !item.linkedKeys.includes(key)) {
+      errors.push(`${keyWhere} must also be an outgoing page link`);
+    }
+  });
+}
+
+/** Exact contextual references remain layout metadata; linkedKeys is still their authority. */
+function validateV5References(userItems, errors) {
+  const itemsById = new Map(
+    userItems
+      .filter((item) => item && typeof item === "object" && !Array.isArray(item) && isNonEmptyString(item.id))
+      .map((item) => [item.id, item])
+  );
+
+  userItems.forEach((item, itemIndex) => {
+    if (!item || item.type !== "page") return;
+    const where = `userItems[${itemIndex}]`;
+
+    if (Array.isArray(item.source?.captures)) {
+      item.source.captures.forEach((capture, captureIndex) => {
+        validateV5VocabularyReferences(
+          item,
+          capture?.itemKeys,
+          `${where}.source.captures[${captureIndex}].itemKeys`,
+          itemsById,
+          errors
+        );
+      });
+    }
+
+    if (!Array.isArray(item.grammar?.sections)) return;
+    item.grammar.sections.forEach((section, sectionIndex) => {
+      if (!Array.isArray(section?.examples)) return;
+      section.examples.forEach((example, exampleIndex) => {
+        const exampleWhere = `${where}.grammar.sections[${sectionIndex}].examples[${exampleIndex}]`;
+        validateV5VocabularyReferences(
+          item,
+          example?.itemKeys,
+          `${exampleWhere}.itemKeys`,
+          itemsById,
+          errors
+        );
+
+        const ref = example?.sourceCaptureRef;
+        if (!ref || !isUserKey(ref.pageId) || !isSourceCaptureKey(ref.captureId)) return;
+        const targetPage = itemsById.get(ref.pageId);
+        if (!targetPage) {
+          errors.push(`${exampleWhere}.sourceCaptureRef.pageId points to a missing personal item`);
+          return;
+        }
+        if (targetPage.type !== "page") {
+          errors.push(`${exampleWhere}.sourceCaptureRef.pageId must point to a page`);
+          return;
+        }
+        if (!(targetPage.source?.captures || []).some((capture) => capture?.id === ref.captureId)) {
+          errors.push(`${exampleWhere}.sourceCaptureRef.captureId points to a missing Source capture`);
+        }
+        if (ref.pageId !== item.id && (!Array.isArray(item.linkedKeys) || !item.linkedKeys.includes(ref.pageId))) {
+          errors.push(`${exampleWhere}.sourceCaptureRef.pageId must also be an outgoing page link`);
+        }
+      });
     });
   });
 }
@@ -358,8 +466,21 @@ function validateV3References(userItems, preferences, errors) {
 function validateSchemaState(userItems, events, preferences, schemaVersion, errors) {
   const seenMeaningIds = new Set();
   const seenGroupIds = new Set();
+  const seenCaptureIds = new Set();
+  const seenSectionIds = new Set();
+  const seenGrammarExampleIds = new Set();
   userItems.forEach((item, index) =>
-    validateItem(item, index, errors, schemaVersion, seenMeaningIds, seenGroupIds)
+    validateItem(
+      item,
+      index,
+      errors,
+      schemaVersion,
+      seenMeaningIds,
+      seenGroupIds,
+      seenCaptureIds,
+      seenSectionIds,
+      seenGrammarExampleIds
+    )
   );
   events.forEach((event, index) => validateEvent(event, index, errors));
 
@@ -370,7 +491,8 @@ function validateSchemaState(userItems, events, preferences, schemaVersion, erro
   }
 
   if (schemaVersion >= 3) validateV3References(userItems, preferences, errors);
-  if (schemaVersion === 4) validateV4References(userItems, errors);
+  if (schemaVersion >= 4) validateV4References(userItems, errors);
+  if (schemaVersion === 5) validateV5References(userItems, errors);
 }
 
 function upgradeItemsV1ToV2(userItems) {
@@ -384,6 +506,7 @@ function upgradeItemsV1ToV2(userItems) {
 
 const upgradeItemsV2ToV3 = (userItems) => userItems.map((item) => upgradePageItemV2(item));
 const upgradeItemsV3ToV4 = (userItems) => userItems.map((item) => upgradeItemV3(item));
+const upgradeItemsV4ToV5 = (userItems) => userItems.map((item) => upgradePageItemV4(item));
 
 function validateEvent(event, index, errors) {
   const where = `events[${index}]`;
@@ -424,7 +547,7 @@ export function validateBackup(raw) {
     errors.push(
       `This backup is schema version ${parsed.schemaVersion}, newer than this app understands (${SCHEMA_VERSION}). Update the app first.`
     );
-  } else if (![1, 2, 3, 4].includes(parsed.schemaVersion)) {
+  } else if (![1, 2, 3, 4, 5].includes(parsed.schemaVersion)) {
     errors.push(`Schema version ${parsed.schemaVersion} is not supported.`);
   }
   if (!Array.isArray(parsed.userItems)) errors.push("userItems must be an array.");
@@ -461,6 +584,13 @@ export function validateBackup(raw) {
   if (upgradedSchemaVersion === 3) {
     upgradedItems = upgradeItemsV3ToV4(upgradedItems);
     upgradedSchemaVersion = 4;
+    validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
+  }
+  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
+
+  if (upgradedSchemaVersion === 4) {
+    upgradedItems = upgradeItemsV4ToV5(upgradedItems);
+    upgradedSchemaVersion = 5;
     validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
   }
   if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
