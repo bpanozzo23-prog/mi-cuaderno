@@ -4,11 +4,12 @@ import { cleanup, render, screen, waitFor, within } from "@testing-library/react
 import userEvent from "@testing-library/user-event";
 import App from "./App.jsx";
 import { db, clearAllPersonalData } from "./db/db.js";
-import { allItems, createItem, linkItems, newLexical, newPage } from "./db/items.js";
+import { allItems, createItem, getItem, linkItems, newLexical, newPage } from "./db/items.js";
 import { removeDictionary } from "./db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "./db/ref/refdb.js";
 import { FIXTURE_ENTRIES } from "./test/dictFixture.js";
 import { newMeaning } from "./lib/meanings.js";
+import { localDate } from "./lib/dates.js";
 
 const CASA = "dict:wiktionary-es:casa:noun";
 
@@ -195,5 +196,76 @@ describe("Phase 4r journal capture", () => {
 
     await user.click(screen.getByRole("button", { name: "Back to Diario" }));
     expect(await screen.findByRole("button", { name: "Open A title alone" })).toBeTruthy();
+  });
+});
+
+describe("Phase 4s journal reading and connections", () => {
+  it("crosses from a journal to linked vocabulary and Back returns to the reader", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({ term: "madrugar", meanings: [newMeaning({ gloss: "to get up early" })] }));
+    await createItem(newPage({
+      title: "Morning link",
+      body: "Hoy me levanté temprano.",
+      pageDate: localDate(),
+      linkedKeys: [word.id],
+    }));
+    render(<App />);
+
+    const navigation = await screen.findByRole("navigation", { name: "Primary" });
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(within(navigation).getByRole("button", { name: "Diario" }));
+    await user.click(screen.getByRole("button", { name: "Open Morning link" }));
+    await user.click(screen.getByRole("button", { name: /^madrugar/ }));
+
+    expect(screen.getByText("madrugar", { selector: ".text-2xl *" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Atrás" }));
+    expect(screen.getByRole("heading", { name: "Morning link" })).toBeTruthy();
+  });
+
+  it("creates reflection as a separate current-day moment linked to its source", async () => {
+    const user = userEvent.setup();
+    const source = await createItem(newPage({
+      title: "A year ago",
+      body: "Entonces pensaba otra cosa.",
+      pageDate: "2025-08-03",
+    }));
+    render(<App />);
+
+    const navigation = await screen.findByRole("navigation", { name: "Primary" });
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(within(navigation).getByRole("button", { name: "Diario" }));
+    await user.click(screen.getByRole("button", { name: "Open A year ago" }));
+    await user.click(screen.getByRole("button", { name: "Reflect" }));
+
+    expect(screen.getByText("Looking back, what do you notice now?")).toBeTruthy();
+    await user.type(screen.getByRole("textbox", { name: "Journal body" }), "Ahora noto cuánto he cambiado.");
+    await waitFor(async () => expect(await allItems()).toHaveLength(2), { timeout: 3000 });
+    const reflection = (await allItems()).find((item) => item.id !== source.id);
+    expect(reflection.pageDate).toBe(localDate());
+    expect(reflection.linkedKeys).toEqual([source.id]);
+    expect(reflection.prompt).toBeUndefined();
+
+    await user.click(screen.getByRole("button", { name: "Back to Atrás" }));
+    expect(screen.getByRole("heading", { name: "A year ago" })).toBeTruthy();
+  });
+
+  it("moves a journal to Pages in place and preserves Diario as the Back origin", async () => {
+    const user = userEvent.setup();
+    const entry = await createItem(newPage({ title: "Move me", body: "Keep every field.", pageDate: localDate() }));
+    render(<App />);
+
+    const navigation = await screen.findByRole("navigation", { name: "Primary" });
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(within(navigation).getByRole("button", { name: "Diario" }));
+    await user.click(screen.getByRole("button", { name: "Open Move me" }));
+    await user.click(screen.getByRole("button", { name: "More journal tools" }));
+    await user.click(screen.getByRole("button", { name: "Move to Pages" }));
+    await user.click(screen.getByRole("button", { name: "Confirm move" }));
+
+    await waitFor(async () => expect((await getItem(entry.id)).pageDate).toBeNull());
+    const cuaderno = await screen.findByRole("region", { name: "Cuaderno surface" });
+    expect(within(cuaderno).getByText("Move me", { selector: ".text-2xl *" })).toBeTruthy();
+    await user.click(within(cuaderno).getByRole("button", { name: "Diario" }));
+    expect(await screen.findByText("Your first moment can begin with today.")).toBeTruthy();
   });
 });

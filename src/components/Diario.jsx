@@ -1,8 +1,8 @@
-import { ChevronLeft } from "lucide-react";
-import { C, SERIF, dotGrid } from "../theme.jsx";
 import { journalEntries } from "../lib/journal.js";
+import { emptyItemState } from "../useNotebook.js";
 import JournalHome from "./JournalHome.jsx";
 import JournalEditor from "./JournalEditor.jsx";
+import JournalReader from "./JournalReader.jsx";
 
 export default function Diario({
   notebook,
@@ -33,22 +33,18 @@ export default function Diario({
 
   if (selected) {
     return (
-      <div className="px-4 py-4 pb-28" style={dotGrid}>
-        <button
-          type="button"
-          onClick={onBack}
-          aria-label={`Back to ${backLabel}`}
-          className="mb-3 flex items-center gap-1 text-sm"
-          style={{ color: C.pen }}
-        >
-          <ChevronLeft size={16} /> {backLabel}
-        </button>
-        <div className="mb-2 text-xs" style={{ color: C.mut }}>{selected.pageDate}</div>
-        {selected.title && <h1 className="text-2xl font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>{selected.title}</h1>}
-        <div className="mt-4 whitespace-pre-wrap break-words" style={{ color: C.ink, fontFamily: SERIF }}>
-          {selected.body || "Esta entrada está vacía."}
-        </div>
-      </div>
+      <JournalReader
+        key={selected.id}
+        entry={selected}
+        state={notebook.itemState.get(selected.id) || emptyItemState}
+        items={notebook.items}
+        onBack={onBack}
+        backLabel={backLabel}
+        onOpen={onSelect}
+        onEdit={onEdit}
+        onStart={onStart}
+        onChanged={notebook.reload}
+      />
     );
   }
 

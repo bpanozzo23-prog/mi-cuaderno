@@ -475,3 +475,22 @@ The prompt, editor and App integration suites pass **15/15 tests across three fi
 production build passes with a 13-entry PWA precache (about 542 KiB). A deliberate failure proof
 changed the edit guard to log every autosave; the focused test failed with three edit events instead
 of one, then passed after the guard was restored.
+
+## 4s follow-up — reading, connections and Más
+
+The journal reader now leads with the entry's calendar date, optional title and whitespace-preserved
+body. Personal vocabulary and existing dictionary links follow, then a chronological list of linked
+journal moments. Edit opens the focused autosave visit; Reflect opens a separate current-day draft
+with one ordinary link back and an ephemeral bilingual prompt.
+
+The journal vocabulary picker searches only personal words and phrases. Existing direct dictionary
+links still resolve through the installed dataset's alias map, and an unresolved key is reported
+rather than dropped. Más contains tags, validated media links, nonjournal page relations, derived
+activity, event-derived tricky state, two-step delete and a confirmed Move to Pages. The latter
+clears only the date; canonical routing moves the same page to Cuaderno and leaves Diario as Back.
+There is no pin or direct Vocabulary Collection action in Diario.
+
+The complete focused journal boundary—domain, prompts, home, editor, reader, App navigation,
+Cuaderno separation and Add Sheet—passes **45/45 tests across eight files**. The production build
+passes with a 13-entry PWA precache (about 555 KiB). Schema remains v3 and no personal/reference
+store, index, backup, item or preference shape changed.
