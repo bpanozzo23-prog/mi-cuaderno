@@ -457,3 +457,21 @@ a candidate; its month/day distance also works across December/January.
 
 The home and pure-domain focused suites, together with App navigation coverage, pass **14/14 tests
 across three files**. Schema and stored shapes remain unchanged.
+
+## 4r follow-up — focused autosave and prompts
+
+The explicit interim Save action has been replaced by a focused editor with required date, optional
+title, a large body surface and visible autosave status. A new draft remains entirely in React until
+its body becomes nonblank. Its first persistence writes the normal page plus one `create`; later
+autosaves in that same mounted visit write no `edit`. An existing entry's first changed autosave
+writes one `edit`, and every later autosave in the visit suppresses another. Back awaits a pending
+valid save, while an unmount flush cannot pull navigation back from a tab the owner already chose.
+
+The 24 optional bilingual prompts are evenly divided among Notice, Reflect, Spanish and Grow. A
+selection is shown beside the body for the current visit only: neither its ID nor its text enters the
+stored page unless the owner independently writes it.
+
+The prompt, editor and App integration suites pass **15/15 tests across three files**, and the
+production build passes with a 13-entry PWA precache (about 542 KiB). A deliberate failure proof
+changed the edit guard to log every autosave; the focused test failed with three edit events instead
+of one, then passed after the guard was restored.

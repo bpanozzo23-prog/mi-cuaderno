@@ -4,7 +4,7 @@ import { cleanup, render, screen, waitFor, within } from "@testing-library/react
 import userEvent from "@testing-library/user-event";
 import App from "./App.jsx";
 import { db, clearAllPersonalData } from "./db/db.js";
-import { createItem, linkItems, newLexical, newPage } from "./db/items.js";
+import { allItems, createItem, linkItems, newLexical, newPage } from "./db/items.js";
 import { removeDictionary } from "./db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "./db/ref/refdb.js";
 import { FIXTURE_ENTRIES } from "./test/dictFixture.js";
@@ -175,5 +175,25 @@ describe("Phase 4p Diario foundation", () => {
 
     expect(screen.getByRole("textbox", { name: "Search notebook" }).value).toBe("Morning");
     expect(screen.getByRole("button", { name: /Morning check-in/ })).toBeTruthy();
+  });
+});
+
+describe("Phase 4r journal capture", () => {
+  it("starts an unmaterialized moment from Diario and returns home after autosave", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const navigation = await screen.findByRole("navigation", { name: "Primary" });
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(within(navigation).getByRole("button", { name: "Diario" }));
+    await user.click(screen.getByRole("button", { name: "Write today" }));
+
+    await user.type(screen.getByRole("textbox", { name: "Journal title" }), "A title alone");
+    expect(await allItems()).toEqual([]);
+    await user.type(screen.getByRole("textbox", { name: "Journal body" }), "Hoy escribí en mi diario.");
+    await waitFor(async () => expect(await allItems()).toHaveLength(1), { timeout: 3000 });
+
+    await user.click(screen.getByRole("button", { name: "Back to Diario" }));
+    expect(await screen.findByRole("button", { name: "Open A title alone" })).toBeTruthy();
   });
 });

@@ -31,8 +31,9 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   specialized profile, Vocabulary Collection (4j–4o), are shipped and production-verified after
   the complete serial suite plus disposable local and production 375×812 browser flows. The
   migration-free Diario workspace (4p–4s) is now in progress; its navigation foundation (4p) is
-  complete, as is its Today/timeline/search/archive/memory home (4q). Source, Grammar, richer stored
-  Journal profiles, user-authored templates, and exact term/title link suggestions remain deferred. See
+  complete, as are its Today/timeline/search/archive/memory home (4q) and focused autosave editor
+  with optional prompts (4r). Source, Grammar, richer stored Journal profiles, user-authored
+  templates, and exact term/title link suggestions remain deferred. See
   [docs/PHASE-4-JOURNAL-DIRECTION.md](docs/PHASE-4-JOURNAL-DIRECTION.md) and
   [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).
 - **Phase 5 — done.** Organizational improvements that do not require real notebook data:
