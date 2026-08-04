@@ -32,10 +32,11 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   the complete serial suite plus disposable local and production 375×812 browser flows. The
   migration-free Diario workspace (4p–4s) is shipped after the complete serial suite, a disposable
   local 375×812 closeout, and a successful GitHub Pages deployment check. Typed and explained
-  ordinary Connections (4t–4x) are implemented locally on schema v4; the complete serial suite and
-  production build pass, while the disposable 375×812 browser closeout remains pending because the
-  local browser-control kernel could not initialize. Source, Grammar, richer stored Journal
-  profiles, user-authored templates, and exact term/title link suggestions remain deferred. See
+  ordinary Connections (4t–4x) are shipped on schema v4 after the complete serial suite, production
+  build, and a successful GitHub Pages deployment check; the disposable 375×812 browser closeout
+  remains pending because the local browser-control kernel could not initialize. Source, Grammar,
+  richer stored Journal profiles, user-authored templates, and exact term/title link suggestions
+  remain deferred. See
   [docs/PHASE-4-JOURNAL-DIRECTION.md](docs/PHASE-4-JOURNAL-DIRECTION.md) and
   [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).
 - **Phase 5 — done.** Organizational improvements that do not require real notebook data:

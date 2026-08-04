@@ -611,7 +611,10 @@ relationship-only edit refreshes their rows.
   kernel failed before fixture setup with `failed to write kernel assets: The system cannot find the
   path specified`. No phone-layout, console, or export→wipe→import browser result is claimed for this
   phase. The failure did not touch the owner's real browser data.
-- No push or deployment was performed.
+- `main` was fast-forwarded and pushed at `eb93c90`. GitHub Pages
+  [workflow run 30949552774](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/30949552774)
+  completed both build and deploy jobs successfully, and the live site returned HTTP 200 with the
+  verified build's `index-BhBJ0bH7.js` asset.
 
-The implementation and automated/build acceptance are complete. The brief's disposable browser
-condition remains open until the browser-control runtime can initialize.
+The implementation, automated/build acceptance, and production deployment are complete. The
+brief's disposable browser condition remains open until the browser-control runtime can initialize.

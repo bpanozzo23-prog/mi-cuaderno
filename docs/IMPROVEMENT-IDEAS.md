@@ -346,7 +346,8 @@ schema-v4 migration and backup plan.
   the planned deliberate red/green proofs fail before restoration and pass afterward.
 - The disposable schema-v3 375×812 closeout remains unclaimed because Codex's in-app
   browser-control kernel fails before fixture setup with a missing local asset path. No owner data
-  was inspected, and no push or deployment was performed.
+  was inspected. The GitHub Pages build and deploy jobs subsequently passed for `eb93c90`, and the
+  live site served the verified production asset.
 
 ---
 
@@ -689,6 +690,10 @@ backup plan.
 ---
 
 ## Document history
+
+- **2026-08-04 — Phase 4t–4x deployed.** Fast-forwarded and pushed `main` at `eb93c90`; GitHub
+  Pages workflow run 30949552774 passed both jobs, and the live site returned HTTP 200 with the
+  verified build asset. The disposable phone-width browser closeout remains pending.
 
 - **2026-08-04 — Phase 4t–4x implemented locally.** Promoted typed and explained relationships from
   Planned to Implemented locally after the 493-test serial suite, production build, and deliberate
