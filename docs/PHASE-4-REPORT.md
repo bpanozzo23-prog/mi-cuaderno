@@ -659,3 +659,10 @@ removing placements from the lexical screen remain outside this slice.
   failed before fixture setup with `failed to write kernel assets: The system cannot find the path
   specified`. No owner browser data was inspected or changed.
 - No push or deployment was performed.
+
+### Deployment closeout
+
+The owner subsequently approved publishing Phase 4y. `main` was fast-forwarded to `c716e9d` and
+pushed. GitHub Pages workflow run 30955868049 completed both build and deploy jobs successfully,
+and the public site returned HTTP 200 while referencing the verified `index-BpNcWMY7.js` asset.
+The disposable 375×812 browser check remains the only pending Phase 4y verification item.

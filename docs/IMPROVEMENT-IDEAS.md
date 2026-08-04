@@ -707,6 +707,10 @@ backup plan.
 
 ## Document history
 
+- **2026-08-04 — Phase 4y deployed.** Fast-forwarded and pushed `main` at `c716e9d`; GitHub Pages
+  workflow run 30955868049 passed both jobs, and the live site returned HTTP 200 with the verified
+  `index-BpNcWMY7.js` asset. The disposable phone-width browser check remains pending.
+
 - **2026-08-04 — Phase 4y implemented locally.** Recorded the owner-observed reverse-capture gap,
   the schema-free Add to Collection flow, ordinary-picker guard, lossless promotion behavior,
   501-test serial suite and production build. Phone-width browser verification remains pending;
