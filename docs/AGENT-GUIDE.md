@@ -57,11 +57,11 @@ this summary.
 - **The event log is the single source of truth** (§7). No stored counters, no state flags.
   Tricky state, lookup counts, review box and due date are all *derived at render*
   (`src/lib/review.js`, `src/db/events.js`).
-- **`SCHEMA_VERSION` is 3.** Phase 4i introduced v1→v2 structured meanings; Phase 4j–4o adds
-  v2→v3 page profiles. Startup requires an untouched validated v1 or v2 export before Dexie opens;
-  direct v1→v3 runs the meanings migration before the page migration. Backup schemas 1, 2, and 3
-  upgrade sequentially in memory and are deeply validated as v3 before any write; versions newer
-  than 3 remain blocked. Any further personal schema change still triggers §5 in full: migration
+- **`SCHEMA_VERSION` is 4.** Phase 4i introduced v1→v2 structured meanings, Phase 4j–4o added
+  v2→v3 page profiles, and Phase 4t adds v3→v4 sparse link annotations. Startup requires an
+  untouched validated v1, v2, or v3 export before Dexie opens; direct v1→v4 runs all three
+  migrations in order. Backup schemas 1 through 4 upgrade sequentially in memory and are deeply
+  validated as v4 before any write; versions newer than 4 remain blocked. Any further personal schema change still triggers §5 in full: migration
   plan, export-first safety, version bump and matching backup validation. **If you conclude another
   is needed, stop and raise it.**
 - **`src/lib/normalize.js` preserves ñ** — "año" must never match "ano", anywhere new. All

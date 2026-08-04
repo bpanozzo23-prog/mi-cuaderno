@@ -48,11 +48,11 @@ export async function currentPersonalDatabaseVersion() {
 
 export async function preupgradeStatus() {
   const version = await currentPersonalDatabaseVersion();
-  const needsBackup = version === 1 || version === 2;
+  const needsBackup = Number.isInteger(version) && version >= 1 && version < SCHEMA_VERSION;
   return {
     version,
     needsBackup,
-    // Kept while main.jsx still uses the original gate flag; it now covers both legacy schemas.
+    // Kept for compatibility with callers from the schema-v2 release; it now covers every legacy schema.
     needsV1Backup: needsBackup,
     unsupported: typeof version === "number" && version > SCHEMA_VERSION,
   };
@@ -65,8 +65,11 @@ export async function preupgradeStatus() {
  */
 export async function buildPreupgradeBackup() {
   const sourceVersion = await currentPersonalDatabaseVersion();
-  if (sourceVersion !== 1 && sourceVersion !== 2) {
-    throw new Error(`Expected schema 1 or 2 but found ${sourceVersion ?? "no notebook database"}.`);
+  const supportedLegacyVersions = Array.from({ length: SCHEMA_VERSION - 1 }, (_, index) => index + 1);
+  if (!supportedLegacyVersions.includes(sourceVersion)) {
+    throw new Error(
+      `Expected schema ${supportedLegacyVersions.join(", ")} but found ${sourceVersion ?? "no notebook database"}.`
+    );
   }
 
   const legacy = new Dexie(DATABASE_NAME);

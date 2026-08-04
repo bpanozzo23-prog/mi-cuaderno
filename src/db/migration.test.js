@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   migratePersonalDataToV2,
   migratePersonalDataToV3,
+  migratePersonalDataToV4,
   PERSONAL_STORES,
 } from "./db.js";
 
@@ -38,10 +39,11 @@ function declareCurrentSchema(database) {
   database.version(1).stores(PERSONAL_STORES);
   database.version(2).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV2);
   database.version(3).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV3);
+  database.version(4).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV4);
 }
 
-describe("personal-data schema v3 migrations", () => {
-  it("runs v1 → v2 → v3 in order without touching unrelated data", async () => {
+describe("personal-data schema v4 migrations", () => {
+  it("runs v1 → v2 → v3 → v4 in order without touching unrelated data", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(1).stores(PERSONAL_STORES);
@@ -82,10 +84,13 @@ describe("personal-data schema v3 migrations", () => {
       expect(stored.notes).toBe(lexical.notes);
       expect(stored.myExamples).toEqual(lexical.myExamples);
       expect(stored.updatedAt).toBe(lexical.updatedAt);
+      expect(stored.linkedKeys).toEqual(lexical.linkedKeys);
+      expect(stored.linkAnnotations).toEqual([]);
       expect(await upgraded.items.get(page.id)).toEqual({
         ...page,
         pageProfile: "general",
         collection: { groups: [] },
+        linkAnnotations: [],
       });
       expect(await upgraded.events.toArray()).toEqual([event]);
       expect(await upgraded.prefs.toArray()).toEqual([{ key: "preference", value: true }]);
@@ -95,7 +100,7 @@ describe("personal-data schema v3 migrations", () => {
     }
   });
 
-  it("upgrades v2 pages while preserving structured lexical items, events, preferences and timestamps", async () => {
+  it("runs v2 → v3 → v4 while preserving structured content, events, preferences and timestamps", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(2).stores(PERSONAL_STORES);
@@ -139,14 +144,80 @@ describe("personal-data schema v3 migrations", () => {
     try {
       await upgraded.open();
 
-      expect(await upgraded.items.get(lexical.id)).toEqual(lexical);
+      expect(await upgraded.items.get(lexical.id)).toEqual({ ...lexical, linkAnnotations: [] });
       expect(await upgraded.items.get(page.id)).toEqual({
         ...page,
         pageProfile: "general",
         collection: { groups: [] },
+        linkAnnotations: [],
       });
       expect(await upgraded.events.toArray()).toEqual([event]);
       expect(await upgraded.prefs.toArray()).toEqual([{ key: "preference", value: { nested: true } }]);
+    } finally {
+      upgraded.close();
+      await Dexie.delete(name);
+    }
+  });
+
+  it("runs v3 → v4 by adding only empty annotations and preserves redundant legacy topology", async () => {
+    const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
+    const legacy = new Dexie(name);
+    legacy.version(3).stores(PERSONAL_STORES);
+    await legacy.open();
+
+    const lexical = {
+      id: "user:sacar",
+      type: "lexical",
+      dictKey: null,
+      form: "word",
+      term: "sacar",
+      meanings: [{
+        id: "meaning:11111111-1111-4111-8111-111111111111",
+        gloss: "take out",
+        usageCue: "",
+        regions: [],
+        usageLabels: [],
+        posOverride: "",
+        verbBehavior: [],
+        note: "",
+        examples: [],
+      }],
+      pos: "verb",
+      notes: "Keep every field",
+      myExamples: [],
+      tags: ["verbs"],
+      // Duplicate, reciprocal and self links are deliberately retained by the migration.
+      linkedKeys: ["user:page", "user:page", "user:sacar"],
+      mediaLinks: [],
+      createdAt: "2026-08-01T10:00:00.000Z",
+      updatedAt: at,
+    };
+    const page = {
+      ...pageFixture(),
+      pageProfile: "collection",
+      collection: { groups: [] },
+    };
+    const event = eventFixture();
+    const preference = { key: "preference", value: { nested: true } };
+    await legacy.items.bulkAdd([lexical, page]);
+    await legacy.events.add(event);
+    await legacy.prefs.add(preference);
+    legacy.close();
+
+    const upgraded = new Dexie(name);
+    declareCurrentSchema(upgraded);
+    try {
+      await upgraded.open();
+
+      expect(await upgraded.items.get(lexical.id)).toEqual({ ...lexical, linkAnnotations: [] });
+      expect(await upgraded.items.get(page.id)).toEqual({ ...page, linkAnnotations: [] });
+      expect((await upgraded.items.get(lexical.id)).linkedKeys).toEqual([
+        "user:page",
+        "user:page",
+        "user:sacar",
+      ]);
+      expect(await upgraded.events.toArray()).toEqual([event]);
+      expect(await upgraded.prefs.toArray()).toEqual([preference]);
     } finally {
       upgraded.close();
       await Dexie.delete(name);

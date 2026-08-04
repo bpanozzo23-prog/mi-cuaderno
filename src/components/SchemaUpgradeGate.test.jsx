@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import SchemaUpgradeGate from "./SchemaUpgradeGate.jsx";
 import { buildPreupgradeBackup } from "../db/preupgrade.js";
 import { downloadJson } from "../lib/file.js";
+import { SCHEMA_VERSION } from "../version.js";
 
 vi.mock("../db/preupgrade.js", () => ({ buildPreupgradeBackup: vi.fn() }));
 vi.mock("../lib/file.js", () => ({ downloadJson: vi.fn() }));
@@ -29,13 +30,15 @@ describe("pre-open schema upgrade gate", () => {
     const user = userEvent.setup();
     const onContinue = vi.fn();
     buildPreupgradeBackup.mockResolvedValue(envelope);
-    render(<SchemaUpgradeGate onContinue={onContinue} />);
+    render(<SchemaUpgradeGate fromVersion={3} onContinue={onContinue} />);
 
     expect(screen.queryByRole("button", { name: /upgrade my notebook/i })).toBeNull();
+    expect(screen.getByText(`personal data schema 3 → ${SCHEMA_VERSION}`)).toBeTruthy();
+    expect(screen.getByText(/schema 3; this update needs schema 4/i)).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Download backup" }));
 
     await waitFor(() => expect(downloadJson).toHaveBeenCalledTimes(1));
-    expect(downloadJson.mock.calls[0][0]).toMatch(/^before-schema-v3-upgrade-mi-cuaderno-backup-/);
+    expect(downloadJson.mock.calls[0][0]).toMatch(/^before-schema-v4-upgrade-mi-cuaderno-backup-/);
     await user.click(screen.getByRole("button", { name: /upgrade my notebook/i }));
     expect(onContinue).toHaveBeenCalledTimes(1);
   });

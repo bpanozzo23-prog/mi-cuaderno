@@ -12,8 +12,17 @@ const makeV3Page = (overrides = {}) => makePage({
   ...overrides,
 });
 const makeLegacyPage = (overrides = {}) => {
-  const { pageProfile: _pageProfile, collection: _collection, ...page } = makePage(overrides);
+  const {
+    pageProfile: _pageProfile,
+    collection: _collection,
+    linkAnnotations: _linkAnnotations,
+    ...page
+  } = makePage(overrides);
   return page;
+};
+const withoutAnnotations = (item) => {
+  const { linkAnnotations: _linkAnnotations, ...legacy } = item;
+  return legacy;
 };
 
 beforeEach(async () => {
@@ -65,7 +74,18 @@ describe("export", () => {
 describe("import: replace and restore", () => {
   it("round-trips everything through export, wipe and import", async () => {
     const word = makeLexical({ term: "sacar", tags: ["verbs"], myExamples: [{ es: "Saca la basura.", en: "Take out the trash." }] });
-    const page = makeV3Page({ title: "Ser vs estar", body: "Permanent vs temporary.", pageDate: "2026-07-30", linkedKeys: [word.id] });
+    const page = makeV3Page({
+      title: "Ser vs estar",
+      body: "Permanent vs temporary.",
+      pageDate: "2026-07-30",
+      linkedKeys: [word.id],
+      linkAnnotations: [{
+        targetKey: word.id,
+        type: "explained_by",
+        subject: "target",
+        note: "Use this page to compare the two verbs.",
+      }],
+    });
     const events = [makeEvent({ type: "create", itemKey: word.id }), makeEvent({ type: "view", itemKey: word.id })];
     await db.items.bulkAdd([word, page]);
     await db.events.bulkAdd(events);
@@ -98,6 +118,12 @@ describe("import: replace and restore", () => {
           { id: GROUP_TWO, name: "Openers", itemKeys: [first.id] },
         ],
       },
+      linkAnnotations: [{
+        targetKey: first.id,
+        type: "similar_meaning",
+        subject: "owner",
+        note: "Dormant while this item is an active Collection member.",
+      }],
     });
     await db.items.bulkAdd([first, second, page]);
     await setPref("pinnedPageIds", [page.id]);
@@ -117,6 +143,7 @@ describe("import: replace and restore", () => {
       { id: GROUP_ONE, name: "Follow-ups", itemKeys: [second.id] },
       { id: GROUP_TWO, name: "Openers", itemKeys: [first.id] },
     ]);
+    expect(restored.linkAnnotations).toEqual(page.linkAnnotations);
     expect(await getPref("pinnedPageIds")).toEqual([page.id]);
   });
 
@@ -177,7 +204,7 @@ describe("import: replace and restore", () => {
       notes: "Entry note",
       myExamples: [{ es: "Saca la basura.", en: "Take out the trash." }],
     });
-    const { meanings: _meanings, ...v1Item } = current;
+    const { meanings: _meanings, linkAnnotations: _linkAnnotations, ...v1Item } = current;
     const v1Page = makeLegacyPage({ id: "user:v1-page", title: "Legacy page", linkedKeys: [current.id] });
     const v1 = {
       format: BACKUP_FORMAT,
@@ -191,19 +218,21 @@ describe("import: replace and restore", () => {
 
     const checked = validateBackup(v1);
     expect(checked.ok).toBe(true);
-    expect(checked.summary).toMatchObject({ schemaVersion: 1, targetSchemaVersion: 3, willUpgrade: true });
-    expect(checked.envelope.schemaVersion).toBe(3);
+    expect(checked.summary).toMatchObject({ schemaVersion: 1, targetSchemaVersion: 4, willUpgrade: true });
+    expect(checked.envelope.schemaVersion).toBe(4);
     expect(checked.envelope.userItems[0].meanings.map((entry) => entry.gloss)).toEqual([
       "1. take out",
       "withdraw; draw out",
     ]);
     expect(checked.envelope.userItems[0].notes).toBe("Entry note");
     expect(checked.envelope.userItems[0].myExamples).toEqual(current.myExamples);
+    expect(checked.envelope.userItems[0].linkAnnotations).toEqual([]);
     expect(checked.envelope.userItems[0]).not.toHaveProperty("translation");
     expect(checked.envelope.userItems[1]).toEqual({
       ...v1Page,
       pageProfile: "general",
       collection: { groups: [] },
+      linkAnnotations: [],
     });
 
     await importBackup(checked.envelope);
@@ -211,7 +240,7 @@ describe("import: replace and restore", () => {
   });
 
   it("validates and upgrades a schema-v2 backup before restoring it", async () => {
-    const lexical = makeLexical({ id: "user:v2-word", term: "pensar" });
+    const lexical = withoutAnnotations(makeLexical({ id: "user:v2-word", term: "pensar" }));
     const page = makeLegacyPage({ id: "user:v2-page", title: "Thinking", linkedKeys: [lexical.id] });
     const v2 = {
       format: BACKUP_FORMAT,
@@ -226,15 +255,84 @@ describe("import: replace and restore", () => {
     const checked = validateBackup(v2);
 
     expect(checked.ok).toBe(true);
-    expect(checked.summary).toMatchObject({ schemaVersion: 2, targetSchemaVersion: 3, willUpgrade: true });
-    expect(checked.envelope.schemaVersion).toBe(3);
-    expect(checked.envelope.userItems[0]).toEqual(lexical);
+    expect(checked.summary).toMatchObject({ schemaVersion: 2, targetSchemaVersion: 4, willUpgrade: true });
+    expect(checked.envelope.schemaVersion).toBe(4);
+    expect(checked.envelope.userItems[0]).toEqual({ ...lexical, linkAnnotations: [] });
     expect(checked.envelope.userItems[1]).toEqual({
       ...page,
       pageProfile: "general",
       collection: { groups: [] },
+      linkAnnotations: [],
     });
     expect(checked.envelope.preferences.pinnedPageIds).toEqual([page.id]);
+  });
+
+  it("validates and upgrades schema v3 by adding only empty annotations", () => {
+    const lexical = withoutAnnotations(makeLexical({
+      id: "user:v3-word",
+      term: "pensar",
+      linkedKeys: ["user:v3-page", "user:v3-page", "user:v3-word"],
+    }));
+    const page = withoutAnnotations(makeV3Page({
+      id: "user:v3-page",
+      title: "Thinking",
+      linkedKeys: [lexical.id],
+    }));
+    const v3 = {
+      format: BACKUP_FORMAT,
+      schemaVersion: 3,
+      exportedAt: "2026-08-03T10:00:00.000Z",
+      appVersion: "0.1.0",
+      userItems: [lexical, page],
+      events: [],
+      preferences: { pinnedPageIds: [page.id] },
+    };
+
+    const checked = validateBackup(v3);
+
+    expect(checked.ok).toBe(true);
+    expect(checked.summary).toMatchObject({ schemaVersion: 3, targetSchemaVersion: 4, willUpgrade: true });
+    expect(checked.envelope.userItems).toEqual([
+      { ...lexical, linkAnnotations: [] },
+      { ...page, linkAnnotations: [] },
+    ]);
+    expect(checked.envelope.userItems[0].linkedKeys).toEqual(lexical.linkedKeys);
+    expect(checked.envelope.userItems[1].linkedKeys).toEqual(page.linkedKeys);
+  });
+
+  it("round-trips an exact schema-v4 envelope including dictionary alias conflicts and orphans", () => {
+    const oldKey = "dict:wiktionary-es:chamba:noun:old";
+    const canonicalKey = "dict:wiktionary-es:chamba:noun";
+    const item = makeLexical({
+      id: "user:chamba",
+      term: "chamba",
+      linkedKeys: [oldKey, canonicalKey, "dict:wiktionary-es:installed-orphan"],
+      linkAnnotations: [
+        { targetKey: oldKey, type: "found_in", subject: "owner", note: "Old-key value" },
+        { targetKey: canonicalKey, type: "contrast", subject: "owner", note: "Conflicting canonical value" },
+        {
+          targetKey: "dict:wiktionary-es:installed-orphan",
+          type: "related",
+          subject: "owner",
+          note: "Keep this even when the entry cannot resolve.",
+        },
+      ],
+    });
+    const v4 = {
+      format: BACKUP_FORMAT,
+      schemaVersion: 4,
+      exportedAt: "2026-08-04T10:00:00.000Z",
+      appVersion: "0.1.0",
+      userItems: [item],
+      events: [],
+      preferences: {},
+    };
+
+    const checked = validateBackup(JSON.stringify(v4));
+
+    expect(checked.ok).toBe(true);
+    expect(checked.envelope).toEqual(v4);
+    expect(checked.summary).toMatchObject({ schemaVersion: 4, targetSchemaVersion: 4, willUpgrade: false });
   });
 
   it("skips duplicate event ids rather than failing", async () => {
@@ -288,6 +386,15 @@ describe("validation happens before anything is written", () => {
     return { ...baseline(), userItems: [member, ...extraItems, page], preferences };
   };
 
+  const relationshipInput = (linkAnnotations, {
+    linkedKeys = ["user:target"],
+    includeTarget = true,
+  } = {}) => {
+    const owner = makeLexical({ id: "user:owner", linkedKeys, linkAnnotations });
+    const target = makeLexical({ id: "user:target", term: "estar" });
+    return { ...baseline(), userItems: includeTarget ? [owner, target] : [owner] };
+  };
+
   it.each([
     ["not JSON at all", "{ this is not json"],
     ["a different file's JSON", JSON.stringify({ hello: "world" })],
@@ -296,6 +403,67 @@ describe("validation happens before anything is written", () => {
     ["an item with an unknown type", { ...baseline(), userItems: [{ ...makeLexical(), type: "recipe" }] }],
     ["a meaning with a blank gloss", { ...baseline(), userItems: [{ ...makeLexical(), meanings: [{ ...makeLexical().meanings[0], gloss: " " }] }] }],
     ["a malformed nested example", { ...baseline(), userItems: [{ ...makeLexical(), meanings: [{ ...makeLexical().meanings[0], examples: [{ es: "", en: 42 }] }] }] }],
+    ["a missing v4 annotation array", { ...baseline(), userItems: [{ ...makeLexical(), linkAnnotations: undefined }] }],
+    ["a non-array annotation field", { ...baseline(), userItems: [{ ...makeLexical(), linkAnnotations: {} }] }],
+    ["a malformed annotation", relationshipInput([null])],
+    ["an annotation target without a supported namespace", relationshipInput([{
+      targetKey: "meaning:not-a-link",
+      type: "contrast",
+      subject: "owner",
+      note: "",
+    }], { linkedKeys: ["meaning:not-a-link"] })],
+    ["an unsupported relationship type", relationshipInput([{
+      targetKey: "user:target",
+      type: "example_of",
+      subject: "owner",
+      note: "",
+    }])],
+    ["an unsupported relationship subject", relationshipInput([{
+      targetKey: "user:target",
+      type: "found_in",
+      subject: "source",
+      note: "",
+    }])],
+    ["a target subject on a symmetric relationship", relationshipInput([{
+      targetKey: "user:target",
+      type: "similar_meaning",
+      subject: "target",
+      note: "",
+    }])],
+    ["a non-string relationship note", relationshipInput([{
+      targetKey: "user:target",
+      type: "contrast",
+      subject: "owner",
+      note: 42,
+    }])],
+    ["an untrimmed relationship note", relationshipInput([{
+      targetKey: "user:target",
+      type: "contrast",
+      subject: "owner",
+      note: " compare these ",
+    }])],
+    ["a redundant explicit Related annotation", relationshipInput([{
+      targetKey: "user:target",
+      type: "related",
+      subject: "owner",
+      note: "",
+    }])],
+    ["an annotation without its physical outgoing edge", relationshipInput([{
+      targetKey: "user:target",
+      type: "contrast",
+      subject: "owner",
+      note: "",
+    }], { linkedKeys: [] })],
+    ["an annotation pointing to a missing personal item", relationshipInput([{
+      targetKey: "user:target",
+      type: "contrast",
+      subject: "owner",
+      note: "",
+    }], { includeTarget: false })],
+    ["duplicate annotations for one target", relationshipInput([
+      { targetKey: "user:target", type: "contrast", subject: "owner", note: "" },
+      { targetKey: "user:target", type: "variant", subject: "owner", note: "" },
+    ])],
     ["an event missing localDate", { ...baseline(), events: [{ ...makeEvent(), localDate: undefined }] }],
     ["duplicate item ids", { ...baseline(), userItems: [makeLexical({ id: "user:a" }), makeLexical({ id: "user:a" })] }],
     ["an unknown page profile", collectionInput({ pageProfile: "source" })],
@@ -368,5 +536,55 @@ describe("validation happens before anything is written", () => {
     expect(checked.errors.join(" ")).toMatch(/Duplicate meaning id/);
     await expect(importBackup(input)).rejects.toThrow(/Refusing to import/);
     expect(await db.items.toArray()).toEqual([survivor]);
+  });
+
+  it("rejects annotations stored on both sides of one reciprocal personal pair", () => {
+    const first = makeLexical({
+      id: "user:first",
+      linkedKeys: ["user:second"],
+      linkAnnotations: [{
+        targetKey: "user:second",
+        type: "contrast",
+        subject: "owner",
+        note: "First copy",
+      }],
+    });
+    const second = makeLexical({
+      id: "user:second",
+      linkedKeys: ["user:first"],
+      linkAnnotations: [{
+        targetKey: "user:first",
+        type: "contrast",
+        subject: "owner",
+        note: "Second copy",
+      }],
+    });
+
+    const checked = validateBackup({ ...baseline(), userItems: [first, second] });
+
+    expect(checked.ok).toBe(false);
+    expect(checked.errors.join(" ")).toMatch(/duplicates the personal connection annotation/);
+  });
+
+  it("accepts redundant legacy physical links when only one conceptual annotation exists", () => {
+    const first = makeLexical({
+      id: "user:first",
+      linkedKeys: ["user:second", "user:second", "user:first"],
+      linkAnnotations: [{
+        targetKey: "user:second",
+        type: "often_confused",
+        subject: "owner",
+        note: "One annotation for the pair.",
+      }],
+    });
+    const second = makeLexical({ id: "user:second", linkedKeys: ["user:first"] });
+
+    const checked = validateBackup({ ...baseline(), userItems: [first, second] });
+
+    expect(checked.ok).toBe(true);
+    expect(checked.envelope.userItems.map((item) => item.linkedKeys)).toEqual([
+      first.linkedKeys,
+      second.linkedKeys,
+    ]);
   });
 });

@@ -1,4 +1,4 @@
-import { db, allPrefs, setPref, upgradePageItemV2 } from "./db.js";
+import { db, allPrefs, setPref, upgradeItemV3, upgradePageItemV2 } from "./db.js";
 import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
 import { nowIso } from "../lib/dates.js";
 import {
@@ -7,8 +7,13 @@ import {
   VERB_BEHAVIORS,
   upgradeLexicalItemV1,
 } from "../lib/meanings.js";
-import { isMeaningKey, isPageGroupKey, isUserKey } from "../lib/ids.js";
+import { isDictKey, isMeaningKey, isPageGroupKey, isUserKey } from "../lib/ids.js";
 import { isPageProfile, PINNED_PAGE_IDS_PREF } from "../lib/pageProfiles.js";
+import {
+  isDirectionalRelationshipType,
+  RELATIONSHIP_SUBJECTS,
+  RELATIONSHIP_TYPES,
+} from "../lib/relationships.js";
 
 /**
  * Backup is the disaster-recovery mechanism, not a convenience (brief section 10).
@@ -150,6 +155,47 @@ function validateCollection(collection, where, errors, seenGroupIds) {
   });
 }
 
+function validateLinkAnnotations(value, where, errors) {
+  if (!Array.isArray(value)) return errors.push(`${where} must be an array`);
+
+  const seenTargets = new Set();
+  value.forEach((annotation, index) => {
+    const annotationWhere = `${where}[${index}]`;
+    if (!annotation || typeof annotation !== "object" || Array.isArray(annotation)) {
+      errors.push(`${annotationWhere} is not an object`);
+      return;
+    }
+
+    if (!isNonEmptyString(annotation.targetKey) ||
+        (!isUserKey(annotation.targetKey) && !isDictKey(annotation.targetKey))) {
+      errors.push(`${annotationWhere}.targetKey must be a personal or dictionary key`);
+    } else if (seenTargets.has(annotation.targetKey)) {
+      errors.push(`${where} contains more than one annotation for "${annotation.targetKey}"`);
+    } else {
+      seenTargets.add(annotation.targetKey);
+    }
+
+    if (!RELATIONSHIP_TYPES.includes(annotation.type)) {
+      errors.push(`${annotationWhere}.type is not supported`);
+    }
+    if (!RELATIONSHIP_SUBJECTS.includes(annotation.subject)) {
+      errors.push(`${annotationWhere}.subject must be "owner" or "target"`);
+    } else if (RELATIONSHIP_TYPES.includes(annotation.type) &&
+               !isDirectionalRelationshipType(annotation.type) && annotation.subject !== "owner") {
+      errors.push(`${annotationWhere}.subject must be "owner" for a symmetric relationship`);
+    }
+
+    if (!isString(annotation.note)) {
+      errors.push(`${annotationWhere}.note must be a string`);
+    } else {
+      if (annotation.note !== annotation.note.trim()) errors.push(`${annotationWhere}.note must be trimmed`);
+      if (annotation.type === "related" && annotation.note === "") {
+        errors.push(`${annotationWhere} must be omitted when Related has no note`);
+      }
+    }
+  });
+}
+
 function validateItem(item, index, errors, schemaVersion, seenMeaningIds, seenGroupIds) {
   const where = `userItems[${index}]`;
   if (!item || typeof item !== "object" || Array.isArray(item)) return errors.push(`${where} is not an object`);
@@ -161,6 +207,7 @@ function validateItem(item, index, errors, schemaVersion, seenMeaningIds, seenGr
   if (!isString(item.updatedAt)) errors.push(`${where}.updatedAt is missing`);
   validateStringArray(item.tags, `${where}.tags`, errors);
   validateStringArray(item.linkedKeys, `${where}.linkedKeys`, errors);
+  if (schemaVersion === 4) validateLinkAnnotations(item.linkAnnotations, `${where}.linkAnnotations`, errors);
   validateMediaLinks(item.mediaLinks, `${where}.mediaLinks`, errors);
   if (item.type === "lexical") {
     if (!isNonEmptyString(item.term)) errors.push(`${where}.term is missing`);
@@ -192,13 +239,52 @@ function validateItem(item, index, errors, schemaVersion, seenMeaningIds, seenGr
     if (item.pageDate !== null && item.pageDate !== undefined && !isString(item.pageDate)) {
       errors.push(`${where}.pageDate must be a string or null`);
     }
-    if (schemaVersion === 3) {
+    if (schemaVersion >= 3) {
       if (!isPageProfile(item.pageProfile)) {
         errors.push(`${where}.pageProfile must be "general" or "collection"`);
       }
       validateCollection(item.collection, `${where}.collection`, errors, seenGroupIds);
     }
   }
+}
+
+function validateV4References(userItems, errors) {
+  const itemsById = new Map(
+    userItems
+      .filter((item) => item && typeof item === "object" && !Array.isArray(item) && isNonEmptyString(item.id))
+      .map((item) => [item.id, item])
+  );
+  const seenPersonalPairs = new Map();
+
+  userItems.forEach((item, itemIndex) => {
+    if (!item || typeof item !== "object" || Array.isArray(item) || !Array.isArray(item.linkAnnotations)) return;
+    const where = `userItems[${itemIndex}]`;
+
+    item.linkAnnotations.forEach((annotation, annotationIndex) => {
+      if (!annotation || typeof annotation !== "object" || Array.isArray(annotation)) return;
+      const annotationWhere = `${where}.linkAnnotations[${annotationIndex}]`;
+      const targetKey = annotation.targetKey;
+      if (!isUserKey(targetKey) && !isDictKey(targetKey)) return;
+
+      if (!Array.isArray(item.linkedKeys) || !item.linkedKeys.includes(targetKey)) {
+        errors.push(`${annotationWhere}.targetKey must match an outgoing linkedKeys entry`);
+      }
+      if (!isUserKey(targetKey)) return;
+
+      if (!itemsById.has(targetKey)) {
+        errors.push(`${annotationWhere}.targetKey points to a missing personal item`);
+        return;
+      }
+
+      const pairKey = [item.id, targetKey].sort().join("\u0000");
+      const firstWhere = seenPersonalPairs.get(pairKey);
+      if (firstWhere) {
+        errors.push(`${annotationWhere} duplicates the personal connection annotation at ${firstWhere}`);
+      } else {
+        seenPersonalPairs.set(pairKey, annotationWhere);
+      }
+    });
+  });
 }
 
 function validateV3References(userItems, preferences, errors) {
@@ -283,7 +369,8 @@ function validateSchemaState(userItems, events, preferences, schemaVersion, erro
     if (item) seenItemIds.add(item.id);
   }
 
-  if (schemaVersion === 3) validateV3References(userItems, preferences, errors);
+  if (schemaVersion >= 3) validateV3References(userItems, preferences, errors);
+  if (schemaVersion === 4) validateV4References(userItems, errors);
 }
 
 function upgradeItemsV1ToV2(userItems) {
@@ -296,6 +383,7 @@ function upgradeItemsV1ToV2(userItems) {
 }
 
 const upgradeItemsV2ToV3 = (userItems) => userItems.map((item) => upgradePageItemV2(item));
+const upgradeItemsV3ToV4 = (userItems) => userItems.map((item) => upgradeItemV3(item));
 
 function validateEvent(event, index, errors) {
   const where = `events[${index}]`;
@@ -336,7 +424,7 @@ export function validateBackup(raw) {
     errors.push(
       `This backup is schema version ${parsed.schemaVersion}, newer than this app understands (${SCHEMA_VERSION}). Update the app first.`
     );
-  } else if (![1, 2, 3].includes(parsed.schemaVersion)) {
+  } else if (![1, 2, 3, 4].includes(parsed.schemaVersion)) {
     errors.push(`Schema version ${parsed.schemaVersion} is not supported.`);
   }
   if (!Array.isArray(parsed.userItems)) errors.push("userItems must be an array.");
@@ -366,6 +454,13 @@ export function validateBackup(raw) {
   if (upgradedSchemaVersion === 2) {
     upgradedItems = upgradeItemsV2ToV3(upgradedItems);
     upgradedSchemaVersion = 3;
+    validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
+  }
+  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
+
+  if (upgradedSchemaVersion === 3) {
+    upgradedItems = upgradeItemsV3ToV4(upgradedItems);
+    upgradedSchemaVersion = 4;
     validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
   }
   if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };

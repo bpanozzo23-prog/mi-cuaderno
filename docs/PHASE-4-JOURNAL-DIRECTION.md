@@ -30,8 +30,15 @@ Success means the owner can:
 - The event log remains authoritative. A new entry writes its existing `create` event only during
   its creation visit. An existing entry's autosave visit writes at most one `edit` event. Linking,
   prompt selection and navigation write no events.
-- No journal count, streak, completion state, mood, weather, prompt ID, pin, new relationship type,
-  direct Collection conversion or scheduled journal review is introduced.
+- No journal count, streak, completion state, mood, weather, prompt ID, pin,
+  ~~new relationship type,~~ **new relationship type within Phase 4p–4s,** direct Collection
+  conversion or scheduled journal review is introduced.
+
+**Supersession note, 2026-08-04.** The struck boundary above correctly records what the completed
+4p–4s release did not introduce; it does not govern later phases. The owner has now approved
+Phase 4t–4x, which adds typed and explained ordinary connections through schema v4 and groups them
+inside Diario's existing Words & phrases, Related moments, Page relations, and Dictionary links
+sections. Diario remains a dated General page rather than gaining a richer stored Journal profile.
 
 ## Delivery slices
 

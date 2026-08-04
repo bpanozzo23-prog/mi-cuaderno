@@ -7,6 +7,7 @@ import {
   preupgradeStatus,
 } from "./preupgrade.js";
 import { makeLexical, makePage } from "../test/factories.js";
+import { SCHEMA_VERSION } from "../version.js";
 
 beforeEach(async () => {
   db.close();
@@ -23,7 +24,8 @@ async function seedLegacyDatabase(schemaVersion) {
   legacy.version(schemaVersion).stores(PERSONAL_STORES);
   await legacy.open();
 
-  const current = makeLexical({ id: "user:sacar", term: "sacar", linkedKeys: ["user:page"] });
+  const currentWithAnnotations = makeLexical({ id: "user:sacar", term: "sacar", linkedKeys: ["user:page"] });
+  const { linkAnnotations: _lexicalAnnotations, ...current } = currentWithAnnotations;
   const lexical = schemaVersion === 1
     ? (() => {
         const { meanings: _meanings, ...v1Item } = current;
@@ -31,7 +33,13 @@ async function seedLegacyDatabase(schemaVersion) {
       })()
     : current;
   const currentPage = makePage({ id: "user:page", title: "Thinking and opinions", linkedKeys: [current.id] });
-  const { pageProfile: _pageProfile, collection: _collection, ...page } = currentPage;
+  const { linkAnnotations: _pageAnnotations, ...v3Page } = currentPage;
+  const page = schemaVersion === 3
+    ? v3Page
+    : (() => {
+        const { pageProfile: _pageProfile, collection: _collection, ...legacyPage } = v3Page;
+        return legacyPage;
+      })();
   await legacy.items.bulkAdd([lexical, page]);
   await legacy.events.add({
     id: "event:one",
@@ -56,7 +64,7 @@ describe("export-first schema gate", () => {
     });
   });
 
-  it.each([1, 2])("exports the untouched schema-v%s envelope before v3 can open", async (schemaVersion) => {
+  it.each([1, 2, 3])("exports the untouched schema-v%s envelope before v4 can open", async (schemaVersion) => {
     const { lexical, page } = await seedLegacyDatabase(schemaVersion);
 
     expect(await preupgradeStatus()).toMatchObject({
@@ -70,7 +78,15 @@ describe("export-first schema gate", () => {
     expect(backup.schemaVersion).toBe(schemaVersion);
     expect(backup.userItems).toContainEqual(lexical);
     expect(backup.userItems).toContainEqual(page);
-    expect(backup.userItems.find((item) => item.id === page.id)).not.toHaveProperty("pageProfile");
+    expect(backup.userItems.every((item) => !Object.hasOwn(item, "linkAnnotations"))).toBe(true);
+    if (schemaVersion < 3) {
+      expect(backup.userItems.find((item) => item.id === page.id)).not.toHaveProperty("pageProfile");
+    } else {
+      expect(backup.userItems.find((item) => item.id === page.id)).toMatchObject({
+        pageProfile: "general",
+        collection: { groups: [] },
+      });
+    }
     if (schemaVersion === 1) {
       expect(backup.userItems.find((item) => item.id === lexical.id).translation).toBe("take out\nwithdraw");
       expect(backup.userItems.find((item) => item.id === lexical.id)).not.toHaveProperty("meanings");
@@ -84,12 +100,16 @@ describe("export-first schema gate", () => {
 
   it("blocks databases newer than this app and refuses to export them through a legacy connection", async () => {
     const newer = new Dexie("mi-cuaderno");
-    newer.version(4).stores(PERSONAL_STORES);
+    newer.version(SCHEMA_VERSION + 1).stores(PERSONAL_STORES);
     await newer.open();
     newer.close();
 
-    expect(await preupgradeStatus()).toMatchObject({ version: 4, needsBackup: false, unsupported: true });
-    await expect(buildPreupgradeBackup()).rejects.toThrow(/Expected schema 1 or 2/);
-    expect(await currentPersonalDatabaseVersion()).toBe(4);
+    expect(await preupgradeStatus()).toMatchObject({
+      version: SCHEMA_VERSION + 1,
+      needsBackup: false,
+      unsupported: true,
+    });
+    await expect(buildPreupgradeBackup()).rejects.toThrow(/Expected schema 1, 2, 3/);
+    expect(await currentPersonalDatabaseVersion()).toBe(SCHEMA_VERSION + 1);
   });
 });

@@ -62,6 +62,31 @@ db.version(3)
   .stores(PERSONAL_STORES)
   .upgrade(migratePersonalDataToV3);
 
+/**
+ * Schema-v4 relationship metadata is mandatory but sparse. Existing connections keep deriving
+ * as Related, so the migration adds only the empty annotation array and leaves link topology,
+ * content, timestamps and every other field untouched.
+ */
+export function upgradeItemV3(item) {
+  return {
+    ...item,
+    linkAnnotations: [],
+  };
+}
+
+export async function migratePersonalDataToV4(transaction) {
+  await transaction
+    .table("items")
+    .toCollection()
+    .modify((item) => {
+      Object.assign(item, upgradeItemV3(item));
+    });
+}
+
+db.version(4)
+  .stores(PERSONAL_STORES)
+  .upgrade(migratePersonalDataToV4);
+
 export async function getPref(key, fallback = null) {
   const row = await db.prefs.get(key);
   return row === undefined ? fallback : row.value;

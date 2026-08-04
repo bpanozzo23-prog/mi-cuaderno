@@ -39,7 +39,7 @@ Useful information to retain for each idea:
 |---|---|---|---|
 | Source-oriented page templates | 2026-08-02 | Deferred | Source/Grammar profiles and user-authored templates remain outside Phase 4j–4o |
 | Meaning-block presentation | 2026-08-02 | Implemented and shipped | Phase 4i |
-| Typed or explained relationships | 2026-08-02 | Captured | After observing real links and dense hubs |
+| Typed or explained relationships | 2026-08-02 | Planned | Phase 4t–4x implementation in progress |
 | Saved views | 2026-08-02 | Captured | After observing repeated retrieval/filter patterns |
 | Persistent page profiles | 2026-08-02 | Implemented and shipped | General and Vocabulary Collection in Phase 4j–4o; richer profiles deferred |
 | Personal-content provenance | 2026-08-02 | Captured | Before or alongside Phase 6 AI design; source needs can be studied earlier |
@@ -245,11 +245,11 @@ backup, import, search, Repaso and verification decisions are recorded under Pha
 ## Typed or explained relationships
 
 - **Date added:** 2026-08-02
-- **Last reviewed:** 2026-08-02
-- **Status:** Captured
+- **Last reviewed:** 2026-08-04
+- **Status:** Planned — Phase 4t–4x implementation in progress
 - **Origin:** Preliminary information-architecture review and follow-up discussion
-- **Potential data impact:** Low for clearer direction labels; high for persisted relationship
-  types or explanations
+- **Potential data impact:** ~~Low for clearer direction labels; high for persisted relationship
+  types or explanations~~ **High and approved: schema v4 persists sparse relationship annotations**
 
 ### Description and current context
 
@@ -297,14 +297,41 @@ new representation.
 
 ### Potential timing
 
-Clearer direction labels can be evaluated without stored data. Persistent relationship types or
-explanations should follow a real-link audit and require a dedicated schema and migration plan.
+Clearer direction labels can be evaluated without stored data. ~~Persistent relationship types or
+explanations should follow a real-link audit and require a dedicated schema and migration plan.~~
+**Owner-approved direction, 2026-08-04:** the owner expressly waived the real-link audit after
+reviewing and approving the hypothetical examples, and approved Phase 4t–4x with a dedicated
+schema-v4 migration and backup plan.
 
 ### Questions for a future discussion
 
 - Is free explanation sufficient, or must relationships be filterable?
 - Which relationships are directional, and which should read the same from both sides?
 - Should “heard in source” be a relationship, provenance, or both?
+
+### Approved direction — 2026-08-04
+
+- Use the hybrid option: one fixed type plus one optional shared plain-text note on every ordinary
+  connection. Ship all seven types together in this order: Similar meaning, Contrast, Often
+  confused, Variant, Explained by/Explains, Found in/Contains, and Related.
+- Keep `linkedKeys[]` as the sole authority for whether a connection and Collection membership
+  exist. Add mandatory sparse `linkAnnotations[]` to schema-v4 items; an absent annotation derives
+  Related with a blank note, and that default is never stored densely.
+- Use `subject: owner | target` so directional labels remain correct from either endpoint and are
+  independent of which item physically stores the edge. Store no separate relationship records and
+  create no reciprocal edge.
+- Treat link, unlink, type, and note changes as event-free connection bookkeeping. A relationship
+  note explains the connection rather than becoming either item's prose; metadata-only saves also
+  leave both items' recency unchanged.
+- Preserve legacy self, duplicate, and reciprocal topology during migration. Runtime presentation
+  derives one visible connection, mutations prevent new redundancy, and explicit removal cleans all
+  redundant physical copies of that conceptual connection.
+- Preserve Collection membership and dictionary attachment as separate concepts. Collection
+  promotion/restoration carries dormant relationship metadata; dictionary alias rewrites carry the
+  annotation, while conflicting explicit old/canonical annotations remain untouched until the owner
+  resolves them.
+- Keep relationship notes out of search, filters, Repaso, and activity. No relationship hub,
+  provenance model, custom/multiple types, or Example of/Part of types belongs to this release.
 
 ---
 
@@ -647,6 +674,11 @@ backup plan.
 ---
 
 ## Document history
+
+- **2026-08-04 — Typed and explained relationships approved.** Promoted the idea from Captured to
+  Planned as Phase 4t–4x, recorded the owner's real-link-audit waiver and seven-type decision, and
+  locked schema-v4 sparse annotations, event/recency behavior, seam constraints, and first-release
+  exclusions. Implementation is in progress; this entry does not claim the phase has shipped.
 
 - **2026-08-02 — Created.** Established the planning-record format and added the first six ideas
   from the preliminary information-architecture discussion. No idea was approved for implementation.

@@ -4,18 +4,26 @@ import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
 import { buildPreupgradeBackup } from "../db/preupgrade.js";
 import { backupFilename } from "../db/backup.js";
 import { downloadJson } from "../lib/file.js";
+import { SCHEMA_VERSION } from "../version.js";
+
+function legacyVersionLabel() {
+  const versions = Array.from({ length: SCHEMA_VERSION - 1 }, (_, index) => String(index + 1));
+  if (versions.length <= 1) return versions[0] ?? "older";
+  return `${versions.slice(0, -1).join(", ")}, or ${versions[versions.length - 1]}`;
+}
 
 export default function SchemaUpgradeGate({ fromVersion = null, onContinue }) {
   const [downloaded, setDownloaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const sourceVersion = fromVersion ?? legacyVersionLabel();
 
   async function downloadBackup() {
     setBusy(true);
     setError("");
     try {
       const envelope = await buildPreupgradeBackup();
-      downloadJson(`before-schema-v3-upgrade-${backupFilename(envelope)}`, envelope);
+      downloadJson(`before-schema-v${SCHEMA_VERSION}-upgrade-${backupFilename(envelope)}`, envelope);
       setDownloaded(true);
     } catch (problem) {
       setError(problem instanceof Error ? problem.message : "The backup could not be created.");
@@ -35,9 +43,10 @@ export default function SchemaUpgradeGate({ fromVersion = null, onContinue }) {
                 Back up before your notebook is upgraded
               </h1>
               <p className="text-sm mt-2 leading-relaxed" style={{ color: C.mut }}>
-                This update adds persistent page profiles and Collection organization. If your notebook
-                still uses the older meaning format, that is upgraded too. Download the untouched version
-                of your notebook first so you can always return to it.
+                Your notebook uses personal-data schema {sourceVersion}; this update needs schema {SCHEMA_VERSION}.
+                It adds relationship types and shared connection notes. Older meaning formats and missing page
+                profiles are upgraded along the way. Download the untouched version of your notebook first so
+                you can always return to it.
               </p>
             </div>
           </div>
@@ -69,7 +78,7 @@ export default function SchemaUpgradeGate({ fromVersion = null, onContinue }) {
           )}
 
           <div className="mt-4 text-[11px]" style={{ fontFamily: MONO, color: C.mut }}>
-            personal data schema {fromVersion ?? "1 or 2"} → 3
+            personal data schema {sourceVersion} → {SCHEMA_VERSION}
           </div>
         </Card>
       </div>
