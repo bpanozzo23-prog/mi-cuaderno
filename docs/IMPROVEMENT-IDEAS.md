@@ -423,6 +423,75 @@ retrieval, writing and rereading without storing an explicit Journal profile or 
 fields. The richer-profile question remains deferred until real use demonstrates a need for durable
 structured metadata beyond the existing page shape.
 
+The purpose settled during brainstorming is **regular reflection in Spanish**, not task tracking or
+another system to maintain. Diario should make a short moment fast to begin, calm to write, pleasant
+to reread, and naturally connected to vocabulary and earlier thoughts. Cuaderno remains the place
+for durable notes and Vocabulary Collections.
+
+#### Implemented Diario outcome
+
+- Diario is a separate primary tab while each entry remains a dated General page underneath. The
+  workspace distinction therefore required no schema migration or third personal-content type.
+- Today opens the earliest-created entry for the local day, New moment permits several entries on
+  the same day, and Continue returns to the most recently touched non-Today entry.
+- The home screen provides journal-only title/body/tag search, a newest-first current-year timeline,
+  an earlier-year archive, and a nearby memory from the most recent prior year with a candidate.
+- The focused editor requires a date, treats title as optional and body as primary, visibly
+  autosaves, and does not create a blank record when the owner merely opens or titles a fresh draft.
+- Twenty-four optional Spanish prompts help the owner begin without storing a prompt ID or copying
+  prompt text into the entry automatically.
+- The clean reader supports personal-vocabulary links, related journal moments and separate linked
+  reflections. Más retains the useful page tools: tags, media URLs, nonjournal page relations,
+  activity, tricky state, two-step deletion, and Move to Pages.
+- Ordinary Cuaderno browsing and page totals exclude journal entries, but deliberate global search
+  can still find them. Cross-tab Back navigation retains the route and search context that led to an
+  entry.
+
+#### Boundaries intentionally retained
+
+- A journal is still derived from `pageDate`; there is no stored Journal profile, journal-only
+  field, count, completion flag, streak, mood, weather, prompt ID or new relationship type.
+- Prompts and the selected reflection prompt are visit-local. Opening, selecting a prompt, linking,
+  and navigating do not create edit history.
+- Vocabulary capture selects existing personal words and phrases. It does not silently turn a
+  dictionary result into personal content.
+- Reflection creates another current-day journal entry linked to its source; it never overwrites or
+  nests content inside the earlier entry.
+- Diario has no pin, direct Collection conversion or scheduled review flow. Media remains URL-based;
+  file attachments, sync and analytics are still project non-goals.
+
+#### Potential future work and feasibility
+
+Future changes should answer observed journal friction rather than add structure because a diary app
+could have it.
+
+| Possible direction | Feasibility in the current architecture | Evidence or decision needed first |
+|---|---|---|
+| Refine, replace or regroup prompts; add a session-only random prompt | Low effort and no schema change while prompt state remains transient | Which prompts the owner actually uses, skips or finds repetitive |
+| Add calendar/month navigation, year summaries, or more journal-only filters | Low-to-medium effort; all can be derived from dated General pages | Whether timeline, archive and search fail to retrieve real entries efficiently |
+| Adjust Today, Continue or prior-year memory selection | Low-to-medium effort with focused domain-test changes | Concrete cases where the current earliest-today, latest-other, or ±7-day rules feel surprising |
+| Improve vocabulary capture from Diario | Medium effort using existing personal-entry and dictionary seams | Whether selecting only existing personal vocabulary interrupts writing; any dictionary path must make personal creation explicit and retain orphan handling |
+| Add a journal-specific export or print view | Medium effort without changing stored entries | A real need beyond whole-notebook backup, plus a privacy-safe output format |
+| Add structured mood, theme, gratitude, location, weather or stored prompt fields | High effort and a likely schema-v4 migration with export-first and backup work | Repeated use showing that text, tags and links cannot support the desired retrieval or reflection |
+| Add streaks, completion, trends or scheduled journal review | Medium-to-high product risk even if some results are event-derived | A clear learning/reflection outcome; avoid stored counters, analytics pressure and overlap with Repaso |
+| Introduce an explicit/richer Journal profile | High architectural cost and migration risk | Durable behavior that cannot be expressed by the separate workspace over a dated General page, including how it composes with Collection or future Source behavior |
+
+#### Evidence to collect from real use
+
+- Whether the separate tab actually increases writing and rereading without making Diario feel like
+  another obligation.
+- Whether entries are usually short moments, longer essays, or several moments per day, and whether
+  the date/title/body defaults suit those patterns.
+- Which retrieval path is used in practice: Today, Continue, scrolling, archive, search or memory.
+- Whether prompts help the owner write in Spanish, which categories recur, and whether an unselected
+  prompt should remain entirely ephemeral.
+- How often vocabulary, page links, reflections, tags and media add value versus becoming
+  maintenance work.
+- Whether moving entries back to Pages is rare cleanup or evidence that the Journal boundary is
+  unclear.
+- Which desired behavior, if any, truly requires durable journal-only fields rather than text, tags,
+  links, events or derived presentation.
+
 ### Problems addressed by Phase 4j–4o
 
 The first row is the owner's reported friction. The remaining rows are product limitations and
@@ -472,8 +541,8 @@ durability needs that had to be solved to make that workflow dependable.
   ordering stays useful as Collections grow.
 - Whether reveal-only Practice is sufficient or produces real demand for shuffle, grading, history,
   scheduling, or Repaso integration.
-- Which General pages repeatedly need source, grammar, or richer-journal behavior rather than only a
-  starter, date, tag, or body convention.
+- Which General pages repeatedly need source or grammar behavior, and which journal needs cannot be
+  met by the separate date-derived Diario workspace.
 - How often one page genuinely needs several specialized behaviors at once.
 
 ### Potential timing
@@ -487,13 +556,13 @@ profiles, and user-authored templates; creation-only distinctions should remain 
 ### Questions for a future discussion
 
 - Which future candidates have enough lasting behavior to justify persistence: Source, Grammar,
-  explicit/richer Journal, comparison, or something else?
+  comparison, or a richer Journal only if the workspace evidence above supports it?
 - What exact creation, display, validation, and retrieval behavior would distinguish each from a
   General page with a starter or tag?
 - Should specialized behaviors remain mutually exclusive profiles, or should capabilities such as
   source metadata and vocabulary grouping compose on the same page?
-- Should Journal remain a date-derived General page, or would richer reflection and practice
-  tracking eventually justify explicit fields or profile behavior?
+- Journal now remains a date-derived General page behind its own workspace. What repeated unmet need,
+  if any, would justify revisiting that boundary with explicit fields or profile behavior?
 - Should existing General pages always convert only by owner choice when a future profile is added?
 - Would user-authored starters or custom profiles support recurring workflows, or mostly recreate
   inconsistent tags and extra setup?
@@ -601,3 +670,7 @@ backup plan.
   `main`; GitHub Pages deployment and the production 375×812 schema-v3 smoke test passed. The
   original Collection problem is closed, while the Source-specific and composable-profile
   questions above remain deliberate future work.
+- **2026-08-03 — Phase 4p–4s Diario implemented locally.** Recorded the separate workspace's
+  reflection-first purpose, completed creation/retrieval/writing/reading behavior, deliberate
+  migration-free boundaries, and evidence-gated future possibilities. The complete 422-test suite,
+  production build and disposable 375×812 closeout passed; push and deployment remain pending.
