@@ -49,6 +49,7 @@ export default function JournalEditor({
   const mountedRef = useRef(true);
   const latestDraftRef = useRef(initial);
   const lastSavedRef = useRef(initial);
+  const lastValidDateRef = useRef(initial.pageDate);
   const materializedIdRef = useRef(entry?.id || null);
   const createdThisVisitRef = useRef(false);
   const editLoggedRef = useRef(false);
@@ -158,13 +159,18 @@ export default function JournalEditor({
       mountedRef.current = false;
       clearTimeout(timerRef.current);
       const requested = latestDraftRef.current;
+      // The tab bar can replace this route without calling leaveEditor. Preserve writing with the
+      // latest date the owner selected rather than letting a temporarily blank required field drop it.
+      const flushDraft = requested.pageDate
+        ? requested
+        : { ...requested, pageDate: lastValidDateRef.current };
       if (
-        requested.pageDate &&
-        (materializedIdRef.current || requested.body.trim()) &&
-        !sameDraft(requested, lastSavedRef.current)
+        flushDraft.pageDate &&
+        (materializedIdRef.current || flushDraft.body.trim()) &&
+        !sameDraft(flushDraft, lastSavedRef.current)
       ) {
         const version = ++versionRef.current;
-        enqueueSave(requested, version, { quiet: true });
+        enqueueSave(flushDraft, version, { quiet: true });
       }
     };
   }, []);
@@ -217,7 +223,11 @@ export default function JournalEditor({
           required
           aria-label="Journal date"
           value={date}
-          onChange={(event) => setDate(event.target.value)}
+          onChange={(event) => {
+            const nextDate = event.target.value;
+            if (nextDate) lastValidDateRef.current = nextDate;
+            setDate(nextDate);
+          }}
           className="w-full min-h-11 rounded-xl border px-3 py-2.5 text-sm outline-none"
           style={{ background: C.card, borderColor: C.line, color: C.ink }}
         />

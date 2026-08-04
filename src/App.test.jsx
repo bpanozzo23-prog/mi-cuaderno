@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App.jsx";
 import { db, clearAllPersonalData } from "./db/db.js";
@@ -196,6 +196,35 @@ describe("Phase 4r journal capture", () => {
 
     await user.click(screen.getByRole("button", { name: "Back to Diario" }));
     expect(await screen.findByRole("button", { name: "Open A title alone" })).toBeTruthy();
+  });
+
+  it("preserves journal edits and the most recent valid date when a tab switch closes an invalid editor", async () => {
+    const user = userEvent.setup();
+    const entry = await createItem(newPage({
+      title: "Tab-safe moment",
+      body: "Antes.",
+      pageDate: localDate(),
+    }));
+    render(<App />);
+
+    const navigation = await screen.findByRole("navigation", { name: "Primary" });
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(within(navigation).getByRole("button", { name: "Diario" }));
+    await user.click(screen.getByRole("button", { name: "Open Tab-safe moment" }));
+    await user.click(screen.getByRole("button", { name: "Edit journal entry" }));
+
+    const date = screen.getByLabelText("Journal date");
+    fireEvent.change(date, { target: { value: "2026-07-31" } });
+    fireEvent.change(date, { target: { value: "" } });
+    await user.type(screen.getByRole("textbox", { name: "Journal body" }), " Después.");
+    expect(screen.getByRole("status").textContent).toMatch(/choose a date/i);
+
+    await user.click(within(navigation).getByRole("button", { name: "Cuaderno" }));
+    await waitFor(async () => {
+      const updated = await getItem(entry.id);
+      expect(updated.body).toBe("Antes. Después.");
+      expect(updated.pageDate).toBe("2026-07-31");
+    });
   });
 });
 

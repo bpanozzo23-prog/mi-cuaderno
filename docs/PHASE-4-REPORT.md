@@ -514,3 +514,22 @@ store, index, backup, item or preference shape changed.
   tools layout remained usable and the console contained **no warnings or errors**.
 - Browser work used only disposable fixture data in Codex's separate profile; it did not inspect or
   change the owner's real browser notebook. No push or production deployment was performed.
+
+## Diario post-review autosave hardening
+
+A follow-up review found one additional data-loss path: after clearing the required date, autosave
+and Back correctly refused to proceed, but the always-visible tab bar replaced the editor route.
+The unmount flush also required a date, so it discarded every title/body change since the last save.
+
+The editor now remembers the most recently selected nonblank date during the visit. Only its quiet
+unmount flush uses that fallback when the visible field is blank; normal autosave remains paused and
+explicit Back still asks for a date. A full-App regression test selects a new valid date, clears it,
+types more text, switches to Cuaderno, and verifies that both the writing and the latest valid date
+reach IndexedDB. The test failed against the original guard and passes after the fix.
+
+The same verification run exposed a pre-existing race in the journal deletion test: it observed the
+row disappearing before the async click handler called Back. The assertion now waits for that
+handler completion signal before checking the committed deletion. The complete serial suite passes
+**423/423 tests across 44 files**, and the production build passes with a 13-entry PWA precache
+(about 555 KiB). A fresh browser rerun was attempted, but the local browser-control kernel could not
+initialize; no new browser result is claimed for this follow-up.

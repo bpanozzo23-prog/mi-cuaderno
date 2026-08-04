@@ -176,8 +176,8 @@ describe("JournalReader", () => {
     expect(await getItem(entry.id)).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Tap again to confirm" }));
 
-    await waitFor(async () => expect(await getItem(entry.id)).toBeUndefined());
-    expect(props.onBack).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(props.onBack).toHaveBeenCalledTimes(1));
+    expect(await getItem(entry.id)).toBeUndefined();
     expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.delete)).toHaveLength(1);
   });
 });
