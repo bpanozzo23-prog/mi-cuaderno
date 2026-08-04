@@ -442,3 +442,18 @@ The owner approved the migration-free Diario workspace recorded in
   intentional search, and Cuaderno-search → Diario → Back state continuity.
 - `npm.cmd run build` passes; the generated PWA precache contains 13 entries (about 523 KiB).
 - Schema remains v3 and no item, event, preference, backup or reference-data shape changed.
+
+## 4q follow-up — home, retrieval and memory
+
+The second Diario slice is complete. Its home leads with a stable Today action, permits another
+same-day moment, offers the latest distinct entry as Continue, and presents current-year writing as
+a newest-first timeline. Earlier years stay behind Archive rather than lengthening the everyday
+screen.
+
+Journal-only search covers title, body and tags through the shared ñ-preserving normalizer but does
+not use Cuaderno's `SearchBar`, so an empty memory search cannot create a vocabulary `search_miss`.
+Around this time shows at most one closest ±7-day memory from the most recent prior year containing
+a candidate; its month/day distance also works across December/January.
+
+The home and pure-domain focused suites, together with App navigation coverage, pass **14/14 tests
+across three files**. Schema and stored shapes remain unchanged.

@@ -1,14 +1,111 @@
-import { ChevronLeft, PenLine } from "lucide-react";
-import { C, SERIF, dotGrid, Card } from "../theme.jsx";
+import { useEffect, useState } from "react";
+import { Check, ChevronLeft } from "lucide-react";
+import { Button, C, SERIF, dotGrid } from "../theme.jsx";
 import { journalEntries } from "../lib/journal.js";
+import { createItem, newPage, updateItem } from "../db/items.js";
+import { localDate } from "../lib/dates.js";
+import JournalHome from "./JournalHome.jsx";
 
-/**
- * Phase 4p shell. The richer home, editor and reading views arrive in the following subphases;
- * this keeps the new canonical surface usable while App's cross-tab navigation is established.
- */
-export default function Diario({ notebook, selectedId, onSelect, onBack, backLabel = "Diario" }) {
+function JournalQuickDraft({ entry, seed, onBack, onChanged, onMaterialized }) {
+  const [title, setTitle] = useState(entry?.title || "");
+  const [body, setBody] = useState(entry?.body || "");
+  const [date, setDate] = useState(entry?.pageDate || seed?.date || localDate());
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!entry) return;
+    setTitle(entry.title || "");
+    setBody(entry.body || "");
+    setDate(entry.pageDate);
+  }, [entry?.id]);
+
+  async function save() {
+    if (!date || !body.trim() || saving) return;
+    setSaving(true);
+    if (entry) {
+      await updateItem(entry.id, { title: title.trim(), body, pageDate: date });
+    } else {
+      const created = await createItem(newPage({
+        title: title.trim(),
+        body,
+        pageDate: date,
+        linkedKeys: seed?.linkedEntryId ? [seed.linkedEntryId] : [],
+      }));
+      onMaterialized(created.id);
+    }
+    onChanged();
+    setSaving(false);
+    setSaved(true);
+  }
+
+  return (
+    <div className="px-4 py-4 pb-28" style={dotGrid}>
+      <button type="button" onClick={onBack} className="mb-4 flex items-center gap-1 text-sm" style={{ color: C.pen }}>
+        <ChevronLeft size={16} /> Diario
+      </button>
+      <div className="space-y-3">
+        <input
+          type="date"
+          required
+          aria-label="Journal date"
+          value={date}
+          onChange={(event) => { setDate(event.target.value); setSaved(false); }}
+          className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none"
+          style={{ background: C.card, borderColor: C.line, color: C.ink }}
+        />
+        <input
+          aria-label="Journal title"
+          value={title}
+          onChange={(event) => { setTitle(event.target.value); setSaved(false); }}
+          placeholder="Title (optional)"
+          className="w-full bg-transparent text-xl font-semibold outline-none"
+          style={{ color: C.ink, fontFamily: SERIF }}
+        />
+        <textarea
+          autoFocus
+          aria-label="Journal body"
+          value={body}
+          onChange={(event) => { setBody(event.target.value); setSaved(false); }}
+          placeholder="What do you want to remember? Write in Spanish, English, or both."
+          className="w-full min-h-72 resize-y rounded-xl border p-3 text-base leading-relaxed outline-none"
+          style={{ background: C.card, borderColor: C.line, color: C.ink, fontFamily: SERIF }}
+        />
+        <div className="flex items-center gap-3">
+          <Button onClick={save} disabled={!date || !body.trim() || saving}>
+            <Check size={15} /> {saving ? "Saving…" : entry ? "Save moment" : "Create moment"}
+          </Button>
+          {saved && <span role="status" className="text-xs" style={{ color: C.green }}>Saved</span>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Diario({
+  notebook,
+  route,
+  onSelect,
+  onBack,
+  backLabel = "Diario",
+  onEdit,
+  onStart,
+  onMaterialized,
+}) {
   const entries = journalEntries(notebook.items);
-  const selected = entries.find((entry) => entry.id === selectedId) || null;
+  const selected = entries.find((entry) => entry.id === route?.id) || null;
+
+  if (route?.screen === "edit") {
+    return (
+      <JournalQuickDraft
+        entry={selected}
+        seed={route.seed}
+        onBack={onBack}
+        onChanged={notebook.reload}
+        onMaterialized={onMaterialized}
+      />
+    );
+  }
 
   if (selected) {
     return (
@@ -31,29 +128,5 @@ export default function Diario({ notebook, selectedId, onSelect, onBack, backLab
     );
   }
 
-  return (
-    <div className="px-4 py-5 pb-28" style={dotGrid}>
-      <div className="mb-5 flex items-center gap-2">
-        <PenLine size={19} style={{ color: C.pen }} />
-        <h1 className="text-2xl font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>Diario</h1>
-      </div>
-      {entries.length === 0 ? (
-        <div className="text-sm italic" style={{ color: C.mut }}>Todavía no hay entradas.</div>
-      ) : (
-        <div className="space-y-2.5">
-          {entries.map((entry) => (
-            <button key={entry.id} type="button" onClick={() => onSelect(entry.id)} className="w-full text-left">
-              <Card>
-                <div className="text-xs" style={{ color: C.mut }}>{entry.pageDate}</div>
-                <div className="mt-1 font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>
-                  {entry.title || "Entrada sin título"}
-                </div>
-                {entry.body && <div className="mt-1 line-clamp-2 text-sm" style={{ color: C.mut }}>{entry.body}</div>}
-              </Card>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  return <JournalHome entries={entries} onOpen={onSelect} onEdit={onEdit} onStart={onStart} />;
 }

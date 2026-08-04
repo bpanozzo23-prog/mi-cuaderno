@@ -60,6 +60,25 @@ export default function App() {
     setRouteTrail((trail) => (trail.length > 1 ? trail.slice(0, -1) : [baseRoute(trail[0].tab)]));
   }
 
+  function editJournal(id) {
+    if (!id) return;
+    setRouteTrail((trail) => [...trail, { tab: "diario", screen: "edit", id, seed: null }]);
+  }
+
+  function startJournal(seed = {}) {
+    setRouteTrail((trail) => [
+      ...trail,
+      { tab: "diario", screen: "edit", id: null, seed: { ...seed, draftKey: Date.now() } },
+    ]);
+  }
+
+  function journalMaterialized(id) {
+    setRouteTrail((trail) => [
+      ...trail.slice(0, -1),
+      { ...trail[trail.length - 1], id },
+    ]);
+  }
+
   // A page can cross surfaces when its date or profile changes. Replace only the current route;
   // the origin trail stays intact, so moving a journal back to Pages never loses Back.
   useEffect(() => {
@@ -145,10 +164,13 @@ export default function App() {
             <section hidden={tab !== "diario"} aria-label="Diario surface">
               <Diario
                 notebook={notebook}
-                selectedId={diarioRoute.id}
+                route={diarioRoute}
                 onSelect={openItem}
                 onBack={backFromDetail}
                 backLabel={backLabel}
+                onEdit={editJournal}
+                onStart={startJournal}
+                onMaterialized={journalMaterialized}
               />
             </section>
             {tab === "repaso" && (
