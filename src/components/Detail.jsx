@@ -7,16 +7,22 @@ import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button } from "../them
 import { POS_OPTIONS, personalHeadingSuffix, personalLexicalForm } from "./ItemCard.jsx";
 import DictAttachment from "./DictAttachment.jsx";
 import LinkPicker from "./LinkPicker.jsx";
+import AliasConflictResolver from "./AliasConflictResolver.jsx";
 import TagInput from "./TagInput.jsx";
 import { ItemLinkCard, EntryLinkCard, OrphanLinkCard } from "./LinkCard.jsx";
 import {
-  updateItem, deleteItem, linkItems, unlinkItems,
+  updateItem, deleteItem, linkItems, unlinkItems, setLinkRelationship,
   createItem, newLexical, newPage,
 } from "../db/items.js";
 import { logView, toggleTricky } from "../db/events.js";
 import { resolveLinkedKeys } from "../db/linkedEntries.js";
 import { emptyItemState } from "../useNotebook.js";
-import { relatedTo, groupRelated, GROUPS } from "../lib/links.js";
+import {
+  connectionsFor,
+  groupConnections,
+  relationshipForTarget,
+  relationshipLabel,
+} from "../lib/relationships.js";
 import { allTagsIn } from "../lib/tags.js";
 import { timeAgo } from "../lib/dates.js";
 import { cloneMeanings } from "../lib/meanings.js";
@@ -88,17 +94,16 @@ function StandardDetail({
     () => new Set(collectionPlacements.map((placement) => placement.page.id)),
     [collectionPlacements]
   );
-  const related = useMemo(
-    () => relatedTo(item, items).filter((candidate) => !placementPageIds.has(candidate.id)),
-    [items, item, placementPageIds]
-  );
-
   // Everything already connected, in one set, so the picker can mark it rather than hide it:
   // seeing "linked ✓" answers "have I already done this?" where a missing row just looks
   // like the search failed. Dictionary keys are in here too — they live in linkedKeys.
   const linkedKeys = useMemo(
-    () => new Set([...related.map((r) => r.id), ...item.linkedKeys, ...placementPageIds]),
-    [related, item.linkedKeys, placementPageIds]
+    () => new Set([
+      ...connectionsFor(item, items).map((connection) => connection.key),
+      ...(item.linkedKeys || []),
+      ...placementPageIds,
+    ]),
+    [item, items, placementPageIds]
   );
 
   // linkedKeys may point into the reference layer (§6). Those entries cannot hold a
@@ -107,13 +112,15 @@ function StandardDetail({
   // the alias map and reports what it could not find (§5); see db/linkedEntries.js.
   const [linkedEntries, setLinkedEntries] = useState([]);
   const [orphanKeys, setOrphanKeys] = useState([]);
+  const [linkConflicts, setLinkConflicts] = useState([]);
 
   useEffect(() => {
     let alive = true;
-    resolveLinkedKeys(item).then(({ entries, orphans, rewritten }) => {
+    resolveLinkedKeys(item).then(({ entries, orphans, conflicts, rewritten }) => {
       if (!alive) return;
       setLinkedEntries(entries);
       setOrphanKeys(orphans);
+      setLinkConflicts(conflicts || []);
       if (rewritten) onChanged();
     });
     return () => {
@@ -127,16 +134,29 @@ function StandardDetail({
    * which is what made deferring a "source" page type free. A word leads with the pages it
    * turns up on. Fixed orders, derived at render, nothing stored and nothing configurable.
    */
+  const connections = useMemo(
+    () => connectionsFor(item, items, linkedEntries)
+      .filter((connection) => connection.kind !== "item" || !placementPageIds.has(connection.key))
+      .filter((connection) => connection.kind !== "entry"
+        || !linkConflicts.some((conflict) => conflict.canonicalKey === connection.key)),
+    [item, items, linkedEntries, placementPageIds, linkConflicts]
+  );
+  const orphanConnections = useMemo(
+    () => orphanKeys.map((key) => {
+      const relationship = relationshipForTarget(item, key);
+      return {
+        kind: "orphan",
+        key,
+        relationship,
+        ...relationship,
+        label: relationshipLabel(relationship),
+      };
+    }),
+    [item, orphanKeys]
+  );
   const groups = useMemo(
-    () =>
-      groupRelated(
-        related,
-        linkedEntries,
-        isPage
-          ? [GROUPS.palabras, GROUPS.paginas, GROUPS.diario]
-          : [GROUPS.paginas, GROUPS.diario, GROUPS.palabras]
-      ),
-    [related, linkedEntries, isPage]
+    () => groupConnections([...connections, ...orphanConnections]),
+    [connections, orphanConnections]
   );
 
   async function unlink(key) {
@@ -621,13 +641,26 @@ function StandardDetail({
         </>
       )}
 
-      <SectionTitle>Linked</SectionTitle>
+      <SectionTitle>Connections</SectionTitle>
 
-      {groups.length === 0 && !picking && (
+      {groups.length === 0 && linkConflicts.length === 0 && !picking && (
         <div className="text-xs mb-2" style={{ color: C.mut }}>
           {isPage
             ? "Nothing linked yet. Link the words and phrases this page is about."
             : "Nothing linked yet. Link the pages, words and phrases this one belongs with."}
+        </div>
+      )}
+
+      {linkConflicts.length > 0 && (
+        <div className="mb-3 space-y-2">
+          {linkConflicts.map((conflict) => (
+            <AliasConflictResolver
+              key={conflict.canonicalKey}
+              itemId={item.id}
+              conflict={conflict}
+              onResolved={onChanged}
+            />
+          ))}
         </div>
       )}
 
@@ -639,13 +672,39 @@ function StandardDetail({
           <div className="space-y-1.5">
             {group.rows.map((row) =>
               row.kind === "entry" ? (
-                <EntryLinkCard key={row.key} entry={row.entry} onOpen={onOpen} onRemove={() => unlink(row.key)} />
+                <EntryLinkCard
+                  key={row.key}
+                  entry={row.entry}
+                  connection={row}
+                  onOpen={onOpen}
+                  onSaveRelationship={async (relationship) => {
+                    await setLinkRelationship(item.id, row.key, relationship);
+                    await onChanged();
+                  }}
+                  onRemove={() => unlink(row.key)}
+                />
+              ) : row.kind === "orphan" ? (
+                <OrphanLinkCard
+                  key={row.key}
+                  dictKey={row.key}
+                  connection={row}
+                  onSaveRelationship={async (relationship) => {
+                    await setLinkRelationship(item.id, row.key, relationship);
+                    await onChanged();
+                  }}
+                  onRemove={() => unlink(row.key)}
+                />
               ) : (
                 <ItemLinkCard
                   key={row.key}
                   item={row.item}
                   attached={Boolean(row.item.dictKey)}
+                  connection={row}
                   onOpen={onOpen}
+                  onSaveRelationship={async (relationship) => {
+                    await setLinkRelationship(item.id, row.key, relationship);
+                    await onChanged();
+                  }}
                   onRemove={() => unlink(row.key)}
                 />
               )
@@ -653,14 +712,6 @@ function StandardDetail({
           </div>
         </div>
       ))}
-
-      {orphanKeys.length > 0 && (
-        <div className="space-y-1.5 mb-3">
-          {orphanKeys.map((key) => (
-            <OrphanLinkCard key={key} dictKey={key} onRemove={() => unlink(key)} />
-          ))}
-        </div>
-      )}
 
       {!picking && (
         <button
@@ -677,12 +728,13 @@ function StandardDetail({
           item={item}
           items={items}
           linkedKeys={linkedKeys}
+          connections={connections}
           onCancel={() => setPicking(false)}
-          onPick={async (key) => {
-            await linkItems(item.id, key);
+          onPick={async (key, relationship) => {
+            await linkItems(item.id, key, relationship);
             onChanged();
           }}
-          onCreate={async (kind, text) => {
+          onCreate={async (kind, text, relationship) => {
             // Deliberately NOT onOpen(created.id): the whole point of quick-create is that
             // the owner stays on the item they were writing. Detail resets its draft only
             // when item.id changes, so staying put is what keeps unsaved work alive.
@@ -691,7 +743,7 @@ function StandardDetail({
                 ? newPage({ title: text })
                 : newLexical({ term: text, form: text.includes(" ") ? "phrase" : "word" })
             );
-            await linkItems(item.id, created.id);
+            await linkItems(item.id, created.id, relationship);
             onChanged();
           }}
         />

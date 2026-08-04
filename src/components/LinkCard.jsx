@@ -1,9 +1,12 @@
-import { X, FileText, CalendarDays, Type, BookMarked, Unlink } from "lucide-react";
-import { C, SERIF, MONO } from "../theme.jsx";
+import { useEffect, useState } from "react";
+import { FileText, CalendarDays, Type, BookMarked, Unlink, MoreHorizontal, Trash2 } from "lucide-react";
+import { Button, C, SERIF, MONO } from "../theme.jsx";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
 import { POS_LABEL } from "./DictCard.jsx";
 import { timeAgo } from "../lib/dates.js";
 import { meaningGlossText } from "../lib/meanings.js";
+import { normalizeRelationship } from "../lib/relationships.js";
+import RelationshipSelect from "./RelationshipSelect.jsx";
 
 /**
  * One link, shown as something you can recognise (requirement 4).
@@ -22,43 +25,93 @@ const previewOf = (item) => {
   return text ? text.replace(/\s+/g, " ").slice(0, 80) : "";
 };
 
-function Shell({ icon: Icon, onOpen, onRemove, removeLabel, children, dashed }) {
+function ConnectionEditor({ connection, onSave, onCancel, onRemove }) {
+  const [draft, setDraft] = useState(() => normalizeRelationship(connection?.relationship || connection));
+
+  useEffect(() => {
+    setDraft(normalizeRelationship(connection?.relationship || connection));
+  }, [connection?.type, connection?.subject, connection?.note]);
+
+  return (
+    <div className="mt-2 border-t pt-3" style={{ borderColor: C.line }}>
+      <div className="mb-2 text-sm font-semibold" style={{ color: C.ink }}>Edit connection</div>
+      <RelationshipSelect relationship={draft} onChange={setDraft} />
+      <label className="mt-3 block text-xs" style={{ color: C.mut }}>
+        <span className="mb-1 block" style={{ fontFamily: MONO }}>Shared note (optional)</span>
+        <textarea
+          aria-label="Connection note"
+          value={draft.note}
+          onChange={(event) => setDraft((current) => ({ ...current, note: event.target.value }))}
+          placeholder="Why are these connected?"
+          className="min-h-24 w-full resize-y rounded-lg border px-3 py-2 text-sm outline-none"
+          style={{ background: C.paper, borderColor: C.line, color: C.ink }}
+        />
+      </label>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button onClick={async () => { await onSave(draft); onCancel(); }}>Save</Button>
+        <Button tone="quiet" onClick={onCancel}>Cancel</Button>
+        {onRemove && (
+          <Button tone="danger" onClick={onRemove}>
+            <Trash2 size={14} /> Remove connection
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Shell({ icon: Icon, onOpen, onEdit, editLabel, children, dashed, editor }) {
   return (
     <div
-      className="flex items-start gap-2 rounded-xl border px-3 py-2"
+      className="rounded-xl border px-3 py-2"
       style={{ background: C.card, borderColor: C.line, borderStyle: dashed ? "dashed" : "solid" }}
     >
-      <Icon size={14} className="shrink-0 mt-0.5" style={{ color: C.mut }} />
-      <button onClick={onOpen} disabled={!onOpen} className="min-w-0 flex-1 text-left">
-        {children}
-      </button>
-      {/*
-        Unlinking is only offered where the link is STORED — on one of the owner's own items.
-        A dictionary entry is read-only (§5) and holds no link to remove, so its screen shows
-        these cards without an × rather than offering an action that edits a different record.
-      */}
-      {onRemove && (
-        <button onClick={onRemove} aria-label={removeLabel} className="shrink-0 p-0.5">
-          <X size={13} style={{ color: C.mut }} />
+      <div className="flex items-start gap-2">
+        <Icon size={14} className="shrink-0 mt-0.5" style={{ color: C.mut }} />
+        <button onClick={onOpen} disabled={!onOpen} className="min-w-0 flex-1 text-left">
+          {children}
         </button>
-      )}
+        {onEdit && (
+          <button
+            type="button"
+            onClick={onEdit}
+            aria-label={editLabel}
+            className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg"
+            style={{ color: C.mut }}
+          >
+            <MoreHorizontal size={18} />
+          </button>
+        )}
+      </div>
+      {editor}
     </div>
   );
 }
 
 /** A link to one of the owner's own items. */
-export function ItemLinkCard({ item, attached, onOpen, onRemove }) {
+export function ItemLinkCard({ item, attached, connection, onOpen, onSaveRelationship, onRemove }) {
   const isPage = item.type === "page";
   const preview = previewOf(item);
   const headingSuffix = isPage ? "" : personalHeadingSuffix(item);
   const glosses = isPage ? "" : meaningGlossText(item);
+  const relationship = normalizeRelationship(connection?.relationship || connection);
+  const [editing, setEditing] = useState(false);
+  const heading = isPage ? item.title || "page" : item.term;
 
   return (
     <Shell
       icon={isPage ? (item.pageDate ? CalendarDays : FileText) : Type}
       onOpen={() => onOpen(item.id)}
-      onRemove={onRemove}
-      removeLabel={`Unlink ${isPage ? item.title || "page" : item.term}`}
+      onEdit={onSaveRelationship ? () => setEditing((open) => !open) : null}
+      editLabel={`Edit connection to ${heading}`}
+      editor={editing ? (
+        <ConnectionEditor
+          connection={relationship}
+          onSave={onSaveRelationship}
+          onCancel={() => setEditing(false)}
+          onRemove={onRemove}
+        />
+      ) : null}
     >
       <div className="flex items-baseline justify-between gap-2">
         <div className="min-w-0" style={{ fontFamily: SERIF, color: C.ink, fontWeight: 700 }}>
@@ -84,19 +137,38 @@ export function ItemLinkCard({ item, attached, onOpen, onRemove }) {
           — {glosses}
         </div>
       )}
-      {preview && (
+      {relationship.note ? (
+        <div className="mt-1 whitespace-pre-wrap break-words text-xs line-clamp-2" style={{ color: C.penDark }}>
+          {relationship.note}
+        </div>
+      ) : preview ? (
         <div className="text-xs truncate mt-0.5" style={{ color: C.mut }}>
           {preview}
         </div>
-      )}
+      ) : null}
     </Shell>
   );
 }
 
 /** A link to a dictionary entry. Read-only by definition (§5); the owner never edits it. */
-export function EntryLinkCard({ entry, onOpen, onRemove }) {
+export function EntryLinkCard({ entry, connection, onOpen, onSaveRelationship, onRemove }) {
+  const relationship = normalizeRelationship(connection?.relationship || connection);
+  const [editing, setEditing] = useState(false);
   return (
-    <Shell icon={BookMarked} onOpen={() => onOpen(entry.id)} onRemove={onRemove} removeLabel={`Unlink ${entry.lemma}`}>
+    <Shell
+      icon={BookMarked}
+      onOpen={() => onOpen(entry.id)}
+      onEdit={onSaveRelationship ? () => setEditing((open) => !open) : null}
+      editLabel={`Edit connection to ${entry.lemma}`}
+      editor={editing ? (
+        <ConnectionEditor
+          connection={relationship}
+          onSave={onSaveRelationship}
+          onCancel={() => setEditing(false)}
+          onRemove={onRemove}
+        />
+      ) : null}
+    >
       <div className="flex items-baseline justify-between gap-2">
         <div className="min-w-0" style={{ fontFamily: SERIF, color: C.ink, fontWeight: 700 }}>
           {entry.lemma}
@@ -113,6 +185,11 @@ export function EntryLinkCard({ entry, onOpen, onRemove }) {
           — {entry.senses[0].gloss}
         </div>
       )}
+      {relationship.note && (
+        <div className="mt-1 whitespace-pre-wrap break-words text-xs line-clamp-2" style={{ color: C.penDark }}>
+          {relationship.note}
+        </div>
+      )}
     </Shell>
   );
 }
@@ -124,15 +201,35 @@ export function EntryLinkCard({ entry, onOpen, onRemove }) {
  * disappears without a word is data loss they cannot see. Same manners as an orphaned
  * attachment in DictAttachment — say what happened, and offer to forget it.
  */
-export function OrphanLinkCard({ dictKey, onRemove }) {
+export function OrphanLinkCard({ dictKey, connection, onSaveRelationship, onRemove }) {
+  const relationship = normalizeRelationship(connection?.relationship || connection);
+  const [editing, setEditing] = useState(false);
   return (
-    <Shell icon={Unlink} onRemove={onRemove} removeLabel="Forget this link" dashed>
+    <Shell
+      icon={Unlink}
+      onEdit={onSaveRelationship ? () => setEditing((open) => !open) : null}
+      editLabel="Edit unresolved dictionary connection"
+      dashed
+      editor={editing ? (
+        <ConnectionEditor
+          connection={relationship}
+          onSave={onSaveRelationship}
+          onCancel={() => setEditing(false)}
+          onRemove={onRemove}
+        />
+      ) : null}
+    >
       <div className="text-xs" style={{ color: C.mut }}>
         No longer in the dictionary. Your notes are untouched.
       </div>
       <div className="text-[11px] truncate mt-0.5" style={{ fontFamily: MONO, color: C.mut }}>
         {dictKey}
       </div>
+      {relationship.note && (
+        <div className="mt-1 whitespace-pre-wrap break-words text-xs line-clamp-2" style={{ color: C.penDark }}>
+          {relationship.note}
+        </div>
+      )}
     </Shell>
   );
 }

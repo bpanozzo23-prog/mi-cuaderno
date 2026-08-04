@@ -5,7 +5,7 @@ import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Detail from "./Detail.jsx";
 import { db, clearAllPersonalData } from "../db/db.js";
-import { newLexical, newPage, createItem, allItems } from "../db/items.js";
+import { newLexical, newPage, createItem, allItems, getItem, linkItems } from "../db/items.js";
 import { allEvents, EVENT_TYPES } from "../db/events.js";
 import { newMeaning } from "../lib/meanings.js";
 
@@ -242,6 +242,10 @@ describe("quick-create-and-link keeps the owner where they are", () => {
     await user.type(body, "Un borrador que todavía no está guardado");
 
     await user.click(screen.getByText("link something"));
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Relationship" }),
+      "often_confused:owner"
+    );
     await user.type(
       screen.getByPlaceholderText(/Link a word, phrase, page or dictionary entry/),
       "DE   REPENTE"
@@ -268,6 +272,12 @@ describe("quick-create-and-link keeps the owner where they are", () => {
     const created = items.find((item) => item.term === "DE   REPENTE");
     expect(created.form).toBe("phrase");
     expect(source.linkedKeys).toEqual([created.id]);
+    expect(source.linkAnnotations).toEqual([{
+      targetKey: created.id,
+      type: "often_confused",
+      subject: "owner",
+      note: "",
+    }]);
     expect(created.linkedKeys).toEqual([]);
     expect(existing.linkedKeys).toEqual([]);
 
@@ -383,6 +393,44 @@ describe("linking an existing item", () => {
     const target = (await allItems()).find((i) => i.id === word.id);
     expect(target.linkedKeys).toEqual([]);
 
-    expect(await screen.findByText("linked")).toBeTruthy();
+    expect((await screen.findAllByText("Related")).length).toBeGreaterThan(0);
+  });
+
+  it("edits a directional relationship from the backlink without moving either item", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({ term: "por" }));
+    const page = await createItem(newPage({ title: "Grammar explanation" }));
+    await linkItems(page.id, word.id, {
+      type: "often_confused",
+      subject: "owner",
+      note: "Initial shared note",
+    });
+    const beforeWord = await getItem(word.id);
+    const beforePage = await getItem(page.id);
+    const baselineEdits = (await allEvents()).filter((event) => event.type === EVENT_TYPES.edit).length;
+
+    // Open the target endpoint: the physical edge and annotation remain stored on the page.
+    renderDetail(word, vi.fn(), undefined, await allItems());
+    expect(screen.getByText("Often confused")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Edit connection to Grammar explanation" }));
+    await user.selectOptions(screen.getByRole("combobox", { name: "Relationship" }), "explained_by:target");
+    const note = screen.getByRole("textbox", { name: "Connection note" });
+    await user.clear(note);
+    await user.type(note, "The word explains this grammar page");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(async () => {
+      expect((await getItem(page.id)).linkAnnotations).toEqual([{
+        targetKey: word.id,
+        type: "explained_by",
+        subject: "owner",
+        note: "The word explains this grammar page",
+      }]);
+    });
+    expect((await getItem(word.id)).linkedKeys).toEqual([]);
+    expect((await getItem(word.id)).updatedAt).toBe(beforeWord.updatedAt);
+    expect((await getItem(page.id)).updatedAt).toBe(beforePage.updatedAt);
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(baselineEdits);
+    expect(await screen.findByText("Explains")).toBeTruthy();
   });
 });

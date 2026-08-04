@@ -10,6 +10,8 @@ import { findPersonalHeadingDuplicates } from "../lib/duplicateGuard.js";
 import { searchDictionary } from "../db/ref/search.js";
 import { installedMeta } from "../db/ref/entries.js";
 import { meaningGlossText } from "../lib/meanings.js";
+import { isImplicitRelationship, normalizeRelationship } from "../lib/relationships.js";
+import RelationshipSelect from "./RelationshipSelect.jsx";
 
 /**
  * One box for linking anything (Phase 4, requirement 1).
@@ -48,7 +50,7 @@ function contextLine(item) {
   return glosses ? flatten(glosses) : item.notes ? flatten(item.notes).slice(0, 60) : "";
 }
 
-function Row({ icon: Icon, heading, suffix, context, reason, linked, onPick }) {
+function Row({ icon: Icon, heading, suffix, context, reason, linked, linkedLabel, onPick }) {
   return (
     <button
       onClick={linked ? undefined : onPick}
@@ -83,7 +85,7 @@ function Row({ icon: Icon, heading, suffix, context, reason, linked, onPick }) {
           className="shrink-0 inline-flex items-center gap-1 text-[11px]"
           style={{ fontFamily: MONO, color: C.mut }}
         >
-          <Check size={12} /> linked
+          <Check size={12} /> {linkedLabel || "Related"}
         </span>
       )}
     </button>
@@ -114,15 +116,35 @@ function CreateRow({ icon: Icon, label, onClick }) {
   );
 }
 
-export default function LinkPicker({ item, items, linkedKeys, onPick, onCancel, onCreate }) {
+export default function LinkPicker({
+  item,
+  items,
+  linkedKeys,
+  connections = [],
+  candidateFilter = () => true,
+  allowCreateLexical = true,
+  allowCreatePage = true,
+  onPick,
+  onCancel,
+  onCreate,
+}) {
   const [query, setQuery] = useState("");
   const [dictResults, setDictResults] = useState([]);
   const [dictionaryMeta, setDictionaryMeta] = useState(null);
+  const [relationship, setRelationship] = useState(() => normalizeRelationship());
   const typed = query.trim();
+  const connectionByKey = useMemo(
+    () => new Map(connections.map((connection) => [connection.key, connection])),
+    [connections]
+  );
+  const personalCandidates = useMemo(
+    () => items.filter(candidateFilter),
+    [items, candidateFilter]
+  );
 
   const personal = useMemo(
-    () => pickerMatches(items, query, { excludeId: item.id, limit: LIMIT }),
-    [items, query, item.id]
+    () => pickerMatches(personalCandidates, query, { excludeId: item.id, limit: LIMIT }),
+    [personalCandidates, query, item.id]
   );
   const lexicalDuplicates = useMemo(
     () => findPersonalHeadingDuplicates(items, "lexical", typed),
@@ -167,9 +189,18 @@ export default function LinkPicker({ item, items, linkedKeys, onPick, onCancel, 
     [personal, dictResults, items, dictionaryMeta]
   );
 
+  const pick = (key) => isImplicitRelationship(relationship)
+    ? onPick(key)
+    : onPick(key, relationship);
+  const create = (kind) => isImplicitRelationship(relationship)
+    ? onCreate(kind, typed)
+    : onCreate(kind, typed, relationship);
+
   return (
     <Card className="mt-2" style={{ borderColor: C.pen }}>
-      <div className="flex items-center gap-2 rounded-lg px-2 py-1.5 border" style={{ borderColor: C.line }}>
+      <RelationshipSelect relationship={relationship} onChange={setRelationship} />
+
+      <div className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1.5 border" style={{ borderColor: C.line }}>
         <Search size={14} style={{ color: C.mut }} />
         <input
           autoFocus
@@ -201,7 +232,8 @@ export default function LinkPicker({ item, items, linkedKeys, onPick, onCancel, 
               context={row.entry.senses?.[0]?.gloss}
               reason={row.reason}
               linked={linkedKeys.has(row.entry.id)}
-              onPick={() => onPick(row.entry.id)}
+              linkedLabel={connectionByKey.get(row.entry.id)?.label}
+              onPick={() => pick(row.entry.id)}
             />
           ) : (
             <Row
@@ -212,30 +244,35 @@ export default function LinkPicker({ item, items, linkedKeys, onPick, onCancel, 
               context={contextLine(row.item)}
               reason={row.reason}
               linked={linkedKeys.has(row.item.id)}
-              onPick={() => onPick(row.item.id)}
+              linkedLabel={connectionByKey.get(row.item.id)?.label}
+              onPick={() => pick(row.item.id)}
             />
           )
         )}
       </div>
 
-      {typed && (
+      {typed && (allowCreateLexical || allowCreatePage) && (
         <div className="mt-2 pt-2 space-y-1 border-t" style={{ borderColor: C.line }}>
-          <div className="space-y-1">
-            {lexicalDuplicates.length > 0 && <DuplicateWarning kind="lexical" />}
-            <CreateRow
-              icon={Plus}
-              label={`Create ${typed.includes(" ") ? "phrase" : "word"} “${typed}” and link it`}
-              onClick={() => onCreate("lexical", typed)}
-            />
-          </div>
-          <div className="space-y-1">
-            {pageDuplicates.length > 0 && <DuplicateWarning kind="page" />}
-            <CreateRow
-              icon={Plus}
-              label={`Create page “${typed}” and link it`}
-              onClick={() => onCreate("page", typed)}
-            />
-          </div>
+          {allowCreateLexical && (
+            <div className="space-y-1">
+              {lexicalDuplicates.length > 0 && <DuplicateWarning kind="lexical" />}
+              <CreateRow
+                icon={Plus}
+                label={`Create ${typed.includes(" ") ? "phrase" : "word"} “${typed}” and link it`}
+                onClick={() => create("lexical")}
+              />
+            </div>
+          )}
+          {allowCreatePage && (
+            <div className="space-y-1">
+              {pageDuplicates.length > 0 && <DuplicateWarning kind="page" />}
+              <CreateRow
+                icon={Plus}
+                label={`Create page “${typed}” and link it`}
+                onClick={() => create("page")}
+              />
+            </div>
+          )}
         </div>
       )}
     </Card>

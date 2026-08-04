@@ -70,6 +70,56 @@ afterEach(async () => {
 });
 
 describe("LinkPicker duplicate guard", () => {
+  it("starts at Related, offers the approved order, and passes the selected perspective", async () => {
+    const user = userEvent.setup();
+    const source = page("source", "Source");
+    const target = lexical("target", "chamba");
+    const onPick = vi.fn();
+
+    render(<LinkPicker {...pickerProps(source, [source, target], { onPick })} />);
+
+    const relationship = screen.getByRole("combobox", { name: "Relationship" });
+    expect(relationship.value).toBe("related:owner");
+    expect(Array.from(relationship.options).map((option) => option.textContent)).toEqual([
+      "Similar meaning",
+      "Contrast",
+      "Often confused",
+      "Variant",
+      "Explained by",
+      "Explains",
+      "Found in",
+      "Contains",
+      "Related",
+    ]);
+
+    await user.selectOptions(relationship, "found_in:target");
+    await user.click(screen.getByRole("button", { name: /^chamba/ }));
+
+    expect(onPick).toHaveBeenCalledWith("target", {
+      type: "found_in",
+      subject: "target",
+      note: "",
+    });
+  });
+
+  it("shows the current relationship instead of a generic linked label", () => {
+    const source = page("source", "Source");
+    const target = lexical("target", "estar");
+
+    render(
+      <LinkPicker
+        {...pickerProps(source, [source, target], {
+          linkedKeys: new Set([target.id]),
+          connections: [{ key: target.id, label: "Often confused" }],
+        })}
+      />
+    );
+
+    const row = screen.getByRole("button", { name: /estar.*Often confused/i });
+    expect(row.disabled).toBe(true);
+    expect(screen.queryByText("linked")).toBeNull();
+  });
+
   it("warns lexical and page creation independently while keeping both actions enabled", async () => {
     const user = userEvent.setup();
     const source = page("source", "Source");
