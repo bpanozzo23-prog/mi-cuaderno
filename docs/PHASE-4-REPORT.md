@@ -494,3 +494,23 @@ The complete focused journal boundary—domain, prompts, home, editor, reader, A
 Cuaderno separation and Add Sheet—passes **45/45 tests across eight files**. The production build
 passes with a 13-entry PWA precache (about 555 KiB). Schema remains v3 and no personal/reference
 store, index, backup, item or preference shape changed.
+
+## Diario closeout verification
+
+- `npm.cmd test -- --maxWorkers=1` passes **422/422 tests across 44 files**. The journal-focused
+  boundary passes 46 tests after adding the browser-found StrictMode case.
+- `npm.cmd run build` passes after the final source change; the generated PWA precache contains 13
+  entries (about 555 KiB).
+- A disposable in-app-browser profile at **375×812** verified title-only abandonment, prompt-assisted
+  creation, visible autosave, clean reading, personal-vocabulary linking, journal→phrase→Back,
+  separate linked reflection, tags, nonjournal page relations, Move to Pages, adjusted page totals,
+  journal-only search, intentional Cuaderno search and exact search-origin Back continuity.
+- That browser pass caught one real development-mode defect: StrictMode's effect replay left the
+  editor's mounted ref false, so the write completed but status stayed at Saving and route
+  materialization was skipped. Effect setup now restores the flag; the new StrictMode component
+  test fails without that line and passes with it. The browser then reached **Saved** normally.
+- At the ordinary phone screen, document/body scroll width exactly matched 375 px. On the long Más
+  screen, its 360 px scrollbar-adjusted client width exactly matched scroll width. The full-page
+  tools layout remained usable and the console contained **no warnings or errors**.
+- Browser work used only disposable fixture data in Codex's separate profile; it did not inspect or
+  change the owner's real browser notebook. No push or production deployment was performed.

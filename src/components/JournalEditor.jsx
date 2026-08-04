@@ -150,18 +150,23 @@ export default function JournalEditor({
     return () => clearTimeout(timerRef.current);
   }, [title, body, date, autosaveMs]);
 
-  useEffect(() => () => {
-    mountedRef.current = false;
-    clearTimeout(timerRef.current);
-    const requested = latestDraftRef.current;
-    if (
-      requested.pageDate &&
-      (materializedIdRef.current || requested.body.trim()) &&
-      !sameDraft(requested, lastSavedRef.current)
-    ) {
-      const version = ++versionRef.current;
-      enqueueSave(requested, version, { quiet: true });
-    }
+  useEffect(() => {
+    // React StrictMode intentionally runs setup → cleanup → setup in development. Restore the
+    // live flag in setup so the second pass can publish Saved and materialize the active route.
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      clearTimeout(timerRef.current);
+      const requested = latestDraftRef.current;
+      if (
+        requested.pageDate &&
+        (materializedIdRef.current || requested.body.trim()) &&
+        !sameDraft(requested, lastSavedRef.current)
+      ) {
+        const version = ++versionRef.current;
+        enqueueSave(requested, version, { quiet: true });
+      }
+    };
   }, []);
 
   async function leaveEditor() {

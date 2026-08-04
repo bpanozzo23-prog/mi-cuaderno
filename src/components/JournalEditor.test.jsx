@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { StrictMode } from "react";
 import JournalEditor from "./JournalEditor.jsx";
 import { clearAllPersonalData, db } from "../db/db.js";
 import { allItems, createItem, newPage } from "../db/items.js";
@@ -78,6 +79,21 @@ describe("JournalEditor autosave", () => {
     expect(events.filter((event) => event.type === EVENT_TYPES.create)).toHaveLength(1);
     expect(events.filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(0);
     expect(events.filter((event) => event.type === EVENT_TYPES.view)).toHaveLength(0);
+  });
+
+  it("materializes and reports Saved through React StrictMode's effect replay", async () => {
+    const user = userEvent.setup();
+    const props = baseProps();
+    render(
+      <StrictMode>
+        <JournalEditor {...props} />
+      </StrictMode>
+    );
+
+    await user.type(screen.getByRole("textbox", { name: "Journal body" }), "Strict mode moment.");
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe("Saved"));
+    expect(props.onMaterialized).toHaveBeenCalledTimes(1);
+    expect(await allItems()).toHaveLength(1);
   });
 
   it("flushes a new body on unmount without rewriting navigation after the owner leaves", async () => {

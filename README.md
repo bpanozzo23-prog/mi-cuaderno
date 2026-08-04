@@ -30,8 +30,8 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   meanings (4i) are shipped and browser-verified. Persistent page profiles and the first
   specialized profile, Vocabulary Collection (4j–4o), are shipped and production-verified after
   the complete serial suite plus disposable local and production 375×812 browser flows. The
-  migration-free Diario workspace is implemented through 4p–4s; full serial and seeded phone
-  closeout verification is in progress. Source, Grammar, richer stored Journal profiles,
+  migration-free Diario workspace (4p–4s) is complete and locally closeout-verified; it was not
+  pushed or deployed in this session. Source, Grammar, richer stored Journal profiles,
   user-authored templates, and exact term/title link suggestions remain deferred. See
   [docs/PHASE-4-JOURNAL-DIRECTION.md](docs/PHASE-4-JOURNAL-DIRECTION.md) and
   [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).

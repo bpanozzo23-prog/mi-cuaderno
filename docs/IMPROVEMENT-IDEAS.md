@@ -416,10 +416,11 @@ is labeled, filtered, displayed, or validated after creation.
 
 ### Follow-up Diario decision (2026-08-03)
 
-The owner approved a separate Diario workspace over the existing derived dated-General behavior;
-see [PHASE-4-JOURNAL-DIRECTION.md](PHASE-4-JOURNAL-DIRECTION.md). This improves creation, retrieval,
-writing and rereading without storing an explicit Journal profile or adding journal-only fields.
-The richer-profile question remains deferred until real use demonstrates a need for durable
+The owner approved and locally closeout-verified a separate Diario workspace over the existing
+derived dated-General behavior; see
+[PHASE-4-JOURNAL-DIRECTION.md](PHASE-4-JOURNAL-DIRECTION.md). Phase 4p–4s improves creation,
+retrieval, writing and rereading without storing an explicit Journal profile or adding journal-only
+fields. The richer-profile question remains deferred until real use demonstrates a need for durable
 structured metadata beyond the existing page shape.
 
 ### Problems addressed by Phase 4j–4o
