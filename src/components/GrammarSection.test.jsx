@@ -1,0 +1,423 @@
+// @vitest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import GrammarSection from "./GrammarSection.jsx";
+import {
+  deleteGrammarExample,
+  deleteGrammarSection,
+  saveGrammarDetails,
+  saveGrammarExample,
+  saveGrammarOrganization,
+  saveGrammarSection,
+} from "../db/pageStructures.js";
+
+vi.mock("../db/pageStructures.js", () => ({
+  deleteGrammarExample: vi.fn(),
+  deleteGrammarSection: vi.fn(),
+  saveGrammarDetails: vi.fn(),
+  saveGrammarExample: vi.fn(),
+  saveGrammarOrganization: vi.fn(),
+  saveGrammarSection: vi.fn(),
+}));
+
+const stagedCandidates = [{ kind: "personal", itemId: "user:new-vocabulary" }];
+
+vi.mock("./CollectionAddVocabularySheet.jsx", () => ({
+  default: ({ targetLabel, memberLocations, onCancel, onCommit }) => (
+    <div aria-label="Test vocabulary picker">
+      <div>{targetLabel}</div>
+      <div data-testid="existing-location">{memberLocations.get("user:word") || "not attached"}</div>
+      <button type="button" onClick={() => onCommit(stagedCandidates)}>Commit vocabulary</button>
+      <button type="button" onClick={onCancel}>Cancel vocabulary</button>
+    </div>
+  ),
+}));
+
+const SECTION_ONE = "grammar-section:11111111-1111-4111-8111-111111111111";
+const SECTION_TWO = "grammar-section:22222222-2222-4222-8222-222222222222";
+const EXAMPLE_ONE = "grammar-example:11111111-1111-4111-8111-111111111111";
+const EXAMPLE_TWO = "grammar-example:22222222-2222-4222-8222-222222222222";
+const SAME_CAPTURE = "source-capture:11111111-1111-4111-8111-111111111111";
+const EXTERNAL_CAPTURE = "source-capture:22222222-2222-4222-8222-222222222222";
+const HIDDEN_CAPTURE = "source-capture:33333333-3333-4333-8333-333333333333";
+
+const exampleOne = {
+  id: EXAMPLE_ONE,
+  es: "Yo hablaba con ella.",
+  en: "I was talking with her.",
+  note: "An ongoing background action.",
+  itemKeys: ["user:word"],
+  sourceCaptureRef: null,
+};
+
+const exampleTwo = {
+  id: EXAMPLE_TWO,
+  es: "Ayer hablé con ella.",
+  en: "Yesterday I spoke with her.",
+  note: "A bounded event.",
+  itemKeys: [],
+  sourceCaptureRef: null,
+};
+
+function page(overrides = {}) {
+  return {
+    id: "user:grammar-page",
+    type: "page",
+    title: "Preterite vs imperfect",
+    source: {
+      enabled: true,
+      captures: [{
+        id: SAME_CAPTURE,
+        type: "passage",
+        text: "Cuando era niña, visitaba a mi abuela.",
+        location: "Chapter 2",
+        reflection: "",
+        itemKeys: [],
+      }],
+    },
+    grammar: {
+      enabled: true,
+      keyIdea: "Choose a tense by how the speaker frames the past action.",
+      sections: [
+        {
+          id: SECTION_ONE,
+          name: "Formation",
+          explanation: "Use the imperfect for background and repeated actions.",
+          pattern: "stem + imperfect ending",
+          examples: [exampleOne],
+        },
+        {
+          id: SECTION_TWO,
+          name: "Comparison",
+          explanation: "Compare bounded and ongoing actions.",
+          pattern: "preterite ↔ imperfect",
+          examples: [exampleTwo],
+        },
+      ],
+    },
+    ...overrides,
+  };
+}
+
+const word = {
+  id: "user:word",
+  type: "lexical",
+  term: "hablar",
+  dictKey: "dict:hablar",
+};
+
+const externalSource = {
+  id: "user:audio-source",
+  type: "page",
+  title: "Audio source",
+  source: {
+    enabled: true,
+    captures: [{
+      id: EXTERNAL_CAPTURE,
+      type: "passage",
+      text: "Estaba hablando cuando llegó.",
+      location: "12:05",
+      reflection: "",
+      itemKeys: [],
+    }],
+  },
+};
+
+const hiddenSource = {
+  id: "user:hidden-source",
+  type: "page",
+  title: "Hidden source",
+  source: {
+    enabled: false,
+    captures: [{
+      id: HIDDEN_CAPTURE,
+      type: "passage",
+      text: "Hidden passage",
+      location: "p. 9",
+      reflection: "",
+      itemKeys: [],
+    }],
+  },
+};
+
+function baseProps(overrides = {}) {
+  return {
+    page: page(),
+    items: [word, externalSource, hiddenSource],
+    onOpen: vi.fn(),
+    onChanged: vi.fn().mockResolvedValue(undefined),
+    onAddVocabulary: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
+  };
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  saveGrammarDetails.mockResolvedValue({});
+  saveGrammarSection.mockResolvedValue({});
+  saveGrammarExample.mockResolvedValue({});
+  saveGrammarOrganization.mockResolvedValue({});
+  deleteGrammarSection.mockResolvedValue({});
+  deleteGrammarExample.mockResolvedValue({});
+});
+
+afterEach(cleanup);
+
+describe("GrammarSection editing", () => {
+  it("keeps key-idea changes draft-local until explicit save", async () => {
+    const user = userEvent.setup();
+    const props = baseProps();
+    render(<GrammarSection {...props} />);
+
+    expect(screen.getByText(/Choose a tense by how the speaker frames/)).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Edit grammar key idea" }));
+    const firstDraft = screen.getByRole("textbox", { name: "Grammar key idea" });
+    await user.clear(firstDraft);
+    await user.type(firstDraft, "Discard this");
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(saveGrammarDetails).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Edit grammar key idea" }));
+    const savedDraft = screen.getByRole("textbox", { name: "Grammar key idea" });
+    await user.clear(savedDraft);
+    await user.type(savedDraft, "Frame the action as complete or in progress.");
+    await user.click(screen.getByRole("button", { name: "Save key idea" }));
+
+    await waitFor(() => expect(saveGrammarDetails).toHaveBeenCalledWith(
+      "user:grammar-page",
+      { keyIdea: "Frame the action as complete or in progress." }
+    ));
+    expect(props.onChanged).toHaveBeenCalledTimes(1);
+  });
+
+  it("creates and edits named sections with explanations and patterns", async () => {
+    const user = userEvent.setup();
+    const props = baseProps();
+    render(<GrammarSection {...props} />);
+
+    await user.click(screen.getByRole("button", { name: "Edit section Formation" }));
+    const explanation = screen.getByRole("textbox", { name: "Grammar section explanation" });
+    await user.clear(explanation);
+    await user.type(explanation, "The imperfect describes an action from the inside.");
+    const pattern = screen.getByRole("textbox", { name: "Grammar section pattern" });
+    await user.clear(pattern);
+    await user.type(pattern, "stem + aba/ía");
+    await user.click(screen.getByRole("button", { name: "Save section" }));
+
+    await waitFor(() => expect(saveGrammarSection).toHaveBeenCalledWith(
+      "user:grammar-page",
+      expect.objectContaining({
+        id: SECTION_ONE,
+        name: "Formation",
+        explanation: "The imperfect describes an action from the inside.",
+        pattern: "stem + aba/ía",
+      })
+    ));
+
+    await user.click(screen.getByRole("button", { name: "Section" }));
+    await user.type(screen.getByRole("textbox", { name: "Grammar section name" }), "  Exceptions  ");
+    await user.type(screen.getByRole("textbox", { name: "Grammar section explanation" }), "Signals that change the framing.");
+    await user.click(screen.getByRole("button", { name: "Save section" }));
+
+    await waitFor(() => expect(saveGrammarSection).toHaveBeenLastCalledWith(
+      "user:grammar-page",
+      expect.objectContaining({ name: "Exceptions", explanation: "Signals that change the framing." })
+    ));
+    expect(props.onChanged).toHaveBeenCalledTimes(2);
+  });
+
+  it("saves example pairs with an exact enabled Source capture, including one on the same page", async () => {
+    const user = userEvent.setup();
+    const props = baseProps();
+    render(<GrammarSection {...props} />);
+
+    await user.click(screen.getAllByRole("button", { name: "Add example" })[0]);
+    expect(screen.getByRole("option", { name: /Preterite vs imperfect — Chapter 2/ })).toBeTruthy();
+    expect(screen.getByRole("option", { name: /Audio source — 12:05/ })).toBeTruthy();
+    expect(screen.queryByRole("option", { name: /Hidden source/ })).toBeNull();
+
+    await user.type(screen.getByRole("textbox", { name: "Spanish example" }), "Mientras hablaba, llegó Ana.");
+    await user.type(screen.getByRole("textbox", { name: "English example" }), "While I was talking, Ana arrived.");
+    await user.type(screen.getByRole("textbox", { name: "Example explanation" }), "Background interrupted by a bounded event.");
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Related Source capture" }),
+      `user:grammar-page|${SAME_CAPTURE}`
+    );
+    await user.click(screen.getByRole("button", { name: "Save example" }));
+
+    await waitFor(() => expect(saveGrammarExample).toHaveBeenCalledWith(
+      "user:grammar-page",
+      SECTION_ONE,
+      expect.objectContaining({
+        es: "Mientras hablaba, llegó Ana.",
+        en: "While I was talking, Ana arrived.",
+        note: "Background interrupted by a bounded event.",
+        itemKeys: [],
+        sourceCaptureRef: { pageId: "user:grammar-page", captureId: SAME_CAPTURE },
+      })
+    ));
+    expect(props.onChanged).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a hidden exact Source reference without exposing its capture", async () => {
+    const user = userEvent.setup();
+    const onOpen = vi.fn();
+    const hiddenExample = {
+      ...exampleOne,
+      sourceCaptureRef: { pageId: hiddenSource.id, captureId: HIDDEN_CAPTURE },
+    };
+    const hiddenPage = page({
+      grammar: {
+        ...page().grammar,
+        sections: [{ ...page().grammar.sections[0], examples: [hiddenExample] }],
+      },
+    });
+    render(<GrammarSection {...baseProps({ page: hiddenPage, onOpen })} />);
+
+    const hiddenLink = screen.getByRole("button", { name: /Hidden source · Source notebook hidden/ });
+    expect(screen.queryByText("Hidden passage")).toBeNull();
+    await user.click(hiddenLink);
+    expect(onOpen).toHaveBeenCalledWith(hiddenSource.id);
+  });
+
+  it("adds vocabulary to a saved example through the contextual callback", async () => {
+    const user = userEvent.setup();
+    const props = baseProps();
+    render(<GrammarSection {...props} />);
+
+    const formation = screen.getByRole("heading", { name: "Formation" }).closest(".rounded-xl");
+    await user.click(within(formation).getByRole("button", { name: "Add vocabulary" }));
+    expect(screen.getByText("Formation example")).toBeTruthy();
+    expect(screen.getByTestId("existing-location").textContent).toBe("this example");
+    await user.click(screen.getByRole("button", { name: "Commit vocabulary" }));
+
+    await waitFor(() => expect(props.onAddVocabulary).toHaveBeenCalledWith(
+      SECTION_ONE,
+      EXAMPLE_ONE,
+      stagedCandidates
+    ));
+    expect(props.onChanged).toHaveBeenCalledTimes(1);
+  });
+
+  it("detaches vocabulary from an example and reloads without removing page membership", async () => {
+    const user = userEvent.setup();
+    const props = baseProps();
+    render(<GrammarSection {...props} />);
+
+    await user.click(screen.getByRole("button", { name: "Detach vocabulary hablar from this example" }));
+
+    await waitFor(() => expect(saveGrammarExample).toHaveBeenCalledWith(
+      "user:grammar-page",
+      SECTION_ONE,
+      { ...exampleOne, itemKeys: [] }
+    ));
+    expect(props.onAddVocabulary).not.toHaveBeenCalled();
+    expect(props.onChanged).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks the mutation API to enforce nonempty-section deletion and surfaces its explanation", async () => {
+    const user = userEvent.setup();
+    const props = baseProps();
+    deleteGrammarSection.mockRejectedValueOnce(new Error("Move or delete this section’s examples first."));
+    render(<GrammarSection {...props} />);
+
+    await user.click(screen.getByRole("button", { name: "Delete section Formation" }));
+    await user.click(screen.getByRole("button", { name: "Confirm delete" }));
+
+    await waitFor(() => expect(deleteGrammarSection).toHaveBeenCalledWith("user:grammar-page", SECTION_ONE));
+    expect(screen.getByRole("alert").textContent).toMatch(/Move or delete this section’s examples first/);
+    expect(props.onChanged).not.toHaveBeenCalled();
+  });
+
+  it("confirms example deletion and reloads only after the API succeeds", async () => {
+    const user = userEvent.setup();
+    const props = baseProps();
+    render(<GrammarSection {...props} />);
+
+    await user.click(screen.getByRole("button", { name: `Delete example ${exampleOne.es}` }));
+    const formation = screen.getByRole("heading", { name: "Formation" }).closest(".rounded-xl");
+    await user.click(within(formation).getByRole("button", { name: "Confirm delete" }));
+
+    await waitFor(() => expect(deleteGrammarExample).toHaveBeenCalledWith(
+      "user:grammar-page",
+      SECTION_ONE,
+      EXAMPLE_ONE
+    ));
+    expect(props.onChanged).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("GrammarSection organization", () => {
+  it("discards a draft, then saves section order, names, and cross-section example moves together", async () => {
+    const user = userEvent.setup();
+    const props = baseProps();
+    render(<GrammarSection {...props} />);
+
+    await user.click(screen.getByRole("button", { name: "Organize" }));
+    await user.selectOptions(screen.getByRole("combobox", { name: `Move ${exampleOne.es} to section` }), SECTION_TWO);
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(saveGrammarOrganization).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Organize" }));
+    await user.selectOptions(screen.getByRole("combobox", { name: `Move ${exampleOne.es} to section` }), SECTION_TWO);
+    await user.click(screen.getByRole("button", { name: "Move section Formation down" }));
+    const formationName = screen.getByDisplayValue("Formation");
+    await user.clear(formationName);
+    await user.type(formationName, "Background uses");
+    await user.click(screen.getByRole("button", { name: "Save organization" }));
+
+    await waitFor(() => expect(saveGrammarOrganization).toHaveBeenCalledWith(
+      "user:grammar-page",
+      [
+        {
+          id: SECTION_TWO,
+          name: "Comparison",
+          examples: [{ id: EXAMPLE_TWO }, { id: EXAMPLE_ONE }],
+        },
+        {
+          id: SECTION_ONE,
+          name: "Background uses",
+          examples: [],
+        },
+      ]
+    ));
+    expect(props.onChanged).toHaveBeenCalledTimes(1);
+  });
+
+  it("adds a named section with one stable fresh ID inside the organization draft", async () => {
+    const user = userEvent.setup();
+    const props = baseProps();
+    render(<GrammarSection {...props} />);
+
+    await user.click(screen.getByRole("button", { name: "Organize" }));
+    await user.click(screen.getByRole("button", { name: "Add section to organizer" }));
+    await user.type(screen.getByRole("textbox", { name: "Section 3 name" }), "Exceptions");
+    await user.click(screen.getByRole("button", { name: "Move section Exceptions up" }));
+    await user.click(screen.getByRole("button", { name: "Save organization" }));
+
+    await waitFor(() => expect(saveGrammarOrganization).toHaveBeenCalledTimes(1));
+    const [pageId, organized] = saveGrammarOrganization.mock.calls[0];
+    expect(pageId).toBe("user:grammar-page");
+    expect(organized.map(({ id }) => id)).toEqual([
+      SECTION_ONE,
+      expect.stringMatching(/^grammar-section:/),
+      SECTION_TWO,
+    ]);
+    expect(organized[1]).toMatchObject({ name: "Exceptions", examples: [] });
+    expect(props.onChanged).toHaveBeenCalledTimes(1);
+  });
+
+  it("blocks organization save when section names are blank or duplicated", async () => {
+    const user = userEvent.setup();
+    render(<GrammarSection {...baseProps()} />);
+
+    await user.click(screen.getByRole("button", { name: "Organize" }));
+    const secondName = screen.getByRole("textbox", { name: "Section 2 name" });
+    await user.clear(secondName);
+    await user.type(secondName, "formation");
+
+    expect(screen.getByRole("alert").textContent).toMatch(/nonblank and unique/i);
+    expect(screen.getByRole("button", { name: "Save organization" }).disabled).toBe(true);
+  });
+});
