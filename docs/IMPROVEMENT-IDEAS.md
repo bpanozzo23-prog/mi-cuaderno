@@ -37,11 +37,11 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
-| Source-oriented page templates | 2026-08-02 | Implemented locally | Phase 7 automated checks pass; browser closeout unverified |
+| Source-oriented page templates | 2026-08-02 | Implemented and deployed | Phase 7 deployed; browser closeout unverified |
 | Meaning-block presentation | 2026-08-02 | Implemented and shipped | Phase 4i |
 | Typed or explained relationships | 2026-08-02 | Implemented locally | Phase 4t–4x browser closeout pending |
 | Saved views | 2026-08-02 | Captured | After observing repeated retrieval/filter patterns |
-| Persistent page profiles | 2026-08-02 | Implemented locally | Phase 7 automated checks pass; browser closeout unverified |
+| Persistent page profiles | 2026-08-02 | Implemented and deployed | Phase 7 deployed; browser closeout unverified |
 | Personal-content provenance | 2026-08-02 | Captured | Before or alongside Phase 6 AI design; source needs can be studied earlier |
 
 ---
@@ -189,13 +189,13 @@ The decision-complete scope and sequence are recorded in
 
 ### Phase 7 implementation outcome — 2026-08-04
 
-The approved Source capability and built-in Source recipes are implemented on the Phase 7 feature
-branch. The delivered workflow includes optional Source identity, four ordered capture types,
+The approved Source capability and built-in Source recipes are deployed as Phase 7. The delivered
+workflow includes optional Source identity, four ordered capture types,
 capture-level vocabulary enrichment, visit-local filtering and ñ-preserving search, reordering,
 and contextual retrieval. Source remains composable with Vocabulary and Grammar, disabling it
 preserves but hides its contents, and no starter/template identity is stored. The full 593-test
-serial suite, production build, and diff check pass; the disposable browser closeout remains
-unverified, and no push or deployment is claimed. See
+serial suite, production build, and diff check pass. GitHub Pages deployment completed
+successfully; the disposable browser closeout remains unverified. See
 [PHASE-7-REPORT.md](PHASE-7-REPORT.md).
 
 ---
@@ -705,11 +705,11 @@ remain the historical rationale for this evolution.
 
 The composable page model, schema-v5 migration and backup validation, shared page workspace,
 overlapping library roles, family-first creation, structure copying, Source notebooks, Grammar
-guides with exact Source-capture references, and active contextual retrieval are implemented on the
-feature branch. The retained legacy profile APIs are compatibility adapters only; current identity
+guides with exact Source-capture references, and active contextual retrieval are deployed from
+`main`. The retained legacy profile APIs are compatibility adapters only; current identity
 comes from `pageFocus` and enabled structures. The full 593-test serial suite, production build,
-and diff check pass; the disposable browser closeout remains unverified, and no push or deployment
-is claimed. See
+and diff check pass. GitHub Pages deployment completed successfully; the disposable browser
+closeout remains unverified. See
 [PHASE-7-REPORT.md](PHASE-7-REPORT.md).
 
 ---
@@ -790,6 +790,12 @@ backup plan.
 ---
 
 ## Document history
+
+- **2026-08-04 — Phase 7 deployed from `main`.** The approved `phase-7-composable-pages`
+  fast-forwarded into `main` at `982bae5`; GitHub Pages workflow run
+  [30966093217](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/30966093217)
+  completed successfully. The disposable 375×812 browser closeout remains unverified because the
+  in-app browser could not initialize; no owner browser data was inspected.
 
 - **2026-08-04 — Phase 7 automated closeout passed; browser closeout unverified.**
   `npm.cmd test -- --no-file-parallelism` passed 58 files / 593 tests in 229.90s,

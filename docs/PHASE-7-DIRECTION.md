@@ -1,8 +1,7 @@
 # Phase 7 direction — composable pages, Source notebooks and Grammar guides
 
-**Status:** implemented locally on 2026-08-04; the 593-test serial suite, production build, and
-diff check pass. The disposable browser closeout is unverified; release approval and deployment
-remain pending.
+**Status:** deployed from `main` on 2026-08-04 after the 593-test serial suite, production build,
+and diff check passed. The disposable browser closeout remains unverified.
 
 This document is the decision-complete implementation direction for Phase 7. The governing product
 rules remain in `docs/mi-cuaderno-project-brief-v3.md`, and the reasons for the choices below are

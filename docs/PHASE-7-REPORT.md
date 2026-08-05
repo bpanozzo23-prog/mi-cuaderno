@@ -1,10 +1,11 @@
 # Phase 7 implementation report — composable pages, Source notebooks and Grammar guides
 
-**Implementation status:** assembled locally on `phase-7-composable-pages` on 2026-08-04.
+**Implementation status:** merged from `phase-7-composable-pages` into `main` on 2026-08-04.
 
-**Release status:** automated verification passed locally; not pushed or deployed. The disposable
-375×812 browser closeout remains unverified because the in-app browser could not bootstrap. Final
-approval and deployment remain pending. This report must not be read as a production claim.
+**Release status:** deployed from `main`. GitHub Actions run
+[30966093217](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/30966093217) completed
+successfully for `982bae5`. The disposable 375×812 browser closeout remains unverified because the
+in-app browser could not bootstrap; no owner browser data was inspected.
 
 The approved contract is in [PHASE-7-DIRECTION.md](PHASE-7-DIRECTION.md). This report records the
 implementation now present on the feature branch, its durability boundaries, the evidence already
@@ -164,8 +165,8 @@ These focused snapshots do not replace the release gates below.
 | Working-tree whitespace check | Passed: `git diff --check` |
 | Planned deliberate high-risk failure proofs | Passed: migration mapping, exact Source cleanup, contained-vocabulary priority, and Source ñ normalization each failed under a deliberate break and passed after restoration |
 | Disposable seeded 375×812 browser flow | Unverified: bootstrap failed with `failed to write kernel assets: The system cannot find the path specified. (os error 3)`; no owner data inspected |
-| Subphase commit/release ledger | Passed locally: 7a `eab42e0`; 7b `6d7bb82`; 7c `2c9eaa5`; 7d `5f683a9`; 7e `6da4493`; 7f `6a12be8`; this report and final records form the staged 7g commit |
-| Push and deployment | Not performed; requires explicit approval |
+| Subphase commit/release ledger | Passed locally: 7a `eab42e0`; 7b `6d7bb82`; 7c `2c9eaa5`; 7d `5f683a9`; 7e `6da4493`; 7f `6a12be8`; 7g `982bae5` |
+| Push and deployment | Passed: `main` fast-forwarded and pushed at `982bae5`; GitHub Pages workflow run [30966093217](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/30966093217) completed successfully |
 
 ## Explicit exclusions retained
 

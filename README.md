@@ -38,7 +38,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   **Add to Collection** (4y) is shipped without a schema change after the 501-test serial suite,
   production build, and a successful GitHub Pages deployment check; its disposable phone check is
   pending for the same browser limitation. Source and Grammar were deferred from this maintenance
-  stream and are now implemented locally as Phase 7; richer stored Journal profiles,
+  stream and are now shipped as Phase 7; richer stored Journal profiles,
   user-authored templates, and exact term/title link suggestions remain deferred. See
   [docs/PHASE-4-JOURNAL-DIRECTION.md](docs/PHASE-4-JOURNAL-DIRECTION.md) and
   [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).
@@ -49,14 +49,15 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   [docs/PHASE-5-DIRECTION.md](docs/PHASE-5-DIRECTION.md) and
   [docs/PHASE-5-REPORT.md](docs/PHASE-5-REPORT.md).
 - **Phase 6 — not started.** The AI assistant (brief §9).
-- **Phase 7 — implemented locally; automated verification passed.** Schema v5 replaces the
+- **Phase 7 — shipped.** Schema v5 replaces the
   exclusive General/Collection profile with composable Notes, Vocabulary, Source, and Grammar
   behavior while retaining only lexical items and pages. The implementation includes sequential
   legacy migration and backup validation, one unified page workspace, family-first creation,
   Source captures, Grammar guides with exact Source references, and contextual retrieval. The full
   serial suite passes 593/593 tests across 58 files, the Vite production build passes, and
   `git diff --check` passes. The disposable 375×812 browser closeout remains unverified because the
-  in-app browser could not bootstrap. Phase 7 has not been pushed or deployed. See
+  in-app browser could not bootstrap. The GitHub Pages deployment from `main` completed
+  successfully; the phone browser closeout remains explicitly unverified. See
   [docs/PHASE-7-DIRECTION.md](docs/PHASE-7-DIRECTION.md) and
   [docs/PHASE-7-REPORT.md](docs/PHASE-7-REPORT.md).
 
