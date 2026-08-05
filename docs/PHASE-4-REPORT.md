@@ -712,4 +712,9 @@ information architecture remain unchanged.
   replacement, overlapping roles, 44px role-filter targets, pinned/all separation, Grammar search
   in relevance mode, progressive Refine controls, detail return, and no horizontal overflow,
   console warnings or console errors. No owner browser data was inspected or changed.
-- No deployment was performed.
+
+### Deployment closeout
+
+The owner confirmed release to `main` at `67a646d`. GitHub Pages workflow run
+[30971214618](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/30971214618) completed
+successfully. No owner browser data was inspected or changed.
