@@ -604,6 +604,10 @@ describe("validation happens before anything is written", () => {
       pageFocus: "source",
       source: { ...emptySource({ enabled: true }), url: "example.com/book" },
     })] }],
+    ["an incomplete HTTP Source URL", { ...baseline(), userItems: [makePage({
+      pageFocus: "source",
+      source: { ...emptySource({ enabled: true }), url: "https://" },
+    })] }],
     ["a blank Source capture", (() => {
       const input = contextualInput();
       input.userItems[1].source.captures[0].text = " ";
