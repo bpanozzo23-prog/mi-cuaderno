@@ -37,9 +37,9 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   remains pending because the local browser-control kernel could not initialize. Lexical-side
   **Add to Collection** (4y) is shipped without a schema change after the 501-test serial suite,
   production build, and a successful GitHub Pages deployment check; its disposable phone check is
-  pending for the same browser limitation. Source, Grammar, richer stored Journal profiles,
-  user-authored templates, and exact
-  term/title link suggestions remain deferred. See
+  pending for the same browser limitation. Source and Grammar were deferred from this maintenance
+  stream and are now implemented locally as Phase 7; richer stored Journal profiles,
+  user-authored templates, and exact term/title link suggestions remain deferred. See
   [docs/PHASE-4-JOURNAL-DIRECTION.md](docs/PHASE-4-JOURNAL-DIRECTION.md) and
   [docs/PHASE-4-REPORT.md](docs/PHASE-4-REPORT.md).
 - **Phase 5 — done.** Organizational improvements that do not require real notebook data:
@@ -49,12 +49,22 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   [docs/PHASE-5-DIRECTION.md](docs/PHASE-5-DIRECTION.md) and
   [docs/PHASE-5-REPORT.md](docs/PHASE-5-REPORT.md).
 - **Phase 6 — not started.** The AI assistant (brief §9).
+- **Phase 7 — implemented locally; automated verification passed.** Schema v5 replaces the
+  exclusive General/Collection profile with composable Notes, Vocabulary, Source, and Grammar
+  behavior while retaining only lexical items and pages. The implementation includes sequential
+  legacy migration and backup validation, one unified page workspace, family-first creation,
+  Source captures, Grammar guides with exact Source references, and contextual retrieval. The full
+  serial suite passes 593/593 tests across 58 files, the Vite production build passes, and
+  `git diff --check` passes. The disposable 375×812 browser closeout remains unverified because the
+  in-app browser could not bootstrap. Phase 7 has not been pushed or deployed. See
+  [docs/PHASE-7-DIRECTION.md](docs/PHASE-7-DIRECTION.md) and
+  [docs/PHASE-7-REPORT.md](docs/PHASE-7-REPORT.md).
 
-`SCHEMA_VERSION` is **4**. Before Dexie opens v4, schema-v1, schema-v2, and schema-v3 owners must save
-and acknowledge an untouched validated export. Direct legacy upgrades run the meanings and
-page-profile migrations before the relationship migration. Backup schemas 1 through 4 are accepted,
-upgraded sequentially in memory, deeply validated as v4, and only then offered for
-replace-and-restore.
+`SCHEMA_VERSION` is **5**. Before Dexie opens v5, schema-v1 through schema-v4 owners must save and
+acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
+relationship, and composable-page migrations in order. Backup schemas 1 through 5 are accepted,
+upgraded sequentially in memory, deeply validated as v5, and only then offered for
+replace-and-restore; newer versions remain blocked.
 
 ## Testing
 

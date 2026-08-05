@@ -57,20 +57,23 @@ this summary.
 - **The event log is the single source of truth** (§7). No stored counters, no state flags.
   Tricky state, lookup counts, review box and due date are all *derived at render*
   (`src/lib/review.js`, `src/db/events.js`).
-- **`SCHEMA_VERSION` is 4.** Phase 4i introduced v1→v2 structured meanings, Phase 4j–4o added
-  v2→v3 page profiles, and Phase 4t adds v3→v4 sparse link annotations. Startup requires an
-  untouched validated v1, v2, or v3 export before Dexie opens; direct v1→v4 runs all three
-  migrations in order. Backup schemas 1 through 4 upgrade sequentially in memory and are deeply
-  validated as v4 before any write; versions newer than 4 remain blocked. Any further personal schema change still triggers §5 in full: migration
-  plan, export-first safety, version bump and matching backup validation. **If you conclude another
-  is needed, stop and raise it.**
+- **`SCHEMA_VERSION` is 5.** Phase 4i introduced v1→v2 structured meanings, Phase 4j–4o added
+  v2→v3 page profiles, Phase 4t added v3→v4 sparse link annotations, and Phase 7 adds v4→v5
+  composable pages. Startup requires an untouched validated v1, v2, v3, or v4 export before Dexie
+  opens; direct v1→v5 runs all four migrations in order. Backup schemas 1 through 5 upgrade
+  sequentially in memory and are deeply validated as v5 before any write; versions newer than 5
+  remain blocked. Any further personal schema change still triggers §5 in full: migration plan,
+  export-first safety, version bump and matching backup validation. **If you conclude another is
+  needed, stop and raise it.**
 - **`src/lib/normalize.js` preserves ñ** — "año" must never match "ano", anywhere new. All
   matching goes through it. **Do not change it:** the pipeline imports the same file, so it also
   decides what the 10,278 shipped dictionary entries match.
 - **Personal content has exactly two types** — lexical items and pages (§7 forbids a third
   without a brief amendment). Words and phrases are both lexical, told apart by `form`. Pages store
-  only `general | collection` profiles: Collection wins over a date, a dated General page is a
-  Journal entry, and films, podcasts and grammar notes remain General pages.
+  one `pageFocus: notes | vocabulary | source | grammar`; Notes are the permanent body-based
+  foundation, while complete `collection`, `source`, and `grammar` structures enable independently.
+  A dated page is a Journal entry only when none of those structures is enabled. `pageProfile` is
+  legacy migration/input compatibility, not current page identity.
 - **Identity:** personal IDs are `user:<uuid>`; dictionary IDs are namespaced `dict:` keys. A
   lexical item's optional `dictKey` is a reversible attachment, never its identity — the item
   keeps its own `term` and owns stable `meaning:<uuid>` records that never reference dictionary
@@ -79,6 +82,13 @@ this summary.
   are derived from the `*linkedKeys` index. Never store a reciprocal copy. **Linking and
   unlinking log no `edit` event** — bookkeeping, not content. Tags and notes *are* content and
   do log one.
+- **Nested page references never create authority.** Collection group, Source-capture, and
+  Grammar-example `itemKeys` may only reference linked personal lexical items. An external Grammar
+  `sourceCaptureRef` also requires the Grammar page's outgoing ordinary link to the Source page;
+  a same-page reference requires no self-link. Disabled populated structures remain valid but stay
+  outside display, filters, search, and contextual summaries. Removing authoritative page
+  vocabulary or deleting an item/page/capture must clean every dependent nested reference in the
+  same transaction without inventing reciprocal links.
 - **The §5 seam.** `dict:` keys can go stale across a dataset rebuild. Anything new that renders
   one needs the orphan behaviour: resolve through the alias map, rewrite the key when it answers
   (without logging an edit), and say so plainly when nothing answers. "Not installed" is **not**

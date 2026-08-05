@@ -37,11 +37,11 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
-| Source-oriented page templates | 2026-08-02 | Planned | Phase 7 Source capability and built-in recipes; no stored template identity |
+| Source-oriented page templates | 2026-08-02 | Implemented locally | Phase 7 automated checks pass; browser closeout unverified |
 | Meaning-block presentation | 2026-08-02 | Implemented and shipped | Phase 4i |
 | Typed or explained relationships | 2026-08-02 | Implemented locally | Phase 4t–4x browser closeout pending |
 | Saved views | 2026-08-02 | Captured | After observing repeated retrieval/filter patterns |
-| Persistent page profiles | 2026-08-02 | Planned | Phase 7 composable-page evolution; General and Vocabulary Collection already shipped |
+| Persistent page profiles | 2026-08-02 | Implemented locally | Phase 7 automated checks pass; browser closeout unverified |
 | Personal-content provenance | 2026-08-02 | Captured | Before or alongside Phase 6 AI design; source needs can be studied earlier |
 
 ---
@@ -50,9 +50,9 @@ Useful information to retain for each idea:
 
 - **Date added:** 2026-08-02
 - **Last reviewed:** 2026-08-04
-- **Status:** Planned
+- **Status:** Implemented locally
 - **Origin:** Preliminary information-architecture review and follow-up discussion
-- **Potential data impact:** Approved schema-v5 Source and Grammar structures; no new stores or
+- **Potential data impact:** Implemented schema-v5 Source and Grammar structures; no new stores or
   indexes and no stored starter/template identity
 
 ### Description and current context
@@ -186,6 +186,17 @@ history that led to this decision; they are no longer prerequisites for the firs
 
 The decision-complete scope and sequence are recorded in
 [PHASE-7-DIRECTION.md](PHASE-7-DIRECTION.md).
+
+### Phase 7 implementation outcome — 2026-08-04
+
+The approved Source capability and built-in Source recipes are implemented on the Phase 7 feature
+branch. The delivered workflow includes optional Source identity, four ordered capture types,
+capture-level vocabulary enrichment, visit-local filtering and ñ-preserving search, reordering,
+and contextual retrieval. Source remains composable with Vocabulary and Grammar, disabling it
+preserves but hides its contents, and no starter/template identity is stored. The full 593-test
+serial suite, production build, and diff check pass; the disposable browser closeout remains
+unverified, and no push or deployment is claimed. See
+[PHASE-7-REPORT.md](PHASE-7-REPORT.md).
 
 ---
 
@@ -446,10 +457,10 @@ behavior, stale-reference handling, and a separately approved plan.
 
 - **Date added:** 2026-08-02
 - **Last reviewed:** 2026-08-04
-- **Status:** Planned
+- **Status:** Implemented locally
 - **Origin:** Preliminary information-architecture review and follow-up discussion
-- **Potential data impact:** General and Vocabulary Collection shipped in schema v3; Phase 7 plans
-  schema v5 composable focus/capabilities without new stores or indexes
+- **Potential data impact:** General and Vocabulary Collection shipped in schema v3; Phase 7
+  implements schema-v5 composable focus/capabilities without new stores or indexes
 
 ### Description and current context
 
@@ -459,6 +470,11 @@ are ordinary pages. There is no persistent source, grammar, comparison, or topic
 **Phase 4j–4o implemented two stored page profiles: General and Vocabulary Collection.** A dated
 General page remains a derived Journal entry, while sources and grammar notes remain General pages.
 There is still no stored Source, Grammar, explicit/richer Journal, comparison, or topic-hub profile.
+
+**Phase 7 implementation update (2026-08-04):** schema v5 replaces those exclusive profiles with
+one persistent focus plus independently enabled Vocabulary, Source, and Grammar structures. Notes
+remain the body-based foundation, and Diario now derives from a date plus no enabled structured
+capability. The preceding paragraph is retained as the historical state that motivated the change.
 
 A persistent page kind differs from a creation template because it continues to affect how a page
 is labeled, filtered, displayed, or validated after creation.
@@ -557,7 +573,7 @@ could have it.
 | Adjust Today, Continue or prior-year memory selection | Low-to-medium effort with focused domain-test changes | Concrete cases where the current earliest-today, latest-other, or ±7-day rules feel surprising |
 | Improve vocabulary capture from Diario | Medium effort using existing personal-entry and dictionary seams | Whether selecting only existing personal vocabulary interrupts writing; any dictionary path must make personal creation explicit and retain orphan handling |
 | Add a journal-specific export or print view | Medium effort without changing stored entries | A real need beyond whole-notebook backup, plus a privacy-safe output format |
-| Add structured mood, theme, gratitude, location, weather or stored prompt fields | High effort and a likely schema-v4 migration with export-first and backup work | Repeated use showing that text, tags and links cannot support the desired retrieval or reflection |
+| Add structured mood, theme, gratitude, location, weather or stored prompt fields | High effort and a likely future schema migration with export-first and backup work | Repeated use showing that text, tags and links cannot support the desired retrieval or reflection |
 | Add streaks, completion, trends or scheduled journal review | Medium-to-high product risk even if some results are event-derived | A clear learning/reflection outcome; avoid stored counters, analytics pressure and overlap with Repaso |
 | Introduce an explicit/richer Journal profile | High architectural cost and migration risk | Durable behavior that cannot be expressed by the separate workspace over a dated General page, including how it composes with Collection or future Source behavior |
 
@@ -685,6 +701,17 @@ Source, Grammar, contextual retrieval and integration. See
 [PHASE-7-DIRECTION.md](PHASE-7-DIRECTION.md). The earlier questions and Phase 4j–4o outcomes above
 remain the historical rationale for this evolution.
 
+### Phase 7 implementation outcome — 2026-08-04
+
+The composable page model, schema-v5 migration and backup validation, shared page workspace,
+overlapping library roles, family-first creation, structure copying, Source notebooks, Grammar
+guides with exact Source-capture references, and active contextual retrieval are implemented on the
+feature branch. The retained legacy profile APIs are compatibility adapters only; current identity
+comes from `pageFocus` and enabled structures. The full 593-test serial suite, production build,
+and diff check pass; the disposable browser closeout remains unverified, and no push or deployment
+is claimed. See
+[PHASE-7-REPORT.md](PHASE-7-REPORT.md).
+
 ---
 
 ## Personal-content provenance
@@ -763,6 +790,21 @@ backup plan.
 ---
 
 ## Document history
+
+- **2026-08-04 — Phase 7 automated closeout passed; browser closeout unverified.**
+  `npm.cmd test -- --no-file-parallelism` passed 58 files / 593 tests in 229.90s,
+  `npm.cmd run build` passed after Vite processed 1,863 modules in 4.49s, and
+  `git diff --check` passed. The in-app browser failed before fixture setup with
+  `failed to write kernel assets: The system cannot find the path specified. (os error 3)`, so the
+  disposable 375×812 flow remains unverified. No owner data was inspected, and no push or
+  deployment is claimed.
+
+- **2026-08-04 — Phase 7 implemented locally; release verification pending.** Promoted
+  Source-oriented page templates and the composable evolution of persistent page profiles from
+  Planned to Implemented locally. Schema v5, the unified page workspace, creation recipes, Source,
+  Grammar, exact Source references, and contextual retrieval are present on the feature branch.
+  The final serial suite, production build, disposable 375×812 browser closeout, push, and
+  deployment are not claimed.
 
 - **2026-08-04 — Phase 7 approved for implementation.** Promoted Source-oriented page templates
   and the composable evolution of persistent page profiles to Planned. The approved schema-v5
