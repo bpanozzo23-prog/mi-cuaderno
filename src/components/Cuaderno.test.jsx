@@ -72,6 +72,9 @@ function card(name) {
   return screen.getByRole("button", { name: new RegExp(`^${name}`) });
 }
 
+// View, Order and Tag live behind the Refine disclosure, as they do in both hubs.
+const openRefine = (user) => user.click(screen.getByRole("button", { name: /^Refine/ }));
+
 function expectBefore(first, second) {
   expect(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 }
@@ -114,6 +117,7 @@ describe("Phase 5c Cuaderno retrieval controls", () => {
     ];
     const sourceOrder = items.map((item) => item.id);
     render(<Cuaderno {...propsFor(items)} />);
+    await openRefine(user);
 
     expectBefore(card("zorro"), card("abeja"));
     expectBefore(card("abeja"), card("casa"));
@@ -149,6 +153,7 @@ describe("Phase 5c Cuaderno retrieval controls", () => {
         {...propsFor([linkedWord, isolatedWord, linkingPage, dictionaryLinked])}
       />
     );
+    await openRefine(user);
 
     await user.selectOptions(screen.getByRole("combobox", { name: "View" }), "unlinked");
     await user.click(screen.getByRole("button", { name: "palabras" }));
@@ -181,6 +186,7 @@ describe("Phase 5c Cuaderno retrieval controls", () => {
     const user = userEvent.setup();
     await seedCasaDictionary();
     render(<Cuaderno {...propsFor([word("personal")])} />);
+    await openRefine(user);
 
     await user.type(screen.getByRole("textbox", { name: "Search notebook" }), "casa");
     expect(await screen.findByRole("button", { name: /^casa/ })).toBeTruthy();
@@ -207,6 +213,7 @@ describe("Phase 5c Cuaderno retrieval controls", () => {
       page("source", { tags: ["source"] }),
     ];
     render(<Cuaderno {...propsFor(items)} />);
+    await openRefine(user);
 
     // Since Phase 8 the maintenance View is the root list's remaining context control: palabras
     // and frases are doors to the hub, so `todo` is the only type state this list holds.
@@ -241,10 +248,44 @@ describe("Phase 5c Cuaderno retrieval controls", () => {
     expect(screen.getByRole("option", { name: "No tags in this view" })).toBeTruthy();
   });
 
+  it("hides the retrieval controls behind Refine and counts what it is hiding", async () => {
+    const user = userEvent.setup();
+    render(<Cuaderno {...propsFor([word("one", { tags: ["study"] })])} />);
+
+    // Nothing is refined yet, so the disclosure is closed and its label carries no count.
+    expect(screen.queryByRole("combobox", { name: "View" })).toBeNull();
+    expect(screen.queryByRole("combobox", { name: "Order" })).toBeNull();
+    expect(screen.queryByRole("combobox", { name: "Tag" })).toBeNull();
+    const refine = screen.getByRole("button", { name: "Refine" });
+    expect(refine.getAttribute("aria-expanded")).toBe("false");
+
+    await openRefine(user);
+    expect(refine.getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByRole("combobox", { name: "View" })).toBeTruthy();
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "View" }), "unlinked");
+    expect(screen.getByRole("button", { name: "Refine (1)" })).toBeTruthy();
+    await user.selectOptions(screen.getByRole("combobox", { name: "Order" }), "alphabetical");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Tag" }), "study");
+    expect(screen.getByRole("button", { name: "Refine (3)" })).toBeTruthy();
+
+    // Closing the panel hides the controls but must not silently drop the refinements.
+    await user.click(screen.getByRole("button", { name: "Refine (3)" }));
+    expect(screen.queryByRole("combobox", { name: "View" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Refine (3)" })).toBeTruthy();
+
+    await openRefine(user);
+    await user.selectOptions(screen.getByRole("combobox", { name: "View" }), "all");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Order" }), "touched");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Tag" }), "");
+    expect(screen.getByRole("button", { name: "Refine" })).toBeTruthy();
+  });
+
   it("keeps retrieval choices local by returning to defaults after remount", async () => {
     const user = userEvent.setup();
     const items = [word("one", { tags: ["study"] })];
     const first = render(<Cuaderno {...propsFor(items)} />);
+    await openRefine(user);
 
     await user.selectOptions(screen.getByRole("combobox", { name: "Order" }), "added");
     await user.selectOptions(screen.getByRole("combobox", { name: "View" }), "unlinked");
@@ -252,6 +293,9 @@ describe("Phase 5c Cuaderno retrieval controls", () => {
     first.unmount();
 
     render(<Cuaderno {...propsFor(items)} />);
+    // The disclosure is visit-local too: it comes back closed, with nothing to report.
+    expect(screen.getByRole("button", { name: "Refine" })).toBeTruthy();
+    await openRefine(user);
     expect(screen.getByRole("combobox", { name: "Order" }).value).toBe("touched");
     expect(screen.getByRole("combobox", { name: "View" }).value).toBe("all");
     expect(screen.getByRole("combobox", { name: "Tag" }).value).toBe("");

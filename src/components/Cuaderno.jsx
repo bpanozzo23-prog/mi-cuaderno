@@ -9,6 +9,7 @@ import DictCard from "./DictCard.jsx";
 import DictDetail from "./DictDetail.jsx";
 import SearchBar from "./SearchBar.jsx";
 import EmptyState from "./EmptyState.jsx";
+import { RefineBar, RefinePanel, RefineSelect } from "./Refine.jsx";
 import { searchItems, mergeResults } from "../lib/search.js";
 import { searchDictionary } from "../db/ref/search.js";
 import { isDictKey, installedMeta } from "../db/ref/entries.js";
@@ -46,8 +47,6 @@ function pinnedFirst(items, pinnedIds) {
   return [...pinned, ...unpinned];
 }
 
-const controlStyle = { background: C.card, borderColor: C.line, color: C.ink };
-
 export default function Cuaderno({
   notebook,
   selectedId,
@@ -67,6 +66,7 @@ export default function Cuaderno({
   const [tagFilter, setTagFilter] = useState(null);
   const [browseOrder, setBrowseOrder] = useState(BROWSE_ORDERS.touched);
   const [maintenanceView, setMaintenanceView] = useState(MAINTENANCE_VIEWS.all);
+  const [refineOpen, setRefineOpen] = useState(false);
   const [addKind, setAddKind] = useState(null);
   const [pageStarter, setPageStarter] = useState(null);
   const [askKind, setAskKind] = useState(false);
@@ -217,6 +217,12 @@ export default function Cuaderno({
     [personalResults, dictResults, items, searching, dictionaryWanted]
   );
 
+  // What the Refine disclosure is hiding. The type chips and the query stay visible, so they are
+  // not refinements the owner could lose track of (Phase 4z).
+  const refineCount = Number(maintenanceView !== MAINTENANCE_VIEWS.all)
+    + Number(browseOrder !== BROWSE_ORDERS.touched)
+    + Number(Boolean(effectiveTag));
+
   const selected = items.find((i) => i.id === selectedId) || null;
 
   if (selectedId && isDictKey(selectedId)) {
@@ -274,38 +280,35 @@ export default function Cuaderno({
               {f.label}
             </Chip>
           ))}
-          <span className="ml-auto text-xs" style={{ fontFamily: MONO, color: C.mut }}>
+        </div>
+
+        <div className="mt-3 flex min-h-11 items-center justify-between gap-3">
+          <RefineBar
+            panelId="cuaderno-refine"
+            open={refineOpen}
+            count={refineCount}
+            onToggle={() => setRefineOpen((open) => !open)}
+          />
+          <span className="shrink-0 text-xs" style={{ fontFamily: MONO, color: C.mut }}>
             {visible.length}
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 mt-3">
-          <label className="min-w-0 text-xs" style={{ color: C.mut }}>
-            <span className="block mb-1">View</span>
-            <select
-              aria-label="View"
-              value={maintenanceView}
-              onChange={(event) => setMaintenanceView(event.target.value)}
-              className="w-full min-w-0 min-h-11 rounded-lg border px-2 text-sm outline-none"
-              style={controlStyle}
-            >
+        {refineOpen && (
+          <RefinePanel id="cuaderno-refine">
+            <RefineSelect label="View" value={maintenanceView} onChange={setMaintenanceView}>
               {MAINTENANCE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
-            </select>
-          </label>
+            </RefineSelect>
 
-          <label className="min-w-0 text-xs" style={{ color: C.mut }}>
-            <span className="block mb-1">Order</span>
-            <select
-              aria-label="Order"
+            <RefineSelect
+              label="Order"
               value={searching ? "relevance" : browseOrder}
-              onChange={(event) => setBrowseOrder(event.target.value)}
+              onChange={setBrowseOrder}
               disabled={searching}
-              className="w-full min-w-0 min-h-11 rounded-lg border px-2 text-sm outline-none disabled:opacity-70"
-              style={controlStyle}
             >
               {searching && <option value="relevance">Search relevance</option>}
               {BROWSE_OPTIONS.map((option) => (
@@ -313,18 +316,14 @@ export default function Cuaderno({
                   {option.label}
                 </option>
               ))}
-            </select>
-          </label>
+            </RefineSelect>
 
-          <label className="col-span-2 min-w-0 text-xs" style={{ color: C.mut }}>
-            <span className="block mb-1">Tag</span>
-            <select
-              aria-label="Tag"
+            <RefineSelect
+              label="Tag"
               value={effectiveTag || ""}
-              onChange={(event) => setTagFilter(event.target.value || null)}
+              onChange={(value) => setTagFilter(value || null)}
               disabled={tagCounts.length === 0}
-              className="w-full min-w-0 min-h-11 rounded-lg border px-2 text-sm outline-none disabled:opacity-70"
-              style={controlStyle}
+              wide
             >
               <option value="">
                 {tagCounts.length === 0 ? "No tags in this view" : "All tags"}
@@ -334,9 +333,9 @@ export default function Cuaderno({
                   {tag} · {count}
                 </option>
               ))}
-            </select>
-          </label>
-        </div>
+            </RefineSelect>
+          </RefinePanel>
+        )}
       </div>
 
       <div className="px-4 py-4 space-y-2.5 pb-28" style={dotGrid}>

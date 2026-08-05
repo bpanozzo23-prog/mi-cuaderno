@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { ChevronLeft, Plus, Search } from "lucide-react";
 import { C, Chip, MONO, SERIF } from "../theme.jsx";
 import AddSheet from "./AddSheet.jsx";
+import { RefineBar, RefinePanel, RefineSelect } from "./Refine.jsx";
 import PageHubCard from "./PageHubCard.jsx";
 import PageStarterGallery from "./PageStarterGallery.jsx";
 import SearchBar from "./SearchBar.jsx";
@@ -42,8 +43,6 @@ const PAGE_VIEW_OPTIONS = [
   { value: MAINTENANCE_VIEWS.all, label: "All pages" },
   { value: MAINTENANCE_VIEWS.unlinked, label: "No connections" },
 ];
-
-const controlStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
 function PageSectionHeading({ children, count }) {
   return (
@@ -198,17 +197,12 @@ export default function PageHub({
         </div>
 
         <div className="mt-3 flex min-h-11 items-center justify-between gap-3">
-          <button
-            type="button"
-            aria-expanded={refineOpen}
-            aria-controls="page-hub-refine"
-            onClick={() => setRefineOpen((open) => !open)}
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg px-1 text-sm"
-            style={{ color: refineCount ? C.pen : C.mut }}
-          >
-            <SlidersHorizontal size={16} />
-            Refine{refineCount ? ` (${refineCount})` : ""}
-          </button>
+          <RefineBar
+            panelId="page-hub-refine"
+            open={refineOpen}
+            count={refineCount}
+            onToggle={() => setRefineOpen((open) => !open)}
+          />
           <button
             type="button"
             aria-label={searchOpen ? (query ? "Clear page search" : "Close page search") : "Search pages"}
@@ -236,56 +230,45 @@ export default function PageHub({
         )}
 
         {refineOpen && (
-          <div id="page-hub-refine" className="mt-1 grid grid-cols-2 gap-2 rounded-xl border p-3" style={{ borderColor: C.line, background: C.card }}>
-            <label className="min-w-0 text-xs" style={{ color: C.mut }}>
-              <span className="mb-1 block">View</span>
-              <select
-                aria-label="Page view"
-                value={maintenanceView}
-                onChange={(event) => setMaintenanceView(event.target.value)}
-                className="min-h-11 w-full min-w-0 rounded-lg border px-2 text-sm outline-none"
-                style={controlStyle}
-              >
-                {PAGE_VIEW_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </label>
+          <RefinePanel id="page-hub-refine">
+            <RefineSelect
+              label="View"
+              ariaLabel="Page view"
+              value={maintenanceView}
+              onChange={setMaintenanceView}
+            >
+              {PAGE_VIEW_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </RefineSelect>
 
-            <label className="min-w-0 text-xs" style={{ color: C.mut }}>
-              <span className="mb-1 block">Order</span>
-              <select
-                aria-label="Page order"
-                value={searching ? "relevance" : browseOrder}
-                onChange={(event) => setBrowseOrder(event.target.value)}
-                disabled={searching}
-                className="min-h-11 w-full min-w-0 rounded-lg border px-2 text-sm outline-none disabled:opacity-70"
-                style={controlStyle}
-              >
-                {searching && <option value="relevance">Search relevance</option>}
-                {BROWSE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </label>
+            <RefineSelect
+              label="Order"
+              ariaLabel="Page order"
+              value={searching ? "relevance" : browseOrder}
+              onChange={setBrowseOrder}
+              disabled={searching}
+            >
+              {searching && <option value="relevance">Search relevance</option>}
+              {BROWSE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </RefineSelect>
 
-            <label className="col-span-2 min-w-0 text-xs" style={{ color: C.mut }}>
-              <span className="mb-1 block">Tag</span>
-              <select
-                aria-label="Page tag"
-                value={effectiveTag || ""}
-                onChange={(event) => setTagFilter(event.target.value || null)}
-                disabled={tagCounts.length === 0}
-                className="min-h-11 w-full min-w-0 rounded-lg border px-2 text-sm outline-none disabled:opacity-70"
-                style={controlStyle}
-              >
-                <option value="">{tagCounts.length ? "All tags" : "No tags in this view"}</option>
-                {tagCounts.map(({ tag, count }) => (
-                  <option key={tag} value={tag}>{tag} · {count}</option>
-                ))}
-              </select>
-            </label>
-          </div>
+            <RefineSelect
+              label="Tag"
+              ariaLabel="Page tag"
+              value={effectiveTag || ""}
+              onChange={(value) => setTagFilter(value || null)}
+              disabled={tagCounts.length === 0}
+              wide
+            >
+              <option value="">{tagCounts.length ? "All tags" : "No tags in this view"}</option>
+              {tagCounts.map(({ tag, count }) => (
+                <option key={tag} value={tag}>{tag} · {count}</option>
+              ))}
+            </RefineSelect>
+          </RefinePanel>
         )}
 
         <div className="mt-6 space-y-8">

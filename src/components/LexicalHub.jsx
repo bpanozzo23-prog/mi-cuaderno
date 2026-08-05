@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, Play, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { ChevronLeft, Play, Plus, Search } from "lucide-react";
 import { Button, C, Chip, MONO, SERIF } from "../theme.jsx";
 import AddSheet from "./AddSheet.jsx";
+import { RefineBar, RefinePanel, RefineSelect } from "./Refine.jsx";
 import LexicalHubCard from "./LexicalHubCard.jsx";
 import PracticeSession from "./PracticeSession.jsx";
 import PracticeSetupSheet from "./PracticeSetupSheet.jsx";
@@ -70,8 +71,6 @@ const BROWSE_OPTIONS = [
   { value: BROWSE_ORDERS.added, label: "Recently added" },
   { value: BROWSE_ORDERS.alphabetical, label: "A–Z" },
 ];
-
-const controlStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
 function HubSectionHeading({ children, count }) {
   return (
@@ -290,17 +289,12 @@ export default function LexicalHub({
         </div>
 
         <div className="mt-3 flex min-h-11 items-center justify-between gap-3">
-          <button
-            type="button"
-            aria-expanded={refineOpen}
-            aria-controls="lexical-hub-refine"
-            onClick={() => setRefineOpen((open) => !open)}
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg px-1 text-sm"
-            style={{ color: refineCount ? C.pen : C.mut }}
-          >
-            <SlidersHorizontal size={16} />
-            Refine{refineCount ? ` (${refineCount})` : ""}
-          </button>
+          <RefineBar
+            panelId="lexical-hub-refine"
+            open={refineOpen}
+            count={refineCount}
+            onToggle={() => setRefineOpen((open) => !open)}
+          />
           <div className="flex shrink-0 items-center gap-1">
             <button
               type="button"
@@ -340,90 +334,61 @@ export default function LexicalHub({
         )}
 
         {refineOpen && (
-          <div
-            id="lexical-hub-refine"
-            className="mt-1 grid grid-cols-2 gap-2 rounded-xl border p-3"
-            style={{ borderColor: C.line, background: C.card }}
-          >
-            <label className="col-span-2 min-w-0 text-xs" style={{ color: C.mut }}>
-              <span className="mb-1 block">Where it lives</span>
-              <select
-                aria-label="Where it lives"
-                value={contextFilter}
-                onChange={(event) => setContextFilter(event.target.value)}
-                className="min-h-11 w-full min-w-0 rounded-lg border px-2 text-sm outline-none"
-                style={controlStyle}
-              >
-                {CONTEXT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </label>
+          <RefinePanel id="lexical-hub-refine">
+            <RefineSelect
+              label="Where it lives"
+              value={contextFilter}
+              onChange={setContextFilter}
+              wide
+            >
+              {CONTEXT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </RefineSelect>
 
-            <label className="min-w-0 text-xs" style={{ color: C.mut }}>
-              <span className="mb-1 block">Learning</span>
-              <select
-                aria-label="Learning"
-                value={learningFilter}
-                onChange={(event) => setLearningFilter(event.target.value)}
-                className="min-h-11 w-full min-w-0 rounded-lg border px-2 text-sm outline-none"
-                style={controlStyle}
-              >
-                {LEARNING_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </label>
+            <RefineSelect label="Learning" value={learningFilter} onChange={setLearningFilter}>
+              {LEARNING_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </RefineSelect>
 
-            <label className="min-w-0 text-xs" style={{ color: C.mut }}>
-              <span className="mb-1 block">View</span>
-              <select
-                aria-label="Vocabulary view"
-                value={maintenanceView}
-                onChange={(event) => setMaintenanceView(event.target.value)}
-                className="min-h-11 w-full min-w-0 rounded-lg border px-2 text-sm outline-none"
-                style={controlStyle}
-              >
-                {VIEW_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </label>
+            <RefineSelect
+              label="View"
+              ariaLabel="Vocabulary view"
+              value={maintenanceView}
+              onChange={setMaintenanceView}
+            >
+              {VIEW_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </RefineSelect>
 
-            <label className="min-w-0 text-xs" style={{ color: C.mut }}>
-              <span className="mb-1 block">Order</span>
-              <select
-                aria-label="Vocabulary order"
-                value={searching ? "relevance" : browseOrder}
-                onChange={(event) => setBrowseOrder(event.target.value)}
-                disabled={searching}
-                className="min-h-11 w-full min-w-0 rounded-lg border px-2 text-sm outline-none disabled:opacity-70"
-                style={controlStyle}
-              >
-                {searching && <option value="relevance">Search relevance</option>}
-                {BROWSE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </label>
+            <RefineSelect
+              label="Order"
+              ariaLabel="Vocabulary order"
+              value={searching ? "relevance" : browseOrder}
+              onChange={setBrowseOrder}
+              disabled={searching}
+            >
+              {searching && <option value="relevance">Search relevance</option>}
+              {BROWSE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </RefineSelect>
 
-            <label className="min-w-0 text-xs" style={{ color: C.mut }}>
-              <span className="mb-1 block">Tag</span>
-              <select
-                aria-label="Vocabulary tag"
-                value={effectiveTag || ""}
-                onChange={(event) => setTagFilter(event.target.value || null)}
-                disabled={tagCounts.length === 0}
-                className="min-h-11 w-full min-w-0 rounded-lg border px-2 text-sm outline-none disabled:opacity-70"
-                style={controlStyle}
-              >
-                <option value="">{tagCounts.length ? "All tags" : "No tags in this view"}</option>
-                {tagCounts.map(({ tag, count }) => (
-                  <option key={tag} value={tag}>{tag} · {count}</option>
-                ))}
-              </select>
-            </label>
-          </div>
+            <RefineSelect
+              label="Tag"
+              ariaLabel="Vocabulary tag"
+              value={effectiveTag || ""}
+              onChange={(value) => setTagFilter(value || null)}
+              disabled={tagCounts.length === 0}
+            >
+              <option value="">{tagCounts.length ? "All tags" : "No tags in this view"}</option>
+              {tagCounts.map(({ tag, count }) => (
+                <option key={tag} value={tag}>{tag} · {count}</option>
+              ))}
+            </RefineSelect>
+          </RefinePanel>
         )}
 
         <div className="mt-6 space-y-8">
