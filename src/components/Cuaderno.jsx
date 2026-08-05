@@ -20,9 +20,7 @@ import {
   orderItems,
   tagCountsIn,
 } from "../lib/organization.js";
-import { PAGE_FOCUSES, enabledPageRoles } from "../lib/pageKinds.js";
 import { isJournalEntry } from "../lib/journal.js";
-import { getPinnedPageIds, setPagePinned } from "../db/collections.js";
 import { emptyItemState } from "../useNotebook.js";
 
 /** Long enough that a fast typist does not fire a query per keystroke, short enough to feel instant. */
@@ -41,22 +39,6 @@ const MAINTENANCE_OPTIONS = [
   { value: MAINTENANCE_VIEWS.unlinked, label: "No links" },
 ];
 
-const PAGE_ROLE_FILTERS = {
-  all: "all",
-  source: PAGE_FOCUSES.source,
-  grammar: PAGE_FOCUSES.grammar,
-  collection: PAGE_FOCUSES.vocabulary,
-  notes: PAGE_FOCUSES.notes,
-};
-
-const PAGE_ROLE_OPTIONS = [
-  { value: PAGE_ROLE_FILTERS.all, label: "All pages" },
-  { value: PAGE_ROLE_FILTERS.source, label: "Sources" },
-  { value: PAGE_ROLE_FILTERS.grammar, label: "Grammar" },
-  { value: PAGE_ROLE_FILTERS.collection, label: "Collections" },
-  { value: PAGE_ROLE_FILTERS.notes, label: "Notes" },
-];
-
 function pinnedFirst(items, pinnedIds) {
   const pinned = [];
   const unpinned = [];
@@ -66,11 +48,20 @@ function pinnedFirst(items, pinnedIds) {
 
 const controlStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
-export default function Cuaderno({ notebook, selectedId, onSelect, onBack, backLabel = "Todo el cuaderno", onOpenSettings }) {
+export default function Cuaderno({
+  notebook,
+  selectedId,
+  onSelect,
+  onBack,
+  backLabel = "Todo el cuaderno",
+  onOpenSettings,
+  onOpenPages,
+  pinnedPageIds = [],
+  onPagePinnedChange,
+}) {
   const { items, itemState, reload } = notebook;
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState(FILTERS.all);
-  const [pageRoleFilter, setPageRoleFilter] = useState(PAGE_ROLE_FILTERS.all);
   const [tagFilter, setTagFilter] = useState(null);
   const [browseOrder, setBrowseOrder] = useState(BROWSE_ORDERS.touched);
   const [maintenanceView, setMaintenanceView] = useState(MAINTENANCE_VIEWS.all);
@@ -79,7 +70,6 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, backL
   const [askKind, setAskKind] = useState(false);
   const [askPageStarter, setAskPageStarter] = useState(false);
   const [dictionary, setDictionary] = useState(null);
-  const [pinnedPageIds, setPinnedPageIds] = useState([]);
 
   const searching = query.trim() !== "";
 
@@ -89,33 +79,12 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, backL
     installedMeta().then(setDictionary);
   }, [selectedId]);
 
-  // Pins are preferences, not page content. Read them separately and ignore stale/non-page IDs
-  // defensively so a restored preference can never change an unrelated card's order.
-  useEffect(() => {
-    let current = true;
-    const pageIds = new Set(items.filter((item) => item.type === "page").map((item) => item.id));
-    getPinnedPageIds()
-      .then((ids) => {
-        if (current) setPinnedPageIds(ids.filter((id) => pageIds.has(id)));
-      })
-      .catch(() => {
-        if (current) setPinnedPageIds([]);
-      });
-    return () => {
-      current = false;
-    };
-  }, [items]);
-
-  async function changePagePinned(pageId, pinned) {
-    await setPagePinned(pageId, pinned);
-    setPinnedPageIds((ids) =>
-      pinned ? [...ids.filter((id) => id !== pageId), pageId] : ids.filter((id) => id !== pageId)
-    );
-  }
-
   function changeTypeFilter(next) {
+    if (next === FILTERS.page && onOpenPages) {
+      onOpenPages();
+      return;
+    }
     setTypeFilter(next);
-    if (next !== FILTERS.page) setPageRoleFilter(PAGE_ROLE_FILTERS.all);
   }
 
   // Maintenance must see the COMPLETE personal notebook. A page filtered out by the type
@@ -137,15 +106,7 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, backL
     [candidateSet, typeFilter]
   );
 
-  // Page roles overlap: a Source + Vocabulary page belongs to both filters. Notes is the one
-  // focus-based role, so it retrieves pages whose lasting leading focus is Notes.
-  const contextItems = useMemo(
-    () =>
-      typeFilter === FILTERS.page && pageRoleFilter !== PAGE_ROLE_FILTERS.all
-        ? typeItems.filter((item) => enabledPageRoles(item).includes(pageRoleFilter))
-        : typeItems,
-    [pageRoleFilter, typeFilter, typeItems]
-  );
+  const contextItems = typeItems;
 
   // Tag choices describe the type/maintenance context, not the already-selected tag or query.
   // That keeps the picker useful while a tag narrows the cards and while the owner searches.
@@ -265,7 +226,7 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, backL
         onOpen={onSelect}
         onChanged={reload}
         pagePinned={pinnedPageIds.includes(selected.id)}
-        onPagePinnedChange={(pinned) => changePagePinned(selected.id, pinned)}
+        onPagePinnedChange={(pinned) => onPagePinnedChange?.(selected.id, pinned)}
       />
     );
   }
@@ -297,25 +258,6 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, backL
         </div>
 
         <div className="grid grid-cols-2 gap-2 mt-3">
-          {typeFilter === FILTERS.page && (
-            <label className="col-span-2 min-w-0 text-xs" style={{ color: C.mut }}>
-              <span className="block mb-1">Role</span>
-              <select
-                aria-label="Page role"
-                value={pageRoleFilter}
-                onChange={(event) => setPageRoleFilter(event.target.value)}
-                className="w-full min-w-0 min-h-11 rounded-lg border px-2 text-sm outline-none"
-                style={controlStyle}
-              >
-                {PAGE_ROLE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-
           <label className="min-w-0 text-xs" style={{ color: C.mut }}>
             <span className="block mb-1">View</span>
             <select
@@ -398,7 +340,9 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, backL
               reason={result.reason}
               items={items}
               pinned={pinnedPageIds.includes(result.item.id)}
-              onPinnedChange={isJournalEntry(result.item) ? undefined : (pinned) => changePagePinned(result.item.id, pinned)}
+              onPinnedChange={isJournalEntry(result.item) || !onPagePinnedChange
+                ? undefined
+                : (pinned) => onPagePinnedChange(result.item.id, pinned)}
             />
           )
         )}

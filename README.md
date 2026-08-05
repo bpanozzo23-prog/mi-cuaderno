@@ -37,7 +37,9 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   remains pending because the local browser-control kernel could not initialize. Lexical-side
   **Add to Collection** (4y) is shipped without a schema change after the 501-test serial suite,
   production build, and a successful GitHub Pages deployment check; its disposable phone check is
-  pending for the same browser limitation. Source and Grammar were deferred from this maintenance
+  pending for the same browser limitation. The dedicated **Pages hub** (4z) is implemented locally
+  on schema v5 after the 596-test serial suite, production build, and a disposable 375×812 browser
+  closeout; deployment remains pending. Source and Grammar were deferred from this maintenance
   stream and are now shipped as Phase 7; richer stored Journal profiles,
   user-authored templates, and exact term/title link suggestions remain deferred. See
   [docs/PHASE-4-JOURNAL-DIRECTION.md](docs/PHASE-4-JOURNAL-DIRECTION.md) and

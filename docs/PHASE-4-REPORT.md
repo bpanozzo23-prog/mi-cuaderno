@@ -666,3 +666,50 @@ The owner subsequently approved publishing Phase 4y. `main` was fast-forwarded t
 pushed. GitHub Pages workflow run 30955868049 completed both build and deploy jobs successfully,
 and the public site returned HTTP 200 while referencing the verified `index-BpNcWMY7.js` asset.
 The disposable 375×812 browser check remains the only pending Phase 4y verification item.
+
+---
+
+## Phase 4z — dedicated Pages hub
+
+### Observed problem and boundary
+
+Phase 7 supplied composable page roles, contextual retrieval, pinning and family-first creation, but
+Pages still appeared inside Cuaderno's general-purpose filter/control grid. The owner requested the
+focused page-library mockup as a real hub. This slice changes presentation and session navigation
+only: schema v5, page records, search normalization, event rules, backup shapes and the four-tab
+information architecture remain unchanged.
+
+### Implemented behavior
+
+- Tapping **páginas** pushes one session-only Pages route with a focused **‹ Cuaderno / Pages / +**
+  header. Cuaderno and the hub stay mounted across hub/detail traversal, detail Back returns to
+  Pages, and the existing bottom tabs still reset to their normal surface homes.
+- The hub exposes overlapping All, Sources, Grammar, Collections and Notes chips. Diario entries
+  stay outside both hub browsing and contextual hub search; intentional global Cuaderno search
+  remains unchanged.
+- Empty-query browsing separates matching pinned cards without duplicating them. Search produces
+  one relevance-ordered list where pins provide no boost. App owns the existing preference-backed
+  pin state so hub, global-card and detail controls update together.
+- Search expands on demand and reuses active Source/Grammar and contained-vocabulary retrieval.
+  **Refine** progressively reveals All pages/No connections, browse order and contextual tags, with
+  an active-filter count when the panel is closed. No-connections derivation still examines the
+  complete notebook before selecting Pages, so incoming lexical links count.
+- Hub cards show focus first, all active roles and only stored facts: Source format/creator/captures,
+  Grammar sections/examples, Vocabulary items/groups, tags and Notes excerpts. Recipe names remain
+  transient. The header plus button opens the existing family-first gallery directly.
+
+### Verification
+
+- Focused PageHub tests pass **4/4**; the combined App, Cuaderno and PageHub component snapshot
+  passes **24/24**.
+- A deliberate route break changed the hub destination back to Cuaderno list; the focused App test
+  failed because **Your pages** never appeared, then passed after the Pages route was restored.
+- `npm.cmd test -- --no-file-parallelism` passes **596/596 tests across 59 files** in 212.89s on
+  the final touch-target code.
+- `npm.cmd run build` passes after processing 1,865 modules with a 13-entry PWA precache of about
+  689 KiB, and `git diff --check` passes.
+- A disposable fixture created through the visible UI at **375×812** verified focused-header
+  replacement, overlapping roles, 44px role-filter targets, pinned/all separation, Grammar search
+  in relevance mode, progressive Refine controls, detail return, and no horizontal overflow,
+  console warnings or console errors. No owner browser data was inspected or changed.
+- No deployment was performed.

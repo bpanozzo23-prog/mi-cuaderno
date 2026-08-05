@@ -2,12 +2,14 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { BookOpen, BarChart3, Settings, Loader2, PenLine } from "lucide-react";
 import { C, SERIF, MONO, Hi } from "./theme.jsx";
 import Cuaderno from "./components/Cuaderno.jsx";
+import PageHub from "./components/PageHub.jsx";
 import Diario from "./components/Diario.jsx";
 import Repaso from "./components/Repaso.jsx";
 import Ajustes from "./components/Ajustes.jsx";
 import { useNotebook } from "./useNotebook.js";
 import { isJournalEntry } from "./lib/journal.js";
 import { isDictKey } from "./db/ref/entries.js";
+import { getPinnedPageIds, setPagePinned } from "./db/collections.js";
 
 /**
  * Spanish pluralization for the header counts: only 1 takes the singular, 0 takes the plural.
@@ -29,6 +31,7 @@ export default function App() {
   // Every destination, including a list, is part of one session-only trail. This preserves
   // Cuaderno → Diario → word → Back without a URL router or any stored navigation state.
   const [routeTrail, setRouteTrail] = useState([baseRoute("cuaderno")]);
+  const [pinnedPageIds, setPinnedPageIds] = useState([]);
   const notebook = useNotebook();
   const route = routeTrail[routeTrail.length - 1];
   const tab = route.tab;
@@ -40,6 +43,28 @@ export default function App() {
   const phraseCount = lexical.filter((i) => i.form === "phrase").length;
   const wordCount = lexical.length - phraseCount;
   const pageCount = notebook.items.filter((item) => item.type === "page" && !isJournalEntry(item)).length;
+
+  useEffect(() => {
+    let current = true;
+    const pageIds = new Set(notebook.items.filter((item) => item.type === "page").map((item) => item.id));
+    getPinnedPageIds()
+      .then((ids) => {
+        if (current) setPinnedPageIds(ids.filter((id) => pageIds.has(id)));
+      })
+      .catch(() => {
+        if (current) setPinnedPageIds([]);
+      });
+    return () => {
+      current = false;
+    };
+  }, [notebook.items]);
+
+  async function changePagePinned(pageId, pinned) {
+    await setPagePinned(pageId, pinned);
+    setPinnedPageIds((ids) =>
+      pinned ? [...ids.filter((id) => id !== pageId), pageId] : ids.filter((id) => id !== pageId)
+    );
+  }
 
   function switchTab(next) {
     setRouteTrail([baseRoute(next)]);
@@ -53,6 +78,15 @@ export default function App() {
     setRouteTrail((trail) => {
       const current = trail[trail.length - 1];
       return current.id === id && current.tab === targetTab ? trail : [...trail, next];
+    });
+  }
+
+  function openPages() {
+    setRouteTrail((trail) => {
+      const current = trail[trail.length - 1];
+      return current.tab === "cuaderno" && current.screen === "pages"
+        ? trail
+        : [...trail, { tab: "cuaderno", screen: "pages", id: null }];
     });
   }
 
@@ -96,6 +130,8 @@ export default function App() {
   const previousRoute = routeTrail[routeTrail.length - 2] || null;
   const backLabel = previousRoute?.id
     ? "Atrás"
+    : previousRoute?.screen === "pages"
+      ? "Pages"
     : previousRoute?.tab && previousRoute.tab !== route.tab
       ? TABS.find((candidate) => candidate.id === previousRoute.tab)?.label
       : route.tab === "diario"
@@ -106,6 +142,7 @@ export default function App() {
   // Their local search/filter state then survives Journal → Back without becoming stored data.
   const cuadernoRoute = [...routeTrail].reverse().find((candidate) => candidate.tab === "cuaderno") || baseRoute("cuaderno");
   const diarioRoute = [...routeTrail].reverse().find((candidate) => candidate.tab === "diario") || baseRoute("diario");
+  const pageHubOpen = tab === "cuaderno" && cuadernoRoute.screen === "pages";
 
   // The document is the scroll container. A newly selected tab or detail must never inherit
   // a long source page's scroll offset and appear to open halfway down the destination.
@@ -116,34 +153,36 @@ export default function App() {
   return (
     <div className="min-h-screen" style={{ background: C.paper, color: C.ink }}>
       <div className="max-w-md mx-auto min-h-screen relative" style={{ background: C.paper }}>
-        <header
-          className="sticky top-0 z-20 px-4 pt-4 pb-3"
-          style={{ background: C.paper, borderBottom: `1px solid ${C.line}` }}
-        >
-          <div className="flex items-end justify-between">
-            <div>
-              <div className="text-2xl font-bold" style={{ fontFamily: SERIF, color: C.ink }}>
-                Mi <Hi>cuaderno</Hi>
+        {!pageHubOpen && (
+          <header
+            className="sticky top-0 z-20 px-4 pt-4 pb-3"
+            style={{ background: C.paper, borderBottom: `1px solid ${C.line}` }}
+          >
+            <div className="flex items-end justify-between">
+              <div>
+                <div className="text-2xl font-bold" style={{ fontFamily: SERIF, color: C.ink }}>
+                  Mi <Hi>cuaderno</Hi>
+                </div>
+                <div className="text-xs mt-1" style={{ color: C.mut }}>
+                  Spanish notebook
+                </div>
               </div>
-              <div className="text-xs mt-1" style={{ color: C.mut }}>
-                Spanish notebook
-              </div>
+              {tab !== "diario" && (
+                <div
+                  aria-label="Notebook totals"
+                  className="text-right text-xs leading-relaxed"
+                  style={{ fontFamily: MONO, color: C.mut }}
+                >
+                  {count(wordCount, "palabra")}
+                  <br />
+                  {count(phraseCount, "frase")}
+                  <br />
+                  {count(pageCount, "página")}
+                </div>
+              )}
             </div>
-            {tab !== "diario" && (
-              <div
-                aria-label="Notebook totals"
-                className="text-right text-xs leading-relaxed"
-                style={{ fontFamily: MONO, color: C.mut }}
-              >
-                {count(wordCount, "palabra")}
-                <br />
-                {count(phraseCount, "frase")}
-                <br />
-                {count(pageCount, "página")}
-              </div>
-            )}
-          </div>
-        </header>
+          </header>
+        )}
 
         {notebook.loading ? (
           <div className="flex items-center justify-center gap-2 text-sm py-24" style={{ color: C.mut }}>
@@ -152,14 +191,28 @@ export default function App() {
         ) : (
           <>
             <section hidden={tab !== "cuaderno"} aria-label="Cuaderno surface">
-              <Cuaderno
-                notebook={notebook}
-                selectedId={cuadernoRoute.id}
-                onSelect={openItem}
-                onBack={backFromDetail}
-                backLabel={backLabel}
-                onOpenSettings={() => switchTab("ajustes")}
-              />
+              <div hidden={cuadernoRoute.screen === "pages"}>
+                <Cuaderno
+                  notebook={notebook}
+                  selectedId={cuadernoRoute.screen === "detail" ? cuadernoRoute.id : null}
+                  onSelect={openItem}
+                  onBack={backFromDetail}
+                  backLabel={backLabel}
+                  onOpenSettings={() => switchTab("ajustes")}
+                  onOpenPages={openPages}
+                  pinnedPageIds={pinnedPageIds}
+                  onPagePinnedChange={changePagePinned}
+                />
+              </div>
+              <div hidden={cuadernoRoute.screen !== "pages"}>
+                <PageHub
+                  notebook={notebook}
+                  pinnedPageIds={pinnedPageIds}
+                  onPagePinnedChange={changePagePinned}
+                  onSelect={openItem}
+                  onBack={backFromDetail}
+                />
+              </div>
             </section>
             <section hidden={tab !== "diario"} aria-label="Diario surface">
               <Diario

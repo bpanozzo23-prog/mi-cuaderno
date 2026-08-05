@@ -138,6 +138,44 @@ describe("Phase 5a navigation continuity", () => {
   });
 });
 
+describe("Phase 4z Pages hub navigation", () => {
+  it("opens a focused hub, shares pin state with detail, and returns through the real route trail", async () => {
+    const user = userEvent.setup();
+    await createItem(newPage({ title: "Plain notes", body: "Keep this nearby." }));
+    await createItem(newPage({
+      title: "Listening source",
+      pageFocus: "source",
+      collection: { enabled: true, groups: [] },
+      source: { enabled: true, format: "audio" },
+    }));
+    render(<App />);
+
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(screen.getByRole("button", { name: "páginas" }));
+
+    expect(screen.getByRole("heading", { name: "Your pages" })).toBeTruthy();
+    expect(screen.queryByText("Spanish notebook")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Sources" }));
+    expect(screen.getByRole("button", { name: "Listening source" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Plain notes" })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Pin Listening source" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Unpin Listening source" })).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: "Listening source" }));
+
+    expect(screen.getByRole("button", { name: "Pages" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Unpin page" }).getAttribute("aria-pressed")).toBe("true");
+    await user.click(screen.getByRole("button", { name: "Pages" }));
+
+    expect(screen.getByRole("heading", { name: "Your pages" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Listening source" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Plain notes" })).toBeNull();
+    await user.click(within(screen.getByRole("region", { name: "Cuaderno surface" })).getByRole("button", { name: "Cuaderno" }));
+    expect(screen.getByRole("textbox", { name: "Search notebook" })).toBeTruthy();
+    expect(screen.getByText("Spanish notebook")).toBeTruthy();
+  });
+});
+
 describe("Phase 4p Diario foundation", () => {
   it("gives dated General pages their own tab and excludes them from the page count", async () => {
     const user = userEvent.setup();

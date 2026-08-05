@@ -54,12 +54,13 @@ export function SectionTitle({ children }) {
   );
 }
 
-export function Chip({ children, active, onClick, onRemove, title }) {
+export function Chip({ children, active, onClick, onRemove, title, className = "" }) {
   return (
     <button
       onClick={onClick}
       title={title}
-      className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border whitespace-nowrap"
+      aria-pressed={typeof active === "boolean" ? active : undefined}
+      className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border whitespace-nowrap ${className}`}
       style={
         active
           ? { background: C.pen, color: "#fff", borderColor: C.pen }

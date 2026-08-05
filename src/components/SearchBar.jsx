@@ -23,6 +23,8 @@ export default function SearchBar({
   pending = false,
   onMissLogged,
   placeholder = "Search words, meanings, notes, pages…",
+  inputLabel = "Search notebook",
+  autoFocus = false,
 }) {
   const timer = useRef(null);
 
@@ -49,10 +51,11 @@ export default function SearchBar({
     >
       <Search size={16} style={{ color: C.mut }} />
       <input
-        aria-label="Search notebook"
+        aria-label={inputLabel}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        autoFocus={autoFocus}
         className="flex-1 bg-transparent outline-none text-sm"
         style={{ color: C.ink }}
       />
