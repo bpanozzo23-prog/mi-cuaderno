@@ -21,6 +21,7 @@ describe("free-practice preflight", () => {
     );
 
     expect(screen.getByText("Practice 20 of 25 eligible cards. 3 entries need a meaning.")).toBeTruthy();
+    expect(screen.getByText("Free practice stays in this session and does not change your Repaso schedule.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Shuffled" }).getAttribute("aria-pressed")).toBe("true");
 
     await user.click(screen.getByRole("button", { name: "10" }));

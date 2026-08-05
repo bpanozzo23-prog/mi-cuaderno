@@ -157,7 +157,7 @@ describe("Phase 4z Pages hub navigation", () => {
     await screen.findByRole("textbox", { name: "Search notebook" });
     await user.click(screen.getByRole("button", { name: "páginas" }));
 
-    expect(screen.getByRole("heading", { name: "Your pages" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Pages" })).toBeTruthy();
     expect(screen.queryByText("Spanish notebook")).toBeNull();
     await user.click(screen.getByRole("button", { name: "Sources" }));
     expect(screen.getByRole("button", { name: "Listening source" })).toBeTruthy();
@@ -171,7 +171,7 @@ describe("Phase 4z Pages hub navigation", () => {
     expect(screen.getByRole("button", { name: "Unpin page" }).getAttribute("aria-pressed")).toBe("true");
     await user.click(screen.getByRole("button", { name: "Pages" }));
 
-    expect(screen.getByRole("heading", { name: "Your pages" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Pages" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Listening source" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Plain notes" })).toBeNull();
     await user.click(within(screen.getByRole("region", { name: "Cuaderno surface" })).getByRole("button", { name: "Cuaderno" }));
@@ -199,7 +199,7 @@ describe("Phase 8 Words & phrases hub navigation", () => {
     await user.click(screen.getByRole("button", { name: "frases" }));
 
     // The hub replaces the app header and arrives with the tapped chip already applied.
-    expect(screen.getByRole("heading", { name: "Your words and phrases" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Words & phrases" })).toBeTruthy();
     expect(screen.queryByText("Spanish notebook")).toBeNull();
     expect(screen.getByRole("button", { name: "de repente" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "madrugar" })).toBeNull();
@@ -212,7 +212,7 @@ describe("Phase 8 Words & phrases hub navigation", () => {
     await user.click(screen.getByRole("button", { name: "Words & phrases" }));
 
     // Back lands on the hub with its visit-local chip and the pin both intact.
-    expect(screen.getByRole("heading", { name: "Your words and phrases" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Words & phrases" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Unpin de repente" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "madrugar" })).toBeNull();
 

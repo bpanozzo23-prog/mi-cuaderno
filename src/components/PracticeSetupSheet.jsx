@@ -32,6 +32,9 @@ export default function PracticeSetupSheet({ eligibleCount, omittedCount, onClos
               Practice {selectedCount} of {eligibleCount} eligible {eligibleCount === 1 ? "card" : "cards"}.
               {omittedCount > 0 && ` ${omittedCount} ${omittedCount === 1 ? "entry needs" : "entries need"} a meaning.`}
             </p>
+            <p className="mt-2 text-xs leading-relaxed" style={{ color: C.mut }}>
+              Free practice stays in this session and does not change your Repaso schedule.
+            </p>
           </div>
           <button type="button" onClick={onClose} aria-label="Close practice setup" className="inline-flex min-h-11 min-w-11 items-center justify-center">
             <X size={17} style={{ color: C.mut }} />

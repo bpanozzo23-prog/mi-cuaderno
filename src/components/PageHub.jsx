@@ -168,9 +168,9 @@ export default function PageHub({
           >
             <ChevronLeft size={18} /> Cuaderno
           </button>
-          <div className="text-lg font-semibold" style={{ fontFamily: SERIF, color: C.ink }}>
+          <h1 className="text-lg font-semibold" style={{ fontFamily: SERIF, color: C.ink }}>
             Pages
-          </div>
+          </h1>
           <button
             type="button"
             aria-label="Add page"
@@ -183,49 +183,8 @@ export default function PageHub({
         </div>
       </header>
 
-      <main className="px-4 pb-28 pt-7" style={{ background: C.paper }}>
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div
-              className="text-[11px] uppercase"
-              style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.14em" }}
-            >
-              One library · overlapping roles
-            </div>
-            <h1 className="mt-2 text-3xl font-bold" style={{ fontFamily: SERIF, color: C.ink }}>
-              Your pages
-            </h1>
-          </div>
-          <button
-            type="button"
-            aria-label={searchOpen ? (query ? "Clear page search" : "Close page search") : "Search pages"}
-            aria-pressed={searchOpen}
-            onClick={toggleSearch}
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full"
-            style={{ color: searchOpen ? C.pen : C.mut }}
-          >
-            <Search size={20} />
-          </button>
-        </div>
-        <p className="mt-3 max-w-sm text-base leading-relaxed" style={{ color: C.mut }}>
-          Sources, Grammar guides, Collections, and notes stay together.
-        </p>
-
-        {searchOpen && (
-          <div className="mt-4">
-            <SearchBar
-              value={query}
-              onChange={setQuery}
-              resultCount={searchResults.length}
-              logMisses={false}
-              placeholder="Search your pages and their vocabulary…"
-              inputLabel="Search pages"
-              autoFocus
-            />
-          </div>
-        )}
-
-        <div className="mt-5 flex flex-wrap gap-2" aria-label="Page roles">
+      <main className="px-4 pb-28 pt-4" style={{ background: C.paper }}>
+        <div className="flex flex-wrap gap-2" aria-label="Page roles">
           {PAGE_ROLE_OPTIONS.map((option) => (
             <Chip
               key={option.value}
@@ -238,7 +197,7 @@ export default function PageHub({
           ))}
         </div>
 
-        <div className="mt-3">
+        <div className="mt-3 flex min-h-11 items-center justify-between gap-3">
           <button
             type="button"
             aria-expanded={refineOpen}
@@ -250,7 +209,31 @@ export default function PageHub({
             <SlidersHorizontal size={16} />
             Refine{refineCount ? ` (${refineCount})` : ""}
           </button>
+          <button
+            type="button"
+            aria-label={searchOpen ? (query ? "Clear page search" : "Close page search") : "Search pages"}
+            aria-pressed={searchOpen}
+            onClick={toggleSearch}
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full"
+            style={{ color: searchOpen ? C.pen : C.mut }}
+          >
+            <Search size={20} />
+          </button>
         </div>
+
+        {searchOpen && (
+          <div className="mt-2">
+            <SearchBar
+              value={query}
+              onChange={setQuery}
+              resultCount={searchResults.length}
+              logMisses={false}
+              placeholder="Search your pages and their vocabulary…"
+              inputLabel="Search pages"
+              autoFocus
+            />
+          </div>
+        )}
 
         {refineOpen && (
           <div id="page-hub-refine" className="mt-1 grid grid-cols-2 gap-2 rounded-xl border p-3" style={{ borderColor: C.line, background: C.card }}>
@@ -305,7 +288,7 @@ export default function PageHub({
           </div>
         )}
 
-        <div className="mt-8 space-y-8">
+        <div className="mt-6 space-y-8">
           {searching ? (
             searchResults.length > 0 ? (
               <section aria-labelledby="page-search-heading">

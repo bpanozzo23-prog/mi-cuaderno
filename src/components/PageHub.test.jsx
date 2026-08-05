@@ -104,6 +104,9 @@ describe("Pages hub", () => {
     const journal = page("Private moment", { pageDate: "2026-08-04", tags: ["journal-only"] });
     render(<PageHub {...propsFor([notes, source, grammar, journal, word])} />);
 
+    expect(screen.getByRole("heading", { level: 1, name: "Pages" })).toBeTruthy();
+    expect(screen.queryByText("Your pages")).toBeNull();
+    expect(screen.queryByText("One library · overlapping roles")).toBeNull();
     expect(card("Restaurant notes")).toBeTruthy();
     expect(card("Voces del mercado")).toBeTruthy();
     expect(card("Aquí vs. acá")).toBeTruthy();

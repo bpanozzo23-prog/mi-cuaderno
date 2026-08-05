@@ -87,6 +87,11 @@ describe("the Words & phrases hub", () => {
   it("lists only lexical items, never pages", () => {
     render(<LexicalHub {...propsFor([lexical("madrugar"), page("Ser vs estar")])} />);
 
+    expect(screen.getByRole("heading", { level: 1, name: "Words & phrases" })).toBeTruthy();
+    expect(screen.queryByText("Your words and phrases")).toBeNull();
+    expect(screen.queryByText("One vocabulary · many contexts")).toBeNull();
+    expect(screen.queryByText("Practice this view")).toBeNull();
+    expect(screen.queryByRole("region", { name: "Free practice" })).toBeNull();
     expect(card("madrugar")).toBeTruthy();
     expect(cardOrNull("Ser vs estar")).toBeNull();
   });
@@ -407,9 +412,10 @@ describe("the Words & phrases hub", () => {
       const incomplete = lexical("madrugar", { meanings: [] });
       render(<LexicalHub {...propsFor([ready, incomplete])} />);
 
-      const practice = screen.getByRole("region", { name: "Free practice" });
-      expect(within(practice).getByText("1 answerable card · 1 needs a meaning")).toBeTruthy();
-      await user.click(within(practice).getByRole("button", { name: "Practice" }));
+      const practice = screen.getByRole("button", { name: "Practice" });
+      expect(practice.getAttribute("aria-describedby")).toBe("lexical-hub-practice-status");
+      expect(screen.getByText("1 answerable card. 1 entry needs a meaning.").classList.contains("sr-only")).toBe(true);
+      await user.click(practice);
 
       expect(screen.getByRole("dialog", { name: "Set up practice" })).toBeTruthy();
       expect(screen.getByText("Practice 1 of 1 eligible card. 1 entry needs a meaning.")).toBeTruthy();
@@ -431,9 +437,8 @@ describe("the Words & phrases hub", () => {
       await user.click(screen.getByRole("button", { name: "Phrases" }));
       await search(user, "dormir");
 
-      const practice = screen.getByRole("region", { name: "Free practice" });
-      expect(within(practice).getByText("1 answerable card")).toBeTruthy();
-      await user.click(within(practice).getByRole("button", { name: "Practice" }));
+      expect(screen.getByText("1 answerable card.").classList.contains("sr-only")).toBe(true);
+      await user.click(screen.getByRole("button", { name: "Practice" }));
       await user.click(screen.getByRole("button", { name: "Hub order" }));
       await user.click(screen.getByRole("button", { name: "Start 1-card practice" }));
 
@@ -451,8 +456,11 @@ describe("the Words & phrases hub", () => {
       await openRefine(user);
       await choose(user, "Vocabulary view", "missing-meaning");
 
-      expect(screen.getByText("No answerable cards in this view · 1 needs a meaning")).toBeTruthy();
-      expect(screen.getByRole("button", { name: "Practice" }).disabled).toBe(true);
+      const practice = screen.getByRole("button", { name: "Practice" });
+      const status = screen.getByText("No answerable cards in this view. 1 entry needs a meaning.");
+      expect(status.classList.contains("sr-only")).toBe(true);
+      expect(practice.getAttribute("aria-describedby")).toBe(status.id);
+      expect(practice.disabled).toBe(true);
     });
 
     it("preserves a revealed session while an entry detail temporarily hides the hub", async () => {

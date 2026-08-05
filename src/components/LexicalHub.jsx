@@ -188,6 +188,11 @@ export default function LexicalHub({
     : [...pinnedItems, ...otherItems];
   const practiceEligibleCount = practiceSource.filter(isPracticeEligible).length;
   const practiceOmittedCount = practiceSource.length - practiceEligibleCount;
+  const practiceStatus = `${practiceEligibleCount > 0
+    ? `${practiceEligibleCount} answerable ${practiceEligibleCount === 1 ? "card" : "cards"}.`
+    : "No answerable cards in this view."}${practiceOmittedCount > 0
+    ? ` ${practiceOmittedCount} ${practiceOmittedCount === 1 ? "entry needs" : "entries need"} a meaning.`
+    : ""}`;
   const indexed = browseOrder === BROWSE_ORDERS.alphabetical;
   const letterGroups = useMemo(
     () => indexed ? groupByInitial(otherItems) : [],
@@ -255,9 +260,9 @@ export default function LexicalHub({
           >
             <ChevronLeft size={18} /> Cuaderno
           </button>
-          <div className="text-lg font-semibold" style={{ fontFamily: SERIF, color: C.ink }}>
+          <h1 className="text-lg font-semibold" style={{ fontFamily: SERIF, color: C.ink }}>
             Words &amp; phrases
-          </div>
+          </h1>
           <button
             type="button"
             aria-label="Add word or phrase"
@@ -270,49 +275,8 @@ export default function LexicalHub({
         </div>
       </header>
 
-      <main className="px-4 pb-28 pt-7" style={{ background: C.paper }}>
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div
-              className="text-[11px] uppercase"
-              style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.14em" }}
-            >
-              One vocabulary · many contexts
-            </div>
-            <h1 className="mt-2 text-3xl font-bold" style={{ fontFamily: SERIF, color: C.ink }}>
-              Your words and phrases
-            </h1>
-          </div>
-          <button
-            type="button"
-            aria-label={searchOpen ? (query ? "Clear vocabulary search" : "Close vocabulary search") : "Search words and phrases"}
-            aria-pressed={searchOpen}
-            onClick={toggleSearch}
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full"
-            style={{ color: searchOpen ? C.pen : C.mut }}
-          >
-            <Search size={20} />
-          </button>
-        </div>
-        <p className="mt-3 max-w-sm text-base leading-relaxed" style={{ color: C.mut }}>
-          Everything you have collected, and where each one lives.
-        </p>
-
-        {searchOpen && (
-          <div className="mt-4">
-            <SearchBar
-              value={query}
-              onChange={setQuery}
-              resultCount={searchResults.length}
-              logMisses={false}
-              placeholder="Search your words, meanings and examples…"
-              inputLabel="Search words and phrases"
-              autoFocus
-            />
-          </div>
-        )}
-
-        <div className="mt-5 flex flex-wrap gap-2" aria-label="Vocabulary forms">
+      <main className="px-4 pb-28 pt-4" style={{ background: C.paper }}>
+        <div className="flex flex-wrap gap-2" aria-label="Vocabulary forms">
           {FORM_OPTIONS.map((option) => (
             <Chip
               key={option.value}
@@ -325,7 +289,7 @@ export default function LexicalHub({
           ))}
         </div>
 
-        <div className="mt-3">
+        <div className="mt-3 flex min-h-11 items-center justify-between gap-3">
           <button
             type="button"
             aria-expanded={refineOpen}
@@ -337,7 +301,43 @@ export default function LexicalHub({
             <SlidersHorizontal size={16} />
             Refine{refineCount ? ` (${refineCount})` : ""}
           </button>
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              aria-label={searchOpen ? (query ? "Clear vocabulary search" : "Close vocabulary search") : "Search words and phrases"}
+              aria-pressed={searchOpen}
+              onClick={toggleSearch}
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full"
+              style={{ color: searchOpen ? C.pen : C.mut }}
+            >
+              <Search size={20} />
+            </button>
+            <Button
+              className="min-h-11 shrink-0"
+              disabled={practiceEligibleCount === 0}
+              aria-describedby="lexical-hub-practice-status"
+              onClick={() => setPracticeSetupOpen(true)}
+            >
+              <Play size={15} /> Practice
+            </Button>
+          </div>
         </div>
+
+        <span id="lexical-hub-practice-status" className="sr-only">{practiceStatus}</span>
+
+        {searchOpen && (
+          <div className="mt-2">
+            <SearchBar
+              value={query}
+              onChange={setQuery}
+              resultCount={searchResults.length}
+              logMisses={false}
+              placeholder="Search your words, meanings and examples…"
+              inputLabel="Search words and phrases"
+              autoFocus
+            />
+          </div>
+        )}
 
         {refineOpen && (
           <div
@@ -426,36 +426,7 @@ export default function LexicalHub({
           </div>
         )}
 
-        <section
-          aria-label="Free practice"
-          className="mt-5 rounded-xl border p-4"
-          style={{ background: C.card, borderColor: C.line }}
-        >
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <h2 className="text-base font-semibold" style={{ color: C.ink }}>Practice this view</h2>
-              <p className="mt-1 text-xs leading-relaxed" style={{ color: C.mut }}>
-                {practiceEligibleCount > 0
-                  ? `${practiceEligibleCount} answerable ${practiceEligibleCount === 1 ? "card" : "cards"}`
-                  : "No answerable cards in this view"}
-                {practiceOmittedCount > 0
-                  && ` · ${practiceOmittedCount} ${practiceOmittedCount === 1 ? "needs" : "need"} a meaning`}
-              </p>
-            </div>
-            <Button
-              className="min-h-11 shrink-0"
-              disabled={practiceEligibleCount === 0}
-              onClick={() => setPracticeSetupOpen(true)}
-            >
-              <Play size={15} /> Practice
-            </Button>
-          </div>
-          <p className="mt-2 text-xs" style={{ color: C.mut }}>
-            Free practice stays in this session and does not change your Repaso schedule.
-          </p>
-        </section>
-
-        <div className="mt-8 space-y-8">
+        <div className="mt-6 space-y-8">
           {searching ? (
             searchResults.length > 0 ? (
               <section aria-labelledby="vocabulary-search-heading">
