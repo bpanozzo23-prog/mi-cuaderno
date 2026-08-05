@@ -62,7 +62,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   successfully; the phone browser closeout remains explicitly unverified. See
   [docs/PHASE-7-DIRECTION.md](docs/PHASE-7-DIRECTION.md) and
   [docs/PHASE-7-REPORT.md](docs/PHASE-7-REPORT.md).
-- **Phase 8 — implemented locally, not deployed.** A dedicated **Words & phrases hub**, the lexical
+- **Phase 8 — shipped.** A dedicated **Words & phrases hub**, the lexical
   twin of the Pages hub: one hub for both forms, reached by the `palabras` and `frases` chips that
   now open it rather than filtering in place. It browses by where a word lives (Collection, Source,
   Grammar guide, or no page yet), a read-only learning signal, the completeness views, and an A–Z

@@ -1,7 +1,10 @@
 # Phase 8 — Words & phrases hub (report)
 
-Implemented locally 2026-08-04 on `claude/phase-8-lexical-hub`. **Not deployed.** The approved scope
-is in [PHASE-8-DIRECTION.md](PHASE-8-DIRECTION.md); the reasoning lines are in `DECISIONS.md`.
+Implemented 2026-08-04–05 on `claude/phase-8-lexical-hub`, fast-forwarded and pushed to `main` at
+`470c9af`. **Deployed** — GitHub Pages workflow run
+[31011294641](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/31011294641) completed
+successfully and the live site serves `index-C440RsSH.js`. The approved scope is in
+[PHASE-8-DIRECTION.md](PHASE-8-DIRECTION.md); the reasoning lines are in `DECISIONS.md`.
 
 ## What shipped
 
@@ -131,7 +134,6 @@ that visit-local state survives. Recorded here rather than changed.
 
 ## Not done
 
-- **Not deployed.** No push; `main` is untouched.
 - No visual screenshot, per the pane limitation above.
 - Relationship-type filtering, an orphan badge, saved views, and any grading in the hub remain out
   of scope by decision.
