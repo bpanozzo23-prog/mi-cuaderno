@@ -44,8 +44,10 @@ const page = (name, over = {}) => ({
   mediaLinks: [],
   tags: [],
   linkedKeys: [],
-  pageProfile: "general",
-  collection: { groups: [] },
+  pageFocus: "notes",
+  collection: { enabled: false, groups: [] },
+  source: { enabled: false, format: "", creator: "", scope: "", url: "", context: "", captures: [] },
+  grammar: { enabled: false, keyIdea: "", sections: [] },
   createdAt: at(1),
   updatedAt: at(1),
   ...over,
@@ -248,7 +250,44 @@ describe("Phase 5c Cuaderno retrieval controls", () => {
   });
 });
 
-describe("Collection page retrieval and starters", () => {
+describe("composable page retrieval and starters", () => {
+  it("keeps contained vocabulary on the lexical card globally and retrieves its page in Pages search", async () => {
+    const user = userEvent.setup();
+    const lexical = word("nomás", { translation: "just" });
+    const sourcePage = page("Context hub", {
+      pageFocus: "source",
+      linkedKeys: [lexical.id],
+      source: {
+        enabled: true,
+        format: "audio",
+        creator: "",
+        scope: "",
+        url: "",
+        context: "",
+        captures: [{
+          id: "source-capture:context-hub",
+          type: "passage",
+          text: "A captured thought without the search term.",
+          location: "18:42",
+          reflection: "",
+          itemKeys: [lexical.id],
+        }],
+      },
+    });
+    render(<Cuaderno {...propsFor([lexical, sourcePage])} />);
+
+    await user.type(screen.getByRole("textbox", { name: "Search notebook" }), "nomás");
+    expect(card("nomás")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Context hub" })).toBeNull();
+    expect(screen.getByText("Used in 1 page context")).toBeTruthy();
+    expect(screen.getByText("Context hub · Passage · 18:42")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "páginas" }));
+    expect(screen.queryByRole("button", { name: /^nomás/ })).toBeNull();
+    expect(card("Context hub")).toBeTruthy();
+    expect(screen.getByText("contained vocabulary “nomás”")).toBeTruthy();
+  });
+
   it("keeps journals out of page browsing but findable by an intentional search", async () => {
     const user = userEvent.setup();
     const general = page("general", { tags: ["general-tag"] });
@@ -257,32 +296,33 @@ describe("Collection page retrieval and starters", () => {
       tags: ["journal-tag"],
     });
     const collection = page("collection", {
-      pageProfile: "collection",
+      pageFocus: "vocabulary",
       pageDate: "2026-08-03",
-      collection: { groups: [] },
+      collection: { enabled: true, groups: [] },
       tags: ["collection-tag"],
     });
     render(<Cuaderno {...propsFor([general, journal, collection, word("lexical")])} />);
 
     await user.click(screen.getByRole("button", { name: "páginas" }));
-    const profile = screen.getByRole("combobox", { name: "Profile" });
+    const profile = screen.getByRole("combobox", { name: "Page role" });
     expect(screen.getByRole("option", { name: "All pages" })).toBeTruthy();
-    expect(screen.getByRole("option", { name: "General" })).toBeTruthy();
+    expect(screen.getByRole("option", { name: "Sources" })).toBeTruthy();
+    expect(screen.getByRole("option", { name: "Grammar" })).toBeTruthy();
     expect(screen.getByRole("option", { name: "Collections" })).toBeTruthy();
-    expect(screen.queryByRole("option", { name: "Journal entries" })).toBeNull();
+    expect(screen.getByRole("option", { name: "Notes" })).toBeTruthy();
     expect(card("general")).toBeTruthy();
     expect(card("collection")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /^journal/ })).toBeNull();
     expect(screen.queryByRole("option", { name: /journal-tag/ })).toBeNull();
 
-    await user.selectOptions(profile, "general");
+    await user.selectOptions(profile, "notes");
     expect(card("general")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /^journal/ })).toBeNull();
     expect(screen.queryByRole("button", { name: /^collection/ })).toBeNull();
     expect(screen.getByRole("option", { name: "general-tag · 1" })).toBeTruthy();
     expect(screen.queryByRole("option", { name: /journal-tag/ })).toBeNull();
 
-    await user.selectOptions(profile, "collection");
+    await user.selectOptions(profile, "vocabulary");
     expect(card("collection")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /^journal/ })).toBeNull();
 
@@ -292,9 +332,9 @@ describe("Collection page retrieval and starters", () => {
     expect(screen.queryByRole("button", { name: /^general/ })).toBeNull();
 
     await user.click(screen.getByRole("button", { name: "palabras" }));
-    expect(screen.queryByRole("combobox", { name: "Profile" })).toBeNull();
+    expect(screen.queryByRole("combobox", { name: "Page role" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "páginas" }));
-    expect(screen.getByRole("combobox", { name: "Profile" }).value).toBe("all");
+    expect(screen.getByRole("combobox", { name: "Page role" }).value).toBe("all");
   });
 
   it("stable-partitions pinned pages after browse ordering but never boosts search relevance", async () => {
@@ -337,11 +377,12 @@ describe("Collection page retrieval and starters", () => {
 
     await user.click(screen.getByRole("button", { name: "Add" }));
     await user.click(screen.getByRole("button", { name: /^Page/ }));
-    expect(screen.getByRole("dialog", { name: "Choose a starting point" })).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "What kind of page?" })).toBeTruthy();
     expect(screen.queryByText("New page")).toBeNull();
 
+    await user.click(screen.getByRole("button", { name: /^Vocabulary/ }));
     await user.click(screen.getByRole("button", { name: /Conversational function/ }));
-    expect(screen.getByText("New collection")).toBeTruthy();
+    expect(screen.getByText("New vocabulary page")).toBeTruthy();
     expect(screen.getByRole("textbox", { name: "Group 1 name" }).value).toBe("Questions");
     expect(screen.getByRole("textbox", { name: "Group 2 name" }).value).toBe("Answers");
     expect(screen.getByRole("textbox", { name: "Group 3 name" }).value).toBe("Reactions and follow-ups");

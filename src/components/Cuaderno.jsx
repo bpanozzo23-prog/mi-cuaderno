@@ -20,7 +20,7 @@ import {
   orderItems,
   tagCountsIn,
 } from "../lib/organization.js";
-import { PAGE_KINDS, effectivePageKind } from "../lib/pageProfiles.js";
+import { PAGE_FOCUSES, enabledPageRoles } from "../lib/pageKinds.js";
 import { isJournalEntry } from "../lib/journal.js";
 import { getPinnedPageIds, setPagePinned } from "../db/collections.js";
 import { emptyItemState } from "../useNotebook.js";
@@ -41,16 +41,20 @@ const MAINTENANCE_OPTIONS = [
   { value: MAINTENANCE_VIEWS.unlinked, label: "No links" },
 ];
 
-const PAGE_PROFILE_FILTERS = {
+const PAGE_ROLE_FILTERS = {
   all: "all",
-  general: PAGE_KINDS.general,
-  collection: PAGE_KINDS.collection,
+  source: PAGE_FOCUSES.source,
+  grammar: PAGE_FOCUSES.grammar,
+  collection: PAGE_FOCUSES.vocabulary,
+  notes: PAGE_FOCUSES.notes,
 };
 
-const PAGE_PROFILE_OPTIONS = [
-  { value: PAGE_PROFILE_FILTERS.all, label: "All pages" },
-  { value: PAGE_PROFILE_FILTERS.general, label: "General" },
-  { value: PAGE_PROFILE_FILTERS.collection, label: "Collections" },
+const PAGE_ROLE_OPTIONS = [
+  { value: PAGE_ROLE_FILTERS.all, label: "All pages" },
+  { value: PAGE_ROLE_FILTERS.source, label: "Sources" },
+  { value: PAGE_ROLE_FILTERS.grammar, label: "Grammar" },
+  { value: PAGE_ROLE_FILTERS.collection, label: "Collections" },
+  { value: PAGE_ROLE_FILTERS.notes, label: "Notes" },
 ];
 
 function pinnedFirst(items, pinnedIds) {
@@ -66,7 +70,7 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, backL
   const { items, itemState, reload } = notebook;
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState(FILTERS.all);
-  const [pageProfileFilter, setPageProfileFilter] = useState(PAGE_PROFILE_FILTERS.all);
+  const [pageRoleFilter, setPageRoleFilter] = useState(PAGE_ROLE_FILTERS.all);
   const [tagFilter, setTagFilter] = useState(null);
   const [browseOrder, setBrowseOrder] = useState(BROWSE_ORDERS.touched);
   const [maintenanceView, setMaintenanceView] = useState(MAINTENANCE_VIEWS.all);
@@ -111,7 +115,7 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, backL
 
   function changeTypeFilter(next) {
     setTypeFilter(next);
-    if (next !== FILTERS.page) setPageProfileFilter(PAGE_PROFILE_FILTERS.all);
+    if (next !== FILTERS.page) setPageRoleFilter(PAGE_ROLE_FILTERS.all);
   }
 
   // Maintenance must see the COMPLETE personal notebook. A page filtered out by the type
@@ -133,14 +137,14 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, backL
     [candidateSet, typeFilter]
   );
 
-  // The page-profile choice is part of the page context, so it narrows the input to tag counts
-  // as well as the cards. Dated General pages derive as journals; Collections win over a date.
+  // Page roles overlap: a Source + Vocabulary page belongs to both filters. Notes is the one
+  // focus-based role, so it retrieves pages whose lasting leading focus is Notes.
   const contextItems = useMemo(
     () =>
-      typeFilter === FILTERS.page && pageProfileFilter !== PAGE_PROFILE_FILTERS.all
-        ? typeItems.filter((item) => effectivePageKind(item) === pageProfileFilter)
+      typeFilter === FILTERS.page && pageRoleFilter !== PAGE_ROLE_FILTERS.all
+        ? typeItems.filter((item) => enabledPageRoles(item).includes(pageRoleFilter))
         : typeItems,
-    [pageProfileFilter, typeFilter, typeItems]
+    [pageRoleFilter, typeFilter, typeItems]
   );
 
   // Tag choices describe the type/maintenance context, not the already-selected tag or query.
@@ -167,7 +171,14 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, backL
   // the search rather than being silently ignored by it.
   const personalResults = useMemo(
     () => {
-      if (searching) return searchItems(filtered, query);
+      if (searching) {
+        return searchItems(filtered, query, {
+          allItems: items,
+          // Pages search may retrieve a page through active contained vocabulary. Global search
+          // keeps the lexical result primary and lets its card summarize those page contexts.
+          includeContainedVocabulary: typeFilter === FILTERS.page,
+        });
+      }
       const ordered = orderItems(filtered, browseOrder);
       const browsed =
         typeFilter === FILTERS.page
@@ -175,7 +186,7 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, backL
           : ordered;
       return browsed.map((item) => ({ item, reason: null }));
     },
-    [browseOrder, filtered, pinnedPageIds, query, searching, typeFilter]
+    [browseOrder, filtered, items, pinnedPageIds, query, searching, typeFilter]
   );
 
   /**
@@ -288,15 +299,15 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, backL
         <div className="grid grid-cols-2 gap-2 mt-3">
           {typeFilter === FILTERS.page && (
             <label className="col-span-2 min-w-0 text-xs" style={{ color: C.mut }}>
-              <span className="block mb-1">Profile</span>
+              <span className="block mb-1">Role</span>
               <select
-                aria-label="Profile"
-                value={pageProfileFilter}
-                onChange={(event) => setPageProfileFilter(event.target.value)}
+                aria-label="Page role"
+                value={pageRoleFilter}
+                onChange={(event) => setPageRoleFilter(event.target.value)}
                 className="w-full min-w-0 min-h-11 rounded-lg border px-2 text-sm outline-none"
                 style={controlStyle}
               >
-                {PAGE_PROFILE_OPTIONS.map((option) => (
+                {PAGE_ROLE_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -451,6 +462,7 @@ export default function Cuaderno({ notebook, selectedId, onSelect, onBack, backL
 
       {askPageStarter && (
         <PageStarterGallery
+          items={items}
           onClose={() => setAskPageStarter(false)}
           onChoose={(starter) => {
             setAskPageStarter(false);

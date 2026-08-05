@@ -1,9 +1,10 @@
-import { FileText, CalendarDays, Library, Pin } from "lucide-react";
+import { FileText, CalendarDays, Library, Pin, BookOpen, Braces } from "lucide-react";
 import { C, SERIF, MONO, Hi } from "../theme.jsx";
 import { emptyItemState } from "../useNotebook.js";
 import { meaningGlossText } from "../lib/meanings.js";
-import { PAGE_KINDS, effectivePageKind } from "../lib/pageProfiles.js";
 import { deriveCollection } from "../lib/collections.js";
+import { activePageContextsForLexical } from "../lib/pageReferences.js";
+import { PAGE_FOCUSES, enabledPageRoles, isJournalPage } from "../lib/pageKinds.js";
 
 export const POS_OPTIONS = ["", "noun", "verb", "adjective", "adverb", "other"];
 export const POS_ABBR = { noun: "s.", verb: "v.", adjective: "adj.", adverb: "adv.", other: "" };
@@ -25,13 +26,31 @@ export default function ItemCard({
   onPinnedChange,
 }) {
   const isPage = item.type === "page";
-  const pageKind = isPage ? effectivePageKind(item) : null;
-  const isCollection = pageKind === PAGE_KINDS.collection;
-  const collection = isCollection ? deriveCollection(item, items) : null;
+  const journal = isPage && isJournalPage(item);
+  const collection = isPage && item.collection?.enabled ? deriveCollection(item, items) : null;
   const headingSuffix = isPage ? "" : personalHeadingSuffix(item);
   const glosses = isPage ? "" : meaningGlossText(item);
   const title = isPage ? item.title || "Untitled page" : item.term;
-  const PageIcon = isCollection ? Library : FileText;
+  const PageIcon = item.pageFocus === PAGE_FOCUSES.source
+    ? BookOpen
+    : item.pageFocus === PAGE_FOCUSES.grammar
+      ? Braces
+      : item.pageFocus === PAGE_FOCUSES.vocabulary
+        ? Library
+        : FileText;
+  const roles = isPage && !journal ? enabledPageRoles(item) : [];
+  const roleDetails = {
+    notes: { label: "Notes", icon: FileText },
+    vocabulary: { label: "Vocabulary", icon: Library },
+    source: { label: "Source", icon: BookOpen },
+    grammar: { label: "Grammar", icon: Braces },
+  };
+  const captureCount = item.source?.enabled ? item.source.captures?.length || 0 : 0;
+  const grammarSectionCount = item.grammar?.enabled ? item.grammar.sections?.length || 0 : 0;
+  const grammarExampleCount = item.grammar?.enabled
+    ? (item.grammar.sections || []).reduce((total, section) => total + (section.examples || []).length, 0)
+    : 0;
+  const pageContexts = !isPage && reason ? activePageContextsForLexical(item.id, items) : [];
 
   return (
     <div
@@ -40,6 +59,7 @@ export default function ItemCard({
     >
       <button
         onClick={() => onOpen(item.id)}
+        aria-label={isPage ? title : undefined}
         className={`w-full text-left px-4 py-3 active:opacity-80 ${
           isPage && onPinnedChange ? "pr-14" : ""
         }`}
@@ -70,12 +90,29 @@ export default function ItemCard({
             — {glosses}
           </div>
         )}
-        {isCollection && (
-          <div className="text-xs mt-1" style={{ fontFamily: MONO, color: C.mut }}>
-            Collection · {amount(collection.itemCount, "item")} · {amount(collection.groupCount, "group")}
+        {roles.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5" aria-label="Page roles">
+            {roles.map((role) => {
+              const detail = roleDetails[role];
+              const RoleIcon = detail.icon;
+              return (
+                <span key={role} className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]" style={{ borderColor: C.line, background: C.penPale, color: C.penDark }}>
+                  <RoleIcon size={10} /> {detail.label}
+                </span>
+              );
+            })}
           </div>
         )}
-        {pageKind === PAGE_KINDS.journal && item.pageDate && (
+        {isPage && roles.length > 0 && (
+          <div className="text-xs mt-1" style={{ fontFamily: MONO, color: C.mut }}>
+            {[
+              item.source?.enabled ? amount(captureCount, "capture") : null,
+              item.grammar?.enabled ? `${amount(grammarSectionCount, "section")} · ${amount(grammarExampleCount, "example")}` : null,
+              item.collection?.enabled ? `${amount(collection?.itemCount || 0, "item")} · ${amount(collection?.groupCount || 0, "group")}` : null,
+            ].filter(Boolean).join(" · ")}
+          </div>
+        )}
+        {journal && item.pageDate && (
           <div className="text-xs mt-1 inline-flex items-center gap-1" style={{ fontFamily: MONO, color: C.mut }}>
             <CalendarDays size={11} /> {item.pageDate}
           </div>
@@ -104,6 +141,21 @@ export default function ItemCard({
         {reason && (
           <div className="mt-1.5 text-xs italic" style={{ color: C.mut }}>
             {reason}
+          </div>
+        )}
+        {pageContexts.length > 0 && (
+          <div className="mt-2 rounded-lg border px-2.5 py-2 text-xs" style={{ borderColor: C.line, background: C.paper }}>
+            <div className="font-semibold" style={{ color: C.mut }}>
+              {pageContexts.length === 1 ? "Used in 1 page context" : `Used in ${pageContexts.length} page contexts`}
+            </div>
+            {pageContexts.slice(0, 2).map((context, index) => (
+              <div key={`${context.pageId}:${context.kind}:${context.label}:${index}`} className="mt-1 truncate" style={{ color: C.ink }}>
+                {context.pageTitle} · {context.label}{context.detail ? ` · ${context.detail}` : ""}
+              </div>
+            ))}
+            {pageContexts.length > 2 && (
+              <div className="mt-1" style={{ color: C.mut }}>+{pageContexts.length - 2} more</div>
+            )}
           </div>
         )}
       </button>
