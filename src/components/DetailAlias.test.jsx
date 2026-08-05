@@ -113,8 +113,8 @@ describe("Detail dictionary alias safety", () => {
     await seedDictionary({ [oldCasa]: CASA });
     const page = await createItem(newPage({
       title: "Sources",
-      pageProfile: "collection",
-      collection: { groups: [] },
+      pageFocus: "vocabulary",
+      collection: { enabled: true, groups: [] },
       linkedKeys: [oldCasa, CASA],
       linkAnnotations: [{
         targetKey: oldCasa,

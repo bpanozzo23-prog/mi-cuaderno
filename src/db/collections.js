@@ -5,15 +5,12 @@ import { nowIso } from "../lib/dates.js";
 import { isDictKey, isPageGroupKey, isUserKey } from "../lib/ids.js";
 import {
   deriveCollection,
-  pruneCollectionItemKeys,
   reorderCollectionMemberLinks,
   validateCollectionGroups,
 } from "../lib/collections.js";
-import {
-  isPageProfile,
-  PAGE_PROFILES,
-  PINNED_PAGE_IDS_PREF,
-} from "../lib/pageProfiles.js";
+import { PAGE_FOCUSES, PINNED_PAGE_IDS_PREF } from "../lib/pageKinds.js";
+import { prunePageVocabularyReferences } from "../lib/pageReferences.js";
+import { savePageConfiguration } from "./pageStructures.js";
 import { requestPersistence } from "../lib/persistence.js";
 import {
   annotationForTarget,
@@ -22,7 +19,7 @@ import {
 } from "../lib/relationships.js";
 import { installedMeta } from "./ref/entries.js";
 
-export { PINNED_PAGE_IDS_PREF } from "../lib/pageProfiles.js";
+export { PINNED_PAGE_IDS_PREF } from "../lib/pageKinds.js";
 
 const sameArray = (left, right) =>
   left.length === right.length && left.every((value, index) => value === right[index]);
@@ -30,18 +27,17 @@ const sameArray = (left, right) =>
 const withoutLinkAnnotation = (item, targetKey) =>
   (item?.linkAnnotations || []).filter((annotation) => annotation?.targetKey !== targetKey);
 
-const physicalConnectionRemovalPatch = (item, targetKey, at) => {
+const physicalConnectionRemovalPatch = (item, targetKey) => {
   const linkedKeys = (item?.linkedKeys || []).filter((key) => key !== targetKey);
   const linkAnnotations = withoutLinkAnnotation(item, targetKey);
   const linkChanged = linkedKeys.length !== (item?.linkedKeys || []).length;
   const annotationsChanged = linkAnnotations.length !== (item?.linkAnnotations || []).length;
   if (!linkChanged && !annotationsChanged) return null;
+  // This row is a dependent of the page save. Automatic cleanup must not make it look like the
+  // lexical item itself was deliberately edited or recently used.
   return {
     linkedKeys,
     linkAnnotations,
-    // Removing an actual physical edge keeps link removal's existing recency behaviour. Cleaning
-    // only malformed leftover metadata remains timestamp-neutral.
-    ...(linkChanged ? { updatedAt: at } : {}),
   };
 };
 
@@ -59,28 +55,13 @@ const cloneGroups = (page) =>
 
 /** Preserves every page field and dormant Collection layout; only the active profile changes. */
 export async function setPageProfile(pageId, profile) {
-  if (!isPageProfile(profile)) throw new Error("Page profile must be general or collection.");
-  let result;
-
-  await db.transaction("rw", db.items, db.events, async () => {
-    const page = assertPage(await db.items.get(pageId), pageId);
-    if (page.pageProfile === profile) {
-      result = page;
-      return;
-    }
-
-    const next = {
-      ...page,
-      pageProfile: profile,
-      collection: page.collection || { groups: [] },
-      updatedAt: nowIso(),
-    };
-    await db.items.put(next);
-    await logEvent(EVENT_TYPES.edit, pageId);
-    result = next;
-  });
-
-  return result;
+  if (profile !== "general" && profile !== "collection") {
+    throw new Error("Legacy page profile must be general or collection.");
+  }
+  const saved = await savePageConfiguration(pageId, profile === "collection"
+    ? { collectionEnabled: true, pageFocus: PAGE_FOCUSES.vocabulary }
+    : { collectionEnabled: false, pageFocus: PAGE_FOCUSES.notes });
+  return saved.page;
 }
 
 const personalCandidateId = (candidate) => candidate?.itemId;
@@ -117,14 +98,61 @@ const createCandidateItem = (candidate) => {
   throw new Error("Unknown Collection vocabulary candidate.");
 };
 
+const attachContextVocabulary = (page, context, memberIds) => {
+  if (!context) return { page, changed: false };
+  const additions = new Set(memberIds || []);
+  if (context.kind === "source") {
+    if (!page.source?.enabled) throw new Error("Enable Source notebook before attaching vocabulary.");
+    let found = false;
+    let changed = false;
+    const captures = (page.source.captures || []).map((capture) => {
+      if (capture.id !== context.captureId) return capture;
+      found = true;
+      const itemKeys = [...(capture.itemKeys || [])];
+      for (const key of additions) if (!itemKeys.includes(key)) itemKeys.push(key);
+      if (itemKeys.length !== (capture.itemKeys || []).length) changed = true;
+      return { ...capture, itemKeys };
+    });
+    if (!found) throw new Error("Source capture does not exist.");
+    return { page: { ...page, source: { ...page.source, captures } }, changed };
+  }
+
+  if (context.kind === "grammar") {
+    if (!page.grammar?.enabled) throw new Error("Enable Grammar guide before attaching vocabulary.");
+    let foundSection = false;
+    let foundExample = false;
+    let changed = false;
+    const sections = (page.grammar.sections || []).map((section) => {
+      if (section.id !== context.sectionId) return section;
+      foundSection = true;
+      return {
+        ...section,
+        examples: (section.examples || []).map((example) => {
+          if (example.id !== context.exampleId) return example;
+          foundExample = true;
+          const itemKeys = [...(example.itemKeys || [])];
+          for (const key of additions) if (!itemKeys.includes(key)) itemKeys.push(key);
+          if (itemKeys.length !== (example.itemKeys || []).length) changed = true;
+          return { ...example, itemKeys };
+        }),
+      };
+    });
+    if (!foundSection || !foundExample) throw new Error("Grammar example does not exist.");
+    return { page: { ...page, grammar: { ...page.grammar, sections } }, changed };
+  }
+  throw new Error("Unknown page vocabulary context.");
+};
+
 /**
- * Resolves a picker selection and commits all new lexical rows, incoming-edge promotions,
- * links and target-group placement in one transaction. Raw dictionary IDs are intentionally
- * not accepted: an entry must first become (or reuse) an independent personal lexical item.
+ * Resolves a picker selection and commits new lexical rows, incoming-edge promotion, authoritative
+ * page links, optional group placement and optional Source/Grammar attachment in one transaction.
+ * Raw dictionary IDs are never accepted: a resolved entry first becomes an independent personal
+ * lexical item. Contextual saves log one page edit; membership-only Collection adds remain
+ * bookkeeping and event-free.
  */
-export async function commitCollectionAdd(
+export async function commitPageVocabularyAdd(
   pageId,
-  { targetGroupId = null, candidates = [] } = {}
+  { targetGroupId = null, candidates = [], context = null } = {}
 ) {
   if (!Array.isArray(candidates)) throw new Error("Collection candidates must be an array.");
   if (targetGroupId !== null && !isPageGroupKey(targetGroupId)) {
@@ -138,8 +166,11 @@ export async function commitCollectionAdd(
 
   await db.transaction("rw", db.items, db.events, async () => {
     const page = assertPage(await db.items.get(pageId), pageId);
-    if (page.pageProfile !== PAGE_PROFILES.collection) {
+    if (!context && page.collection?.enabled !== true) {
       throw new Error("Vocabulary can be added only while the page is a Collection.");
+    }
+    if (targetGroupId !== null && page.collection?.enabled !== true) {
+      throw new Error("A target group requires Vocabulary to be enabled.");
     }
 
     const groups = cloneGroups(page);
@@ -213,7 +244,6 @@ export async function commitCollectionAdd(
         ...lexical,
         linkedKeys: lexical.linkedKeys.filter((key) => key !== pageId),
         linkAnnotations: withoutLinkAnnotation(lexical, pageId),
-        updatedAt: at,
       };
       await db.items.put(nextLexical);
       byId.set(itemId, nextLexical);
@@ -237,15 +267,26 @@ export async function commitCollectionAdd(
         collection: { ...(page.collection || {}), groups },
         ...(addedIds.length ? { updatedAt: at } : {}),
       };
+    }
+
+    const attached = attachContextVocabulary(nextPage, context, memberIds);
+    nextPage = attached.page;
+    if (addedIds.length || annotationsChanged || attached.changed) {
+      if (attached.changed) nextPage = { ...nextPage, updatedAt: at };
       await db.items.put(nextPage);
+      if (attached.changed) await logEvent(EVENT_TYPES.edit, pageId);
     }
 
     shouldRequestPersistence = createdItems.length > 0;
-    result = { page: nextPage, memberIds, addedIds, createdItems };
+    result = { page: nextPage, memberIds, addedIds, createdItems, contextChanged: attached.changed };
   });
 
   if (shouldRequestPersistence) requestPersistence().catch(() => {});
   return result;
+}
+
+export function commitCollectionAdd(pageId, options = {}) {
+  return commitPageVocabularyAdd(pageId, options);
 }
 
 const validateMemberList = (name, keys, allowed, seen) => {
@@ -269,7 +310,7 @@ export async function saveCollectionOrganization(
 
   await db.transaction("rw", db.items, db.events, async () => {
     const page = assertPage(await db.items.get(pageId), pageId);
-    if (page.pageProfile !== PAGE_PROFILES.collection) {
+    if (page.collection?.enabled !== true) {
       throw new Error("A page must be a Collection before it can be organized.");
     }
 
@@ -305,11 +346,14 @@ export async function saveCollectionOrganization(
     }
 
     const at = nowIso();
+    const contextual = prunePageVocabularyReferences(page, removed);
     const nextPage = {
       ...page,
       linkedKeys: nextLinkedKeys,
       linkAnnotations: nextLinkAnnotations,
       collection: { ...(page.collection || {}), groups: nextGroups },
+      source: contextual.source,
+      grammar: contextual.grammar,
       updatedAt: at,
     };
     await db.items.put(nextPage);
@@ -318,7 +362,7 @@ export async function saveCollectionOrganization(
     // cannot immediately reappear as an incoming ordinary connection.
     for (const itemId of removed) {
       const member = all.find((candidate) => candidate.id === itemId);
-      const reversePatch = physicalConnectionRemovalPatch(member, pageId, at);
+      const reversePatch = physicalConnectionRemovalPatch(member, pageId);
       if (reversePatch) await db.items.update(itemId, reversePatch);
     }
     await logEvent(EVENT_TYPES.edit, pageId);
@@ -343,16 +387,18 @@ export async function removeCollectionMember(pageId, itemId) {
       throw new Error("Collection members must be personal lexical items.");
     }
     const at = nowIso();
-    const pruned = pruneCollectionItemKeys(page, [itemId]);
+    const pruned = prunePageVocabularyReferences(page, [itemId]);
     const nextPage = {
       ...page,
       linkedKeys: page.linkedKeys.filter((key) => key !== itemId),
       linkAnnotations: withoutLinkAnnotation(page, itemId),
-      ...(pruned.changed ? { collection: pruned.collection } : {}),
+      collection: pruned.collection,
+      source: pruned.source,
+      grammar: pruned.grammar,
       updatedAt: at,
     };
     await db.items.put(nextPage);
-    const reversePatch = physicalConnectionRemovalPatch(lexical, pageId, at);
+    const reversePatch = physicalConnectionRemovalPatch(lexical, pageId);
     if (reversePatch) await db.items.update(itemId, reversePatch);
     result = nextPage;
   });

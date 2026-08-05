@@ -297,4 +297,32 @@ describe("Phase 4s journal reading and connections", () => {
     await user.click(within(cuaderno).getByRole("button", { name: "Diario" }));
     expect(await screen.findByText("Your first moment can begin with today.")).toBeTruthy();
   });
+
+  it("moves a dated enhanced page into Diario in place when its final structure is disabled", async () => {
+    const user = userEvent.setup();
+    const entry = await createItem(newPage({
+      title: "Move into Diario",
+      body: "Keep this writing.",
+      pageDate: localDate(),
+      pageFocus: "vocabulary",
+      collection: { enabled: true, groups: [] },
+    }));
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Move into Diario" }));
+    await user.click(screen.getByLabelText("Page actions"));
+    await user.click(screen.getByRole("button", { name: /Customize page/ }));
+    await user.click(screen.getByRole("checkbox", { name: "Vocabulary groups" }));
+    await user.click(screen.getByRole("button", { name: "Save and move to Diario" }));
+
+    await waitFor(async () => {
+      const stored = await getItem(entry.id);
+      expect(stored.pageFocus).toBe("notes");
+      expect(stored.collection.enabled).toBe(false);
+    });
+    const diario = await screen.findByRole("region", { name: "Diario surface" });
+    await waitFor(() => expect(within(diario).getByRole("heading", { name: "Move into Diario" })).toBeTruthy());
+    expect(within(diario).getByText("Keep this writing.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Back to Cuaderno" })).toBeTruthy();
+  });
 });

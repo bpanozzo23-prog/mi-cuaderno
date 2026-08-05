@@ -15,7 +15,10 @@ import {
 const page = (overrides = {}) => ({
   id: "user:page",
   type: "page",
-  pageProfile: "general",
+  pageFocus: "notes",
+  collection: { enabled: false, groups: [] },
+  source: { enabled: false, format: "", creator: "", scope: "", url: "", context: "", captures: [] },
+  grammar: { enabled: false, keyIdea: "", sections: [] },
   pageDate: null,
   title: "",
   body: "",
@@ -26,13 +29,14 @@ const page = (overrides = {}) => ({
 });
 
 describe("journal derivation", () => {
-  it("includes only dated General pages and never a dated Collection", () => {
+  it("includes only dated Notes-only pages and never a dated enhanced page", () => {
     const general = page({ id: "user:general" });
     const journal = page({ id: "user:journal", pageDate: "2026-08-03" });
     const collection = page({
       id: "user:collection",
       pageDate: "2026-08-03",
-      pageProfile: "collection",
+      pageFocus: "vocabulary",
+      collection: { enabled: true, groups: [] },
     });
     const lexical = { id: "user:word", type: "lexical" };
 

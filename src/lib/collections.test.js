@@ -73,9 +73,10 @@ describe("deriveCollection", () => {
     const incomingPage = makePage({ id: "user:incoming-page", title: "Index", linkedKeys: ["user:collection"] });
     const page = makePage({
       id: "user:collection",
-      pageProfile: "collection",
+      pageFocus: "vocabulary",
       linkedKeys: [ungrouped.id, relatedPage.id, "dict:wiktionary-es:hola", grouped.id],
       collection: {
+        enabled: true,
         groups: [
           { id: GROUP_ONE, name: "Questions", itemKeys: [grouped.id] },
           { id: GROUP_TWO, name: "Empty", itemKeys: [] },
@@ -104,9 +105,9 @@ describe("deriveCollection", () => {
     const pageTarget = makePage({ id: "user:other-page" });
     const page = makePage({
       id: "user:collection",
-      pageProfile: "collection",
+      pageFocus: "vocabulary",
       linkedKeys: [pageTarget.id],
-      collection: { groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: [lexical.id] }] },
+      collection: { enabled: true, groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: [lexical.id] }] },
     });
     const result = deriveCollection(page, [page, lexical, pageTarget]);
     expect(result.groups[0].itemKeys).toEqual([]);
@@ -121,22 +122,22 @@ describe("Collection placements", () => {
     const grouped = makePage({
       id: "user:grouped-page",
       title: "Conversation",
-      pageProfile: "collection",
+      pageFocus: "vocabulary",
       linkedKeys: [lexical.id],
-      collection: { groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: [lexical.id] }] },
+      collection: { enabled: true, groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: [lexical.id] }] },
     });
     const ungrouped = makePage({
       id: "user:ungrouped-page",
       title: "Travel",
-      pageProfile: "collection",
+      pageFocus: "vocabulary",
       linkedKeys: [lexical.id],
-      collection: { groups: [] },
+      collection: { enabled: true, groups: [] },
     });
     const dormant = makePage({
       id: "user:dormant-page",
-      pageProfile: "general",
+      pageFocus: "notes",
       linkedKeys: [lexical.id],
-      collection: { groups: [{ id: GROUP_TWO, name: "Old group", itemKeys: [lexical.id] }] },
+      collection: { enabled: false, groups: [{ id: GROUP_TWO, name: "Old group", itemKeys: [lexical.id] }] },
     });
 
     const placements = getCollectionPlacements(lexical.id, [grouped, ungrouped, dormant, lexical]);
@@ -154,8 +155,9 @@ describe("Collection placements", () => {
     const alpha = makePage({
       id: "user:alpha",
       title: "Álbum",
-      pageProfile: "collection",
+      pageFocus: "vocabulary",
       collection: {
+        enabled: true,
         groups: [
           { id: GROUP_TWO, name: "Second", itemKeys: [] },
           { id: GROUP_ONE, name: "First", itemKeys: [] },
@@ -165,21 +167,21 @@ describe("Collection placements", () => {
     const zeta = makePage({
       id: "user:zeta",
       title: "Zeta",
-      pageProfile: "collection",
-      collection: { groups: [] },
+      pageFocus: "vocabulary",
+      collection: { enabled: true, groups: [] },
     });
     const existing = makePage({
       id: "user:existing",
       title: "Already there",
-      pageProfile: "collection",
+      pageFocus: "vocabulary",
       linkedKeys: [lexical.id],
-      collection: { groups: [] },
+      collection: { enabled: true, groups: [] },
     });
     const dormant = makePage({
       id: "user:dormant",
       title: "Dormant",
-      pageProfile: "general",
-      collection: { groups: [] },
+      pageFocus: "notes",
+      collection: { enabled: false, groups: [] },
     });
 
     const destinations = getAvailableCollectionDestinations(
@@ -199,8 +201,8 @@ describe("Collection placements", () => {
 describe("Collection layout utilities", () => {
   it("prunes dormant group references", () => {
     const page = makePage({
-      pageProfile: "general",
-      collection: { groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: ["user:one", "user:two"] }] },
+      pageFocus: "notes",
+      collection: { enabled: false, groups: [{ id: GROUP_ONE, name: "Questions", itemKeys: ["user:one", "user:two"] }] },
     });
     const result = pruneCollectionItemKeys(page, ["user:one"]);
     expect(result.changed).toBe(true);

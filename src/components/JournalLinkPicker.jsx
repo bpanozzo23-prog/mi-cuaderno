@@ -4,7 +4,6 @@ import { C, Card, MONO, SERIF } from "../theme.jsx";
 import { pickerMatches } from "../lib/links.js";
 import { isJournalEntry } from "../lib/journal.js";
 import { meaningGlossText } from "../lib/meanings.js";
-import { effectivePageKind, PAGE_KINDS } from "../lib/pageProfiles.js";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
 import { isImplicitRelationship, normalizeRelationship } from "../lib/relationships.js";
 import RelationshipSelect from "./RelationshipSelect.jsx";
@@ -50,7 +49,7 @@ export default function JournalLinkPicker({
           aria-label={mode === "vocabulary" ? "Find personal vocabulary" : "Find a page relation"}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder={mode === "vocabulary" ? "Find one of your words or phrases…" : "Find a General page or Collection…"}
+          placeholder={mode === "vocabulary" ? "Find one of your words or phrases…" : "Find one of your Pages…"}
           className="min-w-0 flex-1 bg-transparent text-sm outline-none"
           style={{ color: C.ink }}
         />
@@ -68,12 +67,12 @@ export default function JournalLinkPicker({
         {results.map(({ item: candidate }) => {
           const linked = linkedIds.has(candidate.id);
           const isPage = candidate.type === "page";
-          const isCollection = isPage && effectivePageKind(candidate) === PAGE_KINDS.collection;
+          const hasVocabulary = isPage && candidate.collection?.enabled === true;
           const heading = isPage ? candidate.title || "Untitled page" : candidate.term;
           const context = isPage
             ? candidate.body?.replace(/\s+/g, " ").trim().slice(0, 70)
             : meaningGlossText(candidate, " · ");
-          const Icon = isPage ? (isCollection ? Library : FileText) : Type;
+          const Icon = isPage ? (hasVocabulary ? Library : FileText) : Type;
           return (
             <button
               type="button"

@@ -13,31 +13,70 @@ function moveAt(rows, index, offset) {
   return next;
 }
 
-function ItemControls({ item, index, total, groupId, groups, onReorder, onMove, onRemove }) {
+const referenceLabel = (count, singular, plural = `${singular}s`) =>
+  `${count} ${count === 1 ? singular : plural}`;
+
+function ItemControls({
+  item,
+  index,
+  total,
+  groupId,
+  groups,
+  onReorder,
+  onMove,
+  onRemove,
+  removalImpact,
+  onConfirmRemove,
+  onCancelRemove,
+}) {
+  const label = item?.term || "entry";
   return (
-    <div className="rounded-lg border px-2 py-2 flex items-center gap-2" style={{ borderColor: C.line, background: C.paper }}>
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-sm" style={{ fontFamily: SERIF, color: C.ink, fontWeight: 600 }}>{item?.term || "Missing entry"}</div>
+    <div>
+      <div className="rounded-lg border px-2 py-2 flex items-center gap-2" style={{ borderColor: C.line, background: C.paper }}>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm" style={{ fontFamily: SERIF, color: C.ink, fontWeight: 600 }}>{item?.term || "Missing entry"}</div>
+        </div>
+        <button type="button" aria-label={`Move ${label} up`} disabled={index === 0 || Boolean(removalImpact)} onClick={() => onReorder(-1)} className="p-1 disabled:opacity-30">
+          <ArrowUp size={14} style={{ color: C.mut }} />
+        </button>
+        <button type="button" aria-label={`Move ${label} down`} disabled={index === total - 1 || Boolean(removalImpact)} onClick={() => onReorder(1)} className="p-1 disabled:opacity-30">
+          <ArrowDown size={14} style={{ color: C.mut }} />
+        </button>
+        <select
+          aria-label={`Move ${label} to`}
+          value={groupId || "ungrouped"}
+          disabled={Boolean(removalImpact)}
+          onChange={(event) => onMove(event.target.value === "ungrouped" ? null : event.target.value)}
+          className="min-w-0 max-w-28 rounded border px-1.5 py-1 text-xs disabled:opacity-50"
+          style={{ background: C.card, borderColor: C.line, color: C.ink }}
+        >
+          <option value="ungrouped">Not grouped yet</option>
+          {groups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
+        </select>
+        <button type="button" aria-label={`Remove ${label} from collection`} disabled={Boolean(removalImpact)} onClick={onRemove} className="p-1 disabled:opacity-50">
+          <X size={14} style={{ color: C.red }} />
+        </button>
       </div>
-      <button type="button" aria-label={`Move ${item?.term || "entry"} up`} disabled={index === 0} onClick={() => onReorder(-1)} className="p-1 disabled:opacity-30">
-        <ArrowUp size={14} style={{ color: C.mut }} />
-      </button>
-      <button type="button" aria-label={`Move ${item?.term || "entry"} down`} disabled={index === total - 1} onClick={() => onReorder(1)} className="p-1 disabled:opacity-30">
-        <ArrowDown size={14} style={{ color: C.mut }} />
-      </button>
-      <select
-        aria-label={`Move ${item?.term || "entry"} to`}
-        value={groupId || "ungrouped"}
-        onChange={(event) => onMove(event.target.value === "ungrouped" ? null : event.target.value)}
-        className="min-w-0 max-w-28 rounded border px-1.5 py-1 text-xs"
-        style={{ background: C.card, borderColor: C.line, color: C.ink }}
-      >
-        <option value="ungrouped">Not grouped yet</option>
-        {groups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
-      </select>
-      <button type="button" aria-label={`Remove ${item?.term || "entry"} from collection`} onClick={onRemove} className="p-1">
-        <X size={14} style={{ color: C.red }} />
-      </button>
+
+      {removalImpact && (
+        <div
+          role="alertdialog"
+          aria-label={`Confirm removal of ${label}`}
+          className="mt-2 rounded-lg border p-3"
+          style={{ borderColor: "#E5C4BC", background: C.card }}
+        >
+          <div className="text-sm font-semibold" style={{ color: C.ink }}>
+            Remove {label} from this page?
+          </div>
+          <div className="mt-1 text-xs leading-relaxed" style={{ color: C.mut }}>
+            This also clears {referenceLabel(removalImpact.groups, "group placement")}, {referenceLabel(removalImpact.captures, "Source capture reference")}, and {referenceLabel(removalImpact.examples, "Grammar example reference")} ({referenceLabel(removalImpact.total, "saved reference")} total). Counts include hidden page structures.
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button tone="dangerArmed" onClick={onConfirmRemove}>Remove and clear references</Button>
+            <Button tone="quiet" onClick={onCancelRemove}>Keep vocabulary</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -47,6 +86,7 @@ export default function CollectionOrganizer({
   ungroupedItemKeys: initialUngrouped,
   itemById,
   startWithNewGroup = false,
+  removalImpactForKey,
   onCancel,
   onSave,
 }) {
@@ -59,6 +99,7 @@ export default function CollectionOrganizer({
   const [newName, setNewName] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveProblem, setSaveProblem] = useState("");
+  const [pendingRemoval, setPendingRemoval] = useState(null);
 
   const nameKeys = groups.map((group) => collectionGroupNameKey(group.name));
   const hasBlank = nameKeys.some((name) => !name);
@@ -108,6 +149,25 @@ export default function CollectionOrganizer({
     setRemoved((current) => new Set(current).add(itemKey));
   }
 
+  function requestRemove(itemKey, fromGroupId) {
+    const supplied = typeof removalImpactForKey === "function"
+      ? removalImpactForKey(itemKey)
+      : null;
+    const impact = supplied && typeof supplied === "object"
+      ? {
+          groups: Math.max(0, Number(supplied.groups) || 0),
+          captures: Math.max(0, Number(supplied.captures) || 0),
+          examples: Math.max(0, Number(supplied.examples) || 0),
+          total: Math.max(0, Number(supplied.total) || 0),
+        }
+      : null;
+    if (!impact || impact.total === 0) {
+      removeItem(itemKey, fromGroupId);
+      return;
+    }
+    setPendingRemoval({ itemKey, fromGroupId, impact });
+  }
+
   function renderItems(itemKeys, groupId) {
     return itemKeys.map((itemKey, index) => (
       <ItemControls
@@ -119,7 +179,14 @@ export default function CollectionOrganizer({
         groups={groups}
         onReorder={(offset) => replaceList(groupId, moveAt(itemKeys, index, offset))}
         onMove={(target) => moveItem(itemKey, groupId, target)}
-        onRemove={() => removeItem(itemKey, groupId)}
+        onRemove={() => requestRemove(itemKey, groupId)}
+        removalImpact={pendingRemoval?.itemKey === itemKey ? pendingRemoval.impact : null}
+        onConfirmRemove={() => {
+          if (!pendingRemoval || pendingRemoval.itemKey !== itemKey) return;
+          removeItem(itemKey, pendingRemoval.fromGroupId);
+          setPendingRemoval(null);
+        }}
+        onCancelRemove={() => setPendingRemoval(null)}
       />
     ));
   }
@@ -155,6 +222,7 @@ export default function CollectionOrganizer({
                 aria-label={`Delete group ${group.name}`}
                 className="p-1"
                 onClick={() => {
+                  setPendingRemoval(null);
                   setUngrouped((current) => [...current, ...group.itemKeys]);
                   setGroups((current) => current.filter((candidate) => candidate.id !== group.id));
                 }}

@@ -9,7 +9,10 @@ afterEach(cleanup);
 const moment = (id, date, overrides = {}) => ({
   id: `user:${id}`,
   type: "page",
-  pageProfile: "general",
+  pageFocus: "notes",
+  collection: { enabled: false, groups: [] },
+  source: { enabled: false, format: "", creator: "", scope: "", url: "", context: "", captures: [] },
+  grammar: { enabled: false, keyIdea: "", sections: [] },
   pageDate: date,
   title: id,
   body: `${id} body`,

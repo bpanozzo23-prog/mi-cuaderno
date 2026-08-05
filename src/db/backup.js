@@ -21,7 +21,8 @@ import {
   isSourceCaptureKey,
   isUserKey,
 } from "../lib/ids.js";
-import { isPageProfile, PINNED_PAGE_IDS_PREF } from "../lib/pageProfiles.js";
+import { isPageProfile } from "../lib/pageProfiles.js";
+import { PINNED_PAGE_IDS_PREF } from "../lib/pageKinds.js";
 import { validatePageStructures } from "../lib/pageKinds.js";
 import {
   isDirectionalRelationshipType,

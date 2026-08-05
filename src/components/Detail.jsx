@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft, Trash2, X, ExternalLink, Pencil, CalendarDays, FileText, Check,
-  Highlighter, Eye, Clock, Plus, Bookmark, BookmarkCheck, Library,
+  Highlighter, Eye, Clock, Plus, Bookmark, BookmarkCheck,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button } from "../theme.jsx";
 import { POS_OPTIONS, personalHeadingSuffix, personalLexicalForm } from "./ItemCard.jsx";
@@ -29,9 +29,9 @@ import { timeAgo } from "../lib/dates.js";
 import { cloneMeanings } from "../lib/meanings.js";
 import MeaningsSection from "./MeaningsSection.jsx";
 import CollectionPage from "./CollectionPage.jsx";
-import { effectivePageKind, PAGE_KINDS, PAGE_PROFILES } from "../lib/pageProfiles.js";
 import { getAvailableCollectionDestinations, getCollectionPlacements } from "../lib/collections.js";
-import { commitCollectionAdd, setPageProfile } from "../db/collections.js";
+import { activePageContextsForLexical } from "../lib/pageReferences.js";
+import { commitCollectionAdd } from "../db/collections.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
@@ -129,14 +129,12 @@ export default function Detail(props) {
 
 /** Page-specific dispatch stays below App so the existing detail trail and scroll rules remain shared. */
 export function PageDetail(props) {
-  return effectivePageKind(props.item) === PAGE_KINDS.collection
-    ? <CollectionPage {...props} />
-    : <GeneralPageDetail {...props} />;
+  return <CollectionPage {...props} />;
 }
 
-/** General and dated-Journal pages deliberately keep the pre-profile detail experience. */
+/** Compatibility export: every non-Diario page now uses the composable page workspace. */
 export function GeneralPageDetail(props) {
-  return <StandardDetail {...props} />;
+  return <CollectionPage {...props} />;
 }
 
 function StandardDetail({
@@ -184,6 +182,12 @@ function StandardDetail({
   );
   const collectionDestinations = useMemo(
     () => isPage ? [] : getAvailableCollectionDestinations(item.id, items),
+    [isPage, item.id, items]
+  );
+  const contextualPlacements = useMemo(
+    () => isPage
+      ? []
+      : activePageContextsForLexical(item.id, items).filter((context) => context.kind !== "vocabulary"),
     [isPage, item.id, items]
   );
   const placementPageIds = useMemo(
@@ -444,17 +448,6 @@ function StandardDetail({
                     className="p-1.5"
                   >
                     {pagePinned ? <BookmarkCheck size={16} style={{ color: C.pen }} /> : <Bookmark size={16} style={{ color: C.mut }} />}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      await setPageProfile(item.id, PAGE_PROFILES.collection);
-                      await onChanged();
-                    }}
-                    aria-label="Change to Vocabulary Collection"
-                    className="p-1.5"
-                  >
-                    <Library size={16} style={{ color: C.mut }} />
                   </button>
                 </>
               )}
@@ -759,6 +752,28 @@ function StandardDetail({
         </>
       )}
 
+      {!isPage && contextualPlacements.length > 0 && (
+        <>
+          <SectionTitle>Used in pages</SectionTitle>
+          <div className="space-y-1.5">
+            {contextualPlacements.map((context, index) => (
+              <button
+                type="button"
+                key={`${context.pageId}:${context.kind}:${context.label}:${index}`}
+                onClick={() => onOpen(context.pageId)}
+                className="w-full rounded-xl border p-3 text-left"
+                style={{ background: C.card, borderColor: C.line }}
+              >
+                <div className="text-sm font-semibold" style={{ color: C.ink }}>{context.pageTitle}</div>
+                <div className="mt-0.5 text-xs" style={{ color: C.mut }}>
+                  {context.label}{context.detail ? ` · ${context.detail}` : ""}
+                </div>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
       <SectionTitle>Connections</SectionTitle>
 
       {groups.length === 0 && linkConflicts.length === 0 && !picking && (
@@ -846,7 +861,7 @@ function StandardDetail({
           item={item}
           items={items}
           candidateFilter={(candidate) =>
-            isPage || candidate.type !== "page" || candidate.pageProfile !== PAGE_PROFILES.collection
+            isPage || candidate.type !== "page" || candidate.collection?.enabled !== true
           }
           linkedKeys={linkedKeys}
           unresolvedKeys={unresolvedKeys}

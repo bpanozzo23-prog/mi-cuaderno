@@ -59,9 +59,9 @@ describe("Phase 5d actionable activity", () => {
     const page = makePage({
       id: "user:page",
       title: "Study source",
-      pageProfile: "collection",
+      pageFocus: "vocabulary",
       linkedKeys: [word.id],
-      collection: { groups: [newPageGroup("Study words", [word.id])] },
+      collection: { enabled: true, groups: [newPageGroup("Study words", [word.id])] },
     });
     const events = [
       makeEvent({ type: EVENT_TYPES.view, itemKey: word.id, at: at(1) }),
@@ -81,7 +81,8 @@ describe("Phase 5d actionable activity", () => {
     expect(onSelect).toHaveBeenLastCalledWith(word.id);
 
     expect(screen.getByText("Highlighted items")).toBeTruthy();
-    expect(screen.getByText("Collection · 1 item · 1 group")).toBeTruthy();
+    expect(screen.getByText("Vocabulary")).toBeTruthy();
+    expect(screen.getByText("1 item · 1 group")).toBeTruthy();
     expect(screen.getByText("Most opened")).toBeTruthy();
     expect(screen.getByText("opens")).toBeTruthy();
   });

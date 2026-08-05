@@ -1,10 +1,11 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { clearAllPersonalData, db, setPref } from "./db.js";
 import { allEvents, EVENT_TYPES } from "./events.js";
 import { createItem, getItem, newLexical, newPage } from "./items.js";
 import {
   PINNED_PAGE_IDS_PREF,
   commitCollectionAdd,
+  commitPageVocabularyAdd,
   getPinnedPageIds,
   removeCollectionMember,
   saveCollectionOrganization,
@@ -14,24 +15,37 @@ import {
 import { newMeaning } from "../lib/meanings.js";
 import { buildFixtureDictionary, installFetchStub } from "../test/dictFixture.js";
 import { fetchManifest, installDictionary, removeDictionary } from "./ref/install.js";
+import {
+  emptyGrammar,
+  emptySource,
+  newGrammarExample,
+  newGrammarSection,
+  newSourceCapture,
+} from "../lib/pageKinds.js";
 
 const QUESTIONS = "page-group:11111111-1111-4111-8111-111111111111";
 const ANSWERS = "page-group:22222222-2222-4222-8222-222222222222";
 
 beforeEach(async () => {
+  vi.restoreAllMocks();
   await db.open();
   await clearAllPersonalData();
 });
 
 const eventTypes = async () => (await allEvents()).map((event) => event.type);
 
-const collectionPage = (overrides = {}) =>
-  newPage({
+const collectionPage = (overrides = {}) => {
+  const { collection, ...pageOverrides } = overrides;
+  return newPage({
     title: "Conversation",
-    pageProfile: "collection",
-    collection: { groups: [{ id: QUESTIONS, name: "Questions", itemKeys: [] }] },
-    ...overrides,
+    pageFocus: "vocabulary",
+    collection: {
+      enabled: collection?.enabled ?? true,
+      groups: collection?.groups ?? [{ id: QUESTIONS, name: "Questions", itemKeys: [] }],
+    },
+    ...pageOverrides,
   });
+};
 
 describe("setPageProfile", () => {
   it("preserves page content and dormant layout, and logs exactly one edit per change", async () => {
@@ -40,12 +54,13 @@ describe("setPageProfile", () => {
 
     const general = await setPageProfile(page.id, "general");
     expect(general).toMatchObject({
-      pageProfile: "general",
+      pageFocus: "notes",
       title: "Conversation",
       body: "Overview",
       pageDate: "2026-08-03",
-      collection: before.collection,
+      collection: { ...before.collection, enabled: false },
     });
+    expect(general).not.toHaveProperty("pageProfile");
     expect(await eventTypes()).toEqual([EVENT_TYPES.create, EVENT_TYPES.edit]);
 
     const unchangedAt = general.updatedAt;
@@ -239,6 +254,76 @@ describe("commitCollectionAdd", () => {
       commitCollectionAdd(page.id, { candidates: [{ kind: "personal", itemId: "dict:wiktionary-es:hola" }] })
     ).rejects.toThrow(/personal item ID/i);
   });
+
+  it("attaches authoritative vocabulary to Source captures and Grammar examples with one owner edit each", async () => {
+    const capture = newSourceCapture({ text: "Nomás dígame." });
+    const example = newGrammarExample({ es: "Nomás dime." });
+    const section = newGrammarSection({ name: "Softening", examples: [example] });
+    const page = await createItem(newPage({
+      title: "Composite",
+      collection: { enabled: false, groups: [] },
+      source: emptySource({ enabled: true, captures: [capture] }),
+      grammar: emptyGrammar({ enabled: true, sections: [section] }),
+    }));
+    const lexical = await createItem(newLexical({
+      term: "nomás",
+      linkedKeys: [page.id],
+      linkAnnotations: [{
+        targetKey: page.id,
+        type: "found_in",
+        subject: "owner",
+        note: "Incoming before contextual capture.",
+      }],
+    }));
+    const lexicalBefore = await getItem(lexical.id);
+    const editsBefore = (await allEvents()).filter((event) => event.type === EVENT_TYPES.edit).length;
+
+    await commitPageVocabularyAdd(page.id, {
+      candidates: [{ kind: "personal", itemId: lexical.id }],
+      context: { kind: "source", captureId: capture.id },
+    });
+    let saved = await getItem(page.id);
+    expect(saved.linkedKeys).toEqual([lexical.id]);
+    expect(saved.source.captures[0].itemKeys).toEqual([lexical.id]);
+    expect(saved.linkAnnotations[0]).toMatchObject({
+      targetKey: lexical.id,
+      type: "found_in",
+      subject: "target",
+    });
+    expect((await getItem(lexical.id))).toMatchObject({
+      linkedKeys: [],
+      linkAnnotations: [],
+      updatedAt: lexicalBefore.updatedAt,
+    });
+
+    await commitPageVocabularyAdd(page.id, {
+      candidates: [{ kind: "personal", itemId: lexical.id }],
+      context: { kind: "grammar", sectionId: section.id, exampleId: example.id },
+    });
+    saved = await getItem(page.id);
+    expect(saved.grammar.sections[0].examples[0].itemKeys).toEqual([lexical.id]);
+    const editsAfter = (await allEvents()).filter((event) => event.type === EVENT_TYPES.edit).length;
+    expect(editsAfter - editsBefore).toBe(2);
+  });
+
+  it("rolls back materialized vocabulary, links, and events when a contextual target is missing", async () => {
+    const page = await createItem(newPage({
+      title: "Source",
+      source: emptySource({ enabled: true }),
+    }));
+    const pageBefore = await getItem(page.id);
+    const itemCountBefore = await db.items.count();
+    const eventCountBefore = await db.events.count();
+
+    await expect(commitPageVocabularyAdd(page.id, {
+      candidates: [{ kind: "new", term: "nomás", form: "word", meanings: [] }],
+      context: { kind: "source", captureId: "source-capture:99999999-9999-4999-8999-999999999999" },
+    })).rejects.toThrow(/capture does not exist/i);
+
+    expect(await db.items.count()).toBe(itemCountBefore);
+    expect(await db.events.count()).toBe(eventCountBefore);
+    expect(await getItem(page.id)).toEqual(pageBefore);
+  });
 });
 
 describe("saveCollectionOrganization", () => {
@@ -365,6 +450,68 @@ describe("saveCollectionOrganization", () => {
     expect(await getItem(page.id)).toEqual(before);
     expect(await db.events.count()).toBe(beforeEvents);
   });
+
+  it("removes active and dormant contextual references in one owner edit while dependent rows stay neutral", async () => {
+    const lexical = await createItem(newLexical({ term: "nomás" }));
+    const capture = newSourceCapture({ text: "Nomás dígame.", itemKeys: [lexical.id] });
+    const example = newGrammarExample({ es: "Nomás dime.", itemKeys: [lexical.id] });
+    const section = newGrammarSection({ name: "Softening", examples: [example] });
+    const page = await createItem(collectionPage({
+      linkedKeys: [lexical.id],
+      collection: { enabled: true, groups: [{ id: QUESTIONS, name: "Questions", itemKeys: [lexical.id] }] },
+      source: emptySource({ enabled: false, captures: [capture] }),
+      grammar: emptyGrammar({ enabled: false, sections: [section] }),
+    }));
+    await db.items.update(lexical.id, {
+      linkedKeys: [page.id],
+      linkAnnotations: [{ targetKey: page.id, type: "related", subject: "owner", note: "Legacy reciprocal." }],
+    });
+    const lexicalBefore = await getItem(lexical.id);
+    const pageEditsBefore = (await allEvents()).filter(
+      (event) => event.itemKey === page.id && event.type === EVENT_TYPES.edit
+    ).length;
+
+    await saveCollectionOrganization(page.id, {
+      groups: [],
+      ungroupedItemKeys: [],
+      removedItemKeys: [lexical.id],
+    });
+
+    const [savedPage, savedLexical] = await Promise.all([getItem(page.id), getItem(lexical.id)]);
+    expect(savedPage.linkedKeys).toEqual([]);
+    expect(savedPage.collection.groups).toEqual([]);
+    expect(savedPage.source.captures[0].itemKeys).toEqual([]);
+    expect(savedPage.grammar.sections[0].examples[0].itemKeys).toEqual([]);
+    expect(savedLexical.linkedKeys).toEqual([]);
+    expect(savedLexical.linkAnnotations).toEqual([]);
+    expect(savedLexical.updatedAt).toBe(lexicalBefore.updatedAt);
+    const pageEditsAfter = (await allEvents()).filter(
+      (event) => event.itemKey === page.id && event.type === EVENT_TYPES.edit
+    ).length;
+    expect(pageEditsAfter - pageEditsBefore).toBe(1);
+  });
+
+  it("rolls back the page save when reciprocal dependent cleanup fails", async () => {
+    const lexical = await createItem(newLexical({ term: "legacy", linkedKeys: [] }));
+    const page = await createItem(collectionPage({
+      linkedKeys: [lexical.id],
+      collection: { enabled: true, groups: [{ id: QUESTIONS, name: "Questions", itemKeys: [lexical.id] }] },
+    }));
+    await db.items.update(lexical.id, { linkedKeys: [page.id] });
+    const [pageBefore, lexicalBefore] = await Promise.all([getItem(page.id), getItem(lexical.id)]);
+    const eventsBefore = await db.events.count();
+    vi.spyOn(db.items, "update").mockRejectedValueOnce(new Error("Dependent cleanup failed."));
+
+    await expect(saveCollectionOrganization(page.id, {
+      groups: [],
+      ungroupedItemKeys: [],
+      removedItemKeys: [lexical.id],
+    })).rejects.toThrow(/Dependent cleanup failed/);
+
+    expect(await getItem(page.id)).toEqual(pageBefore);
+    expect(await getItem(lexical.id)).toEqual(lexicalBefore);
+    expect(await db.events.count()).toBe(eventsBefore);
+  });
 });
 
 describe("removeCollectionMember", () => {
@@ -372,9 +519,9 @@ describe("removeCollectionMember", () => {
     const lexical = await createItem(newLexical({ term: "hola" }));
     const page = await createItem(
       collectionPage({
-        pageProfile: "general",
+        pageFocus: "notes",
         linkedKeys: [lexical.id],
-        collection: { groups: [{ id: QUESTIONS, name: "Questions", itemKeys: [lexical.id] }] },
+        collection: { enabled: false, groups: [{ id: QUESTIONS, name: "Questions", itemKeys: [lexical.id] }] },
       })
     );
     const beforeEvents = await db.events.count();

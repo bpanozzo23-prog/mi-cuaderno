@@ -69,6 +69,7 @@ export default function CollectionAddVocabularySheet({
   items,
   memberLocations = new Map(),
   targetLabel,
+  creationContext = "this collection",
   onCancel,
   onCommit,
 }) {
@@ -232,7 +233,7 @@ export default function CollectionAddVocabularySheet({
           className="mt-2 w-full rounded-lg px-2 py-2 text-left text-sm inline-flex items-center gap-2"
           style={{ background: C.penPale, color: C.penDark }}
         >
-          <Plus size={14} /> Create “{typed}” for this collection
+          <Plus size={14} /> Create “{typed}” for {creationContext}
         </button>
       )}
 

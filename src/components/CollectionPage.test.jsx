@@ -252,6 +252,7 @@ describe("Collection organization and capture", () => {
     await user.click(screen.getByRole("button", { name: "Move pensándolo bien down" }));
     await user.selectOptions(screen.getByRole("combobox", { name: "Move ¿Qué opinas? to" }), "Responses");
     await user.click(screen.getByRole("button", { name: "Remove ¿Cómo te parece? from collection" }));
+    await user.click(screen.getByRole("button", { name: "Remove and clear references" }));
     await user.click(screen.getByRole("button", { name: "Save organization" }));
 
     await waitFor(async () => {
@@ -273,7 +274,7 @@ describe("Collection organization and capture", () => {
 
     await user.click(screen.getByRole("button", { name: "Add group" }));
     expect(screen.getByRole("textbox", { name: "Group 3 name" }).value).toBe("New group");
-    await user.click(screen.getByRole("button", { name: "Collection" }));
+    await user.click(screen.getByRole("button", { name: "Page" }));
     await user.click(screen.getByRole("button", { name: "Organize" }));
 
     expect(screen.getAllByRole("textbox", { name: /Group \d+ name/ })).toHaveLength(2);
@@ -446,7 +447,7 @@ describe("lexical Collection placement", () => {
 
   it.each([
     "deleted group",
-    "changed profile",
+    "disabled vocabulary",
     "deleted Collection",
   ])("keeps the assignment form and writes nothing for a %s", async (failure) => {
     const user = userEvent.setup();
@@ -463,8 +464,8 @@ describe("lexical Collection placement", () => {
 
     if (failure === "deleted group") {
       await db.items.update(page.id, { collection: { groups: [] } });
-    } else if (failure === "changed profile") {
-      await db.items.update(page.id, { pageProfile: "general" });
+    } else if (failure === "disabled vocabulary") {
+      await db.items.update(page.id, { collection: { ...page.collection, enabled: false } });
     } else {
       await db.items.delete(page.id);
     }

@@ -1,5 +1,4 @@
 import { isDictKey, isPageGroupKey, isUserKey, newPageGroupKey } from "./ids.js";
-import { PAGE_PROFILES } from "./pageProfiles.js";
 
 export const NOT_GROUPED_LABEL = "Not grouped yet";
 
@@ -129,7 +128,7 @@ export function deriveCollection(page, items = []) {
 export function getCollectionPlacements(itemId, items = []) {
   const placements = [];
   for (const page of items) {
-    if (page.type !== "page" || page.pageProfile !== PAGE_PROFILES.collection) continue;
+    if (page.type !== "page" || page.collection?.enabled !== true) continue;
     const derived = deriveCollection(page, items);
     if (!derived.memberKeys.includes(itemId)) continue;
     const group = derived.groups.find((candidate) => candidate.itemKeys.includes(itemId));
@@ -148,7 +147,7 @@ export function getCollectionPlacements(itemId, items = []) {
 export function getAvailableCollectionDestinations(itemId, items = []) {
   const destinations = [];
   for (const page of items) {
-    if (page.type !== "page" || page.pageProfile !== PAGE_PROFILES.collection) continue;
+    if (page.type !== "page" || page.collection?.enabled !== true) continue;
     const derived = deriveCollection(page, items);
     if (derived.memberKeys.includes(itemId)) continue;
     destinations.push({

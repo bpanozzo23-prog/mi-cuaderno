@@ -1,12 +1,12 @@
-import { effectivePageKind, PAGE_KINDS } from "./pageProfiles.js";
+import { isJournalPage } from "./pageKinds.js";
 import { normalize } from "./normalize.js";
 
 /**
  * Journal is a presentation of the existing page record, never a stored profile or third item
- * type. Collection wins over its optional date, exactly as it does everywhere else.
+ * type. Any enabled structured capability keeps a dated page in Pages rather than Diario.
  */
 export function isJournalEntry(item) {
-  return item?.type === "page" && effectivePageKind(item) === PAGE_KINDS.journal;
+  return isJournalPage(item);
 }
 
 export function journalEntries(items) {

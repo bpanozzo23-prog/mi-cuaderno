@@ -78,9 +78,9 @@ describe("links are stored once and read in both directions", () => {
     const page = await createItem(
       newPage({
         title: "Conversation",
-        pageProfile: "general",
+        pageFocus: "notes",
         linkedKeys: [lexical.id],
-        collection: { groups: [{ id: GROUP_ID, name: "Questions", itemKeys: [lexical.id] }] },
+        collection: { enabled: false, groups: [{ id: GROUP_ID, name: "Questions", itemKeys: [lexical.id] }] },
       })
     );
 

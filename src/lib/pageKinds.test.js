@@ -4,6 +4,7 @@ import {
   emptyGrammar,
   emptySource,
   enabledPageRoles,
+  isHttpSourceUrl,
   isJournalPage,
   newGrammarExample,
   newGrammarSection,
@@ -105,5 +106,16 @@ describe("composable page kinds", () => {
     expect(validatePageStructures({ ...hidden, pageProfile: "general" }).join(" ")).toMatch(
       /not part of schema v5/
     );
+  });
+
+  it("accepts only complete HTTP(S) Source URLs", () => {
+    expect(isHttpSourceUrl("https://example.com/lesson")).toBe(true);
+    expect(isHttpSourceUrl("http://localhost:5173/source")).toBe(true);
+    expect(isHttpSourceUrl("https://")).toBe(false);
+    expect(isHttpSourceUrl("example.com/source")).toBe(false);
+    expect(isHttpSourceUrl("ftp://example.com/source")).toBe(false);
+
+    const invalid = validPage({ source: emptySource({ url: "https://" }) });
+    expect(validatePageStructures(invalid).join(" ")).toMatch(/http\(s\) URL/);
   });
 });

@@ -4,12 +4,13 @@ import { isDictKey, isUserKey, newUserKey } from "../lib/ids.js";
 import { nowIso } from "../lib/dates.js";
 import { requestPersistence } from "../lib/persistence.js";
 import { cleanMeanings, newMeaning } from "../lib/meanings.js";
-import { pruneCollectionItemKeys, validateCollectionGroups } from "../lib/collections.js";
-import { isPageProfile, PAGE_PROFILES, PINNED_PAGE_IDS_PREF } from "../lib/pageProfiles.js";
+import { validateCollectionGroups } from "../lib/collections.js";
+import { isPageProfile, PAGE_PROFILES } from "../lib/pageProfiles.js";
 import {
   isPageFocus,
   normalizePageStructures,
   PAGE_FOCUSES,
+  PINNED_PAGE_IDS_PREF,
   validatePageStructures,
 } from "../lib/pageKinds.js";
 import {
@@ -207,7 +208,7 @@ export async function updateItem(id, patch, { logEdit = true } = {}) {
  * events stay in the log but are excluded from queues and statistics.
  */
 export async function deleteItem(id) {
-  await db.transaction("rw", db.items, db.prefs, async () => {
+  await db.transaction("rw", db.items, db.prefs, db.events, async () => {
     // A layout reference is not authoritative, but it must still be cleaned even if an older
     // or malformed row has already lost the matching link. The personal notebook is small, so
     // one scan makes that dormant-metadata cleanup reliable.
@@ -231,24 +232,19 @@ export async function deleteItem(id) {
         const linkAnnotations = (item.linkAnnotations || []).filter(
           (annotation) => annotation?.targetKey !== id
         );
-        const linkRemoved = linkedKeys.length !== (item.linkedKeys || []).length;
         const next = {
           linkedKeys,
           linkAnnotations,
         };
-        // Keep deletion's established link-removal recency behaviour. Defensive cleanup of an
-        // already-dangling annotation alone is metadata-only and does not move the item.
-        if (linkRemoved) next.updatedAt = nowIso();
+        // Every row in this loop is a dependent of the deleted owner. Clearing its ordinary and
+        // nested references is automatic bookkeeping, so its timestamp and event history stay
+        // untouched even when a physical edge was present.
         if (item.type === "page") {
-          const collectionPruned = pruneCollectionItemKeys(item, [id]);
           const vocabularyPruned = prunePageVocabularyReferences(item, [id]);
           if (vocabularyPruned.changed) {
             next.collection = vocabularyPruned.collection;
             next.source = vocabularyPruned.source;
             next.grammar = vocabularyPruned.grammar;
-          }
-          if (collectionPruned.changed) {
-            next.updatedAt ||= nowIso();
           }
           const sourcePruned = clearSourcePageReferences(
             { ...item, grammar: next.grammar || item.grammar },
@@ -265,8 +261,10 @@ export async function deleteItem(id) {
       await db.prefs.put({ ...pinned, value: pinned.value.filter((pageId) => pageId !== id) });
     }
     await db.items.delete(id);
+    // The delete event is the tombstone. Keep it in the same transaction as the hard delete and
+    // every dependent cleanup so an event-store failure rolls the entire operation back.
+    await logEvent(EVENT_TYPES.delete, id);
   });
-  await logEvent(EVENT_TYPES.delete, id);
 }
 
 const annotationsWithoutTarget = (item, targetKey) =>

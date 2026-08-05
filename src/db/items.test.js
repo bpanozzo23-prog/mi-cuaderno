@@ -14,8 +14,14 @@ import {
 import { allEvents, EVENT_TYPES } from "./events.js";
 import { localDate } from "../lib/dates.js";
 import { newMeaning } from "../lib/meanings.js";
-import { PINNED_PAGE_IDS_PREF } from "../lib/pageProfiles.js";
-import { emptyGrammar, emptySource } from "../lib/pageKinds.js";
+import { PINNED_PAGE_IDS_PREF } from "../lib/pageKinds.js";
+import {
+  emptyGrammar,
+  emptySource,
+  newGrammarExample,
+  newGrammarSection,
+  newSourceCapture,
+} from "../lib/pageKinds.js";
 
 const GROUP_ID = "page-group:11111111-1111-4111-8111-111111111111";
 
@@ -123,8 +129,8 @@ describe("pages", () => {
     const page = await createItem(
       newPage({
         title: "Conversation",
-        pageProfile: "collection",
-        collection: { groups: [{ id: GROUP_ID, name: "  Questions  ", itemKeys: [] }] },
+        pageFocus: "vocabulary",
+        collection: { enabled: true, groups: [{ id: GROUP_ID, name: "  Questions  ", itemKeys: [] }] },
       })
     );
     expect(await getItem(page.id)).toMatchObject({
@@ -187,8 +193,8 @@ describe("pages", () => {
   it("rejects a saved group reference that is not also an outgoing page link", () => {
     expect(() => newPage({
       title: "Conversation",
-      pageProfile: "collection",
-      collection: { groups: [{ id: GROUP_ID, name: "Questions", itemKeys: ["user:missing"] }] },
+      pageFocus: "vocabulary",
+      collection: { enabled: true, groups: [{ id: GROUP_ID, name: "Questions", itemKeys: ["user:missing"] }] },
     })).toThrow(/current Collection members/i);
   });
 });
@@ -230,22 +236,82 @@ describe("deleting", () => {
 
   it("prunes active or dormant Collection layout and a deleted page's pin", async () => {
     const lexical = await createItem(newLexical({ term: "hola" }));
+    const capture = newSourceCapture({ text: "Hola", itemKeys: [lexical.id] });
+    const example = newGrammarExample({ es: "Hola.", itemKeys: [lexical.id] });
+    const section = newGrammarSection({ name: "Greeting", examples: [example] });
     const page = await createItem(
       newPage({
         title: "Conversation",
-        pageProfile: "general",
+        pageFocus: "notes",
         linkedKeys: [lexical.id],
-        collection: { groups: [{ id: GROUP_ID, name: "Questions", itemKeys: [lexical.id] }] },
+        collection: { enabled: false, groups: [{ id: GROUP_ID, name: "Questions", itemKeys: [lexical.id] }] },
+        source: emptySource({ enabled: false, captures: [capture] }),
+        grammar: emptyGrammar({ enabled: false, sections: [section] }),
       })
     );
     await setPref(PINNED_PAGE_IDS_PREF, [page.id]);
+    const dependentBefore = await getItem(page.id);
+    const dependentEventsBefore = (await allEvents()).filter((event) => event.itemKey === page.id).length;
 
     await deleteItem(lexical.id);
-    expect((await getItem(page.id)).linkedKeys).toEqual([]);
-    expect((await getItem(page.id)).collection.groups[0].itemKeys).toEqual([]);
+    const dependentAfter = await getItem(page.id);
+    expect(dependentAfter.linkedKeys).toEqual([]);
+    expect(dependentAfter.collection.groups[0].itemKeys).toEqual([]);
+    expect(dependentAfter.source.captures[0].itemKeys).toEqual([]);
+    expect(dependentAfter.grammar.sections[0].examples[0].itemKeys).toEqual([]);
+    expect(dependentAfter.updatedAt).toBe(dependentBefore.updatedAt);
+    expect((await allEvents()).filter((event) => event.itemKey === page.id)).toHaveLength(dependentEventsBefore);
 
     await deleteItem(page.id);
     expect(await getPref(PINNED_PAGE_IDS_PREF)).toEqual([]);
+  });
+
+  it("cleans an exact Source-page reference and ordinary edge without touching the dependent page's recency or events", async () => {
+    const capture = newSourceCapture({ text: "Estaba lloviendo." });
+    const source = await createItem(newPage({
+      title: "Story",
+      source: emptySource({ enabled: true, captures: [capture] }),
+    }));
+    const example = newGrammarExample({
+      es: "Estaba lloviendo.",
+      sourceCaptureRef: { pageId: source.id, captureId: capture.id },
+    });
+    const grammar = await createItem(newPage({
+      title: "Past narration",
+      linkedKeys: [source.id],
+      grammar: emptyGrammar({
+        enabled: true,
+        sections: [newGrammarSection({ name: "Background", examples: [example] })],
+      }),
+    }));
+    const grammarBefore = await getItem(grammar.id);
+    const grammarEventsBefore = (await allEvents()).filter((event) => event.itemKey === grammar.id).length;
+
+    await deleteItem(source.id);
+
+    const grammarAfter = await getItem(grammar.id);
+    expect(grammarAfter.linkedKeys).toEqual([]);
+    expect(grammarAfter.grammar.sections[0].examples[0].sourceCaptureRef).toBeNull();
+    expect(grammarAfter.updatedAt).toBe(grammarBefore.updatedAt);
+    expect((await allEvents()).filter((event) => event.itemKey === grammar.id)).toHaveLength(grammarEventsBefore);
+    expect((await allEvents()).filter((event) => event.itemKey === source.id).map((event) => event.type))
+      .toEqual([EVENT_TYPES.create, EVENT_TYPES.delete]);
+  });
+
+  it("rolls back hard deletion, dependent cleanup, and pins when the tombstone event cannot be written", async () => {
+    const lexical = await createItem(newLexical({ term: "hola" }));
+    const page = await createItem(newPage({ title: "Conversation", linkedKeys: [lexical.id] }));
+    await setPref(PINNED_PAGE_IDS_PREF, [lexical.id, page.id]);
+    const [lexicalBefore, pageBefore] = await Promise.all([getItem(lexical.id), getItem(page.id)]);
+    const eventsBefore = await allEvents();
+    vi.spyOn(db.events, "add").mockRejectedValueOnce(new Error("Tombstone write failed."));
+
+    await expect(deleteItem(lexical.id)).rejects.toThrow(/Tombstone write failed/);
+
+    expect(await getItem(lexical.id)).toEqual(lexicalBefore);
+    expect(await getItem(page.id)).toEqual(pageBefore);
+    expect(await getPref(PINNED_PAGE_IDS_PREF)).toEqual([lexical.id, page.id]);
+    expect(await allEvents()).toEqual(eventsBefore);
   });
 
   it("prunes a dormant layout reference even when its authoritative link was already absent", async () => {

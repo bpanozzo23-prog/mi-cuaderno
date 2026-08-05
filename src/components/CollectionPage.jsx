@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Bookmark, BookmarkCheck, CalendarDays, Check, ChevronLeft, ExternalLink,
-  MoreHorizontal, Pencil, Plus, Trash2, X,
+  MoreHorizontal, Pencil, Plus, Settings2, Trash2, X,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Card, SectionTitle, Button } from "../theme.jsx";
 import { allTagsIn } from "../lib/tags.js";
@@ -15,13 +15,15 @@ import {
 import { connectionsFromResolvedEntryLinks } from "../lib/resolvedConnections.js";
 import { resolveLinkedKeys } from "../db/linkedEntries.js";
 import {
-  commitCollectionAdd, saveCollectionOrganization, setPageProfile,
+  commitCollectionAdd, commitPageVocabularyAdd, saveCollectionOrganization,
 } from "../db/collections.js";
 import {
-  updateItem, deleteItem, linkItems, unlinkItems, setLinkRelationship, createItem, newPage,
+  updateItem, deleteItem, linkItems, unlinkItems, setLinkRelationship, createItem, newLexical, newPage,
 } from "../db/items.js";
 import { logView } from "../db/events.js";
-import { PAGE_PROFILES } from "../lib/pageProfiles.js";
+import { PAGE_FOCUSES, enabledPageRoles } from "../lib/pageKinds.js";
+import { savePageFocus } from "../db/pageStructures.js";
+import { vocabularyRemovalImpact } from "../lib/pageReferences.js";
 import { ItemLinkCard, EntryLinkCard, OrphanLinkCard } from "./LinkCard.jsx";
 import CollectionVocabularyCard from "./CollectionVocabularyCard.jsx";
 import CollectionAddVocabularySheet from "./CollectionAddVocabularySheet.jsx";
@@ -29,8 +31,41 @@ import CollectionOrganizer from "./CollectionOrganizer.jsx";
 import LinkPicker from "./LinkPicker.jsx";
 import AliasConflictResolver from "./AliasConflictResolver.jsx";
 import TagInput from "./TagInput.jsx";
+import SourceSection from "./SourceSection.jsx";
+import GrammarSection from "./GrammarSection.jsx";
+import PageCustomizeSheet from "./PageCustomizeSheet.jsx";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
+
+const FOCUS_LABELS = {
+  [PAGE_FOCUSES.notes]: "Notes",
+  [PAGE_FOCUSES.vocabulary]: "Vocabulary",
+  [PAGE_FOCUSES.source]: "Source",
+  [PAGE_FOCUSES.grammar]: "Grammar",
+};
+
+const FOCUS_HEADINGS = {
+  [PAGE_FOCUSES.notes]: "Notes page",
+  [PAGE_FOCUSES.vocabulary]: "Vocabulary collection",
+  [PAGE_FOCUSES.source]: "Source notebook",
+  [PAGE_FOCUSES.grammar]: "Grammar guide",
+};
+
+const SECTION_ORDERS = {
+  [PAGE_FOCUSES.notes]: ["source", "grammar", "vocabulary"],
+  [PAGE_FOCUSES.source]: ["source", "vocabulary", "grammar"],
+  [PAGE_FOCUSES.grammar]: ["grammar", "vocabulary", "source"],
+  [PAGE_FOCUSES.vocabulary]: ["vocabulary", "source", "grammar"],
+};
+
+function availableFocusChoices(page) {
+  return [
+    PAGE_FOCUSES.notes,
+    page.collection?.enabled && PAGE_FOCUSES.vocabulary,
+    page.source?.enabled && PAGE_FOCUSES.source,
+    page.grammar?.enabled && PAGE_FOCUSES.grammar,
+  ].filter(Boolean);
+}
 
 function CollectionOverview({ body }) {
   const [expanded, setExpanded] = useState(false);
@@ -98,8 +133,8 @@ function CollectionDetailsEditor({ item, items, onCancel, onSaved }) {
   return (
     <div className="space-y-4">
       <div className="rounded-lg border p-3" style={{ background: C.penPale, borderColor: C.line }}>
-        <div className="text-sm font-semibold" style={{ color: C.ink }}>Edit collection details</div>
-        <div className="text-xs" style={{ color: C.mut }}>Groups and vocabulary stay unchanged.</div>
+        <div className="text-sm font-semibold" style={{ color: C.ink }}>Edit page details</div>
+        <div className="text-xs" style={{ color: C.mut }}>Structured sections and connections stay unchanged.</div>
       </div>
       <label className="block text-xs" style={{ color: C.mut }}>
         Title
@@ -122,9 +157,9 @@ function CollectionDetailsEditor({ item, items, onCancel, onSaved }) {
         />
       </label>
       <label className="block text-xs" style={{ color: C.mut }}>
-        Overview
+        Notes
         <textarea
-          aria-label="Collection overview"
+          aria-label="Page notes"
           value={draft.body}
           onChange={(event) => setDraft((current) => ({ ...current, body: event.target.value }))}
           className="mt-1 min-h-32 w-full resize-y rounded-lg border px-3 py-2 text-sm outline-none"
@@ -205,6 +240,7 @@ function CollectionDetailsEditor({ item, items, onCancel, onSaved }) {
 function ConnectionsSection({
   item,
   items,
+  vocabularyEnabled = false,
   relatedItems,
   linkedEntryLinks,
   orphanKeys,
@@ -236,8 +272,8 @@ function ConnectionsSection({
     () => [
       ...connectionsFor(item, items),
       ...connectionsFromResolvedEntryLinks(item, linkedEntryLinks),
-    ].filter((connection) => connection.kind !== "item" || relatedItemIds.has(connection.key)),
-    [item, items, linkedEntryLinks, relatedItemIds]
+    ].filter((connection) => !vocabularyEnabled || connection.kind !== "item" || relatedItemIds.has(connection.key)),
+    [item, items, linkedEntryLinks, relatedItemIds, vocabularyEnabled]
   );
   const orphanConnections = useMemo(
     () => orphanKeys.map((key) => {
@@ -266,7 +302,7 @@ function ConnectionsSection({
       <SectionTitle>Connections</SectionTitle>
       {groups.length === 0 && linkConflicts.length === 0 && !picking && (
         <div className="mb-2 text-xs" style={{ color: C.mut }}>
-          No ordinary connections yet. Collection vocabulary stays in the groups above.
+          No ordinary connections yet. Structured vocabulary stays in its page sections.
         </div>
       )}
       {linkConflicts.length > 0 && (
@@ -327,7 +363,7 @@ function ConnectionsSection({
       ))}
       {!picking && (
         <button type="button" onClick={() => setPicking(true)} className="inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs" style={{ background: C.card, borderColor: C.line, color: C.mut }}>
-          <Plus size={11} /> link something related
+          <Plus size={11} /> {vocabularyEnabled ? "link something related" : "link something"}
         </button>
       )}
       {picking && (
@@ -338,25 +374,272 @@ function ConnectionsSection({
             linkedKeys={relatedKeys}
             connections={connections}
             unresolvedKeys={unresolvedKeys}
-            candidateFilter={(candidate) => candidate.type === "page"}
-            allowCreateLexical={false}
+            candidateFilter={(candidate) => vocabularyEnabled ? candidate.type === "page" : true}
+            allowCreateLexical={!vocabularyEnabled}
             onCancel={() => setPicking(false)}
             onPick={async (key, relationship) => {
               await linkItems(item.id, key, relationship);
               await onChanged();
             }}
-            onCreate={async (_kind, text, relationship) => {
-              const created = await createItem(newPage({ title: text }));
+            onCreate={async (kind, text, relationship) => {
+              const created = await createItem(
+                kind === "page"
+                  ? newPage({ title: text })
+                  : newLexical({ term: text, form: text.includes(" ") ? "phrase" : "word" })
+              );
               await linkItems(item.id, created.id, relationship);
               await onChanged();
             }}
           />
-          <div className="mt-2 text-[11px]" style={{ color: C.mut }}>
-            Use Add vocabulary to put personal words and phrases in this Collection.
-          </div>
+          {vocabularyEnabled && <div className="mt-2 text-[11px]" style={{ color: C.mut }}>Use Add vocabulary inside an enabled section to attach words and phrases in context.</div>}
         </>
       )}
     </>
+  );
+}
+
+function PageNotesSection({ page, onChanged }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(page.body || "");
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    setEditing(false);
+    setDraft(page.body || "");
+    setDirty(false);
+  }, [page.id]);
+
+  const saved = page.body || "";
+  const hasBody = saved.trim() !== "";
+
+  return (
+    <section className="mt-5" aria-labelledby="page-notes-heading">
+      <h2 id="page-notes-heading" className="text-lg font-bold" style={{ color: C.ink, fontFamily: SERIF }}>Notes</h2>
+      <Card className="mt-2">
+        {editing ? (
+          <>
+            <textarea
+              autoFocus
+              aria-label="Page body"
+              value={draft}
+              onChange={(event) => {
+                setDraft(event.target.value);
+                setDirty(true);
+              }}
+              className="min-h-40 w-full resize-y bg-transparent text-sm outline-none"
+              style={{ color: C.ink }}
+            />
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button disabled={!dirty} onClick={async () => {
+                await updateItem(page.id, { body: draft });
+                setEditing(false);
+                setDirty(false);
+                await onChanged();
+              }}>Save page</Button>
+              <Button tone="quiet" onClick={() => {
+                setDraft(saved);
+                setEditing(false);
+                setDirty(false);
+              }}>Cancel</Button>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-start justify-between gap-3">
+            <div className={`min-w-0 flex-1 whitespace-pre-wrap break-words text-sm ${hasBody ? "" : "italic"}`} style={{ color: hasBody ? C.ink : C.mut }}>
+              {hasBody ? saved : "This page is empty."}
+            </div>
+            <Button tone="quiet" className="shrink-0" onClick={() => {
+              setDraft(saved);
+              setDirty(false);
+              setEditing(true);
+            }}>
+              <Pencil size={14} /> {hasBody ? "Edit page" : "Write page"}
+            </Button>
+          </div>
+        )}
+      </Card>
+    </section>
+  );
+}
+
+function PageMediaSection({ page, onChanged }) {
+  const [adding, setAdding] = useState(false);
+  const [url, setUrl] = useState("");
+  const [label, setLabel] = useState("");
+
+  useEffect(() => {
+    setAdding(false);
+    setUrl("");
+    setLabel("");
+  }, [page.id]);
+
+  function cancel() {
+    setAdding(false);
+    setUrl("");
+    setLabel("");
+  }
+
+  return (
+    <>
+      <SectionTitle>Media links</SectionTitle>
+      <div className="space-y-2">
+        {(page.mediaLinks || []).map((media, index) => (
+          <Card key={`${media.url}:${index}`} className="flex items-center justify-between gap-2">
+            <a href={media.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-2 text-sm underline underline-offset-2" style={{ color: C.pen }}>
+              <ExternalLink size={14} className="shrink-0" /><span className="truncate">{media.label || media.url}</span>
+            </a>
+            <button type="button" aria-label={`Remove media ${media.label || media.url}`} className="min-h-11 min-w-11 inline-flex items-center justify-center" onClick={async () => {
+              await updateItem(page.id, { mediaLinks: page.mediaLinks.filter((_, candidate) => candidate !== index) });
+              await onChanged();
+            }}><X size={14} style={{ color: C.mut }} /></button>
+          </Card>
+        ))}
+        <Button tone="quiet" aria-expanded={adding} aria-controls="page-media-composer" onClick={() => adding ? cancel() : setAdding(true)}>
+          <Plus size={14} /> {adding ? "Close media form" : "Add a media link"}
+        </Button>
+        {adding && (
+          <Card id="page-media-composer" className="space-y-2">
+            <input autoFocus aria-label="Media URL" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https:// link to video, image, article…" className="w-full bg-transparent text-sm outline-none" style={{ color: C.ink }} />
+            <input aria-label="Media label" value={label} onChange={(event) => setLabel(event.target.value)} placeholder="Label (optional)" className="w-full border-t bg-transparent pt-2 text-sm outline-none" style={{ color: C.ink, borderColor: C.line }} />
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={async () => {
+                const savedUrl = url.trim();
+                if (!/^https?:\/\//.test(savedUrl)) return;
+                await updateItem(page.id, { mediaLinks: [...(page.mediaLinks || []), { url: savedUrl, label: label.trim() }] });
+                cancel();
+                await onChanged();
+              }}>Add link</Button>
+              <Button tone="quiet" onClick={cancel}>Cancel</Button>
+            </div>
+          </Card>
+        )}
+      </div>
+    </>
+  );
+}
+
+function VocabularySection({ page, items, collection, onOpen, onChanged, onOrganize, onPractice }) {
+  const [expanded, setExpanded] = useState(() => new Set());
+  const [addTarget, setAddTarget] = useState(null);
+  const memberLocations = useMemo(() => {
+    const map = new Map();
+    for (const group of collection.groups) for (const key of group.itemKeys) map.set(key, group.name);
+    for (const key of collection.ungroupedItemKeys) map.set(key, NOT_GROUPED_LABEL);
+    return map;
+  }, [collection]);
+
+  useEffect(() => {
+    setExpanded(new Set());
+    setAddTarget(null);
+  }, [page.id]);
+
+  async function commit(targetGroupId, candidates) {
+    await commitCollectionAdd(page.id, { targetGroupId, candidates });
+    setAddTarget(null);
+    await onChanged();
+  }
+
+  function vocabularyCard(entry) {
+    return (
+      <CollectionVocabularyCard
+        key={entry.id}
+        item={entry}
+        expanded={expanded.has(entry.id)}
+        onToggle={() => setExpanded((current) => {
+          const next = new Set(current);
+          if (next.has(entry.id)) next.delete(entry.id); else next.add(entry.id);
+          return next;
+        })}
+        onOpen={onOpen}
+      />
+    );
+  }
+
+  return (
+    <section id="page-vocabulary" aria-labelledby="page-vocabulary-heading">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 id="page-vocabulary-heading" className="text-lg font-bold" style={{ color: C.ink, fontFamily: SERIF }}>Vocabulary</h2>
+          <div className="mt-0.5 text-xs" style={{ color: C.mut }}>
+            {collection.itemCount} {collection.itemCount === 1 ? "item" : "items"} · {collection.groupCount} {collection.groupCount === 1 ? "group" : "groups"}
+          </div>
+        </div>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button onClick={onPractice} disabled={!collection.practiceEligible}>Practice</Button>
+          <Button tone="quiet" onClick={() => onOrganize(false)}>Organize</Button>
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-5">
+        {collection.groups.map((group) => (
+          <section key={group.id} aria-labelledby={`collection-group-${group.id}`}>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <h3 id={`collection-group-${group.id}`} className="truncate text-sm font-semibold" style={{ color: C.ink }}>{group.name}</h3>
+                <div className="text-[11px]" style={{ color: C.mut, fontFamily: MONO }}>{group.items.length} {group.items.length === 1 ? "item" : "items"}</div>
+              </div>
+              <button type="button" onClick={() => setAddTarget({ groupId: group.id, label: group.name })} className="min-h-11 shrink-0 rounded-full border px-3 py-1 text-xs inline-flex items-center gap-1" style={{ background: C.card, borderColor: C.line, color: C.pen }}>
+                <Plus size={11} /> Add vocabulary
+              </button>
+            </div>
+            {addTarget?.groupId === group.id && (
+              <CollectionAddVocabularySheet
+                items={items}
+                memberLocations={memberLocations}
+                targetLabel={group.name}
+                onCancel={() => setAddTarget(null)}
+                onCommit={(candidates) => commit(group.id, candidates)}
+              />
+            )}
+            <div className="mt-2 space-y-2">
+              {group.items.map(vocabularyCard)}
+              {group.items.length === 0 && <Card><div className="text-xs italic" style={{ color: C.mut }}>No vocabulary in this group yet.</div></Card>}
+            </div>
+          </section>
+        ))}
+
+        {collection.ungroupedItems.length > 0 && (
+          <section aria-labelledby="collection-ungrouped">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div>
+                <h3 id="collection-ungrouped" className="text-sm font-semibold" style={{ color: C.ink }}>{NOT_GROUPED_LABEL}</h3>
+                <div className="text-[11px]" style={{ color: C.mut, fontFamily: MONO }}>{collection.ungroupedItems.length} items</div>
+              </div>
+              <button type="button" onClick={() => setAddTarget({ groupId: null, label: NOT_GROUPED_LABEL })} className="min-h-11 shrink-0 rounded-full border px-3 py-1 text-xs inline-flex items-center gap-1" style={{ background: C.card, borderColor: C.line, color: C.pen }}><Plus size={11} /> Add vocabulary</button>
+            </div>
+            {addTarget && addTarget.groupId === null && (
+              <CollectionAddVocabularySheet
+                items={items}
+                memberLocations={memberLocations}
+                targetLabel={NOT_GROUPED_LABEL}
+                onCancel={() => setAddTarget(null)}
+                onCommit={(candidates) => commit(null, candidates)}
+              />
+            )}
+            <div className="mt-2 space-y-2">{collection.ungroupedItems.map(vocabularyCard)}</div>
+          </section>
+        )}
+      </div>
+
+      {collection.itemCount === 0 && collection.groupCount === 0 && (
+        <Card className="mt-4 text-center">
+          <div className="text-sm font-semibold" style={{ color: C.ink }}>Start this page with vocabulary</div>
+          <div className="mt-1 text-xs" style={{ color: C.mut }}>Add personal entries, search the dictionary, or create something new.</div>
+          <Button className="mt-3" onClick={() => setAddTarget({ groupId: null, label: NOT_GROUPED_LABEL })}><Plus size={14} /> Add vocabulary</Button>
+          {addTarget && addTarget.groupId === null && (
+            <CollectionAddVocabularySheet
+              items={items}
+              memberLocations={memberLocations}
+              targetLabel={NOT_GROUPED_LABEL}
+              onCancel={() => setAddTarget(null)}
+              onCommit={(candidates) => commit(null, candidates)}
+            />
+          )}
+        </Card>
+      )}
+
+      <Button tone="quiet" className="mt-4" onClick={() => onOrganize(true)}><Plus size={14} /> Add group</Button>
+    </section>
   );
 }
 
@@ -372,32 +655,28 @@ export default function CollectionPage({
   onPagePinnedChange,
 }) {
   const [mode, setMode] = useState("read");
-  const [expanded, setExpanded] = useState(() => new Set());
   const [revealed, setRevealed] = useState(() => new Set());
-  const [addTarget, setAddTarget] = useState(null);
   const [editingDetails, setEditingDetails] = useState(false);
   const [startWithNewGroup, setStartWithNewGroup] = useState(false);
   const [deleteArm, setDeleteArm] = useState(false);
+  const [customizing, setCustomizing] = useState(false);
+  const [focusSaving, setFocusSaving] = useState(false);
   const [linkedEntryLinks, setLinkedEntryLinks] = useState([]);
   const [orphanKeys, setOrphanKeys] = useState([]);
   const [linkConflicts, setLinkConflicts] = useState([]);
 
   const collection = useMemo(() => deriveCollection(item, items), [item, items]);
   const itemById = useMemo(() => new Map(items.map((candidate) => [candidate.id, candidate])), [items]);
-  const memberLocations = useMemo(() => {
-    const map = new Map();
-    for (const group of collection.groups) for (const key of group.itemKeys) map.set(key, group.name);
-    for (const key of collection.ungroupedItemKeys) map.set(key, NOT_GROUPED_LABEL);
-    return map;
-  }, [collection]);
+  const focusChoices = useMemo(() => availableFocusChoices(item), [item]);
+  const roles = useMemo(() => enabledPageRoles(item), [item]);
+  const sectionOrder = SECTION_ORDERS[item.pageFocus] || SECTION_ORDERS[PAGE_FOCUSES.notes];
 
   useEffect(() => {
     setMode("read");
-    setExpanded(new Set());
     setRevealed(new Set());
-    setAddTarget(null);
     setEditingDetails(false);
     setDeleteArm(false);
+    setCustomizing(false);
   }, [item.id]);
 
   useEffect(() => {
@@ -419,24 +698,23 @@ export default function CollectionPage({
   }, [item.id, item.linkedKeys, item.linkAnnotations]);
 
   function enterMode(next) {
-    setExpanded(new Set());
     setRevealed(new Set());
-    setAddTarget(null);
     setEditingDetails(false);
     if (next !== "organize") setStartWithNewGroup(false);
     setMode(next);
   }
 
-  if (mode === "organize") {
+  if (mode === "organize" && item.collection?.enabled) {
     return (
       <div className="px-4 py-4 pb-28" style={dotGrid}>
         <button type="button" onClick={() => enterMode("read")} className="mb-3 flex items-center gap-1 text-sm" style={{ color: C.pen }}>
-          <ChevronLeft size={16} /> Collection
+          <ChevronLeft size={16} /> Page
         </button>
         <CollectionOrganizer
           groups={collection.groups.map(({ id, name, itemKeys }) => ({ id, name, itemKeys }))}
           ungroupedItemKeys={collection.ungroupedItemKeys}
           itemById={itemById}
+          removalImpactForKey={(itemKey) => vocabularyRemovalImpact(item, itemKey)}
           startWithNewGroup={startWithNewGroup}
           onCancel={() => {
             setStartWithNewGroup(false);
@@ -453,7 +731,7 @@ export default function CollectionPage({
     );
   }
 
-  if (mode === "practice") {
+  if (mode === "practice" && item.collection?.enabled) {
     return (
       <div className="px-4 py-4 pb-28" style={dotGrid}>
         <div className="mb-4 flex items-start justify-between gap-3">
@@ -495,7 +773,7 @@ export default function CollectionPage({
             </div>
           </div>
         )}
-        {collection.itemCount === 0 && <Card><div className="text-sm italic" style={{ color: C.mut }}>Add vocabulary before practicing this collection.</div></Card>}
+        {collection.itemCount === 0 && <Card><div className="text-sm italic" style={{ color: C.mut }}>Add vocabulary before practicing this page.</div></Card>}
       </div>
     );
   }
@@ -516,13 +794,13 @@ export default function CollectionPage({
           <Card className="p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <div className="text-[11px] uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.1em" }}>Vocabulary collection</div>
-                <h1 className="mt-1 break-words text-2xl" style={{ color: C.ink, fontFamily: SERIF, fontWeight: 700 }}>{item.title || "Untitled page"}</h1>
+                <div className="text-[11px] uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.1em" }}>{FOCUS_HEADINGS[item.pageFocus] || "Notes page"}</div>
+                <h1 className="mt-1 break-words text-2xl" style={{ color: C.ink, fontFamily: SERIF, fontWeight: 700 }}><span>{item.title || "Untitled page"}</span></h1>
                 {item.pageDate && <div className="mt-1 inline-flex items-center gap-1 text-xs" style={{ color: C.mut, fontFamily: MONO }}><CalendarDays size={12} /> {item.pageDate}</div>}
                 <div className="mt-2 text-xs" style={{ color: C.mut, fontFamily: MONO }}>
-                  {collection.itemCount} {collection.itemCount === 1 ? "item" : "items"} · {collection.groupCount} {collection.groupCount === 1 ? "group" : "groups"}
-                  {state?.views ? ` · opened ${state.views}×` : ""}
+                  {roles.map((role) => FOCUS_LABELS[role]).join(" · ") || "Notes"}
                 </div>
+                <div className="mt-1 text-xs" style={{ color: C.mut, fontFamily: MONO }}>opened {state?.views || 0}×</div>
               </div>
               <div className="flex shrink-0 items-center gap-1">
                 <button
@@ -535,11 +813,11 @@ export default function CollectionPage({
                   {pagePinned ? <BookmarkCheck size={18} style={{ color: C.pen }} /> : <Bookmark size={18} style={{ color: C.mut }} />}
                 </button>
                 <details className="relative">
-                  <summary aria-label="Collection actions" className="cursor-pointer list-none p-2"><MoreHorizontal size={19} style={{ color: C.mut }} /></summary>
+                  <summary aria-label="Page actions" className="cursor-pointer list-none p-2"><MoreHorizontal size={19} style={{ color: C.mut }} /></summary>
                   <div className="absolute right-0 z-20 mt-1 w-52 rounded-xl border p-1 shadow-lg" style={{ background: C.card, borderColor: C.line }}>
                     <button type="button" onClick={() => setEditingDetails(true)} className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-gray-50"><Pencil size={14} className="mr-2 inline" />Edit details</button>
-                    <button type="button" onClick={() => enterMode("organize")} className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-gray-50">Organize collection</button>
-                    <button type="button" onClick={async () => { await setPageProfile(item.id, PAGE_PROFILES.general); await onChanged(); }} className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-gray-50">Change to General page</button>
+                    {item.collection?.enabled && <button type="button" onClick={() => enterMode("organize")} className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-gray-50">Organize vocabulary</button>}
+                    <button type="button" onClick={() => setCustomizing(true)} className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-gray-50"><Settings2 size={14} className="mr-2 inline" />Customize page</button>
                     <button
                       type="button"
                       onClick={async () => {
@@ -561,128 +839,101 @@ export default function CollectionPage({
                 </details>
               </div>
             </div>
-            <div className="mt-4 flex gap-2">
-              <Button onClick={() => enterMode("practice")} disabled={!collection.practiceEligible}>Practice</Button>
-              <Button tone="quiet" onClick={() => enterMode("organize")}>Organize</Button>
+            <div className="mt-4 flex flex-wrap gap-2" aria-label="Leading page focus">
+              {focusChoices.map((focus) => (
+                <button
+                  type="button"
+                  key={focus}
+                  aria-pressed={item.pageFocus === focus}
+                  disabled={focusSaving}
+                  onClick={async () => {
+                    if (focus === item.pageFocus || focusSaving) return;
+                    setFocusSaving(true);
+                    try {
+                      await savePageFocus(item.id, focus);
+                      await onChanged();
+                    } finally {
+                      setFocusSaving(false);
+                    }
+                  }}
+                  className="min-h-11 rounded-full border px-3 py-1 text-xs font-semibold disabled:opacity-60"
+                  style={item.pageFocus === focus
+                    ? { background: C.pen, borderColor: C.pen, color: "#fff" }
+                    : { background: C.card, borderColor: C.line, color: C.mut }}
+                >
+                  {FOCUS_LABELS[focus]}
+                </button>
+              ))}
             </div>
           </Card>
 
-          {item.body?.trim() && <CollectionOverview body={item.body} />}
+          {item.pageFocus === PAGE_FOCUSES.notes ? (
+            <PageNotesSection page={item} onChanged={onChanged} />
+          ) : item.body?.trim() ? (
+            <CollectionOverview body={item.body} />
+          ) : null}
 
-          <div className="mt-5 space-y-5">
-            {collection.groups.map((group) => (
-              <section key={group.id} aria-labelledby={`collection-group-${group.id}`}>
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <h2 id={`collection-group-${group.id}`} className="truncate text-sm font-semibold" style={{ color: C.ink }}>{group.name}</h2>
-                    <div className="text-[11px]" style={{ color: C.mut, fontFamily: MONO }}>{group.items.length} {group.items.length === 1 ? "item" : "items"}</div>
-                  </div>
-                  <button type="button" onClick={() => setAddTarget({ groupId: group.id, label: group.name })} className="shrink-0 rounded-full border px-2 py-1 text-xs inline-flex items-center gap-1" style={{ background: C.card, borderColor: C.line, color: C.pen }}>
-                    <Plus size={11} /> Add vocabulary
-                  </button>
-                </div>
-                {addTarget?.groupId === group.id && (
-                  <CollectionAddVocabularySheet
-                    items={items}
-                    memberLocations={memberLocations}
-                    targetLabel={group.name}
-                    onCancel={() => setAddTarget(null)}
-                    onCommit={async (candidates) => {
-                      await commitCollectionAdd(item.id, { targetGroupId: group.id, candidates });
-                      setAddTarget(null);
-                      await onChanged();
-                    }}
-                  />
-                )}
-                <div className="mt-2 space-y-2">
-                  {group.items.map((entry) => (
-                    <CollectionVocabularyCard
-                      key={entry.id}
-                      item={entry}
-                      expanded={expanded.has(entry.id)}
-                      onToggle={() => setExpanded((current) => {
-                        const next = new Set(current);
-                        if (next.has(entry.id)) next.delete(entry.id); else next.add(entry.id);
-                        return next;
-                      })}
+          <div className="mt-5 space-y-7">
+            {sectionOrder.map((sectionKind) => {
+              if (sectionKind === "source" && item.source?.enabled) {
+                return (
+                  <div key="source" className="border-t pt-5" style={{ borderColor: C.line }}>
+                    <SourceSection
+                      page={item}
+                      items={items}
                       onOpen={onOpen}
-                    />
-                  ))}
-                  {group.items.length === 0 && <Card><div className="text-xs italic" style={{ color: C.mut }}>No vocabulary in this group yet.</div></Card>}
-                </div>
-              </section>
-            ))}
-
-            {collection.ungroupedItems.length > 0 && (
-              <section aria-labelledby="collection-ungrouped">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <div>
-                    <h2 id="collection-ungrouped" className="text-sm font-semibold" style={{ color: C.ink }}>{NOT_GROUPED_LABEL}</h2>
-                    <div className="text-[11px]" style={{ color: C.mut, fontFamily: MONO }}>{collection.ungroupedItems.length} items</div>
-                  </div>
-                  <button type="button" onClick={() => setAddTarget({ groupId: null, label: NOT_GROUPED_LABEL })} className="shrink-0 rounded-full border px-2 py-1 text-xs inline-flex items-center gap-1" style={{ background: C.card, borderColor: C.line, color: C.pen }}><Plus size={11} /> Add vocabulary</button>
-                </div>
-                {addTarget && addTarget.groupId === null && (
-                  <CollectionAddVocabularySheet
-                    items={items}
-                    memberLocations={memberLocations}
-                    targetLabel={NOT_GROUPED_LABEL}
-                    onCancel={() => setAddTarget(null)}
-                    onCommit={async (candidates) => {
-                      await commitCollectionAdd(item.id, { targetGroupId: null, candidates });
-                      setAddTarget(null);
-                      await onChanged();
-                    }}
-                  />
-                )}
-                <div className="mt-2 space-y-2">
-                  {collection.ungroupedItems.map((entry) => (
-                    <CollectionVocabularyCard
-                      key={entry.id}
-                      item={entry}
-                      expanded={expanded.has(entry.id)}
-                      onToggle={() => setExpanded((current) => {
-                        const next = new Set(current);
-                        if (next.has(entry.id)) next.delete(entry.id); else next.add(entry.id);
-                        return next;
+                      onChanged={onChanged}
+                      onJumpToVocabulary={() => document.getElementById("page-vocabulary")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                      onAddVocabulary={(captureId, candidates) => commitPageVocabularyAdd(item.id, {
+                        candidates,
+                        context: { kind: "source", captureId },
                       })}
-                      onOpen={onOpen}
                     />
-                  ))}
-                </div>
-              </section>
-            )}
+                  </div>
+                );
+              }
+              if (sectionKind === "grammar" && item.grammar?.enabled) {
+                return (
+                  <div key="grammar" className="border-t pt-5" style={{ borderColor: C.line }}>
+                    <GrammarSection
+                      page={item}
+                      items={items}
+                      onOpen={onOpen}
+                      onChanged={onChanged}
+                      onAddVocabulary={(sectionId, exampleId, candidates) => commitPageVocabularyAdd(item.id, {
+                        candidates,
+                        context: { kind: "grammar", sectionId, exampleId },
+                      })}
+                    />
+                  </div>
+                );
+              }
+              if (sectionKind === "vocabulary" && item.collection?.enabled) {
+                return (
+                  <div key="vocabulary" className="border-t pt-5" style={{ borderColor: C.line }}>
+                    <VocabularySection
+                      page={item}
+                      items={items}
+                      collection={collection}
+                      onOpen={onOpen}
+                      onChanged={onChanged}
+                      onPractice={() => enterMode("practice")}
+                      onOrganize={(newGroup) => {
+                        setStartWithNewGroup(Boolean(newGroup));
+                        enterMode("organize");
+                      }}
+                    />
+                  </div>
+                );
+              }
+              return null;
+            })}
           </div>
-
-          {collection.itemCount === 0 && collection.groupCount === 0 && (
-            <Card className="mt-5 text-center">
-              <div className="text-sm font-semibold" style={{ color: C.ink }}>Start this collection with vocabulary</div>
-              <div className="mt-1 text-xs" style={{ color: C.mut }}>Add personal entries, search the dictionary, or create something new.</div>
-              <Button className="mt-3" onClick={() => setAddTarget({ groupId: null, label: NOT_GROUPED_LABEL })}><Plus size={14} /> Add vocabulary</Button>
-              {addTarget && addTarget.groupId === null && (
-                <CollectionAddVocabularySheet
-                  items={items}
-                  memberLocations={memberLocations}
-                  targetLabel={NOT_GROUPED_LABEL}
-                  onCancel={() => setAddTarget(null)}
-                  onCommit={async (candidates) => {
-                    await commitCollectionAdd(item.id, { targetGroupId: null, candidates });
-                    setAddTarget(null);
-                    await onChanged();
-                  }}
-                />
-              )}
-            </Card>
-          )}
-
-          <Button tone="quiet" className="mt-5" onClick={() => {
-            setStartWithNewGroup(true);
-            enterMode("organize");
-          }}><Plus size={14} /> Add group</Button>
 
           <ConnectionsSection
             item={item}
             items={items}
+            vocabularyEnabled={item.collection?.enabled === true}
             relatedItems={collection.relatedItems}
             linkedEntryLinks={linkedEntryLinks}
             orphanKeys={orphanKeys}
@@ -700,21 +951,19 @@ export default function CollectionPage({
             </>
           )}
 
-          {item.mediaLinks?.length > 0 && (
-            <>
-              <SectionTitle>Media links</SectionTitle>
-              <div className="space-y-2">
-                {item.mediaLinks.map((media, index) => (
-                  <Card key={`${media.url}:${index}`}>
-                    <a href={media.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-2 text-sm underline underline-offset-2" style={{ color: C.pen }}>
-                      <ExternalLink size={14} className="shrink-0" /><span className="truncate">{media.label || media.url}</span>
-                    </a>
-                  </Card>
-                ))}
-              </div>
-            </>
-          )}
+          <PageMediaSection page={item} onChanged={onChanged} />
         </>
+      )}
+      {customizing && (
+        <PageCustomizeSheet
+          page={item}
+          items={items}
+          onClose={() => setCustomizing(false)}
+          onSaved={async () => {
+            setCustomizing(false);
+            await onChanged();
+          }}
+        />
       )}
     </div>
   );

@@ -54,6 +54,18 @@ export function isSourceCaptureType(value) {
   return SOURCE_CAPTURE_TYPES.includes(value);
 }
 
+/** Blank is handled by callers; nonblank Source URLs must be complete HTTP(S) URLs. */
+export function isHttpSourceUrl(value) {
+  if (!isString(value) || value.trim() !== value || value === "") return false;
+  try {
+    const parsed = new URL(value);
+    return (parsed.protocol === "http:" || parsed.protocol === "https:")
+      && Boolean(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
 export function emptyCollection({ enabled = false, groups = [] } = {}) {
   return {
     enabled: enabled === true,
@@ -294,7 +306,7 @@ export function validatePageStructures(page, {
     for (const field of ["creator", "scope", "url", "context"]) {
       if (!isString(source[field])) errors.push(`${where}.source.${field} must be a string`);
     }
-    if (isString(source.url) && source.url !== "" && !/^https?:\/\//i.test(source.url)) {
+    if (isString(source.url) && source.url !== "" && !isHttpSourceUrl(source.url)) {
       errors.push(`${where}.source.url must be blank or an http(s) URL`);
     }
     if (!Array.isArray(source.captures)) {
