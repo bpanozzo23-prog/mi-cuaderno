@@ -6,7 +6,7 @@ import {
   FileText,
   Library,
 } from "lucide-react";
-import { C, MONO, SERIF } from "../theme.jsx";
+import { C, MONO, SERIF, hubTitleSize } from "../theme.jsx";
 import { deriveCollection } from "../lib/collections.js";
 import { enabledPageRoles } from "../lib/pageKinds.js";
 
@@ -99,7 +99,7 @@ export default function PageHubCard({
         </div>
 
         <div
-          className="mt-2 text-[22px] leading-tight"
+          className={`mt-2 leading-tight ${hubTitleSize(title)}`}
           style={{ fontFamily: SERIF, color: C.ink, fontWeight: 700 }}
         >
           {title}

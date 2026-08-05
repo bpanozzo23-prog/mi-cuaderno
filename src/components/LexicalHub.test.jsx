@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import LexicalHub from "./LexicalHub.jsx";
+import { learningBadge } from "./LexicalHubCard.jsx";
 import { newGrammarExample, newGrammarSection, newSourceCapture } from "../lib/pageKinds.js";
 
 const at = (day) => `2026-08-${String(day).padStart(2, "0")}T10:00:00.000Z`;
@@ -67,6 +68,9 @@ function propsFor(items, over = {}) {
 
 const card = (term) => screen.getByRole("button", { name: term });
 const cardOrNull = (term) => screen.queryByRole("button", { name: term });
+// The card body is one button, but the page-context rows are buttons of their own beside it, so
+// anything below the body has to be scoped to the whole card rather than to `card()`.
+const cardShell = (term) => screen.getByRole("group", { name: term });
 
 async function openRefine(user) {
   await user.click(screen.getByRole("button", { name: /^Refine/ }));
@@ -226,11 +230,16 @@ describe("the Words & phrases hub", () => {
       expect(cardOrNull("nomás")).toBeNull();
     });
 
-    it("summarizes the contexts on the card", () => {
-      render(<LexicalHub {...propsFor(items)} />);
+    it("summarizes the contexts on the card and opens the page they name", async () => {
+      const user = userEvent.setup();
+      const props = propsFor(items);
+      render(<LexicalHub {...props} />);
 
-      expect(within(card("nomás")).getByText(/Used in 1 page context/)).toBeTruthy();
-      expect(within(card("nomás")).getByText(/Voces · Vocabulary · Softening/)).toBeTruthy();
+      const row = within(cardShell("nomás")).getByRole("button", { name: "Open Voces" });
+      expect(within(row).getByText("Voces")).toBeTruthy();
+
+      await user.click(row);
+      expect(props.onSelect).toHaveBeenCalledWith("user:voces");
     });
   });
 
@@ -274,6 +283,32 @@ describe("the Words & phrases hub", () => {
       })} />);
 
       expect(within(card("trasnochar")).getByText("Due today")).toBeTruthy();
+    });
+
+    it("says nothing about the Leitner box of a word that is only waiting its turn", () => {
+      const waiting = lexical("acordarse");
+      render(<LexicalHub {...propsFor([waiting], {
+        notebook: {
+          items: [waiting],
+          events: [
+            // Dated well ahead so the word is enrolled but not yet due whenever this runs; the
+            // review state is derived against the real current date.
+            { id: "e1", type: "review_pass", itemKey: waiting.id, at: "2099-01-01T10:00:00.000Z", localDate: "2099-01-01", metadata: { grade: 1 } },
+          ],
+          itemState: new Map(),
+          reload: vi.fn(),
+        },
+      })} />);
+
+      expect(within(cardShell("acordarse")).queryByText(/^Box /)).toBeNull();
+    });
+
+    it("badges only the states worth acting on", () => {
+      expect(learningBadge({ graduated: true })?.label).toBe("Retired");
+      expect(learningBadge({ enrolled: true, due: true })?.label).toBe("Due today");
+      expect(learningBadge({ enrolled: false })).toBeNull();
+      // The box number is scheduler bookkeeping shown nowhere else in the app.
+      expect(learningBadge({ enrolled: true, due: false, box: 2 })).toBeNull();
     });
   });
 
@@ -519,6 +554,6 @@ describe("the Words & phrases hub", () => {
     render(<LexicalHub {...propsFor(items, { active: false })} />);
 
     // Contexts are what the derivation produces; while inactive there is nothing to show.
-    expect(screen.queryByText(/Used in 1 page context/)).toBeNull();
+    expect(screen.queryByRole("button", { name: "Open Voces" })).toBeNull();
   });
 });

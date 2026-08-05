@@ -19,6 +19,14 @@ export const C = {
 export const SERIF = 'Georgia, "Iowan Old Style", "Times New Roman", serif';
 export const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 
+/**
+ * Hub card titles, sized by length. Single words stay the focal point; long phrases and page
+ * titles step down instead of wrapping, which is what keeps a scrolling hub scannable on a phone.
+ * Both class names are complete literals on purpose — Tailwind scans source text, so a class built
+ * by concatenation would never be emitted.
+ */
+export const hubTitleSize = (text) => ((text || "").length > 18 ? "text-[17px]" : "text-[20px]");
+
 export const dotGrid = {
   backgroundImage: "radial-gradient(rgba(45,78,160,0.06) 1px, transparent 1.2px)",
   backgroundSize: "18px 18px",

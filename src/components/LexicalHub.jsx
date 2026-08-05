@@ -7,7 +7,6 @@ import LexicalHubCard from "./LexicalHubCard.jsx";
 import PracticeSession from "./PracticeSession.jsx";
 import PracticeSetupSheet from "./PracticeSetupSheet.jsx";
 import SearchBar from "./SearchBar.jsx";
-import { emptyItemState } from "../useNotebook.js";
 import { searchItems } from "../lib/search.js";
 import { deriveReviewState, emptyReviewState } from "../lib/review.js";
 import { FILTERS, matchesTypeFilter } from "../lib/filters.js";
@@ -97,7 +96,7 @@ export default function LexicalHub({
   onBack,
   onSearchDictionary,
 }) {
-  const { items, itemState, events, reload } = notebook;
+  const { items, events, reload } = notebook;
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [formFilter, setFormFilter] = useState(FILTERS.all);
@@ -224,7 +223,6 @@ export default function LexicalHub({
     <LexicalHubCard
       key={item.id}
       item={item}
-      state={itemState.get(item.id) || emptyItemState}
       review={reviewFor(item)}
       contexts={contextsFor(item)}
       pinned={pinnedIds.has(item.id)}

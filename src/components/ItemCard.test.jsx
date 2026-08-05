@@ -91,7 +91,7 @@ describe("page cards", () => {
 });
 
 describe("global lexical-result contexts", () => {
-  it("shows at most two active page contexts and a remaining count", () => {
+  it("shows the first active page and a count of the rest", () => {
     const word = lexical("user:word", "nomás");
     const sourcePage = page({
       id: "user:source",
@@ -180,11 +180,16 @@ describe("global lexical-result contexts", () => {
       />
     );
 
-    expect(screen.getByText("Used in 3 page contexts")).toBeTruthy();
-    expect(screen.getByText("Market podcast · Passage · 18:42")).toBeTruthy();
-    expect(screen.getByText("Softening requests · Grammar example · Pragmatics")).toBeTruthy();
-    expect(screen.getByText("+1 more")).toBeTruthy();
+    expect(screen.getByText("Market podcast")).toBeTruthy();
+    expect(screen.getByText("+2 more")).toBeTruthy();
+    // The kind of placement stays on the entry, where there is room for it.
+    expect(screen.queryByText(/Passage/)).toBeNull();
+    expect(screen.queryByText(/Softening requests/)).toBeNull();
     expect(screen.queryByText(/Hidden source/)).toBeNull();
+
+    // Cuaderno renders this summary inside its own card button, so the rows must stay inert —
+    // a button nested in a button is invalid HTML and would swallow the card's own tap.
+    expect(screen.queryByRole("button", { name: /^Open / })).toBeNull();
   });
 
   it("keeps contextual summaries out of ordinary browsing cards", () => {
@@ -212,6 +217,6 @@ describe("global lexical-result contexts", () => {
     });
 
     render(<ItemCard item={word} items={[word, sourcePage]} onOpen={vi.fn()} />);
-    expect(screen.queryByText(/Used in .* page context/)).toBeNull();
+    expect(screen.queryByText("Market podcast")).toBeNull();
   });
 });

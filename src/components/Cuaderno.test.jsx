@@ -332,8 +332,7 @@ describe("composable page retrieval and starters", () => {
     await user.type(screen.getByRole("textbox", { name: "Search notebook" }), "nomás");
     expect(card("nomás")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Context hub" })).toBeNull();
-    expect(screen.getByText("Used in 1 page context")).toBeTruthy();
-    expect(screen.getByText("Context hub · Passage · 18:42")).toBeTruthy();
+    expect(screen.getByText("Context hub")).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "páginas" }));
     expect(props.onOpenPages).toHaveBeenCalledOnce();
