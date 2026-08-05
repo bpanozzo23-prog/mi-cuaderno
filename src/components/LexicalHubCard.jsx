@@ -1,30 +1,17 @@
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import { C, Hi, MONO, SERIF, hubTitleSize } from "../theme.jsx";
 import { emptyReviewState } from "../lib/review.js";
-import { meaningGlossText } from "../lib/meanings.js";
+import { firstMeaningGloss } from "../lib/meanings.js";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
 import PageContextSummary from "./PageContextSummary.jsx";
+import TagChip from "./TagChip.jsx";
 
 /**
- * How a word is going, in one badge. Read-only: the hub shows the queue's verdict and never
- * changes it, because grading belongs to Repaso (§12).
- *
- * Retired is checked before enrolment on purpose. A word that graduated and is not highlighted or
- * being looked up is no longer enrolled, so asking about enrolment first would hide the very state
- * the owner most wants to see.
- *
- * An enrolled word that is not due gets no badge. Its Leitner box number is real, but it is
- * scheduler bookkeeping the owner cannot act on while browsing, it appears nowhere else in the app
- * — not Repaso, not the entry, not this hub's own Learning filter — and a badge on nearly every
- * card costs the scan more than it gives it.
+ * A browsing card carries no review state. The queue's verdict — box, due, retired — is only
+ * useful where it can be acted on, which is Repaso and the entry itself (§12); on a scanning
+ * surface it was a chip on nearly every card saying something the owner could do nothing about.
+ * The tricky highlighter on the headword stays, because that one is the owner's own mark.
  */
-export function learningBadge(review) {
-  if (review?.graduated) return { label: "Retired", background: C.greenPale, color: C.green };
-  if (!review?.enrolled) return null;
-  if (review.due) return { label: "Due today", background: "#F7E9E5", color: C.red };
-  return null;
-}
-
 export default function LexicalHubCard({
   item,
   review = emptyReviewState,
@@ -35,8 +22,7 @@ export default function LexicalHubCard({
   onPinnedChange,
 }) {
   const suffix = personalHeadingSuffix(item);
-  const glosses = meaningGlossText(item);
-  const badge = learningBadge(review);
+  const gloss = firstMeaningGloss(item);
 
   return (
     <div
@@ -66,38 +52,16 @@ export default function LexicalHubCard({
           )}
         </div>
 
-        {glosses && (
-          <div
-            className="mt-1.5 line-clamp-2 whitespace-pre-wrap text-sm leading-relaxed"
-            style={{ color: C.ink }}
-          >
-            {glosses}
+        {gloss && (
+          <div className="mt-1.5 line-clamp-2 text-sm leading-relaxed" style={{ color: C.ink }}>
+            — {gloss}
           </div>
         )}
 
-        {/*
-          One row for both kinds of chip, so a word with a review state and tags does not cost two.
-          Filled always means a review state the queue decided; outlined always means a label the
-          owner wrote.
-        */}
-        {(badge || item.tags.length > 0) && (
+        {item.tags.length > 0 && (
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            {badge && (
-              <span
-                className="inline-flex items-center rounded-full px-2.5 py-1 text-xs"
-                style={{ background: badge.background, color: badge.color }}
-              >
-                {badge.label}
-              </span>
-            )}
             {item.tags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs"
-                style={{ borderColor: C.line, background: "transparent", color: C.mut }}
-              >
-                {tag}
-              </span>
+              <TagChip key={tag} tag={tag} />
             ))}
           </div>
         )}

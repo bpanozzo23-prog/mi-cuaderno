@@ -1,11 +1,12 @@
 import { FileText, CalendarDays, Library, Pin, BookOpen, Braces } from "lucide-react";
 import { C, SERIF, MONO, Hi } from "../theme.jsx";
 import { emptyItemState } from "../useNotebook.js";
-import { meaningGlossText } from "../lib/meanings.js";
+import { firstMeaningGloss } from "../lib/meanings.js";
 import { deriveCollection } from "../lib/collections.js";
 import { activePageContextsForLexical } from "../lib/pageReferences.js";
 import { PAGE_FOCUSES, enabledPageRoles, isJournalPage } from "../lib/pageKinds.js";
 import PageContextSummary from "./PageContextSummary.jsx";
+import TagChip from "./TagChip.jsx";
 
 export const POS_OPTIONS = ["", "noun", "verb", "adjective", "adverb", "other"];
 export const POS_ABBR = { noun: "s.", verb: "v.", adjective: "adj.", adverb: "adv.", other: "" };
@@ -31,7 +32,7 @@ export default function ItemCard({
   const journal = isPage && isJournalPage(item);
   const collection = isPage && item.collection?.enabled ? deriveCollection(item, items) : null;
   const headingSuffix = isPage ? "" : personalHeadingSuffix(item);
-  const glosses = isPage ? "" : meaningGlossText(item);
+  const gloss = isPage ? "" : firstMeaningGloss(item);
   const title = isPage ? item.title || "Untitled page" : item.term;
   const PageIcon = item.pageFocus === PAGE_FOCUSES.source
     ? BookOpen
@@ -86,10 +87,10 @@ export default function ItemCard({
           )}
         </div>
 
-        {/* Clamped: a meaning with several lines must not stretch a row in a long list. */}
-        {!isPage && glosses && (
-          <div className="text-sm mt-0.5 whitespace-pre-wrap line-clamp-2" style={{ color: C.ink }}>
-            — {glosses}
+        {/* One meaning, clamped: a browsing row must not become a paragraph. */}
+        {!isPage && gloss && (
+          <div className="text-sm mt-0.5 line-clamp-2" style={{ color: C.ink }}>
+            — {gloss}
           </div>
         )}
         {roles.length > 0 && (
@@ -129,13 +130,7 @@ export default function ItemCard({
         {item.tags.length > 0 && (
           <div className="mt-2 flex gap-1.5 flex-wrap">
             {item.tags.map((t) => (
-              <span
-                key={t}
-                className="text-xs px-2 py-0.5 rounded-full"
-                style={{ background: C.penPale, color: C.penDark }}
-              >
-                {t}
-              </span>
+              <TagChip key={t} tag={t} />
             ))}
           </div>
         )}

@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
-import { C, Chip } from "../theme.jsx";
+import { X } from "lucide-react";
+import { C } from "../theme.jsx";
 import { suggestTags } from "../lib/tags.js";
+import { tagChipStyle } from "../lib/tagColors.js";
+import { useTagColors } from "./TagChip.jsx";
 
 /**
  * Tagging, with the vocabulary already in use visible while you type.
@@ -18,6 +21,9 @@ const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
 export default function TagInput({ tags = [], allTags = [], onChange, placeholder = "new tag" }) {
   const [draft, setDraft] = useState("");
+  // The editor wears the same colours as every other surface, so a tag never looks like two
+  // different things depending on where you meet it.
+  const tagColors = useTagColors();
 
   const suggestions = useMemo(
     () => suggestTags(allTags, draft, { exclude: tags }),
@@ -40,9 +46,21 @@ export default function TagInput({ tags = [], allTags = [], onChange, placeholde
     <div>
       <div className="flex flex-wrap gap-1.5 items-center">
         {tags.map((tag) => (
-          <Chip key={tag} onRemove={() => onChange(tags.filter((t) => t !== tag))}>
+          <span
+            key={tag}
+            className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs"
+            style={tagChipStyle(tag, tagColors)}
+          >
             {tag}
-          </Chip>
+            <button
+              type="button"
+              aria-label={`Remove tag ${tag}`}
+              onClick={() => onChange(tags.filter((t) => t !== tag))}
+              className="opacity-70"
+            >
+              <X size={12} />
+            </button>
+          </span>
         ))}
         <div className="flex items-center gap-1">
           <input

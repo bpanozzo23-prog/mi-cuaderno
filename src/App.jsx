@@ -12,7 +12,11 @@ import { isJournalEntry } from "./lib/journal.js";
 import { isDictKey } from "./db/ref/entries.js";
 import { getPinnedPageIds, setPagePinned } from "./db/collections.js";
 import { getPinnedLexicalIds, setLexicalPinned } from "./db/items.js";
+import { getPref, setPref } from "./db/db.js";
 import { FILTERS } from "./lib/filters.js";
+import { allTagsIn } from "./lib/tags.js";
+import { DEFAULT_SWATCH, TAG_COLORS_PREF, normalizeTagColors } from "./lib/tagColors.js";
+import { TagColorProvider } from "./components/TagChip.jsx";
 
 /**
  * Spanish pluralization for the header counts: only 1 takes the singular, 0 takes the plural.
@@ -36,6 +40,7 @@ export default function App() {
   const [routeTrail, setRouteTrail] = useState([baseRoute("cuaderno")]);
   const [pinnedPageIds, setPinnedPageIds] = useState([]);
   const [pinnedLexicalIds, setPinnedLexicalIds] = useState([]);
+  const [tagColors, setTagColors] = useState({});
   const notebook = useNotebook();
   const route = routeTrail[routeTrail.length - 1];
   const tab = route.tab;
@@ -81,6 +86,32 @@ export default function App() {
       current = false;
     };
   }, [notebook.items]);
+
+  // Hoisted for the same reason as the pin lists: five unrelated places render a tag, and they all
+  // have to agree. Pruning happens in memory only — a write on every launch is the kind of thing
+  // that is hard to explain later, and a colour left behind by a deleted tag harms nothing.
+  useEffect(() => {
+    let current = true;
+    const known = allTagsIn(notebook.items);
+    getPref(TAG_COLORS_PREF, {})
+      .then((stored) => {
+        if (current) setTagColors(normalizeTagColors(stored, known));
+      })
+      .catch(() => {
+        if (current) setTagColors({});
+      });
+    return () => {
+      current = false;
+    };
+  }, [notebook.items]);
+
+  async function changeTagColor(tag, swatchId) {
+    const next = { ...tagColors };
+    if (swatchId === DEFAULT_SWATCH.id) delete next[tag];
+    else next[tag] = swatchId;
+    setTagColors(next);
+    await setPref(TAG_COLORS_PREF, next);
+  }
 
   async function changePagePinned(pageId, pinned) {
     await setPagePinned(pageId, pinned);
@@ -212,6 +243,7 @@ export default function App() {
   }, [route.screen, tab, selectedId]);
 
   return (
+    <TagColorProvider colors={tagColors}>
     <div className="min-h-screen" style={{ background: C.paper, color: C.ink }}>
       <div className="max-w-md mx-auto min-h-screen relative" style={{ background: C.paper }}>
         {!hubOpen && (
@@ -307,7 +339,14 @@ export default function App() {
                 onSelect={openItem}
               />
             )}
-            {tab === "ajustes" && <Ajustes onDataReplaced={notebook.reload} />}
+            {tab === "ajustes" && (
+              <Ajustes
+                notebook={notebook}
+                tagColors={tagColors}
+                onTagColorChange={changeTagColor}
+                onDataReplaced={notebook.reload}
+              />
+            )}
           </>
         )}
 
@@ -337,5 +376,6 @@ export default function App() {
         </nav>
       </div>
     </div>
+    </TagColorProvider>
   );
 }

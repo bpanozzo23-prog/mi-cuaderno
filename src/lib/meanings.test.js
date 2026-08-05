@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   cleanMeanings,
+  firstMeaningGloss,
   meaningsFromTranslation,
   newMeaning,
   upgradeLexicalItemV1,
@@ -57,5 +58,26 @@ describe("personal meaning model", () => {
     expect(upgraded.meanings[0]).toMatchObject({ id: "meaning:generated", gloss: "take out" });
     expect(upgraded.notes).toBe("Keep me");
     expect(upgraded.updatedAt).toBe("unchanged");
+  });
+
+  describe("the one gloss a browsing card shows", () => {
+    it("takes the first, in the order the owner put them", () => {
+      const item = {
+        meanings: [newMeaning({ gloss: "to take out" }), newMeaning({ gloss: "to withdraw" })],
+      };
+
+      expect(firstMeaningGloss(item)).toBe("to take out");
+    });
+
+    it("skips a blank gloss rather than showing an empty line", () => {
+      const item = { meanings: [newMeaning(), newMeaning({ gloss: "to withdraw" })] };
+
+      expect(firstMeaningGloss(item)).toBe("to withdraw");
+    });
+
+    it("is empty for an entry with no meanings yet", () => {
+      expect(firstMeaningGloss({ meanings: [] })).toBe("");
+      expect(firstMeaningGloss(null)).toBe("");
+    });
   });
 });

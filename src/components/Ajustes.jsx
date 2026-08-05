@@ -15,7 +15,10 @@ import { downloadJson, readFileAsText } from "../lib/file.js";
 import { daysSince } from "../lib/dates.js";
 import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
 import DictionaryCard from "./DictionaryCard.jsx";
+import TagChip from "./TagChip.jsx";
 import { installedMeta } from "../db/ref/entries.js";
+import { tagCountsIn } from "../lib/organization.js";
+import { TAG_SWATCHES, tagSwatchId } from "../lib/tagColors.js";
 
 function backupAgeLabel(iso) {
   if (!iso) return "never";
@@ -26,7 +29,7 @@ function backupAgeLabel(iso) {
   return `${days} days ago`;
 }
 
-export default function Ajustes({ onDataReplaced }) {
+export default function Ajustes({ notebook, tagColors = {}, onTagColorChange, onDataReplaced }) {
   const [storage, setStorage] = useState(null);
   const [lastBackup, setLastBackup] = useState(null);
   const [counts, setCounts] = useState({ items: 0, events: 0 });
@@ -103,6 +106,9 @@ export default function Ajustes({ onDataReplaced }) {
 
   const persisted = storage?.persisted === true;
   const refused = storage?.requested && storage?.persisted === false;
+  // Derived at render from the notebook already in memory, the same way tag suggestions are: a tag
+  // becomes colourable the moment it is used anywhere, and stops being listed when it is not.
+  const tags = tagCountsIn(notebook?.items || []);
 
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
@@ -225,6 +231,60 @@ export default function Ajustes({ onDataReplaced }) {
       </Card>
 
       <DictionaryCard onInstalled={refreshDictionary} />
+
+      <SectionTitle>Tag colors</SectionTitle>
+      <Card>
+        {tags.length === 0 ? (
+          <div className="text-sm" style={{ color: C.mut }}>
+            Tags you add to words, phrases and pages appear here, ready to colour.
+          </div>
+        ) : (
+          <>
+            <div className="text-sm" style={{ color: C.mut }}>
+              A colour applies to that tag everywhere it appears.
+            </div>
+            <div className="mt-3 space-y-4">
+              {tags.map(({ tag, count }) => (
+                <div key={tag}>
+                  <div className="flex items-baseline gap-2">
+                    <TagChip tag={tag} />
+                    <span className="text-xs" style={{ fontFamily: MONO, color: C.mut }}>
+                      {count === 1 ? "1 entry" : `${count} entries`}
+                    </span>
+                  </div>
+                  <div
+                    className="mt-1 flex flex-wrap gap-1"
+                    role="group"
+                    aria-label={`Colour for ${tag}`}
+                  >
+                    {TAG_SWATCHES.map((swatch) => {
+                      const active = tagSwatchId(tag, tagColors) === swatch.id;
+                      return (
+                        <button
+                          key={swatch.id}
+                          type="button"
+                          aria-label={`${swatch.label} for ${tag}`}
+                          aria-pressed={active}
+                          onClick={() => onTagColorChange?.(tag, swatch.id)}
+                          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg"
+                        >
+                          <span
+                            className="inline-block h-6 w-6 rounded-full border-2"
+                            style={{
+                              background: swatch.background === "transparent" ? C.card : swatch.background,
+                              borderColor: active ? C.pen : swatch.border,
+                            }}
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </Card>
 
       <SectionTitle>About</SectionTitle>
       <Card>

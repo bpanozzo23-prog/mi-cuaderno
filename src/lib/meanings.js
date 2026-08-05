@@ -145,6 +145,14 @@ export function upgradeLexicalItemV1(item, idFactory = newMeaningKey) {
 export const meaningGlosses = (item) => (item?.meanings || []).map((meaning) => meaning.gloss).filter(Boolean);
 export const meaningGlossText = (item, separator = "\n") => meaningGlosses(item).join(separator);
 
+/**
+ * The one meaning a browsing card shows. A word with five senses would otherwise turn its row into
+ * a paragraph, and the first meaning is the one the owner ordered first. Every other surface —
+ * search, the entry itself, the pickers that exist to tell similar words apart — still reads them
+ * all.
+ */
+export const firstMeaningGloss = (item) => meaningGlosses(item)[0] || "";
+
 export const meaningContextText = (item) =>
   (item?.meanings || [])
     .flatMap((meaning) => [

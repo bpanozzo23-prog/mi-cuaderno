@@ -145,6 +145,34 @@ describe("import: replace and restore", () => {
     expect(validateBackup(older).ok).toBe(true);
   });
 
+  it("round-trips tag colours, accepts a file written before they existed, and refuses an invented one", async () => {
+    const word = makeLexical({ id: "user:coloured", term: "chingar", tags: ["Slang", "Vulgar"] });
+    await db.items.bulkAdd([word]);
+    await setPref("tagColors", { Slang: "red", Vulgar: "plum" });
+
+    const text = JSON.stringify(await buildBackup());
+    await clearAllPersonalData();
+    await importBackup(text);
+
+    expect(await getPref("tagColors")).toEqual({ Slang: "red", Vulgar: "plum" });
+
+    // Absent is valid, which is why colours needed no schema-version change.
+    const older = JSON.parse(text);
+    delete older.preferences.tagColors;
+    expect(validateBackup(older).ok).toBe(true);
+
+    // A hand-edited file must not be able to restore a colour the palette has never heard of.
+    const invented = JSON.parse(text);
+    invented.preferences.tagColors = { Slang: "chartreuse" };
+    const checked = validateBackup(invented);
+    expect(checked.ok).toBe(false);
+    expect(checked.errors.join(" ")).toMatch(/tagColors\.Slang is not a known colour/);
+
+    const wrongShape = JSON.parse(text);
+    wrongShape.preferences.tagColors = ["red"];
+    expect(validateBackup(wrongShape).ok).toBe(false);
+  });
+
   it("round-trips collection group/item order and pinned page preferences", async () => {
     const first = makeLexical({ id: "user:first", term: "qué tal" });
     const second = makeLexical({ id: "user:second", term: "cómo" });

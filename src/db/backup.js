@@ -25,6 +25,7 @@ import { isPageProfile } from "../lib/pageProfiles.js";
 import { PINNED_PAGE_IDS_PREF } from "../lib/pageKinds.js";
 import { validatePageStructures } from "../lib/pageKinds.js";
 import { PINNED_LEXICAL_IDS_PREF } from "../lib/lexicalViews.js";
+import { TAG_COLORS_PREF, TAG_SWATCHES } from "../lib/tagColors.js";
 import {
   isDirectionalRelationshipType,
   RELATIONSHIP_SUBJECTS,
@@ -456,6 +457,31 @@ function validateV3References(userItems, preferences, errors) {
 }
 
 /**
+ * Tag colours. Same contract as the pin lists: absent is always valid, so a backup written before
+ * colours existed still restores, which is why they needed no schema-version change. Present, every
+ * value must name a swatch this build knows — a hand-edited file cannot inject a colour the palette
+ * has never heard of. Tags no longer in the notebook are left alone; an unused colour is harmless
+ * and the owner may be restoring the entries that carry it.
+ */
+function validateTagColorsPreference(preferences, errors) {
+  if (!Object.prototype.hasOwnProperty.call(preferences, TAG_COLORS_PREF)) return;
+  const colors = preferences[TAG_COLORS_PREF];
+  if (typeof colors !== "object" || colors === null || Array.isArray(colors)) {
+    errors.push(`preferences.${TAG_COLORS_PREF} must be an object`);
+    return;
+  }
+  for (const [tag, swatchId] of Object.entries(colors)) {
+    if (!isNonEmptyString(tag)) {
+      errors.push(`preferences.${TAG_COLORS_PREF} keys must be tags`);
+      continue;
+    }
+    if (!TAG_SWATCHES.some((swatch) => swatch.id === swatchId)) {
+      errors.push(`preferences.${TAG_COLORS_PREF}.${tag} is not a known colour`);
+    }
+  }
+}
+
+/**
  * One pin list. Absent is always valid — a backup written before a given pin surface existed must
  * still restore, which is also why adding the lexical list needed no schema-version change.
  */
@@ -507,6 +533,10 @@ function validateSchemaState(userItems, events, preferences, schemaVersion, erro
     if (item && seenItemIds.has(item.id)) errors.push(`Duplicate item id "${item.id}".`);
     if (item) seenItemIds.add(item.id);
   }
+
+  // Not version-gated: tag colours reference nothing in the notebook, so the check is the same
+  // whatever schema the file was written at.
+  validateTagColorsPreference(preferences, errors);
 
   if (schemaVersion >= 3) validateV3References(userItems, preferences, errors);
   if (schemaVersion >= 4) validateV4References(userItems, errors);

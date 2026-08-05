@@ -90,6 +90,36 @@ describe("page cards", () => {
   });
 });
 
+describe("the meaning a card shows", () => {
+  const meaning = (gloss) => ({
+    id: `meaning:${gloss}`,
+    gloss,
+    usageCue: "",
+    regions: [],
+    usageLabels: [],
+    posOverride: "",
+    verbBehavior: [],
+    note: "",
+    examples: [],
+  });
+
+  it("shows the first meaning only, behind a dash", () => {
+    const word = lexical("user:word", "sacar");
+    word.meanings = [meaning("to take out"), meaning("to withdraw")];
+
+    render(<ItemCard item={word} onOpen={vi.fn()} />);
+
+    expect(screen.getByText("— to take out")).toBeTruthy();
+    expect(screen.queryByText(/to withdraw/)).toBeNull();
+  });
+
+  it("shows no meaning line at all for an entry that has none yet", () => {
+    render(<ItemCard item={lexical("user:bare", "madrugar")} onOpen={vi.fn()} />);
+
+    expect(screen.queryByText(/^—/)).toBeNull();
+  });
+});
+
 describe("global lexical-result contexts", () => {
   it("shows the first active page and a count of the rest", () => {
     const word = lexical("user:word", "nomás");

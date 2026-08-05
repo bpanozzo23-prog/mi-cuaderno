@@ -1,5 +1,4 @@
 /** Design tokens and small shared pieces, lifted from the prototype (docs/mi-cuaderno.jsx). */
-import { X } from "lucide-react";
 
 export const C = {
   paper: "#FAF9F4",
@@ -62,7 +61,12 @@ export function SectionTitle({ children }) {
   );
 }
 
-export function Chip({ children, active, onClick, onRemove, title, className = "" }) {
+/**
+ * A filter control, and only that. It was doing double duty as a plain display chip for tags until
+ * tags grew owner-chosen colours and moved to `TagChip`; what is left is one shape with one job,
+ * so `active`/`aria-pressed` is always meaningful.
+ */
+export function Chip({ children, active, onClick, title, className = "" }) {
   return (
     <button
       onClick={onClick}
@@ -76,16 +80,6 @@ export function Chip({ children, active, onClick, onRemove, title, className = "
       }
     >
       {children}
-      {onRemove && (
-        <X
-          size={12}
-          className="opacity-70"
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove();
-          }}
-        />
-      )}
     </button>
   );
 }

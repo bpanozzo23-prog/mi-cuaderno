@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import LexicalHub from "./LexicalHub.jsx";
-import { learningBadge } from "./LexicalHubCard.jsx";
 import { newGrammarExample, newGrammarSection, newSourceCapture } from "../lib/pageKinds.js";
 
 const at = (day) => `2026-08-${String(day).padStart(2, "0")}T10:00:00.000Z`;
@@ -277,39 +276,48 @@ describe("the Words & phrases hub", () => {
       expect(screen.queryByRole("button", { name: /Start/ })).toBeNull();
     });
 
-    it("badges a due word on its card", () => {
+    it("keeps the queue's verdict off the browsing card", () => {
+      const graduatedEvents = [1, 2, 3, 4, 5].map((n) => ({
+        id: `g${n}`,
+        type: "review_pass",
+        itemKey: quiet.id,
+        at: at(n),
+        localDate: `2026-08-0${n}`,
+        metadata: { grade: 1 },
+      }));
+      render(<LexicalHub {...propsFor(items, {
+        notebook: { items, itemState: new Map(), events: [...events, ...graduatedEvents], reload: vi.fn() },
+      })} />);
+
+      // Due, retired and box are all real states here; none of them belongs on a card the owner
+      // is scanning, because none can be acted on from it (§12 — grading is Repaso's).
+      expect(within(cardShell("trasnochar")).queryByText("Due today")).toBeNull();
+      expect(within(cardShell("dormir")).queryByText("Retired")).toBeNull();
+      expect(within(cardShell("madrugar")).queryByText(/^Box /)).toBeNull();
+    });
+
+    it("still marks a tricky word on its card", () => {
       render(<LexicalHub {...propsFor(items, {
         notebook: { items, itemState: new Map(), events, reload: vi.fn() },
       })} />);
 
-      expect(within(card("trasnochar")).getByText("Due today")).toBeTruthy();
+      // The highlighter is the owner's own mark, not the queue's, so it stays.
+      expect(within(card("madrugar")).getByText("madrugar").style.backgroundImage).toContain("linear-gradient");
+      expect(within(card("dormir")).getByText("dormir").style.backgroundImage).toBe("");
     });
+  });
 
-    it("says nothing about the Leitner box of a word that is only waiting its turn", () => {
-      const waiting = lexical("acordarse");
-      render(<LexicalHub {...propsFor([waiting], {
-        notebook: {
-          items: [waiting],
-          events: [
-            // Dated well ahead so the word is enrolled but not yet due whenever this runs; the
-            // review state is derived against the real current date.
-            { id: "e1", type: "review_pass", itemKey: waiting.id, at: "2099-01-01T10:00:00.000Z", localDate: "2099-01-01", metadata: { grade: 1 } },
-          ],
-          itemState: new Map(),
-          reload: vi.fn(),
-        },
-      })} />);
-
-      expect(within(cardShell("acordarse")).queryByText(/^Box /)).toBeNull();
+  it("shows one meaning behind a dash, however many the word has", () => {
+    const sacar = lexical("sacar", {
+      meanings: [
+        { id: "meaning:1", gloss: "to take out", usageCue: "", regions: [], usageLabels: [], posOverride: "", verbBehavior: [], note: "", examples: [] },
+        { id: "meaning:2", gloss: "to withdraw", usageCue: "", regions: [], usageLabels: [], posOverride: "", verbBehavior: [], note: "", examples: [] },
+      ],
     });
+    render(<LexicalHub {...propsFor([sacar])} />);
 
-    it("badges only the states worth acting on", () => {
-      expect(learningBadge({ graduated: true })?.label).toBe("Retired");
-      expect(learningBadge({ enrolled: true, due: true })?.label).toBe("Due today");
-      expect(learningBadge({ enrolled: false })).toBeNull();
-      // The box number is scheduler bookkeeping shown nowhere else in the app.
-      expect(learningBadge({ enrolled: true, due: false, box: 2 })).toBeNull();
-    });
+    expect(within(card("sacar")).getByText("— to take out")).toBeTruthy();
+    expect(within(card("sacar")).queryByText(/to withdraw/)).toBeNull();
   });
 
   it("carries the completeness views over from Cuaderno", async () => {

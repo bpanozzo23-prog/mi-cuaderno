@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Card, SectionTitle, Button } from "../theme.jsx";
 import { allTagsIn } from "../lib/tags.js";
+import TagChip from "./TagChip.jsx";
 import { deriveCollection, NOT_GROUPED_LABEL } from "../lib/collections.js";
 import {
   connectionsFor,
@@ -946,7 +947,7 @@ export default function CollectionPage({
             <>
               <SectionTitle>Tags</SectionTitle>
               <div className="flex flex-wrap gap-1.5">
-                {item.tags.map((tag) => <span key={tag} className="rounded-full border px-2 py-1 text-xs" style={{ background: C.penPale, borderColor: C.line, color: C.penDark }}>{tag}</span>)}
+                {item.tags.map((tag) => <TagChip key={tag} tag={tag} className="py-1" />)}
               </div>
             </>
           )}

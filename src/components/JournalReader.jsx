@@ -5,6 +5,7 @@ import { linkItems, setLinkRelationship, unlinkItems } from "../db/items.js";
 import { logView } from "../db/events.js";
 import { resolveLinkedKeys } from "../db/linkedEntries.js";
 import { localDate } from "../lib/dates.js";
+import TagChip from "./TagChip.jsx";
 import { isJournalEntry, sortJournalEntries } from "../lib/journal.js";
 import {
   connectionsFor,
@@ -193,9 +194,7 @@ export default function JournalReader({
       {entry.tags?.length > 0 && (
         <div className="mt-5 flex flex-wrap gap-1.5">
           {entry.tags.map((tag) => (
-            <span key={tag} className="rounded-full px-2.5 py-1 text-xs" style={{ background: C.penPale, color: C.penDark }}>
-              {tag}
-            </span>
+            <TagChip key={tag} tag={tag} className="px-2.5 py-1" />
           ))}
         </div>
       )}
