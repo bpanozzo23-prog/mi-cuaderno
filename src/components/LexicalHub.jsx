@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, Plus, Search, SlidersHorizontal } from "lucide-react";
-import { C, Chip, MONO, SERIF } from "../theme.jsx";
+import { ChevronLeft, Play, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { Button, C, Chip, MONO, SERIF } from "../theme.jsx";
 import AddSheet from "./AddSheet.jsx";
 import LexicalHubCard from "./LexicalHubCard.jsx";
+import PracticeSession from "./PracticeSession.jsx";
+import PracticeSetupSheet from "./PracticeSetupSheet.jsx";
 import SearchBar from "./SearchBar.jsx";
 import { emptyItemState } from "../useNotebook.js";
 import { searchItems } from "../lib/search.js";
@@ -23,13 +25,14 @@ import {
   matchesLearningFilter,
   pageContextIndex,
 } from "../lib/lexicalViews.js";
+import { buildPracticeDeck, isPracticeEligible } from "../lib/practice.js";
 
 /**
  * The Words & phrases hub (Phase 8) — the lexical twin of the Pages hub.
  *
- * Everything it organizes by is derived at render from the notebook and the event log; nothing
- * here is stored, and no control state survives leaving the hub. It shows review state but never
- * offers a session: grading stays in Repaso (§12).
+ * Everything it organizes by is derived at render from the notebook and the event log. The hub's
+ * free-practice session is also transient: it snapshots the currently filtered personal entries
+ * and never writes the scheduled-review events that remain exclusive to Repaso (§12).
  */
 
 const FORM_OPTIONS = [
@@ -106,6 +109,8 @@ export default function LexicalHub({
   const [tagFilter, setTagFilter] = useState(null);
   const [refineOpen, setRefineOpen] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [practiceSetupOpen, setPracticeSetupOpen] = useState(false);
+  const [practiceCards, setPracticeCards] = useState(null);
 
   // The chip the owner tapped in Cuaderno arrives as a fresh request object each time, so tapping
   // "frases" twice still selects Phrases even after they changed the chip inside the hub.
@@ -176,6 +181,13 @@ export default function LexicalHub({
   const pinnedIds = useMemo(() => new Set(pinnedLexicalIds), [pinnedLexicalIds]);
   const pinnedItems = ordered.filter((item) => pinnedIds.has(item.id));
   const otherItems = ordered.filter((item) => !pinnedIds.has(item.id));
+  // This is the order the owner can actually see: pins lead while browsing and relevance leads
+  // while searching. The preflight may preserve it or deliberately shuffle it.
+  const practiceSource = searching
+    ? searchResults.map(({ item }) => item)
+    : [...pinnedItems, ...otherItems];
+  const practiceEligibleCount = practiceSource.filter(isPracticeEligible).length;
+  const practiceOmittedCount = practiceSource.length - practiceEligibleCount;
   const indexed = browseOrder === BROWSE_ORDERS.alphabetical;
   const letterGroups = useMemo(
     () => indexed ? groupByInitial(otherItems) : [],
@@ -197,6 +209,13 @@ export default function LexicalHub({
     else setSearchOpen(false);
   }
 
+  function startPractice(options) {
+    const deck = buildPracticeDeck(practiceSource, options);
+    if (deck.length === 0) return;
+    setPracticeCards(deck);
+    setPracticeSetupOpen(false);
+  }
+
   const renderCard = (item, reason = null) => (
     <LexicalHubCard
       key={item.id}
@@ -210,6 +229,16 @@ export default function LexicalHub({
       onPinnedChange={onLexicalPinnedChange}
     />
   );
+
+  if (practiceCards) {
+    return (
+      <PracticeSession
+        cards={practiceCards}
+        onFinish={() => setPracticeCards(null)}
+        onOpen={onSelect}
+      />
+    );
+  }
 
   return (
     <>
@@ -397,6 +426,35 @@ export default function LexicalHub({
           </div>
         )}
 
+        <section
+          aria-label="Free practice"
+          className="mt-5 rounded-xl border p-4"
+          style={{ background: C.card, borderColor: C.line }}
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold" style={{ color: C.ink }}>Practice this view</h2>
+              <p className="mt-1 text-xs leading-relaxed" style={{ color: C.mut }}>
+                {practiceEligibleCount > 0
+                  ? `${practiceEligibleCount} answerable ${practiceEligibleCount === 1 ? "card" : "cards"}`
+                  : "No answerable cards in this view"}
+                {practiceOmittedCount > 0
+                  && ` · ${practiceOmittedCount} ${practiceOmittedCount === 1 ? "needs" : "need"} a meaning`}
+              </p>
+            </div>
+            <Button
+              className="min-h-11 shrink-0"
+              disabled={practiceEligibleCount === 0}
+              onClick={() => setPracticeSetupOpen(true)}
+            >
+              <Play size={15} /> Practice
+            </Button>
+          </div>
+          <p className="mt-2 text-xs" style={{ color: C.mut }}>
+            Free practice stays in this session and does not change your Repaso schedule.
+          </p>
+        </section>
+
         <div className="mt-8 space-y-8">
           {searching ? (
             searchResults.length > 0 ? (
@@ -486,6 +544,15 @@ export default function LexicalHub({
             reload();
             onSelect(id);
           }}
+        />
+      )}
+
+      {practiceSetupOpen && (
+        <PracticeSetupSheet
+          eligibleCount={practiceEligibleCount}
+          omittedCount={practiceOmittedCount}
+          onClose={() => setPracticeSetupOpen(false)}
+          onStart={startPractice}
         />
       )}
     </>

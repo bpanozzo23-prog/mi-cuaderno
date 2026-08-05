@@ -733,6 +733,15 @@ and diff check pass. GitHub Pages deployment completed successfully; the disposa
 closeout remains unverified. See
 [PHASE-7-REPORT.md](PHASE-7-REPORT.md).
 
+### Phase 9 free-practice outcome — 2026-08-05
+
+The owner approved a separate filtered free-practice flow in the Words & phrases hub. It uses the
+hub's current result set, a transient 10/20/All and shuffle/current-order preflight, entry-level
+Spanish-first cards, and session-only Again/Got it feedback with optional missed-only rounds. This
+does **not** expand Vocabulary-page Practice: Collection order, reveal-only behavior and lack of
+history remain unchanged. It also does not integrate with scheduled Repaso or persist a grade,
+score, deck, history or schedule. See [PHASE-9-DIRECTION.md](PHASE-9-DIRECTION.md).
+
 ---
 
 ## Personal-content provenance

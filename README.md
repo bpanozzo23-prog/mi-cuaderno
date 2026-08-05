@@ -76,6 +76,16 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   numerically; **no visual screenshot was captured**, because the in-app browser pane does not
   composite frames. See [docs/PHASE-8-DIRECTION.md](docs/PHASE-8-DIRECTION.md) and
   [docs/PHASE-8-REPORT.md](docs/PHASE-8-REPORT.md).
+- **Phase 9 — implemented locally; not deployed.** The Words & phrases hub can turn its current
+  filters or search into an anytime Spanish-first flashcard deck. A transient preflight chooses
+  10, 20 or All cards and shuffled or current hub order; entries without meanings are excluded and
+  explained. Again/Got it feedback and missed-only rounds stay in memory and never change Repaso's
+  event-backed Leitner schedule. No schema, preference, backup or event change: `SCHEMA_VERSION`
+  remains 5. The full serial suite passes 662/662 across 64 files, the production build and diff
+  check pass, the missing-meaning red/green proof behaved as intended, and a disposable
+  375×812 visual browser flow passed without overflow, warnings or errors. See
+  [docs/PHASE-9-DIRECTION.md](docs/PHASE-9-DIRECTION.md) and
+  [docs/PHASE-9-REPORT.md](docs/PHASE-9-REPORT.md).
 
 `SCHEMA_VERSION` is **5**. Before Dexie opens v5, schema-v1 through schema-v4 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,

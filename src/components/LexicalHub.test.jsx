@@ -400,6 +400,80 @@ describe("the Words & phrases hub", () => {
     });
   });
 
+  describe("free practice", () => {
+    it("reports answerable and incomplete matches, then practices only eligible cards", async () => {
+      const user = userEvent.setup();
+      const ready = lexical("dormir");
+      const incomplete = lexical("madrugar", { meanings: [] });
+      render(<LexicalHub {...propsFor([ready, incomplete])} />);
+
+      const practice = screen.getByRole("region", { name: "Free practice" });
+      expect(within(practice).getByText("1 answerable card · 1 needs a meaning")).toBeTruthy();
+      await user.click(within(practice).getByRole("button", { name: "Practice" }));
+
+      expect(screen.getByRole("dialog", { name: "Set up practice" })).toBeTruthy();
+      expect(screen.getByText("Practice 1 of 1 eligible card. 1 entry needs a meaning.")).toBeTruthy();
+      await user.click(screen.getByRole("button", { name: "Hub order" }));
+      await user.click(screen.getByRole("button", { name: "Start 1-card practice" }));
+
+      expect(screen.getByText("dormir")).toBeTruthy();
+      expect(screen.queryByText("madrugar")).toBeNull();
+    });
+
+    it("uses the active form and search narrowing as the deck source", async () => {
+      const user = userEvent.setup();
+      render(<LexicalHub {...propsFor([
+        lexical("dormir"),
+        lexical("dormir a pierna suelta", { id: "user:phrase", form: "phrase" }),
+        lexical("dar con", { id: "user:dar-con", form: "phrase" }),
+      ])} />);
+
+      await user.click(screen.getByRole("button", { name: "Phrases" }));
+      await search(user, "dormir");
+
+      const practice = screen.getByRole("region", { name: "Free practice" });
+      expect(within(practice).getByText("1 answerable card")).toBeTruthy();
+      await user.click(within(practice).getByRole("button", { name: "Practice" }));
+      await user.click(screen.getByRole("button", { name: "Hub order" }));
+      await user.click(screen.getByRole("button", { name: "Start 1-card practice" }));
+
+      expect(screen.getByText("dormir a pierna suelta")).toBeTruthy();
+      expect(screen.queryByText("dormir", { exact: true })).toBeNull();
+      expect(screen.queryByText("dar con")).toBeNull();
+    });
+
+    it("disables Practice when the current view has no meanings", async () => {
+      const user = userEvent.setup();
+      render(<LexicalHub {...propsFor([
+        lexical("madrugar", { meanings: [] }),
+        lexical("dormir"),
+      ])} />);
+      await openRefine(user);
+      await choose(user, "Vocabulary view", "missing-meaning");
+
+      expect(screen.getByText("No answerable cards in this view · 1 needs a meaning")).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Practice" }).disabled).toBe(true);
+    });
+
+    it("preserves a revealed session while an entry detail temporarily hides the hub", async () => {
+      const user = userEvent.setup();
+      const items = [lexical("dormir")];
+      const { rerender } = render(<LexicalHub {...propsFor(items)} />);
+
+      await user.click(screen.getByRole("button", { name: "Practice" }));
+      await user.click(screen.getByRole("button", { name: "Hub order" }));
+      await user.click(screen.getByRole("button", { name: "Start 1-card practice" }));
+      await user.click(screen.getByRole("button", { name: "Reveal meanings" }));
+      expect(screen.getByText("meaning of dormir")).toBeTruthy();
+
+      rerender(<LexicalHub {...propsFor(items, { active: false })} />);
+      rerender(<LexicalHub {...propsFor(items, { active: true })} />);
+
+      expect(screen.getByText("meaning of dormir")).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Got it" })).toBeTruthy();
+    });
+  });
+
   describe("empty states", () => {
     it("distinguishes an empty notebook from an over-narrow filter", async () => {
       const user = userEvent.setup();
