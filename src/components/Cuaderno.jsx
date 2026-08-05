@@ -56,6 +56,8 @@ export default function Cuaderno({
   backLabel = "Todo el cuaderno",
   onOpenSettings,
   onOpenPages,
+  onOpenLexical,
+  seedQuery = null,
   pinnedPageIds = [],
   onPagePinnedChange,
 }) {
@@ -79,13 +81,33 @@ export default function Cuaderno({
     installedMeta().then(setDictionary);
   }, [selectedId]);
 
+  /**
+   * Three of the four chips are doors rather than filters: pages have had their own hub since
+   * Phase 4z, and words and phrases got theirs in Phase 8. What stays here is `todo` — one mixed
+   * list, and the only place a search spans both layers (§8).
+   *
+   * Each falls back to filtering in place when its hub is not wired up, so this component still
+   * stands alone in a test.
+   */
   function changeTypeFilter(next) {
     if (next === FILTERS.page && onOpenPages) {
       onOpenPages();
       return;
     }
+    if ((next === FILTERS.word || next === FILTERS.phrase) && onOpenLexical) {
+      onOpenLexical(next);
+      return;
+    }
     setTypeFilter(next);
   }
+
+  // A query handed over from the Words & phrases hub, which searches personal vocabulary only.
+  // Keyed so handing over the same text twice still re-applies it after the owner edits the box.
+  useEffect(() => {
+    if (!seedQuery?.key) return;
+    setQuery(seedQuery.text || "");
+    setTypeFilter(FILTERS.all);
+  }, [seedQuery]);
 
   // Maintenance must see the COMPLETE personal notebook. A page filtered out by the type
   // controls may still be the only item linking back to a word.

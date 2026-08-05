@@ -217,7 +217,7 @@ export default function PageHub({
               value={query}
               onChange={setQuery}
               resultCount={searchResults.length}
-              onMissLogged={reload}
+              logMisses={false}
               placeholder="Search your pages and their vocabulary…"
               inputLabel="Search pages"
               autoFocus

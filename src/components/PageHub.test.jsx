@@ -4,6 +4,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PageHub from "./PageHub.jsx";
+import SearchBar, { SEARCH_SETTLE_MS } from "./SearchBar.jsx";
+import { logEvent } from "../db/events.js";
+
+vi.mock("../db/events.js", async (importOriginal) => ({
+  ...(await importOriginal()),
+  logEvent: vi.fn(),
+}));
 
 const at = (day) => `2026-08-${String(day).padStart(2, "0")}T10:00:00.000Z`;
 
@@ -205,6 +212,36 @@ describe("Pages hub", () => {
     await user.type(search, "año");
     expect(card("Año nuevo")).toBeTruthy();
   });
+
+  /**
+   * §7's miss list answers "words I could not find anywhere", and Repaso pools every miss into one
+   * chip list with no record of which surface produced it. This hub searches only pages and never
+   * consults the dictionary, so a fruitless search here proves nothing about whether the word
+   * exists — Cuaderno's mixed list is the one surface entitled to log a miss.
+   *
+   * The bare SearchBar below is the positive control: it shares this test's mock and timers, so
+   * if the logging path ever stopped working the absence assertion could not quietly pass.
+   */
+  it("logs no search miss, though the same settled query would log one from a full-scope search", async () => {
+    const settle = () => new Promise((resolve) => setTimeout(resolve, SEARCH_SETTLE_MS + 200));
+    const user = userEvent.setup();
+    const hub = render(<PageHub {...propsFor([page("Restaurant notes")])} />);
+
+    await user.click(screen.getByRole("button", { name: "Search pages" }));
+    await user.type(screen.getByRole("textbox", { name: "Search pages" }), "madrugar");
+    expect(screen.getByText(/No Pages match/)).toBeTruthy();
+    await settle();
+
+    expect(logEvent).not.toHaveBeenCalled();
+    hub.unmount();
+
+    // The positive control: same settle, a search that speaks for the whole notebook must log.
+    // A distinct query keeps it independent of SearchBar's session-level de-duplication.
+    render(<SearchBar value="trasnochar" onChange={() => {}} resultCount={0} />);
+    await settle();
+
+    expect(logEvent).toHaveBeenCalledWith("search_miss", null, { query: "trasnochar" });
+  }, 15000);
 
   it("opens page creation directly from the focused header", async () => {
     const user = userEvent.setup();

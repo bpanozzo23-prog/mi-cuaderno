@@ -68,7 +68,14 @@ function normalizedPageSeed(pageStarter) {
   return defaultSeed;
 }
 
-export default function AddSheet({ kind, pageStarter = null, items = [], onClose, onCreated }) {
+export default function AddSheet({
+  kind,
+  pageStarter = null,
+  initialForm = null,
+  items = [],
+  onClose,
+  onCreated,
+}) {
   const isPage = kind === "page";
   const seed = useMemo(() => normalizedPageSeed(pageStarter), [pageStarter]);
   const isCopy = isPage && Boolean(seed.copySourcePageId);
@@ -87,8 +94,11 @@ export default function AddSheet({ kind, pageStarter = null, items = [], onClose
    * in it starts as a phrase, which is what quick-create-and-link already infers (Detail.jsx).
    * Once they pick a side it stays picked, so "buenos días" can still be filed as a word if
    * that is what they mean.
+   *
+   * Opening from the hub's Words or Phrases chip seeds the CHOICE rather than the inference, so
+   * adding from Phrases keeps a single-word term filed as a phrase.
    */
-  const [formChoice, setFormChoice] = useState(null);
+  const [formChoice, setFormChoice] = useState(initialForm === "phrase" || initialForm === "word" ? initialForm : null);
   const form = formChoice ?? (term.trim().includes(" ") ? "phrase" : "word");
   const [pos, setPos] = useState("");
   const [title, setTitle] = useState("");

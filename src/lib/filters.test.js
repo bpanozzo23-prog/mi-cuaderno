@@ -38,14 +38,15 @@ describe("the type filter tells words and phrases apart", () => {
 });
 
 describe("when the dictionary belongs in the results", () => {
-  it("joins todo and palabras", () => {
+  it("joins todo, the only type state the root list still holds", () => {
     expect(wantsDictionary(FILTERS.all, null)).toBe(true);
-    expect(wantsDictionary(FILTERS.word, null)).toBe(true);
   });
 
-  it("stays out of frases and páginas", () => {
-    // The bundled dictionary is lemma-focused (§1): under a phrase filter it would be a wall
-    // of single words. Under páginas it was already suppressed (Phase 2e).
+  it("stays out of every state that means look through my own things", () => {
+    // Since Phase 8 the other three chips are doors to their hubs, and both hubs search their
+    // own content without the dictionary. These stay false so the root list cannot show
+    // reference entries if a type filter is ever restored to it.
+    expect(wantsDictionary(FILTERS.word, null)).toBe(false);
     expect(wantsDictionary(FILTERS.phrase, null)).toBe(false);
     expect(wantsDictionary(FILTERS.page, null)).toBe(false);
   });

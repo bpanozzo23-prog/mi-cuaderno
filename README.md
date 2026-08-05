@@ -62,6 +62,20 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   successfully; the phone browser closeout remains explicitly unverified. See
   [docs/PHASE-7-DIRECTION.md](docs/PHASE-7-DIRECTION.md) and
   [docs/PHASE-7-REPORT.md](docs/PHASE-7-REPORT.md).
+- **Phase 8 — implemented locally, not deployed.** A dedicated **Words & phrases hub**, the lexical
+  twin of the Pages hub: one hub for both forms, reached by the `palabras` and `frases` chips that
+  now open it rather than filtering in place. It browses by where a word lives (Collection, Source,
+  Grammar guide, or no page yet), a read-only learning signal, the completeness views, and an A–Z
+  index with pinned vocabulary. Hub search covers personal vocabulary only and hands a miss to
+  Cuaderno's mixed list, which is still the one place a search spans both layers. No schema change:
+  `SCHEMA_VERSION` stays 5 and the new `pinnedLexicalIds` preference rides the existing generic
+  backup path. The Pages hub also stops logging search misses, so the Cuaderno root is now the only
+  surface that records one. The full serial suite passes 649/649 across 61 files, the production
+  build and `git diff --check` pass, and four deliberate red/green proofs behaved as intended. The 375×812
+  closeout passed on a disposable local origin by driving real DOM events and measuring layout
+  numerically; **no visual screenshot was captured**, because the in-app browser pane does not
+  composite frames. See [docs/PHASE-8-DIRECTION.md](docs/PHASE-8-DIRECTION.md) and
+  [docs/PHASE-8-REPORT.md](docs/PHASE-8-REPORT.md).
 
 `SCHEMA_VERSION` is **5**. Before Dexie opens v5, schema-v1 through schema-v4 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,

@@ -3,6 +3,7 @@ import { BookOpen, BarChart3, Settings, Loader2, PenLine } from "lucide-react";
 import { C, SERIF, MONO, Hi } from "./theme.jsx";
 import Cuaderno from "./components/Cuaderno.jsx";
 import PageHub from "./components/PageHub.jsx";
+import LexicalHub from "./components/LexicalHub.jsx";
 import Diario from "./components/Diario.jsx";
 import Repaso from "./components/Repaso.jsx";
 import Ajustes from "./components/Ajustes.jsx";
@@ -10,6 +11,8 @@ import { useNotebook } from "./useNotebook.js";
 import { isJournalEntry } from "./lib/journal.js";
 import { isDictKey } from "./db/ref/entries.js";
 import { getPinnedPageIds, setPagePinned } from "./db/collections.js";
+import { getPinnedLexicalIds, setLexicalPinned } from "./db/items.js";
+import { FILTERS } from "./lib/filters.js";
 
 /**
  * Spanish pluralization for the header counts: only 1 takes the singular, 0 takes the plural.
@@ -32,6 +35,7 @@ export default function App() {
   // Cuaderno → Diario → word → Back without a URL router or any stored navigation state.
   const [routeTrail, setRouteTrail] = useState([baseRoute("cuaderno")]);
   const [pinnedPageIds, setPinnedPageIds] = useState([]);
+  const [pinnedLexicalIds, setPinnedLexicalIds] = useState([]);
   const notebook = useNotebook();
   const route = routeTrail[routeTrail.length - 1];
   const tab = route.tab;
@@ -59,10 +63,36 @@ export default function App() {
     };
   }, [notebook.items]);
 
+  // The lexical pin list is hoisted for the same reason as the page one: hub cards and the
+  // preference stay synchronized without a schema, event or timestamp change (Phase 4z).
+  useEffect(() => {
+    let current = true;
+    const lexicalIds = new Set(
+      notebook.items.filter((item) => item.type === "lexical").map((item) => item.id)
+    );
+    getPinnedLexicalIds()
+      .then((ids) => {
+        if (current) setPinnedLexicalIds(ids.filter((id) => lexicalIds.has(id)));
+      })
+      .catch(() => {
+        if (current) setPinnedLexicalIds([]);
+      });
+    return () => {
+      current = false;
+    };
+  }, [notebook.items]);
+
   async function changePagePinned(pageId, pinned) {
     await setPagePinned(pageId, pinned);
     setPinnedPageIds((ids) =>
       pinned ? [...ids.filter((id) => id !== pageId), pageId] : ids.filter((id) => id !== pageId)
+    );
+  }
+
+  async function changeLexicalPinned(itemId, pinned) {
+    await setLexicalPinned(itemId, pinned);
+    setPinnedLexicalIds((ids) =>
+      pinned ? [...ids.filter((id) => id !== itemId), itemId] : ids.filter((id) => id !== itemId)
     );
   }
 
@@ -88,6 +118,33 @@ export default function App() {
         ? trail
         : [...trail, { tab: "cuaderno", screen: "pages", id: null }];
     });
+  }
+
+  /**
+   * The Words & phrases hub. The tapped chip travels as a keyed request rather than a bare value,
+   * so choosing *frases* twice still selects Phrases even after the owner changed the chip inside
+   * the hub — the same idiom the journal draft seed uses below.
+   */
+  function openLexical(form = FILTERS.all) {
+    setRouteTrail((trail) => {
+      const current = trail[trail.length - 1];
+      const formRequest = { form, key: Date.now() };
+      return current.tab === "cuaderno" && current.screen === "lexical"
+        ? [...trail.slice(0, -1), { ...current, formRequest }]
+        : [...trail, { tab: "cuaderno", screen: "lexical", id: null, formRequest }];
+    });
+  }
+
+  /**
+   * The hub searches personal vocabulary only, so a miss there is not proof the word does not
+   * exist. This carries the query back to the one list that spans both layers (§8), where the
+   * dictionary can answer and a genuine miss can be logged.
+   */
+  function searchEverything(text) {
+    setRouteTrail((trail) => [
+      ...trail,
+      { tab: "cuaderno", screen: "list", id: null, seedQuery: { text, key: Date.now() } },
+    ]);
   }
 
   function backFromDetail() {
@@ -132,6 +189,8 @@ export default function App() {
     ? "Atrás"
     : previousRoute?.screen === "pages"
       ? "Pages"
+    : previousRoute?.screen === "lexical"
+      ? "Words & phrases"
     : previousRoute?.tab && previousRoute.tab !== route.tab
       ? TABS.find((candidate) => candidate.id === previousRoute.tab)?.label
       : route.tab === "diario"
@@ -142,7 +201,9 @@ export default function App() {
   // Their local search/filter state then survives Journal → Back without becoming stored data.
   const cuadernoRoute = [...routeTrail].reverse().find((candidate) => candidate.tab === "cuaderno") || baseRoute("cuaderno");
   const diarioRoute = [...routeTrail].reverse().find((candidate) => candidate.tab === "diario") || baseRoute("diario");
-  const pageHubOpen = tab === "cuaderno" && cuadernoRoute.screen === "pages";
+  // Each hub brings its own focused header, so the app header steps aside for both of them.
+  const hubOpen = tab === "cuaderno"
+    && (cuadernoRoute.screen === "pages" || cuadernoRoute.screen === "lexical");
 
   // The document is the scroll container. A newly selected tab or detail must never inherit
   // a long source page's scroll offset and appear to open halfway down the destination.
@@ -153,7 +214,7 @@ export default function App() {
   return (
     <div className="min-h-screen" style={{ background: C.paper, color: C.ink }}>
       <div className="max-w-md mx-auto min-h-screen relative" style={{ background: C.paper }}>
-        {!pageHubOpen && (
+        {!hubOpen && (
           <header
             className="sticky top-0 z-20 px-4 pt-4 pb-3"
             style={{ background: C.paper, borderBottom: `1px solid ${C.line}` }}
@@ -191,7 +252,7 @@ export default function App() {
         ) : (
           <>
             <section hidden={tab !== "cuaderno"} aria-label="Cuaderno surface">
-              <div hidden={cuadernoRoute.screen === "pages"}>
+              <div hidden={cuadernoRoute.screen === "pages" || cuadernoRoute.screen === "lexical"}>
                 <Cuaderno
                   notebook={notebook}
                   selectedId={cuadernoRoute.screen === "detail" ? cuadernoRoute.id : null}
@@ -200,6 +261,8 @@ export default function App() {
                   backLabel={backLabel}
                   onOpenSettings={() => switchTab("ajustes")}
                   onOpenPages={openPages}
+                  onOpenLexical={openLexical}
+                  seedQuery={cuadernoRoute.seedQuery || null}
                   pinnedPageIds={pinnedPageIds}
                   onPagePinnedChange={changePagePinned}
                 />
@@ -211,6 +274,18 @@ export default function App() {
                   onPagePinnedChange={changePagePinned}
                   onSelect={openItem}
                   onBack={backFromDetail}
+                />
+              </div>
+              <div hidden={cuadernoRoute.screen !== "lexical"}>
+                <LexicalHub
+                  notebook={notebook}
+                  active={cuadernoRoute.screen === "lexical"}
+                  formRequest={cuadernoRoute.formRequest || null}
+                  pinnedLexicalIds={pinnedLexicalIds}
+                  onLexicalPinnedChange={changeLexicalPinned}
+                  onSelect={openItem}
+                  onBack={backFromDetail}
+                  onSearchDictionary={searchEverything}
                 />
               </div>
             </section>

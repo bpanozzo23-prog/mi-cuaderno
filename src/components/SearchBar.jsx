@@ -12,6 +12,10 @@ import { logEvent, EVENT_TYPES } from "../db/events.js";
  * `pending` is true while the dictionary lookup is still in flight. A miss means "I
  * looked for this and it does not exist" (§7); logging one before the reference layer
  * has answered would record words the dictionary was about to find.
+ *
+ * `logMisses` is the same rule for a search that never consults the dictionary at all. The
+ * Words & phrases hub searches only personal vocabulary, so it cannot tell a genuine miss from a
+ * word the dictionary holds — it hands the query to Cuaderno's mixed list, which can.
  */
 export const SEARCH_SETTLE_MS = 1500;
 const loggedThisSession = new Set();
@@ -22,6 +26,7 @@ export default function SearchBar({
   resultCount,
   pending = false,
   onMissLogged,
+  logMisses = true,
   placeholder = "Search words, meanings, notes, pages…",
   inputLabel = "Search notebook",
   autoFocus = false,
@@ -31,7 +36,7 @@ export default function SearchBar({
   useEffect(() => {
     clearTimeout(timer.current);
     const query = value.trim();
-    if (!query || resultCount > 0 || pending) return;
+    if (!query || resultCount > 0 || pending || !logMisses) return;
 
     timer.current = setTimeout(async () => {
       const key = query.toLowerCase();
@@ -42,7 +47,7 @@ export default function SearchBar({
     }, SEARCH_SETTLE_MS);
 
     return () => clearTimeout(timer.current);
-  }, [value, resultCount, pending]);
+  }, [value, resultCount, pending, logMisses]);
 
   return (
     <div

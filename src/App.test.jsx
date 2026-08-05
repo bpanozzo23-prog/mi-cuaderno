@@ -7,7 +7,11 @@ import { db, clearAllPersonalData } from "./db/db.js";
 import { allItems, createItem, getItem, linkItems, newLexical, newPage } from "./db/items.js";
 import { removeDictionary } from "./db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "./db/ref/refdb.js";
-import { FIXTURE_ENTRIES } from "./test/dictFixture.js";
+import {
+  FIXTURE_ENGLISH_SHARDS,
+  FIXTURE_ENTRIES,
+  FIXTURE_FORM_SHARDS,
+} from "./test/dictFixture.js";
 import { newMeaning } from "./lib/meanings.js";
 import { localDate } from "./lib/dates.js";
 
@@ -173,6 +177,83 @@ describe("Phase 4z Pages hub navigation", () => {
     await user.click(within(screen.getByRole("region", { name: "Cuaderno surface" })).getByRole("button", { name: "Cuaderno" }));
     expect(screen.getByRole("textbox", { name: "Search notebook" })).toBeTruthy();
     expect(screen.getByText("Spanish notebook")).toBeTruthy();
+  });
+});
+
+describe("Phase 8 Words & phrases hub navigation", () => {
+  async function seedVocabulary() {
+    const word = await createItem(newLexical({
+      term: "madrugar",
+      meanings: [newMeaning({ gloss: "to get up early" })],
+    }));
+    const phrase = await createItem(newLexical({ term: "de repente", form: "phrase" }));
+    return { word, phrase };
+  }
+
+  it("opens a focused hub from frases, keeps pin state through detail, and returns by the trail", async () => {
+    const user = userEvent.setup();
+    await seedVocabulary();
+    render(<App />);
+
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(screen.getByRole("button", { name: "frases" }));
+
+    // The hub replaces the app header and arrives with the tapped chip already applied.
+    expect(screen.getByRole("heading", { name: "Your words and phrases" })).toBeTruthy();
+    expect(screen.queryByText("Spanish notebook")).toBeNull();
+    expect(screen.getByRole("button", { name: "de repente" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "madrugar" })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Pin de repente" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Unpin de repente" })).toBeTruthy());
+
+    await user.click(screen.getByRole("button", { name: "de repente" }));
+    expect(screen.getByRole("button", { name: "Words & phrases" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Words & phrases" }));
+
+    // Back lands on the hub with its visit-local chip and the pin both intact.
+    expect(screen.getByRole("heading", { name: "Your words and phrases" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Unpin de repente" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "madrugar" })).toBeNull();
+
+    await user.click(within(screen.getByRole("region", { name: "Cuaderno surface" })).getByRole("button", { name: "Cuaderno" }));
+    expect(screen.getByRole("textbox", { name: "Search notebook" })).toBeTruthy();
+    expect(screen.getByText("Spanish notebook")).toBeTruthy();
+  });
+
+  /** The shared seed above is built for link traversal; searching also needs the form shards. */
+  async function seedSearchableDictionary() {
+    const reference = refDb("a");
+    await Promise.all([
+      reference.entries.put(FIXTURE_ENTRIES.find((entry) => entry.lemma === "casa")),
+      reference.formShards.bulkPut(FIXTURE_FORM_SHARDS.filter((row) => row.id === "ca")),
+      reference.englishShards.bulkPut(FIXTURE_ENGLISH_SHARDS.filter((row) => row.id === "ho")),
+      reference.meta.put({
+        key: META_KEYS.dataset,
+        value: { datasetVersion: "phase-8-fixture", counts: { entries: 1 }, previousIds: {} },
+      }),
+    ]);
+    setActiveSlot("a");
+  }
+
+  it("hands a hub miss to Cuaderno, where the dictionary can answer it", async () => {
+    const user = userEvent.setup();
+    await seedSearchableDictionary();
+    await seedVocabulary();
+    render(<App />);
+
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(screen.getByRole("button", { name: "palabras" }));
+    await user.click(screen.getByRole("button", { name: "Search words and phrases" }));
+    await user.type(screen.getByLabelText("Search words and phrases"), "casa");
+
+    // The hub holds no personal "casa", and it never consults the dictionary itself.
+    expect(screen.getByText(/No words or phrases match/)).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: /Search the dictionary for/ }));
+
+    // Cuaderno's one mixed list takes over, with the query applied and the entry found there.
+    expect(screen.getByRole("textbox", { name: "Search notebook" }).value).toBe("casa");
+    expect(await screen.findByRole("button", { name: /^casa/ })).toBeTruthy();
   });
 });
 

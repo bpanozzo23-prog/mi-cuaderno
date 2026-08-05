@@ -24,6 +24,7 @@ import {
 import { isPageProfile } from "../lib/pageProfiles.js";
 import { PINNED_PAGE_IDS_PREF } from "../lib/pageKinds.js";
 import { validatePageStructures } from "../lib/pageKinds.js";
+import { PINNED_LEXICAL_IDS_PREF } from "../lib/lexicalViews.js";
 import {
   isDirectionalRelationshipType,
   RELATIONSHIP_SUBJECTS,
@@ -37,7 +38,7 @@ import {
  */
 export const BACKUP_FORMAT = "mi-cuaderno-backup";
 export const LAST_BACKUP_PREF = "lastBackupAt";
-export { PINNED_PAGE_IDS_PREF };
+export { PINNED_PAGE_IDS_PREF, PINNED_LEXICAL_IDS_PREF };
 
 export async function buildBackup() {
   const [userItems, events, preferences] = await Promise.all([
@@ -443,24 +444,40 @@ function validateV3References(userItems, preferences, errors) {
     });
   });
 
-  if (!Object.prototype.hasOwnProperty.call(preferences, PINNED_PAGE_IDS_PREF)) return;
-  const pinnedPageIds = preferences[PINNED_PAGE_IDS_PREF];
-  if (!Array.isArray(pinnedPageIds)) {
-    errors.push(`preferences.${PINNED_PAGE_IDS_PREF} must be an array`);
+  validatePinnedPreference(preferences, itemsById, PINNED_PAGE_IDS_PREF, "page", errors);
+  validatePinnedPreference(
+    preferences,
+    itemsById,
+    PINNED_LEXICAL_IDS_PREF,
+    "lexical",
+    errors,
+    "word or phrase"
+  );
+}
+
+/**
+ * One pin list. Absent is always valid — a backup written before a given pin surface existed must
+ * still restore, which is also why adding the lexical list needed no schema-version change.
+ */
+function validatePinnedPreference(preferences, itemsById, prefKey, type, errors, noun = type) {
+  if (!Object.prototype.hasOwnProperty.call(preferences, prefKey)) return;
+  const pinnedIds = preferences[prefKey];
+  if (!Array.isArray(pinnedIds)) {
+    errors.push(`preferences.${prefKey} must be an array`);
     return;
   }
   const seenPinnedIds = new Set();
-  pinnedPageIds.forEach((id, index) => {
-    const where = `preferences.${PINNED_PAGE_IDS_PREF}[${index}]`;
+  pinnedIds.forEach((id, index) => {
+    const where = `preferences.${prefKey}[${index}]`;
     if (!isUserKey(id)) {
-      errors.push(`${where} must be a personal page id`);
+      errors.push(`${where} must be a personal ${noun} id`);
       return;
     }
-    if (seenPinnedIds.has(id)) errors.push(`preferences.${PINNED_PAGE_IDS_PREF} must not contain duplicates`);
+    if (seenPinnedIds.has(id)) errors.push(`preferences.${prefKey} must not contain duplicates`);
     else seenPinnedIds.add(id);
     const target = itemsById.get(id);
-    if (!target) errors.push(`${where} points to a missing page`);
-    else if (target.type !== "page") errors.push(`${where} must point to a page`);
+    if (!target) errors.push(`${where} points to a missing ${noun}`);
+    else if (target.type !== type) errors.push(`${where} must point to a ${noun}`);
   });
 }
 

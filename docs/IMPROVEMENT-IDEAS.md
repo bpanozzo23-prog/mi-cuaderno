@@ -40,7 +40,7 @@ Useful information to retain for each idea:
 | Source-oriented page templates | 2026-08-02 | Implemented and deployed | Phase 7 deployed; browser closeout unverified |
 | Meaning-block presentation | 2026-08-02 | Implemented and shipped | Phase 4i |
 | Typed or explained relationships | 2026-08-02 | Implemented locally | Phase 4t–4x browser closeout pending |
-| Saved views | 2026-08-02 | Captured | After observing repeated retrieval/filter patterns |
+| Saved views | 2026-08-02 | Captured | After observing repeated retrieval/filter patterns — Phase 8 adds lenses that can supply that evidence |
 | Persistent page profiles | 2026-08-02 | Implemented and deployed | Phase 7 deployed; browser closeout unverified |
 | Personal-content provenance | 2026-08-02 | Captured | Before or alongside Phase 6 AI design; source needs can be studied earlier |
 
@@ -451,6 +451,27 @@ behavior, stale-reference handling, and a separately approved plan.
 - Should query text ever be saved?
 - Where would saved views live without crowding the three primary tabs?
 
+### Phase 8 overlap — 2026-08-04
+
+The Words & phrases hub does **not** implement saved views, and the distinction is worth keeping
+clear. Nothing it offers is saved or named: its five controls (where it lives, learning, view,
+order, tag) are visit-local and reset on leaving, exactly like Cuaderno's. What changed is the
+*vocabulary* of available lenses, not their persistence.
+
+That makes the hub a source of the evidence this idea has been waiting for. Two questions it can now
+answer that could not be asked before:
+
+- Which of the five controls the owner reconstructs repeatedly, and in which combinations. A
+  recurring pair such as “phrases, not in any page yet” or “words missing examples, tagged Mexico”
+  is the concrete case for naming a view; a control that is set once and forgotten is not.
+- Whether the pull is really “resume where I left off”. The hub deliberately preserves its
+  controls while the session trail is elsewhere but discards them on leaving, so the owner will
+  feel both behaviours and can say which one they missed.
+
+If named views are eventually wanted, the hub raises the cost slightly: a saved view would now have
+to describe which surface it belongs to, since Cuaderno, Pages and Words & phrases no longer share
+one control set. That is an argument for waiting on real use, not for building it sooner.
+
 ---
 
 ## Persistent page profiles
@@ -790,6 +811,12 @@ backup plan.
 ---
 
 ## Document history
+
+- **2026-08-04 — Phase 8 implemented locally; not deployed.** Recorded the Words & phrases hub's
+  overlap with Saved views under that idea: the hub adds organizing lenses but keeps every control
+  visit-local, so it supplies evidence for the saved-view question rather than answering it. No idea
+  was promoted; Saved views remains Captured. See [PHASE-8-DIRECTION.md](PHASE-8-DIRECTION.md) and
+  [PHASE-8-REPORT.md](PHASE-8-REPORT.md).
 
 - **2026-08-04 — Phase 7 deployed from `main`.** The approved `phase-7-composable-pages`
   fast-forwarded into `main` at `982bae5`; GitHub Pages workflow run

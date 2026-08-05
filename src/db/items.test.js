@@ -10,11 +10,14 @@ import {
   deleteItem,
   allItems,
   displayTitle,
+  getPinnedLexicalIds,
+  setLexicalPinned,
 } from "./items.js";
 import { allEvents, EVENT_TYPES } from "./events.js";
 import { localDate } from "../lib/dates.js";
 import { newMeaning } from "../lib/meanings.js";
 import { PINNED_PAGE_IDS_PREF } from "../lib/pageKinds.js";
+import { PINNED_LEXICAL_IDS_PREF } from "../lib/lexicalViews.js";
 import {
   emptyGrammar,
   emptySource,
@@ -339,5 +342,62 @@ describe("listing", () => {
     const page = await createItem(newPage({ title: "Ser vs estar" }));
 
     expect((await allItems()).map((i) => i.id)).toEqual([page.id, word.id]);
+  });
+});
+
+describe("pinned vocabulary", () => {
+  it("ignores stale, duplicate, page and dictionary ids on read", async () => {
+    const lexical = await createItem(newLexical({ term: "sacar" }));
+    const page = await createItem(newPage({ title: "Ser vs estar" }));
+    await setPref(PINNED_LEXICAL_IDS_PREF, [
+      "user:stale",
+      lexical.id,
+      lexical.id,
+      page.id,
+      "dict:x",
+    ]);
+
+    expect(await getPinnedLexicalIds()).toEqual([lexical.id]);
+  });
+
+  it("adds, keeps order and removes", async () => {
+    const first = await createItem(newLexical({ term: "sacar" }));
+    const second = await createItem(newLexical({ term: "dar con" }));
+
+    expect(await setLexicalPinned(first.id, true)).toEqual([first.id]);
+    expect(await setLexicalPinned(second.id, true)).toEqual([first.id, second.id]);
+    expect(await setLexicalPinned(first.id, true)).toEqual([first.id, second.id]);
+    expect(await setLexicalPinned(first.id, false)).toEqual([second.id]);
+  });
+
+  it("refuses to pin a page or a missing item through the lexical setter", async () => {
+    const page = await createItem(newPage({ title: "Ser vs estar" }));
+
+    await expect(setLexicalPinned(page.id, true)).rejects.toThrow(/does not exist/);
+    await expect(setLexicalPinned("user:missing", true)).rejects.toThrow(/does not exist/);
+    await expect(setLexicalPinned("user:whatever", "yes")).rejects.toThrow(/true or false/);
+    expect(await getPref(PINNED_LEXICAL_IDS_PREF, [])).toEqual([]);
+  });
+
+  it("writes no item change or event", async () => {
+    const lexical = await createItem(newLexical({ term: "sacar" }));
+    const before = await getItem(lexical.id);
+    const eventsBefore = await typesOf();
+
+    await setLexicalPinned(lexical.id, true);
+
+    expect(await getItem(lexical.id)).toEqual(before);
+    expect(await typesOf()).toEqual(eventsBefore);
+  });
+
+  it("drops the pin when the word is deleted, so the backup can never cite a missing item", async () => {
+    const lexical = await createItem(newLexical({ term: "sacar" }));
+    const survivor = await createItem(newLexical({ term: "dar con" }));
+    await setLexicalPinned(lexical.id, true);
+    await setLexicalPinned(survivor.id, true);
+
+    await deleteItem(lexical.id);
+
+    expect(await getPref(PINNED_LEXICAL_IDS_PREF)).toEqual([survivor.id]);
   });
 });

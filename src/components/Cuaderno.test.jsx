@@ -61,6 +61,7 @@ function propsFor(items, over = {}) {
     hasDetailOrigin: false,
     onOpenSettings: vi.fn(),
     onOpenPages: vi.fn(),
+    onOpenLexical: vi.fn(),
     pinnedPageIds: [],
     onPagePinnedChange: vi.fn(),
     ...over,
@@ -207,7 +208,8 @@ describe("Phase 5c Cuaderno retrieval controls", () => {
     ];
     render(<Cuaderno {...propsFor(items)} />);
 
-    await user.click(screen.getByRole("button", { name: "palabras" }));
+    // Since Phase 8 the maintenance View is the root list's remaining context control: palabras
+    // and frases are doors to the hub, so `todo` is the only type state this list holds.
     await user.selectOptions(
       screen.getByRole("combobox", { name: "View" }),
       "missing-meaning"
@@ -217,6 +219,9 @@ describe("Phase 5c Cuaderno retrieval controls", () => {
     expect(screen.getByRole("option", { name: "Mexico · 1" })).toBeTruthy();
     expect(screen.getByRole("option", { name: "mexico · 1" })).toBeTruthy();
     expect(screen.getByRole("option", { name: "verbs · 2" })).toBeTruthy();
+    // Words and phrases share this list now, so a phrase's tag belongs to the same context.
+    expect(screen.getByRole("option", { name: "phrases · 1" })).toBeTruthy();
+    expect(card("phrase")).toBeTruthy();
     expect(screen.queryByRole("option", { name: /source/ })).toBeNull();
 
     await user.selectOptions(tags, "Mexico");
@@ -229,10 +234,11 @@ describe("Phase 5c Cuaderno retrieval controls", () => {
     expect(screen.getByRole("option", { name: "verbs · 2" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Clear search" }));
 
-    await user.click(screen.getByRole("button", { name: "frases" }));
+    // Every fixture word carries an example, so this view empties the context and Mexico
+    // becomes impossible — the selected tag has to clear itself rather than hide every card.
+    await user.selectOptions(screen.getByRole("combobox", { name: "View" }), "missing-examples");
     await waitFor(() => expect(tags.value).toBe(""));
-    expect(card("phrase")).toBeTruthy();
-    expect(screen.getByRole("option", { name: "phrases · 1" })).toBeTruthy();
+    expect(screen.getByRole("option", { name: "No tags in this view" })).toBeTruthy();
   });
 
   it("keeps retrieval choices local by returning to defaults after remount", async () => {
@@ -287,6 +293,54 @@ describe("composable page retrieval and starters", () => {
 
     await user.click(screen.getByRole("button", { name: "páginas" }));
     expect(props.onOpenPages).toHaveBeenCalledOnce();
+  });
+
+  it("hands palabras and frases to the Words & phrases hub instead of filtering in place", async () => {
+    const user = userEvent.setup();
+    const props = propsFor([
+      word("madrugar"),
+      word("de repente", { id: "user:phrase", form: "phrase" }),
+    ]);
+    render(<Cuaderno {...props} />);
+
+    await user.click(screen.getByRole("button", { name: "palabras" }));
+    expect(props.onOpenLexical).toHaveBeenCalledWith("word");
+    // The list itself must not narrow: the hub is the surface that answers the chip.
+    expect(card("de repente")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "frases" }));
+    expect(props.onOpenLexical).toHaveBeenCalledWith("phrase");
+    expect(card("madrugar")).toBeTruthy();
+
+    // todo remains a real filter, and the only type state this list can hold.
+    await user.click(screen.getByRole("button", { name: "todo" }));
+    expect(props.onOpenLexical).toHaveBeenCalledTimes(2);
+  });
+
+  it("still filters in place when no hub is wired up", async () => {
+    const user = userEvent.setup();
+    render(<Cuaderno {...propsFor(
+      [word("madrugar"), word("de repente", { id: "user:phrase", form: "phrase" })],
+      { onOpenLexical: undefined, onOpenPages: undefined }
+    )} />);
+
+    await user.click(screen.getByRole("button", { name: "frases" }));
+
+    expect(card("de repente")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^madrugar/ })).toBeNull();
+  });
+
+  it("applies a query handed over by the hub, and re-applies the same text on a second hand-off", async () => {
+    const items = [word("madrugar"), word("dormir")];
+    const { rerender } = render(
+      <Cuaderno {...propsFor(items, { seedQuery: { text: "madrugar", key: 1 } })} />
+    );
+    expect(screen.getByRole("textbox", { name: "Search notebook" }).value).toBe("madrugar");
+    expect(screen.queryByRole("button", { name: /^dormir/ })).toBeNull();
+
+    rerender(<Cuaderno {...propsFor(items, { seedQuery: { text: "dormir", key: 2 } })} />);
+    expect(screen.getByRole("textbox", { name: "Search notebook" }).value).toBe("dormir");
+    expect(card("dormir")).toBeTruthy();
   });
 
   it("opens the page starting-point gallery before the page form", async () => {

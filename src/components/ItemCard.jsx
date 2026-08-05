@@ -5,6 +5,7 @@ import { meaningGlossText } from "../lib/meanings.js";
 import { deriveCollection } from "../lib/collections.js";
 import { activePageContextsForLexical } from "../lib/pageReferences.js";
 import { PAGE_FOCUSES, enabledPageRoles, isJournalPage } from "../lib/pageKinds.js";
+import PageContextSummary from "./PageContextSummary.jsx";
 
 export const POS_OPTIONS = ["", "noun", "verb", "adjective", "adverb", "other"];
 export const POS_ABBR = { noun: "s.", verb: "v.", adjective: "adj.", adverb: "adv.", other: "" };
@@ -143,21 +144,7 @@ export default function ItemCard({
             {reason}
           </div>
         )}
-        {pageContexts.length > 0 && (
-          <div className="mt-2 rounded-lg border px-2.5 py-2 text-xs" style={{ borderColor: C.line, background: C.paper }}>
-            <div className="font-semibold" style={{ color: C.mut }}>
-              {pageContexts.length === 1 ? "Used in 1 page context" : `Used in ${pageContexts.length} page contexts`}
-            </div>
-            {pageContexts.slice(0, 2).map((context, index) => (
-              <div key={`${context.pageId}:${context.kind}:${context.label}:${index}`} className="mt-1 truncate" style={{ color: C.ink }}>
-                {context.pageTitle} · {context.label}{context.detail ? ` · ${context.detail}` : ""}
-              </div>
-            ))}
-            {pageContexts.length > 2 && (
-              <div className="mt-1" style={{ color: C.mut }}>+{pageContexts.length - 2} more</div>
-            )}
-          </div>
-        )}
+        <PageContextSummary contexts={pageContexts} />
       </button>
 
       {isPage && onPinnedChange && (

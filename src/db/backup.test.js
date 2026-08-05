@@ -126,6 +126,25 @@ describe("import: replace and restore", () => {
     expect(await getPref("storagePersisted")).toBe(true);
   });
 
+  it("round-trips pinned vocabulary, and still accepts a backup written before pins existed", async () => {
+    const word = makeLexical({ id: "user:pinned", term: "madrugar" });
+    const other = makeLexical({ id: "user:other", term: "trasnochar" });
+    await db.items.bulkAdd([word, other]);
+    await setPref("pinnedLexicalIds", [other.id, word.id]);
+
+    const text = JSON.stringify(await buildBackup());
+    await clearAllPersonalData();
+    await importBackup(text);
+
+    expect(await getPref("pinnedLexicalIds")).toEqual([other.id, word.id]);
+
+    // The key is absent from every backup written before this release. Those must still restore,
+    // which is what let the pin list ship without a schema-version change.
+    const older = JSON.parse(text);
+    delete older.preferences.pinnedLexicalIds;
+    expect(validateBackup(older).ok).toBe(true);
+  });
+
   it("round-trips collection group/item order and pinned page preferences", async () => {
     const first = makeLexical({ id: "user:first", term: "qué tal" });
     const second = makeLexical({ id: "user:second", term: "cómo" });
@@ -682,6 +701,10 @@ describe("validation happens before anything is written", () => {
     ["a non-array pinnedPageIds preference", collectionInput({ preferences: { pinnedPageIds: "user:collection" } })],
     ["a lexical id in pinnedPageIds", collectionInput({ preferences: { pinnedPageIds: ["user:member"] } })],
     ["a dangling pinnedPageIds preference", collectionInput({ preferences: { pinnedPageIds: ["user:missing"] } })],
+    ["a non-array pinnedLexicalIds preference", collectionInput({ preferences: { pinnedLexicalIds: "user:member" } })],
+    ["a page id in pinnedLexicalIds", collectionInput({ preferences: { pinnedLexicalIds: ["user:collection"] } })],
+    ["a dangling pinnedLexicalIds preference", collectionInput({ preferences: { pinnedLexicalIds: ["user:missing"] } })],
+    ["duplicates in pinnedLexicalIds", collectionInput({ preferences: { pinnedLexicalIds: ["user:member", "user:member"] } })],
   ])("rejects %s without touching the database", async (_label, input) => {
     const survivor = makeLexical({ term: "superviviente" });
     await db.items.add(survivor);

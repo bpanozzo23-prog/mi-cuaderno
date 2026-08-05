@@ -1,4 +1,4 @@
-import { db } from "./db.js";
+import { db, getPref } from "./db.js";
 import { logEvent, EVENT_TYPES } from "./events.js";
 import { isDictKey, isUserKey, newUserKey } from "../lib/ids.js";
 import { nowIso } from "../lib/dates.js";
@@ -13,6 +13,7 @@ import {
   PINNED_PAGE_IDS_PREF,
   validatePageStructures,
 } from "../lib/pageKinds.js";
+import { PINNED_LEXICAL_IDS_PREF } from "../lib/lexicalViews.js";
 import {
   annotationForTarget,
   makeLinkAnnotation,
@@ -256,9 +257,13 @@ export async function deleteItem(id) {
       })
     );
 
-    const pinned = await db.prefs.get(PINNED_PAGE_IDS_PREF);
-    if (Array.isArray(pinned?.value) && pinned.value.includes(id)) {
-      await db.prefs.put({ ...pinned, value: pinned.value.filter((pageId) => pageId !== id) });
+    // Both pin lists are cleaned here. A stale id would not merely show a phantom card: the
+    // backup validator rejects a pinned key pointing at an item the export does not contain.
+    for (const prefKey of [PINNED_PAGE_IDS_PREF, PINNED_LEXICAL_IDS_PREF]) {
+      const pinned = await db.prefs.get(prefKey);
+      if (Array.isArray(pinned?.value) && pinned.value.includes(id)) {
+        await db.prefs.put({ ...pinned, value: pinned.value.filter((pinnedId) => pinnedId !== id) });
+      }
     }
     await db.items.delete(id);
     // The delete event is the tombstone. Keep it in the same transaction as the hard delete and
@@ -468,4 +473,54 @@ export async function backlinksFor(key) {
 export function displayTitle(item) {
   if (!item) return "";
   return item.type === "page" ? item.title || "Untitled page" : item.term;
+}
+
+const sameArray = (left, right) =>
+  left.length === right.length && left.every((value, index) => value === right[index]);
+
+/**
+ * Pinned vocabulary, the lexical counterpart of `getPinnedPageIds`/`setPagePinned` in
+ * collections.js. It lives here rather than there because collections.js already imports from
+ * this module; the reverse import would close a cycle.
+ *
+ * Stale, duplicate and non-lexical ids are filtered defensively on read, so a pin surviving a
+ * restore of older data can never resurrect a card or point at a page.
+ */
+const filterPinnedLexicalIds = async (value) => {
+  if (!Array.isArray(value)) return [];
+  const lexicalIds = new Set(await db.items.where("type").equals("lexical").primaryKeys());
+  const seen = new Set();
+  return value.filter((id) => {
+    if (!isUserKey(id) || !lexicalIds.has(id) || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+};
+
+export async function getPinnedLexicalIds() {
+  return filterPinnedLexicalIds(await getPref(PINNED_LEXICAL_IDS_PREF, []));
+}
+
+/** Pinning is a UI preference: no item write, timestamp change or event. */
+export async function setLexicalPinned(itemId, pinned) {
+  if (typeof pinned !== "boolean") throw new Error("Pinned state must be true or false.");
+  let result;
+  await db.transaction("rw", db.items, db.prefs, async () => {
+    const item = await db.items.get(itemId);
+    if (pinned && (!item || item.type !== "lexical")) {
+      throw new Error(`Word or phrase ${itemId} does not exist.`);
+    }
+
+    const row = await db.prefs.get(PINNED_LEXICAL_IDS_PREF);
+    const current = await filterPinnedLexicalIds(row?.value || []);
+    const next = pinned
+      ? current.includes(itemId) ? current : [...current, itemId]
+      : current.filter((id) => id !== itemId);
+
+    if (!row || !sameArray(next, row.value || [])) {
+      await db.prefs.put({ key: PINNED_LEXICAL_IDS_PREF, value: next });
+    }
+    result = next;
+  });
+  return result;
 }

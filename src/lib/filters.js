@@ -41,11 +41,16 @@ export function matchesTypeFilter(item, filter) {
 /**
  * Whether dictionary results belong alongside the personal ones (brief §8's single list).
  *
- * Filtering to *páginas* or to a tag means "look through my own things" (Phase 2e). *Frases*
+ * ~~Filtering to *páginas* or to a tag means "look through my own things" (Phase 2e). *Frases*
  * means the same in practice for a different reason: the bundled dictionary is lemma-focused
- * (§1), so a phrase filter would fill up with single-word lemmas the owner did not ask for.
+ * (§1), so a phrase filter would fill up with single-word lemmas the owner did not ask for.~~
+ *
+ * **Phase 8:** those distinctions no longer arise here. `palabras`, `frases` and `páginas` are
+ * doors to their hubs, so `todo` is the only type state the root list can hold — and both hubs
+ * search their own content without the dictionary. What remains is the tag rule: a tag still
+ * means "look through my own things".
  */
 export function wantsDictionary(filter, tagFilter) {
   if (tagFilter) return false;
-  return filter === FILTERS.all || filter === FILTERS.word;
+  return filter === FILTERS.all;
 }
