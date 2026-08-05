@@ -157,3 +157,166 @@ describe("search exclusions and empty queries", () => {
     expect(searchItems(notebook, query)).toEqual([]);
   });
 });
+
+describe("composable page search", () => {
+  const word = lexical({ term: "ahorita", translation: "right now or shortly" });
+  const structuredPage = newPage({
+    title: "Voces del mercado",
+    linkedKeys: [word.id],
+    collection: { enabled: true, groups: [] },
+    source: {
+      enabled: true,
+      format: "audio",
+      creator: "Camila Torres",
+      scope: "Episodio 18",
+      url: "",
+      context: "Conversación espontánea",
+      captures: [{
+        id: "source-capture:00000000-0000-4000-8000-000000000001",
+        type: "passage",
+        text: "Nomás dígame.",
+        location: "18:42",
+        reflection: "Suaviza la petición.",
+        itemKeys: [word.id],
+      }],
+    },
+    grammar: {
+      enabled: true,
+      keyIdea: "El imperfecto establece la escena.",
+      sections: [{
+        id: "grammar-section:00000000-0000-4000-8000-000000000001",
+        name: "Background",
+        explanation: "Acción en progreso",
+        pattern: "estar + gerundio",
+        examples: [],
+      }],
+    },
+  });
+
+  it("searches active Source and Grammar text at tier 6 with explicit reasons", () => {
+    expect(searchItems([structuredPage], "Camila")[0]).toMatchObject({
+      tier: TIER.text,
+      reason: "in source notes",
+    });
+    expect(searchItems([structuredPage], "imperfecto")[0]).toMatchObject({
+      tier: TIER.text,
+      reason: "in the grammar guide",
+    });
+    const hidden = {
+      ...structuredPage,
+      source: { ...structuredPage.source, enabled: false },
+      grammar: { ...structuredPage.grammar, enabled: false },
+    };
+    expect(searchItems([hidden], "Camila")).toEqual([]);
+    expect(searchItems([hidden], "imperfecto")).toEqual([]);
+  });
+
+  it("matches contained vocabulary only for Pages retrieval and never adds a global page hit", () => {
+    const allItems = [structuredPage, word];
+    expect(searchItems(allItems, "ahorita", { allItems }).map(({ item }) => item)).toEqual([word]);
+    const headingResults = searchItems([structuredPage], "ahorita", {
+      allItems,
+      includeContainedVocabulary: true,
+    });
+    expect(headingResults).toHaveLength(1);
+    expect(headingResults[0]?.reason).toBe("contained vocabulary “ahorita”");
+    const meaningResults = searchItems([structuredPage], "right now", {
+      allItems,
+      includeContainedVocabulary: true,
+    });
+    expect(meaningResults).toHaveLength(1);
+    expect(meaningResults[0]?.reason).toBe("meaning of contained vocabulary “ahorita”");
+  });
+
+  it("returns a page once with its best contained-vocabulary context", () => {
+    const meaningFirst = lexical({ term: "enseguida", translation: "right here" });
+    const headingSecond = lexical({ term: "derecho", translation: "straight" });
+    const pageWithBoth = newPage({
+      title: "Directions",
+      linkedKeys: [meaningFirst.id, headingSecond.id],
+      collection: { enabled: true, groups: [] },
+    });
+    const allItems = [pageWithBoth, meaningFirst, headingSecond];
+    const results = searchItems([pageWithBoth], "right", {
+      allItems,
+      includeContainedVocabulary: true,
+    });
+
+    expect(results).toHaveLength(1);
+    expect(results[0]).toMatchObject({
+      tier: TIER.text,
+      reason: "meaning of contained vocabulary “enseguida”",
+    });
+
+    const headingOverMeaning = lexical({ term: "right", translation: "the right side" });
+    const pageWithHeading = newPage({
+      title: "More directions",
+      linkedKeys: [meaningFirst.id, headingOverMeaning.id],
+      collection: { enabled: true, groups: [] },
+    });
+    const withHeading = searchItems([pageWithHeading], "right", {
+      allItems: [pageWithHeading, meaningFirst, headingOverMeaning],
+      includeContainedVocabulary: true,
+    });
+    expect(withHeading).toHaveLength(1);
+    expect(withHeading[0].reason).toBe("contained vocabulary “right”");
+  });
+
+  it("excludes hidden contained vocabulary and preserves ñ in every new page field", () => {
+    const year = lexical({ term: "año", translation: "year" });
+    const hidden = newPage({
+      title: "Hidden contexts",
+      linkedKeys: [year.id],
+      collection: { enabled: false, groups: [] },
+      source: {
+        enabled: false,
+        format: "book",
+        creator: "Señora Luz",
+        scope: "",
+        url: "",
+        context: "",
+        captures: [{
+          id: "source-capture:00000000-0000-4000-8000-000000000002",
+          type: "language_note",
+          text: "Un año",
+          location: "",
+          reflection: "",
+          itemKeys: [year.id],
+        }],
+      },
+    });
+    expect(searchItems([hidden], "año", {
+      allItems: [hidden, year],
+      includeContainedVocabulary: true,
+    })).toEqual([]);
+
+    const active = {
+      ...hidden,
+      source: { ...hidden.source, enabled: true },
+      pageFocus: "source",
+    };
+    expect(searchItems([active], "Señora")).toHaveLength(1);
+    expect(searchItems([active], "Señora")[0].reason).toBe("in source notes");
+    expect(searchItems([active], "Senora")).toEqual([]);
+    expect(searchItems([active], "ano")).toEqual([]);
+  });
+
+  it("keeps page-title ranking ahead of structured text", () => {
+    const sameWords = newPage({
+      title: "Imperfecto",
+      source: {
+        enabled: true,
+        format: "book",
+        creator: "",
+        scope: "Imperfecto",
+        url: "",
+        context: "",
+        captures: [],
+      },
+    });
+    expect(searchItems([sameWords], "Imperfecto")[0]).toMatchObject({
+      tier: TIER.exactTerm,
+      reason: "page title",
+    });
+  });
+});

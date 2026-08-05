@@ -5,6 +5,7 @@ import {
   meaningGlossText,
   meaningNotes,
 } from "./meanings.js";
+import { activePageVocabularyKeys } from "./pageReferences.js";
 
 /**
  * Search over the personal layer, per brief section 8.
@@ -42,12 +43,62 @@ const REASONS = {
   examples: "in your examples",
   meaning: "in a meaning",
   body: "in the page",
+  source: "in source notes",
+  grammar: "in the grammar guide",
 };
 
 /** Newlines and runs of spaces read as one space when matching a free-text field. */
 const flattenSpace = (text) => text.replace(/\s+/g, " ");
 
-function bestMatch(item, query) {
+function containedVocabularyMatch(page, query, allItems) {
+  const q = normalize(query);
+  const byId = new Map((allItems || []).map((candidate) => [candidate.id, candidate]));
+  const matches = [];
+  for (const key of activePageVocabularyKeys(page, allItems)) {
+    const lexical = byId.get(key);
+    if (lexical?.type !== "lexical") continue;
+    const heading = String(lexical.term || "");
+    if (normalize(heading).includes(q)) {
+      matches.push({ tier: TIER.text, reason: `contained vocabulary “${heading}”`, offset: 3 });
+    }
+    if (flattenSpace(normalize(meaningGlossText(lexical, " "))).includes(q)) {
+      matches.push({ tier: TIER.text, reason: `meaning of contained vocabulary “${heading}”`, offset: 4 });
+    }
+  }
+  // One page produces one result. Prefer a matching Spanish heading over a personal meaning,
+  // regardless of membership order, then keep active vocabulary order as the stable tie-break.
+  return matches.sort((a, b) => a.offset - b.offset)[0] || null;
+}
+
+function activeSourceText(page) {
+  if (!page?.source?.enabled) return "";
+  return [
+    page.source.creator,
+    page.source.scope,
+    page.source.url,
+    page.source.context,
+    ...(page.source.captures || []).flatMap((capture) => [
+      capture.text,
+      capture.location,
+      capture.reflection,
+    ]),
+  ].filter(Boolean).join("\n");
+}
+
+function activeGrammarText(page) {
+  if (!page?.grammar?.enabled) return "";
+  return [
+    page.grammar.keyIdea,
+    ...(page.grammar.sections || []).flatMap((section) => [
+      section.name,
+      section.explanation,
+      section.pattern,
+      ...(section.examples || []).flatMap((example) => [example.es, example.en, example.note]),
+    ]),
+  ].filter(Boolean).join("\n");
+}
+
+function bestMatch(item, query, { allItems = [], includeContainedVocabulary = false } = {}) {
   const q = normalize(query);
   if (!q) return null;
 
@@ -101,15 +152,25 @@ function bestMatch(item, query) {
   if (isPage && normalize(item.body).includes(q)) {
     return { tier: TIER.text, reason: REASONS.body, offset: 0 };
   }
+  if (isPage && normalize(activeSourceText(item)).includes(q)) {
+    return { tier: TIER.text, reason: REASONS.source, offset: 1 };
+  }
+  if (isPage && normalize(activeGrammarText(item)).includes(q)) {
+    return { tier: TIER.text, reason: REASONS.grammar, offset: 2 };
+  }
+  if (isPage && includeContainedVocabulary) {
+    const contained = containedVocabularyMatch(item, query, allItems);
+    if (contained) return contained;
+  }
 
   return null;
 }
 
-export function searchItems(items, query) {
+export function searchItems(items, query, options = {}) {
   if (!query || !query.trim()) return [];
   const results = [];
   for (const item of items) {
-    const match = bestMatch(item, query);
+    const match = bestMatch(item, query, options);
     if (match) results.push({ item, ...match });
   }
   return results.sort(
