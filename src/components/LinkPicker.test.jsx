@@ -252,7 +252,7 @@ describe("LinkPicker duplicate guard", () => {
     expect(onPick).not.toHaveBeenCalled();
   });
 
-  it("labels a personal phrase as phrase rather than a dictionary part of speech", async () => {
+  it("shows a personal phrase bare, never borrowing a dictionary part of speech", async () => {
     const user = userEvent.setup();
     const source = page("source", "Source");
     const phrase = lexical("phrase", "de repente", "phrase");
@@ -263,7 +263,8 @@ describe("LinkPicker duplicate guard", () => {
       "de repente"
     );
 
-    expect(screen.getByRole("button", { name: /^de repente phrase/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^de repente/ })).toBeTruthy();
+    expect(screen.queryByText("phrase")).toBeNull();
     expect(screen.queryByText("loc.")).toBeNull();
   });
 });

@@ -12,8 +12,9 @@ export const POS_ABBR = { noun: "s.", verb: "v.", adjective: "adj.", adverb: "ad
 
 /** Personal `form` terminology. Dictionary part-of-speech labels remain separate. */
 export const personalLexicalForm = (item) => (item?.form === "phrase" ? "phrase" : "word");
+/** A phrase reads as one on sight, so it carries no heading suffix — only words are abbreviated. */
 export const personalHeadingSuffix = (item) =>
-  personalLexicalForm(item) === "phrase" ? "phrase" : POS_ABBR[item?.pos] || "";
+  personalLexicalForm(item) === "phrase" ? "" : POS_ABBR[item?.pos] || "";
 
 const amount = (count, singular) => `${count} ${count === 1 ? singular : `${singular}s`}`;
 

@@ -260,7 +260,7 @@ describe("quick-create-and-link keeps the owner where they are", () => {
 
     await waitFor(() =>
       expect(
-        screen.getAllByRole("button", { name: /^DE REPENTE phrase/ }).length
+        screen.getAllByRole("button", { name: /^DE REPENTE/ }).length
       ).toBeGreaterThan(1)
     );
 
