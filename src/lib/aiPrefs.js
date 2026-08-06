@@ -9,5 +9,16 @@
  * `aiApiKey` never leaves the device: it is excluded on export and refused on import, so a restore
  * always lands with the feature off until the owner enters the key again.
  */
+import { getPref } from "../db/db.js";
+
 export const AI_ENABLED_PREF = "aiEnabled";
 export const AI_API_KEY_PREF = "aiApiKey";
+
+/**
+ * Both halves are required: turning the feature on without a key, or restoring a backup that
+ * carries the flag but never the key, must not offer a button that can only fail.
+ */
+export async function aiFeedbackReady() {
+  const [enabled, key] = await Promise.all([getPref(AI_ENABLED_PREF), getPref(AI_API_KEY_PREF)]);
+  return enabled === true && typeof key === "string" && key.trim() !== "";
+}
