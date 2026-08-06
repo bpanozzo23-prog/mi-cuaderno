@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { localDate, timeAgo, daysSince, addDaysToLocalDate } from "./dates.js";
+import {
+  localDate,
+  timeAgo,
+  daysSince,
+  addDaysToLocalDate,
+  mondayWeekStart,
+} from "./dates.js";
 
 describe("localDate", () => {
   it("uses the local calendar day, not UTC", () => {
@@ -58,5 +64,34 @@ describe("daysSince", () => {
     const now = Date.parse("2026-07-30T12:00:00.000Z");
     expect(daysSince("2026-07-30T09:00:00.000Z", now)).toBe(0);
     expect(daysSince("2026-07-27T09:00:00.000Z", now)).toBe(3);
+  });
+});
+
+describe("mondayWeekStart", () => {
+  it("walks a midweek day back to its Monday", () => {
+    // 2026-07-31 is a Friday.
+    expect(mondayWeekStart("2026-07-31")).toBe("2026-07-27");
+  });
+
+  it("leaves a Monday where it is", () => {
+    expect(mondayWeekStart("2026-07-27")).toBe("2026-07-27");
+  });
+
+  it("treats Sunday as the end of its week, not the start of the next", () => {
+    // The Spanish convention, and the one the heatmap's weekday column reads by.
+    expect(mondayWeekStart("2026-08-02")).toBe("2026-07-27");
+  });
+
+  it("crosses a year boundary", () => {
+    expect(mondayWeekStart("2026-01-01")).toBe("2025-12-29");
+  });
+
+  it("survives a daylight-saving change", () => {
+    // US spring-forward Sunday; the noon anchor keeps the missing hour from moving the day.
+    expect(mondayWeekStart("2026-03-08")).toBe("2026-03-02");
+  });
+
+  it("leaves a value it cannot parse alone", () => {
+    expect(mondayWeekStart("")).toBe("");
   });
 });

@@ -29,6 +29,23 @@ export function addDaysToLocalDate(dateStr, days) {
   return localDate(date);
 }
 
+/**
+ * The Monday that starts this localDate's week — the unit the activity calendar and the
+ * growth chart bucket by. Monday rather than Sunday is the Spanish convention, and it is
+ * what the heatmap's weekday column reads top to bottom (L M X J V S D).
+ *
+ * Same component arithmetic and noon anchor as addDaysToLocalDate, for the same reason.
+ */
+export function mondayWeekStart(dateStr) {
+  const [y, m, d] = String(dateStr).split("-").map(Number);
+  if (!y || !m || !d) return dateStr;
+  const date = new Date(y, m - 1, d, 12);
+  // getDay() is Sunday-first; shifting by 6 makes Monday 0 and Sunday 6, so a Sunday
+  // walks back to the Monday that began its week rather than forward into the next one.
+  date.setDate(date.getDate() - ((date.getDay() + 6) % 7));
+  return localDate(date);
+}
+
 export function timeAgo(iso, now = Date.now()) {
   const then = new Date(iso).getTime();
   if (!Number.isFinite(then)) return "";
