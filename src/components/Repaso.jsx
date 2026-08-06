@@ -13,7 +13,7 @@ import {
 } from "../db/ref/entries.js";
 import { emptyItemState } from "../useNotebook.js";
 import { timeAgo } from "../lib/dates.js";
-import { deriveReviewState, deriveDictSuggestions } from "../lib/review.js";
+import { deriveReviewState, deriveDictSuggestions, cardDirection } from "../lib/review.js";
 
 /**
  * Every number here is derived from the event log at render time — there are no
@@ -35,6 +35,13 @@ const KNOWN_ACTIVITY_TYPES = new Set([
   ...Object.keys(ACTIVITY_LABEL),
   EVENT_TYPES.searchMiss,
 ]);
+
+/** Phase 7a. Labels name the direction in the owner's own terms, not the code's. */
+const DIRECTION_OPTIONS = [
+  { value: "forward", label: "es→en" },
+  { value: "reverse", label: "en→es" },
+  { value: "mixed", label: "mixed" },
+];
 
 const itemHeading = (item) =>
   item.type === "page" ? item.title || "Untitled page" : item.term;
@@ -66,6 +73,11 @@ export default function Repaso({ notebook, onSelect }) {
   // The session owns its own list once started, so re-deriving mid-session (a grade
   // changes what is due) cannot pull the card out from under the owner's thumb.
   const [sessionCards, setSessionCards] = useState([]);
+
+  // Which way today's cards face. Deliberately not persisted (Phase 7a): the useful
+  // default is the one you get by just tapping Start, and a remembered direction would
+  // be a stored preference nobody asked for.
+  const [direction, setDirection] = useState("forward");
 
   /**
    * Dictionary entries the owner keeps opening but has not added — the counterpart to
@@ -196,8 +208,19 @@ export default function Repaso({ notebook, onSelect }) {
     };
   }, [recentDictKeys]);
 
+  /**
+   * Snapshots the due list, deciding each card's direction once (Phase 7a). Deciding here
+   * rather than per render means a mixed session cannot flip a card's direction underneath
+   * the owner when the notebook reloads after a grade.
+   */
   function startSession() {
-    setSessionCards(review.due.map((item) => ({ ...item, ...review.states.get(item.id) })));
+    setSessionCards(
+      review.due.map((item) => ({
+        ...item,
+        ...review.states.get(item.id),
+        direction: cardDirection(item, direction),
+      }))
+    );
     setInSession(true);
   }
 
@@ -229,20 +252,50 @@ export default function Repaso({ notebook, onSelect }) {
                 : "Nothing due today."}
           </div>
         ) : (
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="text-2xl" style={{ fontFamily: MONO, color: C.ink }}>
-                {review.due.length}
+          <>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-2xl" style={{ fontFamily: MONO, color: C.ink }}>
+                  {review.due.length}
+                </div>
+                <div className="text-xs" style={{ color: C.mut }}>
+                  {review.due.length === 1 ? "word due" : "words due"}
+                  {review.reviewedToday > 0 && ` · ${review.reviewedToday} done today`}
+                </div>
               </div>
-              <div className="text-xs" style={{ color: C.mut }}>
-                {review.due.length === 1 ? "word due" : "words due"}
-                {review.reviewedToday > 0 && ` · ${review.reviewedToday} done today`}
-              </div>
+              <Button onClick={startSession}>
+                <Play size={15} /> Start
+              </Button>
             </div>
-            <Button onClick={startSession}>
-              <Play size={15} /> Start
-            </Button>
-          </div>
+
+            <div
+              role="radiogroup"
+              aria-label="Which way to ask"
+              className="mt-3 flex gap-1 rounded-lg border p-0.5"
+              style={{ borderColor: C.line, background: C.paper }}
+            >
+              {DIRECTION_OPTIONS.map((option) => {
+                const active = direction === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setDirection(option.value)}
+                    className="flex-1 rounded-md px-2 py-1.5 text-xs"
+                    style={{
+                      fontFamily: MONO,
+                      background: active ? C.pen : "transparent",
+                      color: active ? "#fff" : C.mut,
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </>
         )}
       </Card>
 

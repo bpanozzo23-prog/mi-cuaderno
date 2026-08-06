@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { ChevronLeft, Check, X, Eye, Highlighter, RotateCcw } from "lucide-react";
+import { ChevronLeft, Check, X, Eye, Highlighter, RotateCcw, ArrowLeftRight } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, Card, Button } from "../theme.jsx";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
 import { logReview } from "../db/events.js";
-import LexicalAnswer from "./LexicalAnswer.jsx";
+import LexicalAnswer, { MeaningRow } from "./LexicalAnswer.jsx";
 
 /**
  * One pass through today's due words (brief section 12).
@@ -17,6 +17,12 @@ import LexicalAnswer from "./LexicalAnswer.jsx";
  * They are disabled between the tap and the advance, so a double-tap cannot grade the
  * next word — the same hazard the session window solved for view events in Phase 1d,
  * met here in a click handler rather than an effect.
+ *
+ * Each card arrives with its direction already decided (Phase 7a, cardDirection in
+ * src/lib/review.js). Forward shows the term and hides the meanings; reverse shows the
+ * glosses and hides everything Spanish — the term, its suffix, and the usage cues, which
+ * are Spanish and routinely contain the term itself. The grade is logged with the
+ * direction and face it was earned on, because that history cannot be reconstructed.
  */
 export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
   const [index, setIndex] = useState(0);
@@ -31,7 +37,10 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
   async function grade(passed) {
     if (busy || !item) return;
     setBusy(true);
-    await logReview(item.id, passed);
+    await logReview(item.id, passed, {
+      direction: item.direction === "reverse" ? "reverse" : "forward",
+      face: item.face === "cloze" ? "cloze" : "plain",
+    });
     setTally((t) => ({
       passed: t.passed + (passed ? 1 : 0),
       failed: t.failed + (passed ? 0 : 1),
@@ -72,6 +81,9 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
   }
 
   const remaining = cards.length - index;
+  // A card with no written gloss has no reverse question side; cardDirection already
+  // forces those forward, and this guard keeps a hand-built card from rendering blank.
+  const reverse = item.direction === "reverse" && item.meanings?.length > 0;
 
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
@@ -86,19 +98,37 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
 
       <Card className="p-5">
         <div className="text-center">
-          <div className="text-3xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
-            <Hi on={item.tricky}>{item.term}</Hi>
-            {personalHeadingSuffix(item) && (
-              <>
-                {" "}
-                <span className="italic font-normal text-base ml-2" style={{ color: C.mut }}>
-                  {personalHeadingSuffix(item)}
-                </span>
-              </>
-            )}
-          </div>
+          {reverse ? (
+            /*
+              The question side of a reverse card. Glosses and their labels only: the term,
+              its suffix and every usage cue stay hidden until reveal, because each of them
+              is or contains the Spanish being asked for.
+            */
+            <div className="space-y-2 text-left">
+              {item.meanings.map((meaning, meaningIndex) => (
+                <MeaningRow key={meaning.id} meaning={meaning} index={meaningIndex} showCue={false} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-3xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
+              <Hi on={item.tricky}>{item.term}</Hi>
+              {personalHeadingSuffix(item) && (
+                <>
+                  {" "}
+                  <span className="italic font-normal text-base ml-2" style={{ color: C.mut }}>
+                    {personalHeadingSuffix(item)}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
           <div className="mt-1.5 text-xs inline-flex items-center gap-2" style={{ fontFamily: MONO, color: C.mut }}>
             <span>caja {item.box}</span>
+            {reverse && (
+              <span className="inline-flex items-center gap-1">
+                <ArrowLeftRight size={11} /> en→es
+              </span>
+            )}
             {item.reason === "tricky" && (
               <span className="inline-flex items-center gap-1">
                 <Highlighter size={11} /> tricky
@@ -118,15 +148,30 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
             className="w-full mt-5 py-6 rounded-xl border border-dashed text-sm"
             style={{ borderColor: C.line, color: C.mut, background: C.paper }}
           >
-            Tap to see the meaning
+            {reverse ? "Tap to see the word" : "Tap to see the meaning"}
           </button>
         ) : (
-          <LexicalAnswer
-            item={item}
-            showContext={showContext}
-            onToggleContext={() => setShowContext((shown) => !shown)}
-            onOpen={onOpen}
-          />
+          <>
+            {reverse && (
+              <div className="mt-5 text-center text-3xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
+                <Hi on={item.tricky}>{item.term}</Hi>
+                {personalHeadingSuffix(item) && (
+                  <>
+                    {" "}
+                    <span className="italic font-normal text-base ml-2" style={{ color: C.mut }}>
+                      {personalHeadingSuffix(item)}
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
+            <LexicalAnswer
+              item={item}
+              showContext={showContext}
+              onToggleContext={() => setShowContext((shown) => !shown)}
+              onOpen={onOpen}
+            />
+          </>
         )}
       </Card>
 

@@ -141,10 +141,38 @@ describe("every review event carries a grade", () => {
     const item = await createItem(newLexical({ term: "madrugar" }));
     const when = new Date(2026, 6, 15, 9, 0, 0);
 
-    const event = await logReview(item.id, true, when);
+    const event = await logReview(item.id, true, null, when);
 
     expect(event.at).toBe(when.toISOString());
     expect(event.localDate).toBe("2026-07-15");
+  });
+
+  it("still honours a timestamp passed in the old third-argument position", async () => {
+    // A Date spreads to no keys, so getting this wrong would backdate nothing and stamp
+    // "now" while the metadata still looked right. Silent, not loud — hence the guard.
+    const item = await createItem(newLexical({ term: "madrugar" }));
+    const when = new Date(2026, 6, 15, 9, 0, 0);
+
+    const event = await logReview(item.id, true, when);
+
+    expect(event.at).toBe(when.toISOString());
+    expect(event.metadata).toEqual({ grade: GRADES.good });
+  });
+
+  it("records how the card was asked alongside the grade (Phase 7a)", async () => {
+    const item = await createItem(newLexical({ term: "madrugar" }));
+
+    const event = await logReview(item.id, true, { direction: "reverse", face: "cloze" });
+
+    expect(event.metadata).toEqual({ direction: "reverse", face: "cloze", grade: GRADES.good });
+  });
+
+  it("never lets a detail overwrite the grade", async () => {
+    const item = await createItem(newLexical({ term: "madrugar" }));
+
+    const event = await logReview(item.id, false, { grade: 3, direction: "forward" });
+
+    expect(event.metadata.grade).toBe(GRADES.again);
   });
 });
 

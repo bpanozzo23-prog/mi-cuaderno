@@ -36,6 +36,29 @@ export const PASS_GRADE = GRADES.good;
 export const FAIL_GRADE = GRADES.again;
 
 /**
+ * How a session may ask its cards (Phase 7a). Forward is the classic face — term shown,
+ * meaning recalled. Reverse shows the glosses and asks for the term. Mixed decides per
+ * card when the session is snapshotted, so one sitting interleaves both directions.
+ * One Leitner ladder covers both: the box answers "do I know this word", not "which way
+ * was I asked" — per-direction scheduling stays deferred, but every review event records
+ * its direction so that history exists if it is ever wanted.
+ */
+export const SESSION_DIRECTIONS = ["forward", "reverse", "mixed"];
+
+/**
+ * The direction one card is actually asked in. A card with no written gloss has no
+ * question side in reverse — there would be nothing to show — so it always falls back
+ * to forward, whatever the session chose. The coin is injectable so tests are not at
+ * the mercy of Math.random.
+ */
+export function cardDirection(item, chosen, rng = Math.random) {
+  const hasGloss = (item.meanings || []).some((meaning) => String(meaning?.gloss || "").trim());
+  if (!hasGloss) return "forward";
+  if (chosen === "mixed") return rng() < 0.5 ? "forward" : "reverse";
+  return chosen === "reverse" ? "reverse" : "forward";
+}
+
+/**
  * "Repeatedly looked up" means distinct DAYS, not raw views: coming back to a word on
  * three separate days is evidence it has not stuck, where three visits in one sitting
  * is one sitting. The session window (30 minutes) already thins those, but a day is

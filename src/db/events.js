@@ -74,12 +74,24 @@ export async function logView(itemKey, now = new Date()) {
  * Records one review. The UI offers pass and fail, but the log stores a grade on
  * section 7's 4-point scale (0 again / 1 hard / 2 good / 3 easy) so a richer scheduler
  * fitted later has the full history to work from rather than two coarse buckets.
+ *
+ * `details` records how the card was asked (Phase 7a): direction (forward | reverse)
+ * and face (plain | cloze). Same reasoning as the grade — a per-direction scheduler
+ * fitted later needs to know which way each historical card faced, and that cannot be
+ * reconstructed afterwards. Additive metadata on the existing event types; consumers
+ * that predate it simply do not read it. The grade is spread last so no detail can
+ * ever overwrite it.
  */
-export async function logReview(itemKey, passed, when = new Date()) {
+export async function logReview(itemKey, passed, details = null, when = new Date()) {
+  // A Date landing in the details slot is the pre-Phase-7 three-argument call. Spreading
+  // one yields no keys, so without this the timestamp would be silently replaced by "now"
+  // and the metadata would look perfectly correct — the worst kind of wrong.
+  if (details instanceof Date) return logReview(itemKey, passed, null, details);
+
   return logEvent(
     passed ? EVENT_TYPES.reviewPass : EVENT_TYPES.reviewFail,
     itemKey,
-    { grade: passed ? PASS_GRADE : FAIL_GRADE },
+    { ...(details || {}), grade: passed ? PASS_GRADE : FAIL_GRADE },
     when
   );
 }

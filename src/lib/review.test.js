@@ -7,9 +7,11 @@ import {
   LOOKUP_WINDOW_DAYS,
   DICT_SUGGEST_MIN_VIEWS,
   MAX_BOX,
+  cardDirection,
 } from "./review.js";
 import { addDaysToLocalDate } from "./dates.js";
 import { makeLexical, makePage, makeEvent } from "../test/factories.js";
+import { newMeaning } from "./meanings.js";
 
 const TODAY = "2026-07-31";
 const at = (day, hour = 10) => `${day}T${String(hour).padStart(2, "0")}:00:00.000Z`;
@@ -394,5 +396,36 @@ describe("dictionary words the owner keeps looking up", () => {
     const events = [view(word.id, "2026-07-20"), view(word.id, "2026-07-25"), view(word.id, "2026-07-30")];
 
     expect(deriveDictSuggestions([word], events, TODAY)).toEqual([]);
+  });
+});
+
+describe("Phase 7a: which way a card faces", () => {
+  const withGloss = makeLexical({ term: "sacar", meanings: [newMeaning({ gloss: "to take out" })] });
+  const noGloss = makeLexical({ term: "sacar", meanings: [] });
+
+  it("faces forward or reverse as the session chose", () => {
+    expect(cardDirection(withGloss, "forward")).toBe("forward");
+    expect(cardDirection(withGloss, "reverse")).toBe("reverse");
+  });
+
+  it("splits a mixed session on the coin, not on the item", () => {
+    expect(cardDirection(withGloss, "mixed", () => 0.1)).toBe("forward");
+    expect(cardDirection(withGloss, "mixed", () => 0.9)).toBe("reverse");
+  });
+
+  it("keeps a word with nothing written down facing forward, whatever was chosen", () => {
+    // Reverse asks the glosses. With none there is no question side at all, so the
+    // choice has to yield rather than render an empty card.
+    expect(cardDirection(noGloss, "reverse")).toBe("forward");
+    expect(cardDirection(noGloss, "mixed", () => 0.9)).toBe("forward");
+  });
+
+  it("treats a whitespace-only gloss as nothing written down", () => {
+    const blank = makeLexical({ meanings: [newMeaning({ gloss: "   " })] });
+    expect(cardDirection(blank, "reverse")).toBe("forward");
+  });
+
+  it("falls back to forward for an unrecognised choice", () => {
+    expect(cardDirection(withGloss, undefined)).toBe("forward");
   });
 });
