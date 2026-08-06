@@ -213,6 +213,7 @@ One line per meaningful choice: date — decision — reason.
 - 2026-08-01 — **Suggest, never rewrite:** what gets stored is exactly what the owner typed or tapped, even when a near-identical tag exists. — Silently folding their spelling into an existing tag is the kind of helpfulness that annoys the third time it happens; offering the alternative one tap away achieves the same convergence without overruling them.
 - 2026-08-01 — One `TagInput` component serves **both** places tags are entered, retiring the add sheet's comma-separated field. — The friction is not fixed by fixing one of two tag interfaces, and comma-separated entry was the more unforgiving of them. `AddSheet` now takes `items` so it can derive the same vocabulary.
 - 2026-08-01 — Adding a tag still logs an `edit` event, unlike linking. — Tags are content the owner changed; the Phase 1c distinction stands.
+- 2026-08-05 — **OWNER'S DECISION: the tag editor collapses its idle “used before” suggestions into one counted disclosure; opening it keeps the choices on one horizontally scrollable line, while typing opens matching tags automatically.** — The always-visible six-chip list wrapped into a second row on a phone and made a small editor feel tall. Automatic matches preserve the original duplicate-prevention purpose, and contained horizontal overflow keeps the compact row from creating page-level overflow.
 
 ## Phase 4g — palabras and frases as separate tabs (2026-08-01)
 

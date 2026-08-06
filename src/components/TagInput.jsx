@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { C } from "../theme.jsx";
 import { suggestTags } from "../lib/tags.js";
 import { tagChipStyle } from "../lib/tagColors.js";
@@ -21,6 +21,7 @@ const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
 export default function TagInput({ tags = [], allTags = [], onChange, placeholder = "new tag" }) {
   const [draft, setDraft] = useState("");
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   // The editor wears the same colours as every other surface, so a tag never looks like two
   // different things depending on where you meet it.
   const tagColors = useTagColors();
@@ -29,6 +30,8 @@ export default function TagInput({ tags = [], allTags = [], onChange, placeholde
     () => suggestTags(allTags, draft, { exclude: tags }),
     [allTags, draft, tags]
   );
+  const isTyping = Boolean(draft.trim());
+  const showSuggestions = isTyping || suggestionsOpen;
 
   function add(tag) {
     const clean = String(tag).trim();
@@ -36,10 +39,12 @@ export default function TagInput({ tags = [], allTags = [], onChange, placeholde
     // what the owner typed or tapped. Rewriting their spelling is not this control's job.
     if (!clean || tags.includes(clean)) {
       setDraft("");
+      setSuggestionsOpen(false);
       return;
     }
     onChange([...tags, clean]);
     setDraft("");
+    setSuggestionsOpen(false);
   }
 
   return (
@@ -87,20 +92,47 @@ export default function TagInput({ tags = [], allTags = [], onChange, placeholde
       </div>
 
       {suggestions.length > 0 && (
-        <div className="mt-1.5 flex flex-wrap gap-1.5 items-center">
-          <span className="text-[11px]" style={{ color: C.mut }}>
-            {draft.trim() ? "already used:" : "used before:"}
-          </span>
-          {suggestions.map((tag) => (
+        <div className="mt-1.5 flex min-w-0 items-center gap-1.5">
+          {isTyping ? (
+            <span className="flex-none text-[11px]" style={{ color: C.mut }}>
+              already used:
+            </span>
+          ) : (
             <button
-              key={tag}
-              onClick={() => add(tag)}
-              className="text-xs px-2 py-0.5 rounded-full border"
-              style={{ background: C.paper, color: C.mut, borderColor: C.line }}
+              type="button"
+              aria-expanded={suggestionsOpen}
+              onClick={() => setSuggestionsOpen((open) => !open)}
+              className="flex flex-none items-center gap-0.5 text-[11px]"
+              style={{ color: C.mut }}
             >
-              {tag}
+              used before ({suggestions.length})
+              <ChevronDown
+                aria-hidden="true"
+                size={13}
+                className={`transition-transform ${suggestionsOpen ? "rotate-180" : ""}`}
+              />
             </button>
-          ))}
+          )}
+
+          {showSuggestions && (
+            <div
+              role="group"
+              aria-label="Previously used tag suggestions"
+              className="flex min-w-0 flex-1 flex-nowrap gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {suggestions.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => add(tag)}
+                  className="flex-none whitespace-nowrap rounded-full border px-2 py-0.5 text-xs"
+                  style={{ background: C.paper, color: C.mut, borderColor: C.line }}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
