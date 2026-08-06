@@ -82,10 +82,15 @@ export function speakSpanish(text, voice = null) {
 
   const synth = window.speechSynthesis;
   const utterance = new window.SpeechSynthesisUtterance(said);
-  if (voice) {
-    utterance.voice = voice;
-    utterance.lang = voice.lang;
-  } else {
+  utterance.lang = voice?.lang || "es-MX";
+
+  // A voice handed out earlier can go stale — the device's voice list changes when a TTS
+  // engine is installed or removed, and assigning a rejected voice throws. Speaking in
+  // the right language without the chosen voice is a much better outcome than a button
+  // that silently does nothing.
+  try {
+    if (voice) utterance.voice = voice;
+  } catch {
     utterance.lang = "es-MX";
   }
 

@@ -109,20 +109,42 @@ describe("matching a conjugated form back to its lemma", () => {
 describe("choosing which example to ask", () => {
   const entry = { examples: [["Mi casa es tu casa.", "My house is your house."]] };
 
-  it("prefers the owner's own sentences over the dictionary's", () => {
+  it("keeps the owner's sentences apart from the dictionary's, meanings first", () => {
     const item = makeLexical({
       term: "casa",
       meanings: [newMeaning({ gloss: "house", examples: [ex("Vivo en una casa azul.")] })],
       myExamples: [ex("La casa de mi abuela.")],
     });
 
-    const order = clozeCandidates(item, entry).map((example) => example.es);
+    const { personal, stock } = clozeCandidates(item, entry);
 
-    expect(order).toEqual([
+    expect(personal.map((example) => example.es)).toEqual([
       "Vivo en una casa azul.",
       "La casa de mi abuela.",
-      "Mi casa es tu casa.",
     ]);
+    expect(stock.map((example) => example.es)).toEqual(["Mi casa es tu casa."]);
+  });
+
+  it("never reaches for a stock example while one of the owner's works", () => {
+    // The pools must not be pooled: choosing across both at once would demote the
+    // owner's own writing whenever an entry happened to ship more examples than they
+    // wrote. Every possible draw here has to land on the personal sentence.
+    const item = makeLexical({
+      term: "casa",
+      meanings: [],
+      myExamples: [ex("La casa de mi abuela.")],
+    });
+    const richEntry = {
+      examples: [
+        ["Mi casa es tu casa.", "My house is your house."],
+        ["La casa es grande.", "The house is big."],
+        ["Vendieron la casa.", "They sold the house."],
+      ],
+    };
+
+    for (const draw of [0, 0.25, 0.5, 0.75, 0.999]) {
+      expect(pickCloze(item, richEntry, { rng: () => draw }).es).toBe("La casa de mi abuela.");
+    }
   });
 
   it("falls back to a stock example when the owner has written none", () => {

@@ -100,30 +100,43 @@ const asExample = (example) =>
   };
 
 /**
- * The examples of one entry, best first: the owner's own writing before the dictionary's.
- * A sentence the owner chose to record carries context the stock example cannot.
+ * The examples of one entry, split by who wrote them. The owner's own sentences are a
+ * different kind of material from the dictionary's: they carry the context they were
+ * recorded in, so a stock example is a fallback rather than an equal alternative.
  */
 export function clozeCandidates(item, entry) {
-  return [
-    ...(item?.meanings || []).flatMap((meaning) => meaning?.examples || []),
-    ...(item?.myExamples || []),
-    ...(entry?.examples || []),
-  ].map(asExample);
+  return {
+    personal: [
+      ...(item?.meanings || []).flatMap((meaning) => meaning?.examples || []),
+      ...(item?.myExamples || []),
+    ].map(asExample),
+    stock: (entry?.examples || []).map(asExample),
+  };
 }
 
 /**
  * One usable cloze for this card, or null to leave it an ordinary card.
  *
- * Every candidate is tried before choosing, so a word whose only workable sentence sits
- * behind two unusable ones still gets its cloze. `rng` is injectable so a test can stand
- * on a known choice.
+ * The owner's sentences are exhausted before the dictionary's is considered at all —
+ * picking across both pools at once would quietly demote personal material every time an
+ * entry happened to ship more examples than the owner wrote. Within a pool the choice is
+ * random so a word with several sentences does not always ask the same one; `rng` is
+ * injectable so a test can stand on a known choice.
  */
 export function pickCloze(item, entry, { forms, rng = Math.random } = {}) {
-  const usable = [];
-  for (const example of clozeCandidates(item, entry)) {
-    const split = clozeFromExample(example, { term: item?.term, forms });
-    if (split) usable.push({ ...split, es: example.es, en: example.en });
-  }
-  if (!usable.length) return null;
-  return usable[Math.min(usable.length - 1, Math.floor(rng() * usable.length))];
+  const { personal, stock } = clozeCandidates(item, entry);
+
+  const workable = (examples) => {
+    const usable = [];
+    for (const example of examples) {
+      const split = clozeFromExample(example, { term: item?.term, forms });
+      if (split) usable.push({ ...split, es: example.es, en: example.en });
+    }
+    return usable;
+  };
+
+  const usable = workable(personal);
+  const pool = usable.length ? usable : workable(stock);
+  if (!pool.length) return null;
+  return pool[Math.min(pool.length - 1, Math.floor(rng() * pool.length))];
 }

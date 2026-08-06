@@ -92,3 +92,37 @@ describe("the speak button", () => {
     expect(onRowClick).not.toHaveBeenCalled();
   });
 });
+
+describe("when the chosen voice goes stale", () => {
+  it("still speaks in Spanish rather than doing nothing", async () => {
+    const user = userEvent.setup();
+    const spoken = [];
+    window.speechSynthesis = {
+      getVoices: () => [{ lang: "es-MX", name: "Paulina" }],
+      speak: (utterance) => spoken.push(utterance),
+      cancel: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    };
+    // A real browser rejects a voice it no longer recognises, which happens when a TTS
+    // engine is installed or removed after the list was read.
+    window.SpeechSynthesisUtterance = class {
+      constructor(text) {
+        this.text = text;
+      }
+      set voice(_value) {
+        throw new TypeError("Failed to set the 'voice' property");
+      }
+      get voice() {
+        return null;
+      }
+    };
+
+    render(<SpeakButton text="sacar" />);
+    await user.click(await screen.findByRole("button", { name: "Play sacar" }));
+
+    expect(spoken).toHaveLength(1);
+    expect(spoken[0].text).toBe("sacar");
+    expect(spoken[0].lang).toBe("es-MX");
+  });
+});
