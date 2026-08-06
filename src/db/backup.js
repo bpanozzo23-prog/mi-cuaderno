@@ -26,6 +26,7 @@ import { PINNED_PAGE_IDS_PREF } from "../lib/pageKinds.js";
 import { validatePageStructures } from "../lib/pageKinds.js";
 import { PINNED_LEXICAL_IDS_PREF } from "../lib/lexicalViews.js";
 import { TAG_COLORS_PREF, TAG_SWATCHES } from "../lib/tagColors.js";
+import { AI_API_KEY_PREF, AI_ENABLED_PREF } from "../lib/aiPrefs.js";
 import {
   isDirectionalRelationshipType,
   RELATIONSHIP_SUBJECTS,
@@ -42,11 +43,15 @@ export const LAST_BACKUP_PREF = "lastBackupAt";
 export { PINNED_PAGE_IDS_PREF, PINNED_LEXICAL_IDS_PREF };
 
 export async function buildBackup() {
-  const [userItems, events, preferences] = await Promise.all([
+  const [userItems, events, storedPrefs] = await Promise.all([
     db.items.toArray(),
     db.events.toArray(),
     allPrefs(),
   ]);
+  // §10: the API key is never exported. Dropped here rather than at the call sites so the
+  // pre-import safety export gets the same treatment, and so validateBackup below — which refuses
+  // any envelope carrying the key — checks this envelope too.
+  const { [AI_API_KEY_PREF]: _neverExported, ...preferences } = storedPrefs;
   const candidate = {
     format: BACKUP_FORMAT,
     schemaVersion: SCHEMA_VERSION,
@@ -482,6 +487,26 @@ function validateTagColorsPreference(preferences, errors) {
 }
 
 /**
+ * AI preferences (brief §9, §10). `aiEnabled` is ordinary configuration: absent is valid, present
+ * must be a boolean.
+ *
+ * The API key is different. It is never written to a backup, so a file containing one did not come
+ * from this app's exporter, and the honest response is to say so rather than to strip it and import
+ * the rest — the same "explain exactly what is wrong, write nothing" contract the other validators
+ * keep. The practical effect either way is that a restore leaves the feature off until the owner
+ * re-enters the key on this device.
+ */
+function validateAiPreferences(preferences, errors) {
+  if (Object.prototype.hasOwnProperty.call(preferences, AI_API_KEY_PREF)) {
+    errors.push(`preferences.${AI_API_KEY_PREF} must never appear in a backup`);
+  }
+  if (!Object.prototype.hasOwnProperty.call(preferences, AI_ENABLED_PREF)) return;
+  if (typeof preferences[AI_ENABLED_PREF] !== "boolean") {
+    errors.push(`preferences.${AI_ENABLED_PREF} must be true or false`);
+  }
+}
+
+/**
  * One pin list. Absent is always valid — a backup written before a given pin surface existed must
  * still restore, which is also why adding the lexical list needed no schema-version change.
  */
@@ -534,9 +559,10 @@ function validateSchemaState(userItems, events, preferences, schemaVersion, erro
     if (item) seenItemIds.add(item.id);
   }
 
-  // Not version-gated: tag colours reference nothing in the notebook, so the check is the same
-  // whatever schema the file was written at.
+  // Not version-gated: tag colours and the AI preferences reference nothing in the notebook, so the
+  // checks are the same whatever schema the file was written at.
   validateTagColorsPreference(preferences, errors);
+  validateAiPreferences(preferences, errors);
 
   if (schemaVersion >= 3) validateV3References(userItems, preferences, errors);
   if (schemaVersion >= 4) validateV4References(userItems, errors);

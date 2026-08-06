@@ -138,6 +138,11 @@ export async function setPref(key, value) {
   return value;
 }
 
+/** Removes the row entirely, so the preference is absent rather than stored as null. */
+export async function delPref(key) {
+  await db.prefs.delete(key);
+}
+
 export async function allPrefs() {
   const rows = await db.prefs.toArray();
   return Object.fromEntries(rows.map((r) => [r.key, r.value]));

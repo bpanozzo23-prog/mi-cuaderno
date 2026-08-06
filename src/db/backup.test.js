@@ -4,6 +4,7 @@ import { buildBackup, validateBackup, importBackup, BACKUP_FORMAT } from "./back
 import { makeLexical, makePage, makeEvent } from "../test/factories.js";
 import { SCHEMA_VERSION } from "../version.js";
 import { emptyGrammar, emptySource } from "../lib/pageKinds.js";
+import { AI_API_KEY_PREF, AI_ENABLED_PREF } from "../lib/aiPrefs.js";
 
 const GROUP_ONE = "page-group:11111111-1111-4111-8111-111111111111";
 const GROUP_TWO = "page-group:22222222-2222-4222-8222-222222222222";
@@ -91,6 +92,22 @@ describe("export", () => {
     expect(envelope.events).toHaveLength(1);
     expect(envelope.preferences).toEqual({ lastBackupAt: "2026-07-30T10:00:00.000Z" });
   });
+
+  it("never exports the AI API key, and keeps the enabled flag", async () => {
+    await db.items.add(makeLexical());
+    await setPref(AI_API_KEY_PREF, "sk-ant-secret-value");
+    await setPref(AI_ENABLED_PREF, true);
+
+    // The key really is in the store this backup is built from: without this the assertion below
+    // could pass against a notebook that simply never had one.
+    expect(await getPref(AI_API_KEY_PREF)).toBe("sk-ant-secret-value");
+
+    const envelope = await buildBackup();
+
+    expect(Object.prototype.hasOwnProperty.call(envelope.preferences, AI_API_KEY_PREF)).toBe(false);
+    expect(JSON.stringify(envelope)).not.toContain("sk-ant-secret-value");
+    expect(envelope.preferences[AI_ENABLED_PREF]).toBe(true);
+  });
 });
 
 describe("import: replace and restore", () => {
@@ -171,6 +188,36 @@ describe("import: replace and restore", () => {
     const wrongShape = JSON.parse(text);
     wrongShape.preferences.tagColors = ["red"];
     expect(validateBackup(wrongShape).ok).toBe(false);
+  });
+
+  it("round-trips the AI enabled flag, and refuses any file carrying an API key", async () => {
+    await db.items.bulkAdd([makeLexical({ id: "user:aiword", term: "escribir" })]);
+    await setPref(AI_ENABLED_PREF, true);
+    await setPref(AI_API_KEY_PREF, "sk-ant-secret-value");
+
+    const text = JSON.stringify(await buildBackup());
+    await clearAllPersonalData();
+    await importBackup(text);
+
+    // The flag restores; the key does not come back, so the feature lands off until it is re-entered.
+    expect(await getPref(AI_ENABLED_PREF)).toBe(true);
+    expect(await getPref(AI_API_KEY_PREF)).toBe(null);
+
+    // Absent is valid, so every backup written before this release still restores.
+    const older = JSON.parse(text);
+    delete older.preferences[AI_ENABLED_PREF];
+    expect(validateBackup(older).ok).toBe(true);
+
+    const notBoolean = JSON.parse(text);
+    notBoolean.preferences[AI_ENABLED_PREF] = "yes";
+    expect(validateBackup(notBoolean).ok).toBe(false);
+
+    // A hand-edited file must not be able to plant a key in the notebook.
+    const withKey = JSON.parse(text);
+    withKey.preferences[AI_API_KEY_PREF] = "sk-ant-injected";
+    const checked = validateBackup(withKey);
+    expect(checked.ok).toBe(false);
+    expect(checked.errors.join(" ")).toMatch(/aiApiKey must never appear in a backup/);
   });
 
   it("round-trips collection group/item order and pinned page preferences", async () => {
