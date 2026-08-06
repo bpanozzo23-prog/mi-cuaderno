@@ -191,6 +191,9 @@ export default function LexicalHub({
     : "No answerable cards in this view."}${practiceOmittedCount > 0
     ? ` ${practiceOmittedCount} ${practiceOmittedCount === 1 ? "entry needs" : "entries need"} a meaning.`
     : ""}`;
+  // The active form chip carries the count, so it has to say what is actually on screen — search
+  // results while searching, the whole browsed list otherwise.
+  const visibleCount = searching ? searchResults.length : ordered.length;
   const indexed = browseOrder === BROWSE_ORDERS.alphabetical;
   const letterGroups = useMemo(
     () => indexed ? groupByInitial(otherItems) : [],
@@ -282,6 +285,9 @@ export default function LexicalHub({
               className="min-h-11 px-3"
             >
               {option.label}
+              {formFilter === option.value && (
+                <span style={{ fontFamily: MONO, opacity: 0.75 }}>{visibleCount}</span>
+              )}
             </Chip>
           ))}
         </div>
@@ -430,10 +436,7 @@ export default function LexicalHub({
               )}
 
               {otherItems.length > 0 && (
-                <section aria-labelledby="all-vocabulary-heading">
-                  <HubSectionHeading count={`${ordered.length} total`}>
-                    <span id="all-vocabulary-heading">All matching vocabulary</span>
-                  </HubSectionHeading>
+                <section aria-label="All matching vocabulary">
                   {indexed ? (
                     <div className="space-y-6">
                       {letterGroups.map((group) => (

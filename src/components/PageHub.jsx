@@ -192,6 +192,9 @@ export default function PageHub({
               className="min-h-11 px-3"
             >
               {option.label}
+              {roleFilter === option.value && (
+                <span style={{ fontFamily: MONO, opacity: 0.75 }}>{resultCount}</span>
+              )}
             </Chip>
           ))}
         </div>
@@ -299,10 +302,7 @@ export default function PageHub({
               )}
 
               {otherPages.length > 0 && (
-                <section aria-labelledby="all-pages-heading">
-                  <PageSectionHeading count={`${resultCount} total`}>
-                    <span id="all-pages-heading">All matching pages</span>
-                  </PageSectionHeading>
+                <section aria-label="All matching pages">
                   <div className="space-y-3">{otherPages.map((page) => renderCard(page))}</div>
                 </section>
               )}
