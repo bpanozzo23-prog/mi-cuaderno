@@ -7,6 +7,7 @@ import { EVENT_TYPES } from "../db/events.js";
 import { createItem, newLexicalFromEntry } from "../db/items.js";
 import {
   dictionaryInstalled,
+  getConjugation,
   getEntries,
   isDictKey,
   resolveEntry,
@@ -14,6 +15,7 @@ import {
 import { emptyItemState } from "../useNotebook.js";
 import { timeAgo } from "../lib/dates.js";
 import { deriveReviewState, deriveDictSuggestions, cardDirection } from "../lib/review.js";
+import { pickCloze, verbForms } from "../lib/cloze.js";
 
 /**
  * Every number here is derived from the event log at render time — there are no
@@ -78,6 +80,10 @@ export default function Repaso({ notebook, onSelect }) {
   // default is the one you get by just tapping Start, and a remembered direction would
   // be a stored preference nobody asked for.
   const [direction, setDirection] = useState("forward");
+
+  // Starting now reads the reference layer for cloze material, so the tap has to be
+  // guarded against a second one landing before the first finishes.
+  const [starting, setStarting] = useState(false);
 
   /**
    * Dictionary entries the owner keeps opening but has not added — the counterpart to
@@ -209,18 +215,54 @@ export default function Repaso({ notebook, onSelect }) {
   }, [recentDictKeys]);
 
   /**
-   * Snapshots the due list, deciding each card's direction once (Phase 7a). Deciding here
-   * rather than per render means a mixed session cannot flip a card's direction underneath
-   * the owner when the notebook reloads after a grade.
+   * Snapshots the due list, deciding each card's direction and question face once
+   * (Phase 7a/7b). Deciding here rather than per render means a mixed session cannot flip
+   * a card underneath the owner when the notebook reloads after a grade.
+   *
+   * Attached dictionary entries are resolved for their stock examples, and verbs for their
+   * conjugations, so "Ayer saqué la basura" can be blanked for *sacar*. Every one of those
+   * reads is optional: no dictionary, a stale key or a missing table simply means fewer
+   * cloze cards, never a session that fails to start. Only forward cards get a cloze — a
+   * reverse card asks for the term, and a sentence containing it would give it away.
    */
-  function startSession() {
+  async function startSession() {
+    if (starting) return;
+    setStarting(true);
+
+    const cards = review.due.map((item) => ({
+      ...item,
+      ...review.states.get(item.id),
+      direction: cardDirection(item, direction),
+    }));
+
+    let entries = new Map();
+    let tables = new Map();
+    try {
+      const keys = [...new Set(cards.map((card) => card.dictKey).filter(Boolean))];
+      if (keys.length) {
+        const resolved = await getEntries(keys);
+        entries = new Map(resolved.map((entry) => [entry.id, entry]));
+
+        const conjugationIds = [...new Set(resolved.map((entry) => entry.conjugationId).filter(Boolean))];
+        const loaded = await Promise.all(conjugationIds.map((id) => getConjugation(id)));
+        tables = new Map(conjugationIds.map((id, index) => [id, loaded[index]]).filter(([, table]) => table));
+      }
+    } catch {
+      // The reference layer is optional (§11). A card without its entry is still a card.
+    }
+
     setSessionCards(
-      review.due.map((item) => ({
-        ...item,
-        ...review.states.get(item.id),
-        direction: cardDirection(item, direction),
-      }))
+      cards.map((card) => {
+        if (card.direction === "reverse") return card;
+        // An entry resolved under an old key still answers here: getEntries returns it
+        // under its canonical id, so look both up rather than assuming the key matched.
+        const entry = card.dictKey ? entries.get(card.dictKey) || null : null;
+        const table = entry?.conjugationId ? tables.get(entry.conjugationId) : null;
+        const cloze = pickCloze(card, entry, { forms: table ? verbForms(table) : null });
+        return cloze ? { ...card, cloze, face: "cloze" } : card;
+      })
     );
+    setStarting(false);
     setInSession(true);
   }
 
@@ -263,7 +305,7 @@ export default function Repaso({ notebook, onSelect }) {
                   {review.reviewedToday > 0 && ` · ${review.reviewedToday} done today`}
                 </div>
               </div>
-              <Button onClick={startSession}>
+              <Button onClick={startSession} disabled={starting}>
                 <Play size={15} /> Start
               </Button>
             </div>

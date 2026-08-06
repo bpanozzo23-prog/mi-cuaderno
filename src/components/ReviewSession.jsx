@@ -84,6 +84,9 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
   // A card with no written gloss has no reverse question side; cardDirection already
   // forces those forward, and this guard keeps a hand-built card from rendering blank.
   const reverse = item.direction === "reverse" && item.meanings?.length > 0;
+  // Cloze belongs to the forward face only: a reverse card asks for the term, and a
+  // sentence built around it would hand the answer over.
+  const cloze = !reverse && item.cloze?.answer ? item.cloze : null;
 
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
@@ -108,6 +111,25 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
               {item.meanings.map((meaning, meaningIndex) => (
                 <MeaningRow key={meaning.id} meaning={meaning} index={meaningIndex} showCue={false} />
               ))}
+            </div>
+          ) : cloze && !revealed ? (
+            /*
+              A cloze asks the word in the place it gets used. The English side is withheld
+              here — it would translate the missing word — and appears on reveal.
+            */
+            <div className="text-left text-xl leading-relaxed" style={{ fontFamily: SERIF, color: C.ink }}>
+              {cloze.before}
+              {/*
+                A real gap, not the answer painted invisible: hiding it with a colour would
+                still leave the word in the DOM for a screen reader — and for anyone who
+                selects the text. The width is fixed so it gives no hint of the length.
+              */}
+              <span
+                aria-label="missing word"
+                className="mx-1 inline-block rounded align-baseline"
+                style={{ background: C.penPale, width: "4.5rem", height: "1.1em" }}
+              />
+              {cloze.after}
             </div>
           ) : (
             <div className="text-3xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
@@ -148,10 +170,11 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
             className="w-full mt-5 py-6 rounded-xl border border-dashed text-sm"
             style={{ borderColor: C.line, color: C.mut, background: C.paper }}
           >
-            {reverse ? "Tap to see the word" : "Tap to see the meaning"}
+            {reverse || cloze ? "Tap to see the word" : "Tap to see the meaning"}
           </button>
         ) : (
           <>
+            {/* Reverse hides the term in its heading slot, so the answer is shown here. */}
             {reverse && (
               <div className="mt-5 text-center text-3xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
                 <Hi on={item.tricky}>{item.term}</Hi>
@@ -162,6 +185,21 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
                       {personalHeadingSuffix(item)}
                     </span>
                   </>
+                )}
+              </div>
+            )}
+            {/* The sentence again, filled in, so the word is seen back in its context. */}
+            {cloze && (
+              <div className="mt-4 text-left text-base leading-relaxed" style={{ fontFamily: SERIF, color: C.ink }}>
+                {cloze.before}
+                <span className="rounded px-1" style={{ background: C.penPale, color: C.penDark, fontWeight: 700 }}>
+                  {cloze.answer}
+                </span>
+                {cloze.after}
+                {cloze.en && (
+                  <div className="mt-1 text-xs" style={{ color: C.mut }}>
+                    {cloze.en}
+                  </div>
                 )}
               </div>
             )}

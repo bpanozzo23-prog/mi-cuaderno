@@ -6,7 +6,7 @@ import Repaso from "./Repaso.jsx";
 import { EVENT_TYPES } from "../db/events.js";
 import { removeDictionary } from "../db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "../db/ref/refdb.js";
-import { FIXTURE_ENTRIES } from "../test/dictFixture.js";
+import { FIXTURE_CONJUGATIONS, FIXTURE_ENTRIES } from "../test/dictFixture.js";
 import { makeEvent, makeLexical, makePage } from "../test/factories.js";
 import { newPageGroup } from "../lib/collections.js";
 
@@ -171,5 +171,92 @@ describe("Phase 5d actionable activity", () => {
 
     expect(screen.getByText("“missing-0”")).toBeTruthy();
     expect(screen.queryByText(/future_event_type/)).toBeNull();
+  });
+});
+
+describe("Phase 7a/7b: how a session is set up", () => {
+  const SACAR = "dict:wiktionary-es:sacar:verb";
+
+  async function seedWithConjugations(entries) {
+    await seedDictionary({ entries });
+    await refDb("a").conjugations.bulkPut(FIXTURE_CONJUGATIONS);
+  }
+
+  /** Highlighting a word enrolls it, and an unreviewed word is due the same day. */
+  const dueWord = (overrides) => makeLexical({ id: "user:due", ...overrides });
+  const enrolls = (id) => makeEvent({ type: EVENT_TYPES.trickyOn, itemKey: id, at: at(1) });
+
+  it("defaults to asking Spanish first, and offers the other two ways", () => {
+    const word = dueWord({});
+    render(<Repaso notebook={notebookFor([word], [enrolls(word.id)])} onSelect={vi.fn()} />);
+
+    expect(screen.getByRole("radio", { name: "es→en" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("radio", { name: "en→es" }).getAttribute("aria-checked")).toBe("false");
+    expect(screen.getByRole("radio", { name: "mixed" })).toBeTruthy();
+  });
+
+  it("offers no direction control on a day with nothing due", () => {
+    render(<Repaso notebook={notebookFor([dueWord({})], [])} onSelect={vi.fn()} />);
+
+    expect(screen.queryByRole("radio", { name: "es→en" })).toBeNull();
+  });
+
+  it("builds a cloze from the owner's own example, blanking the conjugated form", async () => {
+    const user = userEvent.setup();
+    await seedWithConjugations([SACAR]);
+    const word = dueWord({
+      term: "sacar",
+      dictKey: SACAR,
+      myExamples: [{ es: "Ayer saqué la basura.", en: "Yesterday I took out the trash." }],
+    });
+
+    render(<Repaso notebook={notebookFor([word], [enrolls(word.id)])} onSelect={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: /Start/ }));
+
+    // The sentence is the question; the inflected word it contains is the answer.
+    await waitFor(() => expect(screen.getByText(/Ayer/)).toBeTruthy());
+    expect(screen.queryByText(/saqué/)).toBeNull();
+    expect(screen.getByRole("button", { name: "Tap to see the word" })).toBeTruthy();
+  });
+
+  it("falls back to a stock dictionary example when the owner wrote none", async () => {
+    const user = userEvent.setup();
+    await seedWithConjugations([CASA]);
+    const word = dueWord({ term: "casa", pos: "noun", dictKey: CASA, myExamples: [] });
+
+    render(<Repaso notebook={notebookFor([word], [enrolls(word.id)])} onSelect={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: /Start/ }));
+
+    await waitFor(() => expect(screen.getByText(/es tu/)).toBeTruthy());
+  });
+
+  it("starts an ordinary session when no dictionary is installed at all", async () => {
+    const user = userEvent.setup();
+    const word = dueWord({ term: "madrugar", dictKey: SACAR, myExamples: [] });
+
+    render(<Repaso notebook={notebookFor([word], [enrolls(word.id)])} onSelect={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: /Start/ }));
+
+    // The reference layer is optional: a missing dictionary costs cloze, not the session.
+    await waitFor(() => expect(screen.getByText("madrugar")).toBeTruthy());
+    expect(screen.getByRole("button", { name: "Tap to see the meaning" })).toBeTruthy();
+  });
+
+  it("never puts a cloze on a reverse card, which would give the word away", async () => {
+    const user = userEvent.setup();
+    await seedWithConjugations([SACAR]);
+    const word = dueWord({
+      term: "sacar",
+      dictKey: SACAR,
+      myExamples: [{ es: "Ayer saqué la basura.", en: "" }],
+    });
+
+    render(<Repaso notebook={notebookFor([word], [enrolls(word.id)])} onSelect={vi.fn()} />);
+    await user.click(screen.getByRole("radio", { name: "en→es" }));
+    await user.click(screen.getByRole("button", { name: /Start/ }));
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Tap to see the word" })).toBeTruthy());
+    expect(screen.queryByText(/Ayer/)).toBeNull();
+    expect(screen.getByText("to take out")).toBeTruthy();
   });
 });

@@ -120,3 +120,84 @@ describe("Phase 7a: reverse cards", () => {
     expect(screen.getByRole("button", { name: "Tap to see the meaning" })).toBeTruthy();
   });
 });
+
+describe("Phase 7b: cloze cards", () => {
+  const clozeCard = (overrides = {}) => ({
+    id: "user:sacar",
+    term: "sacar",
+    form: "word",
+    pos: "verb",
+    direction: "forward",
+    face: "cloze",
+    cloze: {
+      before: "Ayer ",
+      answer: "saqué",
+      after: " la basura.",
+      es: "Ayer saqué la basura.",
+      en: "Yesterday I took out the trash.",
+    },
+    meanings: [newMeaning({ id: "meaning:remove", gloss: "to take out" })],
+    notes: "",
+    myExamples: [],
+    box: 1,
+    reason: "reviewing",
+    tricky: false,
+    ...overrides,
+  });
+
+  it("shows the sentence with a real gap, not the answer painted invisible", async () => {
+    const user = userEvent.setup();
+    render(<ReviewSession cards={[clozeCard()]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    expect(screen.getByText(/Ayer/)).toBeTruthy();
+    // The word must be absent from the DOM entirely: a transparent colour would still
+    // hand it to a screen reader and to anyone selecting the text.
+    expect(screen.queryByText(/saqué/)).toBeNull();
+    // Nor may the English translate the missing word before it is asked.
+    expect(screen.queryByText(/took out the trash/)).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Tap to see the word" }));
+
+    expect(screen.getByText(/saqué/)).toBeTruthy();
+    expect(screen.getByText(/took out the trash/)).toBeTruthy();
+  });
+
+  it("records the cloze face on the review event", async () => {
+    const user = userEvent.setup();
+    render(<ReviewSession cards={[clozeCard()]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: "Tap to see the word" }));
+    await user.click(screen.getByRole("button", { name: "Got it" }));
+
+    await waitFor(async () => expect(await allEvents()).toHaveLength(1));
+    expect((await allEvents())[0].metadata).toEqual({ direction: "forward", face: "cloze", grade: 2 });
+  });
+
+  it("ignores a cloze on a reverse card, which would hand over the answer", () => {
+    render(
+      <ReviewSession
+        cards={[clozeCard({ direction: "reverse" })]}
+        onFinish={vi.fn()}
+        onOpen={vi.fn()}
+        onGraded={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByText(/Ayer/)).toBeNull();
+    expect(screen.getByText("to take out")).toBeTruthy();
+  });
+
+  it("falls back to the ordinary card when no cloze was found", () => {
+    render(
+      <ReviewSession
+        cards={[clozeCard({ cloze: null, face: "plain" })]}
+        onFinish={vi.fn()}
+        onOpen={vi.fn()}
+        onGraded={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("sacar")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Tap to see the meaning" })).toBeTruthy();
+  });
+});
