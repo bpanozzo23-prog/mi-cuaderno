@@ -40,7 +40,7 @@ const KNOWN_ACTIVITY_TYPES = new Set([
   EVENT_TYPES.searchMiss,
 ]);
 
-/** Phase 7a. Labels name the direction in the owner's own terms, not the code's. */
+/** Phase 10a. Labels name the direction in the owner's own terms, not the code's. */
 const DIRECTION_OPTIONS = [
   { value: "forward", label: "es→en" },
   { value: "reverse", label: "en→es" },
@@ -78,7 +78,7 @@ export default function Repaso({ notebook, onSelect }) {
   // changes what is due) cannot pull the card out from under the owner's thumb.
   const [sessionCards, setSessionCards] = useState([]);
 
-  // Which way today's cards face. Deliberately not persisted (Phase 7a): the useful
+  // Which way today's cards face. Deliberately not persisted (Phase 10a): the useful
   // default is the one you get by just tapping Start, and a remembered direction would
   // be a stored preference nobody asked for.
   const [direction, setDirection] = useState("forward");
@@ -136,7 +136,7 @@ export default function Repaso({ notebook, onSelect }) {
   }
 
   /**
-   * The owner's verbs that the installed dictionary can actually conjugate (Phase 7c).
+   * The owner's verbs that the installed dictionary can actually conjugate (Phase 10c).
    *
    * Resolution goes through resolveEntry, so a personal item whose dict: key moved in a
    * dataset rebuild keeps its drill instead of silently dropping out (§5). Nothing is
@@ -285,7 +285,7 @@ export default function Repaso({ notebook, onSelect }) {
 
   /**
    * Snapshots the due list, deciding each card's direction and question face once
-   * (Phase 7a/7b). Deciding here rather than per render means a mixed session cannot flip
+   * (Phase 10a/10b). Deciding here rather than per render means a mixed session cannot flip
    * a card underneath the owner when the notebook reloads after a grade.
    *
    * Attached dictionary entries are resolved for their stock examples, and verbs for their

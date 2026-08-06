@@ -36,7 +36,7 @@ export const PASS_GRADE = GRADES.good;
 export const FAIL_GRADE = GRADES.again;
 
 /**
- * How a session may ask its cards (Phase 7a). Forward is the classic face — term shown,
+ * How a session may ask its cards (Phase 10a). Forward is the classic face — term shown,
  * meaning recalled. Reverse shows the glosses and asks for the term. Mixed decides per
  * card when the session is snapshotted, so one sitting interleaves both directions.
  * One Leitner ladder covers both: the box answers "do I know this word", not "which way

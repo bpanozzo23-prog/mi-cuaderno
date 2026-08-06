@@ -1,7 +1,7 @@
 import { SLOTS, COLLAPSED_SLOTS } from "./conjugation.js";
 
 /**
- * Building a conjugation drill (Phase 7c).
+ * Building a conjugation drill (Phase 10c).
  *
  * The dictionary ships full paradigms for around 1,250 verbs, and until now they were
  * only ever read. A drill asks one cell of one table — "Preterite, ustedes/ellos —

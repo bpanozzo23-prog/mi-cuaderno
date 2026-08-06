@@ -43,6 +43,7 @@ Useful information to retain for each idea:
 | Saved views | 2026-08-02 | Captured | After observing repeated retrieval/filter patterns — Phase 8 adds lenses that can supply that evidence |
 | Persistent page profiles | 2026-08-02 | Implemented and deployed | Phase 7 deployed; browser closeout unverified |
 | Personal-content provenance | 2026-08-02 | Captured | Before or alongside Phase 6 AI design; source needs can be studied earlier |
+| Learning depth (cloze, reverse, drill, audio) | 2026-08-06 | Implemented locally | Phase 10a–10d; deferred members need real-use evidence |
 
 ---
 
@@ -819,7 +820,80 @@ backup plan.
 
 ---
 
+## Learning depth (cloze, reverse, drill, audio)
+
+- **Date added:** 2026-08-06
+- **Last reviewed:** 2026-08-06
+- **Status:** Implemented locally — Phase 10a–10d, not deployed
+- **Origin:** Owner asked what additional learning features the app could support
+- **Potential data impact:** None. No schema change, no new event types, no stored counters;
+  `SCHEMA_VERSION` stays 4 and backups are untouched
+
+### Description and current context
+
+Repaso trained exactly one task: see the Spanish term, recall the English meaning. Meanwhile the
+notebook already stored material no learning surface used — per-meaning and entry examples,
+dictionary stock examples, and full paradigms for around 1,250 verbs.
+
+An audit of that gap produced a longer candidate list, sorted by architectural cost. The four
+cheapest — all derivable from existing data — were approved together as Phase 7.
+
+### What shipped locally
+
+- **10a — session direction.** es→en, en→es or mixed, chosen at session start and fixed per card
+  at snapshot. Reverse withholds the term, its suffix and every Spanish usage cue until reveal.
+  A card with no gloss always faces forward. Review events now record `direction` and `face`
+  beside the grade.
+- **10b — cloze cards.** The word blanked out of one of its own example sentences. The owner's
+  sentences are preferred over the dictionary's; verbs match through their conjugation table, so
+  a personal example in the preterite still works for the lemma. The gap is a real empty span,
+  not the answer hidden by colour.
+- **10c — conjugation drill.** An ungraded pass over six everyday tenses, launched from Repaso.
+  Writes no events at all — not even a `view`.
+- **10d — pronunciation.** A speaker button using the browser's own voices. Zero storage, nothing
+  sent anywhere; renders nothing where the device has no Spanish voice.
+
+### Deliberately not built
+
+- **Confusion-pair drills** from `often_confused` / `contrast` annotations. The data is already
+  curated and the idea remains attractive; it was dropped from this batch for scope.
+- **Frequency weighting** of dictionary suggestions using `freqRank`. Judged the weakest of the
+  candidates: it cannot apply to "searched for, not found" at all, because a miss means the
+  dictionary had no entry and therefore no rank.
+- **Per-direction scheduling**, drill grading or history, TTS on dictionary pages, and persisting
+  the direction choice. The first two are §14 territory; the others lacked a reason.
+
+### Evidence to collect from real use
+
+- Whether cloze fires often enough to be worth it, or whether too few entries carry examples.
+- Whether reverse cards feel productive or merely harder, and whether mixed is the one that gets
+  used once the novelty passes.
+- Whether one Leitner ladder across both directions stays believable, or whether a word known one
+  way and not the other starts to feel mis-scheduled. The recorded `direction` metadata is what a
+  future answer would be built from.
+- Whether the ungraded drill gets used at all, and whether its lack of history becomes a real
+  frustration rather than a principled boundary.
+- Whether the six drilled tenses are the right six.
+- Whether the device's Spanish voice is good enough to be worth tapping.
+
+### Questions for a future discussion
+
+- Does real use justify revisiting §14 on per-direction scheduling, and what evidence would settle it?
+- Should the confusion-pair drill be built next, given the annotations already exist?
+- Should cloze ever draw on Diario writing, which is the owner's own Spanish in context?
+
+---
+
 ## Document history
+
+- **2026-08-06 — Phase 10a–10d implemented locally.** Recorded the learning-depth batch: session
+  direction, cloze cards, the ungraded conjugation drill and browser pronunciation, all without a
+  schema change or a new event type. The complete serial suite passes 762/762 across 71 files,
+  the production build passes, four deliberate red/green proofs hold, and a disposable 375×812
+  browser closeout covered all three directions, the drill and the speaker controls. That closeout
+  found a real defect the unit tests could not have caught — cloze preferred the owner's examples
+  in name only — which is fixed and now covered by a test that fails against the old behaviour.
+  No push or deployment is claimed.
 
 - **2026-08-04 — Phase 8 implemented locally; not deployed.** Recorded the Words & phrases hub's
   overlap with Saved views under that idea: the hub adds organizing lenses but keeps every control

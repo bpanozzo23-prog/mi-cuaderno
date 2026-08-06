@@ -5,7 +5,7 @@ import { tenseHeading } from "../lib/conjugation.js";
 import SpeakButton from "./SpeakButton.jsx";
 
 /**
- * A pass through a deck of conjugation prompts (Phase 7c).
+ * A pass through a deck of conjugation prompts (Phase 10c).
  *
  * Deliberately ungraded, and it writes nothing at all — no review events, and no view
  * events either, because drilling a verb is not opening its detail screen and must not

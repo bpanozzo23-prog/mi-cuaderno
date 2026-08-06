@@ -175,7 +175,7 @@ describe("Phase 5d actionable activity", () => {
   });
 });
 
-describe("Phase 7a/7b: how a session is set up", () => {
+describe("Phase 10a/10b: how a session is set up", () => {
   const SACAR = "dict:wiktionary-es:sacar:verb";
 
   async function seedWithConjugations(entries) {
@@ -262,7 +262,7 @@ describe("Phase 7a/7b: how a session is set up", () => {
   });
 });
 
-describe("Phase 7c: the conjugation drill", () => {
+describe("Phase 10c: the conjugation drill", () => {
   const SACAR = "dict:wiktionary-es:sacar:verb";
 
   async function seedWithConjugations(entries, previousIds = {}) {

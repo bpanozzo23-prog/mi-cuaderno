@@ -4,7 +4,7 @@ import { C } from "../theme.jsx";
 import { onSpanishVoice, speakSpanish } from "../lib/speech.js";
 
 /**
- * Reads a piece of Spanish aloud (Phase 7d).
+ * Reads a piece of Spanish aloud (Phase 10d).
  *
  * Renders nothing at all when the device has no Spanish voice. A disabled control would
  * be a promise the browser cannot keep, and this is an enhancement — the notebook works

@@ -19,7 +19,7 @@ import SpeakButton from "./SpeakButton.jsx";
  * next word — the same hazard the session window solved for view events in Phase 1d,
  * met here in a click handler rather than an effect.
  *
- * Each card arrives with its direction already decided (Phase 7a, cardDirection in
+ * Each card arrives with its direction already decided (Phase 10a, cardDirection in
  * src/lib/review.js). Forward shows the term and hides the meanings; reverse shows the
  * glosses and hides everything Spanish — the term, its suffix, and the usage cues, which
  * are Spanish and routinely contain the term itself. The grade is logged with the

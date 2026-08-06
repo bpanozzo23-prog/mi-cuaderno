@@ -399,7 +399,7 @@ describe("dictionary words the owner keeps looking up", () => {
   });
 });
 
-describe("Phase 7a: which way a card faces", () => {
+describe("Phase 10a: which way a card faces", () => {
   const withGloss = makeLexical({ term: "sacar", meanings: [newMeaning({ gloss: "to take out" })] });
   const noGloss = makeLexical({ term: "sacar", meanings: [] });
 

@@ -3,7 +3,7 @@ import { C, SERIF, MONO } from "../theme.jsx";
 import { meaningLabels } from "../lib/meanings.js";
 
 /**
- * One personal meaning row. Exported for the reverse card face (Phase 7a), which shows
+ * One personal meaning row. Exported for the reverse card face (Phase 10a), which shows
  * the same rows as its question side but with the Spanish usage cue withheld — the cue
  * routinely contains the very term being asked for.
  */

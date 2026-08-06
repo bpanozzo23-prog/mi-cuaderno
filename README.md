@@ -86,6 +86,20 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   375×812 visual browser flow passed without overflow, warnings or errors. See
   [docs/PHASE-9-DIRECTION.md](docs/PHASE-9-DIRECTION.md) and
   [docs/PHASE-9-REPORT.md](docs/PHASE-9-REPORT.md).
+- **Phase 10 — implemented locally; not deployed.** Learning depth in Repaso, built only from
+  data the notebook already holds: **session direction** (10a — es→en, en→es or mixed, chosen
+  per session and fixed per card, with reverse withholding the term and its Spanish usage cue),
+  **cloze cards** (10b — the word blanked out of one of its own example sentences, matching
+  conjugated forms through the dictionary's tables, preferring the owner's sentences over stock
+  ones), an **ungraded conjugation drill** (10c — six everyday tenses over the shipped paradigms,
+  writing no events at all), and **pronunciation** through the browser's own voices (10d — zero
+  storage, nothing sent, hidden entirely where the device has no Spanish voice). No schema,
+  preference, backup or event-type change: `SCHEMA_VERSION` remains 5, and review events gain
+  only additive `direction`/`face` metadata beside the existing grade. Distinct from Phase 9's
+  hub deck, which is an anytime deck over hub filters; this is the scheduled Leitner queue. The
+  full serial suite passes 762/762 across 71 files, the production build passes, four deliberate
+  red/green proofs behaved as intended, and a disposable 375×812 browser closeout drove all
+  three session directions and the drill. See the Phase 10 entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **5**. Before Dexie opens v5, schema-v1 through schema-v4 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,

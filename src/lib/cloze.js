@@ -2,7 +2,7 @@ import { normalize } from "./normalize.js";
 import { SLOTS } from "./conjugation.js";
 
 /**
- * Turning an example sentence into a fill-in-the-blank question (Phase 7b).
+ * Turning an example sentence into a fill-in-the-blank question (Phase 10b).
  *
  * A card that shows *sacar* and asks for "to take out" tests recognition of a word in
  * isolation. Blanking that same word out of a sentence the owner already wrote —

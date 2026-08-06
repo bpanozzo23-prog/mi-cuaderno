@@ -101,7 +101,7 @@ export function composePerfectTenses(table, haberTenses) {
  * grouping. The imperative is the exception: both its tables are "Present", and what
  * actually distinguishes them lives in the mood — affirmative versus negative.
  *
- * Shared by the dictionary's tables and the Phase 7c drill, so a tense is never named one
+ * Shared by the dictionary's tables and the Phase 10c drill, so a tense is never named one
  * thing while being practised under another.
  */
 export function tenseHeading(label) {

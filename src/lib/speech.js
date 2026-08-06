@@ -1,5 +1,5 @@
 /**
- * Reading Spanish aloud (Phase 7d).
+ * Reading Spanish aloud (Phase 10d).
  *
  * The browser's own speech synthesis, which costs nothing to store and sends nothing
  * anywhere: the voices are already on the device. That matters twice over — §13 rules out

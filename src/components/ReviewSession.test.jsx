@@ -50,7 +50,7 @@ describe("entry-level review with structured meanings", () => {
   });
 });
 
-describe("Phase 7a: reverse cards", () => {
+describe("Phase 10a: reverse cards", () => {
   const reverseCard = (overrides = {}) => ({
     id: "user:madrugar",
     term: "madrugar",
@@ -121,7 +121,7 @@ describe("Phase 7a: reverse cards", () => {
   });
 });
 
-describe("Phase 7b: cloze cards", () => {
+describe("Phase 10b: cloze cards", () => {
   const clozeCard = (overrides = {}) => ({
     id: "user:sacar",
     term: "sacar",

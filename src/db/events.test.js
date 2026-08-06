@@ -159,7 +159,7 @@ describe("every review event carries a grade", () => {
     expect(event.metadata).toEqual({ grade: GRADES.good });
   });
 
-  it("records how the card was asked alongside the grade (Phase 7a)", async () => {
+  it("records how the card was asked alongside the grade (Phase 10a)", async () => {
     const item = await createItem(newLexical({ term: "madrugar" }));
 
     const event = await logReview(item.id, true, { direction: "reverse", face: "cloze" });
