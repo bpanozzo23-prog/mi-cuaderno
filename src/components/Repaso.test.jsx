@@ -386,3 +386,21 @@ describe("Phase 11 stats on the daily screen", () => {
     expect(screen.queryByText("Retired")).toBeNull();
   });
 });
+
+describe("Phase 11 Estadísticas sub-view", () => {
+  it("swaps in the calendar and comes back with the daily screen intact", async () => {
+    const user = userEvent.setup();
+    const word = makeLexical({ id: "user:word" });
+
+    render(<Repaso notebook={notebookFor([word], [])} onSelect={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: /Actividad y crecimiento/ }));
+
+    expect(screen.getByText("Actividad")).toBeTruthy();
+    expect(screen.queryByText("Para hoy")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: /Repaso/ }));
+
+    expect(screen.getByText("Para hoy")).toBeTruthy();
+    expect(screen.queryByText("Actividad")).toBeNull();
+  });
+});

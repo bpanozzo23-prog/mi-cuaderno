@@ -42,4 +42,14 @@
   --color-chip-border: #D9E1F2;
   --color-danger-border: #E5C4BC;
   --color-disabled: #B9C2D8;
+
+  /* The activity calendar's five intensity steps (Phase 11), walking from an empty day to
+     a busy one. Ink rather than the usual green: this is a page of the notebook filling up.
+     heat-0 is a breath darker than paper so an empty day still reads as a cell, and heat-4
+     is --color-pen by hand — one ramp ending on the app's own blue, not near it. */
+  --color-heat-0: #F1EFE7;
+  --color-heat-1: #C9D5EE;
+  --color-heat-2: #93A9DB;
+  --color-heat-3: #5C7EC1;
+  --color-heat-4: #2D4EA0;
 }

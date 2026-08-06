@@ -4,6 +4,7 @@ import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button } from "../them
 import ItemCard from "./ItemCard.jsx";
 import ReviewSession from "./ReviewSession.jsx";
 import ConjugationDrill from "./ConjugationDrill.jsx";
+import Estadisticas from "./Estadisticas.jsx";
 import { EVENT_TYPES } from "../db/events.js";
 import { createItem, newLexicalFromEntry } from "../db/items.js";
 import {
@@ -126,6 +127,10 @@ export default function Repaso({ notebook, onSelect }) {
   // its cards, so nothing re-derives underneath the owner mid-drill.
   const [inDrill, setInDrill] = useState(false);
   const [drillDeck, setDrillDeck] = useState([]);
+
+  // The calendar and growth chart are worth an occasional look rather than a daily one, so
+  // they swap in over Repaso the same way a session does — no route, tab or back-label.
+  const [inStats, setInStats] = useState(false);
 
   /**
    * Dictionary entries the owner keeps opening but has not added — the counterpart to
@@ -370,6 +375,11 @@ export default function Repaso({ notebook, onSelect }) {
     setInSession(true);
   }
 
+  if (inStats) {
+    // Nothing to reload on return: this screen only ever read.
+    return <Estadisticas items={items} events={events} onBack={() => setInStats(false)} />;
+  }
+
   if (inDrill) {
     // No reload on finish: the drill wrote nothing, so there is nothing to re-read.
     return <ConjugationDrill deck={drillDeck} onFinish={() => setInDrill(false)} onOpen={onSelect} />;
@@ -516,17 +526,25 @@ export default function Repaso({ notebook, onSelect }) {
         <Stat label="tricky" value={tricky.length} />
       </div>
 
+      <SectionTitle>Estadísticas</SectionTitle>
       {ladder.tracked > 0 && (
-        <>
-          <SectionTitle>Estadísticas</SectionTitle>
-          <Card className="p-4 space-y-2">
-            {ladder.boxes.map((b) => (
-              <BoxBar key={b.box} label={`Box ${b.box}`} count={b.count} max={ladderMax} tone={C.pen} />
-            ))}
-            <BoxBar label="Retired" count={ladder.graduated} max={ladderMax} tone={C.green} />
-          </Card>
-        </>
+        <Card className="p-4 space-y-2">
+          {ladder.boxes.map((b) => (
+            <BoxBar key={b.box} label={`Box ${b.box}`} count={b.count} max={ladderMax} tone={C.pen} />
+          ))}
+          <BoxBar label="Retired" count={ladder.graduated} max={ladderMax} tone={C.green} />
+        </Card>
       )}
+      <button
+        onClick={() => setInStats(true)}
+        className="mt-2 w-full min-h-11 flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-left"
+        style={{ background: C.card, borderColor: C.line }}
+      >
+        <span className="text-sm" style={{ color: C.ink }}>
+          Actividad y crecimiento
+        </span>
+        <ChevronRight size={15} style={{ color: C.mut }} />
+      </button>
 
       <SectionTitle>Highlighted items</SectionTitle>
       {tricky.length === 0 ? (

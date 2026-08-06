@@ -32,6 +32,15 @@ export const C = {
   disabled: "var(--color-disabled)",
 };
 
+/** The activity calendar's ramp, indexed by intensity level 0–4 (Phase 11). */
+export const HEAT = [
+  "var(--color-heat-0)",
+  "var(--color-heat-1)",
+  "var(--color-heat-2)",
+  "var(--color-heat-3)",
+  "var(--color-heat-4)",
+];
+
 export const SERIF = 'Georgia, "Iowan Old Style", "Times New Roman", serif';
 export const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 
