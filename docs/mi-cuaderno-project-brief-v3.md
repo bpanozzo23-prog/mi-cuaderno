@@ -410,7 +410,7 @@ pass its relevant verification before dependent work is merged.
 **Phase 3 — Review queue.** Tricky-flagged and repeatedly-looked-up words feed a daily review screen grouped by `localDate`. Start with Leitner boxes; record `review_pass` / `review_fail` events **with the 4-point grade in metadata**; orphaned events are excluded.
 *Done when:* the queue populates from real usage data; items reviewed successfully come back less often; and every review event in the log carries a grade.
 
-**Phase 4 — Live-use polish.** Driven by a running list of friction the owner collects while using the app daily. Candidates: a journal view (dated pages, newest first), YouTube links opening at a timestamp, ~~richer linking,~~ **typed and explained ordinary connections, now approved as Phase 4t–4x,** better stats, a "words I couldn't find" list from `search_miss` events.
+**Phase 4 — Live-use polish.** Driven by a running list of friction the owner collects while using the app daily. Candidates: a journal view (dated pages, newest first), YouTube links opening at a timestamp, ~~richer linking,~~ **typed and explained ordinary connections, now approved as Phase 4t–4x,** ~~better stats,~~ **owner-centric stats — streak, activity heatmap, growth chart, box distribution and a per-item review strip — now approved as Phase 11,** a "words I couldn't find" list from `search_miss` events.
 
 **Amended 2026-08-02 — Phase 4i: structured personal meaning blocks.** Replace the flat personal
 translation string with ordered meaning blocks whose IDs are independent of dictionary senses.
