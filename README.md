@@ -50,7 +50,14 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   Its planned work is kept separate from Phase 4's friction-only maintenance stream. See
   [docs/PHASE-5-DIRECTION.md](docs/PHASE-5-DIRECTION.md) and
   [docs/PHASE-5-REPORT.md](docs/PHASE-5-REPORT.md).
-- **Phase 6 — not started.** The AI assistant (brief §9).
+- **Phase 6 — first slice implemented locally; not deployed.** The AI assistant (brief §9), opened
+  with one narrow feature rather than an app-wide assistant: a user-initiated review of a single
+  Diario entry, judging whether it is understandable and where it is correct but unnatural. Off by
+  default, enabled in Ajustes behind an acknowledged Anthropic spend cap, using the owner's own key
+  stored on-device and never exported. The review is session-only — nothing is stored, no event is
+  logged, and it disappears when you leave the entry. §9's assistant Q&A over the notebook and its
+  approved proposed entries remain unbuilt. See the Phase 6 entries in
+  [DECISIONS.md](DECISIONS.md).
 - **Phase 7 — shipped.** Schema v5 replaces the
   exclusive General/Collection profile with composable Notes, Vocabulary, Source, and Grammar
   behavior while retaining only lexical items and pages. The implementation includes sequential
