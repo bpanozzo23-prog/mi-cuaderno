@@ -20,9 +20,10 @@ It is inspired by the *scope* of SpanishDict but built entirely from open data s
 
 ## 2. The owner, and how to work with them
 
-- Solo personal project. The owner has ~2 years of experience directing AI tools and is comfortable following technical steps, but is not an expert programmer.
+- Solo personal project. The owner has ~2 years of experience directing AI tools and is comfortable following technical steps, but is not an expert programmer. Owner is trying to learn more about software development.
 - **Always propose a plan before implementing each phase or sub-phase.** Wait for approval.
 - Explain choices in plain language. Define jargon the first time it appears.
+- When planning or brainstorming, ask the owner questions to get more information if needed. The owner likes to brainstorm by proposing an idea and getting feedback to refine the idea. The owner values a detailed, well thought out planning and brainstorming.
 - Work in small, verifiable steps. After each change, state exactly how the owner can see or test it.
 - Commit per completed feature with clear messages, so anything can be undone.
 - Maintain a `DECISIONS.md` log: every meaningful choice, one line, with date and reason.
@@ -517,7 +518,7 @@ Practice behavior remains correct; and the complete serial suite, production bui
 
 ## 13. Non-goals
 
-No accounts, no server, no analytics, no multi-user, no native Android build, no cloud sync (yet), no merge-mode import (yet), no file attachments (yet — model reserved), and no content from proprietary dictionaries.
+No accounts, no server, no analytics (yet), no multi-user, no native Android build, no cloud sync (yet), no merge-mode import (yet), no file attachments (yet — model reserved).
 
 Phase 7 adds no third content type, folders, free-form block editor, custom page-kind builder,
 stored/user-authored template manager, rich-media catalog, deep provenance graph, reading tracker,
@@ -538,6 +539,6 @@ prototype's visual style.~~
 
 **Superseded August 2, 2026.** That was the bootstrap instruction before any application code
 existed; Phases 0 and 0.5 are complete. For current work, follow `docs/AGENT-GUIDE.md`: establish
-the current phase from `README.md` and its linked report, load the contract and decision history
+the current phase from `README.md`(note that phases may be added and phase numbers may change as the project progresses) and its linked report, load the contract and decision history
 relevant to the request, inspect the current implementation, and address the owner's approved
 scope. The prototype remains a visual reference, not the current application or a work queue.

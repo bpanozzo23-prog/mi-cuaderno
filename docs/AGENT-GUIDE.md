@@ -114,6 +114,11 @@ this summary.
   by its shell on this machine.
 - `npm test` — Vitest. Node is the default test environment; component tests opt into `jsdom`
   with a per-file `@vitest-environment` pragma. There is no lint or type-check script.
+- **No fake timers.** This suite uses none anywhere, deliberately: the app's async paths run
+  through Dexie and the browser's own scheduling, which `vi.useFakeTimers()` does not advance, so
+  a test that awaits one hangs until the runner kills it rather than failing usefully. Wait for
+  the observable result instead — `await waitFor(() => …)`, as ~17 component test files already
+  do.
 - `npm run build` — production build. Run the relevant checks after code changes.
 - Dev server: Vite on port 5173 (`node node_modules/vite/bin/vite.js`; honours `PORT`). The app
   is served under `/mi-cuaderno/`.
@@ -131,6 +136,10 @@ start on may not be the branch the previous session used.
   local `main` had not moved. Nothing was lost, but the push silently did nothing.
 - **A push that reports "Everything up-to-date" when you expected commits to go out is a signal,
   not a success.** Check which branch HEAD is on before assuming the remote already had them.
+- **Confirm the remote actually moved before reporting a push succeeded**:
+  `git rev-parse HEAD origin/main` prints two SHAs, and they must match. Push output alone does
+  not distinguish "already there" from "nothing to send from this branch" — the failure above
+  looked like success in the transcript.
 - Prefer `git merge --ff-only` when catching a branch up: it refuses rather than inventing a
   merge commit if the history is not what you assumed.
 - **Do not delete or reset the other tool's branches**, and do not rebase shared history. A

@@ -441,8 +441,6 @@ phase-wide acceptance criteria hold: search ranking, event rules, one-sided link
 draft behavior, dictionary orphan handling and backup shapes remain intact, and
 `SCHEMA_VERSION` remains **1**.
 
-Phase 5 now enters real-use observation. It does not accumulate speculative follow-up work: a
-later addition will be planned only from the owner's live-use evidence and approved as a new,
-independently verified slice. Regressions and general usability friction continue through Phase
+Phase 5 now enters real-use observation. Regressions and general usability friction continue through Phase
 4; real-data-dependent content models and schema work remain deferred under the original
 acceptance criteria.

@@ -14,7 +14,9 @@ Claude-Code-specific notes only:
   `"C:/Program Files/GitHub CLI/gh.exe"`.
 - **Multi-line commit messages: use a bash heredoc** — `git commit -F - <<'MSG' … MSG`. The
   `@'…'@` here-string is Codex's PowerShell idiom (`AGENTS.md`); in this Bash shell it is not
-  syntax, so the `@` markers land in the message as a stray first and last line.
+  syntax, so the `@` markers land in the message as a stray first and last line. Read the
+  message back with `git log -1 --pretty=%B` before moving on: a stray leading or trailing `@`
+  means the wrong idiom leaked in, and amending is cheap only until the next commit lands.
 - **Dev server: use the preview/browser tools, never Bash.** `.claude/launch.json` (gitignored,
   this machine only) defines the `mi-cuaderno-dev` configuration. If it is missing after a fresh
   clone, recreate it from `docs/claude-launch.example.json` and adjust `runtimeExecutable` if

@@ -67,5 +67,5 @@ Confirmed:
 
 ## Not done
 
-- No push, deployment, saved decks, persistent scores/history, reverse direction, exact-page or
+- Saved decks, persistent scores/history, reverse direction, exact-page or
   part-of-speech filter, or scheduling beyond the existing Leitner review.

@@ -76,7 +76,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   numerically; **no visual screenshot was captured**, because the in-app browser pane does not
   composite frames. See [docs/PHASE-8-DIRECTION.md](docs/PHASE-8-DIRECTION.md) and
   [docs/PHASE-8-REPORT.md](docs/PHASE-8-REPORT.md).
-- **Phase 9 — implemented locally; not deployed.** The Words & phrases hub can turn its current
+- **Phase 9 — shipped.** The Words & phrases hub can turn its current
   filters or search into an anytime Spanish-first flashcard deck. A transient preflight chooses
   10, 20 or All cards and shuffled or current hub order; entries without meanings are excluded and
   explained. Again/Got it feedback and missed-only rounds stay in memory and never change Repaso's
