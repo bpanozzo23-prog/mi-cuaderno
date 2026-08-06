@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
 import MeaningEditor from "./MeaningEditor.jsx";
+import SpeakButton from "./SpeakButton.jsx";
 import {
   cleanMeanings,
   cloneMeanings,
@@ -324,7 +325,10 @@ export default function MeaningsSection({ item, onPatch }) {
                   {meaning.note && <div className="text-sm whitespace-pre-wrap" style={{ color: C.ink }}>{meaning.note}</div>}
                   {meaning.examples.map((example, exampleIndex) => (
                     <div key={exampleIndex} className="text-sm">
-                      <div style={{ fontFamily: SERIF }}>{example.es}</div>
+                      <div className="flex items-start gap-1">
+                        <span className="min-w-0 flex-1" style={{ fontFamily: SERIF }}>{example.es}</span>
+                        <SpeakButton text={example.es} label={`Play example for ${meaning.gloss}`} />
+                      </div>
                       {example.en && <div className="text-xs" style={{ color: C.mut }}>{example.en}</div>}
                       <select
                         aria-label={`Move example from ${meaning.gloss}`}

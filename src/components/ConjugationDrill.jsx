@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronLeft, RotateCcw } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Card, Button } from "../theme.jsx";
 import { tenseHeading } from "../lib/conjugation.js";
+import SpeakButton from "./SpeakButton.jsx";
 
 /**
  * A pass through a deck of conjugation prompts (Phase 7c).
@@ -79,8 +80,11 @@ export default function ConjugationDrill({ deck, onFinish, onOpen }) {
           </button>
         ) : (
           <div className="mt-4 pt-4 border-t text-center space-y-3" style={{ borderColor: C.line }}>
-            <div className="text-3xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.penDark }}>
-              {card.answer}
+            <div className="flex items-center justify-center gap-1">
+              <span className="text-3xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.penDark }}>
+                {card.answer}
+              </span>
+              <SpeakButton text={card.answer} size={16} />
             </div>
             {onOpen && (
               <button

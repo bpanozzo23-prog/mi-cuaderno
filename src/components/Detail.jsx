@@ -28,6 +28,7 @@ import { allTagsIn } from "../lib/tags.js";
 import { timeAgo } from "../lib/dates.js";
 import { cloneMeanings } from "../lib/meanings.js";
 import MeaningsSection from "./MeaningsSection.jsx";
+import SpeakButton from "./SpeakButton.jsx";
 import CollectionPage from "./CollectionPage.jsx";
 import { getAvailableCollectionDestinations, getCollectionPlacements } from "../lib/collections.js";
 import { activePageContextsForLexical } from "../lib/pageReferences.js";
@@ -553,6 +554,9 @@ function StandardDetail({
                     </span>
                   </>
                 )}
+                {/* Lexical only: a page title is usually English and is not a thing to
+                    practise saying. */}
+                {!isPage && <SpeakButton text={item.term} className="align-middle" size={15} />}
               </div>
               {isPage && item.pageDate && (
                 <div className="mt-1 text-xs inline-flex items-center gap-1" style={{ fontFamily: MONO, color: C.mut }}>
@@ -694,7 +698,10 @@ function StandardDetail({
             {item.myExamples.map((x, i) => (
               <Card key={i} className="flex justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <div style={{ fontFamily: SERIF, color: C.ink }}>{x.es}</div>
+                  <div className="flex items-start gap-1">
+                    <span className="min-w-0 flex-1" style={{ fontFamily: SERIF, color: C.ink }}>{x.es}</span>
+                    <SpeakButton text={x.es} label={`Play example ${i + 1}`} />
+                  </div>
                   {x.en && (
                     <div className="text-xs mt-0.5" style={{ color: C.mut }}>
                       {x.en}

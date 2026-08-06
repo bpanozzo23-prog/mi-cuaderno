@@ -4,6 +4,7 @@ import { C, SERIF, MONO, dotGrid, Hi, Card, Button } from "../theme.jsx";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
 import { logReview } from "../db/events.js";
 import LexicalAnswer, { MeaningRow } from "./LexicalAnswer.jsx";
+import SpeakButton from "./SpeakButton.jsx";
 
 /**
  * One pass through today's due words (brief section 12).
@@ -142,6 +143,9 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
                   </span>
                 </>
               )}
+              {/* Only where the term is already on screen. On a hidden face, speaking it
+                  would read the answer out before it has been asked for. */}
+              <SpeakButton text={item.term} className="align-middle ml-1" size={16} />
             </div>
           )}
           <div className="mt-1.5 text-xs inline-flex items-center gap-2" style={{ fontFamily: MONO, color: C.mut }}>
@@ -186,6 +190,7 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
                     </span>
                   </>
                 )}
+                <SpeakButton text={item.term} className="align-middle ml-1" size={16} />
               </div>
             )}
             {/* The sentence again, filled in, so the word is seen back in its context. */}
@@ -196,6 +201,7 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
                   {cloze.answer}
                 </span>
                 {cloze.after}
+                <SpeakButton text={cloze.es} label={`Play the sentence`} className="align-middle" />
                 {cloze.en && (
                   <div className="mt-1 text-xs" style={{ color: C.mut }}>
                     {cloze.en}
