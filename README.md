@@ -101,6 +101,23 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   red/green proofs behaved as intended, and a disposable 375×812 browser closeout drove all
   three session directions and the drill. See the Phase 10 entries in [DECISIONS.md](DECISIONS.md).
 
+- **Phase 11 — implemented locally; not deployed.** Owner-centric stats, spending data the
+  notebook already keeps rather than recording anything new: a **study streak** and a 16-week
+  **activity calendar** from each event's `localDate`, a cumulative **growth line** from lexical
+  items' `createdAt`, the **Leitner ladder** as boxes 1–5 plus Retired, and a **per-item strip**
+  on every lexical entry giving its added date, box or retired status, last review and next due
+  date. The streak tile and ladder sit on Repaso; the calendar and growth line sit behind an
+  Estadísticas sub-view, swapped in the way a review session already is. No schema, event-type,
+  metadata, preference or backup change: `SCHEMA_VERSION` remains 5, and every number is derived
+  at render, so deleting these screens would lose no data. Two owner decisions are recorded in
+  [docs/PHASE-11-DIRECTION.md](docs/PHASE-11-DIRECTION.md): the streak amends the deferral in
+  `docs/IMPROVEMENT-IDEAS.md` (journal-side streaks stay deferred), and day-level activity counts
+  events of since-deleted items, since §7's exclusion protects item-centric results rather than
+  the owner's own calendar. The full serial suite passes 827/827 across 73 files, the production
+  build passes, three deliberate red/green proofs behaved as intended, and a disposable 375×812
+  closeout verified every surface numerically. See the Phase 11 entries in
+  [DECISIONS.md](DECISIONS.md).
+
 `SCHEMA_VERSION` is **5**. Before Dexie opens v5, schema-v1 through schema-v4 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
 relationship, and composable-page migrations in order. Backup schemas 1 through 5 are accepted,

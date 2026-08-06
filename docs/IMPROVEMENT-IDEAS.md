@@ -44,6 +44,7 @@ Useful information to retain for each idea:
 | Persistent page profiles | 2026-08-02 | Implemented and deployed | Phase 7 deployed; browser closeout unverified |
 | Personal-content provenance | 2026-08-02 | Captured | Before or alongside Phase 6 AI design; source needs can be studied earlier |
 | Learning depth (cloze, reverse, drill, audio) | 2026-08-06 | Implemented locally | Phase 10a–10d; deferred members need real-use evidence |
+| Owner-centric stats (streak, calendar, growth, ladder, per-item strip) | 2026-08-06 | Implemented locally | Phase 11; retention, coverage and per-direction breakdowns need real data volume |
 
 ---
 
