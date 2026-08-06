@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import JournalReader from "./JournalReader.jsx";
-import { clearAllPersonalData, db } from "../db/db.js";
+import { clearAllPersonalData, db, setPref } from "../db/db.js";
+import { AI_ENABLED_PREF, AI_API_KEY_PREF } from "../lib/aiPrefs.js";
 import { allItems, createItem, getItem, newLexical, newPage } from "../db/items.js";
 import { allEvents, EVENT_TYPES } from "../db/events.js";
 import { removeDictionary } from "../db/ref/install.js";
@@ -357,6 +358,38 @@ describe("JournalReader", () => {
     expect(screen.getByRole("button", {
       name: `Edit connection to The bus finally arrived from ${date}`,
     })).toBeTruthy();
+  });
+
+  it("offers no Feedback button until the AI feature is on with a key", async () => {
+    const entry = await createItem(newPage({ body: "Hoy escribí un poco.", pageDate: "2026-08-03" }));
+    render(<JournalReader {...propsFor(entry, [entry])} />);
+
+    // The mount-time preference read has to settle before absence means anything.
+    await waitFor(() => expect(screen.getByText(/Hoy escribí un poco/)).toBeTruthy());
+    expect(screen.queryByRole("button", { name: /Feedback/i })).toBeNull();
+
+    // Enabled but keyless is what a restored backup leaves behind, and must not offer the button.
+    await setPref(AI_ENABLED_PREF, true);
+    cleanup();
+    render(<JournalReader {...propsFor(entry, [entry])} />);
+    await waitFor(() => expect(screen.getByText(/Hoy escribí un poco/)).toBeTruthy());
+    expect(screen.queryByRole("button", { name: /Feedback/i })).toBeNull();
+  });
+
+  it("opens the feedback panel once the feature is on, disclosing what would be sent", async () => {
+    const user = userEvent.setup();
+    await setPref(AI_ENABLED_PREF, true);
+    await setPref(AI_API_KEY_PREF, "sk-ant-owners-key");
+    const entry = await createItem(newPage({ body: "Hoy escribí un poco.", pageDate: "2026-08-03" }));
+    render(<JournalReader {...propsFor(entry, [entry])} />);
+
+    const button = await screen.findByRole("button", { name: /Feedback/i });
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+
+    await user.click(button);
+
+    expect(screen.getByText(/nothing else from your notebook/i)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Send and review/i })).toBeTruthy();
   });
 
   it("requires a second tap before deleting the entry", async () => {

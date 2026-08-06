@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, MoreHorizontal, Pencil, Plus, RotateCcw } from "lucide-react";
+import { ChevronLeft, MoreHorizontal, Pencil, Plus, RotateCcw, Sparkles } from "lucide-react";
 import { C, MONO, SERIF, dotGrid } from "../theme.jsx";
 import { linkItems, setLinkRelationship, unlinkItems } from "../db/items.js";
 import { logView } from "../db/events.js";
@@ -18,6 +18,8 @@ import { emptyItemState } from "../useNotebook.js";
 import { EntryLinkCard, ItemLinkCard } from "./LinkCard.jsx";
 import JournalLinkPicker from "./JournalLinkPicker.jsx";
 import JournalMore from "./JournalMore.jsx";
+import DiarioFeedback from "./DiarioFeedback.jsx";
+import { aiFeedbackReady } from "../lib/aiPrefs.js";
 import { journalDateLabel } from "./JournalHome.jsx";
 
 function momentHeading(moment) {
@@ -40,6 +42,8 @@ export default function JournalReader({
 }) {
   const [pickingVocabulary, setPickingVocabulary] = useState(false);
   const [showMore, setShowMore] = useState(false);
+  const [aiReady, setAiReady] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
   const [dictionaryEntryLinks, setDictionaryEntryLinks] = useState([]);
   const [orphanKeys, setOrphanKeys] = useState([]);
   const [aliasConflicts, setAliasConflicts] = useState([]);
@@ -105,6 +109,24 @@ export default function JournalReader({
     ]),
     [connections, entry.linkedKeys]
   );
+
+  // The button only exists once the feature is on and a key is present, so it can never be a
+  // control whose only outcome is an error.
+  useEffect(() => {
+    let current = true;
+    aiFeedbackReady().then((ready) => {
+      if (current) setAiReady(ready);
+    });
+    return () => {
+      current = false;
+    };
+  }, []);
+
+  // A review belongs to the entry it was asked about; moving to another closes the panel rather
+  // than carrying one entry's feedback over the next one's text.
+  useEffect(() => {
+    setShowFeedback(false);
+  }, [entry.id]);
 
   useEffect(() => {
     let current = true;
@@ -196,6 +218,29 @@ export default function JournalReader({
           {entry.tags.map((tag) => (
             <TagChip key={tag} tag={tag} className="px-2.5 py-1" />
           ))}
+        </div>
+      )}
+
+      {aiReady && (
+        <div className="mt-4">
+          {!showFeedback && (
+            <button
+              type="button"
+              onClick={() => setShowFeedback(true)}
+              aria-expanded={showFeedback}
+              className="inline-flex min-h-11 items-center gap-1 text-xs"
+              style={{ color: C.pen }}
+            >
+              <Sparkles size={13} /> Feedback
+            </button>
+          )}
+          {showFeedback && (
+            <DiarioFeedback
+              key={entry.id}
+              entry={entry}
+              onClose={() => setShowFeedback(false)}
+            />
+          )}
         </div>
       )}
 
