@@ -16,6 +16,7 @@ import {
 import { emptyItemState } from "../useNotebook.js";
 import { timeAgo } from "../lib/dates.js";
 import { deriveReviewState, deriveDictSuggestions, cardDirection } from "../lib/review.js";
+import { activityByDay, streakFrom, boxDistribution } from "../lib/stats.js";
 import { pickCloze, verbForms } from "../lib/cloze.js";
 import { buildDrillDeck } from "../lib/drill.js";
 
@@ -63,6 +64,31 @@ function Stat({ label, value }) {
   );
 }
 
+/**
+ * One rung of the Leitner ladder (Phase 11). The bar is scaled against the fullest rung
+ * rather than against the notebook, so a ladder holding six words is as readable as one
+ * holding six hundred — this answers "where is my review weight sitting", not "how much
+ * have I done".
+ */
+function BoxBar({ label, count, max, tone }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-14 shrink-0 text-xs" style={{ fontFamily: MONO, color: C.mut }}>
+        {label}
+      </span>
+      <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: C.penPale }}>
+        <div
+          className="h-full rounded-full"
+          style={{ width: `${max > 0 ? (count / max) * 100 : 0}%`, background: tone }}
+        />
+      </div>
+      <span className="w-6 shrink-0 text-right text-xs" style={{ fontFamily: MONO, color: C.mut }}>
+        {count}
+      </span>
+    </div>
+  );
+}
+
 export default function Repaso({ notebook, onSelect }) {
   const { items, events, itemState, reload } = notebook;
   const [inSession, setInSession] = useState(false);
@@ -73,6 +99,15 @@ export default function Repaso({ notebook, onSelect }) {
   // approach as itemState above (brief section 7). Recomputed on every notebook change,
   // so grading a card during a session updates this without any separate bookkeeping.
   const review = useMemo(() => deriveReviewState(items, events), [items, events]);
+
+  // Phase 11. Both replay the same log the schedule above does; neither stores anything.
+  const activity = useMemo(() => activityByDay(events), [events]);
+  const streak = useMemo(() => streakFrom(activity), [activity]);
+  const ladder = useMemo(() => boxDistribution(review.states), [review.states]);
+  const ladderMax = useMemo(
+    () => Math.max(ladder.graduated, ...ladder.boxes.map((b) => b.count)),
+    [ladder]
+  );
 
   // The session owns its own list once started, so re-deriving mid-session (a grade
   // changes what is due) cannot pull the card out from under the owner's thumb.
@@ -472,11 +507,26 @@ export default function Repaso({ notebook, onSelect }) {
         </>
       )}
 
-      <div className="grid grid-cols-3 gap-2 mt-6">
+      {/* Two by two rather than four across: at 375px a fourth column leaves each tile
+          too narrow for a four-figure open count to sit under its label. */}
+      <div className="grid grid-cols-2 gap-2 mt-6">
+        <Stat label="day streak" value={streak} />
         <Stat label="items" value={items.length} />
         <Stat label="opens" value={totalOpens} />
         <Stat label="tricky" value={tricky.length} />
       </div>
+
+      {ladder.tracked > 0 && (
+        <>
+          <SectionTitle>Estadísticas</SectionTitle>
+          <Card className="p-4 space-y-2">
+            {ladder.boxes.map((b) => (
+              <BoxBar key={b.box} label={`Box ${b.box}`} count={b.count} max={ladderMax} tone={C.pen} />
+            ))}
+            <BoxBar label="Retired" count={ladder.graduated} max={ladderMax} tone={C.green} />
+          </Card>
+        </>
+      )}
 
       <SectionTitle>Highlighted items</SectionTitle>
       {tricky.length === 0 ? (

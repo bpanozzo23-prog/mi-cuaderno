@@ -9,6 +9,7 @@ import { META_KEYS, refDb, setActiveSlot } from "../db/ref/refdb.js";
 import { FIXTURE_CONJUGATIONS, FIXTURE_ENTRIES } from "../test/dictFixture.js";
 import { makeEvent, makeLexical, makePage } from "../test/factories.js";
 import { newPageGroup } from "../lib/collections.js";
+import { addDaysToLocalDate, localDate } from "../lib/dates.js";
 
 const CASA = "dict:wiktionary-es:casa:noun";
 const OLD_CASA = "dict:wiktionary-es:casa:noun:old";
@@ -320,5 +321,68 @@ describe("Phase 10c: the conjugation drill", () => {
 
     expect(screen.getByRole("button", { name: "Tap to see the form" })).toBeTruthy();
     expect(screen.getByText(/nothing here is recorded/i)).toBeTruthy();
+  });
+});
+
+describe("Phase 11 stats on the daily screen", () => {
+  // These derivations read the real clock, so fixtures are built relative to it rather
+  // than from fixed dates that would silently rot as the calendar moves past them.
+  const today = localDate();
+  const dayBefore = (n) => addDaysToLocalDate(today, -n);
+  const on = (day, type = EVENT_TYPES.view, overrides = {}) =>
+    makeEvent({ type, at: `${day}T10:00:00.000Z`, localDate: day, ...overrides });
+
+  const pass = (key, day) =>
+    on(day, EVENT_TYPES.reviewPass, { itemKey: key, metadata: { grade: 2 } });
+
+  it("counts a streak of consecutive days ending today", async () => {
+    const word = makeLexical({ id: "user:word" });
+    const events = [on(today), on(dayBefore(1)), on(dayBefore(2))];
+
+    render(<Repaso notebook={notebookFor([word], events)} onSelect={vi.fn()} />);
+
+    const tile = screen.getByText("day streak").parentElement;
+    expect(tile.textContent).toContain("3");
+  });
+
+  it("keeps the streak alive on a day the owner has not opened anything yet", async () => {
+    const word = makeLexical({ id: "user:word" });
+    const events = [on(dayBefore(1)), on(dayBefore(2))];
+
+    render(<Repaso notebook={notebookFor([word], events)} onSelect={vi.fn()} />);
+
+    const tile = screen.getByText("day streak").parentElement;
+    expect(tile.textContent).toContain("2");
+  });
+
+  it("puts a word that was just missed in box 1", async () => {
+    const word = makeLexical({ id: "user:word" });
+    const events = [on(today, EVENT_TYPES.reviewFail, { itemKey: "user:word", metadata: { grade: 0 } })];
+
+    render(<Repaso notebook={notebookFor([word], events)} onSelect={vi.fn()} />);
+
+    const bar = screen.getByText("Box 1").parentElement;
+    expect(bar.textContent).toContain("1");
+    expect(screen.getByText("Box 5").parentElement.textContent).toContain("0");
+  });
+
+  it("counts a word that walked the whole ladder as retired rather than as box 5", async () => {
+    const word = makeLexical({ id: "user:word" });
+    // Five passes climb boxes 1→5; the sixth retires it (review.js replayReviews).
+    const events = [5, 4, 3, 2, 1, 0].map((n) => pass("user:word", dayBefore(n + 20)));
+
+    render(<Repaso notebook={notebookFor([word], events)} onSelect={vi.fn()} />);
+
+    expect(screen.getByText("Retired").parentElement.textContent).toContain("1");
+    expect(screen.getByText("Box 5").parentElement.textContent).toContain("0");
+  });
+
+  it("says nothing about the ladder when nothing is enrolled", async () => {
+    const word = makeLexical({ id: "user:word" });
+
+    render(<Repaso notebook={notebookFor([word], [])} onSelect={vi.fn()} />);
+
+    expect(screen.queryByText("Box 1")).toBeNull();
+    expect(screen.queryByText("Retired")).toBeNull();
   });
 });

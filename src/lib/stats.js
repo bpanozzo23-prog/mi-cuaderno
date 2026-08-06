@@ -158,27 +158,36 @@ export function cumulativeWordsByWeek(items, today = localDate()) {
 }
 
 /**
- * How the enrolled words are spread across the Leitner ladder.
+ * How the words in review are spread across the Leitner ladder, plus the ones that finished it.
  *
- * Only enrolled items are counted. An unenrolled word sits at `emptyReviewState`, whose box is
- * 1 — counting those would pile every untouched word in the notebook into box 1 and drown the
- * words actually in review.
+ * Two exclusions, for opposite reasons:
+ *
+ * Untouched words are skipped. An unenrolled word sits at `emptyReviewState`, whose box is 1 —
+ * counting those would pile every word in the notebook into box 1 and bury the handful actually
+ * in review.
+ *
+ * Retired words are counted anyway, even though they are *not* enrolled: `deriveReviewState`
+ * drops enrollment once a word graduates, because retiring it is exactly what takes it out of
+ * the queue. Reading `enrolled` alone would therefore make the Retired rung permanently empty
+ * and quietly lose the ladder's finish line.
  */
 export function boxDistribution(states) {
   const boxes = [1, 2, 3, 4, 5].map((box) => ({ box, count: 0 }));
   let graduated = 0;
-  let enrolled = 0;
+  let tracked = 0;
 
   for (const state of states.values()) {
-    if (!state?.enrolled) continue;
-    enrolled += 1;
+    if (!state) continue;
     if (state.graduated) {
       graduated += 1;
+      tracked += 1;
       continue;
     }
+    if (!state.enrolled) continue;
+    tracked += 1;
     const slot = boxes[state.box - 1];
     if (slot) slot.count += 1;
   }
 
-  return { boxes, graduated, enrolled };
+  return { boxes, graduated, tracked };
 }

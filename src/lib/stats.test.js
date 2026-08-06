@@ -245,12 +245,12 @@ describe("boxDistribution: the review ladder", () => {
       ["a", stateFor({})],
       ["b", stateFor({})],
     ]);
-    const { boxes, graduated, enrolled } = boxDistribution(states);
+    const { boxes, graduated, tracked } = boxDistribution(states);
 
     // Every unenrolled word sits at box 1; counting those would drown the real queue.
     expect(boxes.map((b) => b.count)).toEqual([0, 0, 0, 0, 0]);
     expect(graduated).toBe(0);
-    expect(enrolled).toBe(0);
+    expect(tracked).toBe(0);
   });
 
   it("puts each enrolled word in its own box", () => {
@@ -259,34 +259,36 @@ describe("boxDistribution: the review ladder", () => {
       ["b", stateFor({ enrolled: true, box: 1 })],
       ["c", stateFor({ enrolled: true, box: 4 })],
     ]);
-    const { boxes, enrolled } = boxDistribution(states);
+    const { boxes, tracked } = boxDistribution(states);
 
     expect(boxes.map((b) => b.count)).toEqual([2, 0, 0, 1, 0]);
-    expect(enrolled).toBe(3);
+    expect(tracked).toBe(3);
   });
 
-  it("counts a retired word separately from the box it retired out of", () => {
+  it("counts a retired word even though retiring took it out of the queue", () => {
+    // deriveReviewState clears `enrolled` on graduation — that is what retirement means.
+    // Reading enrollment alone would leave the Retired rung permanently empty.
     const states = new Map([
-      ["a", stateFor({ enrolled: true, box: 5, graduated: true })],
+      ["a", stateFor({ enrolled: false, box: 5, graduated: true })],
       ["b", stateFor({ enrolled: true, box: 5 })],
     ]);
-    const { boxes, graduated, enrolled } = boxDistribution(states);
+    const { boxes, graduated, tracked } = boxDistribution(states);
 
     expect(boxes[4].count).toBe(1);
     expect(graduated).toBe(1);
-    expect(enrolled).toBe(2);
+    expect(tracked).toBe(2);
   });
 
-  it("reports an enrolled total that matches everything it counted", () => {
+  it("reports a tracked total that matches everything it counted", () => {
     const states = new Map([
       ["a", stateFor({ enrolled: true, box: 2 })],
       ["b", stateFor({ enrolled: true, box: 3 })],
-      ["c", stateFor({ enrolled: true, box: 5, graduated: true })],
+      ["c", stateFor({ enrolled: false, box: 5, graduated: true })],
       ["d", stateFor({})],
     ]);
-    const { boxes, graduated, enrolled } = boxDistribution(states);
+    const { boxes, graduated, tracked } = boxDistribution(states);
 
-    expect(boxes.reduce((sum, b) => sum + b.count, 0) + graduated).toBe(enrolled);
-    expect(enrolled).toBe(3);
+    expect(boxes.reduce((sum, b) => sum + b.count, 0) + graduated).toBe(tracked);
+    expect(tracked).toBe(3);
   });
 });
