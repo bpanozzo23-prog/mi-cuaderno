@@ -9,7 +9,7 @@ import { createItem, newLexicalFromEntry, displayTitle } from "../db/items.js";
 import { logView } from "../db/events.js";
 import { groupConnections, normalizeRelationship, relationshipLabel } from "../lib/relationships.js";
 import { connectionsFromResolvedEntryLinks } from "../lib/resolvedConnections.js";
-import { SLOTS, COLLAPSED_SLOTS, SIMPLE_TENSES, PERFECT_TENSES } from "../lib/conjugation.js";
+import { SLOTS, COLLAPSED_SLOTS, SIMPLE_TENSES, PERFECT_TENSES, tenseHeading } from "../lib/conjugation.js";
 
 /**
  * A dictionary entry. Read-only by definition (§5) — the one action is "add to my
@@ -69,17 +69,6 @@ function DictionaryAliasConflictCard({ item, conflict, onOpen }) {
       </Button>
     </Card>
   );
-}
-
-/**
- * Tables are keyed "Mood/Tense", so the tense alone is the useful heading under a mood
- * grouping. The imperative is the exception: both its tables are "Present", and what
- * actually distinguishes them lives in the mood — affirmative versus negative.
- */
-function tenseHeading(label) {
-  const [mood, tense] = label.split("/");
-  if (mood.startsWith("Imperative")) return mood.replace("Imperative", "").trim() || tense;
-  return tense || label;
 }
 
 function TenseTable({ label, tense, showVosotros }) {

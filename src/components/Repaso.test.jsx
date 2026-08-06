@@ -12,6 +12,7 @@ import { newPageGroup } from "../lib/collections.js";
 
 const CASA = "dict:wiktionary-es:casa:noun";
 const OLD_CASA = "dict:wiktionary-es:casa:noun:old";
+const OLD_SACAR = "dict:wiktionary-es:sacar:verb:old";
 const MISSING = "dict:wiktionary-es:missing:noun";
 const at = (minute) => `2026-08-02T15:${String(minute).padStart(2, "0")}:00.000Z`;
 
@@ -258,5 +259,66 @@ describe("Phase 7a/7b: how a session is set up", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Tap to see the word" })).toBeTruthy());
     expect(screen.queryByText(/Ayer/)).toBeNull();
     expect(screen.getByText("to take out")).toBeTruthy();
+  });
+});
+
+describe("Phase 7c: the conjugation drill", () => {
+  const SACAR = "dict:wiktionary-es:sacar:verb";
+
+  async function seedWithConjugations(entries, previousIds = {}) {
+    await seedDictionary({ entries, previousIds });
+    await refDb("a").conjugations.bulkPut(FIXTURE_CONJUGATIONS);
+  }
+
+  it("offers the drill for a verb the dictionary can conjugate", async () => {
+    await seedWithConjugations([SACAR]);
+    const verb = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
+
+    render(<Repaso notebook={notebookFor([verb], [])} onSelect={vi.fn()} />);
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /Drill/ })).toBeTruthy());
+    expect(screen.getByText(/1 verb/)).toBeTruthy();
+  });
+
+  it("stays hidden for a word with no conjugation table", async () => {
+    await seedWithConjugations([CASA]);
+    const noun = makeLexical({ id: "user:casa", term: "casa", pos: "noun", dictKey: CASA });
+
+    render(<Repaso notebook={notebookFor([noun], [])} onSelect={vi.fn()} />);
+
+    await waitFor(() => expect(screen.getByText("Recent activity")).toBeTruthy());
+    expect(screen.queryByRole("button", { name: /Drill/ })).toBeNull();
+  });
+
+  it("stays hidden when no dictionary is installed", async () => {
+    const verb = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
+
+    render(<Repaso notebook={notebookFor([verb], [])} onSelect={vi.fn()} />);
+
+    await waitFor(() => expect(screen.getByText("Recent activity")).toBeTruthy());
+    expect(screen.queryByRole("button", { name: /Drill/ })).toBeNull();
+  });
+
+  it("keeps drilling a verb whose dictionary key moved in a rebuild", async () => {
+    // §5: an alias must not quietly cost the owner a feature.
+    await seedWithConjugations([SACAR], { [OLD_SACAR]: SACAR });
+    const verb = makeLexical({ id: "user:sacar", term: "sacar", dictKey: OLD_SACAR });
+
+    render(<Repaso notebook={notebookFor([verb], [])} onSelect={vi.fn()} />);
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /Drill/ })).toBeTruthy());
+  });
+
+  it("runs an ungraded drill that records nothing", async () => {
+    const user = userEvent.setup();
+    await seedWithConjugations([SACAR]);
+    const verb = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
+
+    render(<Repaso notebook={notebookFor([verb], [])} onSelect={vi.fn()} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: /Drill/ })).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: /Drill/ }));
+
+    expect(screen.getByRole("button", { name: "Tap to see the form" })).toBeTruthy();
+    expect(screen.getByText(/nothing here is recorded/i)).toBeTruthy();
   });
 });

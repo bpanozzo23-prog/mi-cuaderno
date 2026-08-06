@@ -3,6 +3,7 @@ import { Highlighter, SearchX, Play, CheckCircle2, Eye, ChevronRight } from "luc
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button } from "../theme.jsx";
 import ItemCard from "./ItemCard.jsx";
 import ReviewSession from "./ReviewSession.jsx";
+import ConjugationDrill from "./ConjugationDrill.jsx";
 import { EVENT_TYPES } from "../db/events.js";
 import { createItem, newLexicalFromEntry } from "../db/items.js";
 import {
@@ -16,6 +17,7 @@ import { emptyItemState } from "../useNotebook.js";
 import { timeAgo } from "../lib/dates.js";
 import { deriveReviewState, deriveDictSuggestions, cardDirection } from "../lib/review.js";
 import { pickCloze, verbForms } from "../lib/cloze.js";
+import { buildDrillDeck } from "../lib/drill.js";
 
 /**
  * Every number here is derived from the event log at render time — there are no
@@ -85,6 +87,11 @@ export default function Repaso({ notebook, onSelect }) {
   // guarded against a second one landing before the first finishes.
   const [starting, setStarting] = useState(false);
 
+  // The drill is a separate, ungraded pass; it owns its deck the same way a session owns
+  // its cards, so nothing re-derives underneath the owner mid-drill.
+  const [inDrill, setInDrill] = useState(false);
+  const [drillDeck, setDrillDeck] = useState([]);
+
   /**
    * Dictionary entries the owner keeps opening but has not added — the counterpart to
    * the queue for words that never made it into the cuaderno (brief section 12). This
@@ -126,6 +133,68 @@ export default function Repaso({ notebook, onSelect }) {
     setAdding(null);
     reload();
     onSelect(created.id);
+  }
+
+  /**
+   * The owner's verbs that the installed dictionary can actually conjugate (Phase 7c).
+   *
+   * Resolution goes through resolveEntry, so a personal item whose dict: key moved in a
+   * dataset rebuild keeps its drill instead of silently dropping out (§5). Nothing is
+   * written back: a rewrite belongs to the screens that own the attachment, not to a
+   * derived list. With no dictionary, a stale key or no conjugable verbs, this stays
+   * empty and the drill card simply does not render — the same quiet absence the
+   * dictionary suggestions use.
+   */
+  const attachedKeys = useMemo(
+    () =>
+      items
+        .filter((item) => item.type === "lexical" && item.dictKey)
+        .map((item) => ({ itemId: item.id, term: item.term, dictKey: item.dictKey })),
+    [items]
+  );
+  const [drillVerbs, setDrillVerbs] = useState([]);
+
+  useEffect(() => {
+    let alive = true;
+    if (!attachedKeys.length) {
+      setDrillVerbs([]);
+      return () => {
+        alive = false;
+      };
+    }
+
+    (async () => {
+      try {
+        if (!(await dictionaryInstalled())) {
+          if (alive) setDrillVerbs([]);
+          return;
+        }
+        const resolved = await Promise.all(
+          attachedKeys.map(async (row) => ({ ...row, entry: (await resolveEntry(row.dictKey)).entry }))
+        );
+        const conjugable = resolved.filter((row) => row.entry?.conjugationId);
+        const tables = await Promise.all(
+          conjugable.map((row) => getConjugation(row.entry.conjugationId))
+        );
+        if (!alive) return;
+        setDrillVerbs(
+          conjugable
+            .map((row, index) => ({ itemId: row.itemId, term: row.term, conjugation: tables[index] }))
+            .filter((row) => row.conjugation)
+        );
+      } catch {
+        if (alive) setDrillVerbs([]);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [attachedKeys]);
+
+  function startDrill() {
+    setDrillDeck(buildDrillDeck(drillVerbs));
+    setInDrill(true);
   }
 
   const tricky = useMemo(
@@ -266,6 +335,11 @@ export default function Repaso({ notebook, onSelect }) {
     setInSession(true);
   }
 
+  if (inDrill) {
+    // No reload on finish: the drill wrote nothing, so there is nothing to re-read.
+    return <ConjugationDrill deck={drillDeck} onFinish={() => setInDrill(false)} onOpen={onSelect} />;
+  }
+
   if (inSession) {
     return (
       <ReviewSession
@@ -375,6 +449,27 @@ export default function Repaso({ notebook, onSelect }) {
             </div>
           ))}
         </div>
+      )}
+
+      {drillVerbs.length > 0 && (
+        <>
+          <SectionTitle>Conjugations</SectionTitle>
+          <Card className="p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm" style={{ color: C.ink }}>
+                  Practise the six everyday tenses.
+                </div>
+                <div className="text-xs" style={{ color: C.mut }}>
+                  {drillVerbs.length} {drillVerbs.length === 1 ? "verb" : "verbs"} · nothing is recorded
+                </div>
+              </div>
+              <Button tone="quiet" className="shrink-0" onClick={startDrill}>
+                <Play size={15} /> Drill
+              </Button>
+            </div>
+          </Card>
+        </>
       )}
 
       <div className="grid grid-cols-3 gap-2 mt-6">

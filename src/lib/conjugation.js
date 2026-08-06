@@ -96,6 +96,20 @@ export function composePerfectTenses(table, haberTenses) {
   return built;
 }
 
+/**
+ * Tables are keyed "Mood/Tense", so the tense alone is the useful heading under a mood
+ * grouping. The imperative is the exception: both its tables are "Present", and what
+ * actually distinguishes them lives in the mood — affirmative versus negative.
+ *
+ * Shared by the dictionary's tables and the Phase 7c drill, so a tense is never named one
+ * thing while being practised under another.
+ */
+export function tenseHeading(label) {
+  const [mood, tense] = String(label || "").split("/");
+  if (mood.startsWith("Imperative")) return mood.replace("Imperative", "").trim() || tense;
+  return tense || label;
+}
+
 /** Every tense of a verb, simple ones as stored plus the composed perfects. */
 export function allTenses(table, haberTable) {
   if (!table) return {};
