@@ -353,7 +353,7 @@ function CaptureEditor({ capture, pageVocabulary, onCancel, onSaved }) {
                   <div
                     key={id}
                     className="inline-flex min-h-11 max-w-full items-center rounded-full border"
-                    style={{ background: C.penPale, borderColor: "#D9E1F2", color: C.penDark }}
+                    style={{ background: C.penPale, borderColor: C.chipBorder, color: C.penDark }}
                   >
                     <span className="min-w-0 truncate pl-2 text-xs">{item?.term || "Missing entry"}</span>
                     <button
@@ -532,7 +532,7 @@ function CaptureCard({
           <div className="flex flex-wrap items-center gap-2">
             <span
               className="inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-semibold uppercase"
-              style={{ background: C.penPale, borderColor: "#D9E1F2", color: C.penDark, fontFamily: MONO }}
+              style={{ background: C.penPale, borderColor: C.chipBorder, color: C.penDark, fontFamily: MONO }}
             >
               <TypeIcon size={12} /> {type.label}
             </span>
@@ -591,7 +591,7 @@ function CaptureCard({
             <div
               key={id}
               className="inline-flex min-h-11 max-w-full items-center rounded-full border"
-              style={{ background: C.penPale, borderColor: "#D9E1F2", color: C.penDark }}
+              style={{ background: C.penPale, borderColor: C.chipBorder, color: C.penDark }}
             >
               <button
                 type="button"
@@ -608,7 +608,7 @@ function CaptureCard({
                 onClick={() => onDetachVocabulary?.(id)}
                 aria-label={`Detach vocabulary ${item?.term || id} from ${type.label} capture`}
                 className="flex min-h-11 min-w-11 shrink-0 items-center justify-center border-l disabled:opacity-60"
-                style={{ borderColor: "#D9E1F2" }}
+                style={{ borderColor: C.chipBorder }}
               >
                 <X size={13} />
               </button>
@@ -640,7 +640,7 @@ function CaptureCard({
       </div>
 
       {deleteArmed && (
-        <div className="mt-3 rounded-lg border p-3" style={{ borderColor: "#E5C4BC", background: C.paper }}>
+        <div className="mt-3 rounded-lg border p-3" style={{ borderColor: C.dangerBorder, background: C.paper }}>
           <div className="text-sm" style={{ color: C.ink }}>
             Delete this {type.label.toLowerCase()}? Its vocabulary stays on the page.
           </div>

@@ -560,7 +560,7 @@ export default function AddSheet({
           onClick={submit}
           disabled={!ready}
           className="w-full py-3 rounded-xl text-white font-semibold text-sm"
-          style={{ background: ready ? C.pen : "#B9C2D8" }}
+          style={{ background: ready ? C.pen : C.disabled }}
         >
           {isPage
             ? isCopy

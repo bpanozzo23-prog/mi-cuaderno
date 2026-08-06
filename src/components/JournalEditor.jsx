@@ -241,7 +241,7 @@ export default function JournalEditor({
         />
 
         {prompt && (
-          <Card id="active-journal-prompt" className="relative pr-10" style={{ background: C.penPale, borderColor: "#D9E1F2" }}>
+          <Card id="active-journal-prompt" className="relative pr-10" style={{ background: C.penPale, borderColor: C.chipBorder }}>
             <button
               type="button"
               onClick={() => setPrompt(null)}

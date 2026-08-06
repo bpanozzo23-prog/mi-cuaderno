@@ -142,7 +142,7 @@ export default function Ajustes({ notebook, tagColors = {}, onTagColorChange, on
       </Card>
 
       {problems.length > 0 && (
-        <Card className="mt-2" style={{ borderColor: "#E5C4BC" }}>
+        <Card className="mt-2" style={{ borderColor: C.dangerBorder }}>
           <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: C.red }}>
             <AlertTriangle size={15} /> That file was not imported
           </div>

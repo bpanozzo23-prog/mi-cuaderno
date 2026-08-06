@@ -11,7 +11,7 @@ export default function PromptLibrary({ onSelect, onClose, random = Math.random 
   );
 
   return (
-    <Card className="mt-3 p-3" style={{ borderColor: "#D9E1F2" }}>
+    <Card className="mt-3 p-3" style={{ borderColor: C.chipBorder }}>
       <div className="flex items-center justify-between gap-2">
         <div>
           <div className="font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>A gentle place to begin</div>
@@ -32,7 +32,7 @@ export default function PromptLibrary({ onSelect, onClose, random = Math.random 
             className="shrink-0 rounded-full border px-2.5 py-1 text-xs"
             style={category === option.id
               ? { background: C.pen, borderColor: C.pen, color: "#fff" }
-              : { background: C.penPale, borderColor: "#D9E1F2", color: C.penDark }}
+              : { background: C.penPale, borderColor: C.chipBorder, color: C.penDark }}
           >
             {option.label}
           </button>

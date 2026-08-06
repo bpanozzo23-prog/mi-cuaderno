@@ -29,7 +29,7 @@ const PERFECT_GROUP = { title: "Perfect tenses", tenses: Object.keys(PERFECT_TEN
 
 function DictionaryAliasConflictCard({ item, conflict, onOpen }) {
   return (
-    <Card className="mb-3" style={{ borderColor: "#E5C4BC" }}>
+    <Card className="mb-3" style={{ borderColor: C.dangerBorder }}>
       <div className="text-sm font-semibold" style={{ color: C.ink }}>
         Connection needs resolution
       </div>

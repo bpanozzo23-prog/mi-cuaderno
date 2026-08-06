@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { useState } from "react";
-import { render, screen, waitFor, cleanup } from "@testing-library/react";
+import { render, screen, waitFor, cleanup, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Detail from "./Detail.jsx";
 import { db, clearAllPersonalData } from "../db/db.js";
@@ -136,6 +136,77 @@ describe("scan-first notes and page bodies", () => {
     expect(screen.getByText("This page is empty.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Write page" })).toBeTruthy();
     expect(screen.queryByRole("textbox", { name: "Page body" })).toBeNull();
+  });
+});
+
+describe("compact empty entry details", () => {
+  it("combines all available empty actions into one phone-safe row", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({ term: "vacío" }));
+    const collection = await createItem(newPage({
+      title: "Useful vocabulary",
+      pageProfile: "collection",
+      collection: { groups: [] },
+    }));
+
+    renderDetail(word, vi.fn(), undefined, [word, collection]);
+
+    const actions = screen.getByRole("group", { name: "Add entry details" });
+    expect(actions.className).toContain("flex-nowrap");
+    expect(within(actions).getAllByRole("button").map((button) => button.textContent.trim())).toEqual([
+      "Example",
+      "Media",
+      "Collection",
+    ]);
+    expect(within(actions).getAllByRole("button").every((button) => button.className.includes("min-h-11"))).toBe(true);
+    expect(screen.queryByText("General examples")).toBeNull();
+    expect(screen.queryByText("Media links")).toBeNull();
+    expect(screen.queryByText("Collections")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Add an example" }));
+    expect(screen.getByRole("button", { name: "Close example form" }).getAttribute("aria-expanded")).toBe("true");
+    expect(document.getElementById("example-composer")).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Add entry details" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Close example form" }));
+    expect(document.getElementById("example-composer")).toBeNull();
+  });
+
+  it("keeps saved sections full and groups only the remaining empty actions", async () => {
+    const word = await createItem(newLexical({
+      term: "madrugar",
+      myExamples: [{ es: "Madrugo mucho.", en: "I get up early a lot." }],
+    }));
+    const collection = await createItem(newPage({
+      title: "Useful vocabulary",
+      pageProfile: "collection",
+      collection: { groups: [] },
+    }));
+
+    renderDetail(word, vi.fn(), undefined, [word, collection]);
+
+    expect(screen.getByText("General examples")).toBeTruthy();
+    expect(screen.getByText("Madrugo mucho.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Add an example" })).toBeTruthy();
+    expect(screen.queryByText("Media links")).toBeNull();
+    expect(screen.queryByText("Collections")).toBeNull();
+    const actions = screen.getByRole("group", { name: "Add entry details" });
+    expect(within(actions).getAllByRole("button").map((button) => button.textContent.trim())).toEqual([
+      "Media",
+      "Collection",
+    ]);
+  });
+
+  it("does not offer Collection when no destination is available", async () => {
+    const word = await createItem(newLexical({ term: "solo" }));
+
+    renderDetail(word);
+
+    const actions = screen.getByRole("group", { name: "Add entry details" });
+    expect(within(actions).getAllByRole("button").map((button) => button.textContent.trim())).toEqual([
+      "Example",
+      "Media",
+    ]);
+    expect(screen.queryByRole("button", { name: "Add to Collection" })).toBeNull();
   });
 });
 

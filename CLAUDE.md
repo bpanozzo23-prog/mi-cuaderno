@@ -12,6 +12,9 @@ Claude-Code-specific notes only:
 - **This shell's PATH lacks the toolchain.** Prepend for npm/node —
   `PATH="/c/Program Files/nodejs:$PATH" npm test` — and call gh by full path:
   `"C:/Program Files/GitHub CLI/gh.exe"`.
+- **Multi-line commit messages: use a bash heredoc** — `git commit -F - <<'MSG' … MSG`. The
+  `@'…'@` here-string is Codex's PowerShell idiom (`AGENTS.md`); in this Bash shell it is not
+  syntax, so the `@` markers land in the message as a stray first and last line.
 - **Dev server: use the preview/browser tools, never Bash.** `.claude/launch.json` (gitignored,
   this machine only) defines the `mi-cuaderno-dev` configuration. If it is missing after a fresh
   clone, recreate it from `docs/claude-launch.example.json` and adjust `runtimeExecutable` if

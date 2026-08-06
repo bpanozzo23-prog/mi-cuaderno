@@ -35,13 +35,18 @@ Then load the durable references the task actually needs:
 - `docs/IMPROVEMENT-IDEAS.md` is a dated record of unapproved planning possibilities. Read it when
   the owner asks to discuss or develop one of those ideas, but never treat an entry there as an
   approved phase, product requirement or implementation instruction.
-- `docs/mi-cuaderno.jsx` is a **look-and-feel reference only** and only needs to be read for visual
-  or interaction work. Its storage, linking and state handling are superseded by the brief and
-  the current application.
+- `docs/mi-cuaderno.jsx` is **historical, not current.** It was the look-and-feel reference before
+  the app existed; the real app now supersedes it for visual and interaction decisions alike, and
+  it drifts further every time a styling or layout choice is made only in `src/`. Its storage,
+  linking and state handling were already superseded by the brief. Do not restore styling from it
+  without checking the current app and `DECISIONS.md` first — a match may be coincidence, not
+  intent.
 
 ## Working agreement (brief §2)
 
-- **Propose a plan in plain language and wait for approval before writing code.**
+- **Propose a plan in plain language and wait for approval before writing code.** Purely-visual
+  changes are the one exception — see "Visual changes" below. (The brief's own wording is
+  per phase or sub-phase; the blanket form here was this guide's broadening.)
 - Explain choices; define jargon the first time it appears.
 - Small verifiable steps. One commit per completed feature or sub-phase. After each change,
   state exactly how the owner can see or test it.
@@ -142,6 +147,42 @@ for the store shapes, and Phase 3c/4d in `DECISIONS.md` for how this has been do
 personal items directly into the `mi-cuaderno` Dexie database the same way.
 
 Check the phone case: **375 px viewport, no horizontal overflow.** Phone is the primary device.
+
+**The in-app browser pane does not composite frames**, so screenshots time out. This is a known
+limitation, not a broken setup — do not burn time retrying. Verify visually by the numbers
+instead: computed styles (`getComputedStyle`), resolved colours, element counts, layout
+measurements, `scrollWidth` for overflow. Several phase closeouts have shipped on exactly this
+evidence.
+
+## Visual changes
+
+Process rules for styling and layout work (owner-approved 2026-08-05). Aesthetic direction is
+deliberately not written down yet: the palette is not locked in, and taste is being settled
+through iteration rather than declared up front.
+
+- **Purely-visual changes get a lighter loop than the plan-first agreement.** If a change touches
+  only appearance — colour, spacing, typography, borders, ordering of static elements — and no
+  behaviour, data, navigation, or component structure, skip the plan and go straight to a shown,
+  verified result the owner accepts or rejects. Anything structural (new screens, state, markup
+  restructuring that tests can see) stays plan-first. When unsure which side of the line a change
+  is on, it is structural.
+- **The palette lives in one place**: the `@theme static` block in `src/index.css`. `C` in
+  `src/theme.jsx` holds `var(--color-*)` references, so a palette change is a one-file edit and
+  needs no component work. Never build colour values by string surgery on `C.*` (e.g. appending
+  hex alpha) — they are `var()` references, not hex; a variant colour gets its own token.
+- **New hardcoded hex values in components are a bug.** Every colour goes through a token. If the
+  token you need is missing, add it to `src/index.css` and `C` rather than inlining the value.
+- **Subjective choices are presented as variants, not guesses**: 2–3 treatments side by side on a
+  disposable page outside the repo (scratchpad), using real-length content — the longest entry,
+  the empty state, a five-tag card — never lorem ipsum or the three-item happy path. Nothing
+  enters `src/` until the owner picks.
+- **Visual commits stay separate from logic commits.** Taste gets reverted more often than logic;
+  one concern per commit keeps that a `git revert` instead of surgery.
+- **Owner-side input**: screenshots of the running app (with what feels wrong marked or named)
+  carry far more information than prose descriptions, and are the preferred way to open a visual
+  request.
+- Meaningful visual decisions still get their `DECISIONS.md` line — the lighter loop drops the
+  upfront plan, not the record.
 
 ## When proposing changes, identify
 

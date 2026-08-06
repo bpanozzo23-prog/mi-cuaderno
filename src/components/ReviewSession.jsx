@@ -139,7 +139,7 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
             disabled={busy}
             onClick={() => grade(true)}
             className="inline-flex items-center justify-center gap-2 text-sm px-3 py-2 rounded-lg border font-medium"
-            style={{ background: busy ? "#B9C2D8" : C.green, color: "#fff", borderColor: "transparent" }}
+            style={{ background: busy ? C.disabled : C.green, color: "#fff", borderColor: "transparent" }}
           >
             <Check size={16} /> Got it
           </button>

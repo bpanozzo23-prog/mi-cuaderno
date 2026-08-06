@@ -1,1 +1,45 @@
 @import "tailwindcss";
+
+/*
+ * Design tokens — the one place the palette is defined.
+ *
+ * `src/theme.jsx` exports `C`, whose values are `var(--color-*)` references rather than hex
+ * literals, so the ~900 inline `style={{ color: C.pen }}` call sites across the app all resolve
+ * through this block. Changing a colour here changes it everywhere; nothing needs recompiling
+ * component-side, and a future dark mode is an override of these same names.
+ *
+ * `static` is deliberate. Tailwind 4 otherwise emits only the theme variables it can see used,
+ * and "used" here means a `var(--color-pen)` buried inside a JavaScript string — something we do
+ * not want a colour's existence to depend on. `static` emits all of them unconditionally.
+ *
+ * Two values live outside the cascade and cannot reference these names: the `theme-color` meta in
+ * `index.html` and `theme_color`/`background_color` in `vite.config.js`. Both mirror --color-paper
+ * by hand; change them together.
+ */
+@theme static {
+  --color-paper: #FAF9F4;
+  --color-card: #FFFFFF;
+  --color-ink: #212A3D;
+  --color-mut: #7A8199;
+
+  --color-pen: #2D4EA0;
+  --color-pen-dark: #243F85;
+  --color-pen-pale: #EDF1FA;
+  --color-floating-add: #2D4EA0D1;
+
+  --color-hi: #F7DF4E;
+  /* The highlighter gradient's 90% stop. A token rather than an alpha suffix appended in JS,
+     which is what the hex values allowed and `var()` does not. */
+  --color-hi-soft: #F7DF4EE6;
+
+  --color-line: #E6E3D7;
+  --color-red: #B3402E;
+  --color-green: #3E6B44;
+  --color-green-pale: #EAF2EA;
+
+  /* Named here for the first time. Each was previously a bare hex repeated across components,
+     which is exactly the drift this file exists to stop. */
+  --color-chip-border: #D9E1F2;
+  --color-danger-border: #E5C4BC;
+  --color-disabled: #B9C2D8;
+}

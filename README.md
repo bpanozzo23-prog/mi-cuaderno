@@ -4,7 +4,7 @@ A personal Spanish notebook built around a bundled offline dictionary — a phon
 installable web app (PWA). Private tool for one person; the code is public, the data never is.
 
 - **Brief:** [docs/mi-cuaderno-project-brief-v3.md](docs/mi-cuaderno-project-brief-v3.md) (the contract for this build)
-- **Prototype:** [docs/mi-cuaderno.jsx](docs/mi-cuaderno.jsx) (look-and-feel reference for the notebook layer)
+- **Prototype (historical):** [docs/mi-cuaderno.jsx](docs/mi-cuaderno.jsx) (pre-build look-and-feel reference; the real app now supersedes it)
 - **Decision log:** [DECISIONS.md](DECISIONS.md)
 - **Improvement ideas:** [docs/IMPROVEMENT-IDEAS.md](docs/IMPROVEMENT-IDEAS.md) (captured
   possibilities, not an approved roadmap)

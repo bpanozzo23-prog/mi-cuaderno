@@ -63,7 +63,7 @@ function ItemControls({
           role="alertdialog"
           aria-label={`Confirm removal of ${label}`}
           className="mt-2 rounded-lg border p-3"
-          style={{ borderColor: "#E5C4BC", background: C.card }}
+          style={{ borderColor: C.dangerBorder, background: C.card }}
         >
           <div className="text-sm font-semibold" style={{ color: C.ink }}>
             Remove {label} from this page?

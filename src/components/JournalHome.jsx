@@ -95,7 +95,7 @@ export default function JournalHome({ entries, onOpen, onEdit, onStart, now = ne
         </p>
       </div>
 
-      <Card className="p-4" style={{ background: C.penPale, borderColor: "#D9E1F2" }}>
+      <Card className="p-4" style={{ background: C.penPale, borderColor: C.chipBorder }}>
         <div className="flex items-center gap-2 text-xs font-semibold uppercase" style={{ color: C.penDark, letterSpacing: "0.08em" }}>
           <CalendarDays size={14} /> Today
         </div>

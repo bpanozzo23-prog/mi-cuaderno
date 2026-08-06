@@ -373,7 +373,7 @@ export default function Cuaderno({
         onClick={() => setAskKind(true)}
         aria-label="Add"
         className="fixed z-30 rounded-full p-4 shadow-lg"
-        style={{ background: C.pen, color: "#fff", bottom: 84, right: "max(16px, calc(50% - 208px))" }}
+        style={{ background: C.floatingAdd, color: "#fff", bottom: 84, right: "max(16px, calc(50% - 208px))" }}
       >
         <Plus size={22} />
       </button>

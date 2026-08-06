@@ -35,6 +35,23 @@ import { commitCollectionAdd } from "../db/collections.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
+function CompactEntryAction({ expanded = false, openLabel, closeLabel, controls, onClick, children }) {
+  return (
+    <button
+      type="button"
+      aria-label={expanded ? closeLabel : openLabel}
+      aria-expanded={expanded}
+      aria-controls={controls}
+      onClick={onClick}
+      className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1 rounded-lg border px-2 text-xs font-medium whitespace-nowrap"
+      style={{ background: C.card, borderColor: C.line, color: C.ink }}
+    >
+      {expanded ? <X size={14} /> : <Plus size={14} />}
+      {children}
+    </button>
+  );
+}
+
 function CollectionAssignmentForm({ itemId, destinations, onCancel, onSaved }) {
   const [pageId, setPageId] = useState(() => destinations.length === 1 ? destinations[0].pageId : "");
   const [groupId, setGroupId] = useState("");
@@ -345,6 +362,112 @@ function StandardDetail({
 
   const savedBody = isPage ? item.body || "" : item.notes || "";
   const hasSavedBody = savedBody.trim() !== "";
+  const examplesAreEmpty = !isPage && item.myExamples.length === 0;
+  const mediaIsEmpty = !isPage && item.mediaLinks.length === 0;
+  const collectionsAreEmpty = !isPage
+    && collectionPlacements.length === 0
+    && collectionDestinations.length > 0;
+  const hasCompactEntryActions = examplesAreEmpty || mediaIsEmpty || collectionsAreEmpty;
+
+  function renderExampleComposer() {
+    if (!addingExample) return null;
+    return (
+      <div id="example-composer">
+        <Card className="space-y-2">
+          <input
+            autoFocus
+            aria-label="Sentence in Spanish"
+            value={exEs}
+            onChange={(e) => setExEs(e.target.value)}
+            placeholder="Sentence in Spanish"
+            className="w-full text-sm bg-transparent outline-none"
+            style={{ color: C.ink }}
+          />
+          <input
+            aria-label="English (optional)"
+            value={exEn}
+            onChange={(e) => setExEn(e.target.value)}
+            placeholder="English (optional)"
+            className="w-full text-sm bg-transparent outline-none border-t pt-2"
+            style={{ color: C.ink, borderColor: C.line }}
+          />
+          <div className="flex gap-2">
+            <Button
+              onClick={async () => {
+                if (!exEs.trim()) return;
+                await patch({ myExamples: [...item.myExamples, { es: exEs.trim(), en: exEn.trim() }] });
+                cancelExample();
+              }}
+            >
+              Add example
+            </Button>
+            <Button tone="quiet" onClick={cancelExample}>
+              Cancel
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  function renderMediaComposer() {
+    if (!addingMedia) return null;
+    return (
+      <div id="media-composer">
+        <Card className="space-y-2">
+          <input
+            autoFocus
+            aria-label="Media URL"
+            value={mUrl}
+            onChange={(e) => setMUrl(e.target.value)}
+            placeholder="https:// link to video, image, article…"
+            className="w-full text-sm bg-transparent outline-none"
+            style={{ color: C.ink }}
+          />
+          <input
+            aria-label="Media label"
+            value={mLabel}
+            onChange={(e) => setMLabel(e.target.value)}
+            placeholder="Label (optional)"
+            className="w-full text-sm bg-transparent outline-none border-t pt-2"
+            style={{ color: C.ink, borderColor: C.line }}
+          />
+          <div className="flex gap-2">
+            <Button
+              onClick={async () => {
+                const url = mUrl.trim();
+                if (!/^https?:\/\//.test(url)) return;
+                await patch({ mediaLinks: [...item.mediaLinks, { url, label: mLabel.trim() }] });
+                cancelMedia();
+              }}
+            >
+              Add link
+            </Button>
+            <Button tone="quiet" onClick={cancelMedia}>
+              Cancel
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  function renderCollectionAssignment() {
+    if (!assigningCollection) return null;
+    return (
+      <div id="collection-assignment-form">
+        <CollectionAssignmentForm
+          itemId={item.id}
+          destinations={collectionDestinations}
+          onCancel={() => setAssigningCollection(false)}
+          onSaved={async () => {
+            setAssigningCollection(false);
+            await onChanged();
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
@@ -538,9 +661,17 @@ function StandardDetail({
             >
               {hasSavedBody ? savedBody : isPage ? "This page is empty." : "No notes yet."}
             </div>
-            <Button
-              tone="quiet"
-              className="shrink-0"
+            <button
+              type="button"
+              aria-label={
+                hasSavedBody
+                  ? `Edit ${isPage ? "page" : "note"}`
+                  : isPage
+                    ? "Write page"
+                    : "Add note"
+              }
+              className="shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-lg border"
+              style={{ background: C.card, color: C.mut, borderColor: C.line }}
               onClick={() => {
                 setBodyDraft(savedBody);
                 setBodyDirty(false);
@@ -548,8 +679,7 @@ function StandardDetail({
               }}
             >
               <Pencil size={14} />
-              {hasSavedBody ? `Edit ${isPage ? "page" : "note"}` : isPage ? "Write page" : "Add note"}
-            </Button>
+            </button>
           </div>
         )}
       </Card>
@@ -557,7 +687,7 @@ function StandardDetail({
       <SectionTitle>Tags</SectionTitle>
       <TagInput tags={item.tags} allTags={allTags} onChange={(tags) => patch({ tags })} />
 
-      {!isPage && (
+      {!isPage && item.myExamples.length > 0 && (
         <>
           <SectionTitle>General examples</SectionTitle>
           <div className="space-y-2">
@@ -609,114 +739,49 @@ function StandardDetail({
             >
               <Plus size={14} /> {addingExample ? "Close example form" : "Add an example"}
             </Button>
-            {addingExample && (
-              <Card id="example-composer" className="space-y-2">
-                <input
-                  autoFocus
-                  aria-label="Sentence in Spanish"
-                  value={exEs}
-                  onChange={(e) => setExEs(e.target.value)}
-                  placeholder="Sentence in Spanish"
-                  className="w-full text-sm bg-transparent outline-none"
-                  style={{ color: C.ink }}
-                />
-                <input
-                  aria-label="English (optional)"
-                  value={exEn}
-                  onChange={(e) => setExEn(e.target.value)}
-                  placeholder="English (optional)"
-                  className="w-full text-sm bg-transparent outline-none border-t pt-2"
-                  style={{ color: C.ink, borderColor: C.line }}
-                />
-                <div className="flex gap-2">
-                  <Button
-                    onClick={async () => {
-                      if (!exEs.trim()) return;
-                      await patch({ myExamples: [...item.myExamples, { es: exEs.trim(), en: exEn.trim() }] });
-                      cancelExample();
-                    }}
-                  >
-                    Add example
-                  </Button>
-                  <Button tone="quiet" onClick={cancelExample}>
-                    Cancel
-                  </Button>
-                </div>
-              </Card>
-            )}
+            {renderExampleComposer()}
           </div>
         </>
       )}
 
-      <SectionTitle>Media links</SectionTitle>
-      <div className="space-y-2">
-        {item.mediaLinks.map((m, i) => (
-          <Card key={i} className="flex items-center justify-between gap-2">
-            <a
-              href={m.url}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2 text-sm underline underline-offset-2 min-w-0"
-              style={{ color: C.pen }}
+      {(isPage || item.mediaLinks.length > 0) && (
+        <>
+          <SectionTitle>Media links</SectionTitle>
+          <div className="space-y-2">
+            {item.mediaLinks.map((m, i) => (
+              <Card key={i} className="flex items-center justify-between gap-2">
+                <a
+                  href={m.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-2 text-sm underline underline-offset-2 min-w-0"
+                  style={{ color: C.pen }}
+                >
+                  <ExternalLink size={14} className="shrink-0" />
+                  <span className="truncate">{m.label || m.url}</span>
+                </a>
+                <X
+                  size={14}
+                  className="shrink-0"
+                  style={{ color: C.mut }}
+                  onClick={() => patch({ mediaLinks: item.mediaLinks.filter((_, j) => j !== i) })}
+                />
+              </Card>
+            ))}
+            <Button
+              tone="quiet"
+              aria-expanded={addingMedia}
+              aria-controls="media-composer"
+              onClick={() => (addingMedia ? cancelMedia() : setAddingMedia(true))}
             >
-              <ExternalLink size={14} className="shrink-0" />
-              <span className="truncate">{m.label || m.url}</span>
-            </a>
-            <X
-              size={14}
-              className="shrink-0"
-              style={{ color: C.mut }}
-              onClick={() => patch({ mediaLinks: item.mediaLinks.filter((_, j) => j !== i) })}
-            />
-          </Card>
-        ))}
-        <Button
-          tone="quiet"
-          aria-expanded={addingMedia}
-          aria-controls="media-composer"
-          onClick={() => (addingMedia ? cancelMedia() : setAddingMedia(true))}
-        >
-          <Plus size={14} /> {addingMedia ? "Close media form" : "Add a media link"}
-        </Button>
-        {addingMedia && (
-          <Card id="media-composer" className="space-y-2">
-            <input
-              autoFocus
-              aria-label="Media URL"
-              value={mUrl}
-              onChange={(e) => setMUrl(e.target.value)}
-              placeholder="https:// link to video, image, article…"
-              className="w-full text-sm bg-transparent outline-none"
-              style={{ color: C.ink }}
-            />
-            <input
-              aria-label="Media label"
-              value={mLabel}
-              onChange={(e) => setMLabel(e.target.value)}
-              placeholder="Label (optional)"
-              className="w-full text-sm bg-transparent outline-none border-t pt-2"
-              style={{ color: C.ink, borderColor: C.line }}
-            />
-            <div className="flex gap-2">
-              <Button
-                onClick={async () => {
-                  const url = mUrl.trim();
-                  if (!/^https?:\/\//.test(url)) return;
-                  await patch({ mediaLinks: [...item.mediaLinks, { url, label: mLabel.trim() }] });
-                  cancelMedia();
-                }}
-              >
-                Add link
-              </Button>
-              <Button tone="quiet" onClick={cancelMedia}>
-                Cancel
-              </Button>
-            </div>
-          </Card>
-        )}
-      </div>
+              <Plus size={14} /> {addingMedia ? "Close media form" : "Add a media link"}
+            </Button>
+            {renderMediaComposer()}
+          </div>
+        </>
+      )}
 
-      {!isPage && (collectionPlacements.length > 0 || collectionDestinations.length > 0) && (
+      {!isPage && collectionPlacements.length > 0 && (
         <>
           <SectionTitle>Collections</SectionTitle>
           {collectionDestinations.length > 0 && !assigningCollection && (
@@ -724,17 +789,7 @@ function StandardDetail({
               <Plus size={14} /> Add to Collection
             </Button>
           )}
-          {assigningCollection && (
-            <CollectionAssignmentForm
-              itemId={item.id}
-              destinations={collectionDestinations}
-              onCancel={() => setAssigningCollection(false)}
-              onSaved={async () => {
-                setAssigningCollection(false);
-                await onChanged();
-              }}
-            />
-          )}
+          {renderCollectionAssignment()}
           <div className="space-y-1.5">
             {collectionPlacements.map((placement) => (
               <button
@@ -750,6 +805,53 @@ function StandardDetail({
             ))}
           </div>
         </>
+      )}
+
+      {hasCompactEntryActions && (
+        <div className="mt-6 space-y-2">
+          <div
+            role="group"
+            aria-label="Add entry details"
+            className="flex flex-nowrap items-center gap-2"
+          >
+            {examplesAreEmpty && (
+              <CompactEntryAction
+                expanded={addingExample}
+                openLabel="Add an example"
+                closeLabel="Close example form"
+                controls="example-composer"
+                onClick={() => (addingExample ? cancelExample() : setAddingExample(true))}
+              >
+                Example
+              </CompactEntryAction>
+            )}
+            {mediaIsEmpty && (
+              <CompactEntryAction
+                expanded={addingMedia}
+                openLabel="Add a media link"
+                closeLabel="Close media form"
+                controls="media-composer"
+                onClick={() => (addingMedia ? cancelMedia() : setAddingMedia(true))}
+              >
+                Media
+              </CompactEntryAction>
+            )}
+            {collectionsAreEmpty && (
+              <CompactEntryAction
+                expanded={assigningCollection}
+                openLabel="Add to Collection"
+                closeLabel="Close Collection form"
+                controls="collection-assignment-form"
+                onClick={() => setAssigningCollection((open) => !open)}
+              >
+                Collection
+              </CompactEntryAction>
+            )}
+          </div>
+          {examplesAreEmpty && renderExampleComposer()}
+          {mediaIsEmpty && renderMediaComposer()}
+          {collectionsAreEmpty && renderCollectionAssignment()}
+        </div>
       )}
 
       {!isPage && contextualPlacements.length > 0 && (

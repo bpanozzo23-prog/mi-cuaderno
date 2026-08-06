@@ -559,7 +559,7 @@ function VocabularyChips({ itemKeys, itemsById, onOpen, onDetach, detachingKey }
           <span
             key={id}
             className="inline-flex min-h-11 max-w-full overflow-hidden rounded-full border"
-            style={{ background: C.penPale, borderColor: "#D9E1F2", color: C.penDark }}
+            style={{ background: C.penPale, borderColor: C.chipBorder, color: C.penDark }}
           >
             <button
               type="button"
@@ -577,7 +577,7 @@ function VocabularyChips({ itemKeys, itemsById, onOpen, onDetach, detachingKey }
                 onClick={() => onDetach(id)}
                 aria-label={`Detach vocabulary ${label} from this example`}
                 className="flex min-h-11 min-w-11 items-center justify-center border-l disabled:opacity-50"
-                style={{ borderColor: "#D9E1F2", color: C.red }}
+                style={{ borderColor: C.chipBorder, color: C.red }}
               >
                 <X size={14} />
               </button>
@@ -713,7 +713,7 @@ function ExampleCard({
       )}
 
       {deleting && (
-        <div className="mt-3 rounded-lg border p-3" style={{ borderColor: "#E5C4BC", background: C.paper }}>
+        <div className="mt-3 rounded-lg border p-3" style={{ borderColor: C.dangerBorder, background: C.paper }}>
           <div className="text-sm" style={{ color: C.ink }}>
             Delete this example? Its vocabulary stays on the page.
           </div>
@@ -879,7 +879,7 @@ export default function GrammarSection({
               )}
 
               {deleteSectionId === section.id && (
-                <div className="mt-3 rounded-lg border p-3" style={{ borderColor: "#E5C4BC", background: C.paper }}>
+                <div className="mt-3 rounded-lg border p-3" style={{ borderColor: C.dangerBorder, background: C.paper }}>
                   <div className="text-sm" style={{ color: C.ink }}>
                     {(section.examples || []).length
                       ? "This section has examples. The guide will require you to move or delete them first."

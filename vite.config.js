@@ -27,6 +27,8 @@ export default defineConfig({
         description: "Personal Spanish notebook",
         lang: "es",
         display: "standalone",
+        // Mirrors --color-paper (src/index.css) by hand. The manifest is generated at build
+        // time and read by the OS, so it cannot reference a CSS variable. Change them together.
         background_color: "#FAF9F4",
         theme_color: "#FAF9F4",
         icons: [

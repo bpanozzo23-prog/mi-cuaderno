@@ -84,7 +84,7 @@ export default function AliasConflictResolver({
     <form
       onSubmit={save}
       className="w-full max-w-full overflow-hidden rounded-xl border p-3"
-      style={{ background: C.card, borderColor: "#E5C4BC" }}
+      style={{ background: C.card, borderColor: C.dangerBorder }}
     >
       <div className="flex items-start gap-2">
         <AlertTriangle aria-hidden="true" size={17} className="mt-0.5 shrink-0" style={{ color: C.red }} />

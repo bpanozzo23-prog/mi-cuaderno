@@ -1,18 +1,35 @@
 /** Design tokens and small shared pieces, lifted from the prototype (docs/mi-cuaderno.jsx). */
 
+/**
+ * The palette, as CSS variable references.
+ *
+ * The values live in `src/index.css`; these keys are the JavaScript handle on them. Callers are
+ * unaffected — `style={{ color: C.pen }}` works exactly as it did when this held hex strings — but
+ * the colour is now resolved by the browser at paint time rather than baked into a React render,
+ * so the whole palette is swappable from one file.
+ *
+ * The one thing that no longer works is string surgery on a value: `${C.hi}E6` used to append hex
+ * alpha and now produces nonsense. Where a variant is needed it gets its own token, as `hiSoft`
+ * does below.
+ */
 export const C = {
-  paper: "#FAF9F4",
-  card: "#FFFFFF",
-  ink: "#212A3D",
-  pen: "#2D4EA0",
-  penDark: "#243F85",
-  penPale: "#EDF1FA",
-  hi: "#F7DF4E",
-  line: "#E6E3D7",
-  mut: "#7A8199",
-  red: "#B3402E",
-  green: "#3E6B44",
-  greenPale: "#EAF2EA",
+  paper: "var(--color-paper)",
+  card: "var(--color-card)",
+  ink: "var(--color-ink)",
+  pen: "var(--color-pen)",
+  penDark: "var(--color-pen-dark)",
+  penPale: "var(--color-pen-pale)",
+  floatingAdd: "var(--color-floating-add)",
+  hi: "var(--color-hi)",
+  hiSoft: "var(--color-hi-soft)",
+  line: "var(--color-line)",
+  mut: "var(--color-mut)",
+  red: "var(--color-red)",
+  green: "var(--color-green)",
+  greenPale: "var(--color-green-pale)",
+  chipBorder: "var(--color-chip-border)",
+  dangerBorder: "var(--color-danger-border)",
+  disabled: "var(--color-disabled)",
 };
 
 export const SERIF = 'Georgia, "Iowan Old Style", "Times New Roman", serif';
@@ -37,7 +54,7 @@ export function Hi({ children, on = true }) {
   return (
     <span
       style={{
-        backgroundImage: `linear-gradient(100deg, transparent 0.5%, ${C.hi} 3.5%, ${C.hi}E6 96%, transparent 99.5%)`,
+        backgroundImage: `linear-gradient(100deg, transparent 0.5%, ${C.hi} 3.5%, ${C.hiSoft} 96%, transparent 99.5%)`,
         borderRadius: 4,
         padding: "0 6px",
         margin: "0 -6px",
@@ -76,7 +93,7 @@ export function Chip({ children, active, onClick, title, className = "" }) {
       style={
         active
           ? { background: C.pen, color: "#fff", borderColor: C.pen }
-          : { background: C.penPale, color: C.penDark, borderColor: "#D9E1F2" }
+          : { background: C.penPale, color: C.penDark, borderColor: C.chipBorder }
       }
     >
       {children}
@@ -97,9 +114,9 @@ export function Card({ children, className = "", style = {} }) {
 
 export function Button({ children, onClick, disabled, tone = "primary", className = "", ...rest }) {
   const tones = {
-    primary: { background: disabled ? "#B9C2D8" : C.pen, color: "#fff", borderColor: "transparent" },
+    primary: { background: disabled ? C.disabled : C.pen, color: "#fff", borderColor: "transparent" },
     quiet: { background: C.card, color: C.ink, borderColor: C.line },
-    danger: { background: C.card, color: C.red, borderColor: "#E5C4BC" },
+    danger: { background: C.card, color: C.red, borderColor: C.dangerBorder },
     dangerArmed: { background: C.red, color: "#fff", borderColor: C.red },
   };
   return (
