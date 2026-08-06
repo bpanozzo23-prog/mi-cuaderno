@@ -114,6 +114,10 @@ this summary.
   by its shell on this machine.
 - `npm test` — Vitest. Node is the default test environment; component tests opt into `jsdom`
   with a per-file `@vitest-environment` pragma. There is no lint or type-check script.
+  **The suite runs one file at a time** (`fileParallelism: false`, set in `vitest.config.js` so
+  every invocation gets it). That is the "complete serial suite" this project's reports have
+  always cited, and it costs roughly 225s rather than 68s. Run it whole before claiming a phase;
+  a red `App.test.jsx` navigation timeout under parallel load is contention, not a regression.
 - **No fake timers.** This suite uses none anywhere, deliberately: the app's async paths run
   through Dexie and the browser's own scheduling, which `vi.useFakeTimers()` does not advance, so
   a test that awaits one hangs until the runner kills it rather than failing usefully. Wait for
