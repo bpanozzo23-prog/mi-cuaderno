@@ -403,3 +403,47 @@ describe("composable page retrieval and starters", () => {
     expect(screen.getByRole("textbox", { name: "Group 3 name" }).value).toBe("Reactions and follow-ups");
   });
 });
+
+describe("Phase 11: review state reaching the detail strip", () => {
+  it("derives the selected word's box and hands it to Detail", async () => {
+    const madrugar = word("madrugar");
+    const events = [
+      {
+        id: "evt:1",
+        type: "review_fail",
+        itemKey: madrugar.id,
+        at: at(20),
+        localDate: "2026-07-20",
+        metadata: { grade: 0 },
+      },
+    ];
+
+    render(
+      <Cuaderno
+        {...propsFor([madrugar], {
+          notebook: { items: [madrugar], events, itemState: new Map(), reload: vi.fn() },
+          selectedId: madrugar.id,
+        })}
+      />
+    );
+
+    // A missed review drops the word to box 1 and enrolls it; the strip must say so,
+    // which it can only do if Cuaderno's gated memo actually ran and was passed down.
+    await waitFor(() => expect(screen.getByText(/box 1/)).toBeTruthy());
+  });
+
+  it("says not in review for a word with no review history", async () => {
+    const madrugar = word("madrugar");
+
+    render(
+      <Cuaderno
+        {...propsFor([madrugar], {
+          notebook: { items: [madrugar], events: [], itemState: new Map(), reload: vi.fn() },
+          selectedId: madrugar.id,
+        })}
+      />
+    );
+
+    await waitFor(() => expect(screen.getByText(/not in review/)).toBeTruthy());
+  });
+});

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft, Trash2, X, ExternalLink, Pencil, CalendarDays, FileText, Check,
-  Highlighter, Eye, Clock, Plus, Bookmark, BookmarkCheck,
+  Highlighter, Eye, Clock, Plus, Bookmark, BookmarkCheck, Layers, RotateCcw,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button } from "../theme.jsx";
 import { POS_OPTIONS, personalHeadingSuffix, personalLexicalForm } from "./ItemCard.jsx";
@@ -25,7 +25,8 @@ import {
 } from "../lib/relationships.js";
 import { connectionsFromResolvedEntryLinks } from "../lib/resolvedConnections.js";
 import { allTagsIn } from "../lib/tags.js";
-import { timeAgo } from "../lib/dates.js";
+import { localDate, timeAgo } from "../lib/dates.js";
+import { emptyReviewState } from "../lib/review.js";
 import { cloneMeanings } from "../lib/meanings.js";
 import MeaningsSection from "./MeaningsSection.jsx";
 import SpeakButton from "./SpeakButton.jsx";
@@ -158,6 +159,7 @@ export function GeneralPageDetail(props) {
 function StandardDetail({
   item,
   state = emptyItemState,
+  reviewState = emptyReviewState,
   items = [],
   onBack,
   backLabel = "Todo el cuaderno",
@@ -591,13 +593,45 @@ function StandardDetail({
 
         {!editingHead && (
           <>
-            <div className="mt-3 flex items-center gap-4 text-xs" style={{ fontFamily: MONO, color: C.mut }}>
+            {/* Phase 11. Wraps rather than sitting on one line: six segments do not fit
+                375px, and the review ones are all derived — nothing here is stored. */}
+            <div
+              className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs"
+              style={{ fontFamily: MONO, color: C.mut }}
+            >
               <span className="inline-flex items-center gap-1">
                 <Eye size={12} /> opened {state.views}×
               </span>
               {state.lastViewedAt && (
                 <span className="inline-flex items-center gap-1">
                   <Clock size={12} /> {timeAgo(state.lastViewedAt)}
+                </span>
+              )}
+              {item.createdAt && (
+                <span className="inline-flex items-center gap-1">
+                  <CalendarDays size={12} /> added {localDate(new Date(item.createdAt))}
+                </span>
+              )}
+              {!isPage && (
+                <span className="inline-flex items-center gap-1">
+                  <Layers size={12} />{" "}
+                  {reviewState.graduated
+                    ? "retired"
+                    : reviewState.enrolled
+                      ? `box ${reviewState.box}`
+                      : "not in review"}
+                </span>
+              )}
+              {!isPage && reviewState.lastReviewedAt && (
+                <span className="inline-flex items-center gap-1">
+                  <RotateCcw size={12} /> reviewed {timeAgo(reviewState.lastReviewedAt)}
+                </span>
+              )}
+              {!isPage && reviewState.enrolled && !reviewState.graduated && (
+                <span className="inline-flex items-center gap-1">
+                  {reviewState.dueDate <= localDate()
+                    ? "due today"
+                    : `due ${reviewState.dueDate}`}
                 </span>
               )}
             </div>

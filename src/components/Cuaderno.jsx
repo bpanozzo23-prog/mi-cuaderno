@@ -23,6 +23,7 @@ import {
 } from "../lib/organization.js";
 import { isJournalEntry } from "../lib/journal.js";
 import { emptyItemState } from "../useNotebook.js";
+import { deriveReviewState, emptyReviewState } from "../lib/review.js";
 
 /** Long enough that a fast typist does not fire a query per keystroke, short enough to feel instant. */
 const SEARCH_DEBOUNCE_MS = 140;
@@ -60,7 +61,7 @@ export default function Cuaderno({
   pinnedPageIds = [],
   onPagePinnedChange,
 }) {
-  const { items, itemState, reload } = notebook;
+  const { items, events, itemState, reload } = notebook;
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState(FILTERS.all);
   const [tagFilter, setTagFilter] = useState(null);
@@ -225,6 +226,18 @@ export default function Cuaderno({
 
   const selected = items.find((i) => i.id === selectedId) || null;
 
+  /**
+   * The review state behind a lexical entry's stats strip (Phase 11). Gated, not merely
+   * memoized: this screen never unmounts — App keeps it mounted behind `hidden` so its
+   * filters survive a trail hop — so an ungated derivation would replay the whole log on
+   * every notebook change while the owner is looking at another tab entirely.
+   */
+  const wantsReview = Boolean(selected && selected.type === "lexical");
+  const review = useMemo(
+    () => (wantsReview ? deriveReviewState(items, events || []) : null),
+    [wantsReview, items, events]
+  );
+
   if (selectedId && isDictKey(selectedId)) {
     return (
       <DictDetail
@@ -248,6 +261,7 @@ export default function Cuaderno({
         key={selected.id}
         item={selected}
         state={itemState.get(selected.id) || emptyItemState}
+        reviewState={review?.states.get(selected.id) || emptyReviewState}
         items={items}
         onBack={onBack}
         backLabel={backLabel}

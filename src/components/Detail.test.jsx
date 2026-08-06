@@ -505,3 +505,101 @@ describe("linking an existing item", () => {
     expect(await screen.findByText("Explains")).toBeTruthy();
   });
 });
+
+describe("Phase 11: the per-item stats strip", () => {
+  const strip = () => screen.getByText(/opened \d+×/).parentElement;
+
+  function renderWithReview(item, reviewState) {
+    return render(
+      <Detail
+        item={item}
+        reviewState={reviewState}
+        items={[item]}
+        onBack={vi.fn()}
+        onOpen={vi.fn()}
+        onChanged={vi.fn()}
+      />
+    );
+  }
+
+  it("says when the word was added", async () => {
+    const word = await createItem(newLexical({ term: "madrugar" }));
+    renderWithReview(word, undefined);
+
+    expect(strip().textContent).toMatch(/added \d{4}-\d{2}-\d{2}/);
+  });
+
+  it("says a word nothing has happened to is not in review", async () => {
+    const word = await createItem(newLexical({ term: "madrugar" }));
+    renderWithReview(word, undefined);
+
+    expect(strip().textContent).toContain("not in review");
+    expect(strip().textContent).not.toContain("box");
+  });
+
+  it("names the box a word is sitting in", async () => {
+    const word = await createItem(newLexical({ term: "madrugar" }));
+    renderWithReview(word, {
+      enrolled: true,
+      box: 3,
+      graduated: false,
+      dueDate: "2099-01-01",
+      lastReviewedAt: null,
+    });
+
+    expect(strip().textContent).toContain("box 3");
+    expect(strip().textContent).toContain("due 2099-01-01");
+  });
+
+  it("says retired rather than naming a box for a word that finished the ladder", async () => {
+    const word = await createItem(newLexical({ term: "madrugar" }));
+    renderWithReview(word, {
+      enrolled: false,
+      box: 5,
+      graduated: true,
+      dueDate: "2099-01-01",
+      lastReviewedAt: null,
+    });
+
+    expect(strip().textContent).toContain("retired");
+    expect(strip().textContent).not.toContain("box");
+    // A retired word is not waiting for anything, so it carries no due date.
+    expect(strip().textContent).not.toContain("due");
+  });
+
+  it("says due today rather than printing today's date", async () => {
+    const word = await createItem(newLexical({ term: "madrugar" }));
+    const { localDate } = await import("../lib/dates.js");
+    renderWithReview(word, {
+      enrolled: true,
+      box: 1,
+      graduated: false,
+      dueDate: localDate(),
+      lastReviewedAt: null,
+    });
+
+    expect(strip().textContent).toContain("due today");
+  });
+
+  it("says how long ago the word was last reviewed", async () => {
+    const word = await createItem(newLexical({ term: "madrugar" }));
+    renderWithReview(word, {
+      enrolled: true,
+      box: 2,
+      graduated: false,
+      dueDate: "2099-01-01",
+      lastReviewedAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+    });
+
+    expect(strip().textContent).toContain("reviewed 3d ago");
+  });
+
+  it("tells a page nothing about review, which pages do not have", async () => {
+    const page = await createItem(newPage({ title: "Study source" }));
+    renderWithReview(page, undefined);
+
+    const text = document.body.textContent;
+    expect(text).not.toContain("not in review");
+    expect(text).not.toContain("box ");
+  });
+});
