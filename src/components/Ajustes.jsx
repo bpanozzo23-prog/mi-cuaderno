@@ -15,6 +15,7 @@ import { downloadJson, readFileAsText } from "../lib/file.js";
 import { daysSince } from "../lib/dates.js";
 import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
 import DictionaryCard from "./DictionaryCard.jsx";
+import AiCard from "./AiCard.jsx";
 import TagChip from "./TagChip.jsx";
 import { installedMeta } from "../db/ref/entries.js";
 import { tagCountsIn } from "../lib/organization.js";
@@ -231,6 +232,8 @@ export default function Ajustes({ notebook, tagColors = {}, onTagColorChange, on
       </Card>
 
       <DictionaryCard onInstalled={refreshDictionary} />
+
+      <AiCard />
 
       <SectionTitle>Tag colors</SectionTitle>
       <Card>

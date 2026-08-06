@@ -34,6 +34,9 @@
 
   --color-line: #E6E3D7;
   --color-red: #B3402E;
+  /* The pale wash behind an error message, matching --color-green-pale's role for a success.
+     The value was already loose in DictionaryCard as a bare hex before it was named here. */
+  --color-red-pale: #F7ECEA;
   --color-green: #3E6B44;
   --color-green-pale: #EAF2EA;
 

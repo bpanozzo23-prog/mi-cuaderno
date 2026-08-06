@@ -25,6 +25,7 @@ export const C = {
   line: "var(--color-line)",
   mut: "var(--color-mut)",
   red: "var(--color-red)",
+  redPale: "var(--color-red-pale)",
   green: "var(--color-green)",
   greenPale: "var(--color-green-pale)",
   chipBorder: "var(--color-chip-border)",
