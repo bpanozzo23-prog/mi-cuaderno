@@ -22,6 +22,8 @@ export const EVENT_TYPES = {
   reviewPass: "review_pass",
   reviewFail: "review_fail",
   searchMiss: "search_miss",
+  drillPass: "drill_pass",
+  drillFail: "drill_fail",
 };
 
 /**
@@ -92,6 +94,37 @@ export async function logReview(itemKey, passed, details = null, when = new Date
     passed ? EVENT_TYPES.reviewPass : EVENT_TYPES.reviewFail,
     itemKey,
     { ...(details || {}), grade: passed ? PASS_GRADE : FAIL_GRADE },
+    when
+  );
+}
+
+/**
+ * Records one conjugation drill answer (Phase 13).
+ *
+ * Separate types from `review_pass`/`review_fail` on purpose. A Leitner box answers "do I
+ * know what this word means"; getting *pusieron* wrong is a different fact about the same
+ * word, and sharing the types would make one box number mean two things. Phase 10c's
+ * decision that the drill records nothing at all is deliberately reversed here at the
+ * owner's request; §14's deferral names *Collection* practice, which this is not.
+ *
+ * `itemKey` is the personal item id, never the `dict:` key the form was read from. The
+ * answer lives in the replaceable reference layer, but the history belongs to the owner —
+ * the Phase 3a rule, so a dataset rebuild cannot delete a record of what was practised.
+ *
+ * `details` carries `tense`, `slot`, `mode` (reveal | typed) and `verdict` (self | exact |
+ * accents). Mode matters most: a self-reported "got it" and an exact string match are
+ * different measurements, and blending them into one accuracy figure would make it mean
+ * neither. It cannot be reconstructed later, so it is recorded from the first event.
+ */
+export async function logDrill(itemKey, passed, details = null, when = new Date()) {
+  // Same guard as logReview: a Date in the details slot would spread to no keys and
+  // silently become "now", leaving metadata that looks perfectly correct.
+  if (details instanceof Date) return logDrill(itemKey, passed, null, details);
+
+  return logEvent(
+    passed ? EVENT_TYPES.drillPass : EVENT_TYPES.drillFail,
+    itemKey,
+    { ...(details || {}) },
     when
   );
 }

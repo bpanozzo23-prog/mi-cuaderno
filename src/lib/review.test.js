@@ -429,3 +429,53 @@ describe("Phase 10a: which way a card faces", () => {
     expect(cardDirection(withGloss, undefined)).toBe("forward");
   });
 });
+
+describe("drill events stay out of the review model", () => {
+  /**
+   * The whole reason `drill_pass`/`drill_fail` are their own types (Phase 13). A Leitner
+   * box says "do I know what this word means"; conjugating it wrong is a different fact.
+   * Section 7 requires every consumer to ignore types it does not recognise, and this is
+   * that requirement made checkable rather than assumed.
+   */
+  const drillPass = (key, day, hour = 10) =>
+    makeEvent({
+      type: "drill_pass",
+      itemKey: key,
+      at: at(day, hour),
+      localDate: day,
+      metadata: { tense: "Indicative/Preterite", slot: "yo", mode: "reveal", verdict: "self" },
+    });
+  const drillFail = (key, day, hour = 10) =>
+    makeEvent({
+      type: "drill_fail",
+      itemKey: key,
+      at: at(day, hour),
+      localDate: day,
+      metadata: { tense: "Indicative/Preterite", slot: "yo", mode: "typed", verdict: "wrong" },
+    });
+
+  const word = makeLexical({ id: "user:1", term: "poner" });
+
+  it("does not enrol a word that has only ever been drilled", () => {
+    const state = stateOf([word], [drillPass("user:1", "2026-07-29"), drillFail("user:1", "2026-07-30")]);
+    expect(state.states.get("user:1").enrolled).toBe(false);
+    expect(state.due).toEqual([]);
+  });
+
+  it("does not move a box, and does not count as a lookup", () => {
+    // One real review puts the word in box 2; three drills on three separate days would
+    // reach the lookup threshold if they were miscounted as views.
+    const events = [
+      pass("user:1", "2026-07-30"),
+      drillFail("user:1", "2026-07-28"),
+      drillFail("user:1", "2026-07-29"),
+      drillFail("user:1", "2026-07-30"),
+    ];
+    const state = stateOf([word], events).states.get("user:1");
+
+    expect(state.box).toBe(2);
+    expect(state.reviews).toBe(1);
+    expect(state.lookupDays).toBe(0);
+    expect(state.reason).toBe("reviewing");
+  });
+});

@@ -381,8 +381,19 @@ export default function Repaso({ notebook, onSelect }) {
   }
 
   if (inDrill) {
-    // No reload on finish: the drill wrote nothing, so there is nothing to re-read.
-    return <ConjugationDrill deck={drillDeck} onFinish={() => setInDrill(false)} onOpen={onSelect} />;
+    // Reload on finish (Phase 13): the drill now writes events, and the streak tile behind
+    // this screen counts them. Once per drill rather than once per card — nothing on the
+    // drill screen reads the log, so re-reading it mid-deck would buy nothing.
+    return (
+      <ConjugationDrill
+        deck={drillDeck}
+        onFinish={() => {
+          setInDrill(false);
+          reload();
+        }}
+        onOpen={onSelect}
+      />
+    );
   }
 
   if (inSession) {
@@ -506,7 +517,7 @@ export default function Repaso({ notebook, onSelect }) {
                   Practise the six everyday tenses.
                 </div>
                 <div className="text-xs" style={{ color: C.mut }}>
-                  {drillVerbs.length} {drillVerbs.length === 1 ? "verb" : "verbs"} · nothing is recorded
+                  {drillVerbs.length} {drillVerbs.length === 1 ? "verb" : "verbs"}
                 </div>
               </div>
               <Button tone="quiet" className="shrink-0" onClick={startDrill}>

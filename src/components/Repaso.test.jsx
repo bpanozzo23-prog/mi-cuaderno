@@ -310,7 +310,7 @@ describe("Phase 10c: the conjugation drill", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: /Drill/ })).toBeTruthy());
   });
 
-  it("runs an ungraded drill that records nothing", async () => {
+  it("runs a graded drill, and no longer promises that nothing is recorded", async () => {
     const user = userEvent.setup();
     await seedWithConjugations([SACAR]);
     const verb = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
@@ -320,7 +320,10 @@ describe("Phase 10c: the conjugation drill", () => {
     await user.click(screen.getByRole("button", { name: /Drill/ }));
 
     expect(screen.getByRole("button", { name: "Tap to see the form" })).toBeTruthy();
-    expect(screen.getByText(/nothing here is recorded/i)).toBeTruthy();
+    // Phase 13 records drill answers, so the old reassurance would now be a lie. Asserted
+    // as an absence on both screens because stale copy is invisible to every other test.
+    expect(screen.queryByText(/nothing here is recorded/i)).toBeNull();
+    expect(screen.queryByText(/nothing is recorded/i)).toBeNull();
   });
 });
 

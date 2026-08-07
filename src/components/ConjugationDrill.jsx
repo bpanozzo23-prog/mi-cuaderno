@@ -1,45 +1,75 @@
 import { useState } from "react";
-import { ChevronLeft, RotateCcw } from "lucide-react";
+import { ChevronLeft, RotateCcw, Check, X } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Card, Button } from "../theme.jsx";
 import { tenseHeading } from "../lib/conjugation.js";
+import { logDrill } from "../db/events.js";
 import SpeakButton from "./SpeakButton.jsx";
 
 /**
- * A pass through a deck of conjugation prompts (Phase 10c).
+ * A pass through a deck of conjugation prompts (Phase 10c, graded since Phase 13).
  *
- * Deliberately ungraded, and it writes nothing at all — no review events, and no view
- * events either, because drilling a verb is not opening its detail screen and must not
- * inflate the lookup counts that decide what Repaso enrolls. Brief §14 defers practice
- * history, grading and scheduling; storing nothing is how this stays on the right side
- * of that line.
+ * Each answer is graded and recorded. Phase 10c deliberately stored nothing; the owner
+ * reversed that once the drill had been used, so the weak tenses could be found instead of
+ * merely felt. The events are `drill_pass`/`drill_fail` and are read by nothing that
+ * schedules: a missed conjugation is not a missed meaning, so it moves no Leitner box and
+ * inflates no lookup count. Still no `view` event either — drilling a verb is not opening
+ * its detail screen (the Phase 10c rule that survives).
  *
- * The deck is built once by the caller, so nothing re-derives underneath the owner. There
- * is no pass/fail button by design: the answer is either recalled or read, and the next
- * card is the only thing that happens either way.
+ * The deck is built once by the caller, so nothing re-derives underneath the owner.
  */
-export default function ConjugationDrill({ deck, onFinish, onOpen }) {
+export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOpen }) {
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [tally, setTally] = useState({ passed: 0, failed: 0, accents: 0 });
 
   const card = deck[index] || null;
   const done = index >= deck.length;
 
-  function next() {
+  /**
+   * Records one answer and advances. Disabled between the tap and the advance, so a
+   * double-tap cannot grade the next card — ReviewSession's guard, for its reason.
+   */
+  async function grade(passed, verdict) {
+    if (busy || !card) return;
+    setBusy(true);
+    await logDrill(card.itemId, passed, {
+      tense: card.tense,
+      slot: card.slot,
+      mode,
+      verdict,
+    });
+    setTally((current) => ({
+      passed: current.passed + (passed ? 1 : 0),
+      failed: current.failed + (passed ? 0 : 1),
+      accents: current.accents + (verdict === "accents" ? 1 : 0),
+    }));
     setRevealed(false);
     setIndex((current) => current + 1);
+    setBusy(false);
   }
 
   if (done) {
+    const answered = tally.passed + tally.failed;
     return (
       <div className="px-4 py-4 pb-28" style={dotGrid}>
         <Card className="p-5 text-center">
           <div className="text-xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
             {deck.length === 0 ? "Nothing to drill" : "¡Ya está!"}
           </div>
-          {deck.length > 0 && (
-            <div className="mt-1 text-sm" style={{ color: C.mut }}>
-              {deck.length} {deck.length === 1 ? "form" : "forms"} practised. Nothing was recorded.
-            </div>
+          {answered > 0 && (
+            <>
+              <div className="mt-2 text-3xl" style={{ fontFamily: MONO, color: C.ink }}>
+                {tally.passed}/{answered}
+              </div>
+              <div className="mt-1 text-sm" style={{ color: C.mut }}>
+                {tally.accents > 0
+                  ? `${tally.accents} ${tally.accents === 1 ? "accent slip" : "accent slips"}.`
+                  : tally.failed === 0
+                    ? "Every one of them."
+                    : `${tally.failed} to come back to.`}
+              </div>
+            </>
           )}
           <Button className="mt-4" onClick={onFinish}>
             Back to Repaso
@@ -100,17 +130,25 @@ export default function ConjugationDrill({ deck, onFinish, onOpen }) {
         )}
       </Card>
 
-      {/* "Done" rather than "Finish": the header already owns that word, and two
-          controls with one name is a poor thing to hand a screen reader. */}
       {revealed && (
-        <Button className="mt-4 w-full justify-center" onClick={next}>
-          {index + 1 === deck.length ? "Done" : "Next"}
-        </Button>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <Button tone="danger" disabled={busy} onClick={() => grade(false, "self")}>
+            <X size={16} /> Missed it
+          </Button>
+          <button
+            disabled={busy}
+            onClick={() => grade(true, "self")}
+            className="inline-flex items-center justify-center gap-2 text-sm px-3 py-2 rounded-lg border font-medium"
+            style={{ background: busy ? "#B9C2D8" : C.green, color: "#fff", borderColor: "transparent" }}
+          >
+            <Check size={16} /> Got it
+          </button>
+        </div>
       )}
 
       <div className="mt-6 text-center text-xs" style={{ color: C.mut }}>
         <RotateCcw size={11} className="inline mr-1 -mt-0.5" />
-        Practice only — nothing here is recorded.
+        {deck.length - index === 1 ? "Last one" : `${deck.length - index} left`}
       </div>
     </div>
   );
