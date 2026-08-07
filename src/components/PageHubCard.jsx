@@ -73,7 +73,7 @@ export default function PageHubCard({
 
   return (
     <div
-      className="relative w-full rounded-2xl border"
+      className="relative w-full rounded-2xl border shadow-entry-card"
       style={{
         background: C.card,
         borderColor: C.line,

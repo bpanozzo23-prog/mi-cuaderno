@@ -54,6 +54,10 @@
   --color-accent-phrase: #7B93D1;
   --color-accent-page: #B4860B;
 
+  /* Hub entry cards sit a little above the paper: more depth than a diffuse halo, but softer
+     than a pronounced floating-card shadow. Kept as one shared token so all three hubs match. */
+  --shadow-entry-card: 0 1px 2px #212A3D14, 2px 3px 10px #212A3D24;
+
   /* The activity calendar's five intensity steps (Phase 11), walking from an empty day to
      a busy one. Ink rather than the usual green: this is a page of the notebook filling up.
      heat-0 is a breath darker than paper so an empty day still reads as a cell, and heat-4

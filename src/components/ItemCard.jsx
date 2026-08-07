@@ -67,7 +67,7 @@ export default function ItemCard({
 
   return (
     <div
-      className="relative w-full rounded-xl border"
+      className="relative w-full rounded-xl border shadow-entry-card"
       style={{
         background: C.card,
         borderColor: C.line,
