@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import ItemCard from "./ItemCard.jsx";
+import ItemCard, { personalHeadingSuffix } from "./ItemCard.jsx";
 import { ItemLinkCard } from "./LinkCard.jsx";
 import ReviewSession from "./ReviewSession.jsx";
 import { newMeaning } from "../lib/meanings.js";
@@ -26,6 +26,13 @@ const phrase = {
 };
 
 describe("personal word and phrase terminology", () => {
+  it("does not show dictionary noun gender after a personal part-of-speech override", () => {
+    expect(personalHeadingSuffix(
+      { ...phrase, form: "word", pos: "other" },
+      { pos: "noun", gender: "f" }
+    )).toBe("");
+  });
+
   it("gives a personal phrase no heading suffix on notebook and link cards", () => {
     const first = render(<ItemCard item={phrase} onOpen={vi.fn()} />);
     expect(screen.getByRole("button", { name: /^tener ganas de/ })).toBeTruthy();

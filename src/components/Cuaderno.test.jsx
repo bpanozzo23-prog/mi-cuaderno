@@ -406,6 +406,7 @@ describe("composable page retrieval and starters", () => {
 
 describe("Phase 11: review state reaching the detail strip", () => {
   it("derives the selected word's box and hands it to Detail", async () => {
+    const user = userEvent.setup();
     const madrugar = word("madrugar");
     const events = [
       {
@@ -429,10 +430,12 @@ describe("Phase 11: review state reaching the detail strip", () => {
 
     // A missed review drops the word to box 1 and enrolls it; the strip must say so,
     // which it can only do if Cuaderno's gated memo actually ran and was passed down.
+    await user.click(screen.getByRole("button", { name: "Stats" }));
     await waitFor(() => expect(screen.getByText(/box 1/)).toBeTruthy());
   });
 
   it("says not in review for a word with no review history", async () => {
+    const user = userEvent.setup();
     const madrugar = word("madrugar");
 
     render(
@@ -444,6 +447,7 @@ describe("Phase 11: review state reaching the detail strip", () => {
       />
     );
 
+    await user.click(screen.getByRole("button", { name: "Stats" }));
     await waitFor(() => expect(screen.getByText(/not in review/)).toBeTruthy());
   });
 });

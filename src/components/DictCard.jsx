@@ -1,12 +1,8 @@
 import { BookMarked } from "lucide-react";
 import { C, SERIF, MONO } from "../theme.jsx";
+import { PART_OF_SPEECH_ABBR, grammarAbbreviations } from "../lib/partOfSpeech.js";
 
-export const POS_LABEL = {
-  noun: "s.", verb: "v.", adj: "adj.", adv: "adv.", pron: "pron.", prep: "prep.",
-  conj: "conj.", det: "det.", article: "art.", num: "num.", intj: "interj.",
-  phrase: "loc.", prep_phrase: "loc.", proverb: "prov.", contraction: "contr.",
-  particle: "part.", name: "n.p.",
-};
+export const POS_LABEL = PART_OF_SPEECH_ABBR;
 
 /**
  * A dictionary result. Deliberately quieter than ItemCard — a slightly greyer border and
@@ -27,8 +23,7 @@ export default function DictCard({ entry, reason, onOpen }) {
         <div className="text-lg min-w-0" style={{ fontFamily: SERIF, color: C.ink, fontWeight: 700 }}>
           {entry.lemma}
           <span className="italic font-normal text-sm ml-2" style={{ color: C.mut }}>
-            {POS_LABEL[entry.pos] || entry.pos}
-            {entry.gender ? ` ${entry.gender}` : ""}
+            {grammarAbbreviations(entry.pos, entry.gender)}
           </span>
         </div>
         <BookMarked size={13} className="shrink-0 mt-1" style={{ color: C.mut }} />

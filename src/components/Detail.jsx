@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft, Trash2, X, ExternalLink, Pencil, CalendarDays, FileText, Check,
   Highlighter, Eye, Clock, Plus, Bookmark, BookmarkCheck, Layers, RotateCcw,
+  BarChart3, ChevronDown,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button } from "../theme.jsx";
 import { POS_OPTIONS, personalHeadingSuffix, personalLexicalForm } from "./ItemCard.jsx";
@@ -169,7 +170,6 @@ function StandardDetail({
   onPagePinnedChange,
 }) {
   const isPage = item.type === "page";
-  const headingSuffix = isPage ? "" : personalHeadingSuffix(item);
   const itemKind = isPage ? "page" : personalLexicalForm(item);
 
   const [editingHead, setEditingHead] = useState(false);
@@ -189,6 +189,14 @@ function StandardDetail({
   const [linkedEntryLinks, setLinkedEntryLinks] = useState([]);
   const [orphanKeys, setOrphanKeys] = useState([]);
   const [linkConflicts, setLinkConflicts] = useState([]);
+  const [statsExpanded, setStatsExpanded] = useState(false);
+  const [resolvedAttachment, setResolvedAttachment] = useState({ itemId: null, entry: null });
+  const attachedEntry = resolvedAttachment.itemId === item.id ? resolvedAttachment.entry : null;
+  const headingSuffix = isPage ? "" : personalHeadingSuffix(item, attachedEntry);
+  const statsId = `entry-stats-${item.id}`;
+  const handleEntryResolved = useCallback((entry) => {
+    setResolvedAttachment({ itemId: item.id, entry });
+  }, [item.id]);
 
   // The tag vocabulary already in use, derived from the notebook in memory (§7) — what makes
   // the tag field offer `expression` instead of letting a fourth spelling of it be created.
@@ -303,6 +311,7 @@ function StandardDetail({
     setDeleteArm(false);
     setPicking(false);
     setAssigningCollection(false);
+    setStatsExpanded(false);
     setHead(
       isPage
         ? { title: item.title, pageDate: item.pageDate || "" }
@@ -593,64 +602,89 @@ function StandardDetail({
 
         {!editingHead && (
           <>
-            {/* Phase 11. Wraps rather than sitting on one line: six segments do not fit
-                375px, and the review ones are all derived — nothing here is stored. */}
-            <div
-              className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs"
-              style={{ fontFamily: MONO, color: C.mut }}
-            >
-              <span className="inline-flex items-center gap-1">
-                <Eye size={12} /> opened {state.views}×
-              </span>
-              {state.lastViewedAt && (
-                <span className="inline-flex items-center gap-1">
-                  <Clock size={12} /> {timeAgo(state.lastViewedAt)}
-                </span>
-              )}
-              {item.createdAt && (
-                <span className="inline-flex items-center gap-1">
-                  <CalendarDays size={12} /> added {localDate(new Date(item.createdAt))}
-                </span>
-              )}
-              {!isPage && (
-                <span className="inline-flex items-center gap-1">
-                  <Layers size={12} />{" "}
-                  {reviewState.graduated
-                    ? "retired"
-                    : reviewState.enrolled
-                      ? `box ${reviewState.box}`
-                      : "not in review"}
-                </span>
-              )}
-              {!isPage && reviewState.lastReviewedAt && (
-                <span className="inline-flex items-center gap-1">
-                  <RotateCcw size={12} /> reviewed {timeAgo(reviewState.lastReviewedAt)}
-                </span>
-              )}
-              {!isPage && reviewState.enrolled && !reviewState.graduated && (
-                <span className="inline-flex items-center gap-1">
-                  {reviewState.dueDate <= localDate()
-                    ? "due today"
-                    : `due ${reviewState.dueDate}`}
-                </span>
-              )}
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                aria-expanded={statsExpanded}
+                aria-controls={statsId}
+                onClick={() => setStatsExpanded((expanded) => !expanded)}
+                className="inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium"
+                style={{ background: C.card, borderColor: C.line, color: C.mut }}
+              >
+                <BarChart3 size={15} /> Stats
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform ${statsExpanded ? "rotate-180" : ""}`}
+                />
+              </button>
+              <button
+                onClick={async () => {
+                  await toggleTricky(item.id, state.tricky);
+                  onChanged();
+                }}
+                className="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border font-medium"
+                style={
+                  state.tricky
+                    ? { background: C.hi, borderColor: "#E3C93A", color: "#5B4E08" }
+                    : { background: C.card, borderColor: C.line, color: C.mut }
+                }
+              >
+                <Highlighter size={15} /> {state.tricky ? "Marked tricky" : "Highlight as tricky"}
+              </button>
             </div>
-            <button
-              onClick={async () => {
-                await toggleTricky(item.id, state.tricky);
-                onChanged();
-              }}
-              className="mt-3 inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border font-medium"
-              style={
-                state.tricky
-                  ? { background: C.hi, borderColor: "#E3C93A", color: "#5B4E08" }
-                  : { background: C.card, borderColor: C.line, color: C.mut }
-              }
-            >
-              <Highlighter size={15} /> {state.tricky ? "Marked tricky" : "Highlight as tricky"}
-            </button>
 
-            {!isPage && <DictAttachment item={item} onOpen={onOpen} onChanged={onChanged} />}
+            {statsExpanded && (
+              <div
+                id={statsId}
+                className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border px-3 py-2 text-xs"
+                style={{ background: C.paper, borderColor: C.line, fontFamily: MONO, color: C.mut }}
+              >
+                <span className="inline-flex items-center gap-1">
+                  <Eye size={12} /> opened {state.views}×
+                </span>
+                {state.lastViewedAt && (
+                  <span className="inline-flex items-center gap-1">
+                    <Clock size={12} /> {timeAgo(state.lastViewedAt)}
+                  </span>
+                )}
+                {item.createdAt && (
+                  <span className="inline-flex items-center gap-1">
+                    <CalendarDays size={12} /> added {localDate(new Date(item.createdAt))}
+                  </span>
+                )}
+                {!isPage && (
+                  <span className="inline-flex items-center gap-1">
+                    <Layers size={12} />{" "}
+                    {reviewState.graduated
+                      ? "retired"
+                      : reviewState.enrolled
+                        ? `box ${reviewState.box}`
+                        : "not in review"}
+                  </span>
+                )}
+                {!isPage && reviewState.lastReviewedAt && (
+                  <span className="inline-flex items-center gap-1">
+                    <RotateCcw size={12} /> reviewed {timeAgo(reviewState.lastReviewedAt)}
+                  </span>
+                )}
+                {!isPage && reviewState.enrolled && !reviewState.graduated && (
+                  <span className="inline-flex items-center gap-1">
+                    {reviewState.dueDate <= localDate()
+                      ? "due today"
+                      : `due ${reviewState.dueDate}`}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {!isPage && (
+              <DictAttachment
+                item={item}
+                onOpen={onOpen}
+                onChanged={onChanged}
+                onEntryResolved={handleEntryResolved}
+              />
+            )}
           </>
         )}
       </Card>

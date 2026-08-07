@@ -9,6 +9,7 @@ import { personalHeadingSuffix } from "./ItemCard.jsx";
 import { meaningGlossText, newMeaning } from "../lib/meanings.js";
 import { findPersonalHeadingDuplicates } from "../lib/duplicateGuard.js";
 import DuplicateWarning from "./DuplicateWarning.jsx";
+import { grammarAbbreviations } from "../lib/partOfSpeech.js";
 
 const SEARCH_DEBOUNCE_MS = 140;
 const LIMIT = 12;
@@ -31,7 +32,9 @@ function ResultRow({ row, assignedTo, selected, onToggle }) {
   const isEntry = row.kind === "entry";
   const item = row.item;
   const heading = isEntry ? row.entry.lemma : item.term;
-  const suffix = isEntry ? row.entry.pos : personalHeadingSuffix(item);
+  const suffix = isEntry
+    ? grammarAbbreviations(row.entry.pos, row.entry.gender)
+    : personalHeadingSuffix(item);
   const context = isEntry ? row.entry.senses?.[0]?.gloss : meaningGlossText(item, " · ");
   const disabled = Boolean(assignedTo);
 

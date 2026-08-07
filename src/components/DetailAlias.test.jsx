@@ -4,7 +4,7 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Detail from "./Detail.jsx";
 import { clearAllPersonalData, db } from "../db/db.js";
-import { createItem, getItem, newPage } from "../db/items.js";
+import { createItem, getItem, newLexical, newPage } from "../db/items.js";
 import { removeDictionary } from "../db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "../db/ref/refdb.js";
 import { FIXTURE_ENTRIES, FIXTURE_FORM_SHARDS } from "../test/dictFixture.js";
@@ -46,6 +46,22 @@ const renderStaleDetail = (page) => render(
 );
 
 describe("Detail dictionary alias safety", () => {
+  it("shows English noun abbreviation and dictionary gender in the personal heading", async () => {
+    await seedDictionary({});
+    const word = await createItem(newLexical({
+      term: "casa",
+      pos: "noun",
+      dictKey: CASA,
+    }));
+
+    renderStaleDetail(word);
+
+    const heading = document.querySelector(".text-2xl");
+    expect(heading).toBeTruthy();
+    await waitFor(() => expect(heading.textContent).toContain("n. · f."));
+    expect(heading.textContent).not.toContain("s.");
+  });
+
   it("renders the preserved relationship immediately after automatic canonicalization", async () => {
     const user = userEvent.setup();
     const oldCasa = "dict:wiktionary-es:casa:old";

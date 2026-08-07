@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { BookMarked, Unlink, Search, X, ChevronRight } from "lucide-react";
 import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
-import { POS_LABEL } from "./DictCard.jsx";
+import { grammarAbbreviations } from "../lib/partOfSpeech.js";
 import { resolveEntry, dictionaryInstalled } from "../db/ref/entries.js";
 import { searchDictionary } from "../db/ref/search.js";
 import { updateItem } from "../db/items.js";
@@ -71,7 +71,7 @@ export function DictPicker({ term, placeholder = "Find the dictionary entry…",
             <div className="min-w-0 flex-1">
               <span style={{ fontFamily: SERIF, color: C.ink, fontWeight: 600 }}>{entry.lemma}</span>
               <span className="italic text-xs ml-1.5" style={{ color: C.mut }}>
-                {POS_LABEL[entry.pos] || entry.pos}
+                {grammarAbbreviations(entry.pos, entry.gender)}
               </span>
               <div className="text-xs truncate" style={{ color: C.mut }}>
                 {entry.senses[0]?.gloss}
@@ -85,7 +85,7 @@ export function DictPicker({ term, placeholder = "Find the dictionary entry…",
   );
 }
 
-export default function DictAttachment({ item, onOpen, onChanged }) {
+export default function DictAttachment({ item, onOpen, onChanged, onEntryResolved }) {
   const [state, setState] = useState(STATE.loading);
   const [entry, setEntry] = useState(null);
   const [picking, setPicking] = useState(false);
@@ -93,6 +93,7 @@ export default function DictAttachment({ item, onOpen, onChanged }) {
   useEffect(() => {
     let alive = true;
     setPicking(false);
+    onEntryResolved?.(null);
     (async () => {
       if (!item.dictKey) {
         if (alive) setState(STATE.none);
@@ -113,11 +114,12 @@ export default function DictAttachment({ item, onOpen, onChanged }) {
       }
       setEntry(found);
       setState(found ? STATE.attached : STATE.orphaned);
+      onEntryResolved?.(found);
     })();
     return () => {
       alive = false;
     };
-  }, [item.id, item.dictKey]);
+  }, [item.id, item.dictKey, onEntryResolved]);
 
   async function attachTo(picked) {
     setPicking(false);
@@ -148,7 +150,7 @@ export default function DictAttachment({ item, onOpen, onChanged }) {
           <div className="text-sm truncate" style={{ color: C.ink }}>
             <span style={{ fontFamily: SERIF, fontWeight: 600 }}>{entry.lemma}</span>
             <span className="italic text-xs ml-1.5" style={{ color: C.mut }}>
-              {POS_LABEL[entry.pos] || entry.pos}
+              {grammarAbbreviations(entry.pos, entry.gender)}
             </span>
           </div>
           <div className="text-xs truncate" style={{ color: C.mut }}>

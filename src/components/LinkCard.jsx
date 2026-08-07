@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { FileText, CalendarDays, Type, BookMarked, Unlink, MoreHorizontal, Trash2 } from "lucide-react";
 import { Button, C, SERIF, MONO } from "../theme.jsx";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
-import { POS_LABEL } from "./DictCard.jsx";
+import { grammarAbbreviations } from "../lib/partOfSpeech.js";
 import { timeAgo } from "../lib/dates.js";
 import { meaningGlossText } from "../lib/meanings.js";
 import { normalizeRelationship } from "../lib/relationships.js";
@@ -188,7 +188,7 @@ export function EntryLinkCard({ entry, connection, onOpen, onSaveRelationship, o
         <div className="min-w-0" style={{ fontFamily: SERIF, color: C.ink, fontWeight: 700 }}>
           {entry.lemma}
           <span className="italic font-normal text-xs ml-1.5" style={{ color: C.mut }}>
-            {POS_LABEL[entry.pos] || entry.pos}
+            {grammarAbbreviations(entry.pos, entry.gender)}
           </span>
         </div>
         <span className="text-[11px] shrink-0" style={{ fontFamily: MONO, color: C.mut }}>

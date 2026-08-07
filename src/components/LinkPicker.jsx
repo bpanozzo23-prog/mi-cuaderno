@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Search, X, Check, FileText, BookMarked, CalendarDays, Type, Plus } from "lucide-react";
 import { C, SERIF, MONO, Card } from "../theme.jsx";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
-import { POS_LABEL } from "./DictCard.jsx";
+import { grammarAbbreviations } from "../lib/partOfSpeech.js";
 import DuplicateWarning from "./DuplicateWarning.jsx";
 import { pickerMatches } from "../lib/links.js";
 import { mergeResults } from "../lib/search.js";
@@ -233,7 +233,7 @@ export default function LinkPicker({
               key={row.key}
               icon={BookMarked}
               heading={row.entry.lemma}
-              suffix={POS_LABEL[row.entry.pos] || row.entry.pos}
+              suffix={grammarAbbreviations(row.entry.pos, row.entry.gender)}
               context={row.entry.senses?.[0]?.gloss}
               reason={row.reason}
               linked={linkedKeys.has(row.entry.id) || unresolvedKeys.has(row.entry.id)}

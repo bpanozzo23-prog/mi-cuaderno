@@ -7,15 +7,20 @@ import { activePageContextsForLexical } from "../lib/pageReferences.js";
 import { PAGE_FOCUSES, enabledPageRoles, isJournalPage } from "../lib/pageKinds.js";
 import PageContextSummary from "./PageContextSummary.jsx";
 import TagChip from "./TagChip.jsx";
+import { PART_OF_SPEECH_ABBR, grammarAbbreviations } from "../lib/partOfSpeech.js";
 
 export const POS_OPTIONS = ["", "noun", "verb", "adjective", "adverb", "other"];
-export const POS_ABBR = { noun: "s.", verb: "v.", adjective: "adj.", adverb: "adv.", other: "" };
+export const POS_ABBR = PART_OF_SPEECH_ABBR;
 
 /** Personal `form` terminology. Dictionary part-of-speech labels remain separate. */
 export const personalLexicalForm = (item) => (item?.form === "phrase" ? "phrase" : "word");
 /** A phrase reads as one on sight, so it carries no heading suffix — only words are abbreviated. */
-export const personalHeadingSuffix = (item) =>
-  personalLexicalForm(item) === "phrase" ? "" : POS_ABBR[item?.pos] || "";
+export const personalHeadingSuffix = (item, attachedEntry = null) => {
+  if (personalLexicalForm(item) === "phrase") return "";
+  const pos = item?.pos || attachedEntry?.pos;
+  const gender = pos === "noun" ? attachedEntry?.gender : null;
+  return grammarAbbreviations(pos, gender);
+};
 
 /** The left edge tab colour, shared across every card so word/phrase/page can't drift apart. */
 export const entryAccent = (item) =>

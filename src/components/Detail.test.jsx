@@ -507,7 +507,15 @@ describe("linking an existing item", () => {
 });
 
 describe("Phase 11: the per-item stats strip", () => {
-  const strip = () => screen.getByText(/opened \d+×/).parentElement;
+  async function openStats() {
+    const user = userEvent.setup();
+    const toggle = screen.getByRole("button", { name: "Stats" });
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(screen.queryByText(/opened \d+×/)).toBeNull();
+    await user.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    return screen.getByText(/opened \d+×/).parentElement;
+  }
 
   function renderWithReview(item, reviewState) {
     return render(
@@ -526,15 +534,16 @@ describe("Phase 11: the per-item stats strip", () => {
     const word = await createItem(newLexical({ term: "madrugar" }));
     renderWithReview(word, undefined);
 
-    expect(strip().textContent).toMatch(/added \d{4}-\d{2}-\d{2}/);
+    expect((await openStats()).textContent).toMatch(/added \d{4}-\d{2}-\d{2}/);
   });
 
   it("says a word nothing has happened to is not in review", async () => {
     const word = await createItem(newLexical({ term: "madrugar" }));
     renderWithReview(word, undefined);
 
-    expect(strip().textContent).toContain("not in review");
-    expect(strip().textContent).not.toContain("box");
+    const strip = await openStats();
+    expect(strip.textContent).toContain("not in review");
+    expect(strip.textContent).not.toContain("box");
   });
 
   it("names the box a word is sitting in", async () => {
@@ -547,8 +556,9 @@ describe("Phase 11: the per-item stats strip", () => {
       lastReviewedAt: null,
     });
 
-    expect(strip().textContent).toContain("box 3");
-    expect(strip().textContent).toContain("due 2099-01-01");
+    const strip = await openStats();
+    expect(strip.textContent).toContain("box 3");
+    expect(strip.textContent).toContain("due 2099-01-01");
   });
 
   it("says retired rather than naming a box for a word that finished the ladder", async () => {
@@ -561,10 +571,11 @@ describe("Phase 11: the per-item stats strip", () => {
       lastReviewedAt: null,
     });
 
-    expect(strip().textContent).toContain("retired");
-    expect(strip().textContent).not.toContain("box");
+    const strip = await openStats();
+    expect(strip.textContent).toContain("retired");
+    expect(strip.textContent).not.toContain("box");
     // A retired word is not waiting for anything, so it carries no due date.
-    expect(strip().textContent).not.toContain("due");
+    expect(strip.textContent).not.toContain("due");
   });
 
   it("says due today rather than printing today's date", async () => {
@@ -578,7 +589,7 @@ describe("Phase 11: the per-item stats strip", () => {
       lastReviewedAt: null,
     });
 
-    expect(strip().textContent).toContain("due today");
+    expect((await openStats()).textContent).toContain("due today");
   });
 
   it("says how long ago the word was last reviewed", async () => {
@@ -591,7 +602,7 @@ describe("Phase 11: the per-item stats strip", () => {
       lastReviewedAt: new Date(Date.now() - 3 * 86400000).toISOString(),
     });
 
-    expect(strip().textContent).toContain("reviewed 3d ago");
+    expect((await openStats()).textContent).toContain("reviewed 3d ago");
   });
 
   it("tells a page nothing about review, which pages do not have", async () => {

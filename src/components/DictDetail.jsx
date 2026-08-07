@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, BookMarked, Plus, ExternalLink, ChevronDown, ChevronRight } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, SectionTitle, Card, Button } from "../theme.jsx";
-import { POS_LABEL } from "./DictCard.jsx";
+import { grammarAbbreviations } from "../lib/partOfSpeech.js";
 import { ItemLinkCard } from "./LinkCard.jsx";
 import { getEntryWithConjugation, installedMeta, exampleAttribution } from "../db/ref/entries.js";
 import { resolveLinkedKeys } from "../db/linkedEntries.js";
@@ -295,8 +295,7 @@ export default function DictDetail({
             <div className="text-2xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
               {entry.lemma}
               <span className="italic font-normal text-base ml-2" style={{ color: C.mut }}>
-                {POS_LABEL[entry.pos] || entry.pos}
-                {entry.gender ? ` ${entry.gender}` : ""}
+                {grammarAbbreviations(entry.pos, entry.gender)}
               </span>
             </div>
             <div className="mt-1 text-xs inline-flex items-center gap-1.5" style={{ fontFamily: MONO, color: C.mut }}>
