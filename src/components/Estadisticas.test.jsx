@@ -159,3 +159,56 @@ describe("getting back", () => {
     expect(onBack).toHaveBeenCalled();
   });
 });
+
+describe("Phase 13c: the conjugation breakdown", () => {
+  const drill = (passed, tense, verdict = passed ? "exact" : "wrong") =>
+    makeEvent({
+      type: passed ? "drill_pass" : "drill_fail",
+      itemKey: "user:poner",
+      at: at(today),
+      localDate: today,
+      metadata: { tense, slot: "yo", mode: "typed", verdict },
+    });
+
+  it("is absent entirely until the drill has been used", () => {
+    render(<Estadisticas items={[]} events={[]} onBack={vi.fn()} />);
+
+    expect(screen.queryByText("Conjugaciones")).toBeNull();
+  });
+
+  it("shows the overall accuracy and a row per tense, weakest first", () => {
+    render(
+      <Estadisticas
+        items={[]}
+        events={[
+          drill(true, "Indicative/Present"),
+          drill(true, "Indicative/Present"),
+          drill(false, "Indicative/Preterite"),
+          drill(true, "Indicative/Preterite"),
+        ]}
+        onBack={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("Conjugaciones")).toBeTruthy();
+    expect(screen.getByText("75%")).toBeTruthy();
+    expect(screen.getByText(/of 4 answers/)).toBeTruthy();
+
+    // Tense labels come from the shared heading helper, so they read as they do in the
+    // dictionary rather than as raw "Mood/Tense" keys.
+    const rows = screen.getAllByText(/^(Present|Preterite)$/);
+    expect(rows.map((node) => node.textContent)).toEqual(["Preterite", "Present"]);
+  });
+
+  it("names accent slips alongside the total", () => {
+    render(
+      <Estadisticas
+        items={[]}
+        events={[drill(true, "Indicative/Preterite", "accents")]}
+        onBack={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText(/1 accent slip/)).toBeTruthy();
+  });
+});
