@@ -235,6 +235,15 @@ describe("cumulativeWordsByWeek: how the vocabulary grew", () => {
     expect(series.map((p) => p.total)).toEqual([1, 2]);
   });
 
+  it("includes the newest future week when older words also exist", () => {
+    const series = cumulativeWordsByWeek(
+      [word(at("2026-07-15")), word(at("2026-08-18"))],
+      TODAY
+    );
+
+    expect(series[series.length - 1]).toEqual({ weekStart: "2026-08-17", total: 2 });
+  });
+
   it("ignores an item with an unusable createdAt", () => {
     expect(cumulativeWordsByWeek([word("not a date")], TODAY)).toEqual([]);
   });

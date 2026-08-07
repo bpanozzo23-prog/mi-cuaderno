@@ -79,6 +79,23 @@ describe("matching a conjugated form back to its lemma", () => {
     expect(forms.has("sacado")).toBe(true);
   });
 
+  it("ignores perfect-tense auxiliaries and blanks only the participle", () => {
+    const composed = {
+      ...table,
+      tenses: {
+        ...table.tenses,
+        "Indicative/Present Perfect": { yo: "he sacado", "ustedes/ellos": "han sacado" },
+      },
+    };
+    const forms = verbForms(composed);
+
+    expect(forms.has("he")).toBe(false);
+    expect(forms.has("han")).toBe(false);
+    expect(clozeFromExample(ex("He sacado la basura."), { term: "sacar", forms })?.answer).toBe(
+      "sacado"
+    );
+  });
+
   it("drops the clitic pronoun of a pronominal verb", () => {
     // "me" would otherwise match the pronoun in any sentence and blank the wrong word.
     const forms = verbForms({ tenses: { "Indicative/Present": { yo: "me arrepiento" } } });

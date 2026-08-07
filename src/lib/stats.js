@@ -149,14 +149,16 @@ export function cumulativeWordsByWeek(items, today = localDate()) {
   }
   if (addedPerWeek.size === 0) return [];
 
-  const firstWeek = [...addedPerWeek.keys()].sort()[0];
+  const populatedWeeks = [...addedPerWeek.keys()].sort();
+  const firstWeek = populatedWeeks[0];
+  const newestWordWeek = populatedWeeks[populatedWeeks.length - 1];
   const lastWeek = mondayWeekStart(today);
 
   const series = [];
   let total = 0;
   // A word added later than today (a clock change, an imported backup) still belongs on the
   // line, so the walk runs to whichever is later rather than stopping at this week.
-  const endWeek = lastWeek > firstWeek ? lastWeek : firstWeek;
+  const endWeek = lastWeek > newestWordWeek ? lastWeek : newestWordWeek;
   for (let week = firstWeek; week <= endWeek; week = addDaysToLocalDate(week, 7)) {
     total += addedPerWeek.get(week) || 0;
     series.push({ weekStart: week, total });

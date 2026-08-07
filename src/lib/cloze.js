@@ -1,5 +1,5 @@
 import { normalize } from "./normalize.js";
-import { SLOTS } from "./conjugation.js";
+import { SIMPLE_TENSES, SLOTS } from "./conjugation.js";
 
 /**
  * Turning an example sentence into a fill-in-the-blank question (Phase 10b).
@@ -50,7 +50,8 @@ export function verbForms(table) {
     }
   };
 
-  for (const tense of Object.values(table?.tenses || {})) {
+  for (const tenseName of SIMPLE_TENSES) {
+    const tense = table?.tenses?.[tenseName];
     for (const slot of SLOTS) add(tense?.[slot]);
   }
   add(table?.gerund);

@@ -359,10 +359,14 @@ export default function Repaso({ notebook, onSelect }) {
     try {
       const keys = [...new Set(cards.map((card) => card.dictKey).filter(Boolean))];
       if (keys.length) {
-        const resolved = await getEntries(keys);
-        entries = new Map(resolved.map((entry) => [entry.id, entry]));
+        const resolved = await Promise.all(
+          keys.map(async (key) => [key, (await resolveEntry(key)).entry])
+        );
+        entries = new Map(resolved.filter(([, entry]) => entry));
 
-        const conjugationIds = [...new Set(resolved.map((entry) => entry.conjugationId).filter(Boolean))];
+        const conjugationIds = [
+          ...new Set(resolved.map(([, entry]) => entry?.conjugationId).filter(Boolean)),
+        ];
         const loaded = await Promise.all(conjugationIds.map((id) => getConjugation(id)));
         tables = new Map(conjugationIds.map((id, index) => [id, loaded[index]]).filter(([, table]) => table));
       }
@@ -373,8 +377,8 @@ export default function Repaso({ notebook, onSelect }) {
     setSessionCards(
       cards.map((card) => {
         if (card.direction === "reverse") return card;
-        // An entry resolved under an old key still answers here: getEntries returns it
-        // under its canonical id, so look both up rather than assuming the key matched.
+        // The map is keyed by the attachment as stored on the card. resolveEntry may have
+        // followed an alias to a differently named canonical entry behind that key.
         const entry = card.dictKey ? entries.get(card.dictKey) || null : null;
         const table = entry?.conjugationId ? tables.get(entry.conjugationId) : null;
         const cloze = pickCloze(card, entry, { forms: table ? verbForms(table) : null });
@@ -391,18 +395,16 @@ export default function Repaso({ notebook, onSelect }) {
   }
 
   if (inDrill) {
-    // Reload on finish (Phase 13): the drill now writes events, and the streak tile behind
-    // this screen counts them. Once per drill rather than once per card — nothing on the
-    // drill screen reads the log, so re-reading it mid-deck would buy nothing.
+    // Each persisted answer reloads the app-level notebook snapshot. Repaso can be unmounted
+    // through the persistent bottom navigation before Finish is tapped, so waiting until the
+    // way out would leave streaks and statistics stale on the next screen.
     return (
       <ConjugationDrill
         deck={drillDeck}
         mode={drillMode}
-        onFinish={() => {
-          setInDrill(false);
-          reload();
-        }}
+        onFinish={() => setInDrill(false)}
         onOpen={onSelect}
+        onGraded={reload}
       />
     );
   }

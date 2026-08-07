@@ -18,7 +18,7 @@ import SpeakButton from "./SpeakButton.jsx";
  *
  * The deck is built once by the caller, so nothing re-derives underneath the owner.
  */
-export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOpen }) {
+export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOpen, onGraded }) {
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -57,6 +57,7 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
     setVerdict(null);
     setIndex((current) => current + 1);
     setBusy(false);
+    onGraded?.();
   }
 
   /**

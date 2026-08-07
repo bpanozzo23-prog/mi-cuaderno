@@ -221,6 +221,30 @@ describe("Phase 10a/10b: how a session is set up", () => {
     expect(screen.getByRole("button", { name: "Tap to see the word" })).toBeTruthy();
   });
 
+  it("builds the same cloze when the attached dictionary key moved", async () => {
+    const user = userEvent.setup();
+    await seedWithConjugations([SACAR]);
+    await refDb("a").meta.put({
+      key: META_KEYS.dataset,
+      value: {
+        datasetVersion: "phase-10-alias-fixture",
+        counts: { entries: 1 },
+        previousIds: { [OLD_SACAR]: SACAR },
+      },
+    });
+    const word = dueWord({
+      term: "sacar",
+      dictKey: OLD_SACAR,
+      myExamples: [{ es: "Ayer saqué la basura.", en: "Yesterday I took out the trash." }],
+    });
+
+    render(<Repaso notebook={notebookFor([word], [enrolls(word.id)])} onSelect={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: /Start/ }));
+
+    await waitFor(() => expect(screen.getByText(/Ayer/)).toBeTruthy());
+    expect(screen.queryByText(/saqué/)).toBeNull();
+  });
+
   it("falls back to a stock dictionary example when the owner wrote none", async () => {
     const user = userEvent.setup();
     await seedWithConjugations([CASA]);
@@ -324,6 +348,21 @@ describe("Phase 10c: the conjugation drill", () => {
     // as an absence on both screens because stale copy is invisible to every other test.
     expect(screen.queryByText(/nothing here is recorded/i)).toBeNull();
     expect(screen.queryByText(/nothing is recorded/i)).toBeNull();
+  });
+
+  it("reloads the notebook as soon as a drill answer is recorded", async () => {
+    const user = userEvent.setup();
+    await seedWithConjugations([SACAR]);
+    const verb = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
+    const notebook = notebookFor([verb], []);
+
+    render(<Repaso notebook={notebook} onSelect={vi.fn()} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: /Drill/ })).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: /Drill/ }));
+    await user.click(screen.getByRole("button", { name: "Tap to see the form" }));
+    await user.click(screen.getByRole("button", { name: "Got it" }));
+
+    await waitFor(() => expect(notebook.reload).toHaveBeenCalledTimes(1));
   });
 });
 
