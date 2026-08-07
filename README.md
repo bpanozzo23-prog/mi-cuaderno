@@ -140,6 +140,23 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   in the new tests, which were fixed — and a disposable 375×812 closeout verified the sheet, the
   append and the follow-up edit numerically. See the Phase 12 entries in
   [DECISIONS.md](DECISIONS.md).
+- **Phase 13 — implemented locally; not deployed.** The conjugation drill is **graded and
+  recorded**, and asks one of two ways. A launch-card control chooses **reveal** (see the form,
+  then Got it / Missed it) or **type it** (write the form and be marked); the choice is not
+  remembered, like the session-direction control beside it. Typed answers are compared exactly
+  first and only then through `normalize.js`, because in a conjugation the accent *is* the answer
+  — `hablo` is present where `habló` is preterite — so a missing accent passes as a named near
+  miss rather than as a silent match, while ñ stays a letter and `ano` for `año` stays wrong.
+  Each answer writes one `drill_pass` / `drill_fail` against the **personal** item id, carrying
+  its tense, slot, mode and verdict; the drill still logs no `view`, and no drill result moves a
+  Leitner box. Estadísticas gains a **Conjugaciones** section — overall accuracy and a row per
+  tense, weakest first — and a drill-only day now holds the streak. This reverses Phase 10c's
+  ungraded, recordless drill at the owner's request, and reads §14's deferral as naming
+  Collection Practice; scheduling stays deferred either way. No schema, preference or backup
+  change: `SCHEMA_VERSION` remains 5. The full serial suite passes 924/924 across 77 files, the
+  production build and `git diff --check` pass, and three deliberate red/green proofs behaved as
+  intended — one of them by exposing a genuinely racing test that had been passing by luck, since
+  fixed. See the Phase 13 entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **5**. Before Dexie opens v5, schema-v1 through schema-v4 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
