@@ -13,10 +13,11 @@ const entry = {
 };
 
 const review = {
-  comprehensibility: { verdict: "mostly_clear", notes: "The middle sentence takes a second read." },
-  naturalness: "«agradecido para» would be «agradecido por» to a native ear.",
-  examples: [
-    { quote: "agradecido para", issue: "Wrong preposition after agradecido.", suggestion: "agradecido por" },
+  verdict: "mostly_clear",
+  summary: "Readable throughout; one preposition slip is worth fixing.",
+  items: [
+    { category: "error", quote: "agradecido para", corrected: "agradecido por", explanation: "Wrong preposition after agradecido." },
+    { category: "praise", quote: "se me olvidó el pan", corrected: null, explanation: "The se-construction is exactly right." },
   ],
 };
 
@@ -62,22 +63,34 @@ describe("before anything is sent", () => {
 });
 
 describe("the review", () => {
-  it("shows the verdict, the naturalness note and each example with its rewrite", async () => {
+  it("shows the verdict, the summary and each margin note with its category", async () => {
     const user = userEvent.setup();
     shown();
 
     await user.click(sendButton());
 
     await waitFor(() => expect(screen.getByText("Mostly clear")).toBeTruthy());
-    expect(screen.getByText(/takes a second read/i)).toBeTruthy();
-    expect(screen.getByText(/would be «agradecido por»/i)).toBeTruthy();
+    expect(screen.getByText(/one preposition slip/i)).toBeTruthy();
+    expect(screen.getByText("Error")).toBeTruthy();
     expect(screen.getByText("agradecido para")).toBeTruthy();
-    expect(screen.getByText(/Wrong preposition/i)).toBeTruthy();
     expect(screen.getByText(/→ agradecido por/)).toBeTruthy();
+    expect(screen.getByText(/Wrong preposition/i)).toBeTruthy();
+  });
+
+  it("renders praise as a note with no correction arrow", async () => {
+    const user = userEvent.setup();
+    shown();
+
+    await user.click(sendButton());
+
+    await waitFor(() => expect(screen.getByText("Well done")).toBeTruthy());
+    expect(screen.getByText("se me olvidó el pan")).toBeTruthy();
+    // corrected is null: praise has nothing to fix, so no arrow row may appear for it.
+    expect(screen.getAllByText(/→ /)).toHaveLength(1);
   });
 
   it("says so plainly when there is nothing to flag", async () => {
-    vi.stubGlobal("fetch", succeeds({ ...review, examples: [] }));
+    vi.stubGlobal("fetch", succeeds({ ...review, items: [] }));
     const user = userEvent.setup();
     shown();
 

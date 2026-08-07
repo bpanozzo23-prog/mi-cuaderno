@@ -9,9 +9,12 @@ import {
 const KEY = "sk-ant-test-key";
 
 const review = {
-  comprehensibility: { verdict: "mostly_clear", notes: "The second paragraph is hard to follow." },
-  naturalness: "«Estoy agradecido para» would be «agradecido por» to a native ear.",
-  examples: [{ quote: "agradecido para", issue: "Wrong preposition.", suggestion: "agradecido por" }],
+  verdict: "mostly_clear",
+  summary: "Readable throughout, with one preposition slip worth fixing.",
+  items: [
+    { category: "error", quote: "agradecido para", corrected: "agradecido por", explanation: "Spanish uses por for the thing you are grateful for." },
+    { category: "praise", quote: "se me olvidó el pan", corrected: null, explanation: "The se-construction is exactly right here." },
+  ],
 };
 
 /** A successful Messages response carrying `json` as its single text block. */
@@ -58,11 +61,7 @@ describe("the request", () => {
 
     expect(body.model).toBe(FEEDBACK_MODEL);
     expect(body.output_config.format).toEqual({ type: "json_schema", schema: expect.any(Object) });
-    expect(body.output_config.format.schema.required).toEqual([
-      "comprehensibility",
-      "naturalness",
-      "examples",
-    ]);
+    expect(body.output_config.format.schema.required).toEqual(["verdict", "summary", "items"]);
     expect(body.output_config.effort).toBe("low");
     expect(body.system).toBe(SYSTEM_PROMPT);
     // All three are rejected outright by this model family; sending one would 400 every review.
@@ -86,6 +85,16 @@ describe("the request", () => {
   it("names an untitled entry rather than sending an empty title", async () => {
     await call({ title: "   " });
     expect(requestBody().messages[0].content).toContain("(untitled)");
+  });
+
+  it("keeps the prompt's load-bearing rules through future rewording", () => {
+    // The one omission that would visibly misbehave on day one: entries mix English by design,
+    // and a prompt without this rule flags every English word as an error.
+    expect(SYSTEM_PROMPT).toContain("Never treat code-switching itself as an error");
+    // The tags the prompt promises are the tags the request actually sends.
+    expect(SYSTEM_PROMPT).toContain("<entry>");
+    // A diary prompt without this line gets sympathy before grammar.
+    expect(SYSTEM_PROMPT).toContain("never on the events or feelings described");
   });
 });
 
@@ -111,7 +120,32 @@ describe("the reply", () => {
   });
 
   it("refuses a verdict outside the three the panel can render", async () => {
-    vi.stubGlobal("fetch", respondWith(envelope({ ...review, comprehensibility: { verdict: "perfecto", notes: "" } })));
+    vi.stubGlobal("fetch", respondWith(envelope({ ...review, verdict: "perfecto" })));
+    await expect(call()).rejects.toMatchObject({ kind: "invalid" });
+  });
+
+  it("refuses an item category the panel has no label for", async () => {
+    vi.stubGlobal("fetch", respondWith(envelope({
+      ...review,
+      items: [{ category: "style", quote: "x", corrected: "y", explanation: "z" }],
+    })));
+    await expect(call()).rejects.toMatchObject({ kind: "invalid" });
+  });
+
+  it("accepts a praise item with nothing to correct, and refuses corrected missing entirely", async () => {
+    const praised = await call();
+    expect(praised.items[1]).toEqual({
+      category: "praise",
+      quote: "se me olvidó el pan",
+      corrected: null,
+      explanation: "The se-construction is exactly right here.",
+    });
+
+    // null means "nothing to correct"; an undefined field is a shape error, not a praise item.
+    vi.stubGlobal("fetch", respondWith(envelope({
+      ...review,
+      items: [{ category: "praise", quote: "x", explanation: "z" }],
+    })));
     await expect(call()).rejects.toMatchObject({ kind: "invalid" });
   });
 
@@ -120,9 +154,9 @@ describe("the reply", () => {
     await expect(call()).rejects.toMatchObject({ kind: "invalid" });
   });
 
-  it("accepts an empty examples list", async () => {
-    vi.stubGlobal("fetch", respondWith(envelope({ ...review, examples: [] })));
-    await expect(call()).resolves.toMatchObject({ examples: [] });
+  it("accepts an empty items list", async () => {
+    vi.stubGlobal("fetch", respondWith(envelope({ ...review, items: [] })));
+    await expect(call()).resolves.toMatchObject({ items: [] });
   });
 });
 

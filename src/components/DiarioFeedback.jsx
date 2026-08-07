@@ -30,6 +30,14 @@ const verdictStyle = (verdict) => {
   return { background: C.penPale, color: C.penDark };
 };
 
+/** One label and colour per category, so a margin note reads at a glance without a legend. */
+const CATEGORY_LABELS = {
+  error: { label: "Error", color: C.red },
+  naturalness: { label: "More natural", color: C.penDark },
+  unclear: { label: "Unclear", color: C.mut },
+  praise: { label: "Well done", color: C.green },
+};
+
 export default function DiarioFeedback({ entry, onClose }) {
   const [phase, setPhase] = useState("confirm");
   const [review, setReview] = useState(null);
@@ -109,51 +117,50 @@ export default function DiarioFeedback({ entry, onClose }) {
           <div className="mt-3">
             <span
               className="inline-block rounded-full px-2.5 py-1 text-xs font-semibold"
-              style={verdictStyle(review.comprehensibility.verdict)}
+              style={verdictStyle(review.verdict)}
             >
-              {VERDICT_LABELS[review.comprehensibility.verdict]}
+              {VERDICT_LABELS[review.verdict]}
             </span>
             <div className="mt-2 text-sm leading-relaxed break-words" style={{ color: C.ink }}>
-              {review.comprehensibility.notes}
+              {review.summary}
             </div>
           </div>
 
           <div className="mt-4">
             <h3 className="text-[11px] font-semibold uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.08em" }}>
-              How natural it sounds
+              Margin notes
             </h3>
-            <div className="mt-1.5 text-sm leading-relaxed break-words" style={{ color: C.ink }}>
-              {review.naturalness}
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <h3 className="text-[11px] font-semibold uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.08em" }}>
-              Examples
-            </h3>
-            {review.examples.length === 0 ? (
+            {review.items.length === 0 ? (
               <div className="mt-1.5 text-sm" style={{ color: C.mut }}>
                 Nothing to flag — this entry reads well.
               </div>
             ) : (
               <div className="mt-1.5 space-y-2.5">
-                {review.examples.map((example, index) => (
-                  <div
-                    key={`${example.quote}-${index}`}
-                    className="rounded-lg border p-2.5"
-                    style={{ background: C.paper, borderColor: C.line }}
-                  >
-                    <div className="text-sm italic break-words" style={{ color: C.ink, fontFamily: SERIF }}>
-                      {example.quote}
+                {review.items.map((item, index) => {
+                  const category = CATEGORY_LABELS[item.category];
+                  return (
+                    <div
+                      key={`${item.quote}-${index}`}
+                      className="rounded-lg border p-2.5"
+                      style={{ background: C.paper, borderColor: C.line }}
+                    >
+                      <div className="text-[10px] font-semibold uppercase" style={{ color: category.color, fontFamily: MONO, letterSpacing: "0.08em" }}>
+                        {category.label}
+                      </div>
+                      <div className="mt-1 text-sm italic break-words" style={{ color: C.ink, fontFamily: SERIF }}>
+                        {item.quote}
+                      </div>
+                      {item.corrected !== null && item.corrected !== item.quote && (
+                        <div className="mt-1 text-sm break-words" style={{ color: C.green, fontFamily: SERIF }}>
+                          → {item.corrected}
+                        </div>
+                      )}
+                      <div className="mt-1 text-xs leading-relaxed break-words" style={{ color: C.mut }}>
+                        {item.explanation}
+                      </div>
                     </div>
-                    <div className="mt-1 text-xs leading-relaxed break-words" style={{ color: C.mut }}>
-                      {example.issue}
-                    </div>
-                    <div className="mt-1 text-sm break-words" style={{ color: C.green, fontFamily: SERIF }}>
-                      → {example.suggestion}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
