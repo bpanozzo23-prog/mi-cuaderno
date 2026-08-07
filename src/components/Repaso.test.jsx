@@ -407,3 +407,33 @@ describe("Phase 11 Estadísticas sub-view", () => {
     expect(screen.queryByText("Actividad")).toBeNull();
   });
 });
+
+describe("Phase 13b: choosing how the drill asks", () => {
+  // Redeclared rather than shared: the Phase 10a block scopes its own copies, and reaching
+  // across describes would couple two suites that are otherwise independent.
+  const SACAR = "dict:wiktionary-es:sacar:verb";
+
+  async function seedWithConjugations(entries) {
+    await seedDictionary({ entries });
+    await refDb("a").conjugations.bulkPut(FIXTURE_CONJUGATIONS);
+  }
+
+  it("defaults to reveal, and carries a typed choice into the drill", async () => {
+    const user = userEvent.setup();
+    await seedWithConjugations([SACAR]);
+    const verb = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
+
+    render(<Repaso notebook={notebookFor([verb], [])} onSelect={vi.fn()} />);
+    await waitFor(() => expect(screen.getByRole("radio", { name: "reveal" })).toBeTruthy());
+
+    expect(screen.getByRole("radio", { name: "reveal" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("radio", { name: "type it" }).getAttribute("aria-checked")).toBe("false");
+
+    await user.click(screen.getByRole("radio", { name: "type it" }));
+    await user.click(screen.getByRole("button", { name: /Drill/ }));
+
+    // The chosen mode reached the drill: typed asks for the form instead of revealing it.
+    expect(screen.getByLabelText("Type the form")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Tap to see the form" })).toBeNull();
+  });
+});

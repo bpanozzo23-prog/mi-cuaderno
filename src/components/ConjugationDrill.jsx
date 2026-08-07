@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronLeft, RotateCcw, Check, X } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Card, Button } from "../theme.jsx";
 import { tenseHeading } from "../lib/conjugation.js";
+import { checkTypedAnswer } from "../lib/drill.js";
 import { logDrill } from "../db/events.js";
 import SpeakButton from "./SpeakButton.jsx";
 
@@ -23,30 +24,51 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
   const [busy, setBusy] = useState(false);
   const [tally, setTally] = useState({ passed: 0, failed: 0, accents: 0 });
 
+  // Typed mode only: what has been typed, and the verdict once it is submitted. A null
+  // verdict is "still answering" — distinct from a wrong one, which is why the check runs
+  // on submit rather than on every keystroke.
+  const [typed, setTyped] = useState("");
+  const [verdict, setVerdict] = useState(null);
+
   const card = deck[index] || null;
   const done = index >= deck.length;
+  const isTyped = mode === "typed";
 
   /**
    * Records one answer and advances. Disabled between the tap and the advance, so a
    * double-tap cannot grade the next card — ReviewSession's guard, for its reason.
    */
-  async function grade(passed, verdict) {
+  async function grade(passed, answerVerdict) {
     if (busy || !card) return;
     setBusy(true);
     await logDrill(card.itemId, passed, {
       tense: card.tense,
       slot: card.slot,
       mode,
-      verdict,
+      verdict: answerVerdict,
     });
     setTally((current) => ({
       passed: current.passed + (passed ? 1 : 0),
       failed: current.failed + (passed ? 0 : 1),
-      accents: current.accents + (verdict === "accents" ? 1 : 0),
+      accents: current.accents + (answerVerdict === "accents" ? 1 : 0),
     }));
     setRevealed(false);
+    setTyped("");
+    setVerdict(null);
     setIndex((current) => current + 1);
     setBusy(false);
+  }
+
+  /**
+   * Typed mode marks the answer, shows it, and waits — the verdict is worth reading before
+   * the next card arrives, and an accent slip in particular is the whole reason to look.
+   * Grading is deferred to the Next tap so one submit cannot both judge and advance.
+   */
+  function submitTyped(event) {
+    event?.preventDefault?.();
+    if (verdict || busy || !card) return;
+    setVerdict(checkTypedAnswer(typed, card.answer));
+    setRevealed(true);
   }
 
   if (done) {
@@ -100,7 +122,30 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
           </div>
         </div>
 
-        {!revealed ? (
+        {!revealed && isTyped ? (
+          <form onSubmit={submitTyped} className="mt-5">
+            <input
+              autoFocus
+              // Spanish, and none of the phone's helpfulness: an autocorrected or
+              // capitalised answer would be marked on what the keyboard decided rather
+              // than on what the owner recalled.
+              lang="es"
+              autoCapitalize="none"
+              autoCorrect="off"
+              autoComplete="off"
+              spellCheck={false}
+              aria-label="Type the form"
+              value={typed}
+              onChange={(event) => setTyped(event.target.value)}
+              placeholder="the form…"
+              className="w-full rounded-xl border px-3 py-3 text-center text-2xl outline-none"
+              style={{ fontFamily: SERIF, color: C.ink, borderColor: C.line, background: C.paper }}
+            />
+            <Button type="submit" className="mt-3 w-full justify-center" disabled={!typed.trim()}>
+              Check
+            </Button>
+          </form>
+        ) : !revealed ? (
           <button
             onClick={() => setRevealed(true)}
             className="w-full mt-5 py-6 rounded-xl border border-dashed text-sm"
@@ -110,6 +155,22 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
           </button>
         ) : (
           <div className="mt-4 pt-4 border-t text-center space-y-3" style={{ borderColor: C.line }}>
+            {verdict && (
+              <div className="text-sm" style={{ color: verdict === "wrong" ? C.red : C.green }}>
+                {verdict === "exact"
+                  ? "Exactly right."
+                  : verdict === "accents"
+                    ? "Right form — mind the accent."
+                    : "Not this time."}
+              </div>
+            )}
+            {/* The typed attempt stays on screen beside the answer when they differ: seeing
+                the two together is what makes an accent slip legible as a slip. */}
+            {verdict && verdict !== "exact" && typed.trim() && (
+              <div className="text-sm line-through" style={{ fontFamily: SERIF, color: C.mut }}>
+                {typed.trim()}
+              </div>
+            )}
             <div className="flex items-center justify-center gap-1">
               <span className="text-3xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.penDark }}>
                 {card.answer}
@@ -130,7 +191,19 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
         )}
       </Card>
 
-      {revealed && (
+      {/* Typed mode has already been marked, so it advances rather than asking again —
+          offering "Got it" over a verdict would invite overruling the check. */}
+      {revealed && isTyped && verdict && (
+        <Button
+          className="mt-4 w-full justify-center"
+          disabled={busy}
+          onClick={() => grade(verdict !== "wrong", verdict)}
+        >
+          {index + 1 === deck.length ? "Done" : "Next"}
+        </Button>
+      )}
+
+      {revealed && !isTyped && (
         <div className="mt-4 grid grid-cols-2 gap-2">
           <Button tone="danger" disabled={busy} onClick={() => grade(false, "self")}>
             <X size={16} /> Missed it

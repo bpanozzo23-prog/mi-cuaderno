@@ -189,3 +189,111 @@ describe("drilling a conjugation", () => {
     expect(screen.getByText("Nothing to drill")).toBeTruthy();
   });
 });
+
+describe("typing the answer", () => {
+  const typedDrill = (deck) =>
+    render(<ConjugationDrill deck={deck} mode="typed" onFinish={vi.fn()} onOpen={vi.fn()} />);
+
+  /** Type, check, then advance — typed mode never asks the owner to grade themselves. */
+  async function type(user, text) {
+    if (text) await user.type(screen.getByLabelText("Type the form"), text);
+    await user.click(screen.getByRole("button", { name: "Check" }));
+  }
+
+  it("asks for the form without showing it, and offers no reveal", () => {
+    typedDrill([card()]);
+
+    expect(screen.getByLabelText("Type the form")).toBeTruthy();
+    expect(screen.queryByText("sacaron")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Tap to see the form" })).toBeNull();
+  });
+
+  it("cannot be checked while empty", () => {
+    typedDrill([card()]);
+
+    expect(screen.getByRole("button", { name: "Check" }).disabled).toBe(true);
+  });
+
+  it("marks an exact answer and logs it as a pass", async () => {
+    const user = userEvent.setup();
+    typedDrill([card()]);
+
+    await type(user, "sacaron");
+
+    expect(screen.getByText("Exactly right.")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Done" }));
+
+    const [event] = await allEvents();
+    expect(event.type).toBe("drill_pass");
+    expect(event.metadata).toMatchObject({ mode: "typed", verdict: "exact" });
+  });
+
+  /**
+   * The case the mode exists for: a phone keyboard makes every accent a long-press, so a
+   * missing one passes — but it is named, and the attempt is shown beside the answer, so
+   * it still teaches rather than silently forgiving.
+   */
+  it("passes a missing accent, names it, and records it as such", async () => {
+    const user = userEvent.setup();
+    typedDrill([card({ term: "hablar", answer: "habló" })]);
+
+    await type(user, "hablo");
+
+    expect(screen.getByText("Right form — mind the accent.")).toBeTruthy();
+    expect(screen.getByText("habló")).toBeTruthy();
+    expect(screen.getByText("hablo")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Done" }));
+
+    const [event] = await allEvents();
+    expect(event.type).toBe("drill_pass");
+    expect(event.metadata).toMatchObject({ mode: "typed", verdict: "accents" });
+  });
+
+  it("marks a wrong form, shows the right one, and logs a fail", async () => {
+    const user = userEvent.setup();
+    typedDrill([card()]);
+
+    await type(user, "sacamos");
+
+    expect(screen.getByText("Not this time.")).toBeTruthy();
+    expect(screen.getByText("sacaron")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Done" }));
+
+    const [event] = await allEvents();
+    expect(event.type).toBe("drill_fail");
+    expect(event.metadata).toMatchObject({ mode: "typed", verdict: "wrong" });
+  });
+
+  it("does not offer self-grading over a verdict it already reached", async () => {
+    const user = userEvent.setup();
+    typedDrill([card()]);
+
+    await type(user, "sacaron");
+
+    expect(screen.queryByRole("button", { name: "Got it" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Missed it" })).toBeNull();
+  });
+
+  it("clears the box and the verdict between cards", async () => {
+    const user = userEvent.setup();
+    typedDrill([card(), card({ term: "poner", answer: "pusieron" })]);
+
+    await type(user, "sacaron");
+    await user.click(screen.getByRole("button", { name: "Next" }));
+
+    await waitFor(() => expect(screen.getByText("poner")).toBeTruthy());
+    expect(screen.getByLabelText("Type the form").value).toBe("");
+    expect(screen.queryByText("Exactly right.")).toBeNull();
+  });
+
+  it("counts accent slips separately in the summary", async () => {
+    const user = userEvent.setup();
+    typedDrill([card({ term: "hablar", answer: "habló" })]);
+
+    await type(user, "hablo");
+    await user.click(screen.getByRole("button", { name: "Done" }));
+
+    expect(screen.getByText("1/1")).toBeTruthy();
+    expect(screen.getByText("1 accent slip.")).toBeTruthy();
+  });
+});

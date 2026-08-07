@@ -1,4 +1,5 @@
 import { SLOTS, COLLAPSED_SLOTS } from "./conjugation.js";
+import { normalize } from "./normalize.js";
 
 /**
  * Building a conjugation drill (Phase 10c).
@@ -51,6 +52,34 @@ export function drillCells(verb) {
     }
   }
   return cells;
+}
+
+/**
+ * Marking a typed answer (Phase 13b): `exact`, `accents`, or `wrong`.
+ *
+ * **The first comparison must not normalize.** Everywhere else in this app matching goes
+ * through `normalize.js` (§8), but that function strips acute accents, and in a conjugation
+ * the accent *is* the answer: `hablo` is present and `habló` is preterite, `hable` is
+ * subjunctive and `hablé` is preterite. Accepting one for the other would mark the wrong
+ * tense correct in a drill whose whole subject is tense.
+ *
+ * So normalize is used only as the *second* comparison, to tell a near miss from a wrong
+ * one. `hablo` for `habló` is the right form typed without its accent — worth passing, on a
+ * phone where every accent is a long-press, but worth naming so it still teaches. It
+ * preserves ñ, so `ano` for `año` stays wrong: that is a different word, not a slip.
+ *
+ * Case and surrounding space are forgiven in both passes. Internal runs of space collapse
+ * so a pronominal form typed `me  arrepiento` is not marked wrong for the gap.
+ */
+export function checkTypedAnswer(given, answer) {
+  const tidy = (value) => String(value ?? "").trim().replace(/\s+/g, " ").toLowerCase();
+  const typed = tidy(given);
+  const correct = tidy(answer);
+
+  if (!typed || !correct) return "wrong";
+  if (typed === correct) return "exact";
+  if (normalize(typed) === normalize(correct)) return "accents";
+  return "wrong";
 }
 
 /** Fisher-Yates, so every ordering is equally likely rather than merely jumbled. */

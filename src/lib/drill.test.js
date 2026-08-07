@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildDrillDeck, drillCells, DRILL_TENSES, DECK_SIZE } from "./drill.js";
+import { buildDrillDeck, drillCells, checkTypedAnswer, DRILL_TENSES, DECK_SIZE } from "./drill.js";
 
 const sacar = {
   itemId: "user:sacar",
@@ -123,5 +123,59 @@ describe("building the deck", () => {
   it("returns nothing for no verbs", () => {
     expect(buildDrillDeck([], { rng: seeded([0.5]) })).toEqual([]);
     expect(buildDrillDeck(undefined, { rng: seeded([0.5]) })).toEqual([]);
+  });
+});
+
+describe("marking a typed answer", () => {
+  it("accepts the form typed exactly", () => {
+    expect(checkTypedAnswer("pusieron", "pusieron")).toBe("exact");
+  });
+
+  it("forgives case and surrounding space", () => {
+    expect(checkTypedAnswer("  Pusieron ", "pusieron")).toBe("exact");
+  });
+
+  it("forgives an inner run of spaces in a pronominal form", () => {
+    expect(checkTypedAnswer("me  arrepiento", "me arrepiento")).toBe("exact");
+  });
+
+  /**
+   * The heart of it. Accents separate tenses in Spanish, so the first comparison cannot go
+   * through normalize.js the way the rest of the app's matching does — `hablo` must never
+   * simply *be* `habló`. It is passed as a near miss so a phone keyboard stays usable, and
+   * named so it still teaches.
+   */
+  it("calls a missing accent a near miss, not a match and not a failure", () => {
+    expect(checkTypedAnswer("hablo", "habló")).toBe("accents");
+    expect(checkTypedAnswer("hable", "hablé")).toBe("accents");
+    expect(checkTypedAnswer("comeriamos", "comeríamos")).toBe("accents");
+  });
+
+  it("does not confuse two tenses that differ only by an accent", () => {
+    // Both directions: the exact answer to one is never the exact answer to the other.
+    expect(checkTypedAnswer("habló", "habló")).toBe("exact");
+    expect(checkTypedAnswer("habló", "hablo")).toBe("accents");
+  });
+
+  /**
+   * ñ is a letter, not an accent (§8). normalize.js preserves it precisely so `año` never
+   * matches `ano`, and that has to hold here too: typing the wrong one is a different word,
+   * not a slip of the keyboard.
+   */
+  it("keeps ñ distinct, so a wrong letter stays wrong", () => {
+    expect(checkTypedAnswer("ano", "año")).toBe("wrong");
+    expect(checkTypedAnswer("enseno", "enseño")).toBe("wrong");
+  });
+
+  it("marks a different form wrong", () => {
+    expect(checkTypedAnswer("pusimos", "pusieron")).toBe("wrong");
+  });
+
+  it("marks an empty or missing answer wrong rather than accidentally exact", () => {
+    expect(checkTypedAnswer("", "pusieron")).toBe("wrong");
+    expect(checkTypedAnswer("   ", "pusieron")).toBe("wrong");
+    expect(checkTypedAnswer(undefined, "pusieron")).toBe("wrong");
+    // Two blanks must not agree with each other.
+    expect(checkTypedAnswer("", "")).toBe("wrong");
   });
 });

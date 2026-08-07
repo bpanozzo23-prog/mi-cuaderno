@@ -49,6 +49,12 @@ const DIRECTION_OPTIONS = [
   { value: "mixed", label: "mixed" },
 ];
 
+/** Phase 13b. Reveal is first because it is the faster answer, and the older habit. */
+const DRILL_MODE_OPTIONS = [
+  { value: "reveal", label: "reveal" },
+  { value: "typed", label: "type it" },
+];
+
 const itemHeading = (item) =>
   item.type === "page" ? item.title || "Untitled page" : item.term;
 
@@ -127,6 +133,10 @@ export default function Repaso({ notebook, onSelect }) {
   // its cards, so nothing re-derives underneath the owner mid-drill.
   const [inDrill, setInDrill] = useState(false);
   const [drillDeck, setDrillDeck] = useState([]);
+
+  // How the drill asks (Phase 13b). Not persisted, for the direction control's reason: the
+  // useful default is the one you get by just tapping Drill.
+  const [drillMode, setDrillMode] = useState("reveal");
 
   // The calendar and growth chart are worth an occasional look rather than a daily one, so
   // they swap in over Repaso the same way a session does — no route, tab or back-label.
@@ -387,6 +397,7 @@ export default function Repaso({ notebook, onSelect }) {
     return (
       <ConjugationDrill
         deck={drillDeck}
+        mode={drillMode}
         onFinish={() => {
           setInDrill(false);
           reload();
@@ -523,6 +534,34 @@ export default function Repaso({ notebook, onSelect }) {
               <Button tone="quiet" className="shrink-0" onClick={startDrill}>
                 <Play size={15} /> Drill
               </Button>
+            </div>
+
+            <div
+              role="radiogroup"
+              aria-label="How to answer"
+              className="mt-3 flex gap-1 rounded-lg border p-0.5"
+              style={{ borderColor: C.line, background: C.paper }}
+            >
+              {DRILL_MODE_OPTIONS.map((option) => {
+                const active = drillMode === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setDrillMode(option.value)}
+                    className="flex-1 rounded-md px-2 py-1.5 text-xs"
+                    style={{
+                      fontFamily: MONO,
+                      background: active ? C.pen : "transparent",
+                      color: active ? "#fff" : C.mut,
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
             </div>
           </Card>
         </>
