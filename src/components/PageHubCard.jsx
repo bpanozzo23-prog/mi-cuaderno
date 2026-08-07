@@ -74,7 +74,12 @@ export default function PageHubCard({
   return (
     <div
       className="relative w-full rounded-2xl border"
-      style={{ background: C.card, borderColor: C.line }}
+      style={{
+        background: C.card,
+        borderColor: C.line,
+        borderLeftWidth: 6,
+        borderLeftColor: C.accentPage,
+      }}
     >
       <button
         type="button"
@@ -100,7 +105,7 @@ export default function PageHubCard({
 
         <div
           className={`mt-2 leading-tight ${hubTitleSize(title)}`}
-          style={{ fontFamily: SERIF, color: C.ink, fontWeight: 700 }}
+          style={{ fontFamily: SERIF, color: C.ink, fontWeight: 800, letterSpacing: "0.035em" }}
         >
           {title}
         </div>

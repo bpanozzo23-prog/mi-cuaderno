@@ -2,7 +2,7 @@ import { Bookmark, BookmarkCheck } from "lucide-react";
 import { C, Hi, MONO, SERIF, hubTitleSize } from "../theme.jsx";
 import { emptyReviewState } from "../lib/review.js";
 import { firstMeaningGloss } from "../lib/meanings.js";
-import { personalHeadingSuffix } from "./ItemCard.jsx";
+import { entryAccent, personalHeadingSuffix, personalLexicalForm } from "./ItemCard.jsx";
 import PageContextSummary from "./PageContextSummary.jsx";
 import TagChip from "./TagChip.jsx";
 
@@ -23,13 +23,19 @@ export default function LexicalHubCard({
 }) {
   const suffix = personalHeadingSuffix(item);
   const gloss = firstMeaningGloss(item);
+  const isPhrase = personalLexicalForm(item) === "phrase";
 
   return (
     <div
       role="group"
       aria-label={item.term}
       className="relative w-full rounded-2xl border"
-      style={{ background: C.card, borderColor: C.line }}
+      style={{
+        background: C.card,
+        borderColor: C.line,
+        borderLeftWidth: 6,
+        borderLeftColor: entryAccent(item),
+      }}
     >
       <button
         type="button"
@@ -39,7 +45,12 @@ export default function LexicalHubCard({
       >
         <div
           className={`min-w-0 leading-tight ${hubTitleSize(item.term)}`}
-          style={{ fontFamily: SERIF, color: C.ink, fontWeight: 700 }}
+          style={{
+            fontFamily: SERIF,
+            color: C.ink,
+            fontWeight: 700,
+            fontStyle: isPhrase ? "italic" : "normal",
+          }}
         >
           <Hi on={review.tricky}>{item.term}</Hi>
           {suffix && (

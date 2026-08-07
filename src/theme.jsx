@@ -31,6 +31,9 @@ export const C = {
   chipBorder: "var(--color-chip-border)",
   dangerBorder: "var(--color-danger-border)",
   disabled: "var(--color-disabled)",
+  accentWord: "var(--color-accent-word)",
+  accentPhrase: "var(--color-accent-phrase)",
+  accentPage: "var(--color-accent-page)",
 };
 
 /** The activity calendar's ramp, indexed by intensity level 0–4 (Phase 11). */

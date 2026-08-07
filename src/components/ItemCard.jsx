@@ -17,6 +17,14 @@ export const personalLexicalForm = (item) => (item?.form === "phrase" ? "phrase"
 export const personalHeadingSuffix = (item) =>
   personalLexicalForm(item) === "phrase" ? "" : POS_ABBR[item?.pos] || "";
 
+/** The left edge tab colour, shared across every card so word/phrase/page can't drift apart. */
+export const entryAccent = (item) =>
+  item?.type === "page"
+    ? C.accentPage
+    : personalLexicalForm(item) === "phrase"
+      ? C.accentPhrase
+      : C.accentWord;
+
 const amount = (count, singular) => `${count} ${count === 1 ? singular : `${singular}s`}`;
 
 export default function ItemCard({
@@ -27,6 +35,7 @@ export default function ItemCard({
   items = [],
   pinned = false,
   onPinnedChange,
+  showTags = true,
 }) {
   const isPage = item.type === "page";
   const journal = isPage && isJournalPage(item);
@@ -54,11 +63,17 @@ export default function ItemCard({
     ? (item.grammar.sections || []).reduce((total, section) => total + (section.examples || []).length, 0)
     : 0;
   const pageContexts = !isPage && reason ? activePageContextsForLexical(item.id, items) : [];
+  const isPhrase = !isPage && personalLexicalForm(item) === "phrase";
 
   return (
     <div
       className="relative w-full rounded-xl border"
-      style={{ background: C.card, borderColor: C.line }}
+      style={{
+        background: C.card,
+        borderColor: C.line,
+        borderLeftWidth: 6,
+        borderLeftColor: entryAccent(item),
+      }}
     >
       <button
         onClick={() => onOpen(item.id)}
@@ -68,7 +83,16 @@ export default function ItemCard({
         }`}
       >
         <div className="flex items-baseline justify-between gap-3">
-          <div className="text-lg min-w-0" style={{ fontFamily: SERIF, color: C.ink, fontWeight: 700 }}>
+          <div
+            className="text-lg min-w-0"
+            style={{
+              fontFamily: SERIF,
+              color: C.ink,
+              fontWeight: isPage ? 800 : 700,
+              fontStyle: isPhrase ? "italic" : "normal",
+              letterSpacing: isPage ? "0.035em" : undefined,
+            }}
+          >
             {isPage && <PageIcon size={14} className="inline mr-1.5 -mt-0.5" style={{ color: C.mut }} />}
             <Hi on={state.tricky}>{title}</Hi>
             {headingSuffix && (
@@ -127,7 +151,7 @@ export default function ItemCard({
           </div>
         )}
 
-        {item.tags.length > 0 && (
+        {showTags && item.tags.length > 0 && (
           <div className="mt-2 flex gap-1.5 flex-wrap">
             {item.tags.map((t) => (
               <TagChip key={t} tag={t} />

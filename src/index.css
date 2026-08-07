@@ -46,6 +46,14 @@
   --color-danger-border: #E5C4BC;
   --color-disabled: #B9C2D8;
 
+  /* Entry-card left edge tab, one per personal content kind (words/phrases/pages, §7). Word
+     reuses --color-pen rather than duplicating its value, so the two stay in lockstep. Phrase is
+     a lighter tint of the same family; page is a gold pulled darker than --color-hi so the tab
+     never reads as the tricky-word highlighter. */
+  --color-accent-word: var(--color-pen);
+  --color-accent-phrase: #7B93D1;
+  --color-accent-page: #B4860B;
+
   /* The activity calendar's five intensity steps (Phase 11), walking from an empty day to
      a busy one. Ink rather than the usual green: this is a page of the notebook filling up.
      heat-0 is a breath darker than paper so an empty day still reads as a cell, and heat-4

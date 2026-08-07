@@ -378,6 +378,7 @@ export default function Cuaderno({
               onPinnedChange={isJournalEntry(result.item) || !onPagePinnedChange
                 ? undefined
                 : (pinned) => onPagePinnedChange(result.item.id, pinned)}
+              showTags={false}
             />
           )
         )}

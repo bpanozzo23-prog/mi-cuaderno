@@ -615,6 +615,7 @@ export default function Repaso({ notebook, onSelect }) {
               items={items}
               state={itemState.get(item.id) || emptyItemState}
               onOpen={onSelect}
+              showTags={false}
             />
           ))}
         </div>
