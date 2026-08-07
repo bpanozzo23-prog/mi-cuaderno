@@ -21,7 +21,7 @@ import { SIMPLE_TENSES, SLOTS } from "./conjugation.js";
 /** Unicode letters, so acentos and ñ hold a token together and punctuation splits it. */
 const WORD = /[\p{L}\p{M}]+/gu;
 
-/** Clitic pronouns lead a pronominal verb's stored forms ("me arrepiento"). */
+/** Clitic pronouns can collide with short normalized verb forms, so they stay unsafe. */
 const CLITICS = new Set(["me", "te", "se", "nos", "os"]);
 
 /** Every word of a sentence with the offsets it occupies in the original text. */
@@ -36,18 +36,18 @@ function tokenize(text) {
 /**
  * The single-word forms of one verb, for matching a conjugated example against its lemma.
  *
- * Only the simple tenses are read. The perfect tenses are "haber + participle", so their
- * only verb-specific word is the participle, which is taken directly — pulling them in
- * would add haber's own forms and let "he" or "han" blank the wrong word. Clitics are
- * dropped for the same reason.
+ * Only the simple tenses are read. In a multi-word simple cell the verb is always the
+ * final token; anything before it is negation or a pronoun ("no te vayas", "lo paso").
+ * The perfect tenses are "haber + participle", so pulling them in would add haber's own
+ * forms and let "he" or "han" blank the wrong word. Ambiguous clitic-sized forms stay
+ * excluded for the same reason.
  */
 export function verbForms(table) {
   const forms = new Set();
   const add = (value) => {
-    for (const word of String(value || "").split(/\s+/)) {
-      const norm = normalize(word);
-      if (norm && !CLITICS.has(norm)) forms.add(norm);
-    }
+    const words = String(value || "").trim().split(/\s+/).filter(Boolean);
+    const norm = normalize(words[words.length - 1] || "");
+    if (norm && !CLITICS.has(norm)) forms.add(norm);
   };
 
   for (const tenseName of SIMPLE_TENSES) {
@@ -75,20 +75,28 @@ export function clozeFromExample(example, { term, forms } = {}) {
   const tokens = tokenize(text);
   const extra = forms instanceof Set ? forms : new Set(forms || []);
 
-  for (let start = 0; start + wanted.length <= tokens.length; start += 1) {
-    const run = tokens.slice(start, start + wanted.length);
-    const matches = run.every((token, offset) => token.norm === wanted[offset]);
-
-    // A single-word term also matches any inflection its caller knows about, which is how
-    // "Saqué la basura" becomes a cloze for *sacar*.
-    const inflected = wanted.length === 1 && extra.has(run[0].norm);
-    if (!matches && !inflected) continue;
-
+  const splitAt = (start, length) => {
+    const run = tokens.slice(start, start + length);
     return {
       before: text.slice(0, run[0].start),
       answer: text.slice(run[0].start, run[run.length - 1].end),
       after: text.slice(run[run.length - 1].end),
     };
+  };
+
+  // An exact term anywhere in the sentence is stronger evidence than an earlier
+  // homographic inflection ("ayuda ... ayudar") or multi-word conjugation helper.
+  for (let start = 0; start + wanted.length <= tokens.length; start += 1) {
+    const run = tokens.slice(start, start + wanted.length);
+    const matches = run.every((token, offset) => token.norm === wanted[offset]);
+    if (matches) return splitAt(start, wanted.length);
+  }
+
+  // A single-word term also matches any inflection its caller knows about, which is how
+  // "Saqué la basura" becomes a cloze for *sacar*.
+  if (wanted.length === 1) {
+    const inflectedAt = tokens.findIndex((token) => extra.has(token.norm));
+    if (inflectedAt >= 0) return splitAt(inflectedAt, 1);
   }
   return null;
 }

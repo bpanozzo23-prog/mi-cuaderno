@@ -104,6 +104,33 @@ describe("matching a conjugated form back to its lemma", () => {
     expect(forms.has("me")).toBe(false);
   });
 
+  it("keeps every helper word out of multi-word conjugation cells", () => {
+    const forms = verbForms({
+      tenses: {
+        "Indicative/Present": { yo: "lo paso" },
+        "Imperative Negative/Present": { tú: "no digas" },
+      },
+    });
+
+    expect(forms.has("paso")).toBe(true);
+    expect(forms.has("digas")).toBe(true);
+    expect(forms.has("lo")).toBe(false);
+    expect(forms.has("no")).toBe(false);
+  });
+
+  it("does not blank no when the exact vocabulary word appears later", () => {
+    const forms = verbForms({
+      tenses: { "Imperative Negative/Present": { tú: "no digas" } },
+    });
+
+    const split = clozeFromExample(ex("No sé qué decir para consolarte."), {
+      term: "decir",
+      forms,
+    });
+
+    expect(split?.answer).toBe("decir");
+  });
+
   it("blanks the conjugated form when the card is for the lemma", () => {
     const split = clozeFromExample(ex("Ayer saqué la basura."), {
       term: "sacar",
@@ -120,6 +147,15 @@ describe("matching a conjugated form back to its lemma", () => {
     });
 
     expect(split).toBeNull();
+  });
+
+  it("prefers the exact vocabulary word over an earlier conjugated homograph", () => {
+    const split = clozeFromExample(
+      ex("Empleó esa ayuda monetaria para ayudar a la gente pobre."),
+      { term: "ayudar", forms: new Set(["ayuda"]) }
+    );
+
+    expect(split?.answer).toBe("ayudar");
   });
 });
 
