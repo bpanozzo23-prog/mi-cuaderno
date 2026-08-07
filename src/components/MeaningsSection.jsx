@@ -11,6 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
+import DictMeaningImport from "./DictMeaningImport.jsx";
 import MeaningEditor from "./MeaningEditor.jsx";
 import SpeakButton from "./SpeakButton.jsx";
 import {
@@ -163,6 +164,12 @@ export default function MeaningsSection({ item, onPatch }) {
     } catch (problem) {
       setError(problem.message);
     }
+  }
+
+  /** Imported senses are appended: an existing meaning is never overwritten or reordered. */
+  async function importMeanings(imported) {
+    if (!imported.length) return;
+    await onPatch({ meanings: [...meanings, ...imported] });
   }
 
   async function moveExample(fromMeaningId, exampleIndex, targetMeaningId) {
@@ -356,9 +363,12 @@ export default function MeaningsSection({ item, onPatch }) {
         })}
       </div>
 
-      <Button tone="quiet" className="mt-2" onClick={startOrganizer}>
-        <ListRestart size={14} /> Organize meanings
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button tone="quiet" className="mt-2" onClick={startOrganizer}>
+          <ListRestart size={14} /> Organize meanings
+        </Button>
+        <DictMeaningImport item={item} onImport={importMeanings} />
+      </div>
     </div>
   );
 }

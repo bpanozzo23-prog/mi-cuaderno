@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   cleanMeanings,
   firstMeaningGloss,
+  meaningsFromSenses,
   meaningsFromTranslation,
   newMeaning,
   upgradeLexicalItemV1,
@@ -78,6 +79,87 @@ describe("personal meaning model", () => {
     it("is empty for an entry with no meanings yet", () => {
       expect(firstMeaningGloss({ meanings: [] })).toBe("");
       expect(firstMeaningGloss(null)).toBe("");
+    });
+  });
+
+  describe("copying dictionary senses into personal meanings", () => {
+    const ids = () => {
+      let n = 0;
+      return () => `meaning:imported-${++n}`;
+    };
+
+    it("carries the gloss, regions and the labels the personal list has a word for", () => {
+      const [row] = meaningsFromSenses(
+        [{ gloss: "to take out", regionLabels: ["Mexico", "Mexico"], labels: ["colloquial", "transitive", "figuratively"] }],
+        [],
+        ids()
+      );
+
+      expect(row.meaning).toMatchObject({
+        id: "meaning:imported-1",
+        gloss: "to take out",
+        regions: ["Mexico"],
+        usageLabels: ["colloquial", "figurative"],
+        verbBehavior: ["transitive"],
+      });
+      expect(row.droppedLabels).toEqual([]);
+    });
+
+    it("leaves the owner's own fields empty rather than inventing them", () => {
+      const [row] = meaningsFromSenses([{ gloss: "year" }], [], ids());
+
+      expect(row.meaning).toMatchObject({ usageCue: "", posOverride: "", note: "", examples: [] });
+    });
+
+    it("reports a label with no personal equivalent instead of approximating it", () => {
+      const [row] = meaningsFromSenses(
+        [{ gloss: "the boss", labels: ["obsolete", "derogatory", "slang"] }],
+        [],
+        ids()
+      );
+
+      expect(row.meaning.usageLabels).toEqual(["slang"]);
+      expect(row.droppedLabels).toEqual(["obsolete", "derogatory"]);
+    });
+
+    it("carries no sense identity or ordering into the personal record", () => {
+      const [row] = meaningsFromSenses(
+        [{ gloss: "home", senseId: "wikt:12345", index: 3 }],
+        [],
+        ids()
+      );
+
+      expect(Object.keys(row.meaning).sort()).toEqual([
+        "examples", "gloss", "id", "note", "posOverride", "regions", "usageCue", "usageLabels", "verbBehavior",
+      ]);
+      expect(JSON.stringify(row.meaning)).not.toContain("wikt:12345");
+    });
+
+    it("marks a sense the owner already has, ignoring case and surrounding space", () => {
+      const rows = meaningsFromSenses(
+        [{ gloss: "house" }, { gloss: "home" }],
+        [newMeaning({ gloss: "  House " })],
+        ids()
+      );
+
+      expect(rows.map((row) => row.duplicate)).toEqual([true, false]);
+    });
+
+    it("skips a sense with no gloss, since a saved meaning must have one", () => {
+      const rows = meaningsFromSenses([{ gloss: "" }, { gloss: "  " }, { gloss: "house" }], [], ids());
+
+      expect(rows.map((row) => row.meaning.gloss)).toEqual(["house"]);
+    });
+
+    it("gives every imported row its own fresh id", () => {
+      const rows = meaningsFromSenses([{ gloss: "house" }, { gloss: "home" }], [], ids());
+
+      expect(rows.map((row) => row.meaning.id)).toEqual(["meaning:imported-1", "meaning:imported-2"]);
+    });
+
+    it("survives an entry with no senses at all", () => {
+      expect(meaningsFromSenses(undefined, [])).toEqual([]);
+      expect(meaningsFromSenses([], undefined)).toEqual([]);
     });
   });
 });

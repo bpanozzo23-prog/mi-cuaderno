@@ -124,6 +124,22 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   build passes, three deliberate red/green proofs behaved as intended, and a disposable 375×812
   closeout verified every surface numerically. See the Phase 11 entries in
   [DECISIONS.md](DECISIONS.md).
+- **Phase 12 — implemented locally; not deployed.** An optional **import of meanings from the
+  attached dictionary entry**. A lexical item whose `dictKey` resolves offers a sheet listing that
+  entry's senses; each is previewed as the meaning row it would become, nothing is selected by
+  default, and confirming appends the chosen ones to the item's own `meanings[]`. Regions and the
+  labels the closed personal list has a word for cross over; the rest are named as *not carried
+  across* rather than approximated, and examples stay behind with their Tatoeba attribution (§4).
+  Imported rows are ordinary `meaning:<uuid>` records — no sense id, no ordering, no link back — so
+  they are edited by the existing controls and a later dataset rebuild cannot reach them; §14's
+  deferred dictionary-sense attachment or synchronization stays deferred. Existing meanings are
+  never overwritten, and a sense already held is shown disabled. No schema, preference, backup or
+  event-type change: `SCHEMA_VERSION` remains 5 and an import logs one ordinary `edit`. The full
+  serial suite passes 889/889 across 77 files, the production build and `git diff --check` pass,
+  five deliberate red/green proofs behaved as intended — two of them by exposing a racing absence
+  in the new tests, which were fixed — and a disposable 375×812 closeout verified the sheet, the
+  append and the follow-up edit numerically. See the Phase 12 entries in
+  [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **5**. Before Dexie opens v5, schema-v1 through schema-v4 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,

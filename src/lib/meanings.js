@@ -122,6 +122,83 @@ export function cloneMeanings(meanings = []) {
   return meanings.map((meaning) => newMeaning({ ...meaning, examples: meaning.examples || [] }));
 }
 
+/**
+ * Dictionary label → personal usage label.
+ *
+ * The personal list is closed (§7's meaning-block amendment) and deliberately smaller than the
+ * tags the pipeline keeps, so a label only crosses when the personal vocabulary already has a
+ * word for it. Everything else is reported as dropped rather than bent into an approximate
+ * match: "obsolete" is not "archaic", and guessing would put a word in the owner's notebook
+ * that the owner never wrote.
+ */
+const USAGE_LABEL_FROM_DICT = {
+  formal: "formal",
+  informal: "informal",
+  colloquial: "colloquial",
+  slang: "slang",
+  vulgar: "vulgar",
+  offensive: "offensive",
+  dated: "dated",
+  archaic: "archaic",
+  rare: "rare",
+  humorous: "humorous",
+  figuratively: "figurative",
+  literally: "literal",
+};
+
+/** English glosses, so plain case folding — `normalize.js` is the Spanish matching seam. */
+export const glossKey = (gloss) => String(gloss || "").trim().toLocaleLowerCase("en");
+
+/**
+ * One dictionary sense, seen as a candidate personal meaning.
+ *
+ * This is a **copy, not an attachment**: the row it produces is an ordinary `meaning:<uuid>`
+ * record carrying no sense id and no sense ordering, exactly as the identity rule requires. Once
+ * imported it is the owner's, editable like any other meaning, and a later dataset rebuild
+ * cannot reach it. §14's deferred dictionary-sense attachment or synchronization stays deferred.
+ *
+ * `usageCue`, `posOverride`, `note` and `examples` are left for the owner. The entry's examples
+ * are Tatoeba's and carry per-sentence attribution (§4) that a personal copy would strip, and
+ * they belong to the entry rather than to one sense.
+ */
+export function meaningFromSense(sense, idFactory = newMeaningKey) {
+  const labels = cleanList(sense?.labels);
+  const usageLabels = [];
+  const verbBehavior = [];
+  const dropped = [];
+
+  for (const label of labels) {
+    const mapped = USAGE_LABEL_FROM_DICT[label.toLocaleLowerCase("en")];
+    if (mapped) usageLabels.push(mapped);
+    else if (VERB_BEHAVIORS.includes(label)) verbBehavior.push(label);
+    else dropped.push(label);
+  }
+
+  return {
+    meaning: newMeaning({
+      id: idFactory(),
+      gloss: String(sense?.gloss || "").trim(),
+      regions: cleanList(sense?.regionLabels),
+      usageLabels: cleanList(usageLabels),
+      verbBehavior: cleanList(verbBehavior),
+    }),
+    droppedLabels: dropped,
+  };
+}
+
+/**
+ * Every sense of an attached entry, as importable rows. A sense already carried by one of the
+ * owner's meanings is marked rather than hidden, so the sheet can say why it is not offered.
+ * Senses without a gloss cannot become meanings at all and never appear.
+ */
+export function meaningsFromSenses(senses = [], existingMeanings = [], idFactory = newMeaningKey) {
+  const taken = new Set((existingMeanings || []).map((meaning) => glossKey(meaning.gloss)));
+  return (senses || [])
+    .map((sense, index) => ({ key: `sense-${index}`, ...meaningFromSense(sense, idFactory) }))
+    .filter((row) => row.meaning.gloss)
+    .map((row) => ({ ...row, duplicate: taken.has(glossKey(row.meaning.gloss)) }));
+}
+
 /** Conservative schema-v1 rule: one trimmed nonblank line, including any marker, per meaning. */
 export function meaningsFromTranslation(translation, idFactory = newMeaningKey) {
   return String(translation || "")
