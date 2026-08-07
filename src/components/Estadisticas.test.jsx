@@ -100,6 +100,53 @@ describe("the growth chart", () => {
     expect(screen.getByText(/line starts with your first word/i)).toBeTruthy();
     expect(screen.queryByRole("img")).toBeNull();
   });
+
+  it("draws the total as visible text, not only as an accessible name", () => {
+    // The original chart passed its aria-label assertion while its only visible number was
+    // clipped off the top of the viewBox. Reading the rendered <text> is what catches that.
+    const items = [
+      makeLexical({ createdAt: at(dayBefore(30)) }),
+      makeLexical({ createdAt: at(dayBefore(20)) }),
+      makeLexical({ createdAt: at(dayBefore(2)) }),
+    ];
+    renderStats(items);
+
+    const svg = screen.getByRole("img");
+    const labels = [...svg.querySelectorAll("text")].map((t) => t.textContent);
+    expect(labels).toContain("3");
+    expect(labels).toContain("0");
+  });
+
+  it("keeps every label inside the viewBox", () => {
+    // A cumulative total never falls, so the last point is always the highest one. Any label
+    // hung above it needs headroom, or it renders off the top edge where nothing can see it.
+    renderStats([makeLexical({ createdAt: at(dayBefore(30)) }), makeLexical({ createdAt: at(today) })]);
+
+    const svg = screen.getByRole("img");
+    const [, , boxWidth, boxHeight] = svg.getAttribute("viewBox").split(" ").map(Number);
+
+    for (const text of svg.querySelectorAll("text")) {
+      const x = Number(text.getAttribute("x"));
+      const y = Number(text.getAttribute("y"));
+      const size = Number(text.getAttribute("fontSize") || text.getAttribute("font-size"));
+      // y is the baseline, so the glyphs reach up to roughly one font size above it.
+      expect(y - size).toBeGreaterThanOrEqual(0);
+      expect(y).toBeLessThanOrEqual(boxHeight);
+      expect(x).toBeGreaterThanOrEqual(0);
+      expect(x).toBeLessThanOrEqual(boxWidth);
+    }
+  });
+
+  it("says where the line started and how much arrived since", () => {
+    const items = [
+      makeLexical({ createdAt: at(dayBefore(30)) }),
+      makeLexical({ createdAt: at(dayBefore(30)) }),
+      makeLexical({ createdAt: at(dayBefore(2)) }),
+    ];
+    renderStats(items);
+
+    expect(screen.getByText(/3 words — 2 by .+, 1 added since\./)).toBeTruthy();
+  });
 });
 
 describe("getting back", () => {
