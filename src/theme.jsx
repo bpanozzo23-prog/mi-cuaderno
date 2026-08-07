@@ -33,7 +33,9 @@ export const C = {
   disabled: "var(--color-disabled)",
   accentWord: "var(--color-accent-word)",
   accentPhrase: "var(--color-accent-phrase)",
-  accentPage: "var(--color-accent-page)",
+  pageFolder: "var(--color-page-folder)",
+  pageFolderTab: "var(--color-page-folder-tab)",
+  pageFolderLine: "var(--color-page-folder-line)",
 };
 
 /** The activity calendar's ramp, indexed by intensity level 0–4 (Phase 11). */

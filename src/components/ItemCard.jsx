@@ -22,13 +22,9 @@ export const personalHeadingSuffix = (item, attachedEntry = null) => {
   return grammarAbbreviations(pos, gender);
 };
 
-/** The left edge tab colour, shared across every card so word/phrase/page can't drift apart. */
+/** The left edge colour shared by word and phrase cards; Pages use the folder treatment. */
 export const entryAccent = (item) =>
-  item?.type === "page"
-    ? C.accentPage
-    : personalLexicalForm(item) === "phrase"
-      ? C.accentPhrase
-      : C.accentWord;
+  personalLexicalForm(item) === "phrase" ? C.accentPhrase : C.accentWord;
 
 const amount = (count, singular) => `${count} ${count === 1 ? singular : `${singular}s`}`;
 
@@ -72,18 +68,20 @@ export default function ItemCard({
 
   return (
     <div
-      className="relative w-full rounded-xl border shadow-entry-card"
+      className={`relative w-full border shadow-entry-card ${isPage ? "page-folder-card" : "rounded-xl"}`}
       style={{
-        background: C.card,
-        borderColor: C.line,
-        borderLeftWidth: 6,
-        borderLeftColor: entryAccent(item),
+        background: isPage ? C.pageFolder : C.card,
+        borderColor: isPage ? C.pageFolderLine : C.line,
+        ...(!isPage && {
+          borderLeftWidth: 6,
+          borderLeftColor: entryAccent(item),
+        }),
       }}
     >
       <button
         onClick={() => onOpen(item.id)}
         aria-label={isPage ? title : undefined}
-        className={`w-full text-left px-4 py-3 active:opacity-80 ${
+        className={`relative w-full text-left px-4 py-3 active:opacity-80 ${
           isPage && onPinnedChange ? "pr-14" : ""
         }`}
       >

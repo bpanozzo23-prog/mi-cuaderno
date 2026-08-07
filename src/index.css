@@ -46,13 +46,17 @@
   --color-danger-border: #E5C4BC;
   --color-disabled: #B9C2D8;
 
-  /* Entry-card left edge tab, one per personal content kind (words/phrases/pages, §7). Word
-     reuses --color-pen rather than duplicating its value, so the two stay in lockstep. Phrase is
-     a lighter tint of the same family; page is a gold pulled darker than --color-hi so the tab
-     never reads as the tricky-word highlighter. */
+  /* Lexical entry-card left edge tabs. Word reuses --color-pen rather than duplicating its value,
+     so the two stay in lockstep; phrase is a lighter tint of the same family. Pages use the
+     folder treatment below instead of a third left-edge stripe. */
   --color-accent-word: var(--color-pen);
   --color-accent-phrase: #7B93D1;
-  --color-accent-page: #B4860B;
+
+  /* A restrained manila-folder treatment for page cards. The body stays close to paper while the
+     tab and outline make Pages read as containers without competing with their role pills. */
+  --color-page-folder: #FFFAF0;
+  --color-page-folder-tab: #F3DF9F;
+  --color-page-folder-line: #CAA83F;
 
   /* Hub entry cards sit a little above the paper: more depth than a diffuse halo, but softer
      than a pronounced floating-card shadow. Kept as one shared token so all three hubs match. */
@@ -67,4 +71,24 @@
   --color-heat-2: #93A9DB;
   --color-heat-3: #5C7EC1;
   --color-heat-4: #2D4EA0;
+}
+
+/* The tab is decorative and deliberately lives in CSS: page identity and card behavior stay in
+   the existing markup. The small top margin gives the tab room in both mixed and Pages-only lists. */
+.page-folder-card {
+  margin-top: 1rem;
+  border-radius: 4px 15px 15px 15px;
+}
+
+.page-folder-card > button:first-child::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -15px;
+  width: 122px;
+  height: 18px;
+  border: 1px solid var(--color-page-folder-line);
+  border-bottom: 0;
+  border-radius: 10px 12px 0 0;
+  background: var(--color-page-folder-tab);
 }

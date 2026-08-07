@@ -73,19 +73,17 @@ export default function PageHubCard({
 
   return (
     <div
-      className="relative w-full rounded-2xl border shadow-entry-card"
+      className="page-folder-card relative w-full border shadow-entry-card"
       style={{
-        background: C.card,
-        borderColor: C.line,
-        borderLeftWidth: 6,
-        borderLeftColor: C.accentPage,
+        background: C.pageFolder,
+        borderColor: C.pageFolderLine,
       }}
     >
       <button
         type="button"
         onClick={() => onOpen(page.id)}
         aria-label={title}
-        className="w-full text-left px-4 py-4 pr-14 active:opacity-80"
+        className="relative w-full text-left px-4 py-4 pr-14 active:opacity-80"
       >
         <div className="flex flex-wrap gap-1.5" aria-label="Page roles">
           {roles.map((role) => {
