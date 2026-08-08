@@ -210,8 +210,8 @@ export default function MeaningEditor({ meaning, onChange, initialDetails = fals
               className="mt-1.5 w-full text-sm rounded-lg border px-2 py-1.5 outline-none"
               style={inputStyle}
             />
-            <Button type="button" tone="quiet" className="mt-2" onClick={addExample}>
-              <Plus size={13} /> Add example
+            <Button type="button" tone="quiet" className="mt-2" aria-label="Add example" onClick={addExample}>
+              <Plus size={13} /> Example
             </Button>
           </div>
         </Card>

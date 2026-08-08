@@ -208,6 +208,7 @@ function CollectionDetailsEditor({ item, items, onCancel, onSaved }) {
         <Button
           tone="quiet"
           className="mt-2"
+          aria-label="Add media link"
           disabled={!/^https?:\/\//.test(media.url.trim())}
           onClick={() => {
             setDraft((current) => ({
@@ -217,7 +218,7 @@ function CollectionDetailsEditor({ item, items, onCancel, onSaved }) {
             setMedia({ url: "", label: "" });
           }}
         >
-          <Plus size={14} /> Add media link
+          <Plus size={14} /> Media link
         </Button>
       </div>
       <div className="flex gap-2 border-t pt-4" style={{ borderColor: C.line }}>
@@ -414,7 +415,7 @@ function ConnectionsSection({
               await onChanged();
             }}
           />
-          {vocabularyEnabled && <div className="mt-2 text-[11px]" style={{ color: C.mut }}>Use Add vocabulary inside an enabled section to attach words and phrases in context.</div>}
+          {vocabularyEnabled && <div className="mt-2 text-[11px]" style={{ color: C.mut }}>Use the + Vocabulary action inside an enabled section to attach words and phrases in context.</div>}
         </>
       )}
       </div>
@@ -600,10 +601,11 @@ function VocabularyGroupHeader({
       <button
         type="button"
         onClick={onAdd}
+        aria-label="Add vocabulary"
         className="min-h-11 shrink-0 rounded-full border px-3 py-1 text-xs inline-flex items-center gap-1"
         style={{ background: C.card, borderColor: C.line, color: C.pen }}
       >
-        <Plus size={11} /> Add vocabulary
+        <Plus size={11} /> Vocabulary
       </button>
     </div>
   );
@@ -680,7 +682,7 @@ function VocabularySection({ page, items, collection, onOpen, onChanged, onOrgan
       resetKey={page.id}
       actions={({ collapsed }) => collection.itemCount === 0 ? (
         <>
-          <Button onClick={() => openAddTarget(null, NOT_GROUPED_LABEL)}><Plus size={14} /> Add vocabulary</Button>
+          <Button aria-label="Add vocabulary" onClick={() => openAddTarget(null, NOT_GROUPED_LABEL)}><Plus size={14} /> Vocabulary</Button>
           {!collapsed && (
             <IconButton tone="quiet" aria-label="Organize" onClick={() => onOrganize(false)}>
               <ListTree size={17} />
@@ -776,7 +778,7 @@ function VocabularySection({ page, items, collection, onOpen, onChanged, onOrgan
         </div>
       )}
 
-      <Button tone="quiet" className="mt-4" onClick={() => onOrganize(true)}><Plus size={14} /> Add group</Button>
+      <Button tone="quiet" className="mt-4" aria-label="Add group" onClick={() => onOrganize(true)}><Plus size={14} /> Group</Button>
     </PageSectionDisclosure>
   );
 }

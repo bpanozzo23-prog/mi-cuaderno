@@ -256,8 +256,8 @@ export default function JournalReader({
         <div className="mb-2 flex items-center justify-between gap-2">
           <h2 className="text-xs font-semibold uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>Words & phrases</h2>
           {!pickingVocabulary && (
-            <button type="button" onClick={() => setPickingVocabulary(true)} className="inline-flex min-h-11 items-center gap-1 text-xs" style={{ color: C.pen }}>
-              <Plus size={13} /> Add vocabulary
+            <button type="button" aria-label="Add vocabulary" onClick={() => setPickingVocabulary(true)} className="inline-flex min-h-11 items-center gap-1 text-xs" style={{ color: C.pen }}>
+              <Plus size={13} /> Vocabulary
             </button>
           )}
         </div>

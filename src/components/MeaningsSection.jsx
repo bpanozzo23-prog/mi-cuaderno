@@ -266,12 +266,13 @@ export default function MeaningsSection({ item, onPatch }) {
         <Button
           tone="quiet"
           className="mt-2"
+          aria-label="Add meaning"
           onClick={() => {
             setDrafts([...drafts, newMeaning()]);
             setDraftEditing(drafts.length);
           }}
         >
-          <Plus size={14} /> Add meaning
+          <Plus size={14} /> Meaning
         </Button>
         {error && <div className="text-xs mt-2" style={{ color: C.red }}>{error}</div>}
         <div className="flex gap-2 mt-4 pt-3 border-t" style={{ borderColor: C.line }}>

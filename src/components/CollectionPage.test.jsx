@@ -102,7 +102,7 @@ describe("Collection reading and practice", () => {
     );
     expect(screen.queryByRole("button", { name: /^outside word/ })).toBeNull();
     expect(screen.queryByRole("button", { name: /Create word .*outside word/i })).toBeNull();
-    expect(screen.getByText(/Use Add vocabulary/)).toBeTruthy();
+    expect(screen.getByText(/Use the \+ Vocabulary action/)).toBeTruthy();
     expect((await getItem(incoming.id)).linkedKeys).toEqual([page.id]);
   });
 

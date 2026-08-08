@@ -815,9 +815,10 @@ function StandardDetail({
               tone="quiet"
               aria-expanded={addingExample}
               aria-controls="example-composer"
+              aria-label={addingExample ? "Close example form" : "Add an example"}
               onClick={() => (addingExample ? cancelExample() : setAddingExample(true))}
             >
-              <Plus size={14} /> {addingExample ? "Close example form" : "Add an example"}
+              <Plus size={14} /> {addingExample ? "Close example form" : "Example"}
             </Button>
             {renderExampleComposer()}
           </div>
@@ -852,9 +853,10 @@ function StandardDetail({
               tone="quiet"
               aria-expanded={addingMedia}
               aria-controls="media-composer"
+              aria-label={addingMedia ? "Close media form" : "Add a media link"}
               onClick={() => (addingMedia ? cancelMedia() : setAddingMedia(true))}
             >
-              <Plus size={14} /> {addingMedia ? "Close media form" : "Add a media link"}
+              <Plus size={14} /> {addingMedia ? "Close media form" : "Media link"}
             </Button>
             {renderMediaComposer()}
           </div>

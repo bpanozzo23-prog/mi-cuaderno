@@ -612,7 +612,7 @@ function GrammarOrganizer({ sections, onCancel, onSaved }) {
         disabled={saving}
         onClick={addSection}
       >
-        <Plus size={14} /> Add section
+        <Plus size={14} /> Section
       </Button>
 
       {!namesValid && (
@@ -777,11 +777,12 @@ function ExampleCard({
         <button
           type="button"
           aria-expanded={addingVocabulary}
+          aria-label="Add vocabulary"
           onClick={onBeginVocabulary}
           className="mt-2 inline-flex min-h-11 items-center gap-1 rounded-lg border px-2 text-xs"
           style={{ ...fieldStyle, color: C.pen }}
         >
-          <Plus size={13} /> Add vocabulary
+          <Plus size={13} /> Vocabulary
         </button>
       )}
 
@@ -1040,13 +1041,14 @@ export default function GrammarSection({
               <Button
                 tone="quiet"
                 className="mt-3"
+                aria-label="Add example"
                 onClick={() => {
                   setExampleDraft({ sectionId: section.id, example: null });
                   setSectionDraft(null);
                   setVocabularyTarget(null);
                 }}
               >
-                <Plus size={14} /> Add example
+                <Plus size={14} /> Example
               </Button>
 
                 </div>

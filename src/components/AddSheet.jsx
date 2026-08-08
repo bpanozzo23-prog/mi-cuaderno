@@ -418,8 +418,8 @@ export default function AddSheet({
                     </button>
                   </div>
                 ))}
-                <Button type="button" tone="quiet" onClick={() => setSectionNames([...sectionNames, ""])}>
-                  <Plus size={14} /> Add section
+                <Button type="button" tone="quiet" aria-label="Add section" onClick={() => setSectionNames([...sectionNames, ""])}>
+                  <Plus size={14} /> Section
                 </Button>
                 {grammarDraft.error && (
                   <div role="alert" className="text-xs" style={{ color: C.red }}>
@@ -464,8 +464,8 @@ export default function AddSheet({
                     </button>
                   </div>
                 ))}
-                <Button type="button" tone="quiet" onClick={() => setGroupNames([...groupNames, ""])}>
-                  <Plus size={14} /> Add group
+                <Button type="button" tone="quiet" aria-label="Add group" onClick={() => setGroupNames([...groupNames, ""])}>
+                  <Plus size={14} /> Group
                 </Button>
                 {collectionDraft.error && (
                   <div role="alert" className="text-xs" style={{ color: C.red }}>
@@ -507,8 +507,8 @@ export default function AddSheet({
                   />
                 </Card>
               ))}
-              <Button type="button" tone="quiet" onClick={() => setMeanings([...meanings, newMeaning()])}>
-                <Plus size={14} /> Add meaning
+              <Button type="button" tone="quiet" aria-label="Add meaning" onClick={() => setMeanings([...meanings, newMeaning()])}>
+                <Plus size={14} /> Meaning
               </Button>
             </div>
             <div className="flex gap-2">

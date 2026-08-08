@@ -112,8 +112,13 @@ export default function JournalMore({
             </button>
           </Card>
         ))}
-        <Button tone="quiet" onClick={() => addingMedia ? closeMedia() : setAddingMedia(true)} aria-expanded={addingMedia}>
-          <Plus size={14} /> {addingMedia ? "Close media form" : "Add a media link"}
+        <Button
+          tone="quiet"
+          onClick={() => addingMedia ? closeMedia() : setAddingMedia(true)}
+          aria-expanded={addingMedia}
+          aria-label={addingMedia ? "Close media form" : "Add a media link"}
+        >
+          <Plus size={14} /> {addingMedia ? "Close media form" : "Media link"}
         </Button>
         {addingMedia && (
           <Card className="space-y-2">

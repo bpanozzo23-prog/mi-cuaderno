@@ -257,13 +257,14 @@ export default function CollectionOrganizer({
         />
         <Button
           tone="quiet"
+          aria-label="Add group"
           disabled={!newName.trim()}
           onClick={() => {
             setGroups((current) => [...current, { id: newPageGroupKey(), name: newName.trim(), itemKeys: [] }]);
             setNewName("");
           }}
         >
-          <Plus size={14} /> Add group
+          <Plus size={14} /> Group
         </Button>
       </div>
 
