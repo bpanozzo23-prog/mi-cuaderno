@@ -93,24 +93,26 @@
    overhang and then restores an extra 8px of visible breathing room in both mixed and Pages-only
    lists. */
 .page-folder-card {
-  margin-top: 2.125rem;
+  margin-top: 2.4375rem;
   border-radius: 4px 15px 15px 15px;
 }
 
 .page-folder-tab {
   position: absolute;
   left: -1px;
-  top: -25px;
+  top: -30px;
   /* An empty tab — a Diario page, or any page with no role to name — keeps the width the badge
      would have given a short label, so a role-less folder still reads as a folder. */
   min-width: 122px;
   /* Height is the badge's, but an empty tab must still reach down to the card body rather than
      float above it — the card's top margin is the same either way. */
-  min-height: 28px;
+  min-height: 34px;
   /* Never far enough right to run under the pin control. "Vocabulary" is the longest label and
      clears this comfortably at 375px; the cap is a guard, not a working constraint. */
   max-width: calc(100% - 3rem);
-  padding: 3px 8px 0;
+  /* The bottom padding is the larger of the two on purpose: the tab's last few pixels overlap the
+     card, so without it the badge's lower edge lands on the seam and the two read as one shape. */
+  padding: 4px 8px 5px;
   overflow: hidden;
   white-space: nowrap;
   border: 1px solid var(--color-page-folder-line);

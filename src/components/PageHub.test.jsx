@@ -95,6 +95,9 @@ describe("Pages hub", () => {
     });
     const grammar = page("Aquí vs. acá", {
       pageFocus: "grammar",
+      // Grammar with an empty collection turned on — the overlap that used to read
+      // "1 section · 1 example · 0 items · 0 groups".
+      collection: { enabled: true, groups: [] },
       grammar: {
         enabled: true,
         keyIdea: "A comparison",
@@ -121,6 +124,11 @@ describe("Pages hub", () => {
     expect(within(card("Voces del mercado")).queryByText("Vocabulary")).toBeNull();
     expect(within(card("Aquí vs. acá")).getByText("Grammar")).toBeTruthy();
     expect(within(card("Restaurant notes")).getByText("Notes")).toBeTruthy();
+
+    // A count only appears when there is something to count: the Grammar page has a collection
+    // enabled but nothing in it, and says nothing about items or groups.
+    expect(within(card("Aquí vs. acá")).queryByText(/0 (items|groups)/)).toBeNull();
+    expect(within(card("Aquí vs. acá")).getByText("1 section · 1 example")).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Sources" }));
     expect(card("Voces del mercado")).toBeTruthy();

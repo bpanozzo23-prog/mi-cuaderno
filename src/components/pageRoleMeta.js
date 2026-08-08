@@ -37,42 +37,57 @@ const SOURCE_FORMAT_LABELS = {
   other: "Source",
 };
 
-const amount = (count, singular) => `${count} ${count === 1 ? singular : `${singular}s`}`;
+/**
+ * A count only earns its place in the summary when there is something to count. An enabled but
+ * still-empty structure says nothing rather than reporting itself as zero: `0 items · 0 groups` is
+ * noise on a Grammar page that happens to have a collection turned on, and the page itself is
+ * where an empty structure is worth seeing.
+ */
+const countPart = (count, singular) =>
+  count > 0 ? `${count} ${count === 1 ? singular : `${singular}s`}` : null;
 
 /**
  * The one-line count summary under a page title, in a fixed order so two pages with the same
  * structures always read the same way. With the role pills reduced to the single tab badge, this
  * line is also what discloses a page's secondary structures: sections and examples mean Grammar,
  * items and groups mean Vocabulary.
+ *
+ * Returns "" when an enabled structure has nothing in it yet. The Notes fallback below is reserved
+ * for a page with no structure at all, so it can never speak for a Vocabulary or Grammar page.
  */
 export function pageSummary(page, items) {
   const parts = [];
+  const structured =
+    page.source?.enabled || page.grammar?.enabled || page.collection?.enabled;
 
   if (page.source?.enabled) {
+    /* Format and creator are identity, not a count, so they show even before the first capture. */
     const identity = [SOURCE_FORMAT_LABELS[page.source.format], page.source.creator]
       .filter(Boolean)
       .join(" · ");
     if (identity) parts.push(identity);
-    parts.push(amount(page.source.captures?.length || 0, "capture"));
+    parts.push(countPart(page.source.captures?.length || 0, "capture"));
   }
 
   if (page.grammar?.enabled) {
     const sections = page.grammar.sections || [];
     const examples = sections.reduce((total, section) => total + (section.examples?.length || 0), 0);
-    parts.push(amount(sections.length, "section"));
-    parts.push(amount(examples, "example"));
+    parts.push(countPart(sections.length, "section"));
+    parts.push(countPart(examples, "example"));
   }
 
   if (page.collection?.enabled) {
     const collection = deriveCollection(page, items);
-    parts.push(amount(collection.itemCount, "item"));
-    parts.push(amount(collection.groupCount, "group"));
+    parts.push(countPart(collection.itemCount, "item"));
+    parts.push(countPart(collection.groupCount, "group"));
   }
 
-  if (parts.length === 0) {
+  const shown = parts.filter(Boolean);
+
+  if (!structured && shown.length === 0) {
     if (page.tags?.length) return page.tags.join(" · ");
     return page.body?.trim() ? "Notes page" : "Empty notes page";
   }
 
-  return parts.join(" · ");
+  return shown.join(" · ");
 }

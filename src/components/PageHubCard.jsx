@@ -40,9 +40,11 @@ export default function PageHubCard({
         >
           {title}
         </div>
-        <div className="mt-1.5 text-sm leading-relaxed" style={{ color: C.mut }}>
-          {summary}
-        </div>
+        {summary && (
+          <div className="mt-1.5 text-sm leading-relaxed" style={{ color: C.mut }}>
+            {summary}
+          </div>
+        )}
 
         {page.pageFocus === "notes" && bodyPreview && (
           <div className="mt-1 text-sm line-clamp-2" style={{ color: C.mut }}>
