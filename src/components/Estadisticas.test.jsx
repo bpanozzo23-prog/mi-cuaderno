@@ -160,7 +160,7 @@ describe("getting back", () => {
   });
 });
 
-describe("Phase 13c: the conjugation breakdown", () => {
+describe("Phase 14: compact Conjugation Gym summary", () => {
   const drill = (passed, tense, verdict = passed ? "exact" : "wrong") =>
     makeEvent({
       type: passed ? "drill_pass" : "drill_fail",
@@ -176,7 +176,9 @@ describe("Phase 13c: the conjugation breakdown", () => {
     expect(screen.queryByText("Conjugaciones")).toBeNull();
   });
 
-  it("shows the overall accuracy and a row per tense, weakest first", () => {
+  it("shows initial typed accuracy and links to the dedicated performance screen", async () => {
+    const user = userEvent.setup();
+    const onOpenConjugationPerformance = vi.fn();
     render(
       <Estadisticas
         items={[]}
@@ -187,17 +189,17 @@ describe("Phase 13c: the conjugation breakdown", () => {
           drill(true, "Indicative/Preterite"),
         ]}
         onBack={vi.fn()}
+        onOpenConjugationPerformance={onOpenConjugationPerformance}
       />
     );
 
     expect(screen.getByText("Conjugaciones")).toBeTruthy();
     expect(screen.getByText("75%")).toBeTruthy();
-    expect(screen.getByText(/of 4 answers/)).toBeTruthy();
+    expect(screen.getByText(/3\/4 typed first attempts/)).toBeTruthy();
+    expect(screen.queryByText("Preterite")).toBeNull();
 
-    // Tense labels come from the shared heading helper, so they read as they do in the
-    // dictionary rather than as raw "Mood/Tense" keys.
-    const rows = screen.getAllByText(/^(Present|Preterite)$/);
-    expect(rows.map((node) => node.textContent)).toEqual(["Preterite", "Present"]);
+    await user.click(screen.getByRole("button", { name: /Conjugation Gym/ }));
+    expect(onOpenConjugationPerformance).toHaveBeenCalledTimes(1);
   });
 
   it("names accent slips alongside the total", () => {

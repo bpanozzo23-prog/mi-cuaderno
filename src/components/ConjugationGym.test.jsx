@@ -49,7 +49,8 @@ describe("Conjugation Gym setup", () => {
 
     await waitFor(() => expect(screen.getByText("Dictionary not installed")).toBeTruthy());
     await user.click(screen.getByRole("button", { name: "View conjugation performance" }));
-    expect(screen.getByText(/Complete a session/)).toBeTruthy();
+    expect(screen.getByText(/No typed first attempts/)).toBeTruthy();
+    expect(screen.getByText(/Coverage and practice actions are unavailable/)).toBeTruthy();
   });
 
   it("defaults to Type and can run a Quick session from saved verbs", async () => {
@@ -91,5 +92,47 @@ describe("Conjugation Gym setup", () => {
     await user.selectOptions(screen.getByLabelText("Tense pack"), "customize");
     expect(screen.getByRole("checkbox", { name: /Subjunctive future\s*· rare/i })).toBeTruthy();
     expect(screen.getByRole("checkbox", { name: /Indicative preterite perfect \(archaic\)\s*· rare/i })).toBeTruthy();
+  });
+
+  it("turns Practice next into a prefilled Focus session", async () => {
+    const user = userEvent.setup();
+    await seedGymDictionary();
+    const saved = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
+    const events = [1, 2, 3].map((number) => ({
+      id: `drill-${number}`,
+      type: "drill_fail",
+      itemKey: "user:sacar",
+      at: `2026-08-07T12:0${number}:00.000Z`,
+      localDate: "2026-08-07",
+      metadata: {
+        sessionId: "session-1",
+        promptId: `prompt-${number}`,
+        sessionKind: "focus",
+        source: "saved",
+        curriculum: null,
+        verbKey: "lemma:sacar",
+        lemma: "sacar",
+        dictKey: SACAR,
+        tense: "Indicative/Present",
+        slot: "yo",
+        mode: "typed",
+        verdict: "wrong",
+        diagnosis: "wrong_tense",
+        stage: "initial",
+        cardIndex: number,
+        deckSize: 3,
+      },
+    }));
+    render(<ConjugationGym items={[saved]} events={events} initialView="stats" onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Practice next" })).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: "Practice next" }));
+
+    expect(screen.getByRole("button", { name: /Focus/ }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByRole("radio", { name: "Saved" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByLabelText("Tense pack").value).toBe("customize");
+    expect(screen.getByLabelText("One verb (optional)").value).toBe("user:sacar");
+    expect(screen.getByRole("checkbox", { name: "yo" }).checked).toBe(true);
+    expect(screen.getByRole("checkbox", { name: "tú" }).checked).toBe(false);
   });
 });

@@ -1,15 +1,14 @@
 import { useLayoutEffect, useMemo } from "react";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { C, HEAT, SERIF, MONO, dotGrid, SectionTitle, Card } from "../theme.jsx";
 import {
   activityByDay,
   streakFrom,
   heatmapWeeks,
   cumulativeWordsByWeek,
-  drillPerformance,
   HEATMAP_WEEKS,
 } from "../lib/stats.js";
-import { tenseHeading } from "../lib/conjugation.js";
+import { conjugationPerformance } from "../lib/conjugationStats.js";
 
 /**
  * The Phase 11 sub-view: a calendar of what the owner has actually done, and a line of how
@@ -126,7 +125,7 @@ function GrowthChart({ series }) {
   );
 }
 
-export default function Estadisticas({ items, events, onBack }) {
+export default function Estadisticas({ items, events, onBack, onOpenConjugationPerformance }) {
   // Repaso swaps this in locally, so App's route-keyed scroll reset never fires for it —
   // without this the screen opens wherever the Repaso list happened to be scrolled to.
   useLayoutEffect(() => {
@@ -137,7 +136,7 @@ export default function Estadisticas({ items, events, onBack }) {
   const streak = useMemo(() => streakFrom(activity), [activity]);
   const weeks = useMemo(() => heatmapWeeks(activity), [activity]);
   const growth = useMemo(() => cumulativeWordsByWeek(items), [items]);
-  const drill = useMemo(() => drillPerformance(events), [events]);
+  const conjugations = useMemo(() => conjugationPerformance(events, { items }), [events, items]);
 
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
@@ -256,57 +255,41 @@ export default function Estadisticas({ items, events, onBack }) {
         )}
       </Card>
 
-      {/* Absent rather than empty until the first drill: a section explaining that it has
-          nothing to show is worse than the space it would occupy. */}
-      {drill.answered > 0 && (
+      {/* The detailed skill model lives in the Gym; general Estadísticas keeps one compact
+          doorway so activity/growth remains the point of this screen. */}
+      {(conjugations.lifetime.answered > 0 || conjugations.reveal.answered > 0) && (
         <>
           <SectionTitle>Conjugaciones</SectionTitle>
-          <Card className="p-3">
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl" style={{ fontFamily: MONO, color: C.ink }}>
-                {Math.round((drill.passed / drill.answered) * 100)}%
-              </span>
-              <span className="text-xs" style={{ color: C.mut }}>
-                of {drill.answered} {drill.answered === 1 ? "answer" : "answers"}
-                {drill.accentSlips > 0 &&
-                  ` · ${drill.accentSlips} ${drill.accentSlips === 1 ? "accent slip" : "accent slips"}`}
-              </span>
-            </div>
-
-            <div className="mt-3 space-y-1.5">
-              {drill.tenses.map((row) => {
-                const percent = Math.round((row.passed / row.answered) * 100);
-                return (
-                  <div key={row.tense} className="flex items-center gap-2">
-                    <span className="w-24 shrink-0 text-xs truncate" style={{ color: C.ink }}>
-                      {tenseHeading(row.tense)}
-                    </span>
-                    {/* A bar rather than a number alone: the shape is what makes the weak
-                        tense findable at a glance, which is the whole point of the split. */}
-                    <span
-                      className="h-2 flex-1 rounded-full overflow-hidden"
-                      style={{ background: C.paper }}
-                    >
-                      <span
-                        className="block h-full rounded-full"
-                        style={{ width: `${percent}%`, background: C.pen }}
-                      />
-                    </span>
-                    <span
-                      className="w-14 shrink-0 text-right text-[11px]"
-                      style={{ fontFamily: MONO, color: C.mut }}
-                    >
-                      {percent}% / {row.answered}
-                    </span>
+          <button
+            type="button"
+            onClick={onOpenConjugationPerformance}
+            className="w-full rounded-xl border p-3 text-left"
+            style={{ background: C.card, borderColor: C.line }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold" style={{ color: C.ink }}>Conjugation Gym</div>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="text-2xl" style={{ fontFamily: MONO, color: C.ink }}>
+                    {conjugations.recent.answered
+                      ? `${Math.round(conjugations.recent.accuracy * 100)}%`
+                      : "—"}
+                  </span>
+                  <span className="text-xs" style={{ color: C.mut }}>
+                    {conjugations.recent.answered
+                      ? `${conjugations.recent.passed}/${conjugations.recent.answered} typed first attempts`
+                      : `${conjugations.reveal.answered} reveal ${conjugations.reveal.answered === 1 ? "answer" : "answers"}`}
+                  </span>
+                </div>
+                {conjugations.recent.accents > 0 && (
+                  <div className="mt-1 text-xs" style={{ color: C.mut }}>
+                    {conjugations.recent.accents} {conjugations.recent.accents === 1 ? "accent slip" : "accent slips"}
                   </div>
-                );
-              })}
+                )}
+              </div>
+              <ChevronRight size={16} style={{ color: C.mut }} />
             </div>
-
-            <div className="mt-2 text-xs" style={{ color: C.mut }}>
-              Weakest first. A form typed without its accent counts as right.
-            </div>
-          </Card>
+          </button>
         </>
       )}
     </div>

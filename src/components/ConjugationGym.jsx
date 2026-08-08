@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { BarChart3, ChevronLeft, Dumbbell, Play, SlidersHorizontal } from "lucide-react";
 import { C, MONO, SERIF, Card, Button, SectionTitle, dotGrid } from "../theme.jsx";
 import { loadGymLibrary } from "../db/ref/gym.js";
-import { drillPerformance } from "../lib/stats.js";
 import {
   CORE_20,
   CORE_50,
@@ -15,6 +14,7 @@ import {
 import { qualifiedTenseLabel } from "../lib/conjugation.js";
 import { conjugationForms } from "../lib/drill.js";
 import ConjugationDrill from "./ConjugationDrill.jsx";
+import ConjugationPerformance from "./ConjugationPerformance.jsx";
 
 const SESSION_KINDS = [
   { value: "quick", label: "Quick", detail: "10 everyday prompts" },
@@ -72,24 +72,6 @@ function Header({ title, backLabel, onBack, action }) {
         {title}
       </div>
       <div className="min-w-16 text-right">{action}</div>
-    </div>
-  );
-}
-
-function BasicPerformance({ events, onBack }) {
-  const stats = useMemo(() => drillPerformance(events), [events]);
-  return (
-    <div className="px-4 py-4 pb-28" style={dotGrid}>
-      <Header title="Conjugation performance" backLabel="Gym" onBack={onBack} />
-      <Card className="p-5 text-center">
-        <BarChart3 size={24} className="mx-auto" style={{ color: C.pen }} />
-        <div className="mt-2 text-3xl" style={{ fontFamily: MONO, color: C.ink }}>
-          {stats.answered ? `${Math.round((stats.passed / stats.answered) * 100)}%` : "—"}
-        </div>
-        <div className="text-sm" style={{ color: C.mut }}>
-          {stats.answered ? `${stats.passed} of ${stats.answered} answers` : "Complete a session to start your history."}
-        </div>
-      </Card>
     </div>
   );
 }
@@ -213,7 +195,42 @@ export default function ConjugationGym({
     setView("session");
   }
 
-  if (view === "stats") return <BasicPerformance events={events} onBack={() => setView("setup")} />;
+  function practiceFromStats(focus) {
+    setSessionKind("focus");
+    setMode("typed");
+    setSize(10);
+    if (focus?.target) {
+      const nextPool = focus.target.source === "saved" ? "saved" : focus.target.curriculum || "core50";
+      setPool(nextPool);
+      setOneVerb(focus.target.itemKey || focus.target.verbKey);
+    } else if (focus?.source === "saved" && library.saved.length) {
+      setPool("saved");
+      setOneVerb("");
+    } else if (focus?.source === "core") {
+      setPool("core20");
+      setOneVerb("");
+    }
+    if (focus?.tense) {
+      setTensePack("customize");
+      setCustomTenses([focus.tense]);
+    }
+    setSlots(focus?.slot ? [focus.slot] : [...GYM_SLOTS]);
+    setStartError("");
+    setView("setup");
+  }
+
+  if (view === "stats") {
+    return (
+      <ConjugationPerformance
+        items={items}
+        events={events}
+        library={library}
+        onBack={() => setView("setup")}
+        onPractice={practiceFromStats}
+        onOpen={onOpen}
+      />
+    );
+  }
 
   if (view === "session" && session) {
     return (

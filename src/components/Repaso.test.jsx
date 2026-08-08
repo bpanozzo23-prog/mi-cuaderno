@@ -455,6 +455,32 @@ describe("Phase 11 Estadísticas sub-view", () => {
     expect(screen.getByText("Para hoy")).toBeTruthy();
     expect(screen.queryByText("Actividad")).toBeNull();
   });
+
+  it("switches directly from general stats into dedicated Gym performance", async () => {
+    const user = userEvent.setup();
+    const drillEvent = makeEvent({
+      type: EVENT_TYPES.drillPass,
+      itemKey: "user:ser",
+      metadata: {
+        mode: "typed",
+        stage: "initial",
+        verdict: "exact",
+        diagnosis: "exact",
+        tense: "Indicative/Present",
+        slot: "yo",
+        verbKey: "lemma:ser",
+        lemma: "ser",
+        source: "saved",
+      },
+    });
+    render(<Repaso notebook={notebookFor([], [drillEvent])} onSelect={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /Actividad y crecimiento/ }));
+    await user.click(screen.getByRole("button", { name: /Conjugation Gym/ }));
+
+    expect(screen.getByText("Conjugation performance")).toBeTruthy();
+    expect(screen.queryByText("Actividad")).toBeNull();
+  });
 });
 
 describe("Phase 14: choosing how the Gym asks", () => {
