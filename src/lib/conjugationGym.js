@@ -185,7 +185,7 @@ export function buildBalancedGymDeck(
 
 const isInitialTyped = (event) =>
   (event?.type === "drill_pass" || event?.type === "drill_fail") &&
-  event?.metadata?.mode === "type" &&
+  (event?.metadata?.mode === "typed" || event?.metadata?.mode === "type") &&
   (event.metadata.stage || "initial") === "initial";
 
 function historyForAdaptive(events) {

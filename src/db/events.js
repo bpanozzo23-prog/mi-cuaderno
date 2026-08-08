@@ -107,14 +107,15 @@ export async function logReview(itemKey, passed, details = null, when = new Date
  * decision that the drill records nothing at all is deliberately reversed here at the
  * owner's request; §14's deferral names *Collection* practice, which this is not.
  *
- * `itemKey` is the personal item id, never the `dict:` key the form was read from. The
- * answer lives in the replaceable reference layer, but the history belongs to the owner —
- * the Phase 3a rule, so a dataset rebuild cannot delete a record of what was practised.
+ * `itemKey` is a personal item id when the answer came from Saved, or when exactly one
+ * surviving personal item attaches to a Core verb. Otherwise it is null — never a `dict:`
+ * key. Stable verb history lives in metadata.verbKey (`lemma:<canonical lemma>`), while a
+ * replaceable reference id remains context rather than ownership.
  *
- * `details` carries `tense`, `slot`, `mode` (reveal | typed) and `verdict` (self | exact |
- * accents). Mode matters most: a self-reported "got it" and an exact string match are
- * different measurements, and blending them into one accuracy figure would make it mean
- * neither. It cannot be reconstructed later, so it is recorded from the first event.
+ * Phase 14 details also identify the session/prompt, lemma, source/curriculum and attempt
+ * stage. The raw typed answer is intentionally absent. Mode matters most: a self-reported
+ * "got it" and an exact string match are different measurements, and retries must never be
+ * mistaken for first-attempt accuracy.
  */
 export async function logDrill(itemKey, passed, details = null, when = new Date()) {
   // Same guard as logReview: a Date in the details slot would spread to no keys and

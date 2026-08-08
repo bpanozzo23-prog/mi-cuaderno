@@ -5,6 +5,7 @@ import {
   logEvent,
   logView,
   logReview,
+  logDrill,
   toggleTricky,
   isTricky,
   deriveItemState,
@@ -173,6 +174,23 @@ describe("every review event carries a grade", () => {
     const event = await logReview(item.id, false, { grade: 3, direction: "forward" });
 
     expect(event.metadata.grade).toBe(GRADES.again);
+  });
+});
+
+describe("Conjugation Gym events", () => {
+  it("allows unattached Core history while keeping its lemma identity in metadata", async () => {
+    const event = await logDrill(null, false, {
+      source: "core",
+      curriculum: "core20",
+      verbKey: "lemma:ser",
+      lemma: "ser",
+      dictKey: "dict:wiktionary-es:ser:verb",
+      stage: "initial",
+    });
+
+    expect(event.itemKey).toBeNull();
+    expect(event.type).toBe(EVENT_TYPES.drillFail);
+    expect(event.metadata).toMatchObject({ source: "core", verbKey: "lemma:ser", stage: "initial" });
   });
 });
 

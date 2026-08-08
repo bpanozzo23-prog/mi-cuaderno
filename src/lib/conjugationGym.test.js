@@ -101,7 +101,7 @@ describe("adaptive decks", () => {
       type: "drill_fail",
       at: "2026-08-07T12:00:00.000Z",
       metadata: {
-        mode: "type",
+        mode: "typed",
         stage: "initial",
         promptId: "prompt-1",
         verbKey: "lemma:estar",

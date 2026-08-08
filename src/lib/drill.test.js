@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { buildDrillDeck, drillCells, checkTypedAnswer, DRILL_TENSES, DECK_SIZE } from "./drill.js";
+import {
+  buildDrillDeck,
+  drillCells,
+  checkTypedAnswer,
+  conjugationForms,
+  diagnoseTypedAnswer,
+  DRILL_TENSES,
+  DECK_SIZE,
+} from "./drill.js";
 
 const sacar = {
   itemId: "user:sacar",
@@ -177,5 +185,51 @@ describe("marking a typed answer", () => {
     expect(checkTypedAnswer(undefined, "pusieron")).toBe("wrong");
     // Two blanks must not agree with each other.
     expect(checkTypedAnswer("", "")).toBe("wrong");
+  });
+});
+
+describe("diagnosing a typed answer", () => {
+  const forms = conjugationForms({
+    tenses: {
+      "Indicative/Present": { yo: "hablo", "tú": "hablas", nosotros: "hablamos" },
+      "Indicative/Preterite": { yo: "hablé", "tú": "hablaste", nosotros: "hablamos" },
+      "Subjunctive/Present": { yo: "hable", "tú": "hables", nosotros: "hablemos" },
+    },
+  });
+
+  it("keeps the exact/accent checker as the first two outcomes", () => {
+    const card = { answer: "hablé", tense: "Indicative/Preterite", slot: "yo" };
+    expect(diagnoseTypedAnswer("hablé", card, forms)).toEqual({ passed: true, verdict: "exact", diagnosis: "exact" });
+    expect(diagnoseTypedAnswer("hable", card, forms)).toEqual({ passed: true, verdict: "accents", diagnosis: "accents" });
+  });
+
+  it("recognizes a missing no in a negative command", () => {
+    expect(diagnoseTypedAnswer("seas", {
+      answer: "no seas", tense: "Imperative Negative/Present", slot: "tú",
+    }, [])).toMatchObject({ passed: false, diagnosis: "missing_no" });
+  });
+
+  it("recognizes a missing reflexive pronoun, including after command no", () => {
+    expect(diagnoseTypedAnswer("quejo", {
+      answer: "me quejo", tense: "Indicative/Present", slot: "yo",
+    }, [])).toMatchObject({ diagnosis: "missing_reflexive" });
+    expect(diagnoseTypedAnswer("no quejes", {
+      answer: "no te quejes", tense: "Imperative Negative/Present", slot: "tú",
+    }, [])).toMatchObject({ diagnosis: "missing_reflexive" });
+  });
+
+  it("distinguishes wrong person, wrong tense, another form, and unknown input", () => {
+    const card = { answer: "hablaste", tense: "Indicative/Preterite", slot: "tú" };
+    expect(diagnoseTypedAnswer("hablé", card, forms).diagnosis).toBe("wrong_person");
+    expect(diagnoseTypedAnswer("hablas", card, forms).diagnosis).toBe("wrong_tense");
+    expect(diagnoseTypedAnswer("hablemos", card, forms).diagnosis).toBe("other_form");
+    expect(diagnoseTypedAnswer("comiste", card, forms).diagnosis).toBe("wrong");
+  });
+
+  it("uses the fixed person-before-tense rule for an ambiguous recognizable form", () => {
+    // hablamos is both present and preterite; on a tú-preterite prompt it matches a wrong
+    // person in the same tense and another tense. The documented ladder is deterministic.
+    const card = { answer: "hablaste", tense: "Indicative/Preterite", slot: "tú" };
+    expect(diagnoseTypedAnswer("hablamos", card, forms).diagnosis).toBe("wrong_person");
   });
 });

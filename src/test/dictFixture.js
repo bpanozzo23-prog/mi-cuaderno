@@ -21,6 +21,10 @@ export const FIXTURE_ENTRIES = [
   entry("ano:noun", "ano", "noun", ["anus"], { gender: "m", freqRank: 9000 }),
   entry("ir:verb", "ir", "verb", ["to go"], { conjugationId: "conj:jehle:ir", freqRank: 27 }),
   entry("ser:verb", "ser", "verb", ["to be"], { conjugationId: "conj:jehle:ser", freqRank: 1 }),
+  entry("quejarse:verb", "quejarse", "verb", ["to complain"], {
+    conjugationId: "conj:fixture:quejarse",
+    freqRank: 1200,
+  }),
   entry("casa:noun", "casa", "noun", ["house", { gloss: "home", regionLabels: ["Mexico"] }], {
     gender: "f",
     freqRank: 90,
@@ -59,6 +63,21 @@ export const FIXTURE_CONJUGATIONS = [
   },
   { id: "conj:jehle:ir", source: "jehle", pastParticiple: "ido", tenses: {} },
   { id: "conj:jehle:ser", source: "jehle", pastParticiple: "sido", tenses: {} },
+  {
+    id: "conj:fixture:quejarse",
+    source: "fixture",
+    pastParticiple: "quejado",
+    tenses: {
+      "Indicative/Present": {
+        yo: "me quejo", "tú": "te quejas", "él/ella/usted": "se queja",
+        nosotros: "nos quejamos", "ustedes/ellos": "se quejan", vosotros: "os quejáis",
+      },
+      "Imperative Negative/Present": {
+        "tú": "no te quejes", "él/ella/usted": "no se queje",
+        nosotros: "no nos quejemos", "ustedes/ellos": "no se quejen", vosotros: "no os quejéis",
+      },
+    },
+  },
 ];
 
 export const FIXTURE_FORM_SHARDS = [
@@ -68,6 +87,7 @@ export const FIXTURE_FORM_SHARDS = [
   { id: "fu", terms: { fui: ["dict:wiktionary-es:ir:verb", "dict:wiktionary-es:ser:verb"] } },
   { id: "ir", terms: { ir: ["dict:wiktionary-es:ir:verb"] } },
   { id: "se", terms: { ser: ["dict:wiktionary-es:ser:verb"] } },
+  { id: "qu", terms: { quejarse: ["dict:wiktionary-es:quejarse:verb"], "me quejo": ["dict:wiktionary-es:quejarse:verb"] } },
   { id: "ca", terms: { casa: ["dict:wiktionary-es:casa:noun"], casas: ["dict:wiktionary-es:casa:noun"] } },
 ];
 

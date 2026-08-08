@@ -13,6 +13,7 @@ import {
   buildBalancedGymDeck,
 } from "../lib/conjugationGym.js";
 import { qualifiedTenseLabel } from "../lib/conjugation.js";
+import { conjugationForms } from "../lib/drill.js";
 import ConjugationDrill from "./ConjugationDrill.jsx";
 
 const SESSION_KINDS = [
@@ -198,6 +199,7 @@ export default function ConjugationGym({
         chosen.find((verb) => verb.verbKey === card.verbKey);
       return {
         ...card,
+        forms: sourceVerb?.conjugation ? conjugationForms(sourceVerb.conjugation) : [],
         openKey: sourceVerb?.openKey || card.itemKey || card.dictKey,
         sessionId: id,
         promptId: `${id}:${index + 1}`,

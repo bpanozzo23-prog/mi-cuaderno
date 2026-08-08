@@ -45,7 +45,7 @@ describe("installing a dictionary", () => {
 
     const meta = await installedMeta();
     expect(meta.datasetVersion).toBe("fixture-v1");
-    expect(meta.counts.entries).toBe(6);
+    expect(meta.counts.entries).toBe(7);
   });
 
   it("reports progress in bytes, ending at the total", async () => {

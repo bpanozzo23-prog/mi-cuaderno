@@ -6,34 +6,46 @@ import ConjugationDrill from "./ConjugationDrill.jsx";
 import { db, clearAllPersonalData } from "../db/db.js";
 import { allEvents } from "../db/events.js";
 
+const FORMS = [
+  { tense: "Indicative/Preterite", slot: "yo", form: "saqué" },
+  { tense: "Indicative/Preterite", slot: "nosotros", form: "sacamos" },
+  { tense: "Indicative/Preterite", slot: "ustedes/ellos", form: "sacaron" },
+  { tense: "Indicative/Present", slot: "ustedes/ellos", form: "sacan" },
+  { tense: "Subjunctive/Present", slot: "yo", form: "saque" },
+];
+
 const card = (overrides = {}) => ({
   itemId: "user:sacar",
+  itemKey: "user:sacar",
+  dictKey: "dict:wiktionary-es:sacar:verb",
+  source: "saved",
+  curriculum: null,
+  lemma: "sacar",
+  verbKey: "lemma:sacar",
   term: "sacar",
   tense: "Indicative/Preterite",
   slot: "ustedes/ellos",
   answer: "sacaron",
+  forms: FORMS,
+  sessionId: "session-1",
+  promptId: "session-1:1",
+  sessionKind: "focus",
+  cardIndex: 1,
+  deckSize: 1,
   ...overrides,
 });
 
-/**
- * Reveal, then grade — the two taps every answered card now takes.
- *
- * The wait is load-bearing, not politeness. `grade()` writes to the log before it advances,
- * and `user.click` resolves when the handler is invoked rather than when its promise
- * settles, so asserting straight after the click races the write. Waiting for the grade
- * button to go tells us the advance actually happened; on the last card the same button
- * disappears into the summary, so one rule covers both. This is the Phase 4c lesson in the
- * guide — a test that passes by winning a race passes against a broken build too.
- *
- * `waitFor` on the absence rather than `waitForElementToBeRemoved`, which throws when the
- * element is already gone — the very outcome being waited for, and the reason it raced
- * both ways depending on how fast the write settled.
- */
-async function answer(user, correct) {
+async function revealAnswer(user, correct) {
   const label = correct ? "Got it" : "Missed it";
   await user.click(screen.getByRole("button", { name: "Tap to see the form" }));
   await user.click(screen.getByRole("button", { name: label }));
   await waitFor(() => expect(screen.queryByRole("button", { name: label })).toBeNull());
+}
+
+async function typeAndCheck(user, text, { retry = false } = {}) {
+  const input = screen.getByLabelText(retry ? "Try the form again" : "Type the form");
+  if (text) await user.type(input, text);
+  await user.click(screen.getByRole("button", { name: retry ? "Check retry" : "Check" }));
 }
 
 beforeEach(async () => {
@@ -43,257 +55,220 @@ beforeEach(async () => {
 
 afterEach(cleanup);
 
-describe("drilling a conjugation", () => {
-  it("asks for one cell and hides the form until it is tapped", async () => {
+describe("reveal sessions", () => {
+  it("asks one mood-qualified cell and hides the form until tapped", async () => {
     const user = userEvent.setup();
     render(<ConjugationDrill deck={[card()]} onFinish={vi.fn()} onOpen={vi.fn()} />);
 
     expect(screen.getByText(/Indicative preterite/)).toBeTruthy();
     expect(screen.getByText(/ustedes\/ellos/)).toBeTruthy();
-    expect(screen.getByText("sacar")).toBeTruthy();
     expect(screen.queryByText("sacaron")).toBeNull();
-
     await user.click(screen.getByRole("button", { name: "Tap to see the form" }));
-
     expect(screen.getByText("sacaron")).toBeTruthy();
   });
 
-  it("names the imperative by its mood, where the tense alone would not tell them apart", () => {
-    render(
-      <ConjugationDrill
-        deck={[card({ tense: "Imperative Affirmative/Present" })]}
-        onFinish={vi.fn()}
-        onOpen={vi.fn()}
-      />
-    );
-
-    expect(screen.getByText(/Affirmative/)).toBeTruthy();
+  it("names the two command tables by polarity", () => {
+    render(<ConjugationDrill deck={[card({ tense: "Imperative Affirmative/Present" })]} onFinish={vi.fn()} />);
+    expect(screen.getByText(/Affirmative command/)).toBeTruthy();
   });
 
-  it("advances through the deck as each card is graded, and finishes", async () => {
+  it("advances through an immutable deck and finishes", async () => {
     const user = userEvent.setup();
     const onFinish = vi.fn();
-    render(
-      <ConjugationDrill
-        deck={[card(), card({ term: "poner", answer: "pusieron" })]}
-        onFinish={onFinish}
-        onOpen={vi.fn()}
-      />
-    );
+    render(<ConjugationDrill deck={[
+      card({ deckSize: 2 }),
+      card({ term: "poner", lemma: "poner", verbKey: "lemma:poner", answer: "pusieron", promptId: "session-1:2", cardIndex: 2, deckSize: 2 }),
+    ]} onFinish={onFinish} />);
 
-    await answer(user, true);
-
+    await revealAnswer(user, true);
     expect(screen.getByText("poner")).toBeTruthy();
-    // The answer of the previous card must not carry over to the next one.
-    expect(screen.queryByText("pusieron")).toBeNull();
-
-    await answer(user, true);
-
-    expect(screen.getByText("¡Ya está!")).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Back to Repaso" }));
-    expect(onFinish).toHaveBeenCalled();
+    await revealAnswer(user, true);
+    expect(screen.getByText("Session complete")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Back to Gym" }));
+    expect(onFinish).toHaveBeenCalledTimes(1);
   });
 
-  it("grades cannot be offered before the form is shown", async () => {
-    render(<ConjugationDrill deck={[card()]} onFinish={vi.fn()} onOpen={vi.fn()} />);
-
-    expect(screen.queryByRole("button", { name: "Got it" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Missed it" })).toBeNull();
-  });
-
-  /**
-   * Phase 13 reverses Phase 10c's "writes nothing", but only that far: the drill still must
-   * not log a `view`, which would inflate the lookup counts that decide what Repaso enrolls,
-   * and must not log a `review_*`, which would move a Leitner box on a fact that box does
-   * not describe. Asserting the exact set is what makes this catch either mistake.
-   */
-  it("writes one drill event per graded card, and nothing else", async () => {
+  it("writes one drill event per self-grade and no view or review event", async () => {
     const user = userEvent.setup();
-    render(
-      <ConjugationDrill
-        deck={[card(), card({ term: "poner", answer: "pusieron" })]}
-        onFinish={vi.fn()}
-        onOpen={vi.fn()}
-      />
-    );
+    render(<ConjugationDrill deck={[
+      card({ deckSize: 2 }),
+      card({ promptId: "session-1:2", cardIndex: 2, deckSize: 2 }),
+    ]} onFinish={vi.fn()} />);
 
-    await answer(user, true);
-    await answer(user, false);
-
+    await revealAnswer(user, true);
+    await revealAnswer(user, false);
     const events = await allEvents();
     expect(events.map((event) => event.type)).toEqual(["drill_pass", "drill_fail"]);
     expect(events.every((event) => event.itemKey === "user:sacar")).toBe(true);
   });
 
-  it("records the tense, slot, mode and verdict of each answer", async () => {
+  it("records the complete additive answer context", async () => {
     const user = userEvent.setup();
-    render(<ConjugationDrill deck={[card()]} mode="reveal" onFinish={vi.fn()} onOpen={vi.fn()} />);
-
-    await answer(user, true);
+    render(<ConjugationDrill deck={[card()]} mode="reveal" onFinish={vi.fn()} />);
+    await revealAnswer(user, true);
 
     const [event] = await allEvents();
-    expect(event.metadata).toMatchObject({
+    expect(event.metadata).toEqual({
+      sessionId: "session-1",
+      promptId: "session-1:1",
+      sessionKind: "focus",
+      source: "saved",
+      curriculum: null,
+      verbKey: "lemma:sacar",
+      lemma: "sacar",
+      dictKey: "dict:wiktionary-es:sacar:verb",
       tense: "Indicative/Preterite",
       slot: "ustedes/ellos",
       mode: "reveal",
       verdict: "self",
+      diagnosis: null,
+      stage: "initial",
+      cardIndex: 1,
+      deckSize: 1,
     });
   });
 
-  it("logs nothing for cards left unanswered when the drill is abandoned", async () => {
+  it("logs nothing for an unanswered card", async () => {
     const user = userEvent.setup();
-    render(
-      <ConjugationDrill
-        deck={[card(), card({ term: "poner", answer: "pusieron" })]}
-        onFinish={vi.fn()}
-        onOpen={vi.fn()}
-      />
-    );
-
-    await answer(user, true);
+    const onFinish = vi.fn();
+    render(<ConjugationDrill deck={[card()]} onFinish={onFinish} />);
     await user.click(screen.getByRole("button", { name: /Finish/ }));
-
-    expect((await allEvents()).length).toBe(1);
+    expect(await allEvents()).toEqual([]);
+    expect(onFinish).toHaveBeenCalledTimes(1);
   });
 
-  it("counts the session up on the way out", async () => {
-    const user = userEvent.setup();
-    render(
-      <ConjugationDrill
-        deck={[card(), card({ term: "poner", answer: "pusieron" })]}
-        onFinish={vi.fn()}
-        onOpen={vi.fn()}
-      />
-    );
-
-    await answer(user, true);
-    await answer(user, false);
-
-    expect(screen.getByText("1/2")).toBeTruthy();
-  });
-
-  it("opens the owner's entry from the revealed card", async () => {
+  it("opens personal and unsaved Core targets honestly", async () => {
     const user = userEvent.setup();
     const onOpen = vi.fn();
-    render(<ConjugationDrill deck={[card()]} onFinish={vi.fn()} onOpen={onOpen} />);
-
+    const { rerender } = render(<ConjugationDrill deck={[card()]} onFinish={vi.fn()} onOpen={onOpen} />);
     await user.click(screen.getByRole("button", { name: "Tap to see the form" }));
     await user.click(screen.getByRole("button", { name: "Open saved entry" }));
+    expect(onOpen).toHaveBeenLastCalledWith("user:sacar");
 
-    expect(onOpen).toHaveBeenCalledWith("user:sacar");
+    rerender(<ConjugationDrill deck={[card({ itemId: null, itemKey: null, source: "core", openKey: "dict:wiktionary-es:sacar:verb" })]} onFinish={vi.fn()} onOpen={onOpen} />);
+    await user.click(screen.getByRole("button", { name: "Open dictionary entry" }));
+    expect(onOpen).toHaveBeenLastCalledWith("dict:wiktionary-es:sacar:verb");
   });
 
-  it("says so plainly when there is nothing to drill", () => {
-    render(<ConjugationDrill deck={[]} onFinish={vi.fn()} onOpen={vi.fn()} />);
-
+  it("says so plainly when the deck has no answerable cells", () => {
+    render(<ConjugationDrill deck={[]} onFinish={vi.fn()} />);
     expect(screen.getByText("Nothing to drill")).toBeTruthy();
   });
 });
 
-describe("typing the answer", () => {
-  const typedDrill = (deck) =>
-    render(<ConjugationDrill deck={deck} mode="typed" onFinish={vi.fn()} onOpen={vi.fn()} />);
+describe("typed attempts, retry, and missed round", () => {
+  const renderTyped = (cards, props = {}) =>
+    render(<ConjugationDrill deck={cards} mode="typed" onFinish={vi.fn()} {...props} />);
 
-  /** Type, check, then advance — typed mode never asks the owner to grade themselves. */
-  async function type(user, text) {
-    if (text) await user.type(screen.getByLabelText("Type the form"), text);
-    await user.click(screen.getByRole("button", { name: "Check" }));
-  }
+  it("accepts an exact initial answer and persists it before Next", async () => {
+    const user = userEvent.setup();
+    renderTyped([card()]);
+    await typeAndCheck(user, "sacaron");
 
-  it("asks for the form without showing it, and offers no reveal", () => {
-    typedDrill([card()]);
+    await waitFor(() => expect(screen.getByText("Exactly right.")).toBeTruthy());
+    const [event] = await allEvents();
+    expect(event.type).toBe("drill_pass");
+    expect(event.metadata).toMatchObject({ verdict: "exact", diagnosis: "exact", stage: "initial" });
+    expect(JSON.stringify(event.metadata)).not.toContain("sacaron");
+  });
 
-    expect(screen.getByLabelText("Type the form")).toBeTruthy();
+  it("passes an accent slip but keeps it distinct", async () => {
+    const user = userEvent.setup();
+    renderTyped([card({ term: "hablar", lemma: "hablar", verbKey: "lemma:hablar", answer: "habló", forms: [] })]);
+    await typeAndCheck(user, "hablo");
+    await waitFor(() => expect(screen.getByText("Right form — mind the accent.")).toBeTruthy());
+    const [event] = await allEvents();
+    expect(event.type).toBe("drill_pass");
+    expect(event.metadata).toMatchObject({ verdict: "accents", diagnosis: "accents", stage: "initial" });
+  });
+
+  it("logs and diagnoses the first miss immediately, clears input, and hides the answer", async () => {
+    const user = userEvent.setup();
+    const onGraded = vi.fn();
+    renderTyped([card()], { onGraded });
+    await typeAndCheck(user, "saqué");
+
+    await waitFor(() => expect(screen.getByText("That form belongs to another person.")).toBeTruthy());
+    expect(screen.getByText("Try once more.")).toBeTruthy();
+    expect(screen.getByLabelText("Try the form again").value).toBe("");
     expect(screen.queryByText("sacaron")).toBeNull();
-    expect(screen.queryByRole("button", { name: "Tap to see the form" })).toBeNull();
-  });
-
-  it("cannot be checked while empty", () => {
-    typedDrill([card()]);
-
-    expect(screen.getByRole("button", { name: "Check" }).disabled).toBe(true);
-  });
-
-  it("marks an exact answer and logs it as a pass", async () => {
-    const user = userEvent.setup();
-    typedDrill([card()]);
-
-    await type(user, "sacaron");
-
-    expect(screen.getByText("Exactly right.")).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Done" }));
-
-    const [event] = await allEvents();
-    expect(event.type).toBe("drill_pass");
-    expect(event.metadata).toMatchObject({ mode: "typed", verdict: "exact" });
-  });
-
-  /**
-   * The case the mode exists for: a phone keyboard makes every accent a long-press, so a
-   * missing one passes — but it is named, and the attempt is shown beside the answer, so
-   * it still teaches rather than silently forgiving.
-   */
-  it("passes a missing accent, names it, and records it as such", async () => {
-    const user = userEvent.setup();
-    typedDrill([card({ term: "hablar", answer: "habló" })]);
-
-    await type(user, "hablo");
-
-    expect(screen.getByText("Right form — mind the accent.")).toBeTruthy();
-    expect(screen.getByText("habló")).toBeTruthy();
-    expect(screen.getByText("hablo")).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Done" }));
-
-    const [event] = await allEvents();
-    expect(event.type).toBe("drill_pass");
-    expect(event.metadata).toMatchObject({ mode: "typed", verdict: "accents" });
-  });
-
-  it("marks a wrong form, shows the right one, and logs a fail", async () => {
-    const user = userEvent.setup();
-    typedDrill([card()]);
-
-    await type(user, "sacamos");
-
-    expect(screen.getByText("Not this time.")).toBeTruthy();
-    expect(screen.getByText("sacaron")).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Done" }));
-
     const [event] = await allEvents();
     expect(event.type).toBe("drill_fail");
-    expect(event.metadata).toMatchObject({ mode: "typed", verdict: "wrong" });
+    expect(event.metadata).toMatchObject({ verdict: "wrong", diagnosis: "wrong_person", stage: "initial" });
+    expect(JSON.stringify(event.metadata)).not.toContain("saqué");
+    expect(onGraded).toHaveBeenCalledTimes(1);
   });
 
-  it("does not offer self-grading over a verdict it already reached", async () => {
+  it("allows exactly one immediate retry and reports recovery without inflating the score", async () => {
     const user = userEvent.setup();
-    typedDrill([card()]);
+    renderTyped([card()]);
+    await typeAndCheck(user, "saqué");
+    await waitFor(() => expect(screen.getByLabelText("Try the form again")).toBeTruthy());
+    await typeAndCheck(user, "sacaron", { retry: true });
+    await waitFor(() => expect(screen.getByText("Exactly right.")).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: "Done" }));
 
-    await type(user, "sacaron");
+    expect(screen.getByText("0/1")).toBeTruthy();
+    expect(screen.getByText(/1 immediate recovery/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Practice 1 missed form" })).toBeTruthy();
+    const events = await allEvents();
+    expect(events.map((event) => [event.type, event.metadata.stage])).toEqual([
+      ["drill_fail", "initial"],
+      ["drill_pass", "retry"],
+    ]);
+  });
 
+  it("reveals after the retry also misses and offers no third retry", async () => {
+    const user = userEvent.setup();
+    renderTyped([card()]);
+    await typeAndCheck(user, "saqué");
+    await waitFor(() => expect(screen.getByLabelText("Try the form again")).toBeTruthy());
+    await typeAndCheck(user, "sacan", { retry: true });
+
+    await waitFor(() => expect(screen.getByText("sacaron")).toBeTruthy());
+    expect(screen.queryByLabelText("Try the form again")).toBeNull();
+    expect((await allEvents()).map((event) => event.metadata.stage)).toEqual(["initial", "retry"]);
+  });
+
+  it("includes an immediately recovered miss once in the optional missed round", async () => {
+    const user = userEvent.setup();
+    renderTyped([card()]);
+    await typeAndCheck(user, "saqué");
+    await waitFor(() => expect(screen.getByLabelText("Try the form again")).toBeTruthy());
+    await typeAndCheck(user, "sacaron", { retry: true });
+    await waitFor(() => expect(screen.getByText("Exactly right.")).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    await user.click(screen.getByRole("button", { name: "Practice 1 missed form" }));
+
+    expect(screen.getByText(/Missed · 1 \/ 1/)).toBeTruthy();
+    await typeAndCheck(user, "sacaron");
+    await waitFor(() => expect(screen.getByText("Exactly right.")).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: "Done" }));
+
+    expect(screen.getByText("Missed round complete")).toBeTruthy();
+    expect(screen.getByText("0/1")).toBeTruthy();
+    expect((await allEvents()).map((event) => event.metadata.stage)).toEqual(["initial", "retry", "missed"]);
+  });
+
+  it("never offers self-grading over a typed verdict", async () => {
+    const user = userEvent.setup();
+    renderTyped([card()]);
+    await typeAndCheck(user, "sacaron");
+    await waitFor(() => expect(screen.getByText("Exactly right.")).toBeTruthy());
     expect(screen.queryByRole("button", { name: "Got it" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Missed it" })).toBeNull();
   });
 
-  it("clears the box and the verdict between cards", async () => {
+  it("clears local answer state between prompts", async () => {
     const user = userEvent.setup();
-    typedDrill([card(), card({ term: "poner", answer: "pusieron" })]);
-
-    await type(user, "sacaron");
+    renderTyped([
+      card({ deckSize: 2 }),
+      card({ term: "poner", lemma: "poner", verbKey: "lemma:poner", answer: "pusieron", forms: [], promptId: "session-1:2", cardIndex: 2, deckSize: 2 }),
+    ]);
+    await typeAndCheck(user, "sacaron");
+    await waitFor(() => expect(screen.getByText("Exactly right.")).toBeTruthy());
     await user.click(screen.getByRole("button", { name: "Next" }));
-
-    await waitFor(() => expect(screen.getByText("poner")).toBeTruthy());
+    expect(screen.getByText("poner")).toBeTruthy();
     expect(screen.getByLabelText("Type the form").value).toBe("");
-    expect(screen.queryByText("Exactly right.")).toBeNull();
-  });
-
-  it("counts accent slips separately in the summary", async () => {
-    const user = userEvent.setup();
-    typedDrill([card({ term: "hablar", answer: "habló" })]);
-
-    await type(user, "hablo");
-    await user.click(screen.getByRole("button", { name: "Done" }));
-
-    expect(screen.getByText("1/1")).toBeTruthy();
-    expect(screen.getByText("1 accent slip.")).toBeTruthy();
   });
 });

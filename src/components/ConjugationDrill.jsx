@@ -1,102 +1,204 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronLeft, RotateCcw, Check, X } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Card, Button } from "../theme.jsx";
 import { qualifiedTenseLabel } from "../lib/conjugation.js";
-import { checkTypedAnswer } from "../lib/drill.js";
+import { diagnoseTypedAnswer } from "../lib/drill.js";
+import { verbKeyForLemma } from "../lib/conjugationGym.js";
 import { logDrill } from "../db/events.js";
 import SpeakButton from "./SpeakButton.jsx";
 
+const DIAGNOSIS_TEXT = {
+  exact: "Exactly right.",
+  accents: "Right form — mind the accent.",
+  missing_no: "This negative command needs no.",
+  missing_reflexive: "The reflexive pronoun is missing.",
+  wrong_person: "That form belongs to another person.",
+  wrong_tense: "That form belongs to another tense.",
+  other_form: "That is a real form, but not this prompt.",
+  wrong: "Not this time.",
+};
+
+const fallbackSessionId = () =>
+  globalThis.crypto?.randomUUID?.() || `gym-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+function weakest(outcomes, field) {
+  const rows = new Map();
+  for (const outcome of outcomes) {
+    const key = outcome[field];
+    if (!key) continue;
+    const row = rows.get(key) || { key, attempts: 0, passed: 0 };
+    row.attempts += 1;
+    if (outcome.passed) row.passed += 1;
+    rows.set(key, row);
+  }
+  return [...rows.values()]
+    .filter((row) => row.passed < row.attempts)
+    .sort((a, b) => a.passed / a.attempts - b.passed / b.attempts || b.attempts - a.attempts)[0] || null;
+}
+
 /**
- * A pass through a deck of conjugation prompts (Phase 10c, graded since Phase 13).
- *
- * Each answer is graded and recorded. Phase 10c deliberately stored nothing; the owner
- * reversed that once the drill had been used, so the weak tenses could be found instead of
- * merely felt. The events are `drill_pass`/`drill_fail` and are read by nothing that
- * schedules: a missed conjugation is not a missed meaning, so it moves no Leitner box and
- * inflates no lookup count. Still no `view` event either — drilling a verb is not opening
- * its detail screen (the Phase 10c rule that survives).
- *
- * The deck is built once by the caller, so nothing re-derives underneath the owner.
+ * One immutable Gym deck. Every attempt is an event, but only initial typed attempts feed
+ * the session score. A first miss gets one immediate retry and is still offered once in an
+ * optional missed round, so recovery cannot erase the evidence that selected the form.
  */
 export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOpen, onGraded }) {
+  const [round, setRound] = useState("initial");
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [tally, setTally] = useState({ passed: 0, failed: 0, accents: 0 });
-
-  // Typed mode only: what has been typed, and the verdict once it is submitted. A null
-  // verdict is "still answering" — distinct from a wrong one, which is why the check runs
-  // on submit rather than on every keystroke.
   const [typed, setTyped] = useState("");
-  const [verdict, setVerdict] = useState(null);
+  const [result, setResult] = useState(null);
+  const [awaitingRetry, setAwaitingRetry] = useState(false);
+  const [missedCards, setMissedCards] = useState([]);
+  const [componentSessionId] = useState(() => deck[0]?.sessionId || fallbackSessionId());
+  const [tally, setTally] = useState({
+    answered: 0,
+    passed: 0,
+    exact: 0,
+    accents: 0,
+    recovered: 0,
+    outcomes: [],
+  });
 
-  const card = deck[index] || null;
-  const done = index >= deck.length;
+  const activeDeck = round === "missed" ? missedCards : deck;
+  const card = activeDeck[index] || null;
+  const done = index >= activeDeck.length;
   const isTyped = mode === "typed";
+  const weakTense = useMemo(() => weakest(tally.outcomes, "tense"), [tally.outcomes]);
+  const weakSlot = useMemo(() => weakest(tally.outcomes, "slot"), [tally.outcomes]);
 
-  /**
-   * Records one answer and advances. Disabled between the tap and the advance, so a
-   * double-tap cannot grade the next card — ReviewSession's guard, for its reason.
-   */
-  async function grade(passed, answerVerdict) {
-    if (busy || !card) return;
-    setBusy(true);
-    await logDrill(card.itemId, passed, {
+  function resetPrompt() {
+    setRevealed(false);
+    setTyped("");
+    setResult(null);
+    setAwaitingRetry(false);
+  }
+
+  function advance() {
+    resetPrompt();
+    setIndex((current) => current + 1);
+  }
+
+  function recordInitial(passed, verdict) {
+    setTally((current) => ({
+      ...current,
+      answered: current.answered + 1,
+      passed: current.passed + (passed ? 1 : 0),
+      exact: current.exact + (verdict === "exact" ? 1 : 0),
+      accents: current.accents + (verdict === "accents" ? 1 : 0),
+      outcomes: [...current.outcomes, { tense: card.tense, slot: card.slot, passed }],
+    }));
+    if (!passed) setMissedCards((current) => [...current, card]);
+  }
+
+  async function persist(passed, verdict, diagnosis, stage) {
+    const lemma = card.lemma || card.term;
+    await logDrill(card.itemKey ?? card.itemId ?? null, passed, {
+      sessionId: card.sessionId || componentSessionId,
+      promptId: card.promptId || `${componentSessionId}:${card.cardIndex || index + 1}`,
+      sessionKind: card.sessionKind || "quick",
+      source: card.source || "saved",
+      curriculum: card.curriculum || null,
+      verbKey: card.verbKey || verbKeyForLemma(lemma),
+      lemma,
+      dictKey: card.dictKey || null,
       tense: card.tense,
       slot: card.slot,
       mode,
-      verdict: answerVerdict,
+      verdict,
+      diagnosis,
+      stage,
+      cardIndex: card.cardIndex || index + 1,
+      deckSize: card.deckSize || deck.length,
     });
-    setTally((current) => ({
-      passed: current.passed + (passed ? 1 : 0),
-      failed: current.failed + (passed ? 0 : 1),
-      accents: current.accents + (answerVerdict === "accents" ? 1 : 0),
-    }));
-    setRevealed(false);
-    setTyped("");
-    setVerdict(null);
-    setIndex((current) => current + 1);
-    setBusy(false);
     onGraded?.();
   }
 
-  /**
-   * Typed mode marks the answer, shows it, and waits — the verdict is worth reading before
-   * the next card arrives, and an accent slip in particular is the whole reason to look.
-   * Grading is deferred to the Next tap so one submit cannot both judge and advance.
-   */
-  function submitTyped(event) {
+  async function submitTyped(event) {
     event?.preventDefault?.();
-    if (verdict || busy || !card) return;
-    setVerdict(checkTypedAnswer(typed, card.answer));
-    setRevealed(true);
+    if (busy || !card || !typed.trim() || (revealed && result)) return;
+    const stage = round === "missed" ? "missed" : awaitingRetry ? "retry" : "initial";
+    const diagnosed = diagnoseTypedAnswer(typed, card, card.forms || []);
+    setBusy(true);
+    try {
+      await persist(diagnosed.passed, diagnosed.verdict, diagnosed.diagnosis, stage);
+
+      if (stage === "initial") {
+        recordInitial(diagnosed.passed, diagnosed.verdict);
+        if (!diagnosed.passed) {
+          setResult({ ...diagnosed, stage });
+          setAwaitingRetry(true);
+          setTyped("");
+          setRevealed(false);
+          return;
+        }
+      } else if (stage === "retry" && diagnosed.passed) {
+        setTally((current) => ({ ...current, recovered: current.recovered + 1 }));
+      }
+
+      setResult({ ...diagnosed, stage, typed: typed.trim() });
+      setAwaitingRetry(false);
+      setRevealed(true);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function gradeReveal(passed) {
+    if (busy || !card) return;
+    const stage = round === "missed" ? "missed" : "initial";
+    setBusy(true);
+    try {
+      await persist(passed, "self", null, stage);
+      if (stage === "initial") recordInitial(passed, "self");
+      advance();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function startMissedRound() {
+    setRound("missed");
+    setIndex(0);
+    resetPrompt();
   }
 
   if (done) {
-    const answered = tally.passed + tally.failed;
+    const hasAnswers = tally.answered > 0;
+    const initialComplete = round === "initial";
     return (
       <div className="px-4 py-4 pb-28" style={dotGrid}>
         <Card className="p-5 text-center">
           <div className="text-xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
-            {deck.length === 0 ? "Nothing to drill" : "¡Ya está!"}
+            {deck.length === 0 ? "Nothing to drill" : initialComplete ? "Session complete" : "Missed round complete"}
           </div>
-          {answered > 0 && (
+          {hasAnswers && (
             <>
               <div className="mt-2 text-3xl" style={{ fontFamily: MONO, color: C.ink }}>
-                {tally.passed}/{answered}
+                {tally.passed}/{tally.answered}
               </div>
               <div className="mt-1 text-sm" style={{ color: C.mut }}>
-                {tally.accents > 0
-                  ? `${tally.accents} ${tally.accents === 1 ? "accent slip" : "accent slips"}.`
-                  : tally.failed === 0
-                    ? "Every one of them."
-                    : `${tally.failed} to come back to.`}
+                {tally.exact} exact · {tally.accents} accent {tally.accents === 1 ? "slip" : "slips"}
+                {tally.recovered > 0 && ` · ${tally.recovered} immediate ${tally.recovered === 1 ? "recovery" : "recoveries"}`}
               </div>
+              {(weakTense || weakSlot) && (
+                <div className="mt-3 rounded-lg px-3 py-2 text-sm" style={{ background: C.penPale, color: C.penDark }}>
+                  Needs work: {[weakTense && qualifiedTenseLabel(weakTense.key), weakSlot?.key].filter(Boolean).join(" · ")}
+                </div>
+              )}
             </>
           )}
-          <Button className="mt-4" onClick={onFinish}>
-            Back to Repaso
-          </Button>
+
+          {initialComplete && missedCards.length > 0 ? (
+            <div className="mt-4 space-y-2">
+              <Button className="w-full" onClick={startMissedRound}>
+                <RotateCcw size={15} /> Practice {missedCards.length} missed {missedCards.length === 1 ? "form" : "forms"}
+              </Button>
+              <Button tone="quiet" className="w-full" onClick={onFinish}>Finish session</Button>
+            </div>
+          ) : (
+            <Button className="mt-4" onClick={onFinish}>Back to Gym</Button>
+          )}
         </Card>
       </div>
     );
@@ -104,12 +206,12 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
 
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
-      <div className="flex items-center justify-between mb-3">
+      <div className="mb-3 flex items-center justify-between">
         <button onClick={onFinish} className="flex items-center gap-1 text-sm" style={{ color: C.pen }}>
           <ChevronLeft size={16} /> Finish
         </button>
         <span className="text-xs" style={{ fontFamily: MONO, color: C.mut }}>
-          {index + 1} / {deck.length}
+          {round === "missed" && "Missed · "}{index + 1} / {activeDeck.length}
         </span>
       </div>
 
@@ -125,51 +227,48 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
 
         {!revealed && isTyped ? (
           <form onSubmit={submitTyped} className="mt-5">
+            {awaitingRetry && result && (
+              <div className="mb-3 text-center">
+                <div className="text-sm" style={{ color: C.red }}>{DIAGNOSIS_TEXT[result.diagnosis]}</div>
+                <div className="mt-1 text-sm font-semibold" style={{ color: C.ink }}>Try once more.</div>
+              </div>
+            )}
             <input
               autoFocus
-              // Spanish, and none of the phone's helpfulness: an autocorrected or
-              // capitalised answer would be marked on what the keyboard decided rather
-              // than on what the owner recalled.
               lang="es"
               autoCapitalize="none"
               autoCorrect="off"
               autoComplete="off"
               spellCheck={false}
-              aria-label="Type the form"
+              aria-label={awaitingRetry ? "Try the form again" : "Type the form"}
               value={typed}
               onChange={(event) => setTyped(event.target.value)}
-              placeholder="the form…"
+              placeholder={awaitingRetry ? "try again…" : "the form…"}
               className="w-full rounded-xl border px-3 py-3 text-center text-2xl outline-none"
               style={{ fontFamily: SERIF, color: C.ink, borderColor: C.line, background: C.paper }}
             />
-            <Button type="submit" className="mt-3 w-full justify-center" disabled={!typed.trim()}>
-              Check
+            <Button type="submit" className="mt-3 w-full" disabled={busy || !typed.trim()}>
+              {awaitingRetry ? "Check retry" : "Check"}
             </Button>
           </form>
         ) : !revealed ? (
           <button
             onClick={() => setRevealed(true)}
-            className="w-full mt-5 py-6 rounded-xl border border-dashed text-sm"
+            className="mt-5 w-full rounded-xl border border-dashed py-6 text-sm"
             style={{ borderColor: C.line, color: C.mut, background: C.paper }}
           >
             Tap to see the form
           </button>
         ) : (
-          <div className="mt-4 pt-4 border-t text-center space-y-3" style={{ borderColor: C.line }}>
-            {verdict && (
-              <div className="text-sm" style={{ color: verdict === "wrong" ? C.red : C.green }}>
-                {verdict === "exact"
-                  ? "Exactly right."
-                  : verdict === "accents"
-                    ? "Right form — mind the accent."
-                    : "Not this time."}
+          <div className="mt-4 space-y-3 border-t pt-4 text-center" style={{ borderColor: C.line }}>
+            {result && (
+              <div className="text-sm" style={{ color: result.passed ? C.green : C.red }}>
+                {DIAGNOSIS_TEXT[result.diagnosis]}
               </div>
             )}
-            {/* The typed attempt stays on screen beside the answer when they differ: seeing
-                the two together is what makes an accent slip legible as a slip. */}
-            {verdict && verdict !== "exact" && typed.trim() && (
+            {result && result.verdict !== "exact" && result.typed && (
               <div className="text-sm line-through" style={{ fontFamily: SERIF, color: C.mut }}>
-                {typed.trim()}
+                {result.typed}
               </div>
             )}
             <div className="flex items-center justify-center gap-1">
@@ -178,7 +277,7 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
               </span>
               <SpeakButton text={card.answer} size={16} />
             </div>
-            {onOpen && (
+            {onOpen && (card.openKey || card.itemId || card.dictKey) && (
               <button
                 type="button"
                 onClick={() => onOpen(card.openKey || card.itemId || card.dictKey)}
@@ -192,37 +291,26 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
         )}
       </Card>
 
-      {/* Typed mode has already been marked, so it advances rather than asking again —
-          offering "Got it" over a verdict would invite overruling the check. */}
-      {revealed && isTyped && verdict && (
-        <Button
-          className="mt-4 w-full justify-center"
-          disabled={busy}
-          onClick={() => grade(verdict !== "wrong", verdict)}
-        >
-          {index + 1 === deck.length ? "Done" : "Next"}
+      {revealed && isTyped && result && (
+        <Button className="mt-4 w-full" disabled={busy} onClick={advance}>
+          {index + 1 === activeDeck.length ? "Done" : "Next"}
         </Button>
       )}
 
       {revealed && !isTyped && (
         <div className="mt-4 grid grid-cols-2 gap-2">
-          <Button tone="danger" disabled={busy} onClick={() => grade(false, "self")}>
+          <Button tone="danger" disabled={busy} onClick={() => gradeReveal(false)}>
             <X size={16} /> Missed it
           </Button>
-          <button
-            disabled={busy}
-            onClick={() => grade(true, "self")}
-            className="inline-flex items-center justify-center gap-2 text-sm px-3 py-2 rounded-lg border font-medium"
-            style={{ background: busy ? "#B9C2D8" : C.green, color: "#fff", borderColor: "transparent" }}
-          >
+          <Button disabled={busy} onClick={() => gradeReveal(true)}>
             <Check size={16} /> Got it
-          </button>
+          </Button>
         </div>
       )}
 
       <div className="mt-6 text-center text-xs" style={{ color: C.mut }}>
-        <RotateCcw size={11} className="inline mr-1 -mt-0.5" />
-        {deck.length - index === 1 ? "Last one" : `${deck.length - index} left`}
+        <RotateCcw size={11} className="mr-1 -mt-0.5 inline" />
+        {activeDeck.length - index === 1 ? "Last one" : `${activeDeck.length - index} left`}
       </div>
     </div>
   );

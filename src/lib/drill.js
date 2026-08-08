@@ -76,6 +76,66 @@ export function checkTypedAnswer(given, answer) {
   return "wrong";
 }
 
+/** Flatten a verb table for diagnosis; callers inject this rather than a database handle. */
+export function conjugationForms(conjugation) {
+  const forms = [];
+  for (const [tense, row] of Object.entries(conjugation?.tenses || {})) {
+    for (const [slot, raw] of Object.entries(row || {})) {
+      const form = String(raw || "").trim();
+      if (form) forms.push({ tense, slot, form });
+    }
+  }
+  return forms;
+}
+
+const recognizableMatch = (given, answer) => checkTypedAnswer(given, answer) !== "wrong";
+const REFLEXIVE = new Set(["me", "te", "se", "nos", "os"]);
+
+function withoutNegativeNo(form) {
+  return String(form || "").replace(/^no\s+/i, "");
+}
+
+function withoutReflexivePronoun(form) {
+  const words = String(form || "").trim().split(/\s+/);
+  if (REFLEXIVE.has(words[0]?.toLowerCase())) return words.slice(1).join(" ");
+  if (words[0]?.toLowerCase() === "no" && REFLEXIVE.has(words[1]?.toLowerCase())) {
+    return [words[0], ...words.slice(2)].join(" ");
+  }
+  return null;
+}
+
+/**
+ * Diagnoses a typed answer around the existing exact-first checker. Ambiguity is resolved
+ * by this fixed ladder: missing command/reflexive words, wrong person, wrong tense, then
+ * another recognizable form. The typed string is returned nowhere and is never persisted.
+ */
+export function diagnoseTypedAnswer(given, card, forms = []) {
+  const verdict = checkTypedAnswer(given, card?.answer);
+  if (verdict !== "wrong") return { passed: true, verdict, diagnosis: verdict };
+
+  const answer = String(card?.answer || "").trim();
+  if (/^no\s+/i.test(answer) && recognizableMatch(given, withoutNegativeNo(answer))) {
+    return { passed: false, verdict: "wrong", diagnosis: "missing_no" };
+  }
+
+  const withoutPronoun = withoutReflexivePronoun(answer);
+  if (withoutPronoun && recognizableMatch(given, withoutPronoun)) {
+    return { passed: false, verdict: "wrong", diagnosis: "missing_reflexive" };
+  }
+
+  const other = (forms || []).filter(({ tense, slot, form }) =>
+    form && !(tense === card?.tense && slot === card?.slot) && recognizableMatch(given, form)
+  );
+  if (other.some(({ tense, slot }) => tense === card?.tense && slot !== card?.slot)) {
+    return { passed: false, verdict: "wrong", diagnosis: "wrong_person" };
+  }
+  if (other.some(({ tense, slot }) => slot === card?.slot && tense !== card?.tense)) {
+    return { passed: false, verdict: "wrong", diagnosis: "wrong_tense" };
+  }
+  if (other.length) return { passed: false, verdict: "wrong", diagnosis: "other_form" };
+  return { passed: false, verdict: "wrong", diagnosis: "wrong" };
+}
+
 /** Fisher-Yates, so every ordering is equally likely rather than merely jumbled. */
 function shuffle(list, rng) {
   const out = [...list];
