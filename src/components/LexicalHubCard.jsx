@@ -69,14 +69,6 @@ export default function LexicalHubCard({
           </div>
         )}
 
-        {item.tags.length > 0 && (
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            {item.tags.map((tag) => (
-              <TagChip key={tag} tag={tag} />
-            ))}
-          </div>
-        )}
-
         {reason && (
           <div className="mt-2 text-xs italic" style={{ color: C.mut }}>
             {reason}
@@ -85,16 +77,23 @@ export default function LexicalHubCard({
       </button>
 
       {/*
-        Outside the card button on purpose: each row opens its own page, and a button inside a
-        button is invalid HTML.
+        Outside the card button on purpose: each page row opens its own page, and a button inside a
+        button is invalid HTML. The tags moved out with it so the placement chip and the tag chips
+        share one line — two half-empty rows of chips was the card's widest wasted space.
       */}
-      {contexts.length > 0 && (
-        <div className="-mt-2 px-4 pb-3">
-          <PageContextSummary
-            contexts={contexts}
-            onOpenPage={onOpen}
-            onOpenMore={() => onOpen(item.id)}
-          />
+      {(contexts.length > 0 || item.tags.length > 0) && (
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 px-4 pb-3">
+          {contexts.length > 0 && (
+            <PageContextSummary
+              className="min-w-0 flex-1 basis-1/2"
+              contexts={contexts}
+              onOpenPage={onOpen}
+              onOpenMore={() => onOpen(item.id)}
+            />
+          )}
+          {item.tags.map((tag) => (
+            <TagChip key={tag} tag={tag} />
+          ))}
         </div>
       )}
 

@@ -16,8 +16,17 @@ import { C } from "../theme.jsx";
  * `onOpenPage` makes the row a link to its page. It is optional because the Cuaderno card renders
  * this summary *inside* its own card button, where a nested button would be invalid HTML; that
  * caller gets a plain row.
+ *
+ * `className` is the outer spacing, defaulting to the standalone block's own top margin. A caller
+ * that lays the summary out beside something else — the hub card sits it on one line with the
+ * entry's tags — owns that spacing itself and passes its own flex sizing instead.
  */
-export default function PageContextSummary({ contexts = [], onOpenPage = null, onOpenMore = null }) {
+export default function PageContextSummary({
+  contexts = [],
+  onOpenPage = null,
+  onOpenMore = null,
+  className = "mt-2",
+}) {
   // With only the title left, several placements on one page collapse to the same row, and a
   // repeated line reads as a rendering bug. One row per page, and "+N more" counts from that same
   // list so the row and the count can never disagree.
@@ -41,7 +50,7 @@ export default function PageContextSummary({ contexts = [], onOpenPage = null, o
   const rowClass = "flex w-full items-center gap-1.5 text-left";
 
   return (
-    <div className="mt-2 text-xs">
+    <div className={`text-xs ${className}`}>
       {onOpenPage ? (
         <button
           type="button"
