@@ -126,6 +126,38 @@ describe("Collection reading and practice", () => {
     expect(screen.getByText("Useful with friends.")).toBeTruthy();
   });
 
+  it("collapses and expands each vocabulary group independently", async () => {
+    const user = userEvent.setup();
+    const fixture = await collectionFixture();
+    renderDetail(fixture.page, await allItems());
+
+    const questions = screen.getByRole("heading", { name: "Questions" }).closest("section");
+    const ungrouped = screen.getByRole("heading", { name: "Not grouped yet" }).closest("section");
+    const questionsToggle = within(questions).getByRole("button", { name: "Collapse group Questions" });
+    const ungroupedToggle = within(ungrouped).getByRole("button", { name: "Collapse group Not grouped yet" });
+
+    expect(questionsToggle.getAttribute("aria-expanded")).toBe("true");
+    expect(within(questions).getByRole("button", { name: /¿Qué opinas\?.*What do you think/i })).toBeTruthy();
+    expect(within(ungrouped).getByRole("button", { name: /pensándolo bien/i })).toBeTruthy();
+
+    await user.click(questionsToggle);
+    expect(within(questions).getByRole("button", { name: "Expand group Questions" }).getAttribute("aria-expanded")).toBe("false");
+    expect(within(questions).queryByRole("button", { name: /¿Qué opinas\?.*What do you think/i })).toBeNull();
+    expect(within(questions).getByText("2 items")).toBeTruthy();
+    await user.click(within(questions).getByRole("button", { name: "Add vocabulary" }));
+    expect(within(questions).getByRole("button", { name: "Collapse group Questions" })).toBeTruthy();
+    expect(within(questions).getByText("Adding to Questions")).toBeTruthy();
+    await user.click(within(questions).getByRole("button", { name: "Cancel adding vocabulary" }));
+    await user.click(within(questions).getByRole("button", { name: "Collapse group Questions" }));
+    expect(within(ungrouped).getByRole("button", { name: /pensándolo bien/i })).toBeTruthy();
+
+    await user.click(ungroupedToggle);
+    expect(within(ungrouped).queryByRole("button", { name: /pensándolo bien/i })).toBeNull();
+
+    await user.click(within(questions).getByRole("button", { name: "Expand group Questions" }));
+    expect(within(questions).getByRole("button", { name: /¿Qué opinas\?.*What do you think/i })).toBeTruthy();
+  });
+
   it("reveals answers locally, leaves missing meanings disabled, and writes no Practice events", async () => {
     const user = userEvent.setup();
     const fixture = await collectionFixture();

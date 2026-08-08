@@ -175,6 +175,13 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   change; the full serial suite passes 976/976 across 83 files, the production build and
   `git diff --check` pass, and a disposable 375×812 browser flow passed without overflow or console
   errors. See the Collection bulk-capture entries in [DECISIONS.md](DECISIONS.md).
+- **Vocabulary group collapse — implemented locally; not deployed.** Each named group and Not
+  grouped yet now collapses independently in page read mode, while its item count and Add
+  vocabulary action stay visible. Groups start expanded on each page visit and the display state
+  is not stored. No schema, backup, preference or event change; the full serial suite passes
+  977/977 across 83 files, the production build and `git diff --check` pass, and a disposable
+  375×812 browser flow passed without overflow or console warnings/errors. See the Vocabulary
+  group disclosure entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **5**. Before Dexie opens v5, schema-v1 through schema-v4 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,

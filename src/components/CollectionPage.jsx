@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
-  Bookmark, BookmarkCheck, CalendarDays, Check, ChevronLeft, ExternalLink,
+  Bookmark, BookmarkCheck, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink,
   MoreHorizontal, Pencil, Plus, Settings2, Trash2, X,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Card, SectionTitle, Button } from "../theme.jsx";
@@ -519,8 +519,52 @@ function PageMediaSection({ page, onChanged }) {
   );
 }
 
+const UNGROUPED_COLLAPSE_KEY = "collection-ungrouped";
+
+function VocabularyGroupHeader({
+  name,
+  itemCount,
+  headingId,
+  contentId,
+  collapsed,
+  onToggle,
+  onAdd,
+}) {
+  return (
+    <div className="mb-2 flex items-center justify-between gap-2">
+      <button
+        type="button"
+        aria-label={`${collapsed ? "Expand" : "Collapse"} group ${name}`}
+        aria-expanded={!collapsed}
+        aria-controls={contentId}
+        onClick={onToggle}
+        className="-ml-2 min-h-11 min-w-0 flex-1 rounded-lg px-2 text-left flex items-center gap-2"
+      >
+        {collapsed
+          ? <ChevronRight size={16} className="shrink-0" style={{ color: C.mut }} />
+          : <ChevronDown size={16} className="shrink-0" style={{ color: C.mut }} />}
+        <div className="min-w-0">
+          <h3 id={headingId} className="truncate text-sm font-semibold" style={{ color: C.ink }}>{name}</h3>
+          <div className="text-[11px]" style={{ color: C.mut, fontFamily: MONO }}>
+            {itemCount} {itemCount === 1 ? "item" : "items"}
+          </div>
+        </div>
+      </button>
+      <button
+        type="button"
+        onClick={onAdd}
+        className="min-h-11 shrink-0 rounded-full border px-3 py-1 text-xs inline-flex items-center gap-1"
+        style={{ background: C.card, borderColor: C.line, color: C.pen }}
+      >
+        <Plus size={11} /> Add vocabulary
+      </button>
+    </div>
+  );
+}
+
 function VocabularySection({ page, items, collection, onOpen, onChanged, onOrganize, onPractice }) {
   const [expanded, setExpanded] = useState(() => new Set());
+  const [collapsedGroups, setCollapsedGroups] = useState(() => new Set());
   const [addTarget, setAddTarget] = useState(null);
   const memberLocations = useMemo(() => {
     const map = new Map();
@@ -531,8 +575,28 @@ function VocabularySection({ page, items, collection, onOpen, onChanged, onOrgan
 
   useEffect(() => {
     setExpanded(new Set());
+    setCollapsedGroups(new Set());
     setAddTarget(null);
   }, [page.id]);
+
+  function toggleGroup(groupKey) {
+    setCollapsedGroups((current) => {
+      const next = new Set(current);
+      if (next.has(groupKey)) next.delete(groupKey); else next.add(groupKey);
+      return next;
+    });
+  }
+
+  function openAddTarget(groupId, label) {
+    const groupKey = groupId || UNGROUPED_COLLAPSE_KEY;
+    setCollapsedGroups((current) => {
+      if (!current.has(groupKey)) return current;
+      const next = new Set(current);
+      next.delete(groupKey);
+      return next;
+    });
+    setAddTarget({ groupId, label });
+  }
 
   async function commit(targetGroupId, candidates) {
     await commitCollectionAdd(page.id, { targetGroupId, candidates });
@@ -572,52 +636,63 @@ function VocabularySection({ page, items, collection, onOpen, onChanged, onOrgan
       </div>
 
       <div className="mt-4 space-y-5">
-        {collection.groups.map((group) => (
-          <section key={group.id} aria-labelledby={`collection-group-${group.id}`}>
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <h3 id={`collection-group-${group.id}`} className="truncate text-sm font-semibold" style={{ color: C.ink }}>{group.name}</h3>
-                <div className="text-[11px]" style={{ color: C.mut, fontFamily: MONO }}>{group.items.length} {group.items.length === 1 ? "item" : "items"}</div>
-              </div>
-              <button type="button" onClick={() => setAddTarget({ groupId: group.id, label: group.name })} className="min-h-11 shrink-0 rounded-full border px-3 py-1 text-xs inline-flex items-center gap-1" style={{ background: C.card, borderColor: C.line, color: C.pen }}>
-                <Plus size={11} /> Add vocabulary
-              </button>
-            </div>
-            {addTarget?.groupId === group.id && (
-              <CollectionAddVocabularySheet
-                items={items}
-                memberLocations={memberLocations}
-                targetLabel={group.name}
-                onCancel={() => setAddTarget(null)}
-                onCommit={(candidates) => commit(group.id, candidates)}
+        {collection.groups.map((group) => {
+          const headingId = `collection-group-${group.id}`;
+          const contentId = `collection-group-content-${group.id}`;
+          const collapsed = collapsedGroups.has(group.id);
+          return (
+            <section key={group.id} aria-labelledby={headingId}>
+              <VocabularyGroupHeader
+                name={group.name}
+                itemCount={group.items.length}
+                headingId={headingId}
+                contentId={contentId}
+                collapsed={collapsed}
+                onToggle={() => toggleGroup(group.id)}
+                onAdd={() => openAddTarget(group.id, group.name)}
               />
-            )}
-            <div className="mt-2 space-y-2">
-              {group.items.map(vocabularyCard)}
-              {group.items.length === 0 && <Card><div className="text-xs italic" style={{ color: C.mut }}>No vocabulary in this group yet.</div></Card>}
-            </div>
-          </section>
-        ))}
+              <div id={contentId} hidden={collapsed}>
+                {addTarget?.groupId === group.id && (
+                  <CollectionAddVocabularySheet
+                    items={items}
+                    memberLocations={memberLocations}
+                    targetLabel={group.name}
+                    onCancel={() => setAddTarget(null)}
+                    onCommit={(candidates) => commit(group.id, candidates)}
+                  />
+                )}
+                <div className="mt-2 space-y-2">
+                  {group.items.map(vocabularyCard)}
+                  {group.items.length === 0 && <Card><div className="text-xs italic" style={{ color: C.mut }}>No vocabulary in this group yet.</div></Card>}
+                </div>
+              </div>
+            </section>
+          );
+        })}
 
         {collection.ungroupedItems.length > 0 && (
           <section aria-labelledby="collection-ungrouped">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <div>
-                <h3 id="collection-ungrouped" className="text-sm font-semibold" style={{ color: C.ink }}>{NOT_GROUPED_LABEL}</h3>
-                <div className="text-[11px]" style={{ color: C.mut, fontFamily: MONO }}>{collection.ungroupedItems.length} items</div>
-              </div>
-              <button type="button" onClick={() => setAddTarget({ groupId: null, label: NOT_GROUPED_LABEL })} className="min-h-11 shrink-0 rounded-full border px-3 py-1 text-xs inline-flex items-center gap-1" style={{ background: C.card, borderColor: C.line, color: C.pen }}><Plus size={11} /> Add vocabulary</button>
+            <VocabularyGroupHeader
+              name={NOT_GROUPED_LABEL}
+              itemCount={collection.ungroupedItems.length}
+              headingId="collection-ungrouped"
+              contentId="collection-ungrouped-content"
+              collapsed={collapsedGroups.has(UNGROUPED_COLLAPSE_KEY)}
+              onToggle={() => toggleGroup(UNGROUPED_COLLAPSE_KEY)}
+              onAdd={() => openAddTarget(null, NOT_GROUPED_LABEL)}
+            />
+            <div id="collection-ungrouped-content" hidden={collapsedGroups.has(UNGROUPED_COLLAPSE_KEY)}>
+              {addTarget && addTarget.groupId === null && (
+                <CollectionAddVocabularySheet
+                  items={items}
+                  memberLocations={memberLocations}
+                  targetLabel={NOT_GROUPED_LABEL}
+                  onCancel={() => setAddTarget(null)}
+                  onCommit={(candidates) => commit(null, candidates)}
+                />
+              )}
+              <div className="mt-2 space-y-2">{collection.ungroupedItems.map(vocabularyCard)}</div>
             </div>
-            {addTarget && addTarget.groupId === null && (
-              <CollectionAddVocabularySheet
-                items={items}
-                memberLocations={memberLocations}
-                targetLabel={NOT_GROUPED_LABEL}
-                onCancel={() => setAddTarget(null)}
-                onCommit={(candidates) => commit(null, candidates)}
-              />
-            )}
-            <div className="mt-2 space-y-2">{collection.ungroupedItems.map(vocabularyCard)}</div>
           </section>
         )}
       </div>
