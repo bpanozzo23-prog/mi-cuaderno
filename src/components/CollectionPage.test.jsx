@@ -126,6 +126,21 @@ describe("Collection reading and practice", () => {
     expect(screen.getByText("Useful with friends.")).toBeTruthy();
   });
 
+  it("threads the section spine from the header down to the last action, with a node per group", async () => {
+    const fixture = await collectionFixture();
+    renderDetail(fixture.page, await allItems());
+
+    const content = document.getElementById("page-vocabulary-content");
+    expect(content.className).toContain("border-l-2");
+    expect(content.contains(screen.getByRole("button", { name: "Add group" }))).toBe(true);
+
+    for (const name of ["Questions", "Responses", "Not grouped yet"]) {
+      const group = screen.getByRole("heading", { name }).closest("section");
+      expect(group.className).toContain("relative");
+      expect(group.querySelectorAll(':scope > span[aria-hidden="true"]')).toHaveLength(1);
+    }
+  });
+
   it("collapses and expands each vocabulary group independently", async () => {
     const user = userEvent.setup();
     const fixture = await collectionFixture();

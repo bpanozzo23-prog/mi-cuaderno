@@ -35,7 +35,7 @@ import TagInput from "./TagInput.jsx";
 import SourceSection from "./SourceSection.jsx";
 import GrammarSection from "./GrammarSection.jsx";
 import PageCustomizeSheet from "./PageCustomizeSheet.jsx";
-import PageSectionDisclosure from "./PageSectionDisclosure.jsx";
+import PageSectionDisclosure, { SectionSpineNode } from "./PageSectionDisclosure.jsx";
 import MarkdownText from "./MarkdownText.jsx";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
 
@@ -700,13 +700,14 @@ function VocabularySection({ page, items, collection, onOpen, onChanged, onOrgan
         </>
       ) : null}
     >
-      <div className="mt-4 space-y-5 px-2">
+      <div className="mt-4 space-y-5">
         {collection.groups.map((group) => {
           const headingId = `collection-group-${group.id}`;
           const contentId = `collection-group-content-${group.id}`;
           const collapsed = collapsedGroups.has(group.id);
           return (
-            <section key={group.id} aria-labelledby={headingId}>
+            <section key={group.id} aria-labelledby={headingId} className="relative">
+              <SectionSpineNode />
               <VocabularyGroupHeader
                 name={group.name}
                 itemCount={group.items.length}
@@ -736,7 +737,8 @@ function VocabularySection({ page, items, collection, onOpen, onChanged, onOrgan
         })}
 
         {collection.ungroupedItems.length > 0 && (
-          <section aria-labelledby="collection-ungrouped">
+          <section aria-labelledby="collection-ungrouped" className="relative">
+            <SectionSpineNode />
             <VocabularyGroupHeader
               name={NOT_GROUPED_LABEL}
               itemCount={collection.ungroupedItems.length}

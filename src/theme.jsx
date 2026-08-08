@@ -29,6 +29,7 @@ export const C = {
   green: "var(--color-green)",
   greenPale: "var(--color-green-pale)",
   chipBorder: "var(--color-chip-border)",
+  sectionSpine: "var(--color-section-spine)",
   dangerBorder: "var(--color-danger-border)",
   disabled: "var(--color-disabled)",
   accentWord: "var(--color-accent-word)",
