@@ -21,6 +21,7 @@ import {
 } from "../lib/pageKinds.js";
 import { pageSeedFromRecipe } from "../lib/pageStarters.js";
 import MeaningEditor from "./MeaningEditor.jsx";
+import MarkdownTextarea from "./MarkdownTextarea.jsx";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
@@ -260,9 +261,9 @@ export default function AddSheet({
                 </div>
               </Card>
             ) : (
-              <textarea
+              <MarkdownTextarea
                 value={body}
-                onChange={(event) => setBody(event.target.value)}
+                onChange={setBody}
                 aria-label="Page overview"
                 placeholder={
                   seed.pageFocus === PAGE_FOCUSES.vocabulary
@@ -540,9 +541,9 @@ export default function AddSheet({
                 ))}
               </select>
             </div>
-            <textarea
+            <MarkdownTextarea
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={setNotes}
               placeholder="First note (optional) — a mnemonic, a gotcha, where you heard it"
               className="w-full text-sm rounded-xl border px-3 py-2.5 outline-none min-h-16"
               style={inputStyle}

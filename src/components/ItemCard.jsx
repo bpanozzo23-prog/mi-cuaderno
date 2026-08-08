@@ -8,6 +8,7 @@ import { PAGE_FOCUSES, enabledPageRoles, isJournalPage } from "../lib/pageKinds.
 import PageContextSummary from "./PageContextSummary.jsx";
 import TagChip from "./TagChip.jsx";
 import { PART_OF_SPEECH_ABBR, grammarAbbreviations } from "../lib/partOfSpeech.js";
+import { markdownPreviewText } from "../lib/noteMarkdown.js";
 
 export const POS_OPTIONS = ["", "noun", "verb", "adjective", "adverb", "other"];
 export const POS_ABBR = PART_OF_SPEECH_ABBR;
@@ -44,6 +45,7 @@ export default function ItemCard({
   const headingSuffix = isPage ? "" : personalHeadingSuffix(item);
   const gloss = isPage ? "" : firstMeaningGloss(item);
   const title = isPage ? item.title || "Untitled page" : item.term;
+  const bodyPreview = isPage ? markdownPreviewText(item.body) : "";
   const PageIcon = item.pageFocus === PAGE_FOCUSES.source
     ? BookOpen
     : item.pageFocus === PAGE_FOCUSES.grammar
@@ -147,10 +149,10 @@ export default function ItemCard({
             <CalendarDays size={11} /> {item.pageDate}
           </div>
         )}
-        {isPage && item.body && (
+        {isPage && bodyPreview && (
           <div className="text-sm mt-1 line-clamp-2" style={{ color: C.mut }}>
-            {item.body.slice(0, 120)}
-            {item.body.length > 120 ? "…" : ""}
+            {bodyPreview.slice(0, 120)}
+            {bodyPreview.length > 120 ? "…" : ""}
           </div>
         )}
 

@@ -93,3 +93,95 @@
   border-radius: 10px 12px 0 0;
   background: var(--color-page-folder-tab);
 }
+
+/* Notebook Markdown is intentionally prose-first rather than README-like. These rules apply only
+   inside saved page bodies and lexical notes; editor textareas continue to show the source. */
+.note-markdown {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.note-markdown > :first-child {
+  margin-top: 0;
+}
+
+.note-markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.note-markdown p,
+.note-markdown ul,
+.note-markdown ol,
+.note-markdown blockquote {
+  margin: 0.55em 0;
+}
+
+.note-markdown h1,
+.note-markdown h2,
+.note-markdown h3 {
+  margin: 0.9em 0 0.35em;
+  color: var(--color-ink);
+  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.note-markdown h1,
+.note-markdown h2 {
+  font-size: 1.2em;
+}
+
+.note-markdown h3 {
+  font-size: 1.05em;
+}
+
+.note-markdown ul,
+.note-markdown ol {
+  padding-left: 1.45rem;
+}
+
+.note-markdown ul {
+  list-style: disc;
+}
+
+.note-markdown ol {
+  list-style: decimal;
+}
+
+.note-markdown li + li {
+  margin-top: 0.2em;
+}
+
+.note-markdown blockquote {
+  border-left: 3px solid var(--color-chip-border);
+  padding-left: 0.75rem;
+  color: var(--color-mut);
+}
+
+.note-markdown hr {
+  margin: 1em 0;
+  border: 0;
+  border-top: 1px solid var(--color-line);
+}
+
+.note-markdown mark {
+  border-radius: 3px;
+  background: var(--color-hi-soft);
+  color: inherit;
+  padding: 0 0.12em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.note-markdown--compact h1,
+.note-markdown--compact h2,
+.note-markdown--compact h3 {
+  font-size: 1em;
+}
+
+.note-markdown--compact p,
+.note-markdown--compact ul,
+.note-markdown--compact ol,
+.note-markdown--compact blockquote {
+  margin: 0.35em 0;
+}

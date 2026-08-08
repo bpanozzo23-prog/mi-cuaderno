@@ -5,6 +5,7 @@ import { createItem, newPage, updateItem } from "../db/items.js";
 import { logView } from "../db/events.js";
 import { localDate } from "../lib/dates.js";
 import PromptLibrary from "./PromptLibrary.jsx";
+import MarkdownTextarea from "./MarkdownTextarea.jsx";
 
 export const JOURNAL_AUTOSAVE_MS = 650;
 
@@ -255,13 +256,13 @@ export default function JournalEditor({
           </Card>
         )}
 
-        <textarea
-          ref={bodyRef}
+        <MarkdownTextarea
+          textareaRef={bodyRef}
           autoFocus
           aria-label="Journal body"
           aria-describedby={prompt ? "active-journal-prompt" : undefined}
           value={body}
-          onChange={(event) => setBody(event.target.value)}
+          onChange={setBody}
           placeholder="What do you want to remember? Write in Spanish, English, or both."
           className="w-full min-h-80 resize-y rounded-xl border p-3 text-base leading-relaxed outline-none"
           style={{ background: C.card, borderColor: C.line, color: C.ink, fontFamily: SERIF }}

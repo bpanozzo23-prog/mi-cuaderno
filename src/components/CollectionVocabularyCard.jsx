@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronUp, ExternalLink, Eye } from "lucide-react";
 import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
+import { markdownPreviewText } from "../lib/noteMarkdown.js";
 
 const firstNonblank = (...values) => values.find((value) => String(value || "").trim()) || "";
 
@@ -155,7 +156,7 @@ export default function CollectionVocabularyCard({
 
           {note && (
             <div className="mt-3 text-xs whitespace-pre-wrap break-words line-clamp-2" style={{ color: C.mut }}>
-              {note}
+              {markdownPreviewText(note)}
             </div>
           )}
 

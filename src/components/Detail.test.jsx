@@ -70,8 +70,8 @@ describe("scan-first notes and page bodies", () => {
 
     const reading = screen.getByText(/Primera línea/);
     expect(reading.textContent).toBe(original);
-    expect(reading.className).toContain("whitespace-pre-wrap");
-    expect(reading.className).toContain("break-words");
+    expect(reading.closest(".note-markdown")).toBeTruthy();
+    expect(reading.querySelector("br")).toBeTruthy();
     await waitFor(() => expect(screen.queryByRole("textbox", { name: "Note" })).toBeNull());
 
     await user.click(screen.getByRole("button", { name: "Edit note" }));
@@ -96,7 +96,9 @@ describe("scan-first notes and page bodies", () => {
       expect(saved.notes).toBe("  Nueva línea\nOtra línea  ");
     });
     await waitFor(() => expect(screen.queryByRole("textbox", { name: "Note" })).toBeNull());
-    expect(screen.getByText(/Nueva línea/).textContent).toBe("  Nueva línea\nOtra línea  ");
+    // Markdown ignores paragraph-edge spaces in read mode, but the saved source above remains
+    // byte-for-byte intact when the owner reopens the editor.
+    expect(screen.getByText(/Nueva línea/).textContent).toBe("Nueva línea\nOtra línea");
     expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(1);
   });
 

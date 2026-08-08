@@ -23,6 +23,25 @@ const moment = (id, date, overrides = {}) => ({
 });
 
 describe("JournalHome", () => {
+  it("shows clean visible text rather than Markdown punctuation in a card preview", () => {
+    const formatted = moment("Formatted", "2026-08-03", {
+      body: "A **very important** ==memory==.",
+    });
+    render(
+      <JournalHome
+        entries={[formatted]}
+        onOpen={vi.fn()}
+        onEdit={vi.fn()}
+        onStart={vi.fn()}
+        now={new Date(2026, 7, 3, 12)}
+      />
+    );
+
+    expect(screen.getAllByText("A very important memory.")).toHaveLength(2);
+    expect(document.body.textContent).not.toContain("**");
+    expect(document.body.textContent).not.toContain("==");
+  });
+
   it("opens the stable Today anchor, a distinct continuation, and a fresh same-day moment", async () => {
     const user = userEvent.setup();
     const onEdit = vi.fn();

@@ -1,4 +1,5 @@
 import { normalize } from "./normalize.js";
+import { plainTextFromMarkdown } from "./noteMarkdown.js";
 import {
   allPersonalExamples,
   meaningContextText,
@@ -140,7 +141,7 @@ function bestMatch(item, query, { allItems = [], includeContainedVocabulary = fa
   if (tag) return { tier: TIER.tag, reason: `${REASONS.tag} "${tag}"`, offset: 0 };
 
   // Tier 6: free text — notes, personal examples, page bodies.
-  if (!isPage && normalize([item.notes, meaningNotes(item)].filter(Boolean).join("\n")).includes(q)) {
+  if (!isPage && normalize([plainTextFromMarkdown(item.notes), meaningNotes(item)].filter(Boolean).join("\n")).includes(q)) {
     return { tier: TIER.text, reason: REASONS.notes, offset: 0 };
   }
   if (!isPage && allPersonalExamples(item).some((x) => normalize(x.es).includes(q) || normalize(x.en).includes(q))) {
@@ -149,7 +150,7 @@ function bestMatch(item, query, { allItems = [], includeContainedVocabulary = fa
   if (!isPage && normalize(meaningContextText(item)).includes(q)) {
     return { tier: TIER.text, reason: REASONS.meaning, offset: 2 };
   }
-  if (isPage && normalize(item.body).includes(q)) {
+  if (isPage && normalize(plainTextFromMarkdown(item.body)).includes(q)) {
     return { tier: TIER.text, reason: REASONS.body, offset: 0 };
   }
   if (isPage && normalize(activeSourceText(item)).includes(q)) {

@@ -1,6 +1,7 @@
 import { BookOpen } from "lucide-react";
 import { C, SERIF, MONO } from "../theme.jsx";
 import { meaningLabels } from "../lib/meanings.js";
+import MarkdownText from "./MarkdownText.jsx";
 
 /**
  * One personal meaning row. Exported for the reverse card face (Phase 10a), which shows
@@ -72,9 +73,9 @@ export default function LexicalAnswer({ item, showContext, onToggleContext, onOp
       )}
 
       {item.notes && (
-        <div className="text-sm whitespace-pre-wrap" style={{ color: C.mut }}>
+        <MarkdownText compact className="text-sm" style={{ color: C.mut }}>
           {item.notes}
-        </div>
+        </MarkdownText>
       )}
 
       {item.myExamples?.slice(0, 2).map((example, index) => (

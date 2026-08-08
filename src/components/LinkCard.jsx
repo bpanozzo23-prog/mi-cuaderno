@@ -7,6 +7,7 @@ import { timeAgo } from "../lib/dates.js";
 import { meaningGlossText } from "../lib/meanings.js";
 import { normalizeRelationship } from "../lib/relationships.js";
 import RelationshipSelect from "./RelationshipSelect.jsx";
+import { markdownPreviewText } from "../lib/noteMarkdown.js";
 
 /**
  * One link, shown as something you can recognise (requirement 4).
@@ -22,7 +23,7 @@ import RelationshipSelect from "./RelationshipSelect.jsx";
 
 const previewOf = (item) => {
   const text = item.type === "page" ? item.body : item.notes;
-  return text ? text.replace(/\s+/g, " ").slice(0, 80) : "";
+  return markdownPreviewText(text).slice(0, 80);
 };
 
 function ConnectionEditor({ connection, onSave, onCancel, onRemove }) {

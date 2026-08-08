@@ -141,7 +141,7 @@ describe("composable page workspace", () => {
     const grammar = screen.getByRole("heading", { name: "Grammar guide" });
     const vocabulary = screen.getByRole("heading", { name: "Vocabulary" });
     const fullBody = screen.getByText(/These notes explain how the speaker/);
-    expect(fullBody.classList.contains("line-clamp-4")).toBe(false);
+    expect(fullBody.closest(".note-markdown").classList.contains("line-clamp-4")).toBe(false);
     expect(appearsBefore(notes, source)).toBe(true);
     expect(appearsBefore(source, grammar)).toBe(true);
     expect(appearsBefore(grammar, vocabulary)).toBe(true);
@@ -155,7 +155,7 @@ describe("composable page workspace", () => {
     const vocabularyLead = screen.getByRole("heading", { name: "Vocabulary" });
     const sourceAfter = screen.getByRole("heading", { name: "Source notebook" });
     const grammarAfter = screen.getByRole("heading", { name: "Grammar guide" });
-    expect(overview.classList.contains("line-clamp-4")).toBe(true);
+    expect(overview.closest(".note-markdown").classList.contains("line-clamp-4")).toBe(true);
     expect(appearsBefore(overview, vocabularyLead)).toBe(true);
     expect(appearsBefore(vocabularyLead, sourceAfter)).toBe(true);
     expect(appearsBefore(sourceAfter, grammarAfter)).toBe(true);

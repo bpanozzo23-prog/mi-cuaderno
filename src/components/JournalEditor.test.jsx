@@ -29,6 +29,24 @@ const baseProps = (overrides = {}) => ({
 });
 
 describe("JournalEditor autosave", () => {
+  it("autosaves formatting inserted by the toolbar", async () => {
+    const user = userEvent.setup();
+    const entry = await createItem(newPage({
+      title: "Formatted moment",
+      body: "Esto importa",
+      pageDate: "2026-08-03",
+    }));
+    render(<JournalEditor {...baseProps({ entry })} />);
+    const body = screen.getByRole("textbox", { name: "Journal body" });
+    body.focus();
+    body.setSelectionRange(5, 12);
+
+    await user.click(screen.getByRole("button", { name: "Highlight" }));
+
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe("Saved"));
+    expect((await allItems())[0].body).toBe("Esto ==importa==");
+  });
+
   it("does not materialize a fresh draft from a title alone", async () => {
     const user = userEvent.setup();
     render(<JournalEditor {...baseProps()} />);

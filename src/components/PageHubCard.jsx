@@ -9,6 +9,7 @@ import {
 import { C, MONO, SERIF, hubTitleSize } from "../theme.jsx";
 import { deriveCollection } from "../lib/collections.js";
 import { enabledPageRoles } from "../lib/pageKinds.js";
+import { markdownPreviewText } from "../lib/noteMarkdown.js";
 
 const amount = (count, singular) => `${count} ${count === 1 ? singular : `${singular}s`}`;
 
@@ -70,6 +71,7 @@ export default function PageHubCard({
   const title = page.title || "Untitled page";
   const roles = enabledPageRoles(page);
   const summary = pageSummary(page, items);
+  const bodyPreview = markdownPreviewText(page.body);
 
   return (
     <div
@@ -111,9 +113,9 @@ export default function PageHubCard({
           {summary}
         </div>
 
-        {page.pageFocus === "notes" && page.body?.trim() && (
+        {page.pageFocus === "notes" && bodyPreview && (
           <div className="mt-1 text-sm line-clamp-2" style={{ color: C.mut }}>
-            {page.body.trim()}
+            {bodyPreview}
           </div>
         )}
 

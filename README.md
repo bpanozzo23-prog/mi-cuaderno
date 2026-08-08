@@ -190,6 +190,14 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   The full serial suite passes 978/978 across 83 files, the production build and `git diff --check`
   pass, and a disposable 375×812 browser flow passed without page overflow or console warnings/
   errors. See the Page section density entries in [DECISIONS.md](DECISIONS.md).
+- **Notebook formatting — implemented locally; not deployed.** Page bodies, journal entries and
+  top-level word/phrase notes keep their existing plain-text storage and editor, with a compact
+  toolbar for headings, bold, italic, highlight, lists, dividers and quotes. Read mode renders that
+  deliberately small Markdown subset, while search, previews and AI feedback receive only visible
+  text. Raw HTML, images, tables, code and clickable links are not enabled. No schema, backup,
+  preference or event change; the full serial suite passes 991/991 across 86 files, the production
+  build and `git diff --check` pass, and a disposable 375×812 browser flow passed without overflow
+  or console warnings/errors. See the Notebook Markdown entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **5**. Before Dexie opens v5, schema-v1 through schema-v4 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,

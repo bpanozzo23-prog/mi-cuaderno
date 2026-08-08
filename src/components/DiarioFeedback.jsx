@@ -4,6 +4,7 @@ import { C, MONO, SERIF, Card, Button } from "../theme.jsx";
 import { getPref } from "../db/db.js";
 import { AI_API_KEY_PREF } from "../lib/aiPrefs.js";
 import { requestDiarioFeedback } from "../lib/aiFeedback.js";
+import { plainTextFromMarkdown } from "../lib/noteMarkdown.js";
 
 /**
  * A reader for one entry, asked for on purpose and never kept (brief §9).
@@ -55,7 +56,7 @@ export default function DiarioFeedback({ entry, onClose }) {
       const apiKey = await getPref(AI_API_KEY_PREF);
       const result = await requestDiarioFeedback({
         title: entry.title,
-        body: entry.body,
+        body: plainTextFromMarkdown(entry.body),
         apiKey,
         signal: abort.current.signal,
       });

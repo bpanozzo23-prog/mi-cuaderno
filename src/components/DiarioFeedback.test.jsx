@@ -27,7 +27,7 @@ const respondWith = (payload, { ok = true, status = 200 } = {}) =>
 const succeeds = (json = review) =>
   respondWith({ stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify(json) }] });
 
-const shown = () => render(<DiarioFeedback entry={entry} onClose={() => {}} />);
+const shown = (shownEntry = entry) => render(<DiarioFeedback entry={shownEntry} onClose={() => {}} />);
 const sendButton = () => screen.getByRole("button", { name: /Send and review/i });
 
 beforeEach(async () => {
@@ -59,6 +59,19 @@ describe("before anything is sent", () => {
     await user.click(sendButton());
 
     await waitFor(() => expect(globalThis.fetch).toHaveBeenCalledTimes(1));
+  });
+
+  it("sends the visible journal text without Markdown markers", async () => {
+    const user = userEvent.setup();
+    shown({ ...entry, body: "Hoy estoy **muy agradecido** por ==mi familia==." });
+
+    await user.click(sendButton());
+
+    await waitFor(() => expect(globalThis.fetch).toHaveBeenCalledTimes(1));
+    const requestBody = JSON.parse(globalThis.fetch.mock.calls[0][1].body);
+    expect(requestBody.messages[0].content).toContain("Hoy estoy muy agradecido por mi familia.");
+    expect(requestBody.messages[0].content).not.toContain("**");
+    expect(requestBody.messages[0].content).not.toContain("==");
   });
 });
 

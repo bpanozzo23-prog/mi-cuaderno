@@ -21,6 +21,7 @@ import {
   searchJournalEntries,
   todayJournalEntry,
 } from "../lib/journal.js";
+import { markdownPreviewText, plainTextFromMarkdown } from "../lib/noteMarkdown.js";
 
 function localDateObject(dateString) {
   const [year, month, day] = String(dateString).split("-").map(Number);
@@ -40,12 +41,13 @@ export function journalDateLabel(dateString, options = {}) {
 
 function entryHeading(entry) {
   if (entry.title?.trim()) return entry.title.trim();
-  const firstLine = entry.body?.split(/\r?\n/).find((line) => line.trim())?.trim();
+  const firstLine = plainTextFromMarkdown(entry.body).split(/\r?\n/).find((line) => line.trim())?.trim();
   return firstLine ? firstLine.slice(0, 64) : "Untitled moment";
 }
 
 function EntryCard({ entry, onOpen, eyebrow = null }) {
   const titled = Boolean(entry.title?.trim());
+  const bodyPreview = markdownPreviewText(entry.body);
   return (
     <button
       type="button"
@@ -61,9 +63,9 @@ function EntryCard({ entry, onOpen, eyebrow = null }) {
         <div className={`${titled ? "mt-1 font-semibold" : "mt-1 text-sm line-clamp-2"}`} style={{ color: C.ink, fontFamily: SERIF }}>
           {entryHeading(entry)}
         </div>
-        {titled && entry.body?.trim() && (
-          <div className="mt-1 text-sm line-clamp-2 whitespace-pre-wrap" style={{ color: C.mut }}>
-            {entry.body.trim()}
+        {titled && bodyPreview && (
+          <div className="mt-1 text-sm line-clamp-2" style={{ color: C.mut }}>
+            {bodyPreview}
           </div>
         )}
       </Card>
@@ -82,6 +84,7 @@ export default function JournalHome({ entries, onOpen, onEdit, onStart, now = ne
   const archive = useMemo(() => archivedJournalYears(entries, today), [entries, today]);
   const results = useMemo(() => searchJournalEntries(entries, query), [entries, query]);
   const searching = query.trim() !== "";
+  const todayPreview = markdownPreviewText(todayEntry?.body);
 
   return (
     <div className="px-4 py-5 pb-28" style={dotGrid}>
@@ -102,9 +105,9 @@ export default function JournalHome({ entries, onOpen, onEdit, onStart, now = ne
         <div className="mt-2 text-xl font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>
           {journalDateLabel(today, { weekday: "long", month: "long", year: undefined })}
         </div>
-        {todayEntry?.body?.trim() && (
-          <div className="mt-2 text-sm line-clamp-2 whitespace-pre-wrap" style={{ color: C.mut }}>
-            {todayEntry.body.trim()}
+        {todayPreview && (
+          <div className="mt-2 text-sm line-clamp-2" style={{ color: C.mut }}>
+            {todayPreview}
           </div>
         )}
         <div className="mt-4 flex flex-wrap gap-2">

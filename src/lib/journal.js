@@ -1,5 +1,6 @@
 import { isJournalPage } from "./pageKinds.js";
 import { normalize } from "./normalize.js";
+import { plainTextFromMarkdown } from "./noteMarkdown.js";
 
 /**
  * Journal is a presentation of the existing page record, never a stored profile or third item
@@ -38,7 +39,7 @@ export function searchJournalEntries(items, query) {
   const entries = sortJournalEntries(items);
   if (!needle) return entries;
   return entries.filter((entry) =>
-    normalize([entry.title, entry.body, ...(entry.tags || [])].filter(Boolean).join("\n")).includes(needle)
+    normalize([entry.title, plainTextFromMarkdown(entry.body), ...(entry.tags || [])].filter(Boolean).join("\n")).includes(needle)
   );
 }
 

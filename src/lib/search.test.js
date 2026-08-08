@@ -139,6 +139,20 @@ describe("meaning-level context", () => {
 });
 
 describe("search exclusions and empty queries", () => {
+  it("matches the visible phrase across notebook Markdown markers", () => {
+    const formatted = lexical({ term: "importar", notes: "Esto es muy **importante** para mí." });
+    expect(searchItems([formatted], "muy importante")[0]).toMatchObject({
+      item: formatted,
+      reason: "in your notes",
+    });
+
+    const pageWithHighlight = page({ title: "Viaje", body: "Quiero ==recordar este lugar== mañana." });
+    expect(searchItems([pageWithHighlight], "recordar este lugar")[0]).toMatchObject({
+      item: pageWithHighlight,
+      reason: "in the page",
+    });
+  });
+
   it("does not index shared connection notes", () => {
     const source = lexical({
       term: "ser",

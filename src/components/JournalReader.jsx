@@ -21,10 +21,12 @@ import JournalMore from "./JournalMore.jsx";
 import DiarioFeedback from "./DiarioFeedback.jsx";
 import { aiFeedbackReady } from "../lib/aiPrefs.js";
 import { journalDateLabel } from "./JournalHome.jsx";
+import MarkdownText from "./MarkdownText.jsx";
+import { plainTextFromMarkdown } from "../lib/noteMarkdown.js";
 
 function momentHeading(moment) {
   if (moment.title?.trim()) return moment.title.trim();
-  return moment.body?.split(/\r?\n/).find((line) => line.trim())?.trim().slice(0, 64)
+  return plainTextFromMarkdown(moment.body).split(/\r?\n/).find((line) => line.trim())?.trim().slice(0, 64)
     || "Untitled moment";
 }
 
@@ -206,12 +208,18 @@ export default function JournalReader({
         )}
       </header>
 
-      <div
-        className={`mt-6 whitespace-pre-wrap break-words text-[17px] leading-8 ${entry.body?.trim() ? "" : "italic"}`}
-        style={{ color: entry.body?.trim() ? C.ink : C.mut, fontFamily: SERIF }}
-      >
-        {entry.body?.trim() || "This moment is empty."}
-      </div>
+      {entry.body?.trim() ? (
+        <MarkdownText
+          className="mt-6 text-[17px] leading-8"
+          style={{ color: C.ink, fontFamily: SERIF }}
+        >
+          {entry.body}
+        </MarkdownText>
+      ) : (
+        <div className="mt-6 text-[17px] italic leading-8" style={{ color: C.mut, fontFamily: SERIF }}>
+          This moment is empty.
+        </div>
+      )}
 
       {entry.tags?.length > 0 && (
         <div className="mt-5 flex flex-wrap gap-1.5">

@@ -12,6 +12,7 @@ import { installedMeta } from "../db/ref/entries.js";
 import { meaningGlossText } from "../lib/meanings.js";
 import { isImplicitRelationship, normalizeRelationship } from "../lib/relationships.js";
 import RelationshipSelect from "./RelationshipSelect.jsx";
+import { markdownPreviewText } from "../lib/noteMarkdown.js";
 
 /**
  * One box for linking anything (Phase 4, requirement 1).
@@ -45,10 +46,10 @@ const flatten = (text) => text.replace(/\s+/g, " ").trim();
 function contextLine(item) {
   if (item.type === "page") {
     if (item.pageDate) return item.pageDate;
-    return item.body ? flatten(item.body).slice(0, 60) : "page";
+    return item.body ? markdownPreviewText(item.body).slice(0, 60) : "page";
   }
   const glosses = meaningGlossText(item, " · ");
-  return glosses ? flatten(glosses) : item.notes ? flatten(item.notes).slice(0, 60) : "";
+  return glosses ? flatten(glosses) : item.notes ? markdownPreviewText(item.notes).slice(0, 60) : "";
 }
 
 function Row({ icon: Icon, heading, suffix, context, reason, linked, linkedLabel, onPick }) {

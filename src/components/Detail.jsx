@@ -32,6 +32,8 @@ import { cloneMeanings } from "../lib/meanings.js";
 import MeaningsSection from "./MeaningsSection.jsx";
 import SpeakButton from "./SpeakButton.jsx";
 import CollectionPage from "./CollectionPage.jsx";
+import MarkdownText from "./MarkdownText.jsx";
+import MarkdownTextarea from "./MarkdownTextarea.jsx";
 import { getAvailableCollectionDestinations, getCollectionPlacements } from "../lib/collections.js";
 import { activePageContextsForLexical } from "../lib/pageReferences.js";
 import { commitCollectionAdd } from "../db/collections.js";
@@ -700,12 +702,12 @@ function StandardDetail({
       <Card>
         {editingBody ? (
           <>
-            <textarea
+            <MarkdownTextarea
               autoFocus
               aria-label={isPage ? "Page body" : "Note"}
               value={bodyDraft}
-              onChange={(e) => {
-                setBodyDraft(e.target.value);
+              onChange={(value) => {
+                setBodyDraft(value);
                 setBodyDirty(true);
               }}
               placeholder={
@@ -727,12 +729,15 @@ function StandardDetail({
           </>
         ) : (
           <div className="flex items-start justify-between gap-3">
-            <div
-              className={`min-w-0 flex-1 text-sm whitespace-pre-wrap break-words ${hasSavedBody ? "" : "italic"}`}
-              style={{ color: hasSavedBody ? C.ink : C.mut }}
-            >
-              {hasSavedBody ? savedBody : isPage ? "This page is empty." : "No notes yet."}
-            </div>
+            {hasSavedBody ? (
+              <MarkdownText compact className="min-w-0 flex-1 text-sm" style={{ color: C.ink }}>
+                {savedBody}
+              </MarkdownText>
+            ) : (
+              <div className="min-w-0 flex-1 text-sm italic" style={{ color: C.mut }}>
+                {isPage ? "This page is empty." : "No notes yet."}
+              </div>
+            )}
             <button
               type="button"
               aria-label={

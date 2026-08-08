@@ -67,6 +67,13 @@ describe("journal derivation", () => {
     expect(searchJournalEntries([olderMoment, early], "parque")).toEqual([olderMoment]);
     expect(searchJournalEntries([olderMoment, early], "gratitud")).toEqual([olderMoment]);
     expect(searchJournalEntries([olderMoment, early], "ano")).toEqual([]);
+
+    const formatted = page({
+      id: "user:formatted",
+      pageDate: "2026-08-04",
+      body: "Fue un día **muy importante** para mí.",
+    });
+    expect(searchJournalEntries([formatted], "muy importante")).toEqual([formatted]);
   });
 
   it("keeps the earliest-created same-day moment as Today and continues the latest other touch", () => {
