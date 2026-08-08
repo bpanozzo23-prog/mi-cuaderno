@@ -157,12 +157,17 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   production build and `git diff --check` pass, and three deliberate red/green proofs behaved as
   intended — one of them by exposing a genuinely racing test that had been passing by luck, since
   fixed. See the Phase 13 entries in [DECISIONS.md](DECISIONS.md).
-- **Phase 14 — in progress.** The approved **Conjugation Gym** replaces the single random drill
-  with balanced Quick and Focus sessions, an explicitly chosen Adaptive option, Saved/Core 20/Core
-  50 verb pools, expanded tense presets, diagnosed typed retries and actionable recent performance.
-  Core practice creates no notebook item; Saved and Core results merge by lemma-level skill while
-  remaining source-filterable. It introduces no schema change, due date, automatic queue or
-  Leitner effect. See [docs/PHASE-14-DIRECTION.md](docs/PHASE-14-DIRECTION.md).
+- **Phase 14 — implemented locally; not deployed.** The **Conjugation Gym** replaces the single
+  random drill with balanced Quick and Focus sessions, an explicitly chosen Adaptive option,
+  Saved/Core 20/Core 50 verb pools, all shipped tenses, diagnosed typed retries, one optional
+  missed-form round and actionable performance. Typed first attempts remain the primary score;
+  reveal self-grades, retries and missed-round answers are reported separately. Core practice
+  creates no notebook item, while Saved and Core results merge by stable lemma-level skill and
+  remain source-filterable. The full serial suite passes 975/975 across 83 files, the production
+  build and `git diff --check` pass, three deliberate failure proofs reddened as intended, and a
+  seeded 375×812 closeout independently reproduced the displayed score from the raw event log.
+  It introduces no schema change, due date, automatic queue or Leitner effect. See the approved
+  [direction](docs/PHASE-14-DIRECTION.md) and [implementation report](docs/PHASE-14-REPORT.md).
 
 `SCHEMA_VERSION` is **5**. Before Dexie opens v5, schema-v1 through schema-v4 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
