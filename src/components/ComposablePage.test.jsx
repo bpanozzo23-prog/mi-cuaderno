@@ -74,6 +74,42 @@ function appearsBefore(first, second) {
 }
 
 describe("composable page workspace", () => {
+  it("keeps empty page sections compact and gives every populated section a disclosure", async () => {
+    const user = userEvent.setup();
+    const emptyPage = await createItem(newPage({
+      title: "Empty workspace",
+      pageFocus: "vocabulary",
+      tags: ["study"],
+      collection: { enabled: true, groups: [newPageGroup("Empty group")] },
+      source: emptySource({ enabled: true }),
+      grammar: emptyGrammar({
+        enabled: true,
+        sections: [newGrammarSection({ name: "Empty rule" })],
+      }),
+    }));
+    renderPage(emptyPage, await allItems());
+
+    for (const name of [
+      "Expand Notes section",
+      "Expand Vocabulary section",
+      "Expand Source notebook section",
+      "Expand Grammar guide section",
+      "Expand Connections section",
+      "Expand Media links section",
+    ]) {
+      expect(screen.getByRole("button", { name }).getAttribute("aria-expanded")).toBe("false");
+    }
+    expect(screen.getByRole("button", { name: "Collapse Tags section" })).toBeTruthy();
+    for (const action of ["Write page", "Add vocabulary", "Capture", "Section", "link something related", "Add a media link"]) {
+      expect(screen.getByRole("button", { name: action })).toBeTruthy();
+    }
+
+    await user.click(screen.getByRole("button", { name: "Expand Vocabulary section" }));
+    expect(screen.getByRole("button", { name: "Expand group Empty group" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Expand Grammar guide section" }));
+    expect(screen.getByRole("button", { name: "Expand grammar section Empty rule" })).toBeTruthy();
+  });
+
   it("uses the saved focus order and persists focus chips with one edit", async () => {
     const user = userEvent.setup();
     const fixture = await composableFixture();

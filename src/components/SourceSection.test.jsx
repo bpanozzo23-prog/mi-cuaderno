@@ -96,6 +96,8 @@ describe("Source identity and quick capture", () => {
     const sourcePage = page();
     const { props } = renderSource(sourcePage);
 
+    expect(screen.getByRole("button", { name: "Expand Source notebook section" }).getAttribute("aria-expanded")).toBe("false");
+    await user.click(screen.getByRole("button", { name: "Expand Source notebook section" }));
     await user.click(screen.getByRole("button", { name: "Edit source details" }));
     await user.selectOptions(screen.getByRole("combobox", { name: "Source format" }), "audio");
     await user.type(screen.getByRole("textbox", { name: "Source creator" }), "Radio Ambulante");
@@ -222,7 +224,7 @@ describe("Source capture reading and maintenance", () => {
     expect(screen.queryByText("Is ano ever acceptable here?")).toBeNull();
   });
 
-  it("edits with vocabulary intact and uses an armed delete confirmation", async () => {
+  it("edits with vocabulary intact and keeps armed deletion inside the editor", async () => {
     const user = userEvent.setup();
     const note = capture("capture:note", "language_note", "Nomás can soften a request.", {
       location: "18:42",
@@ -248,7 +250,9 @@ describe("Source capture reading and maintenance", () => {
       itemKeys: ["user:nomas"],
     }));
 
-    await user.click(screen.getByRole("button", { name: "Delete Question capture" }));
+    expect(screen.queryByRole("button", { name: "Delete Question capture" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Edit Question capture" }));
+    await user.click(screen.getByRole("button", { name: "Delete capture" }));
     expect(deleteSourceCapture).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Confirm delete" }));
     await waitFor(() => expect(deleteSourceCapture).toHaveBeenCalledWith(sourcePage.id, question.id));

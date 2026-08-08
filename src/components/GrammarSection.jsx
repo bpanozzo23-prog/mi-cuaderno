@@ -1,14 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
   BookOpen,
+  ChevronDown,
+  ChevronRight,
   FilePenLine,
   Languages,
   Link2,
   Pencil,
   Plus,
-  Trash2,
   X,
 } from "lucide-react";
 import { Button, C, Card, MONO, SERIF } from "../theme.jsx";
@@ -22,16 +23,73 @@ import {
   saveGrammarSection,
 } from "../db/pageStructures.js";
 import CollectionAddVocabularySheet from "./CollectionAddVocabularySheet.jsx";
+import PageSectionDisclosure from "./PageSectionDisclosure.jsx";
 
 const fieldStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
 const problemMessage = (error, fallback) =>
   error instanceof Error && error.message ? error.message : fallback;
 
+function EditorDeleteAction({ label, description, onDelete, fallback }) {
+  const [armed, setArmed] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [problem, setProblem] = useState("");
+
+  if (!onDelete) return null;
+
+  return (
+    <>
+      <Button
+        type="button"
+        tone="danger"
+        disabled={deleting}
+        onClick={() => {
+          setProblem("");
+          setArmed(true);
+        }}
+      >
+        {label}
+      </Button>
+      {armed && (
+        <div role="alertdialog" aria-label={`Confirm ${label.toLowerCase()}`} className="basis-full rounded-lg border p-3" style={{ borderColor: C.dangerBorder, background: C.paper }}>
+          <div className="text-sm" style={{ color: C.ink }}>{description}</div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              tone="dangerArmed"
+              disabled={deleting}
+              onClick={async () => {
+                setDeleting(true);
+                setProblem("");
+                try {
+                  await onDelete();
+                } catch (error) {
+                  setProblem(problemMessage(error, fallback));
+                  setDeleting(false);
+                }
+              }}
+            >
+              {deleting ? "Deleting…" : "Confirm delete"}
+            </Button>
+            <Button type="button" tone="quiet" disabled={deleting} onClick={() => setArmed(false)}>Keep</Button>
+          </div>
+          {problem && <div role="alert" className="mt-2 text-xs" style={{ color: C.red }}>{problem}</div>}
+        </div>
+      )}
+    </>
+  );
+}
+
 const shortText = (value, length = 54) => {
   const flat = String(value || "").replace(/\s+/g, " ").trim();
   return flat.length > length ? `${flat.slice(0, length - 1)}…` : flat;
 };
+
+const grammarSectionHasContent = (section) => Boolean(
+  section?.explanation?.trim()
+  || section?.pattern?.trim()
+  || (section?.examples || []).length
+);
 
 const moveAt = (rows, index, offset) => {
   const target = index + offset;
@@ -201,7 +259,7 @@ function KeyIdeaCard({ keyIdea, onSaved }) {
   );
 }
 
-function SectionEditor({ section, onCancel, onSaved }) {
+function SectionEditor({ section, onCancel, onSaved, onDelete }) {
   const [draft, setDraft] = useState(() => ({
     ...(section?.id ? { id: section.id } : {}),
     name: section?.name || "",
@@ -271,6 +329,16 @@ function SectionEditor({ section, onCancel, onSaved }) {
         <div className="mt-3 flex flex-wrap gap-2 border-t pt-3" style={{ borderColor: C.line }}>
           <Button type="submit" disabled={!draft.name.trim() || saving}>{saving ? "Saving…" : "Save section"}</Button>
           <Button type="button" tone="quiet" disabled={saving} onClick={onCancel}>Cancel</Button>
+          {section?.id && (
+            <EditorDeleteAction
+              label="Delete section"
+              description={(section.examples || []).length
+                ? "This section has examples. Move or delete them before deleting the section."
+                : `Delete the “${section.name}” section?`}
+              onDelete={onDelete}
+              fallback="This section could not be deleted."
+            />
+          )}
         </div>
         {problem && <div role="alert" className="mt-2 text-xs" style={{ color: C.red }}>{problem}</div>}
       </form>
@@ -278,7 +346,7 @@ function SectionEditor({ section, onCancel, onSaved }) {
   );
 }
 
-function ExampleEditor({ example, sourceOptions, onCancel, onSaved }) {
+function ExampleEditor({ example, sourceOptions, onCancel, onSaved, onDelete }) {
   const [draft, setDraft] = useState(() => ({
     ...(example?.id ? { id: example.id } : {}),
     es: example?.es || "",
@@ -374,6 +442,14 @@ function ExampleEditor({ example, sourceOptions, onCancel, onSaved }) {
         <div className="mt-3 flex flex-wrap gap-2 border-t pt-3" style={{ borderColor: C.line }}>
           <Button type="submit" disabled={!draft.es.trim() || saving}>{saving ? "Saving…" : "Save example"}</Button>
           <Button type="button" tone="quiet" disabled={saving} onClick={onCancel}>Cancel</Button>
+          {example?.id && (
+            <EditorDeleteAction
+              label="Delete example"
+              description="Delete this example? Its vocabulary stays on the page."
+              onDelete={onDelete}
+              fallback="This example could not be deleted."
+            />
+          )}
         </div>
         {problem && <div role="alert" className="mt-2 text-xs" style={{ color: C.red }}>{problem}</div>}
       </form>
@@ -597,10 +673,6 @@ function ExampleCard({
   itemsById,
   onOpen,
   onEdit,
-  deleting,
-  onArmDelete,
-  onCancelDelete,
-  onDelete,
   addingVocabulary,
   onBeginVocabulary,
   onCancelVocabulary,
@@ -637,14 +709,6 @@ function ExampleCard({
             className="flex min-h-11 min-w-11 items-center justify-center"
           >
             <Pencil size={15} style={{ color: C.pen }} />
-          </button>
-          <button
-            type="button"
-            aria-label={`Delete example ${example.es}`}
-            onClick={onArmDelete}
-            className="flex min-h-11 min-w-11 items-center justify-center"
-          >
-            <Trash2 size={15} style={{ color: C.red }} />
           </button>
         </div>
       </div>
@@ -712,17 +776,6 @@ function ExampleCard({
         <div role="alert" className="mt-2 text-xs" style={{ color: C.red }}>{vocabularyProblem}</div>
       )}
 
-      {deleting && (
-        <div className="mt-3 rounded-lg border p-3" style={{ borderColor: C.dangerBorder, background: C.paper }}>
-          <div className="text-sm" style={{ color: C.ink }}>
-            Delete this example? Its vocabulary stays on the page.
-          </div>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <Button tone="dangerArmed" onClick={onDelete}>Confirm delete</Button>
-            <Button tone="quiet" onClick={onCancelDelete}>Keep example</Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -743,14 +796,20 @@ export default function GrammarSection({
   const [sectionDraft, setSectionDraft] = useState(null);
   const [exampleDraft, setExampleDraft] = useState(null);
   const [organizing, setOrganizing] = useState(false);
-  const [deleteSectionId, setDeleteSectionId] = useState(null);
-  const [deleteExample, setDeleteExample] = useState(null);
-  const [deleteProblem, setDeleteProblem] = useState("");
-  const [deleting, setDeleting] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState(() => new Set(
+    sections.filter((section) => !grammarSectionHasContent(section)).map((section) => section.id)
+  ));
   const [vocabularyTarget, setVocabularyTarget] = useState(null);
   const itemsById = useMemo(() => new Map((items || []).map((item) => [item.id, item])), [items]);
   const captureOptions = useMemo(() => sourceCaptureOptions(page, items), [page, items]);
   const exampleCount = sections.reduce((total, section) => total + (section.examples || []).length, 0);
+  const hasContent = Boolean(grammar?.keyIdea?.trim()) || sections.some(grammarSectionHasContent);
+
+  useEffect(() => {
+    setCollapsedSections(new Set(
+      sections.filter((section) => !grammarSectionHasContent(section)).map((section) => section.id)
+    ));
+  }, [page.id]);
 
   if (!page || page.type !== "page" || !grammar?.enabled) return null;
 
@@ -759,18 +818,17 @@ export default function GrammarSection({
   }
 
   return (
-    <section aria-labelledby="grammar-guide-heading">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2 id="grammar-guide-heading" className="text-lg font-bold" style={{ color: C.ink, fontFamily: SERIF }}>
-            Grammar guide
-          </h2>
-          <div className="mt-0.5 text-xs" style={{ color: C.mut }}>
-            {sections.length} {sections.length === 1 ? "section" : "sections"} · {exampleCount} {exampleCount === 1 ? "example" : "examples"}
-          </div>
-        </div>
-        <div className="flex flex-wrap justify-end gap-2">
-          {sections.length > 0 && !organizing && (
+    <PageSectionDisclosure
+      id="page-grammar"
+      title="Grammar guide"
+      summary={hasContent
+        ? `${sections.length} ${sections.length === 1 ? "section" : "sections"} · ${exampleCount} ${exampleCount === 1 ? "example" : "examples"}`
+        : "Empty"}
+      defaultCollapsed={!hasContent}
+      resetKey={page.id}
+      actions={({ collapsed }) => !organizing && (
+        <>
+          {!collapsed && sections.length > 0 && (
             <Button
               tone="quiet"
               onClick={() => {
@@ -782,7 +840,7 @@ export default function GrammarSection({
               <FilePenLine size={14} /> Organize
             </Button>
           )}
-          {!organizing && (
+          {(!collapsed || !hasContent) && (
             <Button
               onClick={() => {
                 setSectionDraft({});
@@ -792,8 +850,9 @@ export default function GrammarSection({
               <Plus size={14} /> Section
             </Button>
           )}
-        </div>
-      </div>
+        </>
+      )}
+    >
 
       <KeyIdeaCard
         key={`${page.id}:${grammar.keyIdea}`}
@@ -814,6 +873,11 @@ export default function GrammarSection({
             setSectionDraft(null);
             await changed();
           }}
+          onDelete={sectionDraft.id ? async () => {
+            await deleteGrammarSection(page.id, sectionDraft.id);
+            setSectionDraft(null);
+            await changed();
+          } : null}
         />
       )}
 
@@ -831,88 +895,61 @@ export default function GrammarSection({
 
       {!organizing && (
         <div className="mt-4 space-y-4">
-          {sections.map((section, sectionIndex) => (
-            <Card key={section.id}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-base font-bold" style={{ color: C.ink, fontFamily: SERIF }}>{section.name}</h3>
-                  <div className="mt-0.5 text-[11px] uppercase" style={{ color: C.mut, fontFamily: MONO }}>
-                    Section {sectionIndex + 1} · {(section.examples || []).length} {(section.examples || []).length === 1 ? "example" : "examples"}
-                  </div>
-                </div>
-                <div className="flex shrink-0 items-center">
+          {sections.map((section) => {
+            const collapsed = collapsedSections.has(section.id);
+            const contentId = `grammar-section-content-${section.id}`;
+            return (
+              <Card key={section.id}>
+                <div className="flex items-start justify-between gap-3">
                   <button
                     type="button"
-                    aria-label={`Edit section ${section.name}`}
-                    onClick={() => {
-                      setSectionDraft(section);
-                      setExampleDraft(null);
-                      setDeleteSectionId(null);
-                    }}
-                    className="flex min-h-11 min-w-11 items-center justify-center"
+                    aria-label={`${collapsed ? "Expand" : "Collapse"} grammar section ${section.name}`}
+                    aria-expanded={!collapsed}
+                    aria-controls={contentId}
+                    onClick={() => setCollapsedSections((current) => {
+                      const next = new Set(current);
+                      if (next.has(section.id)) next.delete(section.id); else next.add(section.id);
+                      return next;
+                    })}
+                    className="-ml-2 min-h-11 min-w-0 flex-1 rounded-lg px-2 text-left flex items-center gap-2"
                   >
-                    <Pencil size={15} style={{ color: C.pen }} />
+                    {collapsed
+                      ? <ChevronRight size={16} className="shrink-0" style={{ color: C.mut }} />
+                      : <ChevronDown size={16} className="shrink-0" style={{ color: C.mut }} />}
+                    <h3 className="min-w-0 truncate text-base font-bold" style={{ color: C.ink, fontFamily: SERIF }}>{section.name}</h3>
                   </button>
-                  <button
-                    type="button"
-                    aria-label={`Delete section ${section.name}`}
-                    onClick={() => {
-                      setDeleteProblem("");
-                      setDeleteSectionId(section.id);
-                    }}
-                    className="flex min-h-11 min-w-11 items-center justify-center"
-                  >
-                    <Trash2 size={15} style={{ color: C.red }} />
-                  </button>
-                </div>
-              </div>
-
-              {section.explanation && (
-                <div className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed" style={{ color: C.ink }}>
-                  {section.explanation}
-                </div>
-              )}
-              {section.pattern && (
-                <div className="mt-3 overflow-x-auto rounded-lg border px-3 py-2 text-sm" style={{ background: C.paper, borderColor: C.line, color: C.penDark, fontFamily: MONO }}>
-                  {section.pattern}
-                </div>
-              )}
-
-              {deleteSectionId === section.id && (
-                <div className="mt-3 rounded-lg border p-3" style={{ borderColor: C.dangerBorder, background: C.paper }}>
-                  <div className="text-sm" style={{ color: C.ink }}>
-                    {(section.examples || []).length
-                      ? "This section has examples. The guide will require you to move or delete them first."
-                      : `Delete the “${section.name}” section?`}
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <Button
-                      tone="dangerArmed"
-                      disabled={deleting}
-                      onClick={async () => {
-                        setDeleting(true);
-                        setDeleteProblem("");
-                        try {
-                          await deleteGrammarSection(page.id, section.id);
-                          setDeleteSectionId(null);
-                          await changed();
-                        } catch (error) {
-                          setDeleteProblem(problemMessage(error, "This section could not be deleted."));
-                        } finally {
-                          setDeleting(false);
-                        }
+                  <div className="flex shrink-0 items-center">
+                    <button
+                      type="button"
+                      aria-label={`Edit section ${section.name}`}
+                      onClick={() => {
+                        setSectionDraft(section);
+                        setExampleDraft(null);
+                        setCollapsedSections((current) => {
+                          if (!current.has(section.id)) return current;
+                          const next = new Set(current);
+                          next.delete(section.id);
+                          return next;
+                        });
                       }}
+                      className="flex min-h-11 min-w-11 items-center justify-center"
                     >
-                      {deleting ? "Deleting…" : "Confirm delete"}
-                    </Button>
-                    <Button tone="quiet" disabled={deleting} onClick={() => setDeleteSectionId(null)}>Keep section</Button>
+                      <Pencil size={15} style={{ color: C.pen }} />
+                    </button>
                   </div>
                 </div>
-              )}
 
-              {deleteProblem && deleteSectionId === section.id && (
-                <div role="alert" className="mt-2 text-xs" style={{ color: C.red }}>{deleteProblem}</div>
-              )}
+                <div id={contentId} hidden={collapsed}>
+                  {section.explanation && (
+                    <div className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed" style={{ color: C.ink }}>
+                      {section.explanation}
+                    </div>
+                  )}
+                  {section.pattern && (
+                    <div className="mt-3 overflow-x-auto rounded-lg border px-3 py-2 text-sm" style={{ background: C.paper, borderColor: C.line, color: C.penDark, fontFamily: MONO }}>
+                      {section.pattern}
+                    </div>
+                  )}
 
               <div className="mt-4 space-y-3">
                 {(section.examples || []).map((example) => (
@@ -924,32 +961,11 @@ export default function GrammarSection({
                     items={items}
                     itemsById={itemsById}
                     onOpen={onOpen}
-                    deleting={deleteExample?.sectionId === section.id && deleteExample?.exampleId === example.id}
                     addingVocabulary={vocabularyTarget?.sectionId === section.id && vocabularyTarget?.exampleId === example.id}
                     onEdit={() => {
                       setExampleDraft({ sectionId: section.id, example });
                       setSectionDraft(null);
-                      setDeleteExample(null);
                       setVocabularyTarget(null);
-                    }}
-                    onArmDelete={() => {
-                      setDeleteProblem("");
-                      setDeleteExample({ sectionId: section.id, exampleId: example.id });
-                      setVocabularyTarget(null);
-                    }}
-                    onCancelDelete={() => setDeleteExample(null)}
-                    onDelete={async () => {
-                      setDeleting(true);
-                      setDeleteProblem("");
-                      try {
-                        await deleteGrammarExample(page.id, section.id, example.id);
-                        setDeleteExample(null);
-                        await changed();
-                      } catch (error) {
-                        setDeleteProblem(problemMessage(error, "This example could not be deleted."));
-                      } finally {
-                        setDeleting(false);
-                      }
                     }}
                     onBeginVocabulary={typeof onAddVocabulary === "function" ? () => {
                       setVocabularyTarget((current) => (
@@ -957,7 +973,6 @@ export default function GrammarSection({
                           ? null
                           : { sectionId: section.id, exampleId: example.id }
                       ));
-                      setDeleteExample(null);
                     } : null}
                     onCancelVocabulary={() => setVocabularyTarget(null)}
                     onCommitVocabulary={async (candidates) => {
@@ -987,6 +1002,11 @@ export default function GrammarSection({
                     setExampleDraft(null);
                     await changed();
                   }}
+                  onDelete={exampleDraft.example?.id ? async () => {
+                    await deleteGrammarExample(page.id, section.id, exampleDraft.example.id);
+                    setExampleDraft(null);
+                    await changed();
+                  } : null}
                 />
               )}
 
@@ -996,30 +1016,24 @@ export default function GrammarSection({
                 onClick={() => {
                   setExampleDraft({ sectionId: section.id, example: null });
                   setSectionDraft(null);
-                  setDeleteExample(null);
                   setVocabularyTarget(null);
                 }}
               >
                 <Plus size={14} /> Add example
               </Button>
 
-              {deleteProblem && deleteExample?.sectionId === section.id && (
-                <div role="alert" className="mt-2 text-xs" style={{ color: C.red }}>{deleteProblem}</div>
-              )}
-            </Card>
-          ))}
+                </div>
+              </Card>
+            );
+          })}
         </div>
       )}
 
       {sections.length === 0 && !sectionDraft && !organizing && (
-        <Card className="mt-4 text-center">
-          <div className="text-sm font-semibold" style={{ color: C.ink }}>Build the guide one section at a time</div>
-          <div className="mt-1 text-xs" style={{ color: C.mut }}>
-            Add an explanation, a pattern, and flexible example pairs.
-          </div>
-          <Button className="mt-3" onClick={() => setSectionDraft({})}><Plus size={14} /> Add first section</Button>
-        </Card>
+        <div className="mt-4 text-xs" style={{ color: C.mut }}>
+          Add an explanation, a pattern, and flexible example pairs.
+        </div>
       )}
-    </section>
+    </PageSectionDisclosure>
   );
 }

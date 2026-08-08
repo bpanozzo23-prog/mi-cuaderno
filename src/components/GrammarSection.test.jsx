@@ -196,6 +196,8 @@ describe("GrammarSection editing", () => {
     const props = baseProps();
     render(<GrammarSection {...props} />);
 
+    expect(screen.queryByText(/Section 1 · 1 example/i)).toBeNull();
+    expect(screen.queryByRole("button", { name: "Delete section Formation" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "Edit section Formation" }));
     const explanation = screen.getByRole("textbox", { name: "Grammar section explanation" });
     await user.clear(explanation);
@@ -322,7 +324,9 @@ describe("GrammarSection editing", () => {
     deleteGrammarSection.mockRejectedValueOnce(new Error("Move or delete this section’s examples first."));
     render(<GrammarSection {...props} />);
 
-    await user.click(screen.getByRole("button", { name: "Delete section Formation" }));
+    expect(screen.queryByRole("button", { name: "Delete section Formation" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Edit section Formation" }));
+    await user.click(screen.getByRole("button", { name: "Delete section" }));
     await user.click(screen.getByRole("button", { name: "Confirm delete" }));
 
     await waitFor(() => expect(deleteGrammarSection).toHaveBeenCalledWith("user:grammar-page", SECTION_ONE));
@@ -335,9 +339,10 @@ describe("GrammarSection editing", () => {
     const props = baseProps();
     render(<GrammarSection {...props} />);
 
-    await user.click(screen.getByRole("button", { name: `Delete example ${exampleOne.es}` }));
-    const formation = screen.getByRole("heading", { name: "Formation" }).closest(".rounded-xl");
-    await user.click(within(formation).getByRole("button", { name: "Confirm delete" }));
+    expect(screen.queryByRole("button", { name: `Delete example ${exampleOne.es}` })).toBeNull();
+    await user.click(screen.getByRole("button", { name: `Edit example ${exampleOne.es}` }));
+    await user.click(screen.getByRole("button", { name: "Delete example" }));
+    await user.click(screen.getByRole("button", { name: "Confirm delete" }));
 
     await waitFor(() => expect(deleteGrammarExample).toHaveBeenCalledWith(
       "user:grammar-page",

@@ -182,6 +182,14 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   977/977 across 83 files, the production build and `git diff --check` pass, and a disposable
   375×812 browser flow passed without overflow or console warnings/errors. See the Vocabulary
   group disclosure entries in [DECISIONS.md](DECISIONS.md).
+- **Compact page sections — implemented locally; not deployed.** Every page section now has a
+  visit-local disclosure; populated sections start open, while empty sections and empty nested
+  Vocabulary/Grammar groups start compact. Source captures, Grammar sections and Grammar examples
+  show one edit icon in read mode, with confirmed deletion inside that editor, and the redundant
+  per-Grammar-section position/example line is gone. No schema, backup, preference or event change.
+  The full serial suite passes 978/978 across 83 files, the production build and `git diff --check`
+  pass, and a disposable 375×812 browser flow passed without page overflow or console warnings/
+  errors. See the Page section density entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **5**. Before Dexie opens v5, schema-v1 through schema-v4 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,

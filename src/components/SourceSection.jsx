@@ -15,7 +15,6 @@ import {
   Plus,
   Quote,
   Search,
-  Trash2,
   X,
 } from "lucide-react";
 import { Button, C, Card, MONO, SERIF } from "../theme.jsx";
@@ -27,6 +26,7 @@ import {
   saveSourceDetails,
 } from "../db/pageStructures.js";
 import CollectionAddVocabularySheet from "./CollectionAddVocabularySheet.jsx";
+import PageSectionDisclosure from "./PageSectionDisclosure.jsx";
 
 const CAPTURE_TYPES = [
   { value: "passage", label: "Passage", Icon: Quote },
@@ -246,13 +246,15 @@ function SourceDetails({ source, onSaved }) {
   );
 }
 
-function CaptureEditor({ capture, pageVocabulary, onCancel, onSaved }) {
+function CaptureEditor({ capture, pageVocabulary, onCancel, onSaved, onDelete }) {
   const [draft, setDraft] = useState(() => ({
     ...capture,
     itemKeys: [...(capture.itemKeys || [])],
   }));
   const [choosingVocabulary, setChoosingVocabulary] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleteArmed, setDeleteArmed] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [problem, setProblem] = useState("");
   const typeLabel = labelForType(draft.type);
   const vocabularyById = new Map((pageVocabulary || []).map((item) => [item.id, item]));
@@ -419,7 +421,49 @@ function CaptureEditor({ capture, pageVocabulary, onCancel, onSaved }) {
         <div className="mt-3 flex flex-wrap gap-2 border-t pt-3" style={{ borderColor: C.line }}>
           <Button type="submit" className="min-h-11" disabled={!draft.text.trim() || saving}>{saving ? "Saving…" : "Save capture"}</Button>
           <Button type="button" tone="quiet" className="min-h-11" disabled={saving} onClick={onCancel}>Cancel</Button>
+          {capture.id && onDelete && (
+            <Button
+              type="button"
+              tone="danger"
+              className="min-h-11"
+              disabled={saving || deleting}
+              onClick={() => {
+                setProblem("");
+                setDeleteArmed(true);
+              }}
+            >
+              Delete capture
+            </Button>
+          )}
         </div>
+        {deleteArmed && (
+          <div role="alertdialog" aria-label={`Confirm deletion of ${typeLabel} capture`} className="mt-3 rounded-lg border p-3" style={{ borderColor: C.dangerBorder, background: C.paper }}>
+            <div className="text-sm" style={{ color: C.ink }}>
+              Delete this {typeLabel.toLowerCase()}? Its vocabulary stays on the page.
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button
+                type="button"
+                tone="dangerArmed"
+                className="min-h-11"
+                disabled={deleting}
+                onClick={async () => {
+                  setDeleting(true);
+                  setProblem("");
+                  try {
+                    await onDelete();
+                  } catch (error) {
+                    setProblem(problemMessage(error, "This capture could not be deleted."));
+                    setDeleting(false);
+                  }
+                }}
+              >
+                {deleting ? "Deleting…" : "Confirm delete"}
+              </Button>
+              <Button type="button" tone="quiet" className="min-h-11" disabled={deleting} onClick={() => setDeleteArmed(false)}>Keep capture</Button>
+            </div>
+          </div>
+        )}
         {problem && <div role="alert" className="mt-2 text-xs" style={{ color: C.red }}>{problem}</div>}
       </form>
     </Card>
@@ -503,17 +547,12 @@ function CaptureCard({
   capture,
   itemsById,
   expanded,
-  deleteArmed,
-  deleteBusy,
   addingVocabulary,
   detachingVocabularyId,
   items,
   onOpen,
   onToggleExpanded,
   onEdit,
-  onArmDelete,
-  onCancelDelete,
-  onDelete,
   onBeginVocabulary,
   onCancelVocabulary,
   onCommitVocabulary,
@@ -547,14 +586,6 @@ function CaptureCard({
             className="flex min-h-11 min-w-11 items-center justify-center"
           >
             <Pencil size={15} style={{ color: C.pen }} />
-          </button>
-          <button
-            type="button"
-            aria-label={`Delete ${type.label} capture`}
-            onClick={onArmDelete}
-            className="flex min-h-11 min-w-11 items-center justify-center"
-          >
-            <Trash2 size={15} style={{ color: C.red }} />
           </button>
         </div>
       </div>
@@ -639,19 +670,6 @@ function CaptureCard({
         )}
       </div>
 
-      {deleteArmed && (
-        <div className="mt-3 rounded-lg border p-3" style={{ borderColor: C.dangerBorder, background: C.paper }}>
-          <div className="text-sm" style={{ color: C.ink }}>
-            Delete this {type.label.toLowerCase()}? Its vocabulary stays on the page.
-          </div>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <Button tone="dangerArmed" className="min-h-11" disabled={deleteBusy} onClick={onDelete}>
-              {deleteBusy ? "Deleting…" : "Confirm delete"}
-            </Button>
-            <Button tone="quiet" className="min-h-11" disabled={deleteBusy} onClick={onCancelDelete}>Keep capture</Button>
-          </div>
-        </div>
-      )}
     </Card>
   );
 }
@@ -675,9 +693,6 @@ export default function SourceSection({
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [expanded, setExpanded] = useState(() => new Set());
-  const [deleteId, setDeleteId] = useState(null);
-  const [deleteProblem, setDeleteProblem] = useState("");
-  const [deleteSaving, setDeleteSaving] = useState(false);
   const [vocabularyCaptureId, setVocabularyCaptureId] = useState(null);
   const [vocabularyDetachKey, setVocabularyDetachKey] = useState(null);
   const [vocabularyProblem, setVocabularyProblem] = useState("");
@@ -693,6 +708,8 @@ export default function SourceSection({
   );
 
   const captures = source?.captures || [];
+  const hasDetails = Boolean(source?.format || source?.creator || source?.scope || source?.url || source?.context);
+  const empty = captures.length === 0 && !hasDetails;
   const normalizedQuery = normalizeLocalSearch(query);
   const visibleCaptures = useMemo(
     () => captures.filter((capture) => (
@@ -709,23 +726,20 @@ export default function SourceSection({
   }
 
   return (
-    <section aria-labelledby="source-notebook-heading">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2 id="source-notebook-heading" className="text-lg font-bold" style={{ color: C.ink, fontFamily: SERIF }}>
-            Source notebook
-          </h2>
-          <div className="mt-0.5 text-xs" style={{ color: C.mut }}>
-            {captures.length} {captures.length === 1 ? "capture" : "captures"}
-          </div>
-        </div>
-        <div className="flex flex-wrap justify-end gap-2">
-          {captures.length > 1 && !organizing && !captureDraft && !captureMenuOpen && (
+    <PageSectionDisclosure
+      id="page-source"
+      title="Source notebook"
+      summary={empty ? "Empty" : `${captures.length} ${captures.length === 1 ? "capture" : "captures"}`}
+      defaultCollapsed={empty}
+      resetKey={page.id}
+      actions={({ collapsed }) => !organizing && !captureDraft && (
+        <>
+          {!collapsed && captures.length > 1 && !captureMenuOpen && (
             <Button tone="quiet" className="min-h-11" onClick={() => setOrganizing(true)}>
               <FilePenLine size={14} /> Organize
             </Button>
           )}
-          {!organizing && !captureDraft && (
+          {(!collapsed || empty) && (
             <Button
               className="min-h-11"
               aria-expanded={captureMenuOpen}
@@ -734,8 +748,9 @@ export default function SourceSection({
               <Plus size={14} /> Capture
             </Button>
           )}
-        </div>
-      </div>
+        </>
+      )}
+    >
 
       <SourceDetails
         key={`${page.id}:${source.format}:${source.creator}:${source.scope}:${source.url}:${source.context}`}
@@ -780,6 +795,11 @@ export default function SourceSection({
             setCaptureDraft(null);
             await changed();
           }}
+          onDelete={captureDraft.id ? async () => {
+            await deleteSourceCapture(page.id, captureDraft.id);
+            setCaptureDraft(null);
+            await changed();
+          } : null}
         />
       )}
 
@@ -831,8 +851,6 @@ export default function SourceSection({
               items={items}
               onOpen={onOpen}
               expanded={expanded.has(capture.id)}
-              deleteArmed={deleteId === capture.id}
-              deleteBusy={deleteSaving && deleteId === capture.id}
               addingVocabulary={vocabularyCaptureId === capture.id}
               detachingVocabularyId={vocabularyDetachKey?.captureId === capture.id
                 ? vocabularyDetachKey.itemId
@@ -844,31 +862,11 @@ export default function SourceSection({
               })}
               onEdit={() => {
                 setCaptureDraft({ ...capture, itemKeys: [...(capture.itemKeys || [])] });
-                setDeleteId(null);
                 setVocabularyCaptureId(null);
-              }}
-              onArmDelete={() => {
-                setDeleteProblem("");
-                setDeleteId(capture.id);
-              }}
-              onCancelDelete={() => setDeleteId(null)}
-              onDelete={async () => {
-                setDeleteSaving(true);
-                setDeleteProblem("");
-                try {
-                  await deleteSourceCapture(page.id, capture.id);
-                  setDeleteId(null);
-                  await changed();
-                } catch (error) {
-                  setDeleteProblem(problemMessage(error, "This capture could not be deleted."));
-                } finally {
-                  setDeleteSaving(false);
-                }
               }}
               onBeginVocabulary={typeof onAddVocabulary === "function" ? () => {
                 setVocabularyProblem("");
                 setVocabularyCaptureId((current) => current === capture.id ? null : capture.id);
-                setDeleteId(null);
               } : null}
               onCancelVocabulary={() => setVocabularyCaptureId(null)}
               onCommitVocabulary={async (candidates) => {
@@ -900,24 +898,15 @@ export default function SourceSection({
               <div className="mt-1 text-xs" style={{ color: C.mut }}>Try another search or capture type.</div>
             </Card>
           )}
-          {deleteProblem && <div role="alert" className="text-xs" style={{ color: C.red }}>{deleteProblem}</div>}
           {vocabularyProblem && <div role="alert" className="text-xs" style={{ color: C.red }}>{vocabularyProblem}</div>}
         </div>
       )}
 
-      {captures.length === 0 && !captureDraft && !captureMenuOpen && (
-        <Card className="mt-4 text-center">
-          <div className="text-sm font-semibold" style={{ color: C.ink }}>Capture what stands out</div>
-          <div className="mt-1 text-xs" style={{ color: C.mut }}>
-            Save a passage, reflection, language note, or question from this source.
-          </div>
-        </Card>
-      )}
       {page.collection?.enabled && typeof onJumpToVocabulary === "function" && (
         <Button tone="quiet" className="mt-4 min-h-11" onClick={onJumpToVocabulary}>
           <ArrowDown size={14} /> Jump to page vocabulary
         </Button>
       )}
-    </section>
+    </PageSectionDisclosure>
   );
 }

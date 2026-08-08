@@ -115,7 +115,7 @@ describe("Collection reading and practice", () => {
     expect(screen.getByText("3 items · 2 groups")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Questions" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Responses" })).toBeTruthy();
-    expect(screen.getByText("No vocabulary in this group yet.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Expand group Responses" }).getAttribute("aria-expanded")).toBe("false");
     expect(screen.getByRole("heading", { name: "Not grouped yet" })).toBeTruthy();
     expect(screen.getByText("Conversation notes")).toBeTruthy();
 
@@ -137,6 +137,7 @@ describe("Collection reading and practice", () => {
     const ungroupedToggle = within(ungrouped).getByRole("button", { name: "Collapse group Not grouped yet" });
 
     expect(questionsToggle.getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByRole("button", { name: "Expand group Responses" }).getAttribute("aria-expanded")).toBe("false");
     expect(within(questions).getByRole("button", { name: /¿Qué opinas\?.*What do you think/i })).toBeTruthy();
     expect(within(ungrouped).getByRole("button", { name: /pensándolo bien/i })).toBeTruthy();
 
@@ -217,7 +218,9 @@ describe("Collection organization and capture", () => {
     const baselineEdits = (await allEvents()).filter((event) => event.type === EVENT_TYPES.edit).length;
     renderDetail(page, await allItems());
 
-    await user.click(screen.getByRole("button", { name: "Add vocabulary" }));
+    await user.click(screen.getByRole("button", { name: "Expand Vocabulary section" }));
+    const essentials = screen.getByRole("heading", { name: "Essentials" }).closest("section");
+    await user.click(within(essentials).getByRole("button", { name: "Add vocabulary" }));
     const search = screen.getByPlaceholderText(/Search words, phrases, or the dictionary/);
     await user.type(search, "Dónde queda");
     const candidates = await screen.findAllByRole("button", { name: /¿Dónde queda\?/ });
