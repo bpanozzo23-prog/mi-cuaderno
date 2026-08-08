@@ -241,6 +241,56 @@ describe("Collection organization and capture", () => {
     });
   });
 
+  it("bulk-adds every available phrase with a chosen tag to one Collection group", async () => {
+    const user = userEvent.setup();
+    const groupId = newPageGroupKey();
+    const alreadyPlaced = await createItem(newLexical({
+      term: "buen viaje",
+      form: "phrase",
+      tags: ["travel"],
+    }));
+    const first = await createItem(newLexical({
+      term: "¿Dónde queda?",
+      form: "phrase",
+      tags: ["travel"],
+    }));
+    const second = await createItem(newLexical({
+      term: "ida y vuelta",
+      form: "phrase",
+      tags: ["travel", "tickets"],
+    }));
+    await createItem(newLexical({ term: "por supuesto", form: "phrase", tags: ["conversation"] }));
+    await createItem(newLexical({ term: "maleta", form: "word", tags: ["travel"] }));
+    const page = await createItem(newPage({
+      title: "Travel phrases",
+      pageProfile: "collection",
+      linkedKeys: [alreadyPlaced.id],
+      collection: {
+        groups: [{ id: groupId, name: "Useful phrases", itemKeys: [alreadyPlaced.id] }],
+      },
+    }));
+    renderDetail(page, await allItems());
+
+    const group = screen.getByRole("heading", { name: "Useful phrases" }).closest("section");
+    await user.click(within(group).getByRole("button", { name: "Add vocabulary" }));
+    await user.selectOptions(screen.getByRole("combobox", { name: "Vocabulary form" }), "phrase");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Vocabulary tag" }), "travel");
+
+    expect(screen.getByText("3 matching · 2 available")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /buen viaje.*already in Useful phrases/i }).disabled).toBe(true);
+    await user.click(screen.getByRole("button", { name: "Select all 2" }));
+    expect(screen.getByLabelText("Selected vocabulary").textContent).toContain("¿Dónde queda?");
+    expect(screen.getByLabelText("Selected vocabulary").textContent).toContain("ida y vuelta");
+    expect(screen.getByLabelText("Selected vocabulary").textContent).not.toContain("maleta");
+    await user.click(screen.getByRole("button", { name: "Add 2" }));
+
+    await waitFor(async () => {
+      const stored = await getItem(page.id);
+      expect(stored.linkedKeys).toEqual([alreadyPlaced.id, second.id, first.id]);
+      expect(stored.collection.groups[0].itemKeys).toEqual([alreadyPlaced.id, second.id, first.id]);
+    });
+  });
+
   it("moves, reorders, deletes a populated group, and removes membership only on Save", async () => {
     const user = userEvent.setup();
     const fixture = await collectionFixture();

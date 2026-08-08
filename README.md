@@ -168,6 +168,13 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   seeded 375×812 closeout independently reproduced the displayed score from the raw event log.
   It introduces no schema change, due date, automatic queue or Leitner effect. See the approved
   [direction](docs/PHASE-14-DIRECTION.md) and [implementation report](docs/PHASE-14-REPORT.md).
+- **Collection bulk capture — implemented locally; not deployed.** A Vocabulary page's existing
+  Add vocabulary panel can now narrow saved entries to Words, Phrases, and an exact existing tag,
+  then select every available match together. Existing members remain excluded and the final Add
+  still uses the established atomic Collection transaction. No schema, backup, preference or event
+  change; the full serial suite passes 976/976 across 83 files, the production build and
+  `git diff --check` pass, and a disposable 375×812 browser flow passed without overflow or console
+  errors. See the Collection bulk-capture entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **5**. Before Dexie opens v5, schema-v1 through schema-v4 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,

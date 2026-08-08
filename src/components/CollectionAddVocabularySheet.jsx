@@ -10,6 +10,8 @@ import { meaningGlossText, newMeaning } from "../lib/meanings.js";
 import { findPersonalHeadingDuplicates } from "../lib/duplicateGuard.js";
 import DuplicateWarning from "./DuplicateWarning.jsx";
 import { grammarAbbreviations } from "../lib/partOfSpeech.js";
+import { tagCountsIn } from "../lib/organization.js";
+import { RefineSelect } from "./Refine.jsx";
 
 const SEARCH_DEBOUNCE_MS = 140;
 const LIMIT = 12;
@@ -85,13 +87,40 @@ export default function CollectionAddVocabularySheet({
   const [formTouched, setFormTouched] = useState(false);
   const [saving, setSaving] = useState(false);
   const [problem, setProblem] = useState("");
+  const [formFilter, setFormFilter] = useState("all");
+  const [tagFilter, setTagFilter] = useState("");
   const typed = query.trim();
   const lexicalItems = useMemo(() => items.filter((item) => item.type === "lexical"), [items]);
+  const formItems = useMemo(
+    () => formFilter === "all"
+      ? lexicalItems
+      : lexicalItems.filter((item) => item.form === formFilter),
+    [formFilter, lexicalItems]
+  );
+  const tagCounts = useMemo(() => tagCountsIn(formItems), [formItems]);
+  const tagAvailable = tagFilter && tagCounts.some(({ tag }) => tag === tagFilter);
+  const effectiveTag = tagAvailable ? tagFilter : "";
+  const filteredPersonalItems = useMemo(
+    () => effectiveTag
+      ? formItems.filter((item) => item.tags.includes(effectiveTag))
+      : formItems,
+    [effectiveTag, formItems]
+  );
+  const personalOnly = formFilter !== "all" || Boolean(effectiveTag);
 
   const personal = useMemo(
-    () => pickerMatches(lexicalItems, query, { limit: LIMIT }),
-    [lexicalItems, query]
+    () => pickerMatches(filteredPersonalItems, query, { limit: LIMIT }),
+    [filteredPersonalItems, query]
   );
+  const matchingPersonalItems = useMemo(
+    () => pickerMatches(filteredPersonalItems, query, { limit: filteredPersonalItems.length })
+      .map(({ item }) => item),
+    [filteredPersonalItems, query]
+  );
+
+  useEffect(() => {
+    if (tagFilter && !tagAvailable) setTagFilter("");
+  }, [tagAvailable, tagFilter]);
 
   useEffect(() => {
     let alive = true;
@@ -102,6 +131,10 @@ export default function CollectionAddVocabularySheet({
   }, []);
 
   useEffect(() => {
+    if (personalOnly) {
+      setDictResults([]);
+      return undefined;
+    }
     let alive = true;
     const timer = setTimeout(async () => {
       const found = await searchDictionary(query, { limit: LIMIT });
@@ -111,13 +144,13 @@ export default function CollectionAddVocabularySheet({
       alive = false;
       clearTimeout(timer);
     };
-  }, [query]);
+  }, [personalOnly, query]);
 
   const rows = useMemo(
-    () => mergeResults(personal, dictResults, lexicalItems, {
+    () => mergeResults(personal, personalOnly ? [] : dictResults, lexicalItems, {
       previousIds: dictionaryMeta?.previousIds,
     }).slice(0, LIMIT),
-    [personal, dictResults, lexicalItems, dictionaryMeta]
+    [personal, personalOnly, dictResults, lexicalItems, dictionaryMeta]
   );
   const duplicates = useMemo(
     () => findPersonalHeadingDuplicates(lexicalItems, "lexical", quick.term),
@@ -161,6 +194,26 @@ export default function CollectionAddVocabularySheet({
   }
 
   const selectedRows = [...selected.values()];
+  const selectableMatchingItems = matchingPersonalItems.filter(
+    (item) => !memberLocations.has(item.id)
+  );
+  const selectedMatchingCount = selectableMatchingItems.filter((item) => selected.has(item.id)).length;
+  const allMatchingSelected = selectableMatchingItems.length > 0
+    && selectedMatchingCount === selectableMatchingItems.length;
+
+  function toggleAllMatching() {
+    setSelected((current) => {
+      const next = new Map(current);
+      if (allMatchingSelected) {
+        for (const item of selectableMatchingItems) next.delete(item.id);
+      } else {
+        for (const item of selectableMatchingItems) {
+          next.set(item.id, { kind: "personal", itemId: item.id, item });
+        }
+      }
+      return next;
+    });
+  }
 
   return (
     <Card className="mt-3" style={{ borderColor: C.pen }}>
@@ -197,6 +250,49 @@ export default function CollectionAddVocabularySheet({
         </div>
       )}
 
+      <div
+        className="mt-3 grid grid-cols-2 gap-2 rounded-xl border p-3"
+        style={{ borderColor: C.line, background: C.card }}
+      >
+        <RefineSelect
+          label="Form"
+          ariaLabel="Vocabulary form"
+          value={formFilter}
+          onChange={setFormFilter}
+        >
+          <option value="all">Words and phrases</option>
+          <option value="word">Words</option>
+          <option value="phrase">Phrases</option>
+        </RefineSelect>
+        <RefineSelect
+          label="Tag"
+          ariaLabel="Vocabulary tag"
+          value={effectiveTag}
+          onChange={setTagFilter}
+          disabled={tagCounts.length === 0}
+        >
+          <option value="">{tagCounts.length ? "All tags" : "No tags for this form"}</option>
+          {tagCounts.map(({ tag, count }) => (
+            <option key={tag} value={tag}>{tag} · {count}</option>
+          ))}
+        </RefineSelect>
+        <div className="col-span-2 flex min-h-11 items-center justify-between gap-3 border-t pt-2" style={{ borderColor: C.line }}>
+          <div className="text-xs" style={{ color: C.mut }}>
+            {matchingPersonalItems.length} matching · {selectableMatchingItems.length} available
+          </div>
+          <Button
+            tone="quiet"
+            className="shrink-0"
+            disabled={selectableMatchingItems.length === 0}
+            onClick={toggleAllMatching}
+          >
+            {allMatchingSelected
+              ? `Clear matching ${selectableMatchingItems.length}`
+              : `Select all ${selectableMatchingItems.length}`}
+          </Button>
+        </div>
+      </div>
+
       <div className="mt-3 flex items-center gap-2 rounded-lg border px-2 py-2" style={{ borderColor: C.line }}>
         <Search size={14} style={{ color: C.mut }} />
         <input
@@ -224,7 +320,11 @@ export default function CollectionAddVocabularySheet({
         })}
         {rows.length === 0 && (
           <div className="py-2 text-xs" style={{ color: C.mut }}>
-            {typed ? "Nothing matches that yet." : "Start typing, or choose a recently used entry."}
+            {typed
+              ? "Nothing matches that yet."
+              : personalOnly
+                ? "No saved vocabulary matches these filters."
+                : "Start typing, or choose a recently used entry."}
           </div>
         )}
       </div>
