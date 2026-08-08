@@ -6,7 +6,7 @@
 **Companion file:** `mi-cuaderno.jsx` — a working single-file prototype of the notebook layer. It is the reference for features, interaction patterns, and visual design of **lexical entries**. Pages (§7) do not exist in the prototype and are new in v3. Where this brief contradicts the prototype's *implementation* (ID scheme, search normalization, the `struggling` field, event rules), **this brief wins** — the prototype shows what the app should feel like, not how it must be built.
 **Version:** v3 — revised after lock-in review. Product contract last amended
 ~~August 3, 2026~~ ~~August 4, 2026~~ **August 5, 2026**; agent-facing framing refreshed August 2, 2026.
-**Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. §§3, 9 and 12 — 2026-08-02: organizational improvements became Phase 5 and the AI assistant moved to Phase 6. §12 — 2026-08-02: independently scoped phases may proceed concurrently under explicit coordination rules. §§5, 7, 8, 10, 12 and 14 — 2026-08-02: personal lexical meanings became stable, structured annotations in schema v2 while review remains entry-level and dictionary senses remain replaceable reference data. **§§5, 7, 10, 12 and 14 — 2026-08-03: schema v3 adds durable `general | collection` page profiles and the first specialized profile, Vocabulary Collection, while dated General pages remain Journal entries and richer profiles stay deferred.** **§§5, 7, 10, 12 and 14 — 2026-08-04: schema v4 adds sparse typed and explained ordinary-connection annotations while `linkedKeys[]` remains authoritative for connection existence and Collection membership.** **§§5, 7, 8, 10, 12 and 14 — 2026-08-04: Phase 7 approves schema v5 composable pages with one leading focus, independently enabled Vocabulary, Source and Grammar structures, contextual retrieval, and sequential legacy backup upgrades.** **§§7, 12 and 14 — 2026-08-05: Phase 9 approves filtered, session-only free practice from the Words & phrases hub while Repaso remains the sole scheduled and event-backed review flow.** Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
+**Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. §§3, 9 and 12 — 2026-08-02: organizational improvements became Phase 5 and the AI assistant moved to Phase 6. §12 — 2026-08-02: independently scoped phases may proceed concurrently under explicit coordination rules. §§5, 7, 8, 10, 12 and 14 — 2026-08-02: personal lexical meanings became stable, structured annotations in schema v2 while review remains entry-level and dictionary senses remain replaceable reference data. **§§5, 7, 10, 12 and 14 — 2026-08-03: schema v3 adds durable `general | collection` page profiles and the first specialized profile, Vocabulary Collection, while dated General pages remain Journal entries and richer profiles stay deferred.** **§§5, 7, 10, 12 and 14 — 2026-08-04: schema v4 adds sparse typed and explained ordinary-connection annotations while `linkedKeys[]` remains authoritative for connection existence and Collection membership.** **§§5, 7, 8, 10, 12 and 14 — 2026-08-04: Phase 7 approves schema v5 composable pages with one leading focus, independently enabled Vocabulary, Source and Grammar structures, contextual retrieval, and sequential legacy backup upgrades.** **§§7, 12 and 14 — 2026-08-05: Phase 9 approves filtered, session-only free practice from the Words & phrases hub while Repaso remains the sole scheduled and event-backed review flow.** **§§7, 12 and 14 — 2026-08-07: Phase 14 approves an owner-started, event-backed Conjugation Gym with curated reference-only verb pools, richer derived performance, and optional history-ranked sessions that never create a due date or alter Leitner review.** Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
 
 ---
 
@@ -103,7 +103,7 @@ The app code and the bundled reference data are licensed separately. Reference-d
 | Lexical form | `form: word \| phrase` |
 | Annotation level | ~~Entry-level only. **Do not add a `senseId` field** — imported sense IDs are not stable across dataset updates; sense-level notes stay deferred until that's solved.~~ **Amended 2026-08-02:** personal lexical entries contain ordered meaning-level annotations with stable, locally generated IDs. Do not add a dictionary `senseId`: personal meaning identity remains independent of replaceable dictionary sense IDs and ordering. Review scheduling and activity remain entry-level. |
 | Links | Any personal item can link to any item in either layer |
-| Deletion | Confirm first; **hard-delete the record and log a `delete` event** — the append-only event log is the tombstone. No soft-delete flags. Remove links pointing to the deleted item; keep its historical events but exclude them from active queues and statistics |
+| Deletion | Confirm first; **hard-delete the record and log a `delete` event** — the append-only event log is the tombstone. No soft-delete flags. Remove links pointing to the deleted item. ~~Keep its historical events but exclude them from active queues and statistics.~~ **Amended 2026-08-07 (Phase 14): keep historical events; exclude a deleted record from active queues, current-item statistics, current-pool coverage and action targets. Owner-centric activity and aggregate conjugation-skill history may retain interpretable events, but must never reconstruct or act on deleted personal content.** |
 | Media | `mediaLinks[]` (URLs) only for now. **Reserved:** a separate `Attachment` store for future files. Items will reference attachments by ID; binary data is never embedded in item records; nothing in the schema may assume links are the only media type |
 | Review grades | Review events log a 4-point grade in `metadata` (0 again / 1 hard / 2 good / 3 easy) even while the UI shows only pass (→2) / fail (→0), so richer future schedulers have full history |
 | Sync-readiness | UUIDs, `createdAt`/`updatedAt` on every personal record, stable event IDs, schema + app versions in backups. No sync built |
@@ -137,7 +137,7 @@ UserItem    { id, type: lexical | page,
 Attachment  { id, mime, filename, size, createdAt, blobRef }   // RESERVED — do not build
 
 Event       { id, type: view | create | edit | delete | tricky_on | tricky_off |
-              review_pass | review_fail | search_miss,
+              review_pass | review_fail | search_miss | drill_pass | drill_fail,
               itemKey?, at, localDate, metadata? }
 ```
 
@@ -505,9 +505,12 @@ initialize, that closeout remains explicitly unclaimed and no owner browser data
 current form, context, learning, completeness, tag and search narrowing defines a personal lexical
 practice deck. Exclude entries without a personal meaning; preflight 10, 20 or All plus shuffled or
 current order; snapshot the chosen deck; reveal all entry-level meanings and cues with optional
-context; and support session-only Again/Got it plus missed-only follow-up rounds. Repaso remains the
-only scheduled and event-backed review flow. Collection Practice remains reveal-only and ordered by
-its page. No schema, preference, backup, event, timestamp, saved deck, history, score or schedule is
+context; and support session-only Again/Got it plus missed-only follow-up rounds. ~~Repaso remains
+the only scheduled and event-backed review flow.~~ **Amended 2026-08-07 (Phase 14): Leitner Repaso
+remains the only scheduled review flow. Hub and Collection free practice remain history-free;
+Conjugation Gym is a distinct event-backed skill-practice flow whose results never affect review
+scheduling.** Collection Practice remains reveal-only and ordered by its page. No schema,
+preference, backup, event, timestamp, saved deck, history, score or schedule is
 added; `SCHEMA_VERSION` remains 5.
 *Done when:* every active hub narrowing produces the matching answerable candidates; size and order
 choices are deterministic under test; incomplete entries are honestly counted and excluded; a
@@ -515,6 +518,30 @@ session survives full-entry navigation, can finish early and repeat only missed 
 practice action changes the event log or derived Repaso state; existing Repaso and Collection
 Practice behavior remains correct; and the complete serial suite, production build and disposable
 375×812 flow pass without horizontal overflow, warnings or console errors.
+
+**Amended 2026-08-07 — Phase 14: Conjugation Gym.** Repaso gains an owner-started Gym with Quick,
+Focus and explicitly Adaptive sessions. Session-only controls choose saved verbs or fixed Core
+20/Core 50 lemma curricula, Type or Reveal, 10 or 20 questions, exact tense and person filters, and
+Everyday, Commands, Subjunctive, Perfect or custom tense sets. Core practice creates no personal
+item. The current installed dictionary is resolved by exact lemma through the reference indexes;
+reference ids remain replaceable. Typed matching preserves Phase 13's exact-before-normalized rule,
+then diagnoses a missing negative, missing reflexive pronoun, wrong person, wrong tense or another
+recognisable form before generic failure. An initial failure is recorded before one unrevealed
+retry; an optional end round repeats initial misses. Every attempt remains an event, but primary
+accuracy uses only typed initial attempts. Stats merge Saved and Core practice by an exact
+NFC-lowercased lemma identity, preserve their source filter, retain interpretable aggregate skill
+history after personal deletion, and remove deleted content from current coverage and actions.
+Adaptive sessions transparently mix recent misses, qualifying weak areas and under-practised cells.
+They create no background schedule, due date, reminder, stored mastery counter or Leitner change;
+`SCHEMA_VERSION` remains 5.
+*Done when:* the Gym remains reachable with no saved verb or no installed dictionary; Core lookup
+is exact, rebuild-safe and package-verified; Quick and Focus decks balance real non-vosotros cells;
+all diagnostic and retry stages persist once and refresh the notebook snapshot; recent typed,
+lifetime, reveal, recovery, tense, person, verb, error and coverage figures independently recount
+from the log; every actionable weak row opens the matching setup; Adaptive selection follows its
+documented evidence rules; existing review derivation ignores every drill event; the complete
+serial suite, production build and diff check pass; and a disposable 375×812 numerical closeout
+finds no horizontal overflow or console error.
 
 ## 13. Non-goals
 
@@ -527,7 +554,22 @@ remain links only.
 
 ## 14. Deferred decisions — do not solve early
 
-Whether and when to build the Attachment model; cross-device sync; review scheduling beyond Leitner; ~~sense-level annotations;~~ **dictionary-sense attachment or synchronization (personal meaning annotations are now built independently);** importing multiword expressions into the reference layer; merge-mode import; ~~Source, Grammar, or explicit/richer Journal page profiles; passages/reflections or source-identity structures; user-authored page templates;~~ **Source and Grammar structures, Source captures, and built-in creation/copy-structure recipes are approved as Phase 7; an explicit/richer Journal schema, Source parent/child hierarchies, deep provenance, reading tracking, custom page kinds, and stored/user-authored template management remain deferred;** ~~typed relationships;~~ **typed and explained ordinary connections are approved as Phase 4t–4x;** ~~Collection practice history, grading, scoring, or scheduling.~~ **Persistent Collection Practice history, grading, scoring or scheduling remain deferred. Phase 9 separately approves transient Again/Got it feedback and missed-only rounds for hub free practice; those actions write no history or schedule.**
+Whether and when to build the Attachment model; cross-device sync; ~~review scheduling beyond
+Leitner;~~ **automatic due-date, reminder or mandatory-queue scheduling beyond Leitner remains
+deferred. Phase 14 approves only owner-started, history-ranked Conjugation Gym sessions; they never
+change a review date or box. Stored mastery scores and automatic Gym sessions remain deferred;**
+~~sense-level annotations;~~ **dictionary-sense attachment or synchronization (personal meaning
+annotations are now built independently);** importing multiword expressions into the reference
+layer; merge-mode import; ~~Source, Grammar, or explicit/richer Journal page profiles;
+passages/reflections or source-identity structures; user-authored page templates;~~ **Source and
+Grammar structures, Source captures, and built-in creation/copy-structure recipes are approved as
+Phase 7; an explicit/richer Journal schema, Source parent/child hierarchies, deep provenance,
+reading tracking, custom page kinds, and stored/user-authored template management remain
+deferred;** ~~typed relationships;~~ **typed and explained ordinary connections are approved as
+Phase 4t–4x;** ~~Collection practice history, grading, scoring, or scheduling.~~ **Persistent
+Collection Practice history, grading, scoring or scheduling remain deferred. Phase 9 separately
+approves transient Again/Got it feedback and missed-only rounds for hub free practice; those
+actions write no history or schedule.**
 
 ## 15. How to use this brief now
 
