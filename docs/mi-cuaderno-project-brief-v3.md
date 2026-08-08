@@ -16,7 +16,7 @@ A personal Spanish notebook built around a bundled dictionary: a mobile-first, i
 
 The bundled dictionary is lemma-focused. User-created lexical items may be single words **or** multiword phrases; both are first-class. Importing phrases/idioms into the reference layer may come later.
 
-It is inspired by the *scope* of SpanishDict but built entirely from open data sources. It is a private tool for one person, not a product. Simplicity and durability beat features.
+It is inspired by the *scope* of SpanishDict. It is a private tool for one person, not a product.
 
 ## 2. The owner, and how to work with them
 
@@ -55,7 +55,7 @@ The app code and the bundled reference data are licensed separately. Reference-d
 - **Example sentences:** Tatoeba es↔en pairs, default license **CC BY 2.0 FR**. Attribution is per-sentence: every imported example carries its Tatoeba sentence ID, contributor identifier when available, license, and source URL. A general thank-you on the About screen is not sufficient on its own.
 - **Frequency ranking:** the FrequencyWords project (OpenSubtitles-derived). Generated lists are **CC BY-SA 4.0** (repo code is MIT). These are *token* frequencies, not lemma ranks — see §12, Phase 0.5 and Phase 2.
 - **Required output:** the pipeline generates a `DATA_SOURCES.md` recording, for every dataset: name, version or download date, source URL, exact license and version, required attribution, transformations applied, and the pipeline script that produced the distributed output. The app's About screen shows the dataset version and renders or links this attribution.
-- **Never** scrape, copy, or import content from SpanishDict or any other proprietary dictionary.
+
 
 ## 5. Architecture: two layers, one seam
 
