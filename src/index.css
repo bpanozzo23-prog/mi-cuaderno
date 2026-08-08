@@ -74,9 +74,10 @@
 }
 
 /* The tab is decorative and deliberately lives in CSS: page identity and card behavior stay in
-   the existing markup. The small top margin gives the tab room in both mixed and Pages-only lists. */
+   the existing markup. The top margin clears the tab's overhang and then restores an extra 8px
+   of visible breathing room in both mixed and Pages-only lists. */
 .page-folder-card {
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   border-radius: 4px 15px 15px 15px;
 }
 
