@@ -183,14 +183,16 @@ export function buildBalancedGymDeck(
   return balancedSelection(uniqueCells(verbs, { tenses, slots }), size, { rng });
 }
 
-const isInitialTyped = (event) =>
+const isInitialAnswer = (event) =>
   (event?.type === "drill_pass" || event?.type === "drill_fail") &&
-  (event?.metadata?.mode === "typed" || event?.metadata?.mode === "type") &&
   (event.metadata.stage || "initial") === "initial";
 
+const isTyped = (event) => event?.metadata?.mode === "typed" || event?.metadata?.mode === "type";
+
 function historyForAdaptive(events) {
-  const initial = (events || []).filter(isInitialTyped);
+  const initial = (events || []).filter(isInitialAnswer);
   const cellStats = new Map();
+  const exposureCounts = new Map();
   const tenseStats = new Map();
   const slotStats = new Map();
   const recoveries = new Set(
@@ -215,9 +217,15 @@ function historyForAdaptive(events) {
     if (!metadata.verbKey || !metadata.tense || !metadata.slot) continue;
     const key = `${metadata.verbKey}|${metadata.tense}|${metadata.slot}`;
     const passed = event.type === "drill_pass";
-    add(cellStats, key, passed, event.at);
-    add(tenseStats, metadata.tense, passed, event.at);
-    add(slotStats, metadata.slot, passed, event.at);
+    exposureCounts.set(key, (exposureCounts.get(key) || 0) + 1);
+    // Typed initial attempts are measured recall. Reveal grades are useful evidence of a
+    // recent miss and of exposure, but a self-reported Got it must not manufacture a weak
+    // or strong dimension.
+    if (isTyped(event)) {
+      add(cellStats, key, passed, event.at);
+      add(tenseStats, metadata.tense, passed, event.at);
+      add(slotStats, metadata.slot, passed, event.at);
+    }
     if (!passed) {
       failures.push({
         key,
@@ -228,7 +236,7 @@ function historyForAdaptive(events) {
   }
 
   failures.sort((a, b) => Number(a.recovered) - Number(b.recovered) || b.at.localeCompare(a.at));
-  return { cellStats, tenseStats, slotStats, failures };
+  return { cellStats, exposureCounts, tenseStats, slotStats, failures };
 }
 
 const isWeak = (stats) => stats && stats.attempts >= 3 && stats.passed / stats.attempts < 0.8;
@@ -280,7 +288,8 @@ export function buildAdaptiveGymDeck(
   const underPractised = shuffled(cells, rng).sort((a, b) => {
     const left = history.cellStats.get(gymCellKey(a));
     const right = history.cellStats.get(gymCellKey(b));
-    return (left?.attempts || 0) - (right?.attempts || 0) ||
+    return (history.exposureCounts.get(gymCellKey(a)) || 0) - (history.exposureCounts.get(gymCellKey(b)) || 0) ||
+      (left?.attempts || 0) - (right?.attempts || 0) ||
       String(left?.lastAt || "").localeCompare(String(right?.lastAt || ""));
   });
 

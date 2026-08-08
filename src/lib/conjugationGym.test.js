@@ -119,4 +119,57 @@ describe("adaptive decks", () => {
     const deck = buildAdaptiveGymDeck([verb("ser"), verb("estar")], [], { size: 10 });
     expect(deck).toHaveLength(10);
   });
+
+  it("treats a reveal Missed grade as targeting evidence", () => {
+    const verbs = [verb("ser"), verb("estar")];
+    const events = [{
+      type: "drill_fail",
+      at: "2026-08-07T12:00:00.000Z",
+      metadata: {
+        mode: "reveal", stage: "initial", promptId: "reveal-1",
+        verbKey: "lemma:ser", tense: "Indicative/Present", slot: "yo",
+      },
+    }];
+
+    const deck = buildAdaptiveGymDeck(verbs, events, { size: 10, rng: seeded([0.4, 0.6]) });
+    expect(deck.slice(0, 4).map(gymCellKey)).toContain("lemma:ser|Indicative/Present|yo");
+  });
+
+  it("counts reveal Got it as exposure without treating it as measured accuracy", () => {
+    const twoCells = verb("ser", ["Indicative/Present"]);
+    twoCells.conjugation.tenses["Indicative/Present"] = { yo: "soy", "tú": "eres" };
+    const events = [{
+      type: "drill_pass",
+      at: "2026-08-07T12:00:00.000Z",
+      metadata: {
+        mode: "reveal", stage: "initial", promptId: "reveal-1",
+        verbKey: "lemma:ser", tense: "Indicative/Present", slot: "yo",
+      },
+    }];
+
+    const deck = buildAdaptiveGymDeck([twoCells], events, { size: 1, rng: seeded([0.5]) });
+    expect(gymCellKey(deck[0])).toBe("lemma:ser|Indicative/Present|tú");
+  });
+
+  it("ranks an unresolved recent miss ahead of a recovered one", () => {
+    const twoCells = verb("ser", ["Indicative/Present"]);
+    twoCells.conjugation.tenses["Indicative/Present"] = { yo: "soy", "tú": "eres", nosotros: "somos" };
+    const events = [
+      {
+        type: "drill_fail", at: "2026-08-07T12:02:00.000Z",
+        metadata: { mode: "typed", stage: "initial", promptId: "recovered", verbKey: "lemma:ser", tense: "Indicative/Present", slot: "yo" },
+      },
+      {
+        type: "drill_pass", at: "2026-08-07T12:03:00.000Z",
+        metadata: { mode: "typed", stage: "retry", promptId: "recovered", verbKey: "lemma:ser", tense: "Indicative/Present", slot: "yo" },
+      },
+      {
+        type: "drill_fail", at: "2026-08-07T12:01:00.000Z",
+        metadata: { mode: "typed", stage: "initial", promptId: "unresolved", verbKey: "lemma:ser", tense: "Indicative/Present", slot: "tú" },
+      },
+    ];
+
+    const deck = buildAdaptiveGymDeck([twoCells], events, { size: 2, rng: seeded([0.5]) });
+    expect(gymCellKey(deck[0])).toBe("lemma:ser|Indicative/Present|tú");
+  });
 });

@@ -135,4 +135,43 @@ describe("Conjugation Gym setup", () => {
     expect(screen.getByRole("checkbox", { name: "yo" }).checked).toBe(true);
     expect(screen.getByRole("checkbox", { name: "tú" }).checked).toBe(false);
   });
+
+  it("feeds persisted initial misses into an Adaptive session", async () => {
+    const user = userEvent.setup();
+    await seedGymDictionary();
+    const saved = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
+    const missed = {
+      id: "adaptive-miss",
+      type: "drill_fail",
+      itemKey: "user:sacar",
+      at: "2026-08-07T12:00:00.000Z",
+      localDate: "2026-08-07",
+      metadata: {
+        sessionId: "old-session",
+        promptId: "old-prompt",
+        sessionKind: "focus",
+        source: "saved",
+        curriculum: null,
+        verbKey: "lemma:sacar",
+        lemma: "sacar",
+        dictKey: SACAR,
+        tense: "Indicative/Preterite",
+        slot: "yo",
+        mode: "typed",
+        verdict: "wrong",
+        diagnosis: "wrong_tense",
+        stage: "initial",
+        cardIndex: 1,
+        deckSize: 10,
+      },
+    };
+    render(<ConjugationGym items={[saved]} events={[missed]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await waitFor(() => expect(screen.getByRole("radio", { name: "Saved" })).toBeTruthy());
+    await user.click(screen.getByRole("radio", { name: "Saved" }));
+    await user.click(screen.getByRole("button", { name: /Adaptive/ }));
+    await user.click(screen.getByRole("button", { name: "Start adaptive session" }));
+
+    expect(screen.getByText(/Indicative preterite · yo/)).toBeTruthy();
+  });
 });
