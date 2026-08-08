@@ -4,7 +4,15 @@ import {
   removeDictionary, discardPendingInstall, checkForUpdate,
 } from "./install.js";
 import { activeSlot, refDb, setActiveSlot } from "./refdb.js";
-import { getEntry, getConjugation, dictionaryInstalled, installedMeta, exampleAttribution } from "./entries.js";
+import {
+  getEntry,
+  getConjugation,
+  getVerbTablesByLemma,
+  resolveVerbEntriesByLemma,
+  dictionaryInstalled,
+  installedMeta,
+  exampleAttribution,
+} from "./entries.js";
 import { db as personalDb } from "../db.js";
 import { createItem } from "../items.js";
 import { buildFixtureDictionary, installFetchStub } from "../../test/dictFixture.js";
@@ -65,6 +73,19 @@ describe("installing a dictionary", () => {
     const conj = await getConjugation("conj:jehle:sacar");
     expect(conj.tenses["Indicative/Preterite"].yo).toBe("saqué");
     expect(conj.tenses["Indicative/Present Perfect"].yo).toBe("he sacado");
+  });
+
+  it("resolves curated verbs by exact lemma and batch-loads their tables", async () => {
+    installFetchStub(await buildFixtureDictionary());
+    await installDictionary(await fetchManifest());
+
+    const resolved = await resolveVerbEntriesByLemma(["sacar", "ser", "casa", "missing"]);
+    expect(resolved.map(({ entry }) => entry?.lemma || null)).toEqual(["sacar", "ser", null, null]);
+
+    const verbs = await getVerbTablesByLemma(["sacar", "missing"]);
+    expect(verbs[0].available).toBe(true);
+    expect(verbs[0].conjugation.tenses["Indicative/Present Perfect"].yo).toBe("he sacado");
+    expect(verbs[1]).toMatchObject({ lemma: "missing", entry: null, conjugation: null, available: false });
   });
 
   it("rebuilds each example's full attribution from the manifest constants (§4)", async () => {

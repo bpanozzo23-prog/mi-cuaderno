@@ -1,5 +1,6 @@
 import { activeDb, getMeta, META_KEYS } from "./refdb.js";
 import { allTenses, HABER_CONJUGATION_ID } from "../../lib/conjugation.js";
+import { normalize } from "../../lib/normalize.js";
 
 /**
  * Reading the reference layer.
@@ -75,6 +76,68 @@ export async function getConjugation(conjugationId) {
   const table = await db.conjugations.get(conjugationId);
   if (!table) return null;
   return { ...table, tenses: allTenses(table, await haberTable()) };
+}
+
+/** Full conjugations in one IndexedDB read, aligned with the requested ids. */
+export async function getConjugations(conjugationIds) {
+  const db = activeDb();
+  if (!db || !conjugationIds?.length) return [];
+  const validIds = [...new Set(conjugationIds.filter(Boolean))];
+  const loaded = await db.conjugations.bulkGet(validIds);
+  const byId = new Map(validIds.map((id, index) => [id, loaded[index] || null]));
+  const haber = await haberTable();
+  return conjugationIds.map((id) => {
+    const table = byId.get(id);
+    return table ? { ...table, tenses: allTenses(table, haber) } : null;
+  });
+}
+
+const exactLemma = (value) => String(value || "").trim().normalize("NFC").toLowerCase();
+
+/**
+ * Resolves curated verbs through the lemma form index instead of assuming dictionary ids.
+ * Results stay aligned with `lemmas`; an ambiguous or missing lemma is explicitly
+ * unavailable, never guessed from an inflected-form match.
+ */
+export async function resolveVerbEntriesByLemma(lemmas) {
+  const db = activeDb();
+  if (!db || !lemmas?.length) return (lemmas || []).map((lemma) => ({ lemma, entry: null }));
+
+  const requested = lemmas.map((lemma) => ({
+    lemma: String(lemma || "").trim().normalize("NFC"),
+    normalized: normalize(lemma),
+  }));
+  const shardIds = [...new Set(requested.map(({ normalized }) => normalized.slice(0, 2) || "_"))];
+  const shards = (await db.formShards.bulkGet(shardIds)).filter(Boolean);
+  const termsByShard = new Map(shards.map((row) => [row.id, row.terms || {}]));
+  const postings = requested.map(({ normalized }) =>
+    termsByShard.get(normalized.slice(0, 2) || "_")?.[normalized] || []
+  );
+  const entryIds = [...new Set(postings.flat())];
+  const entries = await db.entries.bulkGet(entryIds);
+  const byId = new Map(entries.filter(Boolean).map((entry) => [entry.id, entry]));
+
+  return requested.map(({ lemma }, index) => {
+    const matches = postings[index]
+      .map((id) => byId.get(id))
+      .filter((entry) =>
+        entry?.pos === "verb" && entry.conjugationId && exactLemma(entry.lemma) === exactLemma(lemma)
+      );
+    return { lemma, entry: matches.length === 1 ? matches[0] : null };
+  });
+}
+
+/** Curated lemma resolution plus one batched conjugation read, for a Gym pool. */
+export async function getVerbTablesByLemma(lemmas) {
+  const resolved = await resolveVerbEntriesByLemma(lemmas);
+  const ids = resolved.map(({ entry }) => entry?.conjugationId || null);
+  const tables = await getConjugations(ids);
+  return resolved.map(({ lemma, entry }, index) => ({
+    lemma,
+    entry,
+    conjugation: entry ? tables[index] : null,
+    available: Boolean(entry && tables[index]),
+  }));
 }
 
 /** Entry plus its conjugation in one call, for the detail screen. */

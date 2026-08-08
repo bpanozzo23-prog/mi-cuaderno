@@ -110,6 +110,20 @@ export function tenseHeading(label) {
   return tense || label;
 }
 
+/**
+ * A mood-qualified label for places where tenses from several moods share one list.
+ * `tenseHeading` remains right for tables already grouped by mood; Gym setup and stats
+ * need the mood because "Present" and every perfect label otherwise collide.
+ */
+export function qualifiedTenseLabel(label) {
+  const [mood, tense] = String(label || "").split("/");
+  if (!tense) return String(label || "");
+  if (mood === "Imperative Affirmative") return "Affirmative command";
+  if (mood === "Imperative Negative") return "Negative command";
+  if (label === "Indicative/Preterite (Archaic)") return "Indicative preterite perfect (archaic)";
+  return `${mood} ${tense.toLowerCase()}`;
+}
+
 /** Every tense of a verb, simple ones as stored plus the composed perfects. */
 export function allTenses(table, haberTable) {
   if (!table) return {};

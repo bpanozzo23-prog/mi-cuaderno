@@ -25,6 +25,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { raw, out, repo, readJson, writeJson, gzipSize, mb, kb, step, done, PIPELINE_DIR } from "../lib/io.mjs";
 import { normalize } from "../lib/ids.mjs";
+import { CORE_50 } from "../../src/lib/conjugationGym.js";
 
 const started = step("07 · package for delivery");
 
@@ -78,6 +79,21 @@ const shipEntry = (e) => {
 };
 
 const shippedEntries = entries.map(shipEntry);
+
+// Phase 14's curated curriculum resolves by lemma, so packaging proves every promised
+// verb has one and only one conjugable verb entry. A source refresh may change ids; it may
+// not silently hollow out the Gym.
+for (const lemma of CORE_50) {
+  const matches = shippedEntries.filter(
+    (entry) => entry.pos === "verb" && entry.conjugationId && entry.lemma.normalize("NFC").toLowerCase() === lemma
+  );
+  if (matches.length !== 1) {
+    throw new Error(`Conjugation Gym core lemma ${lemma} resolved to ${matches.length} conjugable verb entries`);
+  }
+  if (!conjugations[matches[0].conjugationId]) {
+    throw new Error(`Conjugation Gym core lemma ${lemma} has no packaged conjugation table`);
+  }
+}
 const entryIdsByLemmaKey = new Map();
 for (const e of entries) {
   const key = `${e.lemma}|${e.pos}`;

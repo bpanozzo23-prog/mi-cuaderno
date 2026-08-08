@@ -1,4 +1,5 @@
 import { SLOTS, COLLAPSED_SLOTS } from "./conjugation.js";
+import { EVERYDAY_TENSES } from "./conjugationGym.js";
 import { normalize } from "./normalize.js";
 
 /**
@@ -22,14 +23,7 @@ import { normalize } from "./normalize.js";
  * subjunctive that survives mainly in legal set phrases — is available in the dictionary
  * but would make a short drill mostly rarities.
  */
-export const DRILL_TENSES = [
-  "Indicative/Present",
-  "Indicative/Preterite",
-  "Indicative/Imperfect",
-  "Indicative/Future",
-  "Indicative/Conditional",
-  "Subjunctive/Present",
-];
+export const DRILL_TENSES = EVERYDAY_TENSES;
 
 export const DECK_SIZE = 10;
 

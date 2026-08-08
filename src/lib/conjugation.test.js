@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  composePerfectTenses, isPronominal, allTenses, expectedSlots, SLOTS,
+  composePerfectTenses, isPronominal, allTenses, expectedSlots, qualifiedTenseLabel, SLOTS,
 } from "./conjugation.js";
 
 /** haber's present indicative — the auxiliary every perfect tense is built from. */
@@ -95,5 +95,19 @@ describe("expectedSlots", () => {
     expect(expectedSlots("Imperative Affirmative/Present")).not.toContain("yo");
     expect(expectedSlots("Imperative Negative/Present")).toHaveLength(5);
     expect(expectedSlots("Indicative/Present")).toEqual(SLOTS);
+  });
+});
+
+describe("qualifiedTenseLabel", () => {
+  it("keeps same-named indicative and subjunctive rows distinct", () => {
+    expect(qualifiedTenseLabel("Indicative/Present")).toBe("Indicative present");
+    expect(qualifiedTenseLabel("Subjunctive/Present")).toBe("Subjunctive present");
+    expect(qualifiedTenseLabel("Indicative/Present Perfect")).toBe("Indicative present perfect");
+    expect(qualifiedTenseLabel("Subjunctive/Present Perfect")).toBe("Subjunctive present perfect");
+  });
+
+  it("names the two command tables by polarity", () => {
+    expect(qualifiedTenseLabel("Imperative Affirmative/Present")).toBe("Affirmative command");
+    expect(qualifiedTenseLabel("Imperative Negative/Present")).toBe("Negative command");
   });
 });
