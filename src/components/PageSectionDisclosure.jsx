@@ -4,10 +4,11 @@ import { C, SERIF } from "../theme.jsx";
 
 /**
  * The spine's geometry, in one place so the line and the nodes hung on it cannot drift apart.
- * The 21px margin centres the 2px line under the header's chevron (1px border + 8px bar padding +
- * 4px button padding + half of a 17px icon), so the line reads as dripping from the header.
+ * The margin sits the 2px line well inside the header band's left edge without chasing the
+ * chevron: aligning the two was tried and the owner preferred the line closer to the margin, which
+ * also returns width to the cards. The gap between line and content is unchanged.
  */
-const SPINE_LEFT = "ml-[21px]";
+const SPINE_LEFT = "ml-[10px]";
 const SPINE_PAD = "pl-4";
 /** Half a 6px node, left of the line: -(padding 16 + border 2) + 1px line centre - 3px radius. */
 const SPINE_NODE_LEFT = "left-[-20px]";
