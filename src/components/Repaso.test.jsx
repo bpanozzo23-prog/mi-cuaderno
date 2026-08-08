@@ -295,33 +295,33 @@ describe("Phase 10c: the conjugation drill", () => {
     await refDb("a").conjugations.bulkPut(FIXTURE_CONJUGATIONS);
   }
 
-  it("offers the drill for a verb the dictionary can conjugate", async () => {
+  it("always offers the Conjugation Gym entry", async () => {
     await seedWithConjugations([SACAR]);
     const verb = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
 
     render(<Repaso notebook={notebookFor([verb], [])} onSelect={vi.fn()} />);
 
-    await waitFor(() => expect(screen.getByRole("button", { name: /Drill/ })).toBeTruthy());
-    expect(screen.getByText(/1 verb/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Open" })).toBeTruthy();
+    expect(screen.getByText("Conjugation Gym")).toBeTruthy();
   });
 
-  it("stays hidden for a word with no conjugation table", async () => {
+  it("stays visible for a word with no conjugation table", async () => {
     await seedWithConjugations([CASA]);
     const noun = makeLexical({ id: "user:casa", term: "casa", pos: "noun", dictKey: CASA });
 
     render(<Repaso notebook={notebookFor([noun], [])} onSelect={vi.fn()} />);
 
-    await waitFor(() => expect(screen.getByText("Recent activity")).toBeTruthy());
-    expect(screen.queryByRole("button", { name: /Drill/ })).toBeNull();
+    expect(screen.getByRole("button", { name: "Open" })).toBeTruthy();
   });
 
-  it("stays hidden when no dictionary is installed", async () => {
+  it("opens to an honest unavailable state when no dictionary is installed", async () => {
+    const user = userEvent.setup();
     const verb = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
 
     render(<Repaso notebook={notebookFor([verb], [])} onSelect={vi.fn()} />);
 
-    await waitFor(() => expect(screen.getByText("Recent activity")).toBeTruthy());
-    expect(screen.queryByRole("button", { name: /Drill/ })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Open" }));
+    await waitFor(() => expect(screen.getByText("Dictionary not installed")).toBeTruthy());
   });
 
   it("keeps drilling a verb whose dictionary key moved in a rebuild", async () => {
@@ -331,7 +331,11 @@ describe("Phase 10c: the conjugation drill", () => {
 
     render(<Repaso notebook={notebookFor([verb], [])} onSelect={vi.fn()} />);
 
-    await waitFor(() => expect(screen.getByRole("button", { name: /Drill/ })).toBeTruthy());
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Open" }));
+    await waitFor(() => expect(screen.getByRole("radio", { name: "Saved" }).disabled).toBe(false));
+    await user.click(screen.getByRole("radio", { name: "Saved" }));
+    expect(screen.getByText(/1 saved verb available/)).toBeTruthy();
   });
 
   it("runs a graded drill, and no longer promises that nothing is recorded", async () => {
@@ -340,8 +344,11 @@ describe("Phase 10c: the conjugation drill", () => {
     const verb = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
 
     render(<Repaso notebook={notebookFor([verb], [])} onSelect={vi.fn()} />);
-    await waitFor(() => expect(screen.getByRole("button", { name: /Drill/ })).toBeTruthy());
-    await user.click(screen.getByRole("button", { name: /Drill/ }));
+    await user.click(screen.getByRole("button", { name: "Open" }));
+    await waitFor(() => expect(screen.getByRole("radio", { name: "Saved" })).toBeTruthy());
+    await user.click(screen.getByRole("radio", { name: "Saved" }));
+    await user.click(screen.getByRole("radio", { name: "Reveal" }));
+    await user.click(screen.getByRole("button", { name: "Start quick session" }));
 
     expect(screen.getByRole("button", { name: "Tap to see the form" })).toBeTruthy();
     // Phase 13 records drill answers, so the old reassurance would now be a lie. Asserted
@@ -357,8 +364,11 @@ describe("Phase 10c: the conjugation drill", () => {
     const notebook = notebookFor([verb], []);
 
     render(<Repaso notebook={notebook} onSelect={vi.fn()} />);
-    await waitFor(() => expect(screen.getByRole("button", { name: /Drill/ })).toBeTruthy());
-    await user.click(screen.getByRole("button", { name: /Drill/ }));
+    await user.click(screen.getByRole("button", { name: "Open" }));
+    await waitFor(() => expect(screen.getByRole("radio", { name: "Saved" })).toBeTruthy());
+    await user.click(screen.getByRole("radio", { name: "Saved" }));
+    await user.click(screen.getByRole("radio", { name: "Reveal" }));
+    await user.click(screen.getByRole("button", { name: "Start quick session" }));
     await user.click(screen.getByRole("button", { name: "Tap to see the form" }));
     await user.click(screen.getByRole("button", { name: "Got it" }));
 
@@ -447,7 +457,7 @@ describe("Phase 11 Estadísticas sub-view", () => {
   });
 });
 
-describe("Phase 13b: choosing how the drill asks", () => {
+describe("Phase 14: choosing how the Gym asks", () => {
   // Redeclared rather than shared: the Phase 10a block scopes its own copies, and reaching
   // across describes would couple two suites that are otherwise independent.
   const SACAR = "dict:wiktionary-es:sacar:verb";
@@ -457,19 +467,19 @@ describe("Phase 13b: choosing how the drill asks", () => {
     await refDb("a").conjugations.bulkPut(FIXTURE_CONJUGATIONS);
   }
 
-  it("defaults to reveal, and carries a typed choice into the drill", async () => {
+  it("defaults to Type, and carries the choice into the session", async () => {
     const user = userEvent.setup();
     await seedWithConjugations([SACAR]);
     const verb = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
 
     render(<Repaso notebook={notebookFor([verb], [])} onSelect={vi.fn()} />);
-    await waitFor(() => expect(screen.getByRole("radio", { name: "reveal" })).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: "Open" }));
+    await waitFor(() => expect(screen.getByRole("radio", { name: "Saved" })).toBeTruthy());
+    expect(screen.getByRole("radio", { name: "Type" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("radio", { name: "Reveal" }).getAttribute("aria-checked")).toBe("false");
 
-    expect(screen.getByRole("radio", { name: "reveal" }).getAttribute("aria-checked")).toBe("true");
-    expect(screen.getByRole("radio", { name: "type it" }).getAttribute("aria-checked")).toBe("false");
-
-    await user.click(screen.getByRole("radio", { name: "type it" }));
-    await user.click(screen.getByRole("button", { name: /Drill/ }));
+    await user.click(screen.getByRole("radio", { name: "Saved" }));
+    await user.click(screen.getByRole("button", { name: "Start quick session" }));
 
     // The chosen mode reached the drill: typed asks for the form instead of revealing it.
     expect(screen.getByLabelText("Type the form")).toBeTruthy();

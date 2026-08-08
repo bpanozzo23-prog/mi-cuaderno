@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, RotateCcw, Check, X } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Card, Button } from "../theme.jsx";
-import { tenseHeading } from "../lib/conjugation.js";
+import { qualifiedTenseLabel } from "../lib/conjugation.js";
 import { checkTypedAnswer } from "../lib/drill.js";
 import { logDrill } from "../db/events.js";
 import SpeakButton from "./SpeakButton.jsx";
@@ -116,7 +116,7 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
       <Card className="p-5">
         <div className="text-center">
           <div className="text-xs" style={{ fontFamily: MONO, color: C.mut }}>
-            {tenseHeading(card.tense)} · {card.slot}
+            {qualifiedTenseLabel(card.tense)} · {card.slot}
           </div>
           <div className="mt-2 text-3xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
             {card.term}
@@ -181,11 +181,11 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
             {onOpen && (
               <button
                 type="button"
-                onClick={() => onOpen(card.itemId)}
+                onClick={() => onOpen(card.openKey || card.itemId || card.dictKey)}
                 className="text-xs underline underline-offset-2"
                 style={{ color: C.pen }}
               >
-                Open the full entry
+                {card.source === "core" && !card.itemKey ? "Open dictionary entry" : "Open saved entry"}
               </button>
             )}
           </div>

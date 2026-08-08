@@ -48,7 +48,7 @@ describe("drilling a conjugation", () => {
     const user = userEvent.setup();
     render(<ConjugationDrill deck={[card()]} onFinish={vi.fn()} onOpen={vi.fn()} />);
 
-    expect(screen.getByText(/Preterite/)).toBeTruthy();
+    expect(screen.getByText(/Indicative preterite/)).toBeTruthy();
     expect(screen.getByText(/ustedes\/ellos/)).toBeTruthy();
     expect(screen.getByText("sacar")).toBeTruthy();
     expect(screen.queryByText("sacaron")).toBeNull();
@@ -178,7 +178,7 @@ describe("drilling a conjugation", () => {
     render(<ConjugationDrill deck={[card()]} onFinish={vi.fn()} onOpen={onOpen} />);
 
     await user.click(screen.getByRole("button", { name: "Tap to see the form" }));
-    await user.click(screen.getByRole("button", { name: "Open the full entry" }));
+    await user.click(screen.getByRole("button", { name: "Open saved entry" }));
 
     expect(onOpen).toHaveBeenCalledWith("user:sacar");
   });

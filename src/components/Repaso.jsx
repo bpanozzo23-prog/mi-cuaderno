@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Highlighter, SearchX, Play, CheckCircle2, Eye, ChevronRight } from "lucide-react";
+import { Highlighter, SearchX, Play, CheckCircle2, Eye, ChevronRight, Dumbbell } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button } from "../theme.jsx";
 import ItemCard from "./ItemCard.jsx";
 import ReviewSession from "./ReviewSession.jsx";
-import ConjugationDrill from "./ConjugationDrill.jsx";
+import ConjugationGym from "./ConjugationGym.jsx";
 import Estadisticas from "./Estadisticas.jsx";
 import { EVENT_TYPES } from "../db/events.js";
 import { createItem, newLexicalFromEntry } from "../db/items.js";
@@ -19,7 +19,6 @@ import { timeAgo } from "../lib/dates.js";
 import { deriveReviewState, deriveDictSuggestions, cardDirection } from "../lib/review.js";
 import { activityByDay, streakFrom, boxDistribution } from "../lib/stats.js";
 import { pickCloze, verbForms } from "../lib/cloze.js";
-import { buildDrillDeck } from "../lib/drill.js";
 
 /**
  * Every number here is derived from the event log at render time — there are no
@@ -47,12 +46,6 @@ const DIRECTION_OPTIONS = [
   { value: "forward", label: "es→en" },
   { value: "reverse", label: "en→es" },
   { value: "mixed", label: "mixed" },
-];
-
-/** Phase 13b. Reveal is first because it is the faster answer, and the older habit. */
-const DRILL_MODE_OPTIONS = [
-  { value: "reveal", label: "reveal" },
-  { value: "typed", label: "type it" },
 ];
 
 const itemHeading = (item) =>
@@ -98,7 +91,8 @@ function BoxBar({ label, count, max, tone }) {
 
 export default function Repaso({ notebook, onSelect }) {
   const { items, events, itemState, reload } = notebook;
-  const [inSession, setInSession] = useState(false);
+  const [view, setView] = useState("home");
+  const [gymInitialView, setGymInitialView] = useState("setup");
 
   const byId = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
 
@@ -128,19 +122,6 @@ export default function Repaso({ notebook, onSelect }) {
   // Starting now reads the reference layer for cloze material, so the tap has to be
   // guarded against a second one landing before the first finishes.
   const [starting, setStarting] = useState(false);
-
-  // The drill is a separate, ungraded pass; it owns its deck the same way a session owns
-  // its cards, so nothing re-derives underneath the owner mid-drill.
-  const [inDrill, setInDrill] = useState(false);
-  const [drillDeck, setDrillDeck] = useState([]);
-
-  // How the drill asks (Phase 13b). Not persisted, for the direction control's reason: the
-  // useful default is the one you get by just tapping Drill.
-  const [drillMode, setDrillMode] = useState("reveal");
-
-  // The calendar and growth chart are worth an occasional look rather than a daily one, so
-  // they swap in over Repaso the same way a session does — no route, tab or back-label.
-  const [inStats, setInStats] = useState(false);
 
   /**
    * Dictionary entries the owner keeps opening but has not added — the counterpart to
@@ -183,68 +164,6 @@ export default function Repaso({ notebook, onSelect }) {
     setAdding(null);
     reload();
     onSelect(created.id);
-  }
-
-  /**
-   * The owner's verbs that the installed dictionary can actually conjugate (Phase 10c).
-   *
-   * Resolution goes through resolveEntry, so a personal item whose dict: key moved in a
-   * dataset rebuild keeps its drill instead of silently dropping out (§5). Nothing is
-   * written back: a rewrite belongs to the screens that own the attachment, not to a
-   * derived list. With no dictionary, a stale key or no conjugable verbs, this stays
-   * empty and the drill card simply does not render — the same quiet absence the
-   * dictionary suggestions use.
-   */
-  const attachedKeys = useMemo(
-    () =>
-      items
-        .filter((item) => item.type === "lexical" && item.dictKey)
-        .map((item) => ({ itemId: item.id, term: item.term, dictKey: item.dictKey })),
-    [items]
-  );
-  const [drillVerbs, setDrillVerbs] = useState([]);
-
-  useEffect(() => {
-    let alive = true;
-    if (!attachedKeys.length) {
-      setDrillVerbs([]);
-      return () => {
-        alive = false;
-      };
-    }
-
-    (async () => {
-      try {
-        if (!(await dictionaryInstalled())) {
-          if (alive) setDrillVerbs([]);
-          return;
-        }
-        const resolved = await Promise.all(
-          attachedKeys.map(async (row) => ({ ...row, entry: (await resolveEntry(row.dictKey)).entry }))
-        );
-        const conjugable = resolved.filter((row) => row.entry?.conjugationId);
-        const tables = await Promise.all(
-          conjugable.map((row) => getConjugation(row.entry.conjugationId))
-        );
-        if (!alive) return;
-        setDrillVerbs(
-          conjugable
-            .map((row, index) => ({ itemId: row.itemId, term: row.term, conjugation: tables[index] }))
-            .filter((row) => row.conjugation)
-        );
-      } catch {
-        if (alive) setDrillVerbs([]);
-      }
-    })();
-
-    return () => {
-      alive = false;
-    };
-  }, [attachedKeys]);
-
-  function startDrill() {
-    setDrillDeck(buildDrillDeck(drillVerbs));
-    setInDrill(true);
   }
 
   const tricky = useMemo(
@@ -386,35 +305,43 @@ export default function Repaso({ notebook, onSelect }) {
       })
     );
     setStarting(false);
-    setInSession(true);
+    setView("review");
   }
 
-  if (inStats) {
+  if (view === "stats") {
     // Nothing to reload on return: this screen only ever read.
-    return <Estadisticas items={items} events={events} onBack={() => setInStats(false)} />;
+    return (
+      <Estadisticas
+        items={items}
+        events={events}
+        onBack={() => setView("home")}
+        onOpenConjugationPerformance={() => {
+          setGymInitialView("stats");
+          setView("gym");
+        }}
+      />
+    );
   }
 
-  if (inDrill) {
-    // Each persisted answer reloads the app-level notebook snapshot. Repaso can be unmounted
-    // through the persistent bottom navigation before Finish is tapped, so waiting until the
-    // way out would leave streaks and statistics stale on the next screen.
+  if (view === "gym") {
     return (
-      <ConjugationDrill
-        deck={drillDeck}
-        mode={drillMode}
-        onFinish={() => setInDrill(false)}
+      <ConjugationGym
+        items={items}
+        events={events}
+        initialView={gymInitialView}
+        onBack={() => setView("home")}
         onOpen={onSelect}
         onGraded={reload}
       />
     );
   }
 
-  if (inSession) {
+  if (view === "review") {
     return (
       <ReviewSession
         cards={sessionCards}
         onFinish={() => {
-          setInSession(false);
+          setView("home");
           reload();
         }}
         onOpen={onSelect}
@@ -520,54 +447,30 @@ export default function Repaso({ notebook, onSelect }) {
         </div>
       )}
 
-      {drillVerbs.length > 0 && (
-        <>
-          <SectionTitle>Conjugations</SectionTitle>
-          <Card className="p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-sm" style={{ color: C.ink }}>
-                  Practise the six everyday tenses.
-                </div>
-                <div className="text-xs" style={{ color: C.mut }}>
-                  {drillVerbs.length} {drillVerbs.length === 1 ? "verb" : "verbs"}
-                </div>
+      <SectionTitle>Conjugations</SectionTitle>
+      <Card className="p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0 flex items-start gap-2">
+            <Dumbbell size={17} className="mt-0.5 shrink-0" style={{ color: C.pen }} />
+            <div>
+              <div className="text-sm font-semibold" style={{ color: C.ink }}>Conjugation Gym</div>
+              <div className="text-xs" style={{ color: C.mut }}>
+                Quick, focused, or adaptive practice with saved and core verbs.
               </div>
-              <Button tone="quiet" className="shrink-0" onClick={startDrill}>
-                <Play size={15} /> Drill
-              </Button>
             </div>
-
-            <div
-              role="radiogroup"
-              aria-label="How to answer"
-              className="mt-3 flex gap-1 rounded-lg border p-0.5"
-              style={{ borderColor: C.line, background: C.paper }}
-            >
-              {DRILL_MODE_OPTIONS.map((option) => {
-                const active = drillMode === option.value;
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    role="radio"
-                    aria-checked={active}
-                    onClick={() => setDrillMode(option.value)}
-                    className="flex-1 rounded-md px-2 py-1.5 text-xs"
-                    style={{
-                      fontFamily: MONO,
-                      background: active ? C.pen : "transparent",
-                      color: active ? "#fff" : C.mut,
-                    }}
-                  >
-                    {option.label}
-                  </button>
-                );
-              })}
-            </div>
-          </Card>
-        </>
-      )}
+          </div>
+          <Button
+            tone="quiet"
+            className="shrink-0"
+            onClick={() => {
+              setGymInitialView("setup");
+              setView("gym");
+            }}
+          >
+            Open
+          </Button>
+        </div>
+      </Card>
 
       {/* Two by two rather than four across: at 375px a fourth column leaves each tile
           too narrow for a four-figure open count to sit under its label. */}
@@ -588,7 +491,7 @@ export default function Repaso({ notebook, onSelect }) {
         </Card>
       )}
       <button
-        onClick={() => setInStats(true)}
+        onClick={() => setView("stats")}
         className="mt-2 w-full min-h-11 flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-left"
         style={{ background: C.card, borderColor: C.line }}
       >
