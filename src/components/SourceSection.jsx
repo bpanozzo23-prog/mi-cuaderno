@@ -7,9 +7,9 @@ import {
   ChevronUp,
   CircleHelp,
   ExternalLink,
-  FilePenLine,
   Languages,
   ListFilter,
+  ListTree,
   MessageSquareText,
   Pencil,
   Plus,
@@ -17,7 +17,7 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { Button, C, Card, MONO, SERIF } from "../theme.jsx";
+import { Button, C, Card, IconButton, MONO, SERIF } from "../theme.jsx";
 import { normalize } from "../lib/normalize.js";
 import {
   deleteSourceCapture,
@@ -232,15 +232,13 @@ function SourceDetails({ source, onSaved }) {
             </div>
           )}
         </div>
-        <button
-          type="button"
+        <IconButton
           onClick={openEditor}
           aria-label="Edit source details"
-          className="flex min-h-11 shrink-0 items-center gap-1 rounded-lg border px-2 text-xs"
-          style={{ background: C.card, borderColor: C.line, color: C.pen }}
+          style={{ color: C.pen }}
         >
-          <Pencil size={13} /> Edit
-        </button>
+          <Pencil size={15} />
+        </IconButton>
       </div>
     </Card>
   );
@@ -735,9 +733,9 @@ export default function SourceSection({
       actions={({ collapsed }) => !organizing && !captureDraft && (
         <>
           {!collapsed && captures.length > 1 && !captureMenuOpen && (
-            <Button tone="quiet" className="min-h-11" onClick={() => setOrganizing(true)}>
-              <FilePenLine size={14} /> Organize
-            </Button>
+            <IconButton tone="quiet" aria-label="Organize" onClick={() => setOrganizing(true)}>
+              <ListTree size={17} />
+            </IconButton>
           )}
           {(!collapsed || empty) && (
             <Button

@@ -38,8 +38,8 @@ export default function PageSectionDisclosure({
   return (
     <section id={id} aria-labelledby={headingId}>
       <div
-        className={`flex items-center justify-between gap-2 ${collapsed ? "rounded-lg border px-2" : ""}`}
-        style={collapsed ? { background: C.card, borderColor: C.line } : undefined}
+        className="flex flex-wrap items-start justify-between gap-2 rounded-xl border px-2 py-1.5"
+        style={{ background: C.penPale, borderColor: C.chipBorder }}
       >
         <button
           type="button"
@@ -47,20 +47,20 @@ export default function PageSectionDisclosure({
           aria-expanded={!collapsed}
           aria-controls={contentId}
           onClick={() => setCollapsed((closed) => !closed)}
-          className={`${collapsed ? "" : "-ml-2"} min-h-11 min-w-0 flex-1 rounded-lg px-2 text-left flex items-center gap-2`}
+          className="min-h-11 min-w-40 flex-1 rounded-lg px-1 text-left flex items-center gap-2"
         >
           {collapsed
             ? <ChevronRight size={17} className="shrink-0" style={{ color: C.mut }} />
             : <ChevronDown size={17} className="shrink-0" style={{ color: C.mut }} />}
           <div className="min-w-0">
-            <h2 id={headingId} className="truncate text-lg font-bold" style={{ color: C.ink, fontFamily: SERIF }}>
+            <h2 id={headingId} className="break-words text-lg font-bold leading-tight" style={{ color: C.ink, fontFamily: SERIF }}>
               {title}
             </h2>
-            {summary && <div className="truncate text-xs" style={{ color: C.mut }}>{summary}</div>}
+            {summary && <div className="break-words text-xs" style={{ color: C.mut }}>{summary}</div>}
           </div>
         </button>
         {actionContent && (
-          <div className="flex shrink-0 flex-wrap justify-end gap-2" onClickCapture={() => setCollapsed(false)}>
+          <div className="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2" onClickCapture={() => setCollapsed(false)}>
             {actionContent}
           </div>
         )}

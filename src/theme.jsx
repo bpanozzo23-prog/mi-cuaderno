@@ -146,3 +146,24 @@ export function Button({ children, onClick, disabled, tone = "primary", classNam
     </button>
   );
 }
+
+/** A square, touch-sized action whose visible content is an icon and whose name is aria-label. */
+export function IconButton({ children, onClick, disabled, tone = "quiet", className = "", style = {}, ...rest }) {
+  const tones = {
+    primary: { background: disabled ? C.disabled : C.pen, color: "#fff", borderColor: "transparent" },
+    quiet: { background: C.card, color: C.ink, borderColor: C.line },
+    danger: { background: C.card, color: C.red, borderColor: C.dangerBorder },
+  };
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border ${className}`}
+      style={{ ...tones[tone], ...style }}
+      {...rest}
+    >
+      {children}
+    </button>
+  );
+}

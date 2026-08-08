@@ -47,7 +47,7 @@ describe("structured meaning presentation and editing", () => {
     render(<MeaningsSection item={item()} onPatch={onPatch} />);
 
     await user.click(screen.getAllByRole("button", { name: "Expand meaning" })[1]);
-    await user.click(screen.getByRole("button", { name: /Edit this meaning/ }));
+    await user.click(screen.getByRole("button", { name: "Edit meaning withdraw" }));
     const gloss = screen.getByRole("textbox", { name: "English gloss" });
     await user.clear(gloss);
     await user.type(gloss, "withdraw money");

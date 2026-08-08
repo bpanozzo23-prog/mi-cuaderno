@@ -169,7 +169,11 @@ describe("Collection reading and practice", () => {
     });
     const before = await allEvents();
 
-    await user.click(screen.getByRole("button", { name: "Practice" }));
+    const practice = screen.getByRole("button", { name: "Practice" });
+    const organize = screen.getByRole("button", { name: "Organize" });
+    expect(practice.textContent).toBe("");
+    expect(organize.textContent).toBe("");
+    await user.click(practice);
     expect(screen.getByText("Practice collection")).toBeTruthy();
     expect(screen.getByText("Add a meaning before practicing this entry.")).toBeTruthy();
     const reveals = screen.getAllByRole("button", { name: "Reveal" });

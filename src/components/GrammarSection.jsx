@@ -5,14 +5,14 @@ import {
   BookOpen,
   ChevronDown,
   ChevronRight,
-  FilePenLine,
   Languages,
+  ListTree,
   Link2,
   Pencil,
   Plus,
   X,
 } from "lucide-react";
-import { Button, C, Card, MONO, SERIF } from "../theme.jsx";
+import { Button, C, Card, IconButton, MONO, SERIF } from "../theme.jsx";
 import { newGrammarSection, pageStructureNameKey } from "../lib/pageKinds.js";
 import {
   deleteGrammarExample,
@@ -245,15 +245,13 @@ function KeyIdeaCard({ keyIdea, onSaved }) {
             {keyIdea || "Summarize the main rule, contrast, or construction."}
           </div>
         </div>
-        <button
-          type="button"
+        <IconButton
           onClick={openEditor}
           aria-label="Edit grammar key idea"
-          className="flex min-h-11 shrink-0 items-center gap-1 rounded-lg border px-2 text-xs"
-          style={{ ...fieldStyle, color: C.pen }}
+          style={{ color: C.pen }}
         >
-          <Pencil size={13} /> Edit
-        </button>
+          <Pencil size={15} />
+        </IconButton>
       </div>
     </Card>
   );
@@ -829,16 +827,17 @@ export default function GrammarSection({
       actions={({ collapsed }) => !organizing && (
         <>
           {!collapsed && sections.length > 0 && (
-            <Button
+            <IconButton
               tone="quiet"
+              aria-label="Organize"
               onClick={() => {
                 setOrganizing(true);
                 setSectionDraft(null);
                 setExampleDraft(null);
               }}
             >
-              <FilePenLine size={14} /> Organize
-            </Button>
+              <ListTree size={17} />
+            </IconButton>
           )}
           {(!collapsed || !hasContent) && (
             <Button
@@ -916,7 +915,7 @@ export default function GrammarSection({
                     {collapsed
                       ? <ChevronRight size={16} className="shrink-0" style={{ color: C.mut }} />
                       : <ChevronDown size={16} className="shrink-0" style={{ color: C.mut }} />}
-                    <h3 className="min-w-0 truncate text-base font-bold" style={{ color: C.ink, fontFamily: SERIF }}>{section.name}</h3>
+                    <h3 className="min-w-0 break-words text-base font-bold leading-snug" style={{ color: C.ink, fontFamily: SERIF }}>{section.name}</h3>
                   </button>
                   <div className="flex shrink-0 items-center">
                     <button

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Detail from "./Detail.jsx";
 import { allItems, createItem, getItem, newLexical, newPage } from "../db/items.js";
@@ -53,7 +53,7 @@ async function composableFixture({
     itemKeys: [phrase.id],
   });
   const section = newGrammarSection({
-    name: "Choosing the form",
+    name: "Subjunctive after expressions of doubt and uncertainty",
     explanation: "Use the indicative for information presented as likely.",
     examples: [newGrammarExample({ es: "Me da la impresión de que viene.", itemKeys: [phrase.id] })],
   });
@@ -104,6 +104,18 @@ describe("composable page workspace", () => {
       expect(screen.getByRole("button", { name: action })).toBeTruthy();
     }
 
+    const connections = screen.getByRole("heading", { name: "Connections" }).closest("section");
+    const media = screen.getByRole("heading", { name: "Media links" }).closest("section");
+    expect(within(connections).queryByText("Empty")).toBeNull();
+    expect(within(media).queryByText("Empty")).toBeNull();
+    expect(within(connections).getByRole("button", { name: "link something related" }).textContent).toBe("");
+    expect(within(media).getByRole("button", { name: "Add a media link" }).textContent).toBe("");
+
+    for (const heading of screen.getAllByRole("heading", { level: 2 })) {
+      expect(heading.classList.contains("truncate")).toBe(false);
+      expect(heading.classList.contains("break-words")).toBe(true);
+    }
+
     await user.click(screen.getByRole("button", { name: "Expand Vocabulary section" }));
     expect(screen.getByRole("button", { name: "Expand group Empty group" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Expand Grammar guide section" }));
@@ -122,6 +134,9 @@ describe("composable page workspace", () => {
     expect(appearsBefore(vocabulary, grammar)).toBe(true);
     expect(screen.getByText(/These notes explain how the speaker/)).toBeTruthy();
     expect(screen.getAllByRole("button", { name: /^(Notes|Vocabulary|Source|Grammar)$/ })).toHaveLength(4);
+    const grammarSectionHeading = screen.getByRole("heading", { name: "Subjunctive after expressions of doubt and uncertainty" });
+    expect(grammarSectionHeading.classList.contains("truncate")).toBe(false);
+    expect(grammarSectionHeading.classList.contains("break-words")).toBe(true);
 
     await user.click(screen.getByRole("button", { name: "Grammar", pressed: false }));
     await waitFor(async () => expect((await getItem(fixture.page.id)).pageFocus).toBe("grammar"));

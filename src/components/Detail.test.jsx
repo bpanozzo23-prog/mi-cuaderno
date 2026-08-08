@@ -314,7 +314,7 @@ describe("quick-create-and-link keeps the owner where they are", () => {
     const body = screen.getByRole("textbox", { name: "Page body" });
     await user.type(body, "Un borrador que todavía no está guardado");
 
-    await user.click(screen.getByText("link something"));
+    await user.click(screen.getByRole("button", { name: "link something" }));
     await user.selectOptions(
       screen.getByRole("combobox", { name: "Relationship" }),
       "often_confused:owner"
@@ -374,7 +374,7 @@ describe("quick-create-and-link keeps the owner where they are", () => {
     expect(body.value).toBe(draft);
 
     // Link something that does not exist yet.
-    await user.click(screen.getByText("link something"));
+    await user.click(screen.getByRole("button", { name: "link something" }));
     await user.type(screen.getByPlaceholderText(/Link a word, phrase, page or dictionary entry/), "madrugar");
     await user.click(await screen.findByText(/Create word .*madrugar.* and link it/));
 
@@ -403,7 +403,7 @@ describe("quick-create-and-link keeps the owner where they are", () => {
 
     renderDetail(page);
 
-    await user.click(screen.getByText("link something"));
+    await user.click(screen.getByRole("button", { name: "link something" }));
     await user.type(screen.getByPlaceholderText(/Link a word, phrase, page or dictionary entry/), "de repente");
     await user.click(await screen.findByText(/Create phrase .*de repente.* and link it/));
 
@@ -424,7 +424,7 @@ describe("quick-create-and-link keeps the owner where they are", () => {
 
     renderDetail(page);
 
-    await user.click(screen.getByText("link something"));
+    await user.click(screen.getByRole("button", { name: "link something" }));
     const input = screen.getByPlaceholderText(/Link a word, phrase, page or dictionary entry/);
     await user.type(input, "de repente");
     await user.click(await screen.findByText(/Create phrase/));
@@ -453,7 +453,7 @@ describe("linking an existing item", () => {
 
     renderDetail(page);
 
-    await user.click(screen.getByText("link something"));
+    await user.click(screen.getByRole("button", { name: "link something" }));
     await user.click(await screen.findByText("madrugar"));
 
     await waitFor(async () => {

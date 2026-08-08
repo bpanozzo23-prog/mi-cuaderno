@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Bookmark, BookmarkCheck, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink,
-  MoreHorizontal, Pencil, Plus, Settings2, Trash2, X,
+  Goal, ListTree, MoreHorizontal, Pencil, Plus, Settings2, Trash2, X,
 } from "lucide-react";
-import { C, SERIF, MONO, dotGrid, Card, Button } from "../theme.jsx";
+import { C, SERIF, MONO, dotGrid, Card, Button, IconButton } from "../theme.jsx";
 import { allTagsIn } from "../lib/tags.js";
 import TagChip from "./TagChip.jsx";
 import { deriveCollection, NOT_GROUPED_LABEL } from "../lib/collections.js";
@@ -308,18 +308,18 @@ function ConnectionsSection({
     <PageSectionDisclosure
       id="page-connections"
       title="Connections"
-      summary={empty ? "Empty" : `${connectionCount} ${connectionCount === 1 ? "connection" : "connections"}`}
+      summary={empty ? "" : `${connectionCount} ${connectionCount === 1 ? "connection" : "connections"}`}
       defaultCollapsed={empty}
       resetKey={item.id}
       actions={!picking && empty ? (
-        <Button
+        <IconButton
           tone="quiet"
           aria-label={vocabularyEnabled ? "link something related" : "link something"}
           aria-expanded={picking}
           onClick={() => setPicking(true)}
         >
-          <Plus size={14} /> {vocabularyEnabled ? "link something related" : "link something"}
-        </Button>
+          <Plus size={17} />
+        </IconButton>
       ) : null}
     >
       <div className="mt-3">
@@ -444,13 +444,13 @@ function PageNotesSection({ page, onChanged, overview = false }) {
       defaultCollapsed={!hasBody}
       resetKey={page.id}
       actions={!editing ? (
-        <Button aria-label={hasBody ? "Edit page" : "Write page"} tone="quiet" className="shrink-0" onClick={() => {
+        <IconButton aria-label={hasBody ? "Edit page" : "Write page"} tone="quiet" onClick={() => {
           setDraft(saved);
           setDirty(false);
           setEditing(true);
         }}>
-          <Pencil size={14} /> {hasBody ? "Edit" : "Write"}
-        </Button>
+          <Pencil size={15} />
+        </IconButton>
       ) : null}
     >
       {overview && hasBody && !editing ? (
@@ -518,19 +518,19 @@ function PageMediaSection({ page, onChanged }) {
     <PageSectionDisclosure
       id="page-media"
       title="Media links"
-      summary={(page.mediaLinks || []).length ? `${page.mediaLinks.length} ${page.mediaLinks.length === 1 ? "link" : "links"}` : "Empty"}
+      summary={(page.mediaLinks || []).length ? `${page.mediaLinks.length} ${page.mediaLinks.length === 1 ? "link" : "links"}` : ""}
       defaultCollapsed={(page.mediaLinks || []).length === 0}
       resetKey={page.id}
       actions={(
-        <Button
+        <IconButton
           tone="quiet"
           aria-label={adding ? "Close media form" : "Add a media link"}
           aria-expanded={adding}
           aria-controls="page-media-composer"
           onClick={() => adding ? cancel() : setAdding(true)}
         >
-          <Plus size={14} /> {adding ? "Close" : "Media"}
-        </Button>
+          {adding ? <X size={17} /> : <Plus size={17} />}
+        </IconButton>
       )}
     >
       <div className="mt-3 space-y-2">
@@ -591,7 +591,7 @@ function VocabularyGroupHeader({
           ? <ChevronRight size={16} className="shrink-0" style={{ color: C.mut }} />
           : <ChevronDown size={16} className="shrink-0" style={{ color: C.mut }} />}
         <div className="min-w-0">
-          <h3 id={headingId} className="truncate text-sm font-semibold" style={{ color: C.ink }}>{name}</h3>
+          <h3 id={headingId} className="break-words text-sm font-semibold leading-snug" style={{ color: C.ink }}>{name}</h3>
           <div className="text-[11px]" style={{ color: C.mut, fontFamily: MONO }}>
             {itemCount} {itemCount === 1 ? "item" : "items"}
           </div>
@@ -681,16 +681,24 @@ function VocabularySection({ page, items, collection, onOpen, onChanged, onOrgan
       actions={({ collapsed }) => collection.itemCount === 0 ? (
         <>
           <Button onClick={() => openAddTarget(null, NOT_GROUPED_LABEL)}><Plus size={14} /> Add vocabulary</Button>
-          {!collapsed && <Button tone="quiet" onClick={() => onOrganize(false)}>Organize</Button>}
+          {!collapsed && (
+            <IconButton tone="quiet" aria-label="Organize" onClick={() => onOrganize(false)}>
+              <ListTree size={17} />
+            </IconButton>
+          )}
         </>
       ) : !collapsed ? (
         <>
-          <Button onClick={onPractice} disabled={!collection.practiceEligible}>Practice</Button>
-          <Button tone="quiet" onClick={() => onOrganize(false)}>Organize</Button>
+          <IconButton tone="primary" aria-label="Practice" onClick={onPractice} disabled={!collection.practiceEligible}>
+            <Goal size={18} />
+          </IconButton>
+          <IconButton tone="quiet" aria-label="Organize" onClick={() => onOrganize(false)}>
+            <ListTree size={17} />
+          </IconButton>
         </>
       ) : null}
     >
-      <div className="mt-4 space-y-5">
+      <div className="mt-4 space-y-5 px-2">
         {collection.groups.map((group) => {
           const headingId = `collection-group-${group.id}`;
           const contentId = `collection-group-content-${group.id}`;
@@ -997,7 +1005,7 @@ export default function CollectionPage({
             </div>
           </Card>
 
-          <div className="mt-5 border-t pt-5" style={{ borderColor: C.line }}>
+          <div className="mt-5">
             <PageNotesSection
               page={item}
               onChanged={onChanged}
@@ -1009,7 +1017,7 @@ export default function CollectionPage({
             {sectionOrder.map((sectionKind) => {
               if (sectionKind === "source" && item.source?.enabled) {
                 return (
-                  <div key="source" className="border-t pt-5" style={{ borderColor: C.line }}>
+                  <div key="source">
                     <SourceSection
                       page={item}
                       items={items}
@@ -1026,7 +1034,7 @@ export default function CollectionPage({
               }
               if (sectionKind === "grammar" && item.grammar?.enabled) {
                 return (
-                  <div key="grammar" className="border-t pt-5" style={{ borderColor: C.line }}>
+                  <div key="grammar">
                     <GrammarSection
                       page={item}
                       items={items}
@@ -1042,7 +1050,7 @@ export default function CollectionPage({
               }
               if (sectionKind === "vocabulary" && item.collection?.enabled) {
                 return (
-                  <div key="vocabulary" className="border-t pt-5" style={{ borderColor: C.line }}>
+                  <div key="vocabulary">
                     <VocabularySection
                       page={item}
                       items={items}
@@ -1062,7 +1070,7 @@ export default function CollectionPage({
             })}
           </div>
 
-          <div className="mt-7 border-t pt-5" style={{ borderColor: C.line }}>
+          <div className="mt-7">
             <ConnectionsSection
               item={item}
               items={items}
@@ -1077,7 +1085,7 @@ export default function CollectionPage({
           </div>
 
           {item.tags?.length > 0 && (
-            <div className="mt-7 border-t pt-5" style={{ borderColor: C.line }}>
+            <div className="mt-7">
               <PageSectionDisclosure
                 id="page-tags"
                 title="Tags"
@@ -1091,7 +1099,7 @@ export default function CollectionPage({
             </div>
           )}
 
-          <div className="mt-7 border-t pt-5" style={{ borderColor: C.line }}>
+          <div className="mt-7">
             <PageMediaSection page={item} onChanged={onChanged} />
           </div>
         </>

@@ -594,7 +594,7 @@ function StandardDetail({
               <button
                 onClick={() => setEditingHead(true)}
                 aria-label={isPage ? "Edit page details" : "Edit word or phrase details"}
-                className="p-1.5"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-lg"
               >
                 <Pencil size={15} style={{ color: C.mut }} />
               </button>
@@ -747,7 +747,7 @@ function StandardDetail({
                     ? "Write page"
                     : "Add note"
               }
-              className="shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-lg border"
+              className="shrink-0 inline-flex h-11 w-11 items-center justify-center rounded-lg border"
               style={{ background: C.card, color: C.mut, borderColor: C.line }}
               onClick={() => {
                 setBodyDraft(savedBody);

@@ -186,7 +186,7 @@ describe("importing meanings from the attached dictionary entry", () => {
 
     const importedId = current.meanings[0].id;
     await user.click(await screen.findByRole("button", { name: "Expand meaning" }));
-    await user.click(screen.getByRole("button", { name: /Edit this meaning/ }));
+    await user.click(screen.getByRole("button", { name: "Edit meaning home" }));
     const gloss = screen.getByRole("textbox", { name: "English gloss" });
     await user.clear(gloss);
     await user.type(gloss, "my own wording");

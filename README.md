@@ -198,6 +198,16 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   preference or event change; the full serial suite passes 991/991 across 86 files, the production
   build and `git diff --check` pass, and a disposable 375×812 browser flow passed without overflow
   or console warnings/errors. See the Notebook Markdown entries in [DECISIONS.md](DECISIONS.md).
+- **Page hierarchy and icon actions — implemented locally; not deployed.** Top-level page sections
+  now use a pale full-width heading band, long section and group names wrap instead of clipping,
+  and Vocabulary groups sit visibly beneath their parent section. Practice uses a target icon;
+  Vocabulary, Source and Grammar organizers use one list/tree icon; empty Connections and Media
+  rows use a plus alone; and inline pencil actions across Pages, Words and Phrases no longer repeat
+  an edit label. All icon actions retain contextual accessible names and 44px touch targets. No
+  schema, backup, preference, event or navigation change; the full serial suite passes 991/991
+  across 86 files, the production build and `git diff --check` pass, and a disposable 375×812
+  browser flow passed without overflow or console warnings/errors. See the Page hierarchy entries
+  in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **5**. Before Dexie opens v5, schema-v1 through schema-v4 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
