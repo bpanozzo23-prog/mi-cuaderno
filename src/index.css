@@ -64,6 +64,14 @@
   --color-page-folder-tab: #F3DF9F;
   --color-page-folder-line: #CAA83F;
 
+  /* The page-role badge that rides on the folder tab. Notes and Source reuse the pen and green
+     families rather than duplicating their values; only these two pairs are their own colours, and
+     they were bare hex inside PageHubCard until the badge moved onto the tab. */
+  --color-role-vocabulary-pale: #F7F0D8;
+  --color-role-vocabulary-ink: #695B27;
+  --color-role-grammar-pale: #F0ECF8;
+  --color-role-grammar-ink: #574676;
+
   /* Hub entry cards sit a little above the paper: more depth than a diffuse halo, but softer
      than a pronounced floating-card shadow. Kept as one shared token so all three hubs match. */
   --shadow-entry-card: 0 1px 2px #212A3D14, 2px 3px 10px #212A3D24;
@@ -79,21 +87,32 @@
   --color-heat-4: #2D4EA0;
 }
 
-/* The tab is decorative and deliberately lives in CSS: page identity and card behavior stay in
-   the existing markup. The top margin clears the tab's overhang and then restores an extra 8px
-   of visible breathing room in both mixed and Pages-only lists. */
+/* The tab now carries the page's role badge, so it is a real element sized by its own content
+   rather than the fixed-width pseudo-element it started as. It still renders inside the open-page
+   button, which keeps the whole silhouette one hit target. The top margin clears the tab's
+   overhang and then restores an extra 8px of visible breathing room in both mixed and Pages-only
+   lists. */
 .page-folder-card {
-  margin-top: 1.5rem;
+  margin-top: 2.125rem;
   border-radius: 4px 15px 15px 15px;
 }
 
-.page-folder-card > button:first-child::before {
-  content: "";
+.page-folder-tab {
   position: absolute;
   left: -1px;
-  top: -15px;
-  width: 122px;
-  height: 18px;
+  top: -25px;
+  /* An empty tab — a Diario page, or any page with no role to name — keeps the width the badge
+     would have given a short label, so a role-less folder still reads as a folder. */
+  min-width: 122px;
+  /* Height is the badge's, but an empty tab must still reach down to the card body rather than
+     float above it — the card's top margin is the same either way. */
+  min-height: 28px;
+  /* Never far enough right to run under the pin control. "Vocabulary" is the longest label and
+     clears this comfortably at 375px; the cap is a guard, not a working constraint. */
+  max-width: calc(100% - 3rem);
+  padding: 3px 8px 0;
+  overflow: hidden;
+  white-space: nowrap;
   border: 1px solid var(--color-page-folder-line);
   border-bottom: 0;
   border-radius: 10px 12px 0 0;

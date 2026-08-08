@@ -37,6 +37,10 @@ export const C = {
   pageFolder: "var(--color-page-folder)",
   pageFolderTab: "var(--color-page-folder-tab)",
   pageFolderLine: "var(--color-page-folder-line)",
+  roleVocabularyPale: "var(--color-role-vocabulary-pale)",
+  roleVocabularyInk: "var(--color-role-vocabulary-ink)",
+  roleGrammarPale: "var(--color-role-grammar-pale)",
+  roleGrammarInk: "var(--color-role-grammar-ink)",
 };
 
 /** The activity calendar's ramp, indexed by intensity level 0–4 (Phase 11). */

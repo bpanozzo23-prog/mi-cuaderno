@@ -1,10 +1,11 @@
-import { FileText, CalendarDays, Library, Pin, BookOpen, Braces } from "lucide-react";
+import { CalendarDays, Pin } from "lucide-react";
 import { C, SERIF, MONO, Hi } from "../theme.jsx";
 import { emptyItemState } from "../useNotebook.js";
 import { firstMeaningGloss } from "../lib/meanings.js";
-import { deriveCollection } from "../lib/collections.js";
 import { activePageContextsForLexical } from "../lib/pageReferences.js";
-import { PAGE_FOCUSES, enabledPageRoles, isJournalPage } from "../lib/pageKinds.js";
+import { enabledPageRoles, hasEnabledStructuredCapability, isJournalPage } from "../lib/pageKinds.js";
+import { pageSummary } from "./pageRoleMeta.js";
+import PageFolderTab from "./PageFolderTab.jsx";
 import PageContextSummary from "./PageContextSummary.jsx";
 import TagChip from "./TagChip.jsx";
 import { PART_OF_SPEECH_ABBR, grammarAbbreviations } from "../lib/partOfSpeech.js";
@@ -27,8 +28,6 @@ export const personalHeadingSuffix = (item, attachedEntry = null) => {
 export const entryAccent = (item) =>
   personalLexicalForm(item) === "phrase" ? C.accentPhrase : C.accentWord;
 
-const amount = (count, singular) => `${count} ${count === 1 ? singular : `${singular}s`}`;
-
 export default function ItemCard({
   item,
   state = emptyItemState,
@@ -41,30 +40,15 @@ export default function ItemCard({
 }) {
   const isPage = item.type === "page";
   const journal = isPage && isJournalPage(item);
-  const collection = isPage && item.collection?.enabled ? deriveCollection(item, items) : null;
   const headingSuffix = isPage ? "" : personalHeadingSuffix(item);
   const gloss = isPage ? "" : firstMeaningGloss(item);
   const title = isPage ? item.title || "Untitled page" : item.term;
   const bodyPreview = isPage ? markdownPreviewText(item.body) : "";
-  const PageIcon = item.pageFocus === PAGE_FOCUSES.source
-    ? BookOpen
-    : item.pageFocus === PAGE_FOCUSES.grammar
-      ? Braces
-      : item.pageFocus === PAGE_FOCUSES.vocabulary
-        ? Library
-        : FileText;
-  const roles = isPage && !journal ? enabledPageRoles(item) : [];
-  const roleDetails = {
-    notes: { label: "Notes", icon: FileText },
-    vocabulary: { label: "Vocabulary", icon: Library },
-    source: { label: "Source", icon: BookOpen },
-    grammar: { label: "Grammar", icon: Braces },
-  };
-  const captureCount = item.source?.enabled ? item.source.captures?.length || 0 : 0;
-  const grammarSectionCount = item.grammar?.enabled ? item.grammar.sections?.length || 0 : 0;
-  const grammarExampleCount = item.grammar?.enabled
-    ? (item.grammar.sections || []).reduce((total, section) => total + (section.examples || []).length, 0)
-    : 0;
+  /* A Diario entry is a page without a role to name, so its tab stays bare. */
+  const [primaryRole = null] = isPage && !journal ? enabledPageRoles(item) : [];
+  /* The summary's Notes fallback belongs to the Pages hub; here a page with nothing enabled says
+     what it is through its own preview and date instead. */
+  const summary = isPage && hasEnabledStructuredCapability(item) ? pageSummary(item, items) : "";
   const pageContexts = !isPage && reason ? activePageContextsForLexical(item.id, items) : [];
   const isPhrase = !isPage && personalLexicalForm(item) === "phrase";
 
@@ -87,6 +71,8 @@ export default function ItemCard({
           isPage && onPinnedChange ? "pr-14" : ""
         }`}
       >
+        {isPage && <PageFolderTab role={primaryRole} />}
+
         <div className="flex items-baseline justify-between gap-3">
           <div
             className="text-lg min-w-0"
@@ -98,7 +84,6 @@ export default function ItemCard({
               letterSpacing: isPage ? "0.035em" : undefined,
             }}
           >
-            {isPage && <PageIcon size={14} className="inline mr-1.5 -mt-0.5" style={{ color: C.mut }} />}
             <Hi on={state.tricky}>{title}</Hi>
             {headingSuffix && (
               <>
@@ -122,26 +107,9 @@ export default function ItemCard({
             — {gloss}
           </div>
         )}
-        {roles.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1.5" aria-label="Page roles">
-            {roles.map((role) => {
-              const detail = roleDetails[role];
-              const RoleIcon = detail.icon;
-              return (
-                <span key={role} className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]" style={{ borderColor: C.line, background: C.penPale, color: C.penDark }}>
-                  <RoleIcon size={10} /> {detail.label}
-                </span>
-              );
-            })}
-          </div>
-        )}
-        {isPage && roles.length > 0 && (
+        {summary && (
           <div className="text-xs mt-1" style={{ fontFamily: MONO, color: C.mut }}>
-            {[
-              item.source?.enabled ? amount(captureCount, "capture") : null,
-              item.grammar?.enabled ? `${amount(grammarSectionCount, "section")} · ${amount(grammarExampleCount, "example")}` : null,
-              item.collection?.enabled ? `${amount(collection?.itemCount || 0, "item")} · ${amount(collection?.groupCount || 0, "group")}` : null,
-            ].filter(Boolean).join(" · ")}
+            {summary}
           </div>
         )}
         {journal && item.pageDate && (

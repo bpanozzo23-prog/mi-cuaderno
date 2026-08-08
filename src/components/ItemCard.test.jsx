@@ -63,10 +63,15 @@ describe("page cards", () => {
   });
 
   it("keeps the dated Notes-only page presentation", () => {
-    render(<ItemCard item={page({ pageDate: "2026-08-03" })} onOpen={vi.fn()} />);
+    const { container } = render(<ItemCard item={page({ pageDate: "2026-08-03" })} onOpen={vi.fn()} />);
 
     expect(screen.getByText("2026-08-03")).toBeTruthy();
     expect(screen.queryByText("Vocabulary")).toBeNull();
+    // A Diario entry is still a folder, but it has no role to name, so its tab stays bare.
+    const tab = container.querySelector(".page-folder-tab");
+    expect(tab).toBeTruthy();
+    expect(tab.textContent).toBe("");
+    expect(screen.queryByText("Notes")).toBeNull();
   });
 
   it("exposes a separate accessible pin control without opening the page", async () => {

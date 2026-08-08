@@ -1,64 +1,9 @@
-import {
-  BookOpen,
-  Bookmark,
-  BookmarkCheck,
-  Braces,
-  FileText,
-  Library,
-} from "lucide-react";
+import { Bookmark, BookmarkCheck } from "lucide-react";
 import { C, MONO, SERIF, hubTitleSize } from "../theme.jsx";
-import { deriveCollection } from "../lib/collections.js";
 import { enabledPageRoles } from "../lib/pageKinds.js";
 import { markdownPreviewText } from "../lib/noteMarkdown.js";
-
-const amount = (count, singular) => `${count} ${count === 1 ? singular : `${singular}s`}`;
-
-const ROLE_DETAILS = {
-  notes: { label: "Notes", icon: FileText, background: C.penPale, color: C.penDark },
-  vocabulary: { label: "Vocabulary", icon: Library, background: "#F7F0D8", color: "#695B27" },
-  source: { label: "Source", icon: BookOpen, background: C.greenPale, color: C.green },
-  grammar: { label: "Grammar", icon: Braces, background: "#F0ECF8", color: "#574676" },
-};
-
-const SOURCE_FORMAT_LABELS = {
-  book: "Book",
-  audio: "Audio",
-  video: "Video",
-  article_lesson: "Article or lesson",
-  other: "Source",
-};
-
-function pageSummary(page, items) {
-  const parts = [];
-
-  if (page.source?.enabled) {
-    const identity = [SOURCE_FORMAT_LABELS[page.source.format], page.source.creator]
-      .filter(Boolean)
-      .join(" · ");
-    if (identity) parts.push(identity);
-    parts.push(amount(page.source.captures?.length || 0, "capture"));
-  }
-
-  if (page.grammar?.enabled) {
-    const sections = page.grammar.sections || [];
-    const examples = sections.reduce((total, section) => total + (section.examples?.length || 0), 0);
-    parts.push(amount(sections.length, "section"));
-    parts.push(amount(examples, "example"));
-  }
-
-  if (page.collection?.enabled) {
-    const collection = deriveCollection(page, items);
-    parts.push(amount(collection.itemCount, "item"));
-    parts.push(amount(collection.groupCount, "group"));
-  }
-
-  if (parts.length === 0) {
-    if (page.tags?.length) return page.tags.join(" · ");
-    return page.body?.trim() ? "Notes page" : "Empty notes page";
-  }
-
-  return parts.join(" · ");
-}
+import { pageSummary } from "./pageRoleMeta.js";
+import PageFolderTab from "./PageFolderTab.jsx";
 
 export default function PageHubCard({
   page,
@@ -69,7 +14,7 @@ export default function PageHubCard({
   onPinnedChange,
 }) {
   const title = page.title || "Untitled page";
-  const roles = enabledPageRoles(page);
+  const [primaryRole] = enabledPageRoles(page);
   const summary = pageSummary(page, items);
   const bodyPreview = markdownPreviewText(page.body);
 
@@ -87,24 +32,10 @@ export default function PageHubCard({
         aria-label={title}
         className="relative w-full text-left px-4 py-4 pr-14 active:opacity-80"
       >
-        <div className="flex flex-wrap gap-1.5" aria-label="Page roles">
-          {roles.map((role) => {
-            const detail = ROLE_DETAILS[role];
-            const RoleIcon = detail.icon;
-            return (
-              <span
-                key={role}
-                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs"
-                style={{ background: detail.background, color: detail.color }}
-              >
-                <RoleIcon size={13} /> {detail.label}
-              </span>
-            );
-          })}
-        </div>
+        <PageFolderTab role={primaryRole} />
 
         <div
-          className={`mt-2 leading-tight ${hubTitleSize(title)}`}
+          className={`leading-tight ${hubTitleSize(title)}`}
           style={{ fontFamily: SERIF, color: C.ink, fontWeight: 800, letterSpacing: "0.035em" }}
         >
           {title}

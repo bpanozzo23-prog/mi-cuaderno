@@ -114,6 +114,14 @@ describe("Pages hub", () => {
     expect(screen.getByText("Audio · Camila Torres · 1 capture · 1 item · 1 group")).toBeTruthy();
     expect(screen.getByText("1 section · 1 example")).toBeTruthy();
 
+    // The folder tab names the page's focus and nothing else: the Source page also has a
+    // collection enabled, and that second role is left to the count line. Scoped to the card
+    // because the hub's own filter chips are named "Grammar" and "Collections".
+    expect(within(card("Voces del mercado")).getByText("Source")).toBeTruthy();
+    expect(within(card("Voces del mercado")).queryByText("Vocabulary")).toBeNull();
+    expect(within(card("Aquí vs. acá")).getByText("Grammar")).toBeTruthy();
+    expect(within(card("Restaurant notes")).getByText("Notes")).toBeTruthy();
+
     await user.click(screen.getByRole("button", { name: "Sources" }));
     expect(card("Voces del mercado")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Restaurant notes" })).toBeNull();
