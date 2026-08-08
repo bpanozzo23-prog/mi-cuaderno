@@ -100,7 +100,7 @@ describe("composable page workspace", () => {
       expect(screen.getByRole("button", { name }).getAttribute("aria-expanded")).toBe("false");
     }
     expect(screen.getByRole("button", { name: "Collapse Tags section" })).toBeTruthy();
-    for (const action of ["Write page", "Add vocabulary", "Capture", "Section", "link something related", "Add a media link"]) {
+    for (const action of ["Write page", "Add vocabulary", "Capture", "Add grammar section", "link something related", "Add a media link"]) {
       expect(screen.getByRole("button", { name: action })).toBeTruthy();
     }
 

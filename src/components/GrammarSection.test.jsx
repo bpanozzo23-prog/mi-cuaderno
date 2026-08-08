@@ -191,6 +191,34 @@ describe("GrammarSection editing", () => {
     expect(props.onChanged).toHaveBeenCalledTimes(1);
   });
 
+  it("removes and restores the optional Key idea without changing the Grammar shape", async () => {
+    const user = userEvent.setup();
+    const props = baseProps();
+    const view = render(<GrammarSection {...props} />);
+
+    await user.click(screen.getByRole("button", { name: "Edit grammar key idea" }));
+    await user.click(screen.getByRole("button", { name: "Remove key idea" }));
+    expect(screen.getByRole("alertdialog", { name: "Confirm remove key idea" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Confirm remove" }));
+    await waitFor(() => expect(saveGrammarDetails).toHaveBeenCalledWith("user:grammar-page", { keyIdea: "" }));
+
+    view.unmount();
+    const withoutKeyIdea = page();
+    withoutKeyIdea.grammar = { ...withoutKeyIdea.grammar, keyIdea: "" };
+    render(<GrammarSection {...baseProps({ page: withoutKeyIdea })} />);
+
+    expect(screen.queryByText("Summarize the main rule, contrast, or construction.")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Key idea" }));
+    const draft = screen.getByRole("textbox", { name: "Grammar key idea" });
+    expect(screen.getByRole("button", { name: "Save key idea" }).disabled).toBe(true);
+    await user.type(draft, "  Use the infinitive after the conjugated modal.  ");
+    await user.click(screen.getByRole("button", { name: "Save key idea" }));
+    await waitFor(() => expect(saveGrammarDetails).toHaveBeenLastCalledWith(
+      "user:grammar-page",
+      { keyIdea: "Use the infinitive after the conjugated modal." }
+    ));
+  });
+
   it("creates and edits named sections with explanations and patterns", async () => {
     const user = userEvent.setup();
     const props = baseProps();
@@ -217,7 +245,9 @@ describe("GrammarSection editing", () => {
       })
     ));
 
-    await user.click(screen.getByRole("button", { name: "Section" }));
+    const addSection = screen.getByRole("button", { name: "Add grammar section" });
+    expect(addSection.textContent).toBe("");
+    await user.click(addSection);
     await user.type(screen.getByRole("textbox", { name: "Grammar section name" }), "  Exceptions  ");
     await user.type(screen.getByRole("textbox", { name: "Grammar section explanation" }), "Signals that change the framing.");
     await user.click(screen.getByRole("button", { name: "Save section" }));

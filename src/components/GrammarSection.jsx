@@ -30,7 +30,14 @@ const fieldStyle = { background: C.card, borderColor: C.line, color: C.ink };
 const problemMessage = (error, fallback) =>
   error instanceof Error && error.message ? error.message : fallback;
 
-function EditorDeleteAction({ label, description, onDelete, fallback }) {
+function EditorDeleteAction({
+  label,
+  description,
+  onDelete,
+  fallback,
+  confirmLabel = "Confirm delete",
+  workingLabel = "Deleting…",
+}) {
   const [armed, setArmed] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [problem, setProblem] = useState("");
@@ -69,7 +76,7 @@ function EditorDeleteAction({ label, description, onDelete, fallback }) {
                 }
               }}
             >
-              {deleting ? "Deleting…" : "Confirm delete"}
+              {deleting ? workingLabel : confirmLabel}
             </Button>
             <Button type="button" tone="quiet" disabled={deleting} onClick={() => setArmed(false)}>Keep</Button>
           </div>
@@ -177,6 +184,7 @@ function KeyIdeaCard({ keyIdea, onSaved }) {
   const [draft, setDraft] = useState(keyIdea || "");
   const [saving, setSaving] = useState(false);
   const [problem, setProblem] = useState("");
+  const hasKeyIdea = Boolean(keyIdea?.trim());
 
   function openEditor() {
     setDraft(keyIdea || "");
@@ -193,7 +201,7 @@ function KeyIdeaCard({ keyIdea, onSaved }) {
             setSaving(true);
             setProblem("");
             try {
-              await onSaved(draft);
+              await onSaved(draft.trim());
               setEditing(false);
             } catch (error) {
               setProblem(problemMessage(error, "The key idea could not be saved."));
@@ -215,7 +223,7 @@ function KeyIdeaCard({ keyIdea, onSaved }) {
             />
           </label>
           <div className="mt-3 flex flex-wrap gap-2 border-t pt-3" style={{ borderColor: C.line }}>
-            <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save key idea"}</Button>
+            <Button type="submit" disabled={saving || !draft.trim()}>{saving ? "Saving…" : "Save key idea"}</Button>
             <Button
               type="button"
               tone="quiet"
@@ -227,10 +235,28 @@ function KeyIdeaCard({ keyIdea, onSaved }) {
             >
               Cancel
             </Button>
+            {hasKeyIdea && (
+              <EditorDeleteAction
+                label="Remove key idea"
+                description="Remove the Key idea from this Grammar guide? You can add it again later."
+                confirmLabel="Confirm remove"
+                workingLabel="Removing…"
+                fallback="The key idea could not be removed."
+                onDelete={() => onSaved("")}
+              />
+            )}
           </div>
           {problem && <div role="alert" className="mt-2 text-xs" style={{ color: C.red }}>{problem}</div>}
         </form>
       </Card>
+    );
+  }
+
+  if (!hasKeyIdea) {
+    return (
+      <Button tone="quiet" className="mt-3 min-h-11" onClick={openEditor}>
+        <Plus size={14} /> Key idea
+      </Button>
     );
   }
 
@@ -241,8 +267,8 @@ function KeyIdeaCard({ keyIdea, onSaved }) {
           <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: C.ink }}>
             <Languages size={15} style={{ color: C.pen }} /> Key idea
           </div>
-          <div className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed" style={{ color: keyIdea ? C.ink : C.mut }}>
-            {keyIdea || "Summarize the main rule, contrast, or construction."}
+          <div className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed" style={{ color: C.ink }}>
+            {keyIdea}
           </div>
         </div>
         <IconButton
@@ -840,14 +866,16 @@ export default function GrammarSection({
             </IconButton>
           )}
           {(!collapsed || !hasContent) && (
-            <Button
+            <IconButton
+              tone="primary"
+              aria-label="Add grammar section"
               onClick={() => {
                 setSectionDraft({});
                 setExampleDraft(null);
               }}
             >
-              <Plus size={14} /> Section
-            </Button>
+              <Plus size={17} />
+            </IconButton>
           )}
         </>
       )}
