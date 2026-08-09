@@ -95,6 +95,18 @@ describe("Gym cells and balanced decks", () => {
 });
 
 describe("adaptive decks", () => {
+  it("ignores imported drill events whose metadata is null", () => {
+    const verbs = [verb("ser"), verb("estar")];
+    const events = [{
+      type: "drill_fail",
+      at: "2026-08-07T12:00:00.000Z",
+      metadata: null,
+    }];
+
+    expect(() => buildAdaptiveGymDeck(verbs, events, { size: 10 })).not.toThrow();
+    expect(buildAdaptiveGymDeck(verbs, events, { size: 10 })).toHaveLength(10);
+  });
+
   it("puts a recent initial typed failure into the targeted share", () => {
     const verbs = [verb("ser"), verb("estar")];
     const events = [{

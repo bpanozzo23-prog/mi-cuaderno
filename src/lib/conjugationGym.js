@@ -185,7 +185,7 @@ export function buildBalancedGymDeck(
 
 const isInitialAnswer = (event) =>
   (event?.type === "drill_pass" || event?.type === "drill_fail") &&
-  (event.metadata.stage || "initial") === "initial";
+  (event?.metadata?.stage || "initial") === "initial";
 
 const isTyped = (event) => event?.metadata?.mode === "typed" || event?.metadata?.mode === "type";
 
@@ -197,8 +197,12 @@ function historyForAdaptive(events) {
   const slotStats = new Map();
   const recoveries = new Set(
     (events || [])
-      .filter((event) => event.type === "drill_pass" && event.metadata?.stage && event.metadata.stage !== "initial")
-      .map((event) => event.metadata?.promptId)
+      .filter((event) =>
+        event?.type === "drill_pass" &&
+        event?.metadata?.stage &&
+        event.metadata.stage !== "initial"
+      )
+      .map((event) => event?.metadata?.promptId)
       .filter(Boolean)
   );
 
