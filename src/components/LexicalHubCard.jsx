@@ -1,5 +1,5 @@
 import { Bookmark, BookmarkCheck } from "lucide-react";
-import { C, Hi, MONO, SERIF, hubTitleSize } from "../theme.jsx";
+import { C, Hi, MONO, SERIF, useHubTitleSize } from "../theme.jsx";
 import { emptyReviewState } from "../lib/review.js";
 import { firstMeaningGloss } from "../lib/meanings.js";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
@@ -27,6 +27,7 @@ export default function LexicalHubCard({
      it. When chips follow, that padding gives way to their row; with nothing below, the button
      keeps its full padding as the card's own bottom edge. */
   const hasChipRow = contexts.length > 0 || item.tags.length > 0;
+  const [titleRef, titlePx] = useHubTitleSize(item.term);
   return (
     <div
       role="group"
@@ -44,12 +45,14 @@ export default function LexicalHubCard({
         className={`w-full text-left px-4 pt-3 ${hasChipRow ? "pb-1" : "pb-3"} pr-14 active:opacity-80`}
       >
         <div
-          className={`min-w-0 leading-tight ${hubTitleSize(item.term)}`}
+          ref={titleRef}
+          className="min-w-0 leading-tight"
           style={{
             fontFamily: SERIF,
             color: C.ink,
             fontWeight: 700,
             fontStyle: "normal",
+            fontSize: titlePx,
           }}
         >
           <Hi on={review.tricky}>{item.term}</Hi>

@@ -1,5 +1,7 @@
 /** Design tokens and small shared pieces, lifted from the prototype (docs/mi-cuaderno.jsx). */
 
+import { useLayoutEffect, useRef, useState } from "react";
+
 /**
  * The palette, as CSS variable references.
  *
@@ -64,13 +66,67 @@ export const HEAT = [
 export const SERIF = 'Georgia, "Iowan Old Style", "Times New Roman", serif';
 export const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 
+export const HUB_TITLE_FULL = 18;
+export const HUB_TITLE_TIGHT = 17;
+
 /**
- * Hub card titles, sized by length. Single words stay the focal point; long phrases and page
- * titles step down instead of wrapping, which is what keeps a scrolling hub scannable on a phone.
- * Both class names are complete literals on purpose — Tailwind scans source text, so a class built
- * by concatenation would never be emitted.
+ * Measures a title's natural single-line width, in the face it actually renders in.
+ *
+ * A shared canvas rather than a probe element: this answers "how wide would this text be" without
+ * touching layout, so asking cannot itself trigger the reflow it is trying to decide about. The
+ * measurement is independent of whatever size the element is currently wearing, which is what
+ * keeps the fit check below from oscillating between its two sizes.
+ *
+ * Returns 0 where there is no 2D context — jsdom without the canvas package, notably — so a test
+ * environment that cannot measure text reads as "it fits" and gets the full size.
  */
-export const hubTitleSize = (text) => ((text || "").length > 18 ? "text-[16px]" : "text-[18px]");
+let measureContext;
+function naturalTitleWidth(text, px, weight, letterSpacing) {
+  if (typeof document === "undefined") return 0;
+  if (measureContext === undefined) {
+    measureContext = document.createElement("canvas").getContext("2d") || null;
+  }
+  if (!measureContext) return 0;
+  measureContext.font = `${weight} ${px}px ${SERIF}`;
+  /* Supported since Chrome 99 and the only browser this PWA runs in; older engines simply measure
+     without it, which errs toward the full size rather than a spurious step-down. */
+  if ("letterSpacing" in measureContext) measureContext.letterSpacing = letterSpacing;
+  return measureContext.measureText(text || "").width;
+}
+
+/**
+ * A hub card title at full size, stepping down one point only when it genuinely does not fit.
+ *
+ * This replaced a character count (`length > 18`), which was a guess about width rather than a
+ * measurement of it and shrank titles that had room to spare — a 22-character phrase needed 212px
+ * and had 269px. Returns the ref to put on the title element (its own width is the space to fill)
+ * and the font size in px to render at.
+ */
+export function useHubTitleSize(text, { weight = 700, letterSpacing = "0px" } = {}) {
+  const ref = useRef(null);
+  const [size, setSize] = useState(HUB_TITLE_FULL);
+
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (!element) return undefined;
+    const fit = () => {
+      const available = element.clientWidth;
+      if (!available) return;
+      const needed = naturalTitleWidth(text, HUB_TITLE_FULL, weight, letterSpacing);
+      setSize(needed <= available ? HUB_TITLE_FULL : HUB_TITLE_TIGHT);
+    };
+    fit();
+    /* The available width changes with the viewport, not with anything React re-renders on, so the
+       observer is what keeps a rotated phone honest. Absent in jsdom, where the one-shot fit above
+       is the whole behaviour. */
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const observer = new ResizeObserver(fit);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [text, weight, letterSpacing]);
+
+  return [ref, size];
+}
 
 export const dotGrid = {
   backgroundImage: "radial-gradient(rgba(45,78,160,0.06) 1px, transparent 1.2px)",

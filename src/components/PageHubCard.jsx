@@ -1,5 +1,5 @@
 import { Bookmark, BookmarkCheck } from "lucide-react";
-import { C, MONO, SERIF, hubTitleSize } from "../theme.jsx";
+import { C, MONO, SERIF, useHubTitleSize } from "../theme.jsx";
 import { enabledPageRoles } from "../lib/pageKinds.js";
 import { markdownPreviewText } from "../lib/noteMarkdown.js";
 import { pageFolderStyle, pageSummary } from "./pageRoleMeta.js";
@@ -17,6 +17,7 @@ export default function PageHubCard({
   const [primaryRole] = enabledPageRoles(page);
   const summary = pageSummary(page, items);
   const bodyPreview = markdownPreviewText(page.body);
+  const [titleRef, titlePx] = useHubTitleSize(title, { weight: 800, letterSpacing: "0.63px" });
 
   return (
     <div
@@ -32,8 +33,15 @@ export default function PageHubCard({
         <PageFolderTab role={primaryRole} />
 
         <div
-          className={`leading-tight ${hubTitleSize(title)}`}
-          style={{ fontFamily: SERIF, color: C.ink, fontWeight: 800, letterSpacing: "0.035em" }}
+          ref={titleRef}
+          className="leading-tight"
+          style={{
+            fontFamily: SERIF,
+            color: C.ink,
+            fontWeight: 800,
+            letterSpacing: "0.035em",
+            fontSize: titlePx,
+          }}
         >
           {title}
         </div>
