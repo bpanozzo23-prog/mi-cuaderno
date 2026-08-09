@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { BarChart3, ChevronLeft, Dumbbell, Play, SlidersHorizontal } from "lucide-react";
-import { C, MONO, SERIF, Card, Button, SectionTitle, dotGrid } from "../theme.jsx";
+import { C, MONO, SERIF, Card, Button, SectionTitle, Segmented, dotGrid } from "../theme.jsx";
 import { loadGymLibrary } from "../db/ref/gym.js";
 import {
   CORE_20,
@@ -27,40 +27,6 @@ const POOLS = [
   { value: "core20", label: "Core 20" },
   { value: "core50", label: "Core 50" },
 ];
-
-function Segmented({ label, value, options, onChange }) {
-  return (
-    <div
-      role="radiogroup"
-      aria-label={label}
-      className="flex gap-1 rounded-lg border p-0.5"
-      style={{ borderColor: C.line, background: C.paper }}
-    >
-      {options.map((option) => {
-        const active = value === option.value;
-        return (
-          <button
-            key={option.value}
-            type="button"
-            role="radio"
-            aria-checked={active}
-            disabled={option.disabled}
-            onClick={() => onChange(option.value)}
-            className="min-w-0 flex-1 rounded-md px-2 py-2 text-xs"
-            style={{
-              fontFamily: MONO,
-              background: active ? C.pen : "transparent",
-              color: active ? C.card : C.mut,
-              opacity: option.disabled ? 0.45 : 1,
-            }}
-          >
-            {option.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 function Header({ title, backLabel, onBack, action }) {
   return (

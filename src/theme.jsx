@@ -216,6 +216,45 @@ export function Chip({ children, active, onClick, title, className = "" }) {
   );
 }
 
+/**
+ * One row of mutually exclusive choices — a radio group wearing a segmented control's clothes.
+ * It began in the Conjugation Gym and moved here when the activity calendar needed the same
+ * shape, so the two screens cannot drift into two different-looking toggles.
+ */
+export function Segmented({ label, value, options, onChange }) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label={label}
+      className="flex gap-1 rounded-lg border p-0.5"
+      style={{ borderColor: C.line, background: C.paper }}
+    >
+      {options.map((option) => {
+        const active = value === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            disabled={option.disabled}
+            onClick={() => onChange(option.value)}
+            className="min-w-0 flex-1 rounded-md px-2 py-2 text-xs"
+            style={{
+              fontFamily: MONO,
+              background: active ? C.pen : "transparent",
+              color: active ? C.card : C.mut,
+              opacity: option.disabled ? 0.45 : 1,
+            }}
+          >
+            {option.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function Card({ children, className = "", style = {} }) {
   return (
     <div
