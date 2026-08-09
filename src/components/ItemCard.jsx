@@ -24,10 +24,6 @@ export const personalHeadingSuffix = (item, attachedEntry = null) => {
   return grammarAbbreviations(pos, gender);
 };
 
-/** The left edge colour shared by word and phrase cards; Pages use the folder treatment. */
-export const entryAccent = (item) =>
-  personalLexicalForm(item) === "phrase" ? C.accentPhrase : C.accentWord;
-
 export default function ItemCard({
   item,
   state = emptyItemState,
@@ -59,8 +55,6 @@ export default function ItemCard({
           : {
               background: C.card,
               borderColor: C.line,
-              borderLeftWidth: 6,
-              borderLeftColor: entryAccent(item),
             }
       }
     >
@@ -75,7 +69,7 @@ export default function ItemCard({
 
         <div className="flex items-baseline justify-between gap-3">
           <div
-            className="text-lg min-w-0"
+            className={`min-w-0 ${isPage ? "text-lg" : "text-xl"}`}
             style={{
               fontFamily: SERIF,
               color: C.ink,
@@ -101,9 +95,15 @@ export default function ItemCard({
           )}
         </div>
 
-        {/* One meaning, clamped: a browsing row must not become a paragraph. */}
+        {/* One meaning, clamped: a browsing row must not become a paragraph. The hanging indent
+            sets wrapped lines under the gloss text rather than back under the dash, the way a
+            printed dictionary does — padding positions the text, the negative indent pulls only
+            the first line's dash back out. */}
         {!isPage && gloss && (
-          <div className="mt-2 pl-2.5 line-clamp-2 text-sm leading-relaxed" style={{ color: C.entryMeaning }}>
+          <div
+            className="mt-2 pl-[26px] -indent-[16px] line-clamp-2 text-[13px] leading-relaxed"
+            style={{ color: C.entryMeaning }}
+          >
             <span style={{ color: C.entryMeaningDash }}>—</span> {gloss}
           </div>
         )}

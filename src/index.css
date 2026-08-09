@@ -18,7 +18,9 @@
  */
 @theme static {
   --color-paper: #FAF9F4;
-  --color-card: #FFFFFF;
+  /* A warm near-paper white rather than pure #FFFFFF, so cards sit into the notebook the way the
+     page-folder bodies below do instead of floating on it (owner-picked 2026-08-08). */
+  --color-card: #FFFEF9;
   --color-ink: #212A3D;
   --color-mut: #7A8199;
   --color-entry-meaning: #374151;
@@ -43,9 +45,7 @@
   --color-green-pale: #EAF2EA;
 
   /* The section spine: a margin rule down the left of a page section's content, threading its
-     groups and cards back to the header. Deliberately its own token rather than an alias of
-     --color-accent-phrase, whose value it currently shares — the two roles are unrelated and
-     should be free to move apart. */
+     groups and cards back to the header. */
   --color-section-spine: #7B93D1;
 
   /* Named here for the first time. Each was previously a bare hex repeated across components,
@@ -53,12 +53,6 @@
   --color-chip-border: #D9E1F2;
   --color-danger-border: #E5C4BC;
   --color-disabled: #B9C2D8;
-
-  /* Lexical entry-card left edge tabs. Word reuses --color-pen rather than duplicating its value,
-     so the two stay in lockstep; phrase is a lighter tint of the same family. Pages use the
-     folder treatment below instead of a third left-edge stripe. */
-  --color-accent-word: var(--color-pen);
-  --color-accent-phrase: #7B93D1;
 
   /* A restrained manila-folder treatment for page cards. The body stays close to paper while the
      tab and outline make Pages read as containers without competing with their role pills. */

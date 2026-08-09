@@ -2,7 +2,7 @@ import { Bookmark, BookmarkCheck } from "lucide-react";
 import { C, Hi, MONO, SERIF, hubTitleSize } from "../theme.jsx";
 import { emptyReviewState } from "../lib/review.js";
 import { firstMeaningGloss } from "../lib/meanings.js";
-import { entryAccent, personalHeadingSuffix } from "./ItemCard.jsx";
+import { personalHeadingSuffix } from "./ItemCard.jsx";
 import PageContextSummary from "./PageContextSummary.jsx";
 import TagChip from "./TagChip.jsx";
 
@@ -31,8 +31,6 @@ export default function LexicalHubCard({
       style={{
         background: C.card,
         borderColor: C.line,
-        borderLeftWidth: 6,
-        borderLeftColor: entryAccent(item),
       }}
     >
       <button
@@ -62,7 +60,10 @@ export default function LexicalHubCard({
         </div>
 
         {gloss && (
-          <div className="mt-2 pl-2.5 line-clamp-2 text-sm leading-relaxed" style={{ color: C.entryMeaning }}>
+          <div
+            className="mt-2 pl-[26px] -indent-[16px] line-clamp-2 text-[13px] leading-relaxed"
+            style={{ color: C.entryMeaning }}
+          >
             <span style={{ color: C.entryMeaningDash }}>—</span> {gloss}
           </div>
         )}

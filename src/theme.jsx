@@ -34,8 +34,6 @@ export const C = {
   sectionSpine: "var(--color-section-spine)",
   dangerBorder: "var(--color-danger-border)",
   disabled: "var(--color-disabled)",
-  accentWord: "var(--color-accent-word)",
-  accentPhrase: "var(--color-accent-phrase)",
   pageFolder: "var(--color-page-folder)",
   pageFolderTab: "var(--color-page-folder-tab)",
   pageFolderLine: "var(--color-page-folder-line)",
