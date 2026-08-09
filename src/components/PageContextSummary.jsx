@@ -1,5 +1,6 @@
 import { FileText } from "lucide-react";
 import { C } from "../theme.jsx";
+import { PAGE_ROLE_META, pageContextChipStyle, primaryPageRole } from "./pageRoleMeta.js";
 
 /**
  * Where one word is actually used — the first page it lives on, plus a count of the rest.
@@ -41,13 +42,18 @@ export default function PageContextSummary({
 
   const [first] = pages;
   const remaining = pages.length - 1;
+  /* The chip wears its page's own family, so a placement is recognisable from the same colour the
+     page's folder carries. Icon included: a Source chip should not be announcing itself with the
+     Notes page icon. A page with no role to name keeps the shared fallback. */
+  const { icon: RoleIcon = FileText } = PAGE_ROLE_META[primaryPageRole(first.page)] || {};
+  const chipStyle = pageContextChipStyle(first.page);
   const chip = (
     <span
       className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border px-2 py-0.5"
-      style={{ background: C.card, borderColor: C.line }}
+      style={{ background: chipStyle.background, borderColor: chipStyle.borderColor }}
     >
-      <FileText size={11} className="shrink-0" style={{ color: C.mut }} />
-      <span className="min-w-0 truncate" style={{ color: C.ink }}>{first.pageTitle}</span>
+      <RoleIcon size={11} className="shrink-0" style={{ color: chipStyle.color }} />
+      <span className="min-w-0 truncate" style={{ color: chipStyle.color }}>{first.pageTitle}</span>
     </span>
   );
   const rowClass = "flex w-full items-center text-left";

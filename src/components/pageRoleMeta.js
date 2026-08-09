@@ -1,7 +1,7 @@
 import { BookOpen, Braces, FileText, Library } from "lucide-react";
 import { C } from "../theme.jsx";
 import { deriveCollection } from "../lib/collections.js";
-import { PAGE_FOCUSES } from "../lib/pageKinds.js";
+import { enabledPageRoles, isJournalPage, PAGE_FOCUSES } from "../lib/pageKinds.js";
 
 /**
  * How a page role presents itself on a card: one label, one icon, one colour pair.
@@ -61,6 +61,36 @@ export function pageFolderStyle(role) {
     borderColor: folder.line,
     "--folder-tab": folder.tab,
     "--folder-line": folder.line,
+  };
+}
+
+/**
+ * The primary role a page presents itself as — its folder trio, its tab label, and now the page
+ * chip on a lexical card. One rule in one place: `enabledPageRoles`' first entry, except a Journal
+ * entry, which has no role to name and falls back to manila exactly as its folder does.
+ */
+export function primaryPageRole(page) {
+  if (page?.type !== "page" || isJournalPage(page)) return null;
+  const [role = null] = enabledPageRoles(page);
+  return role;
+}
+
+/**
+ * The page-context chip on a lexical entry card, wearing its page's own family so a word's
+ * placement is recognisable at a glance from the same colour its folder carries. It is not a tag
+ * chip and never was, but it borrows the tag's shape; what it borrows here is the folder's trio —
+ * the tab tint as fill, the family outline as border, the role's ink as text. A page with no role
+ * to name gets the manila fallback, whose ink is the Vocabulary family's (manila IS its chip
+ * colour, per the 2026-08-08 folder decision).
+ */
+export function pageContextChipStyle(page) {
+  const role = primaryPageRole(page);
+  const folder = pageFolderColors(role);
+  const meta = PAGE_ROLE_META[role];
+  return {
+    background: folder.tab,
+    borderColor: folder.line,
+    color: meta ? meta.color : C.roleVocabularyInk,
   };
 }
 
