@@ -3,7 +3,7 @@ import { C, SERIF, MONO, Hi } from "../theme.jsx";
 import { emptyItemState } from "../useNotebook.js";
 import { firstMeaningGloss } from "../lib/meanings.js";
 import { activePageContextsForLexical } from "../lib/pageReferences.js";
-import { enabledPageRoles, hasEnabledStructuredCapability, isJournalPage } from "../lib/pageKinds.js";
+import { enabledPageRoles, isJournalPage } from "../lib/pageKinds.js";
 import { pageFolderStyle, pageSummary } from "./pageRoleMeta.js";
 import PageFolderTab from "./PageFolderTab.jsx";
 import PageContextSummary from "./PageContextSummary.jsx";
@@ -42,9 +42,11 @@ export default function ItemCard({
   const bodyPreview = isPage ? markdownPreviewText(item.body) : "";
   /* A Diario entry is a page without a role to name, so its tab stays bare. */
   const [primaryRole = null] = isPage && !journal ? enabledPageRoles(item) : [];
-  /* The summary's Notes fallback belongs to the Pages hub; here a page with nothing enabled says
-     what it is through its own preview and date instead. */
-  const summary = isPage && hasEnabledStructuredCapability(item) ? pageSummary(item, items) : "";
+  /* A folder says the same thing about itself wherever it appears (owner-requested 2026-08-08),
+     so the summary is no longer gated on having an enabled structure — a plain Notes page names
+     itself here exactly as it does in the Pages hub. A Diario entry is still the exception: its
+     date line is its summary, and `pageSummary` has no wording for it. */
+  const summary = isPage && !journal ? pageSummary(item, items) : "";
   const pageContexts = !isPage && reason ? activePageContextsForLexical(item.id, items) : [];
   return (
     <div
