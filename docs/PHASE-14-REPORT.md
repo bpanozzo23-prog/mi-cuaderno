@@ -1,6 +1,6 @@
 # Phase 14 — Conjugation Gym (report)
 
-Implemented 2026-08-07 on `main`. **Local only; not pushed or deployed.** The approved scope is in
+Implemented 2026-08-07 on `main`. **Pushed and deployed; live status reverified 2026-08-09.** The approved scope is in
 [PHASE-14-DIRECTION.md](PHASE-14-DIRECTION.md); the contract amendments and reasoning are in
 `DECISIONS.md` under Phase 14.
 
@@ -69,8 +69,9 @@ semantic.
 | Layout | Short surfaces measured `scrollWidth === clientWidth === 375`; vertically scrolling setup/stats measured 360 === 360 after the browser scrollbar; zero elements crossed either horizontal edge |
 | Console | No warnings or errors |
 
-The fixture lives only on that disposable port-specific browser origin; its dev server was stopped.
-No owner data was available, inspected or changed, and nothing was deployed.
+The fixture lived only on that disposable port-specific browser origin; its dev server was stopped.
+No owner data was available, inspected or changed. Nothing was deployed as part of that original
+closeout; the Phase 14 commit was pushed and deployed later.
 
 ## Deliberately not done
 

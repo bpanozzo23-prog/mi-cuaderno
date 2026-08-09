@@ -157,7 +157,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   production build and `git diff --check` pass, and three deliberate red/green proofs behaved as
   intended — one of them by exposing a genuinely racing test that had been passing by luck, since
   fixed. See the Phase 13 entries in [DECISIONS.md](DECISIONS.md).
-- **Phase 14 — implemented locally; not deployed.** The **Conjugation Gym** replaces the single
+- **Phase 14 — deployed.** The **Conjugation Gym** replaces the single
   random drill with balanced Quick and Focus sessions, an explicitly chosen Adaptive option,
   Saved/Core 20/Core 50 verb pools, all shipped tenses, diagnosed typed retries, one optional
   missed-form round and actionable performance. Typed first attempts remain the primary score;
@@ -168,21 +168,21 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   seeded 375×812 closeout independently reproduced the displayed score from the raw event log.
   It introduces no schema change, due date, automatic queue or Leitner effect. See the approved
   [direction](docs/PHASE-14-DIRECTION.md) and [implementation report](docs/PHASE-14-REPORT.md).
-- **Collection bulk capture — implemented locally; not deployed.** A Vocabulary page's existing
+- **Collection bulk capture — deployed.** A Vocabulary page's existing
   Add vocabulary panel can now narrow saved entries to Words, Phrases, and an exact existing tag,
   then select every available match together. Existing members remain excluded and the final Add
   still uses the established atomic Collection transaction. No schema, backup, preference or event
   change; the full serial suite passes 976/976 across 83 files, the production build and
   `git diff --check` pass, and a disposable 375×812 browser flow passed without overflow or console
   errors. See the Collection bulk-capture entries in [DECISIONS.md](DECISIONS.md).
-- **Vocabulary group collapse — implemented locally; not deployed.** Each named group and Not
+- **Vocabulary group collapse — deployed.** Each named group and Not
   grouped yet now collapses independently in page read mode, while its item count and Add
   vocabulary action stay visible. Groups start expanded on each page visit and the display state
   is not stored. No schema, backup, preference or event change; the full serial suite passes
   977/977 across 83 files, the production build and `git diff --check` pass, and a disposable
   375×812 browser flow passed without overflow or console warnings/errors. See the Vocabulary
   group disclosure entries in [DECISIONS.md](DECISIONS.md).
-- **Compact page sections — implemented locally; not deployed.** Every page section now has a
+- **Compact page sections — deployed.** Every page section now has a
   visit-local disclosure; populated sections start open, while empty sections and empty nested
   Vocabulary/Grammar groups start compact. Source captures, Grammar sections and Grammar examples
   show one edit icon in read mode, with confirmed deletion inside that editor, and the redundant
@@ -190,7 +190,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   The full serial suite passes 978/978 across 83 files, the production build and `git diff --check`
   pass, and a disposable 375×812 browser flow passed without page overflow or console warnings/
   errors. See the Page section density entries in [DECISIONS.md](DECISIONS.md).
-- **Notebook formatting — implemented locally; not deployed.** Page bodies, journal entries and
+- **Notebook formatting — deployed.** Page bodies, journal entries and
   top-level word/phrase notes keep their existing plain-text storage and editor, with a compact
   toolbar for headings, bold, italic, highlight, lists, dividers and quotes. Read mode renders that
   deliberately small Markdown subset, while search, previews and AI feedback receive only visible
@@ -198,7 +198,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   preference or event change; the full serial suite passes 991/991 across 86 files, the production
   build and `git diff --check` pass, and a disposable 375×812 browser flow passed without overflow
   or console warnings/errors. See the Notebook Markdown entries in [DECISIONS.md](DECISIONS.md).
-- **Page hierarchy and icon actions — implemented locally; not deployed.** Top-level page sections
+- **Page hierarchy and icon actions — deployed.** Top-level page sections
   now use a pale full-width heading band, long section and group names wrap instead of clipping,
   and Vocabulary groups sit visibly beneath their parent section. Practice uses a target icon;
   Vocabulary, Source and Grammar organizers use one list/tree icon; empty Connections and Media
@@ -208,7 +208,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   across 86 files, the production build and `git diff --check` pass, and a disposable 375×812
   browser flow passed without overflow or console warnings/errors. See the Page hierarchy entries
   in [DECISIONS.md](DECISIONS.md).
-- **Optional Grammar key idea — implemented locally; not deployed.** A Grammar guide may omit its
+- **Optional Grammar key idea — deployed.** A Grammar guide may omit its
   Key idea, add it later from a compact `+ Key idea` action, or remove it through the existing
   pencil editor's confirmed action. The expanded Grammar header's Add section action is now a
   plus-only 44px icon button. An empty string continues to represent an absent Key idea, so there

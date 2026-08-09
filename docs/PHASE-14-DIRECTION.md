@@ -1,7 +1,7 @@
 # Phase 14 direction — Conjugation Gym
 
 **Approved:** 2026-08-07  
-**Status:** Implemented locally; not deployed
+**Status:** Deployed from `main`; live status reverified 2026-08-09
 
 ## Outcome
 

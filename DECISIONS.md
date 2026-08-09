@@ -630,6 +630,7 @@ One line per meaningful choice: date — decision — reason.
 ## Phase 15 — Gym correctness, Focus depth and accent semantics (2026-08-09)
 
 - 2026-08-09 — **OWNER'S DECISION: the reviewed Phase 15 direction is approved for implementation in its written delivery sequence.** — The phase keeps schema v5, the existing drill event types and owner-started sessions while correcting Gym measurements, turning Focus handoffs into real target-centred decks, and adding two exact-lemma reference-only pattern packs. No deployment is included.
+- 2026-08-09 — **Phase 14 and every later feature named after it in README's Status section are deployed, not local-only.** — The Phase 14 closeout commit `bd75dcc` is an ancestor of `origin/main`; the Pages workflow deploys every push to `main`; and the live site returned 200 with a 2026-08-09 build whose app bundle contained Conjugation Gym, Core 20, Adaptive, Practice next and the missed round. The Phase 14 direction/report and those README labels now describe that verified state; the original closeout remains historically clear that it performed no deployment itself.
 
 ## Collection bulk capture (2026-08-07)
 
