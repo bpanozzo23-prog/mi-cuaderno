@@ -29,8 +29,8 @@ export default defineConfig({
         display: "standalone",
         // Mirrors --color-paper (src/index.css) by hand. The manifest is generated at build
         // time and read by the OS, so it cannot reference a CSS variable. Change them together.
-        background_color: "#FAF9F4",
-        theme_color: "#FAF9F4",
+        background_color: "#F6F4EC",
+        theme_color: "#F6F4EC",
         icons: [
           { src: "icons/icon-192.png", sizes: "192x192", type: "image/png" },
           { src: "icons/icon-512.png", sizes: "512x512", type: "image/png" },
