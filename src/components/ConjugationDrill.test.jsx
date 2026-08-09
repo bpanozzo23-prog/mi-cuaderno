@@ -88,6 +88,16 @@ describe("reveal sessions", () => {
     expect(onFinish).toHaveBeenCalledTimes(1);
   });
 
+  it("omits the typed-verdict breakdown after a Reveal session", async () => {
+    const user = userEvent.setup();
+    render(<ConjugationDrill deck={[card()]} mode="reveal" onFinish={vi.fn()} />);
+
+    await revealAnswer(user, true);
+
+    expect(screen.getByText("Session complete")).toBeTruthy();
+    expect(screen.queryByText(/exact ·|accent slips?/i)).toBeNull();
+  });
+
   it("writes one drill event per self-grade and no view or review event", async () => {
     const user = userEvent.setup();
     render(<ConjugationDrill deck={[

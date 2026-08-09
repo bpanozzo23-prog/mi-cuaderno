@@ -177,10 +177,12 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
               <div className="mt-2 text-3xl" style={{ fontFamily: MONO, color: C.ink }}>
                 {tally.passed}/{tally.answered}
               </div>
-              <div className="mt-1 text-sm" style={{ color: C.mut }}>
-                {tally.exact} exact · {tally.accents} accent {tally.accents === 1 ? "slip" : "slips"}
-                {tally.recovered > 0 && ` · ${tally.recovered} immediate ${tally.recovered === 1 ? "recovery" : "recoveries"}`}
-              </div>
+              {isTyped && (
+                <div className="mt-1 text-sm" style={{ color: C.mut }}>
+                  {tally.exact} exact · {tally.accents} accent {tally.accents === 1 ? "slip" : "slips"}
+                  {tally.recovered > 0 && ` · ${tally.recovered} immediate ${tally.recovered === 1 ? "recovery" : "recoveries"}`}
+                </div>
+              )}
               {(weakTense || weakSlot) && (
                 <div className="mt-3 rounded-lg px-3 py-2 text-sm" style={{ background: C.penPale, color: C.penDark }}>
                   Needs work: {[weakTense && qualifiedTenseLabel(weakTense.key), weakSlot?.key].filter(Boolean).join(" · ")}
