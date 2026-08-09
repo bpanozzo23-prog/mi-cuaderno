@@ -74,6 +74,20 @@
   --color-role-grammar-pale: #F0ECF8;
   --color-role-grammar-ink: #574676;
 
+  /* Owner-picked 2026-08-08: each page type's folder wears its chip family — near-paper body,
+     pastel tab, family outline. Vocabulary is the anchor and keeps the manila trio above (the gold
+     family IS its chip colour), so only the other three declare their own trios. The tab label
+     sits directly on the tinted tab in the family ink; the pill dissolved with this change. */
+  --color-page-folder-notes: #FBFCFE;
+  --color-page-folder-notes-tab: #D9E2F4;
+  --color-page-folder-notes-line: #7B93D1;
+  --color-page-folder-source: #FAFDFA;
+  --color-page-folder-source-tab: #D3E5D4;
+  --color-page-folder-source-line: #79A17F;
+  --color-page-folder-grammar: #FCFBFE;
+  --color-page-folder-grammar-tab: #DFD5F0;
+  --color-page-folder-grammar-line: #9C88C6;
+
   /* The activity calendar's five intensity steps (Phase 11), walking from an empty day to
      a busy one. Ink rather than the usual green: this is a page of the notebook filling up.
      heat-0 is a breath darker than paper so an empty day still reads as a cell, and heat-4
@@ -95,6 +109,15 @@
   border-radius: 4px 15px 15px 15px;
 }
 
+/* The folder trio a card actually wears. The custom properties default to the manila set and are
+   overridden inline by the card for the coloured families, so the tab, its sloped cap and the
+   seam shadow all follow one declaration. Custom properties inherit, which is what lets the tab's
+   pseudo-element read values set on the card root. */
+.page-folder-card {
+  --folder-tab: var(--color-page-folder-tab);
+  --folder-line: var(--color-page-folder-line);
+}
+
 .page-folder-tab {
   position: absolute;
   left: -1px;
@@ -105,18 +128,66 @@
   /* Height is the badge's, but an empty tab must still reach down to the card body rather than
      float above it — the card's top margin is the same either way. */
   min-height: 34px;
-  /* Never far enough right to run under the pin control. "Vocabulary" is the longest label and
-     clears this comfortably at 375px; the cap is a guard, not a working constraint. */
-  max-width: calc(100% - 3rem);
+  /* Never far enough right to run under the pin control, and the sloped cap below adds ~12px
+     beyond the box. "Vocabulary" is the longest label and clears this comfortably at 375px. */
+  max-width: calc(100% - 60px);
   /* The bottom padding is the larger of the two on purpose: the tab's last few pixels overlap the
-     card, so without it the badge's lower edge lands on the seam and the two read as one shape. */
-  padding: 4px 8px 5px;
-  overflow: hidden;
+     card, so without it the badge's lower edge lands on the seam and the two read as one shape.
+     The extra right padding keeps the label off the sloped cut. */
+  padding: 4px 18px 5px 8px;
   white-space: nowrap;
-  border: 1px solid var(--color-page-folder-line);
+  border: 1px solid var(--folder-line);
   border-bottom: 0;
-  border-radius: 10px 12px 0 0;
-  background: var(--color-page-folder-tab);
+  border-right: 0;
+  border-radius: 10px 0 0 0;
+  /* A faint top light so the fold reads as paper, not flat fill; the bottom edge leans a breath
+     toward the outline colour. */
+  background: linear-gradient(
+    color-mix(in srgb, var(--folder-tab) 86%, white),
+    color-mix(in srgb, var(--folder-tab) 94%, var(--folder-line))
+  );
+  /* The tab sits physically in front of the folder: a hairline of its own shadow falls on the
+     card across the seam. */
+  box-shadow: 0 3px 4px -2px color-mix(in srgb, var(--folder-line) 45%, transparent);
+}
+
+/* The die-cut: the tab's right edge angles down and out the way a manila tab is actually cut.
+   A skewed cap carries the border and background past the straight box, so the slope needs no
+   clip-path and keeps its outline. */
+.page-folder-tab::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  bottom: 0;
+  right: -12px;
+  width: 26px;
+  background: linear-gradient(
+    color-mix(in srgb, var(--folder-tab) 86%, white),
+    color-mix(in srgb, var(--folder-tab) 94%, var(--folder-line))
+  );
+  border: 1px solid var(--folder-line);
+  border-left: 0;
+  border-bottom: 0;
+  border-radius: 0 13px 0 0;
+  transform: skewX(-16deg);
+  transform-origin: bottom left;
+}
+
+/* A sliver of white sheet above the folder's mouth, to the right of the tab: the folder visibly
+   holds pages. Behind the card's own background (negative z-index on a z-auto positioned parent),
+   so only the peeking edge shows. */
+.page-folder-card::before {
+  content: "";
+  position: absolute;
+  left: 150px;
+  right: 22px;
+  top: -7px;
+  height: 14px;
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  z-index: -1;
 }
 
 /* Notebook Markdown is intentionally prose-first rather than README-like. These rules apply only

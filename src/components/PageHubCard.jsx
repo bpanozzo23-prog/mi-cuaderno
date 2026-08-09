@@ -2,7 +2,7 @@ import { Bookmark, BookmarkCheck } from "lucide-react";
 import { C, MONO, SERIF, hubTitleSize } from "../theme.jsx";
 import { enabledPageRoles } from "../lib/pageKinds.js";
 import { markdownPreviewText } from "../lib/noteMarkdown.js";
-import { pageSummary } from "./pageRoleMeta.js";
+import { pageFolderStyle, pageSummary } from "./pageRoleMeta.js";
 import PageFolderTab from "./PageFolderTab.jsx";
 
 export default function PageHubCard({
@@ -21,10 +21,7 @@ export default function PageHubCard({
   return (
     <div
       className="page-folder-card relative w-full border"
-      style={{
-        background: C.pageFolder,
-        borderColor: C.pageFolderLine,
-      }}
+      style={pageFolderStyle(primaryRole)}
     >
       <button
         type="button"

@@ -29,6 +29,41 @@ export const PAGE_ROLE_META = {
   },
 };
 
+/**
+ * The folder trio — body, tab, outline — each family's card wears (owner-picked 2026-08-08).
+ * Vocabulary is the anchor: its chip family is the original manila, so it keeps the base trio,
+ * and a page with no role to name (a Diario entry in the mixed list) falls back to the same via
+ * `pageFolderColors`. The card's own primary role decides the trio; that is `enabledPageRoles`'
+ * first entry, the same rule that decides what the tab names.
+ */
+const MANILA_FOLDER = { body: C.pageFolder, tab: C.pageFolderTab, line: C.pageFolderLine };
+
+const PAGE_FOLDER_COLORS = {
+  [PAGE_FOCUSES.notes]: { body: C.pageFolderNotes, tab: C.pageFolderNotesTab, line: C.pageFolderNotesLine },
+  [PAGE_FOCUSES.vocabulary]: MANILA_FOLDER,
+  [PAGE_FOCUSES.source]: { body: C.pageFolderSource, tab: C.pageFolderSourceTab, line: C.pageFolderSourceLine },
+  [PAGE_FOCUSES.grammar]: { body: C.pageFolderGrammar, tab: C.pageFolderGrammarTab, line: C.pageFolderGrammarLine },
+};
+
+export function pageFolderColors(role) {
+  return PAGE_FOLDER_COLORS[role] || MANILA_FOLDER;
+}
+
+/**
+ * The inline style a folder card root carries: its family's body and outline directly, plus the
+ * custom properties `.page-folder-tab` and its sloped cap resolve for the tab fill and seam
+ * shadow. The properties inherit, which is how a style set here reaches a pseudo-element.
+ */
+export function pageFolderStyle(role) {
+  const folder = pageFolderColors(role);
+  return {
+    background: folder.body,
+    borderColor: folder.line,
+    "--folder-tab": folder.tab,
+    "--folder-line": folder.line,
+  };
+}
+
 const SOURCE_FORMAT_LABELS = {
   book: "Book",
   audio: "Audio",

@@ -4,7 +4,7 @@ import { emptyItemState } from "../useNotebook.js";
 import { firstMeaningGloss } from "../lib/meanings.js";
 import { activePageContextsForLexical } from "../lib/pageReferences.js";
 import { enabledPageRoles, hasEnabledStructuredCapability, isJournalPage } from "../lib/pageKinds.js";
-import { pageSummary } from "./pageRoleMeta.js";
+import { pageFolderStyle, pageSummary } from "./pageRoleMeta.js";
 import PageFolderTab from "./PageFolderTab.jsx";
 import PageContextSummary from "./PageContextSummary.jsx";
 import TagChip from "./TagChip.jsx";
@@ -53,14 +53,16 @@ export default function ItemCard({
   return (
     <div
       className={`relative w-full border ${isPage ? "page-folder-card" : "rounded-xl"}`}
-      style={{
-        background: isPage ? C.pageFolder : C.card,
-        borderColor: isPage ? C.pageFolderLine : C.line,
-        ...(!isPage && {
-          borderLeftWidth: 6,
-          borderLeftColor: entryAccent(item),
-        }),
-      }}
+      style={
+        isPage
+          ? pageFolderStyle(primaryRole)
+          : {
+              background: C.card,
+              borderColor: C.line,
+              borderLeftWidth: 6,
+              borderLeftColor: entryAccent(item),
+            }
+      }
     >
       <button
         onClick={() => onOpen(item.id)}

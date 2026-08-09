@@ -17,9 +17,11 @@ export default function PageFolderTab({ role = null }) {
   return (
     <span className="page-folder-tab">
       {detail && (
+        /* No pill: on a tab tinted with the role's own family the pale pill dissolves into its
+           background, so the label sits directly on the tab in the family ink. */
         <span
-          className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs"
-          style={{ background: detail.background, color: detail.color }}
+          className="inline-flex items-center gap-1 px-1 py-1 text-xs font-semibold"
+          style={{ color: detail.color }}
         >
           <RoleIcon size={13} /> {detail.label}
         </span>
