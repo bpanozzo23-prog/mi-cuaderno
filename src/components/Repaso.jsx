@@ -137,19 +137,42 @@ function ChalkboardStats({ children }) {
  */
 function BoxBar({ label, count, max, tone }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="w-14 shrink-0 text-xs" style={{ fontFamily: MONO, color: C.mut }}>
+    <div className="flex items-center gap-2.5">
+      <span
+        className="w-16 shrink-0 text-lg leading-tight"
+        style={{ fontFamily: CHALK_SCRIPT, color: C.chalkDim }}
+      >
         {label}
       </span>
-      <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: C.penPale }}>
+      <div className="flex-1 h-[9px] rounded-[5px] overflow-hidden" style={{ background: C.chalkTrack }}>
         <div
-          className="h-full rounded-full"
+          className="h-full rounded-[5px]"
           style={{ width: `${max > 0 ? (count / max) * 100 : 0}%`, background: tone }}
         />
       </div>
-      <span className="w-6 shrink-0 text-right text-xs" style={{ fontFamily: MONO, color: C.mut }}>
+      <span
+        className="w-7 shrink-0 text-right text-[15px] leading-tight"
+        style={{ fontFamily: CHALK_PRINT, color: tone }}
+      >
         {count}
       </span>
+    </div>
+  );
+}
+
+/** The stats board's plainer sibling: same slate and wood, a thinner frame, no tray. */
+function ChalkboardPanel({ children }) {
+  return (
+    <div
+      className="rounded-lg border-[9px]"
+      style={{ borderColor: C.chalkFrame, background: C.chalkBoard }}
+    >
+      <div
+        className="rounded-[2px] border-2 px-4 pt-4 pb-3.5"
+        style={{ borderColor: C.chalkFrameDark, background: C.chalkBoard }}
+      >
+        {children}
+      </div>
     </div>
   );
 }
@@ -548,12 +571,14 @@ export default function Repaso({ notebook, onSelect }) {
 
       <SectionTitle>Estadísticas</SectionTitle>
       {ladder.tracked > 0 && (
-        <Card className="p-4 space-y-2">
-          {ladder.boxes.map((b) => (
-            <BoxBar key={b.box} label={`Box ${b.box}`} count={b.count} max={ladderMax} tone={C.pen} />
-          ))}
-          <BoxBar label="Retired" count={ladder.graduated} max={ladderMax} tone={C.green} />
-        </Card>
+        <ChalkboardPanel>
+          <div className="space-y-2.5">
+            {ladder.boxes.map((b) => (
+              <BoxBar key={b.box} label={`Box ${b.box}`} count={b.count} max={ladderMax} tone={C.chalk} />
+            ))}
+            <BoxBar label="Retired" count={ladder.graduated} max={ladderMax} tone={C.chalkMint} />
+          </div>
+        </ChalkboardPanel>
       )}
       <button
         onClick={() => setView("stats")}

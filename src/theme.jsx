@@ -64,6 +64,8 @@ export const C = {
   chalkEraserBack: "var(--color-chalk-eraser-back)",
   chalkEraserFelt: "var(--color-chalk-eraser-felt)",
   chalkEraserDust: "var(--color-chalk-eraser-dust)",
+  chalkTrack: "var(--color-chalk-track)",
+  chalkMint: "var(--color-chalk-mint)",
 };
 
 /** The activity calendar's ramp, indexed by intensity level 0–4 (Phase 11). */

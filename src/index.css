@@ -106,6 +106,10 @@
   --color-chalk-eraser-back: #2A2A2C;
   --color-chalk-eraser-felt: #57575C;
   --color-chalk-eraser-dust: #FBF8EC59;
+  /* The review-ladder board (owner-picked 2026-08-09): a bar's unfilled track is chalk dust,
+     and Retired keeps its green meaning as mint chalk — pen blue reads muddy on the slate. */
+  --color-chalk-track: #F2EFE424;
+  --color-chalk-mint: #A8D8B0;
 }
 
 /* The tab now carries the page's role badge, so it is a real element sized by its own content
