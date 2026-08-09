@@ -2,7 +2,7 @@ import { Bookmark, BookmarkCheck } from "lucide-react";
 import { C, Hi, MONO, SERIF, hubTitleSize } from "../theme.jsx";
 import { emptyReviewState } from "../lib/review.js";
 import { firstMeaningGloss } from "../lib/meanings.js";
-import { entryAccent, personalHeadingSuffix, personalLexicalForm } from "./ItemCard.jsx";
+import { entryAccent, personalHeadingSuffix } from "./ItemCard.jsx";
 import PageContextSummary from "./PageContextSummary.jsx";
 import TagChip from "./TagChip.jsx";
 
@@ -23,8 +23,6 @@ export default function LexicalHubCard({
 }) {
   const suffix = personalHeadingSuffix(item);
   const gloss = firstMeaningGloss(item);
-  const isPhrase = personalLexicalForm(item) === "phrase";
-
   return (
     <div
       role="group"
@@ -49,7 +47,7 @@ export default function LexicalHubCard({
             fontFamily: SERIF,
             color: C.ink,
             fontWeight: 700,
-            fontStyle: isPhrase ? "italic" : "normal",
+            fontStyle: "normal",
           }}
         >
           <Hi on={review.tricky}>{item.term}</Hi>
@@ -64,8 +62,8 @@ export default function LexicalHubCard({
         </div>
 
         {gloss && (
-          <div className="mt-1.5 line-clamp-2 text-sm leading-relaxed" style={{ color: C.ink }}>
-            — {gloss}
+          <div className="mt-2 pl-2.5 line-clamp-2 text-sm leading-relaxed" style={{ color: C.entryMeaning }}>
+            <span style={{ color: C.entryMeaningDash }}>—</span> {gloss}
           </div>
         )}
 

@@ -316,7 +316,9 @@ describe("the Words & phrases hub", () => {
     });
     render(<LexicalHub {...propsFor([sacar])} />);
 
-    expect(within(card("sacar")).getByText("— to take out")).toBeTruthy();
+    const meaningLine = within(card("sacar")).getByText("to take out");
+    expect(meaningLine.textContent).toBe("— to take out");
+    expect(meaningLine.querySelector("span").style.color).toBe("var(--color-entry-meaning-dash)");
     expect(within(card("sacar")).queryByText(/to withdraw/)).toBeNull();
   });
 

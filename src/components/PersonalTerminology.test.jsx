@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ItemCard, { personalHeadingSuffix } from "./ItemCard.jsx";
+import LexicalHubCard from "./LexicalHubCard.jsx";
 import { ItemLinkCard } from "./LinkCard.jsx";
 import ReviewSession from "./ReviewSession.jsx";
 import { newMeaning } from "../lib/meanings.js";
@@ -51,6 +52,21 @@ describe("personal word and phrase terminology", () => {
     expect(screen.getByRole("button", { name: /^tener ganas de/ })).toBeTruthy();
     expect(screen.queryByText("phrase")).toBeNull();
     expect(screen.queryByText("loc.")).toBeNull();
+  });
+
+  it("keeps phrase headings upright on both browsing cards", () => {
+    const first = render(<ItemCard item={phrase} onOpen={vi.fn()} />);
+    expect(screen.getByText("tener ganas de").parentElement.style.fontStyle).toBe("normal");
+    first.unmount();
+
+    render(
+      <LexicalHubCard
+        item={phrase}
+        onOpen={vi.fn()}
+        onPinnedChange={vi.fn()}
+      />
+    );
+    expect(screen.getByText("tener ganas de").parentElement.style.fontStyle).toBe("normal");
   });
 
   it("leaves the review card free of a suffix too", () => {

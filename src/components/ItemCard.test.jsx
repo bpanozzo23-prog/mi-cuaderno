@@ -114,7 +114,9 @@ describe("the meaning a card shows", () => {
 
     render(<ItemCard item={word} onOpen={vi.fn()} />);
 
-    expect(screen.getByText("— to take out")).toBeTruthy();
+    const meaningLine = screen.getByText("to take out");
+    expect(meaningLine.textContent).toBe("— to take out");
+    expect(meaningLine.querySelector("span").style.color).toBe("var(--color-entry-meaning-dash)");
     expect(screen.queryByText(/to withdraw/)).toBeNull();
   });
 

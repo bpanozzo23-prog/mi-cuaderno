@@ -50,8 +50,6 @@ export default function ItemCard({
      what it is through its own preview and date instead. */
   const summary = isPage && hasEnabledStructuredCapability(item) ? pageSummary(item, items) : "";
   const pageContexts = !isPage && reason ? activePageContextsForLexical(item.id, items) : [];
-  const isPhrase = !isPage && personalLexicalForm(item) === "phrase";
-
   return (
     <div
       className={`relative w-full border shadow-entry-card ${isPage ? "page-folder-card" : "rounded-xl"}`}
@@ -80,7 +78,7 @@ export default function ItemCard({
               fontFamily: SERIF,
               color: C.ink,
               fontWeight: isPage ? 800 : 700,
-              fontStyle: isPhrase ? "italic" : "normal",
+              fontStyle: "normal",
               letterSpacing: isPage ? "0.035em" : undefined,
             }}
           >
@@ -103,8 +101,8 @@ export default function ItemCard({
 
         {/* One meaning, clamped: a browsing row must not become a paragraph. */}
         {!isPage && gloss && (
-          <div className="text-sm mt-0.5 line-clamp-2" style={{ color: C.ink }}>
-            — {gloss}
+          <div className="mt-2 pl-2.5 line-clamp-2 text-sm leading-relaxed" style={{ color: C.entryMeaning }}>
+            <span style={{ color: C.entryMeaningDash }}>—</span> {gloss}
           </div>
         )}
         {summary && (

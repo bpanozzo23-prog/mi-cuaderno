@@ -24,6 +24,8 @@ export const C = {
   hiSoft: "var(--color-hi-soft)",
   line: "var(--color-line)",
   mut: "var(--color-mut)",
+  entryMeaning: "var(--color-entry-meaning)",
+  entryMeaningDash: "var(--color-entry-meaning-dash)",
   red: "var(--color-red)",
   redPale: "var(--color-red-pale)",
   green: "var(--color-green)",
