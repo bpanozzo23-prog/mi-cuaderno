@@ -168,6 +168,17 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   seeded 375×812 closeout independently reproduced the displayed score from the raw event log.
   It introduces no schema change, due date, automatic queue or Leitner effect. See the approved
   [direction](docs/PHASE-14-DIRECTION.md) and [implementation report](docs/PHASE-14-REPORT.md).
+- **Phase 15 — implemented locally; not deployed.** Gym correctness and depth: accent-near
+  answers now fail when the missing accent changes the tense, performance actions open full
+  target-centred Focus decks, and Adaptive uses resolved misses, a 90-day window and rolling
+  last-10 accuracy rather than lifetime weakness alone. Stem changers and Irregular preterites
+  join the reference-only pools, while the maintenance batch fixes session reset/reload/navigation
+  edges, Reveal-only completion wording, labels and action coverage. Schema v5, existing event
+  types, owner-started sessions and the no-Leitner boundary remain unchanged. The final serial
+  suite passes 1,021/1,021 across 86 files, the production build and `git diff --check` pass, all
+  56 unique curated lemmas resolve to shipped tables, and a disposable 375×812 closeout passed
+  without horizontal overflow or console warnings/errors. See the approved
+  [direction](docs/PHASE-15-DIRECTION.md) and [implementation report](docs/PHASE-15-REPORT.md).
 - **Collection bulk capture — deployed.** A Vocabulary page's existing
   Add vocabulary panel can now narrow saved entries to Words, Phrases, and an exact existing tag,
   then select every available match together. Existing members remain excluded and the final Add
