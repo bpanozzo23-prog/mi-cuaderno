@@ -45,10 +45,6 @@
   --color-green: #3E6B44;
   --color-green-pale: #EAF2EA;
 
-  /* The section spine: a margin rule down the left of a page section's content, threading its
-     groups and cards back to the header. */
-  --color-section-spine: #7B93D1;
-
   /* Named here for the first time. Each was previously a bare hex repeated across components,
      which is exactly the drift this file exists to stop. */
   --color-chip-border: #D9E1F2;

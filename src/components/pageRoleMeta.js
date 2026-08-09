@@ -94,6 +94,40 @@ export function pageContextChipStyle(page) {
   };
 }
 
+/**
+ * What a section inside an open page wears: its heading band, that band's outline, the heading ink
+ * and the spine hung beneath it (owner-requested 2026-08-08).
+ *
+ * Keyed by section rather than by page, because one page shows several: a Vocabulary page with
+ * Notes turned on has a gold Vocabulary section and a blue Notes section, and each should say which
+ * kind of content it is. The four typed families reuse the exact chip and folder-line values their
+ * folders already wear, so a Grammar section and a Grammar folder are the same purple rather than
+ * two purples. `neutral` covers the sections that belong to no page type — Media links, Connections
+ * and Tags — in the app's existing red, which is deliberately unlike all four families.
+ */
+const SECTION_FAMILIES = {
+  notes: { band: C.penPale, line: C.chipBorder, ink: C.penDark, spine: C.pageFolderNotesLine },
+  vocabulary: {
+    band: C.roleVocabularyPale,
+    line: C.pageFolderLine,
+    ink: C.roleVocabularyInk,
+    spine: C.pageFolderLine,
+  },
+  source: { band: C.greenPale, line: C.pageFolderSourceLine, ink: C.green, spine: C.pageFolderSourceLine },
+  grammar: {
+    band: C.roleGrammarPale,
+    line: C.pageFolderGrammarLine,
+    ink: C.roleGrammarInk,
+    spine: C.pageFolderGrammarLine,
+  },
+  neutral: { band: C.redPale, line: C.dangerBorder, ink: C.red, spine: C.red },
+};
+
+/** Falls back to Notes blue, which is what every section wore before families existed. */
+export function sectionFamily(family) {
+  return SECTION_FAMILIES[family] || SECTION_FAMILIES.notes;
+}
+
 const SOURCE_FORMAT_LABELS = {
   book: "Book",
   audio: "Audio",

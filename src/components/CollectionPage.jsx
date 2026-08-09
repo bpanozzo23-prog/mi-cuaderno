@@ -308,6 +308,7 @@ function ConnectionsSection({
   return (
     <PageSectionDisclosure
       id="page-connections"
+      family="neutral"
       title="Connections"
       summary={empty ? "" : `${connectionCount} ${connectionCount === 1 ? "connection" : "connections"}`}
       defaultCollapsed={empty}
@@ -440,6 +441,7 @@ function PageNotesSection({ page, onChanged, overview = false }) {
   return (
     <PageSectionDisclosure
       id="page-notes"
+      family="notes"
       title="Notes"
       summary={hasBody ? "" : "Empty"}
       defaultCollapsed={!hasBody}
@@ -518,6 +520,7 @@ function PageMediaSection({ page, onChanged }) {
   return (
     <PageSectionDisclosure
       id="page-media"
+      family="neutral"
       title="Media links"
       summary={(page.mediaLinks || []).length ? `${page.mediaLinks.length} ${page.mediaLinks.length === 1 ? "link" : "links"}` : ""}
       defaultCollapsed={(page.mediaLinks || []).length === 0}
@@ -676,6 +679,7 @@ function VocabularySection({ page, items, collection, onOpen, onChanged, onOrgan
   return (
     <PageSectionDisclosure
       id="page-vocabulary"
+      family="vocabulary"
       title="Vocabulary"
       summary={`${collection.itemCount} ${collection.itemCount === 1 ? "item" : "items"} · ${collection.groupCount} ${collection.groupCount === 1 ? "group" : "groups"}`}
       defaultCollapsed={collection.itemCount === 0}
@@ -707,7 +711,7 @@ function VocabularySection({ page, items, collection, onOpen, onChanged, onOrgan
           const collapsed = collapsedGroups.has(group.id);
           return (
             <section key={group.id} aria-labelledby={headingId} className="relative">
-              <SectionSpineNode />
+              <SectionSpineNode family="vocabulary" />
               <VocabularyGroupHeader
                 name={group.name}
                 itemCount={group.items.length}
@@ -738,7 +742,7 @@ function VocabularySection({ page, items, collection, onOpen, onChanged, onOrgan
 
         {collection.ungroupedItems.length > 0 && (
           <section aria-labelledby="collection-ungrouped" className="relative">
-            <SectionSpineNode />
+            <SectionSpineNode family="vocabulary" />
             <VocabularyGroupHeader
               name={NOT_GROUPED_LABEL}
               itemCount={collection.ungroupedItems.length}
@@ -1092,6 +1096,7 @@ export default function CollectionPage({
             <div className="mt-7">
               <PageSectionDisclosure
                 id="page-tags"
+                family="neutral"
                 title="Tags"
                 summary={`${item.tags.length} ${item.tags.length === 1 ? "tag" : "tags"}`}
                 resetKey={item.id}

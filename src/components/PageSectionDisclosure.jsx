@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { C, SERIF } from "../theme.jsx";
+import { sectionFamily } from "./pageRoleMeta.js";
 
 /**
  * The spine's geometry, in one place so the line and the nodes hung on it cannot drift apart.
@@ -22,12 +23,12 @@ const SPINE_NODE_LEFT = "left-[-20px]";
  * the running app rather than derived: a heading that wraps to two lines pushes its own text up, and
  * anchoring to the first line keeps the node steady instead of chasing the block's centre.
  */
-export function SectionSpineNode({ className = "top-[10px]" }) {
+export function SectionSpineNode({ className = "top-[10px]", family = "notes" }) {
   return (
     <span
       aria-hidden="true"
       className={`absolute ${SPINE_NODE_LEFT} h-1.5 w-1.5 rounded-full ${className}`}
-      style={{ background: C.sectionSpine }}
+      style={{ background: sectionFamily(family).spine }}
     />
   );
 }
@@ -44,8 +45,10 @@ export default function PageSectionDisclosure({
   defaultCollapsed = false,
   resetKey,
   actions = null,
+  family = "notes",
   children,
 }) {
+  const colors = sectionFamily(family);
   const [localState, setLocalState] = useState(() => ({ resetKey, collapsed: null }));
   const localCollapsed = Object.is(localState.resetKey, resetKey) ? localState.collapsed : null;
   const collapsed = localCollapsed ?? defaultCollapsed;
@@ -69,7 +72,7 @@ export default function PageSectionDisclosure({
     <section id={id} aria-labelledby={headingId}>
       <div
         className="flex flex-wrap items-start justify-between gap-2 rounded-xl border px-2 py-1.5"
-        style={{ background: C.penPale, borderColor: C.chipBorder }}
+        style={{ background: colors.band, borderColor: colors.line }}
       >
         <button
           type="button"
@@ -83,7 +86,7 @@ export default function PageSectionDisclosure({
             ? <ChevronRight size={17} className="shrink-0" style={{ color: C.mut }} />
             : <ChevronDown size={17} className="shrink-0" style={{ color: C.mut }} />}
           <div className="min-w-0">
-            <h2 id={headingId} className="break-words text-lg font-bold leading-tight" style={{ color: C.ink, fontFamily: SERIF }}>
+            <h2 id={headingId} className="break-words text-lg font-bold leading-tight" style={{ color: colors.ink, fontFamily: SERIF }}>
               {title}
             </h2>
             {summary && <div className="break-words text-xs" style={{ color: C.mut }}>{summary}</div>}
@@ -99,7 +102,7 @@ export default function PageSectionDisclosure({
         id={contentId}
         hidden={collapsed}
         className={`border-l-2 ${SPINE_LEFT} ${SPINE_PAD}`}
-        style={{ borderColor: C.sectionSpine }}
+        style={{ borderColor: colors.spine }}
       >
         {children}
       </div>

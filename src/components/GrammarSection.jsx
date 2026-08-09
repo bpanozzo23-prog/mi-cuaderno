@@ -845,6 +845,7 @@ export default function GrammarSection({
   return (
     <PageSectionDisclosure
       id="page-grammar"
+      family="grammar"
       title="Grammar guide"
       summary={hasContent
         ? `${sections.length} ${sections.length === 1 ? "section" : "sections"} · ${exampleCount} ${exampleCount === 1 ? "example" : "examples"}`

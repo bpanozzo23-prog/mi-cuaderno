@@ -727,6 +727,7 @@ export default function SourceSection({
   return (
     <PageSectionDisclosure
       id="page-source"
+      family="source"
       title="Source notebook"
       summary={empty ? "Empty" : `${captures.length} ${captures.length === 1 ? "capture" : "captures"}`}
       defaultCollapsed={empty}
