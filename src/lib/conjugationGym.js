@@ -186,6 +186,80 @@ export function buildBalancedGymDeck(
   return balancedSelection(uniqueCells(verbs, { tenses, slots }), size, { rng });
 }
 
+/** Number of distinct answerable cells under the current pool, tense and person choices. */
+export function gymCellCount(
+  verbs,
+  { tenses = EVERYDAY_TENSES, slots = GYM_SLOTS } = {}
+) {
+  return uniqueCells(verbs, { tenses, slots }).length;
+}
+
+function targetIdentityMatches(cell, target) {
+  const identities = [target?.verbKey, target?.itemKey, target?.itemId].filter(Boolean);
+  if (!identities.length) return true;
+  return identities.includes(cell.verbKey) || identities.includes(cell.itemKey);
+}
+
+function appendFocusGroup(deck, selected, candidates, size, rng) {
+  if (deck.length >= size) return;
+  const available = candidates.filter((card) => !selected.has(gymCellKey(card)));
+  for (const card of balancedSelection(available, size - deck.length, { rng })) {
+    deck.push(card);
+    selected.add(gymCellKey(card));
+  }
+}
+
+/**
+ * Focus practice starts with every dimension carried by the target, then expands one
+ * exact cell across the same verb/tense and the same verb/person before balancing the
+ * rest of the selected pool. A target may also be only a verb, tense or person.
+ */
+export function buildFocusedGymDeck(
+  verbs,
+  {
+    size = 10,
+    tenses = EVERYDAY_TENSES,
+    slots = GYM_SLOTS,
+    target = null,
+    rng = Math.random,
+  } = {}
+) {
+  const cells = uniqueCells(verbs, { tenses, slots });
+  if (!cells.length || !target) return balancedSelection(cells, size, { rng });
+
+  const hasIdentity = Boolean(target.verbKey || target.itemKey || target.itemId);
+  const targetCells = cells.filter((cell) =>
+    targetIdentityMatches(cell, target) &&
+    (!target.tense || cell.tense === target.tense) &&
+    (!target.slot || cell.slot === target.slot)
+  );
+  const deck = [];
+  const selected = new Set();
+  appendFocusGroup(deck, selected, targetCells, size, rng);
+
+  if (hasIdentity && target.tense) {
+    appendFocusGroup(
+      deck,
+      selected,
+      cells.filter((cell) => targetIdentityMatches(cell, target) && cell.tense === target.tense),
+      size,
+      rng
+    );
+  }
+  if (hasIdentity && target.slot) {
+    appendFocusGroup(
+      deck,
+      selected,
+      cells.filter((cell) => targetIdentityMatches(cell, target) && cell.slot === target.slot),
+      size,
+      rng
+    );
+  }
+
+  const remainder = cells.filter((cell) => !selected.has(gymCellKey(cell)));
+  return balancedSelection(remainder, size, { rng, seedDeck: deck });
+}
+
 const isInitialAnswer = (event) =>
   (event?.type === "drill_pass" || event?.type === "drill_fail") &&
   (event?.metadata?.stage || "initial") === "initial";

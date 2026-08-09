@@ -7,7 +7,9 @@ import {
   GYM_SLOTS,
   buildAdaptiveGymDeck,
   buildBalancedGymDeck,
+  buildFocusedGymDeck,
   canonicalLemma,
+  gymCellCount,
   gymCellKey,
   gymCells,
   verbKeyForLemma,
@@ -91,6 +93,49 @@ describe("Gym cells and balanced decks", () => {
     const oneCell = verb("ser", ["Indicative/Present"]);
     oneCell.conjugation.tenses["Indicative/Present"] = { yo: "soy" };
     expect(buildBalancedGymDeck([oneCell], { size: 20 })).toHaveLength(1);
+  });
+
+  it("counts the unique answerable cells for the current choices", () => {
+    const oneCell = verb("ser", ["Indicative/Present"]);
+    oneCell.conjugation.tenses["Indicative/Present"] = { yo: "soy" };
+    expect(gymCellCount([oneCell], { tenses: ["Indicative/Present"], slots: GYM_SLOTS })).toBe(1);
+  });
+});
+
+describe("target-centred Focus decks", () => {
+  it("starts at one exact cell, then expands by same tense and same person", () => {
+    const verbs = [verb("ser"), verb("estar")];
+    const deck = buildFocusedGymDeck(verbs, {
+      size: 8,
+      target: { verbKey: "lemma:ser", tense: "Indicative/Preterite", slot: "tú" },
+      rng: seeded([0.2, 0.8, 0.4]),
+    });
+
+    expect(gymCellKey(deck[0])).toBe("lemma:ser|Indicative/Preterite|tú");
+    expect(deck.slice(1, 5).every((card) =>
+      card.verbKey === "lemma:ser" && card.tense === "Indicative/Preterite" && card.slot !== "tú"
+    )).toBe(true);
+    expect(deck[5]).toMatchObject({ verbKey: "lemma:ser", tense: "Indicative/Present", slot: "tú" });
+    expect(new Set(deck.map(gymCellKey)).size).toBe(deck.length);
+  });
+
+  it("accepts a single tense, person, or item identity as the target dimension", () => {
+    const verbs = [verb("ser"), verb("estar")];
+    expect(buildFocusedGymDeck(verbs, {
+      size: 4,
+      target: { tense: "Indicative/Present" },
+      rng: seeded([0.3, 0.7]),
+    }).every((card) => card.tense === "Indicative/Present")).toBe(true);
+    expect(buildFocusedGymDeck(verbs, {
+      size: 4,
+      target: { slot: "yo" },
+      rng: seeded([0.3, 0.7]),
+    }).every((card) => card.slot === "yo")).toBe(true);
+    expect(buildFocusedGymDeck(verbs, {
+      size: 3,
+      target: { itemKey: "user:ser" },
+      rng: seeded([0.3, 0.7]),
+    }).every((card) => card.verbKey === "lemma:ser")).toBe(true);
   });
 });
 
