@@ -91,6 +91,8 @@ describe("Conjugation Gym setup", () => {
     expect(screen.queryByText("vosotros")).toBeNull();
 
     await user.selectOptions(screen.getByLabelText("Tense pack"), "customize");
+    expect(screen.getByRole("checkbox", { name: /Subjunctive imperfect \(-se\)\s*· alternative \/ less common/i })).toBeTruthy();
+    expect(screen.queryByRole("checkbox", { name: /Subjunctive imperfect \(-se\)\s*· rare/i })).toBeNull();
     expect(screen.getByRole("checkbox", { name: /Subjunctive future\s*· rare/i })).toBeTruthy();
     expect(screen.getByRole("checkbox", { name: /Indicative preterite perfect \(archaic\)\s*· rare/i })).toBeTruthy();
   });

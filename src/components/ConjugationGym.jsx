@@ -5,6 +5,7 @@ import { loadGymLibrary } from "../db/ref/gym.js";
 import {
   CORE_20,
   CORE_50,
+  ALTERNATIVE_TENSES,
   GYM_SLOTS,
   RARE_TENSES,
   TENSE_PACKS,
@@ -321,7 +322,11 @@ export default function ConjugationGym({
                       {TENSE_PACKS.customize.tenses.map((tense) => (
                         <label key={tense} className="flex items-start gap-2 text-sm" style={{ color: C.ink }}>
                           <input type="checkbox" checked={customTenses.includes(tense)} onChange={() => toggleTense(tense)} />
-                          <span>{qualifiedTenseLabel(tense)}{RARE_TENSES.has(tense) && <span style={{ color: C.mut }}> · rare</span>}</span>
+                          <span>
+                            {qualifiedTenseLabel(tense)}
+                            {ALTERNATIVE_TENSES.has(tense) && <span style={{ color: C.mut }}> · alternative / less common</span>}
+                            {RARE_TENSES.has(tense) && <span style={{ color: C.mut }}> · rare</span>}
+                          </span>
                         </label>
                       ))}
                     </div>

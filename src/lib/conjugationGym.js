@@ -58,10 +58,13 @@ export const PERFECT_PRACTICE_TENSES = [
 export const ALL_GYM_TENSES = [...SIMPLE_TENSES, ...Object.keys(PERFECT_TENSES)];
 
 export const RARE_TENSES = new Set([
-  "Subjunctive/Imperfect (-se)",
   "Subjunctive/Future",
   "Indicative/Preterite (Archaic)",
   "Subjunctive/Future Perfect",
+]);
+
+export const ALTERNATIVE_TENSES = new Set([
+  "Subjunctive/Imperfect (-se)",
 ]);
 
 export const TENSE_PACKS = {
