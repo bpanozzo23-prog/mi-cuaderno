@@ -23,6 +23,10 @@ export default function LexicalHubCard({
 }) {
   const suffix = personalHeadingSuffix(item);
   const gloss = firstMeaningGloss(item);
+  /* The chip row is a sibling of the button, so the button's own bottom padding is the gap above
+     it. When chips follow, that padding gives way to their row; with nothing below, the button
+     keeps its full padding as the card's own bottom edge. */
+  const hasChipRow = contexts.length > 0 || item.tags.length > 0;
   return (
     <div
       role="group"
@@ -37,7 +41,7 @@ export default function LexicalHubCard({
         type="button"
         onClick={() => onOpen(item.id)}
         aria-label={item.term}
-        className="w-full text-left px-4 py-3 pr-14 active:opacity-80"
+        className={`w-full text-left px-4 pt-3 ${hasChipRow ? "pb-1" : "pb-3"} pr-14 active:opacity-80`}
       >
         <div
           className={`min-w-0 leading-tight ${hubTitleSize(item.term)}`}
@@ -80,8 +84,8 @@ export default function LexicalHubCard({
         button is invalid HTML. The tags moved out with it so the placement chip and the tag chips
         share one line — two half-empty rows of chips was the card's widest wasted space.
       */}
-      {(contexts.length > 0 || item.tags.length > 0) && (
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 px-4 pb-3">
+      {hasChipRow && (
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 px-4 pb-2">
           {contexts.length > 0 && (
             <PageContextSummary
               className="min-w-0 flex-1 basis-1/2"

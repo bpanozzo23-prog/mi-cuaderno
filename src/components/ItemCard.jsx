@@ -125,7 +125,7 @@ export default function ItemCard({
         )}
 
         {showTags && item.tags.length > 0 && (
-          <div className="mt-2 flex gap-1.5 flex-wrap">
+          <div className="mt-1 flex gap-1.5 flex-wrap">
             {item.tags.map((t) => (
               <TagChip key={t} tag={t} />
             ))}
