@@ -37,7 +37,7 @@
      which is what the hex values allowed and `var()` does not. */
   --color-hi-soft: #F7DF4EE6;
 
-  --color-line: #E6E3D7;
+  --color-line: #D8D4C4;
   --color-red: #B3402E;
   /* The pale wash behind an error message, matching --color-green-pale's role for a success.
      The value was already loose in DictionaryCard as a bare hex before it was named here. */

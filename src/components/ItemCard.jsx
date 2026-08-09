@@ -69,7 +69,7 @@ export default function ItemCard({
 
         <div className="flex items-baseline justify-between gap-3">
           <div
-            className={`min-w-0 ${isPage ? "text-lg" : "text-xl"}`}
+            className={`min-w-0 ${isPage ? "text-lg" : "text-[18px]"}`}
             style={{
               fontFamily: SERIF,
               color: C.ink,

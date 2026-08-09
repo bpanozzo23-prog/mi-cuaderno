@@ -70,7 +70,7 @@ export const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
  * Both class names are complete literals on purpose — Tailwind scans source text, so a class built
  * by concatenation would never be emitted.
  */
-export const hubTitleSize = (text) => ((text || "").length > 18 ? "text-[17px]" : "text-[20px]");
+export const hubTitleSize = (text) => ((text || "").length > 18 ? "text-[16px]" : "text-[18px]");
 
 export const dotGrid = {
   backgroundImage: "radial-gradient(rgba(45,78,160,0.06) 1px, transparent 1.2px)",
