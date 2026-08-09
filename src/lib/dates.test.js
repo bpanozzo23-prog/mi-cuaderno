@@ -5,6 +5,9 @@ import {
   daysSince,
   addDaysToLocalDate,
   mondayWeekStart,
+  monthOfDate,
+  addMonths,
+  daysInMonth,
 } from "./dates.js";
 
 describe("localDate", () => {
@@ -93,5 +96,52 @@ describe("mondayWeekStart", () => {
 
   it("leaves a value it cannot parse alone", () => {
     expect(mondayWeekStart("")).toBe("");
+  });
+});
+
+describe("monthOfDate", () => {
+  it("keeps the year and month, drops the day", () => {
+    expect(monthOfDate("2026-08-09")).toBe("2026-08");
+    expect(monthOfDate("2026-01-01")).toBe("2026-01");
+  });
+
+  it("leaves a value it cannot parse alone", () => {
+    expect(monthOfDate("")).toBe("");
+  });
+});
+
+describe("addMonths", () => {
+  it("counts months forward and back", () => {
+    expect(addMonths("2026-08", 1)).toBe("2026-09");
+    expect(addMonths("2026-08", -1)).toBe("2026-07");
+    expect(addMonths("2026-08", 0)).toBe("2026-08");
+  });
+
+  it("crosses a year boundary in both directions", () => {
+    expect(addMonths("2026-12", 1)).toBe("2027-01");
+    expect(addMonths("2027-01", -1)).toBe("2026-12");
+    expect(addMonths("2026-03", -15)).toBe("2024-12");
+  });
+
+  it("leaves a value it cannot parse alone", () => {
+    expect(addMonths("", 1)).toBe("");
+  });
+});
+
+describe("daysInMonth", () => {
+  it("knows the long and short months", () => {
+    expect(daysInMonth("2026-08")).toBe(31);
+    expect(daysInMonth("2026-04")).toBe(30);
+  });
+
+  it("knows February in a common year and a leap year", () => {
+    expect(daysInMonth("2026-02")).toBe(28);
+    expect(daysInMonth("2028-02")).toBe(29);
+    // 2100 is divisible by four but not a leap year; the century rule has to survive.
+    expect(daysInMonth("2100-02")).toBe(28);
+  });
+
+  it("returns nothing countable for a value it cannot parse", () => {
+    expect(daysInMonth("")).toBe(0);
   });
 });

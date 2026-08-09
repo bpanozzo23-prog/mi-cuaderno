@@ -46,6 +46,44 @@ export function mondayWeekStart(dateStr) {
   return localDate(date);
 }
 
+/**
+ * The "YYYY-MM" month a localDate falls in — the unit the activity calendar pages by.
+ */
+export function monthOfDate(dateStr) {
+  const [y, m] = String(dateStr).split("-");
+  if (!Number(y) || !Number(m)) return dateStr;
+  return `${y}-${m}`;
+}
+
+/**
+ * Calendar arithmetic on a "YYYY-MM" month string, for the calendar's prev/next paging.
+ *
+ * Months are counted rather than dated: a month has no day to anchor, so adding one to
+ * January the 31st way round would have to invent a 31st of February. Working in whole
+ * months from a zero-based count keeps December → January exact in both directions.
+ */
+export function addMonths(yearMonth, n) {
+  const [y, m] = String(yearMonth).split("-").map(Number);
+  if (!y || !m) return yearMonth;
+  const total = y * 12 + (m - 1) + n;
+  const year = Math.floor(total / 12);
+  const month = String((total % 12) + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
+/**
+ * How many days a "YYYY-MM" month holds, leap years included.
+ *
+ * Day 0 of the following month is the last day of this one — the standard trick, with the
+ * same noon anchor the rest of this file uses so a zone that shifts at midnight cannot
+ * roll the answer back a day.
+ */
+export function daysInMonth(yearMonth) {
+  const [y, m] = String(yearMonth).split("-").map(Number);
+  if (!y || !m) return 0;
+  return new Date(y, m, 0, 12).getDate();
+}
+
 export function timeAgo(iso, now = Date.now()) {
   const then = new Date(iso).getTime();
   if (!Number.isFinite(then)) return "";

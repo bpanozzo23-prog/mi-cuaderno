@@ -1,4 +1,10 @@
-import { localDate, addDaysToLocalDate, mondayWeekStart } from "./dates.js";
+import {
+  localDate,
+  addDaysToLocalDate,
+  mondayWeekStart,
+  monthOfDate,
+  daysInMonth,
+} from "./dates.js";
 
 /**
  * The Phase 11 statistics (brief section 12), derived — like the review schedule beside
@@ -123,6 +129,57 @@ export function heatmapWeeks(activityDays, today = localDate(), weeks = HEATMAP_
     columns.push({ weekStart, days });
   }
   return columns;
+}
+
+/** Rows in the month calendar. Six holds every possible month, so the card never changes height. */
+export const MONTH_ROWS = 6;
+
+/**
+ * One month as a planner page: six rows of seven days, Monday first, oldest first.
+ *
+ * Always six rows, even for a February that would fit in four. A grid that resized as the
+ * owner paged would move everything under it up and down the screen, and the days it saved
+ * are worth less than a card that stays where it was put.
+ *
+ * Days outside the month are still returned, marked `inMonth: false`, so the renderer can
+ * leave blank paper there without the caller doing offset arithmetic. `count`, `level` and
+ * `future` mean exactly what they mean in `heatmapWeeks`.
+ */
+export function monthGrid(activityDays, yearMonth, today = localDate()) {
+  const days = daysInMonth(yearMonth);
+  if (!days) return [];
+
+  const firstCell = mondayWeekStart(`${yearMonth}-01`);
+  const cells = [];
+  for (let i = 0; i < MONTH_ROWS * 7; i += 1) {
+    const date = addDaysToLocalDate(firstCell, i);
+    const inMonth = monthOfDate(date) === yearMonth;
+    const count = activityDays.get(date) || 0;
+    cells.push({
+      date,
+      dayOfMonth: Number(date.slice(8, 10)),
+      inMonth,
+      count,
+      level: heatLevel(count),
+      future: date > today,
+    });
+  }
+  return cells;
+}
+
+/**
+ * The month of the owner's first recorded activity, or null if there is none yet.
+ *
+ * The calendar's paging stops here rather than running back through empty years: a page of
+ * blank paper from before the cuaderno existed says nothing, and an arrow that never
+ * disables invites the owner to go looking for it.
+ */
+export function earliestActivityMonth(activityDays) {
+  let earliest = null;
+  for (const day of activityDays.keys()) {
+    if (!earliest || day < earliest) earliest = day;
+  }
+  return earliest ? monthOfDate(earliest) : null;
 }
 
 /**

@@ -7,7 +7,10 @@ import {
   cumulativeWordsByWeek,
   boxDistribution,
   drillPerformance,
+  monthGrid,
+  earliestActivityMonth,
   HEATMAP_WEEKS,
+  MONTH_ROWS,
 } from "./stats.js";
 import { addDaysToLocalDate } from "./dates.js";
 import { emptyReviewState } from "./review.js";
@@ -177,6 +180,71 @@ describe("heatmapWeeks: the calendar grid", () => {
 
     expect(cells.filter((d) => d.future).map((d) => d.date)).toEqual(["2026-08-01", "2026-08-02"]);
     expect(cells.find((d) => d.date === TODAY).future).toBe(false);
+  });
+});
+
+describe("monthGrid: the planner page", () => {
+  const page = (yearMonth, days = new Map(), today = TODAY) => monthGrid(days, yearMonth, today);
+
+  it("returns six rows of seven days whatever the month's shape", () => {
+    // July 2026 starts on a Wednesday and needs five rows; February 2027 starts on a Monday
+    // and fits in four. Both are padded to six so the card keeps its height while paging.
+    expect(page("2026-07")).toHaveLength(MONTH_ROWS * 7);
+    expect(page("2027-02")).toHaveLength(MONTH_ROWS * 7);
+  });
+
+  it("starts on the Monday that opens the first week, even in the month before", () => {
+    // 2026-08-01 is a Saturday, so the page opens on Monday 27 July.
+    const cells = page("2026-08");
+
+    expect(cells[0].date).toBe("2026-07-27");
+    expect(cells[0].inMonth).toBe(false);
+    expect(cells[5].date).toBe("2026-08-01");
+    expect(cells[5].inMonth).toBe(true);
+  });
+
+  it("numbers the days of the month it is showing", () => {
+    const cells = page("2026-08").filter((d) => d.inMonth);
+
+    expect(cells).toHaveLength(31);
+    expect(cells[0].dayOfMonth).toBe(1);
+    expect(cells[30].dayOfMonth).toBe(31);
+  });
+
+  it("puts a day's count and intensity on that day's cell", () => {
+    const days = activityByDay([
+      event("view", "2026-07-29"),
+      event("edit", "2026-07-29"),
+      event("create", "2026-07-29"),
+    ]);
+    const cell = page("2026-07", days).find((d) => d.date === "2026-07-29");
+
+    expect(cell.count).toBe(3);
+    expect(cell.level).toBe(2);
+  });
+
+  it("marks the days after today as future rather than as empty days", () => {
+    const cells = page("2026-07").filter((d) => d.inMonth);
+
+    expect(cells.find((d) => d.date === TODAY).future).toBe(false);
+    expect(cells.filter((d) => d.future)).toHaveLength(0);
+    expect(page("2026-08").filter((d) => d.inMonth && !d.future)).toHaveLength(0);
+  });
+
+  it("returns nothing for a month string it cannot parse", () => {
+    expect(monthGrid(new Map(), "", TODAY)).toEqual([]);
+  });
+});
+
+describe("earliestActivityMonth: how far back paging may go", () => {
+  it("is null while nothing has happened", () => {
+    expect(earliestActivityMonth(new Map())).toBe(null);
+  });
+
+  it("is the month of the oldest day with activity", () => {
+    expect(earliestActivityMonth(daysWith("2026-07-29", "2026-05-04", "2026-06-30"))).toBe(
+      "2026-05"
+    );
   });
 });
 
