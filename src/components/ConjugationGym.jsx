@@ -11,6 +11,8 @@ import {
   TENSE_PACKS,
   buildAdaptiveGymDeck,
   buildBalancedGymDeck,
+  buildFocusedGymDeck,
+  gymCellCount,
 } from "../lib/conjugationGym.js";
 import { qualifiedTenseLabel } from "../lib/conjugation.js";
 import { conjugationForms } from "../lib/drill.js";
@@ -65,6 +67,7 @@ export default function ConjugationGym({
   const [customTenses, setCustomTenses] = useState([...TENSE_PACKS.everyday.tenses]);
   const [slots, setSlots] = useState([...GYM_SLOTS]);
   const [oneVerb, setOneVerb] = useState("");
+  const [focusTarget, setFocusTarget] = useState(null);
   const [session, setSession] = useState(null);
   const [startError, setStartError] = useState("");
   const loadedItems = useRef(null);
@@ -111,11 +114,44 @@ export default function ConjugationGym({
   }, [library, pool]);
 
   const advanced = sessionKind !== "quick";
-  const selectedTenses = tensePack === "customize" ? customTenses : TENSE_PACKS[tensePack].tenses;
+  const baseSelectedTenses = tensePack === "customize" ? customTenses : TENSE_PACKS[tensePack].tenses;
+  const selectedOneVerb = poolVerbs.find((verb) => (verb.itemKey || verb.verbKey) === oneVerb) || null;
+  const activeFocusTarget = useMemo(() => {
+    const target = focusTarget ? { ...focusTarget } : {};
+    if (selectedOneVerb) {
+      target.verbKey = selectedOneVerb.verbKey;
+      target.itemKey = selectedOneVerb.itemKey || null;
+      target.lemma = selectedOneVerb.lemma;
+      target.term = selectedOneVerb.term;
+    }
+    return Object.keys(target).length ? target : null;
+  }, [focusTarget, selectedOneVerb]);
+  const selectedTenses = sessionKind === "focus" && activeFocusTarget?.tense && !baseSelectedTenses.includes(activeFocusTarget.tense)
+    ? [...baseSelectedTenses, activeFocusTarget.tense]
+    : baseSelectedTenses;
+  const deckVerbs = sessionKind === "adaptive" && oneVerb
+    ? poolVerbs.filter((verb) => (verb.itemKey || verb.verbKey) === oneVerb)
+    : poolVerbs;
+  const requestedSize = advanced ? size : 10;
+  const availableForms = useMemo(
+    () => gymCellCount(deckVerbs, {
+      tenses: advanced ? selectedTenses : TENSE_PACKS.everyday.tenses,
+      slots: advanced ? slots : GYM_SLOTS,
+    }),
+    [deckVerbs, advanced, selectedTenses, slots]
+  );
+  const focusTargetText = activeFocusTarget
+    ? [
+        activeFocusTarget.term || activeFocusTarget.lemma,
+        activeFocusTarget.tense && qualifiedTenseLabel(activeFocusTarget.tense),
+        activeFocusTarget.slot,
+      ].filter(Boolean).join(" · ")
+    : "";
 
   function choosePool(next) {
     setPool(next);
     setOneVerb("");
+    setFocusTarget(null);
     setStartError("");
   }
 
@@ -132,13 +168,14 @@ export default function ConjugationGym({
   }
 
   function start() {
-    const chosen = oneVerb ? poolVerbs.filter((verb) => (verb.itemKey || verb.verbKey) === oneVerb) : poolVerbs;
     const options = advanced
       ? { size, tenses: selectedTenses, slots }
       : { size: 10, tenses: TENSE_PACKS.everyday.tenses, slots: GYM_SLOTS };
     const deck = sessionKind === "adaptive"
-      ? buildAdaptiveGymDeck(chosen, events, options)
-      : buildBalancedGymDeck(chosen, options);
+      ? buildAdaptiveGymDeck(deckVerbs, events, options)
+      : sessionKind === "focus"
+        ? buildFocusedGymDeck(deckVerbs, { ...options, target: activeFocusTarget })
+        : buildBalancedGymDeck(deckVerbs, options);
 
     if (!deck.length) {
       setStartError("No answerable forms match these choices.");
@@ -147,8 +184,8 @@ export default function ConjugationGym({
 
     const id = sessionId();
     const cards = deck.map((card, index) => {
-      const sourceVerb = chosen.find((verb) => verb.verbKey === card.verbKey && verb.itemKey === card.itemKey) ||
-        chosen.find((verb) => verb.verbKey === card.verbKey);
+      const sourceVerb = deckVerbs.find((verb) => verb.verbKey === card.verbKey && verb.itemKey === card.itemKey) ||
+        deckVerbs.find((verb) => verb.verbKey === card.verbKey);
       return {
         ...card,
         forms: sourceVerb?.conjugation ? conjugationForms(sourceVerb.conjugation) : [],
@@ -174,10 +211,10 @@ export default function ConjugationGym({
     setTensePack("everyday");
     setCustomTenses([...TENSE_PACKS.everyday.tenses]);
     setSlots([...GYM_SLOTS]);
+    setFocusTarget(null);
     if (focus?.target) {
       const nextPool = focus.target.source === "saved" ? "saved" : focus.target.curriculum || "core50";
       setPool(nextPool);
-      setOneVerb(focus.target.itemKey || focus.target.verbKey);
     } else if (focus?.source === "saved" && library.saved.length) {
       setPool("saved");
       setOneVerb("");
@@ -185,11 +222,16 @@ export default function ConjugationGym({
       setPool("core20");
       setOneVerb("");
     }
-    if (focus?.tense) {
-      setTensePack("customize");
-      setCustomTenses([focus.tense]);
+    const nextTarget = {};
+    if (focus?.target) {
+      nextTarget.verbKey = focus.target.verbKey;
+      nextTarget.itemKey = focus.target.itemKey || null;
+      nextTarget.lemma = focus.target.lemma;
+      nextTarget.term = focus.target.term || focus.target.lemma;
     }
-    if (focus?.slot) setSlots([focus.slot]);
+    if (focus?.tense) nextTarget.tense = focus.tense;
+    if (focus?.slot) nextTarget.slot = focus.slot;
+    if (Object.values(nextTarget).some(Boolean)) setFocusTarget(nextTarget);
     setStartError("");
     setView("setup");
   }
@@ -302,6 +344,25 @@ export default function ConjugationGym({
             <>
               <SectionTitle>Focus</SectionTitle>
               <Card className="space-y-4 p-4">
+                {sessionKind === "focus" && activeFocusTarget && (
+                  <div className="rounded-lg border px-3 py-2" style={{ borderColor: C.pen, background: C.penPale }}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 text-sm font-semibold" style={{ color: C.penDark }}>{focusTargetText}</div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFocusTarget(null);
+                          setOneVerb("");
+                        }}
+                        className="shrink-0 text-xs underline underline-offset-2"
+                        style={{ color: C.pen }}
+                      >
+                        Clear target
+                      </button>
+                    </div>
+                    <div className="mt-1 text-xs" style={{ color: C.mut }}>The deck starts here, then fills outward through your other choices.</div>
+                  </div>
+                )}
                 <div>
                   <label htmlFor="gym-tense-pack" className="mb-1 block text-xs" style={{ color: C.mut }}>Tense pack</label>
                   <select
@@ -369,6 +430,15 @@ export default function ConjugationGym({
             <div className="mt-3 flex items-start gap-2 rounded-lg px-3 py-2 text-xs" style={{ background: C.penPale, color: C.penDark }}>
               <SlidersHorizontal size={14} className="mt-0.5 shrink-0" />
               Recent misses, weak dimensions, and under-practised forms are weighted first. Your Leitner boxes never change.
+            </div>
+          )}
+
+          <div className="mt-3 text-xs" style={{ color: C.mut }}>
+            {availableForms} unique {availableForms === 1 ? "form" : "forms"} available for these choices.
+          </div>
+          {availableForms > 0 && availableForms < requestedSize && (
+            <div className="mt-2 rounded-lg px-3 py-2 text-xs" role="status" style={{ background: C.hi, color: C.ink }}>
+              Only {availableForms} {availableForms === 1 ? "form is" : "forms are"} available, so this {requestedSize}-prompt session will use {availableForms === 1 ? "it" : `all ${availableForms}`}.
             </div>
           )}
 

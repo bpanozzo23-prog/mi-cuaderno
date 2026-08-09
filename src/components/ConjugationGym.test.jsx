@@ -133,10 +133,37 @@ describe("Conjugation Gym setup", () => {
 
     expect(screen.getByRole("button", { name: /Focus/ }).getAttribute("aria-pressed")).toBe("true");
     expect(screen.getByRole("radio", { name: "Saved" }).getAttribute("aria-checked")).toBe("true");
-    expect(screen.getByLabelText("Tense pack").value).toBe("customize");
-    expect(screen.getByLabelText("One verb (optional)").value).toBe("user:sacar");
+    expect(screen.getByLabelText("Tense pack").value).toBe("everyday");
+    expect(screen.getByLabelText("One verb (optional)").value).toBe("");
+    expect(screen.getByText("sacar · Indicative present · yo")).toBeTruthy();
     expect(screen.getByRole("checkbox", { name: "yo" }).checked).toBe(true);
-    expect(screen.getByRole("checkbox", { name: "tú" }).checked).toBe(false);
+    expect(screen.getByRole("checkbox", { name: "tú" }).checked).toBe(true);
+    await user.click(screen.getByRole("button", { name: "Clear target" }));
+    expect(screen.queryByText("sacar · Indicative present · yo")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "View conjugation performance" }));
+    await user.click(screen.getByRole("button", { name: "Practice next" }));
+    await user.click(screen.getByRole("button", { name: "Start focus session" }));
+    expect(screen.getByText(/Indicative present · yo/)).toBeTruthy();
+    expect(screen.getByText("1 / 10")).toBeTruthy();
+  });
+
+  it("previews a short unique-form supply and starts the shorter deck without blocking", async () => {
+    const user = userEvent.setup();
+    await seedGymDictionary();
+    const saved = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
+    render(<ConjugationGym items={[saved]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /Focus/ })).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: /Focus/ }));
+    await user.click(screen.getByRole("radio", { name: "Saved" }));
+    for (const slot of ["tú", "él/ella/usted", "nosotros", "ustedes/ellos"]) {
+      await user.click(screen.getByRole("checkbox", { name: slot }));
+    }
+
+    expect(screen.getByText("2 unique forms available for these choices.")).toBeTruthy();
+    expect(screen.getByText("Only 2 forms are available, so this 10-prompt session will use all 2.")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Start focus session" }));
+    expect(screen.getByText("1 / 2")).toBeTruthy();
   });
 
   it("resets every setup choice before applying a performance practice action", async () => {
