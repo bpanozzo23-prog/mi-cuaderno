@@ -352,7 +352,7 @@ export default function Cuaderno({
         )}
       </div>
 
-      <div className="px-4 py-4 space-y-2.5 pb-28" style={dotGrid}>
+      <div className="px-4 py-4 space-y-[7.5px] pb-28" style={dotGrid}>
         {visible.length === 0 && (
           <EmptyState
             hasItems={items.length > 0}

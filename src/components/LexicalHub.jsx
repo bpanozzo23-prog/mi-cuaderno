@@ -402,7 +402,7 @@ export default function LexicalHub({
                 <HubSectionHeading count={`${searchResults.length} total`}>
                   <span id="vocabulary-search-heading">Matching vocabulary</span>
                 </HubSectionHeading>
-                <div className="space-y-3">
+                <div className="space-y-[9px]">
                   {searchResults.map(({ item, reason }) => renderCard(item, reason))}
                 </div>
               </section>
@@ -431,7 +431,7 @@ export default function LexicalHub({
                   <HubSectionHeading count={`${pinnedItems.length} ${pinnedItems.length === 1 ? "item" : "items"}`}>
                     <span id="pinned-vocabulary-heading">Pinned</span>
                   </HubSectionHeading>
-                  <div className="space-y-3">{pinnedItems.map((item) => renderCard(item))}</div>
+                  <div className="space-y-[9px]">{pinnedItems.map((item) => renderCard(item))}</div>
                 </section>
               )}
 
@@ -447,12 +447,12 @@ export default function LexicalHub({
                           >
                             {group.letter}
                           </div>
-                          <div className="space-y-3">{group.items.map((item) => renderCard(item))}</div>
+                          <div className="space-y-[9px]">{group.items.map((item) => renderCard(item))}</div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="space-y-3">{otherItems.map((item) => renderCard(item))}</div>
+                    <div className="space-y-[9px]">{otherItems.map((item) => renderCard(item))}</div>
                   )}
                 </section>
               )}

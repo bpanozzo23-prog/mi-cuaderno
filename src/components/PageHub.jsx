@@ -281,7 +281,7 @@ export default function PageHub({
                 <PageSectionHeading count={`${searchResults.length} total`}>
                   <span id="page-search-heading">Matching pages</span>
                 </PageSectionHeading>
-                <div className="space-y-3">
+                <div className="space-y-[9px]">
                   {searchResults.map(({ item, reason }) => renderCard(item, reason))}
                 </div>
               </section>
@@ -297,13 +297,13 @@ export default function PageHub({
                   <PageSectionHeading count={`${pinnedPages.length} ${pinnedPages.length === 1 ? "page" : "pages"}`}>
                     <span id="pinned-pages-heading">Pinned</span>
                   </PageSectionHeading>
-                  <div className="space-y-3">{pinnedPages.map((page) => renderCard(page))}</div>
+                  <div className="space-y-[9px]">{pinnedPages.map((page) => renderCard(page))}</div>
                 </section>
               )}
 
               {otherPages.length > 0 && (
                 <section aria-label="All matching pages">
-                  <div className="space-y-3">{otherPages.map((page) => renderCard(page))}</div>
+                  <div className="space-y-[9px]">{otherPages.map((page) => renderCard(page))}</div>
                 </section>
               )}
             </>

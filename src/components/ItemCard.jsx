@@ -52,7 +52,7 @@ export default function ItemCard({
   const pageContexts = !isPage && reason ? activePageContextsForLexical(item.id, items) : [];
   return (
     <div
-      className={`relative w-full border shadow-entry-card ${isPage ? "page-folder-card" : "rounded-xl"}`}
+      className={`relative w-full border ${isPage ? "page-folder-card" : "rounded-xl"}`}
       style={{
         background: isPage ? C.pageFolder : C.card,
         borderColor: isPage ? C.pageFolderLine : C.line,

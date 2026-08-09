@@ -20,7 +20,7 @@ export default function PageHubCard({
 
   return (
     <div
-      className="page-folder-card relative w-full border shadow-entry-card"
+      className="page-folder-card relative w-full border"
       style={{
         background: C.pageFolder,
         borderColor: C.pageFolderLine,
