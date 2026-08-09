@@ -140,6 +140,104 @@ describe("target-centred Focus decks", () => {
 });
 
 describe("adaptive decks", () => {
+  it("lets a later typed initial pass resolve older failures on the same cell", () => {
+    const twoCells = verb("ser", ["Indicative/Present"]);
+    twoCells.conjugation.tenses["Indicative/Present"] = { yo: "soy", "tú": "eres" };
+    const events = [
+      {
+        type: "drill_fail", at: "2026-08-01T12:00:00.000Z",
+        metadata: { mode: "typed", stage: "initial", promptId: "tú-miss", verbKey: "lemma:ser", tense: "Indicative/Present", slot: "tú" },
+      },
+      {
+        type: "drill_fail", at: "2026-08-02T12:00:00.000Z",
+        metadata: { mode: "typed", stage: "initial", promptId: "yo-miss", verbKey: "lemma:ser", tense: "Indicative/Present", slot: "yo" },
+      },
+      {
+        type: "drill_pass", at: "2026-08-03T12:00:00.000Z",
+        metadata: { mode: "typed", stage: "initial", promptId: "yo-clean", verbKey: "lemma:ser", tense: "Indicative/Present", slot: "yo" },
+      },
+    ];
+
+    const deck = buildAdaptiveGymDeck([twoCells], events, {
+      size: 2,
+      now: "2026-08-09T12:00:00.000Z",
+      rng: seeded([0.5]),
+    });
+    expect(gymCellKey(deck[0])).toBe("lemma:ser|Indicative/Present|tú");
+  });
+
+  it("expires unresolved misses after 90 days", () => {
+    const twoCells = verb("ser", ["Indicative/Present"]);
+    twoCells.conjugation.tenses["Indicative/Present"] = { yo: "soy", "tú": "eres" };
+    const events = [{
+      type: "drill_fail",
+      at: "2026-04-01T12:00:00.000Z",
+      metadata: {
+        mode: "reveal", stage: "initial", promptId: "old-miss",
+        verbKey: "lemma:ser", tense: "Indicative/Present", slot: "yo",
+      },
+    }];
+
+    const deck = buildAdaptiveGymDeck([twoCells], events, {
+      size: 2,
+      now: "2026-08-09T12:00:00.000Z",
+      rng: seeded([0.5]),
+    });
+    expect(gymCellKey(deck[0])).toBe("lemma:ser|Indicative/Present|tú");
+  });
+
+  it("uses only the last ten typed initial attempts when deciding weakness", () => {
+    const manyCells = verb("ser", [
+      "Indicative/Present", "Indicative/Preterite", "Indicative/Imperfect", "Indicative/Future",
+    ]);
+    manyCells.conjugation.tenses = {
+      "Indicative/Present": { yo: "soy" },
+      "Indicative/Preterite": { "tú": "fuiste", "él/ella/usted": "fue", nosotros: "fuimos", "ustedes/ellos": "fueron" },
+      "Indicative/Imperfect": { "tú": "eras", "él/ella/usted": "era", nosotros: "éramos", "ustedes/ellos": "eran" },
+      "Indicative/Future": { "tú": "serás", "él/ella/usted": "será", nosotros: "seremos", "ustedes/ellos": "serán" },
+    };
+    const cell = { verbKey: "lemma:ser", tense: "Indicative/Present", slot: "yo" };
+    const events = [];
+    for (let index = 0; index < 3; index += 1) {
+      const promptId = `old-${index}`;
+      events.push({
+        type: "drill_fail",
+        at: new Date(Date.UTC(2026, 4, 1, 12, index)).toISOString(),
+        metadata: { ...cell, mode: "typed", stage: "initial", promptId },
+      });
+      events.push({
+        type: "drill_pass",
+        at: new Date(Date.UTC(2026, 4, 1, 13, index)).toISOString(),
+        metadata: { ...cell, mode: "typed", stage: "retry", promptId },
+      });
+    }
+    for (let index = 0; index < 10; index += 1) {
+      events.push({
+        type: "drill_pass",
+        at: new Date(Date.UTC(2026, 6, 1 + index, 12)).toISOString(),
+        metadata: { ...cell, mode: "typed", stage: "initial", promptId: `clean-${index}` },
+      });
+    }
+    const unresolved = [
+      ["Indicative/Preterite", "tú"],
+      ["Indicative/Imperfect", "él/ella/usted"],
+      ["Indicative/Future", "nosotros"],
+      ["Indicative/Preterite", "ustedes/ellos"],
+    ];
+    unresolved.forEach(([tense, slot], index) => events.push({
+      type: "drill_fail",
+      at: new Date(Date.UTC(2026, 7, 1 + index, 12)).toISOString(),
+      metadata: { mode: "typed", stage: "initial", promptId: `recent-${index}`, verbKey: "lemma:ser", tense, slot },
+    }));
+
+    const deck = buildAdaptiveGymDeck([manyCells], events, {
+      size: 10,
+      now: "2026-08-09T12:00:00.000Z",
+      rng: seeded([0.2, 0.8, 0.4]),
+    });
+    expect(deck.slice(0, 7).map(gymCellKey)).not.toContain("lemma:ser|Indicative/Present|yo");
+  });
+
   it("ignores imported drill events whose metadata is null", () => {
     const verbs = [verb("ser"), verb("estar")];
     const events = [{
@@ -167,7 +265,7 @@ describe("adaptive decks", () => {
       },
     }];
 
-    const deck = buildAdaptiveGymDeck(verbs, events, { size: 10, rng: seeded([0.3, 0.7]) });
+    const deck = buildAdaptiveGymDeck(verbs, events, { size: 10, now: "2026-08-09T12:00:00.000Z", rng: seeded([0.3, 0.7]) });
     expect(deck.map(gymCellKey)).toContain("lemma:estar|Indicative/Preterite|tú");
     expect(new Set(deck.map(gymCellKey)).size).toBe(deck.length);
   });
@@ -188,7 +286,7 @@ describe("adaptive decks", () => {
       },
     }];
 
-    const deck = buildAdaptiveGymDeck(verbs, events, { size: 10, rng: seeded([0.4, 0.6]) });
+    const deck = buildAdaptiveGymDeck(verbs, events, { size: 10, now: "2026-08-09T12:00:00.000Z", rng: seeded([0.4, 0.6]) });
     expect(deck.slice(0, 4).map(gymCellKey)).toContain("lemma:ser|Indicative/Present|yo");
   });
 
@@ -204,7 +302,7 @@ describe("adaptive decks", () => {
       },
     }];
 
-    const deck = buildAdaptiveGymDeck([twoCells], events, { size: 1, rng: seeded([0.5]) });
+    const deck = buildAdaptiveGymDeck([twoCells], events, { size: 1, now: "2026-08-09T12:00:00.000Z", rng: seeded([0.5]) });
     expect(gymCellKey(deck[0])).toBe("lemma:ser|Indicative/Present|tú");
   });
 
@@ -226,7 +324,7 @@ describe("adaptive decks", () => {
       },
     ];
 
-    const deck = buildAdaptiveGymDeck([twoCells], events, { size: 2, rng: seeded([0.5]) });
+    const deck = buildAdaptiveGymDeck([twoCells], events, { size: 2, now: "2026-08-09T12:00:00.000Z", rng: seeded([0.5]) });
     expect(gymCellKey(deck[0])).toBe("lemma:ser|Indicative/Present|tú");
   });
 });

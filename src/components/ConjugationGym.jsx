@@ -429,7 +429,7 @@ export default function ConjugationGym({
           {sessionKind === "adaptive" && (
             <div className="mt-3 flex items-start gap-2 rounded-lg px-3 py-2 text-xs" style={{ background: C.penPale, color: C.penDark }}>
               <SlidersHorizontal size={14} className="mt-0.5 shrink-0" />
-              Recent misses, weak dimensions, and under-practised forms are weighted first. Your Leitner boxes never change.
+              Unresolved misses from the last 90 days, weak spots from each recent 10 attempts, and under-practised forms are weighted first. Your Leitner boxes never change.
             </div>
           )}
 

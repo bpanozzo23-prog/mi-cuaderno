@@ -265,9 +265,14 @@ const isInitialAnswer = (event) =>
   (event?.metadata?.stage || "initial") === "initial";
 
 const isTyped = (event) => event?.metadata?.mode === "typed" || event?.metadata?.mode === "type";
+const ADAPTIVE_ACCURACY_WINDOW = 10;
+const RECENT_MISS_MS = 90 * 24 * 60 * 60 * 1000;
 
-function historyForAdaptive(events) {
-  const initial = (events || []).filter(isInitialAnswer);
+function historyForAdaptive(events, now) {
+  const initial = (events || [])
+    .map((event, order) => ({ event, order, at: String(event?.at || "") }))
+    .filter(({ event }) => isInitialAnswer(event))
+    .sort((a, b) => a.at.localeCompare(b.at) || a.order - b.order);
   const cellStats = new Map();
   const exposureCounts = new Map();
   const tenseStats = new Map();
@@ -285,15 +290,19 @@ function historyForAdaptive(events) {
 
   const add = (map, key, passed, at) => {
     if (!key) return;
-    const value = map.get(key) || { attempts: 0, passed: 0, lastAt: "" };
-    value.attempts += 1;
-    if (passed) value.passed += 1;
+    const value = map.get(key) || { attempts: 0, passed: 0, lastAt: "", outcomes: [] };
+    value.outcomes.push(Boolean(passed));
+    if (value.outcomes.length > ADAPTIVE_ACCURACY_WINDOW) value.outcomes.shift();
+    value.attempts = value.outcomes.length;
+    value.passed = value.outcomes.filter(Boolean).length;
     if (String(at || "") > value.lastAt) value.lastAt = String(at || "");
     map.set(key, value);
   };
 
   const failures = [];
-  for (const event of initial) {
+  const unresolvedByCell = new Map();
+  for (const row of initial) {
+    const { event } = row;
     const metadata = event.metadata || {};
     if (!metadata.verbKey || !metadata.tense || !metadata.slot) continue;
     const key = `${metadata.verbKey}|${metadata.tense}|${metadata.slot}`;
@@ -306,18 +315,41 @@ function historyForAdaptive(events) {
       add(cellStats, key, passed, event.at);
       add(tenseStats, metadata.tense, passed, event.at);
       add(slotStats, metadata.slot, passed, event.at);
+      if (passed) {
+        for (const failure of unresolvedByCell.get(key) || []) failure.resolved = true;
+        unresolvedByCell.delete(key);
+      }
     }
     if (!passed) {
-      failures.push({
+      const failure = {
         key,
         at: String(event.at || ""),
         recovered: Boolean(metadata.promptId && recoveries.has(metadata.promptId)),
-      });
+        resolved: false,
+        order: row.order,
+      };
+      failures.push(failure);
+      if (!failure.recovered) {
+        const unresolved = unresolvedByCell.get(key) || [];
+        unresolved.push(failure);
+        unresolvedByCell.set(key, unresolved);
+      }
     }
   }
 
-  failures.sort((a, b) => Number(a.recovered) - Number(b.recovered) || b.at.localeCompare(a.at));
-  return { cellStats, exposureCounts, tenseStats, slotStats, failures };
+  const nowAt = now instanceof Date ? now.getTime() : new Date(now).getTime();
+  const cutoff = nowAt - RECENT_MISS_MS;
+  const recentFailures = failures
+    .map((failure) => ({ ...failure, atMs: new Date(failure.at).getTime() }))
+    .filter((failure) =>
+      !failure.recovered &&
+      !failure.resolved &&
+      Number.isFinite(failure.atMs) &&
+      failure.atMs >= cutoff &&
+      failure.atMs <= nowAt
+    )
+    .sort((a, b) => b.atMs - a.atMs || b.order - a.order);
+  return { cellStats, exposureCounts, tenseStats, slotStats, failures: recentFailures };
 }
 
 const isWeak = (stats) => stats && stats.attempts >= 3 && stats.passed / stats.attempts < 0.8;
@@ -336,18 +368,25 @@ function appendRanked(deck, selected, candidates, count) {
 }
 
 /**
- * Opt-in adaptive practice. Roughly 40% targets recent initial misses, 30% targets weak
- * tense/person dimensions, and the rest favors unseen or least-practised cells. When any
- * bucket is sparse, the remainder falls back to the same balanced, under-practised pool.
+ * Opt-in adaptive practice. Roughly 40% targets unresolved misses from the last 90 days,
+ * 30% targets weak cells/tense/person dimensions over their latest ten typed attempts,
+ * and the rest favors unseen or least-practised cells. When any bucket is sparse, the
+ * remainder falls back to the same balanced, under-practised pool.
  */
 export function buildAdaptiveGymDeck(
   verbs,
   events,
-  { size = 10, tenses = EVERYDAY_TENSES, slots = GYM_SLOTS, rng = Math.random } = {}
+  {
+    size = 10,
+    tenses = EVERYDAY_TENSES,
+    slots = GYM_SLOTS,
+    rng = Math.random,
+    now = new Date(),
+  } = {}
 ) {
   const cells = uniqueCells(verbs, { tenses, slots });
   if (!cells.length) return [];
-  const history = historyForAdaptive(events);
+  const history = historyForAdaptive(events, now);
   const byKey = new Map(cells.map((cell) => [gymCellKey(cell), cell]));
   const recent = [];
   const seenRecent = new Set();
@@ -358,7 +397,11 @@ export function buildAdaptiveGymDeck(
   }
 
   const weak = shuffled(
-    cells.filter((cell) => isWeak(history.tenseStats.get(cell.tense)) || isWeak(history.slotStats.get(cell.slot))),
+    cells.filter((cell) =>
+      isWeak(history.cellStats.get(gymCellKey(cell))) ||
+      isWeak(history.tenseStats.get(cell.tense)) ||
+      isWeak(history.slotStats.get(cell.slot))
+    ),
     rng
   ).sort((a, b) => {
     const aStats = history.cellStats.get(gymCellKey(a));
