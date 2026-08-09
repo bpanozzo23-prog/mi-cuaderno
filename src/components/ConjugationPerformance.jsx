@@ -30,7 +30,7 @@ const DIAGNOSIS_LABEL = {
 
 const pct = (value) => value === null || value === undefined ? "—" : `${Math.round(value * 100)}%`;
 
-function AccuracyRow({ label, row, weak = row.weak }) {
+function AccuracyRow({ label, row, weak = row.weak, onPractice = null }) {
   const percent = Math.round((row.accuracy || 0) * 100);
   return (
     <div className="flex items-center gap-2">
@@ -42,6 +42,11 @@ function AccuracyRow({ label, row, weak = row.weak }) {
       <span className="w-14 shrink-0 text-right text-[10px]" style={{ fontFamily: MONO, color: C.mut }}>
         {percent}% / {row.answered}
       </span>
+      {onPractice && (
+        <button type="button" aria-label={`Practise ${label}`} onClick={onPractice} style={{ color: C.pen }}>
+          <Target size={15} />
+        </button>
+      )}
     </div>
   );
 }
@@ -55,7 +60,7 @@ export default function ConjugationPerformance({
   onOpen,
 }) {
   const [source, setSource] = useState("all");
-  const [pack, setPack] = useState("all");
+  const [pack, setPack] = useState("everyday");
   const [expandedTense, setExpandedTense] = useState(null);
   const selectedPack = PACK_OPTIONS.find((option) => option.value === pack) || PACK_OPTIONS[0];
   const activeVerbs = useMemo(() => [...(library.saved || []), ...(library.core || [])], [library]);
@@ -186,17 +191,27 @@ export default function ConjugationPerformance({
               const expanded = expandedTense === row.tense;
               return (
                 <div key={row.tense} className="px-3 py-2.5" style={{ borderColor: C.line }}>
-                  <button
-                    type="button"
-                    aria-expanded={expanded}
-                    onClick={() => setExpandedTense(expanded ? null : row.tense)}
-                    className="flex w-full items-center gap-2 text-left"
-                  >
-                    <span className="min-w-0 flex-1 text-sm" style={{ color: C.ink }}>{qualifiedTenseLabel(row.tense)}</span>
-                    {row.weak && <span className="text-[9px] uppercase" style={{ color: C.red }}>weak</span>}
-                    <span className="text-xs" style={{ fontFamily: MONO, color: C.mut }}>{pct(row.accuracy)} / {row.answered}</span>
-                    {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      aria-expanded={expanded}
+                      onClick={() => setExpandedTense(expanded ? null : row.tense)}
+                      className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                    >
+                      <span className="min-w-0 flex-1 text-sm" style={{ color: C.ink }}>{qualifiedTenseLabel(row.tense)}</span>
+                      {row.weak && <span className="text-[9px] uppercase" style={{ color: C.red }}>weak</span>}
+                      <span className="text-xs" style={{ fontFamily: MONO, color: C.mut }}>{pct(row.accuracy)} / {row.answered}</span>
+                      {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Practise ${qualifiedTenseLabel(row.tense)}`}
+                      onClick={() => startFocus({ tense: row.tense })}
+                      style={{ color: C.pen }}
+                    >
+                      <Target size={15} />
+                    </button>
+                  </div>
                   {expanded && (
                     <div className="mt-2 space-y-2 border-t pt-2" style={{ borderColor: C.line }}>
                       {row.slots.map((slot) => <AccuracyRow key={slot.slot} label={slot.slot} row={slot} />)}
@@ -213,7 +228,14 @@ export default function ConjugationPerformance({
         <>
           <SectionTitle>By person</SectionTitle>
           <Card className="space-y-2.5 p-4">
-            {stats.slots.map((row) => <AccuracyRow key={row.slot} label={row.slot} row={row} />)}
+            {stats.slots.map((row) => (
+              <AccuracyRow
+                key={row.slot}
+                label={row.slot}
+                row={row}
+                onPractice={() => startFocus({ slot: row.slot })}
+              />
+            ))}
           </Card>
         </>
       )}

@@ -76,6 +76,22 @@ afterEach(() => {
 });
 
 describe("dedicated Conjugation Gym performance", () => {
+  it("defaults to Everyday and makes every tense and person row actionable", async () => {
+    const user = userEvent.setup();
+    const onPractice = vi.fn();
+    const events = [
+      answer({ passed: true, tense: "Indicative/Present", slot: "yo" }),
+      answer({ passed: false, tense: "Subjunctive/Present", slot: "tú" }),
+    ];
+    render(<ConjugationPerformance items={[]} events={events} library={library()} onBack={vi.fn()} onPractice={onPractice} />);
+
+    expect(screen.getByLabelText("Performance tense pack").value).toBe("everyday");
+    await user.click(screen.getByRole("button", { name: "Practise Indicative present" }));
+    expect(onPractice).toHaveBeenLastCalledWith({ source: "all", tense: "Indicative/Present" });
+    await user.click(screen.getByRole("button", { name: "Practise yo" }));
+    expect(onPractice).toHaveBeenLastCalledWith({ source: "all", slot: "yo" });
+  });
+
   it("keeps retry and reveal evidence separate from typed first-attempt accuracy", () => {
     const events = [
       answer({ passed: false, promptId: "miss" }),
@@ -115,7 +131,7 @@ describe("dedicated Conjugation Gym performance", () => {
 
     expect(screen.getByText("Indicative present")).toBeTruthy();
     expect(screen.getByText("Subjunctive present")).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: /Subjunctive present/ }));
+    await user.click(screen.getByRole("button", { name: /^Subjunctive present/ }));
     expect(screen.getAllByText("tú").length).toBeGreaterThan(0);
   });
 
