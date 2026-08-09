@@ -84,15 +84,17 @@ export default function ConjugationGym({
 
   useEffect(() => {
     if (view === "session" || loadedItems.current === items) return undefined;
-    loadedItems.current = items;
     let alive = true;
     setLoadError(false);
     loadGymLibrary(items)
       .then((loaded) => {
-        if (alive) setLibrary({ ...loaded, loading: false });
+        if (!alive) return;
+        loadedItems.current = items;
+        setLibrary({ ...loaded, loading: false });
       })
       .catch(() => {
         if (!alive) return;
+        loadedItems.current = items;
         setLoadError(true);
         setLibrary({ loading: false, installed: false, saved: [], core: [], unavailableCore: [...CURATED_GYM_LEMMAS] });
       });

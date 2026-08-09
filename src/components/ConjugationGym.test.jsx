@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { StrictMode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -90,6 +91,17 @@ describe("Conjugation Gym setup", () => {
     await waitFor(() => expect(screen.getByText(/2 of 20 core verbs available/)).toBeTruthy());
     await user.click(screen.getByRole("button", { name: "Start quick session" }));
     expect(screen.getByLabelText("Type the form")).toBeTruthy();
+  });
+
+  it("finishes loading its verb library under React Strict Mode", async () => {
+    await seedGymDictionary();
+    render(
+      <StrictMode>
+        <ConjugationGym items={[]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />
+      </StrictMode>
+    );
+
+    await waitFor(() => expect(screen.getByText(/2 of 20 core verbs available/)).toBeTruthy());
   });
 
   it("offers the two curated pattern packs as reference-only pools", async () => {
