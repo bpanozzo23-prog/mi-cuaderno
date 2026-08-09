@@ -224,9 +224,32 @@ function TrendWeeks({ weeks }) {
  */
 const PLOT = { left: 34, right: 310, top: 24, bottom: 112 };
 
+/** Weekly points stop being tellable apart past this many, and the marks come off. */
+const PLOT_MARK_LIMIT = 26;
+
+/**
+ * How far a point may sit off its true height, in viewBox units.
+ *
+ * A line drawn by hand does not pass exactly through its points, and this is what keeps the
+ * chart in the same voice as the calendar's circles. The amplitude falls as the weeks crowd:
+ * at two years the same wobble would read as fur rather than as a hand. It is derived from
+ * the index rather than random so a re-render never redraws the line differently, and the
+ * first and last points are left exact — those two carry the numbers the caption states.
+ */
+function wobbleFor(index, count) {
+  if (index === 0 || index === count - 1) return 0;
+  const amplitude = count > 40 ? 0.5 : count > 12 ? 1 : 1.6;
+  return (((index * 7919) % 13) / 13 - 0.5) * 2 * amplitude;
+}
+
 /**
  * The growth line. Hand-authored SVG rather than a charting library: it is one path, and a
  * dependency would be larger than the chart.
+ *
+ * Drawn as a graph plotted by hand on the notebook's own paper: a faint dashed grid, a
+ * slightly unsteady ink line, a mark on every week while the marks can still be told apart,
+ * and the running total riding above the last point rather than sitting on an axis. The total
+ * is the one number worth reading, and at the end of the line it needs no gutter to hold it.
  *
  * The default preserveAspectRatio is deliberate — `none` would stretch the label text along
  * with the geometry. At 375px the rendered width is close enough to the viewBox that the
@@ -249,8 +272,14 @@ function GrowthChart({ series }) {
   }));
 
   const last = points[points.length - 1];
-  const line = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
-  const area = `${line} L${last.x.toFixed(1)} ${PLOT.bottom} L${points[0].x.toFixed(1)} ${PLOT.bottom} Z`;
+  const line = points
+    .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)} ${(p.y + wobbleFor(i, points.length)).toFixed(1)}`)
+    .join(" ");
+
+  // The total sits just past the last point, flipping to the inside once the point is close
+  // enough to the right edge that a label hung outside it would leave the viewBox.
+  const totalX = Math.min(last.x + 6, PLOT.right - 2);
+  const totalAnchor = last.x > PLOT.right - 40 ? "end" : "start";
 
   return (
     <>
@@ -260,28 +289,79 @@ function GrowthChart({ series }) {
         role="img"
         aria-label={`Words in the cuaderno over time, now ${total}`}
       >
-        {/* The scale, so the slope means something. The top rule sits at the current total —
-            on a cumulative line those are the same number, which is why it can be labelled
-            once, at the left, where nothing can clip it. */}
-        <line
-          x1={PLOT.left}
-          y1={PLOT.top}
-          x2={PLOT.right}
-          y2={PLOT.top}
-          stroke={C.line}
-          strokeDasharray="3 3"
-        />
-        <line x1={PLOT.left} y1={PLOT.bottom} x2={PLOT.right} y2={PLOT.bottom} stroke={C.line} />
-        <text x={PLOT.left - 6} y={PLOT.top + 3} textAnchor="end" fontFamily={MONO} fontSize="10" fill={C.ink}>
-          {total}
-        </text>
+        {/* Graph paper: four dashed rules and six dashed columns, faint enough to read as the
+            page rather than as data. The baseline alone is solid, because it is the zero the
+            heights are measured from and not just a guide. */}
+        {[0, 1, 2, 3, 4].map((step) => {
+          const y = PLOT.bottom - (step / 4) * span;
+          return (
+            <line
+              key={`rule-${step}`}
+              x1={PLOT.left}
+              y1={y}
+              x2={PLOT.right}
+              y2={y}
+              stroke={C.line}
+              strokeWidth={step === 0 ? 1 : 0.5}
+              strokeDasharray={step === 0 ? undefined : "2 4"}
+            />
+          );
+        })}
+        {[0, 1, 2, 3, 4, 5, 6].map((step) => {
+          const x = PLOT.left + (step / 6) * (PLOT.right - PLOT.left);
+          return (
+            <line
+              key={`column-${step}`}
+              x1={x}
+              y1={PLOT.top}
+              x2={x}
+              y2={PLOT.bottom}
+              stroke={C.line}
+              strokeWidth="0.5"
+              strokeDasharray="2 4"
+            />
+          );
+        })}
+
         <text x={PLOT.left - 6} y={PLOT.bottom + 3} textAnchor="end" fontFamily={MONO} fontSize="10" fill={C.mut}>
           0
         </text>
 
-        <path d={area} fill={C.penPale} />
-        <path d={line} fill="none" stroke={C.pen} strokeWidth="2" strokeLinejoin="round" />
-        <circle cx={last.x} cy={last.y} r="3" fill={C.pen} />
+        <path
+          d={line}
+          fill="none"
+          stroke={C.pen}
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* Every week gets its mark while the marks can still be told apart. Past that the
+            line carries the shape on its own, rather than thickening into a smudge. */}
+        {points.length <= PLOT_MARK_LIMIT &&
+          points.map((p, i) => (
+            <circle
+              key={p.weekStart}
+              cx={p.x.toFixed(1)}
+              cy={(p.y + wobbleFor(i, points.length)).toFixed(1)}
+              r="1.7"
+              fill={C.penDark}
+            />
+          ))}
+
+        {/* The last point is the one the caption talks about, so it is drawn heavier and
+            knocked out of the line with a ring of card so the ink does not swallow it. */}
+        <circle cx={last.x} cy={last.y} r="3" fill={C.pen} stroke={C.card} strokeWidth="1" />
+        <text
+          x={totalX}
+          y={last.y - 8}
+          textAnchor={totalAnchor}
+          fontFamily={MONO}
+          fontSize="11"
+          fill={C.ink}
+        >
+          {total}
+        </text>
 
         <text x={PLOT.left} y="132" fontFamily={MONO} fontSize="9" fill={C.mut}>
           {shortDate(points[0].weekStart)}
