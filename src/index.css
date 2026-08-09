@@ -19,8 +19,9 @@
 @theme static {
   --color-paper: #FAF9F4;
   /* A warm near-paper white rather than pure #FFFFFF, so cards sit into the notebook the way the
-     page-folder bodies below do instead of floating on it (owner-picked 2026-08-08). */
-  --color-card: #FFFEF9;
+     page-folder bodies below do instead of floating on it. Owner-picked 2026-08-08, then eased
+     back to the halfway point between pure white and the first #FFFEF9 pick. */
+  --color-card: #FFFEFC;
   --color-ink: #212A3D;
   --color-mut: #7A8199;
   --color-entry-meaning: #374151;
