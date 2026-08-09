@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ConjugationGym from "./ConjugationGym.jsx";
+import * as gymReference from "../db/ref/gym.js";
 import { removeDictionary } from "../db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "../db/ref/refdb.js";
 import { FIXTURE_CONJUGATIONS, FIXTURE_ENTRIES, FIXTURE_FORM_SHARDS } from "../test/dictFixture.js";
@@ -198,5 +199,25 @@ describe("Conjugation Gym setup", () => {
     await user.click(screen.getByRole("button", { name: "Start adaptive session" }));
 
     expect(screen.getByText(/Indicative preterite · yo/)).toBeTruthy();
+  });
+
+  it("defers a changed library snapshot until an active session returns to setup", async () => {
+    const user = userEvent.setup();
+    await seedGymDictionary();
+    const loadSpy = vi.spyOn(gymReference, "loadGymLibrary");
+    const props = { events: [], onBack: vi.fn(), onOpen: vi.fn(), onGraded: vi.fn() };
+    const { rerender } = render(<ConjugationGym items={[]} {...props} />);
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Start quick session" })).toBeTruthy());
+    expect(loadSpy).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole("button", { name: "Start quick session" }));
+    const saved = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
+    await act(async () => {
+      rerender(<ConjugationGym items={[saved]} {...props} />);
+    });
+
+    expect(loadSpy).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole("button", { name: "Finish" }));
+    await waitFor(() => expect(loadSpy).toHaveBeenCalledTimes(2));
   });
 });

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BarChart3, ChevronLeft, Dumbbell, Play, SlidersHorizontal } from "lucide-react";
 import { C, MONO, SERIF, Card, Button, SectionTitle, Segmented, dotGrid } from "../theme.jsx";
 import { loadGymLibrary } from "../db/ref/gym.js";
@@ -66,8 +66,11 @@ export default function ConjugationGym({
   const [oneVerb, setOneVerb] = useState("");
   const [session, setSession] = useState(null);
   const [startError, setStartError] = useState("");
+  const loadedItems = useRef(null);
 
   useEffect(() => {
+    if (view === "session" || loadedItems.current === items) return undefined;
+    loadedItems.current = items;
     let alive = true;
     setLoadError(false);
     loadGymLibrary(items)
@@ -82,7 +85,7 @@ export default function ConjugationGym({
     return () => {
       alive = false;
     };
-  }, [items]);
+  }, [items, view]);
 
   useEffect(() => {
     try {
