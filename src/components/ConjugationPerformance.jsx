@@ -20,6 +20,7 @@ const PACK_OPTIONS = [
 ];
 
 const DIAGNOSIS_LABEL = {
+  accent_collision: "Accent changes the tense",
   missing_no: "Missing no",
   missing_reflexive: "Missing reflexive pronoun",
   wrong_person: "Wrong person",

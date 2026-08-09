@@ -10,6 +10,7 @@ import SpeakButton from "./SpeakButton.jsx";
 const DIAGNOSIS_TEXT = {
   exact: "Exactly right.",
   accents: "Right form — mind the accent.",
+  accent_collision: "The accent decides the tense here — without it this is a different form.",
   missing_no: "This negative command needs no.",
   missing_reflexive: "The reflexive pronoun is missing.",
   wrong_person: "That form belongs to another person.",

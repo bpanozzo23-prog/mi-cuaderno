@@ -198,6 +198,29 @@ describe("typed attempts, retry, and missed round", () => {
     expect(event.metadata).toMatchObject({ verdict: "accents", diagnosis: "accents", stage: "initial" });
   });
 
+  it("fails an accent slip that exactly names another conjugation cell", async () => {
+    const user = userEvent.setup();
+    renderTyped([card({
+      term: "hablar",
+      lemma: "hablar",
+      verbKey: "lemma:hablar",
+      tense: "Indicative/Preterite",
+      slot: "él/ella/usted",
+      answer: "habló",
+      forms: [
+        { tense: "Indicative/Present", slot: "yo", form: "hablo" },
+        { tense: "Indicative/Preterite", slot: "él/ella/usted", form: "habló" },
+      ],
+    })]);
+    await typeAndCheck(user, "hablo");
+
+    await waitFor(() => expect(screen.getByText("The accent decides the tense here — without it this is a different form.")).toBeTruthy());
+    expect(screen.getByLabelText("Try the form again")).toBeTruthy();
+    const [event] = await allEvents();
+    expect(event.type).toBe("drill_fail");
+    expect(event.metadata).toMatchObject({ verdict: "wrong", diagnosis: "accent_collision", stage: "initial" });
+  });
+
   it("logs and diagnoses the first miss immediately, clears input, and hides the answer", async () => {
     const user = userEvent.setup();
     const onGraded = vi.fn();

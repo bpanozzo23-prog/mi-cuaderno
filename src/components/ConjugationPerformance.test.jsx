@@ -106,6 +106,17 @@ describe("dedicated Conjugation Gym performance", () => {
     expect(screen.getByText(/1 of 1 initial misses recovered/)).toBeTruthy();
   });
 
+  it("names accent collisions in Error patterns", () => {
+    render(<ConjugationPerformance
+      items={[]}
+      events={[answer({ passed: false, diagnosis: "accent_collision" })]}
+      library={library()}
+      onBack={vi.fn()}
+    />);
+
+    expect(screen.getByText("Accent changes the tense")).toBeTruthy();
+  });
+
   it("filters Saved and Core histories without blending them", async () => {
     const user = userEvent.setup();
     const events = [

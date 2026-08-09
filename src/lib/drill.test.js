@@ -68,10 +68,21 @@ describe("diagnosing a typed answer", () => {
     },
   });
 
-  it("keeps the exact/accent checker as the first two outcomes", () => {
+  it("keeps exact and harmless accent-only answers as passing outcomes", () => {
     const card = { answer: "hablé", tense: "Indicative/Preterite", slot: "yo" };
     expect(diagnoseTypedAnswer("hablé", card, forms)).toEqual({ passed: true, verdict: "exact", diagnosis: "exact" });
-    expect(diagnoseTypedAnswer("hable", card, forms)).toEqual({ passed: true, verdict: "accents", diagnosis: "accents" });
+    expect(diagnoseTypedAnswer("comeriamos", {
+      answer: "comeríamos", tense: "Indicative/Conditional", slot: "nosotros",
+    }, forms)).toEqual({ passed: true, verdict: "accents", diagnosis: "accents" });
+  });
+
+  it("fails an accent-near answer that is exactly another cell", () => {
+    const card = { answer: "hablé", tense: "Indicative/Preterite", slot: "yo" };
+    expect(diagnoseTypedAnswer("hable", card, forms)).toEqual({
+      passed: false,
+      verdict: "wrong",
+      diagnosis: "accent_collision",
+    });
   });
 
   it("recognizes a missing no in a negative command", () => {

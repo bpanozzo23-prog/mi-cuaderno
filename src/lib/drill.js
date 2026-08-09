@@ -25,10 +25,11 @@ import { normalize } from "./normalize.js";
  * Case and surrounding space are forgiven in both passes. Internal runs of space collapse
  * so a pronominal form typed `me  arrepiento` is not marked wrong for the gap.
  */
+const tidyAnswer = (value) => String(value ?? "").trim().replace(/\s+/g, " ").toLowerCase();
+
 export function checkTypedAnswer(given, answer) {
-  const tidy = (value) => String(value ?? "").trim().replace(/\s+/g, " ").toLowerCase();
-  const typed = tidy(given);
-  const correct = tidy(answer);
+  const typed = tidyAnswer(given);
+  const correct = tidyAnswer(answer);
 
   if (!typed || !correct) return "wrong";
   if (typed === correct) return "exact";
@@ -71,7 +72,17 @@ function withoutReflexivePronoun(form) {
  */
 export function diagnoseTypedAnswer(given, card, forms = []) {
   const verdict = checkTypedAnswer(given, card?.answer);
-  if (verdict !== "wrong") return { passed: true, verdict, diagnosis: verdict };
+  if (verdict === "exact") return { passed: true, verdict, diagnosis: verdict };
+  if (verdict === "accents") {
+    const typed = tidyAnswer(given);
+    const collision = (forms || []).some(({ tense, slot, form }) =>
+      form &&
+      !(tense === card?.tense && slot === card?.slot) &&
+      tidyAnswer(form) === typed
+    );
+    if (collision) return { passed: false, verdict: "wrong", diagnosis: "accent_collision" };
+    return { passed: true, verdict, diagnosis: verdict };
+  }
 
   const answer = String(card?.answer || "").trim();
   if (/^no\s+/i.test(answer) && recognizableMatch(given, withoutNegativeNo(answer))) {
