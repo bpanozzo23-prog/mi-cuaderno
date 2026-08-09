@@ -298,21 +298,25 @@ describe("Collection organization and capture", () => {
   it("bulk-adds every available phrase with a chosen tag to one Collection group", async () => {
     const user = userEvent.setup();
     const groupId = newPageGroupKey();
-    const alreadyPlaced = await createItem(newLexical({
+    // Back-to-back createItem calls can share a millisecond, and equal updatedAt values make
+    // the sheet's recency ordering fall back to random user:<uuid> key order. Distinct explicit
+    // timestamps keep the expected list order (most recently touched first) well-defined.
+    const stamp = (item, iso) => ({ ...item, createdAt: iso, updatedAt: iso });
+    const alreadyPlaced = await createItem(stamp(newLexical({
       term: "buen viaje",
       form: "phrase",
       tags: ["travel"],
-    }));
-    const first = await createItem(newLexical({
+    }), "2026-08-09T10:00:00.000Z"));
+    const first = await createItem(stamp(newLexical({
       term: "¿Dónde queda?",
       form: "phrase",
       tags: ["travel"],
-    }));
-    const second = await createItem(newLexical({
+    }), "2026-08-09T10:00:01.000Z"));
+    const second = await createItem(stamp(newLexical({
       term: "ida y vuelta",
       form: "phrase",
       tags: ["travel", "tickets"],
-    }));
+    }), "2026-08-09T10:00:02.000Z"));
     await createItem(newLexical({ term: "por supuesto", form: "phrase", tags: ["conversation"] }));
     await createItem(newLexical({ term: "maleta", form: "word", tags: ["travel"] }));
     const page = await createItem(newPage({
