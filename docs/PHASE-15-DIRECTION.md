@@ -1,6 +1,7 @@
 # Phase 15 direction — Gym correctness, Focus depth and accent semantics
 
-**Status:** Proposed — awaiting owner approval
+**Approved:** 2026-08-09
+**Status:** Approved — implementation in progress
 **Origin:** External review (Codex, 2026-08-09) verified claim-by-claim against the source in a
 second review (Claude Code, 2026-08-09). Every item below names the verified problem it fixes.
 
