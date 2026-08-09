@@ -6,7 +6,6 @@ import {
   heatmapWeeks,
   cumulativeWordsByWeek,
   boxDistribution,
-  drillPerformance,
   monthGrid,
   earliestActivityMonth,
   HEATMAP_WEEKS,
@@ -368,79 +367,6 @@ describe("boxDistribution: the review ladder", () => {
 
     expect(boxes.reduce((sum, b) => sum + b.count, 0) + graduated).toBe(tracked);
     expect(tracked).toBe(3);
-  });
-});
-
-describe("how the conjugation drill has gone", () => {
-  const drill = (passed, tense, extra = {}) => ({
-    type: passed ? "drill_pass" : "drill_fail",
-    itemKey: "user:poner",
-    localDate: "2026-08-06",
-    metadata: { tense, slot: "yo", mode: "typed", verdict: passed ? "exact" : "wrong", ...extra },
-  });
-
-  it("counts nothing when the drill has never been used", () => {
-    expect(drillPerformance([])).toEqual({ answered: 0, passed: 0, accentSlips: 0, tenses: [] });
-  });
-
-  it("totals answers and passes across every tense", () => {
-    const result = drillPerformance([
-      drill(true, "Indicative/Present"),
-      drill(false, "Indicative/Preterite"),
-      drill(true, "Indicative/Preterite"),
-    ]);
-
-    expect(result.answered).toBe(3);
-    expect(result.passed).toBe(2);
-  });
-
-  it("counts an accent slip as a pass, and separately as a slip", () => {
-    const result = drillPerformance([
-      drill(true, "Indicative/Preterite", { verdict: "accents" }),
-    ]);
-
-    expect(result.passed).toBe(1);
-    expect(result.accentSlips).toBe(1);
-  });
-
-  it("splits by tense and puts the weakest first", () => {
-    const result = drillPerformance([
-      drill(true, "Indicative/Present"),
-      drill(true, "Indicative/Present"),
-      drill(false, "Indicative/Preterite"),
-      drill(false, "Indicative/Preterite"),
-      drill(true, "Indicative/Preterite"),
-    ]);
-
-    expect(result.tenses.map((row) => row.tense)).toEqual([
-      "Indicative/Preterite",
-      "Indicative/Present",
-    ]);
-    expect(result.tenses[0]).toMatchObject({ answered: 3, passed: 1 });
-    expect(result.tenses[1]).toMatchObject({ answered: 2, passed: 2 });
-  });
-
-  it("ignores every event that is not a drill answer", () => {
-    const result = drillPerformance([
-      { type: "review_pass", metadata: { grade: 2 } },
-      { type: "view", itemKey: "user:poner" },
-      { type: "future_event_type", metadata: { tense: "Indicative/Present" } },
-      drill(true, "Indicative/Present"),
-    ]);
-
-    expect(result.answered).toBe(1);
-    expect(result.tenses).toHaveLength(1);
-  });
-
-  it("keeps an answer with no readable tense in the totals but gives it no row", () => {
-    // A future drill over something other than a tense must not invent a row for itself.
-    const result = drillPerformance([
-      { type: "drill_pass", metadata: { slot: "yo" } },
-      drill(true, "Indicative/Present"),
-    ]);
-
-    expect(result.answered).toBe(2);
-    expect(result.tenses.map((row) => row.tense)).toEqual(["Indicative/Present"]);
   });
 });
 

@@ -39,7 +39,6 @@ const KNOWN_TYPES = new Set([
   "drill_fail",
 ]);
 
-const DRILL_TYPES = new Set(["drill_pass", "drill_fail"]);
 
 /** Trailing weeks the activity calendar shows. 16 fits 375px at a legible cell size. */
 export const HEATMAP_WEEKS = 16;
@@ -237,55 +236,6 @@ export function cumulativeWordsByWeek(items, today = localDate()) {
  * the queue. Reading `enrolled` alone would therefore make the Retired rung permanently empty
  * and quietly lose the ladder's finish line.
  */
-/**
- * How the conjugation drill has gone, overall and by tense (Phase 13c).
- *
- * By tense because that is the answer worth having: "preterite is the shaky one" is
- * actionable in a way that one overall percentage is not.
- *
- * Modes are counted together but accent slips are reported separately, because they are the
- * one outcome that is neither a clean pass nor a failure — and because a typed session and a
- * self-graded one are different measurements, `mode` is on every event so a later view can
- * separate them without needing history it never recorded.
- *
- * Events of deleted items count, as they do in the calendar: the practice happened. Unknown
- * types are ignored, and an event with no recognisable tense is counted in the totals but
- * given no row, so a future drill over something other than tenses cannot invent one.
- */
-export function drillPerformance(events) {
-  const overall = { answered: 0, passed: 0, accentSlips: 0 };
-  const byTense = new Map();
-
-  for (const event of events) {
-    if (!DRILL_TYPES.has(event?.type)) continue;
-    const passed = event.type === "drill_pass";
-    const accent = event.metadata?.verdict === "accents";
-
-    overall.answered += 1;
-    if (passed) overall.passed += 1;
-    if (accent) overall.accentSlips += 1;
-
-    const tense = event.metadata?.tense;
-    if (typeof tense !== "string" || !tense) continue;
-    if (!byTense.has(tense)) byTense.set(tense, { tense, answered: 0, passed: 0, accentSlips: 0 });
-    const row = byTense.get(tense);
-    row.answered += 1;
-    if (passed) row.passed += 1;
-    if (accent) row.accentSlips += 1;
-  }
-
-  // Weakest first: the point of the breakdown is to find what to work on. Ties fall back to
-  // the busier tense, then to the name, so the order is stable between renders.
-  const tenses = [...byTense.values()].sort(
-    (a, b) =>
-      a.passed / a.answered - b.passed / b.answered ||
-      b.answered - a.answered ||
-      a.tense.localeCompare(b.tense)
-  );
-
-  return { ...overall, tenses };
-}
-
 export function boxDistribution(states) {
   const boxes = [1, 2, 3, 4, 5].map((box) => ({ box, count: 0 }));
   let graduated = 0;
