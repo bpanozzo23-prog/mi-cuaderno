@@ -49,6 +49,7 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
   const [typed, setTyped] = useState("");
   const [result, setResult] = useState(null);
   const [awaitingRetry, setAwaitingRetry] = useState(false);
+  const [openArmed, setOpenArmed] = useState(false);
   const [missedCards, setMissedCards] = useState([]);
   const [componentSessionId] = useState(() => deck[0]?.sessionId || fallbackSessionId());
   const [tally, setTally] = useState({
@@ -72,6 +73,7 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
     setTyped("");
     setResult(null);
     setAwaitingRetry(false);
+    setOpenArmed(false);
   }
 
   function advance() {
@@ -161,6 +163,17 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
     setRound("missed");
     setIndex(0);
     resetPrompt();
+  }
+
+  function openEntry() {
+    const target = card?.openKey || card?.itemId || card?.dictKey;
+    if (!target || !onOpen) return;
+    if (!openArmed) {
+      setOpenArmed(true);
+      return;
+    }
+    setOpenArmed(false);
+    onOpen(target);
   }
 
   if (done) {
@@ -280,14 +293,23 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
               <SpeakButton text={card.answer} size={16} />
             </div>
             {onOpen && (card.openKey || card.itemId || card.dictKey) && (
-              <button
-                type="button"
-                onClick={() => onOpen(card.openKey || card.itemId || card.dictKey)}
-                className="text-xs underline underline-offset-2"
-                style={{ color: C.pen }}
-              >
-                {card.source === "core" && !card.itemKey ? "Open dictionary entry" : "Open saved entry"}
-              </button>
+              <div className="space-y-2">
+                {openArmed && (
+                  <div className="text-xs" role="alert" style={{ color: C.red }}>
+                    Opening this entry ends the session. {activeDeck.length - index} {activeDeck.length - index === 1 ? "prompt remains" : "prompts remain"}.
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={openEntry}
+                  className="text-xs underline underline-offset-2"
+                  style={{ color: openArmed ? C.red : C.pen }}
+                >
+                  {card.source === "core" && !card.itemKey
+                    ? openArmed ? "Open dictionary entry and end session" : "Open dictionary entry"
+                    : openArmed ? "Open saved entry and end session" : "Open saved entry"}
+                </button>
+              </div>
             )}
           </div>
         )}
