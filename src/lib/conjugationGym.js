@@ -25,6 +25,20 @@ export const CORE_50 = [
   "ayudar", "mirar", "entender", "trabajar", "buscar", "escuchar", "preguntar", "perder", "empezar", "traer",
 ];
 
+export const STEM_CHANGERS = [
+  "pensar", "querer", "entender", "perder", "empezar", "sentir", "preferir", "poder", "volver",
+  "encontrar", "dormir", "morir", "pedir", "seguir", "servir", "repetir", "jugar",
+];
+
+export const IRREGULAR_PRETERITES = [
+  "ser", "ir", "dar", "ver", "hacer", "decir", "querer", "venir", "poner", "poder", "saber",
+  "tener", "estar", "traer", "andar", "conducir",
+];
+
+export const CURATED_GYM_LEMMAS = [
+  ...new Set([...CORE_50, ...STEM_CHANGERS, ...IRREGULAR_PRETERITES]),
+];
+
 export const GYM_SLOTS = SLOTS.filter((slot) => !COLLAPSED_SLOTS.has(slot));
 
 export const EVERYDAY_TENSES = [

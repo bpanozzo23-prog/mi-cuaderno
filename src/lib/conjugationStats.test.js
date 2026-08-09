@@ -109,6 +109,19 @@ describe("Conjugation Gym performance contracts", () => {
     expect(stats.activeTargets.find((target) => target.verbKey === "lemma:ser").source).toBe("saved");
   });
 
+  it("keeps pattern-only reference verbs actionable in their containing curriculum", () => {
+    const stats = conjugationPerformance([], {
+      activeVerbs: [
+        active("preferir", "core", { curriculum: null }),
+        active("conducir", "core", { curriculum: null }),
+      ],
+      dictionaryAvailable: true,
+    });
+
+    expect(stats.activeTargets.find((target) => target.lemma === "preferir").curriculum).toBe("stemChangers");
+    expect(stats.activeTargets.find((target) => target.lemma === "conducir").curriculum).toBe("irregularPreterites");
+  });
+
   it("compares the last 50 with the previous window only when both have enough evidence", () => {
     const events = Array.from({ length: 60 }, (_, index) => {
       const event = answer({ passed: index >= 10, minute: index, promptId: `p-${index}` });

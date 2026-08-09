@@ -5,6 +5,9 @@ import { loadGymLibrary } from "../db/ref/gym.js";
 import {
   CORE_20,
   CORE_50,
+  CURATED_GYM_LEMMAS,
+  IRREGULAR_PRETERITES,
+  STEM_CHANGERS,
   ALTERNATIVE_TENSES,
   GYM_SLOTS,
   RARE_TENSES,
@@ -26,9 +29,16 @@ const SESSION_KINDS = [
 ];
 
 const POOLS = [
-  { value: "saved", label: "Saved" },
-  { value: "core20", label: "Core 20" },
-  { value: "core50", label: "Core 50" },
+  { value: "saved", label: "Saved", lemmas: null, availabilityLabel: "saved verbs" },
+  { value: "core20", label: "Core 20", lemmas: CORE_20, availabilityLabel: "core verbs" },
+  { value: "core50", label: "Core 50", lemmas: CORE_50, availabilityLabel: "core verbs" },
+  { value: "stemChangers", label: "Stem changers", lemmas: STEM_CHANGERS, availabilityLabel: "stem changers" },
+  {
+    value: "irregularPreterites",
+    label: "Irregular preterites",
+    lemmas: IRREGULAR_PRETERITES,
+    availabilityLabel: "irregular preterites",
+  },
 ];
 
 function Header({ title, backLabel, onBack, action }) {
@@ -84,7 +94,7 @@ export default function ConjugationGym({
       .catch(() => {
         if (!alive) return;
         setLoadError(true);
-        setLibrary({ loading: false, installed: false, saved: [], core: [], unavailableCore: [...CORE_50] });
+        setLibrary({ loading: false, installed: false, saved: [], core: [], unavailableCore: [...CURATED_GYM_LEMMAS] });
       });
     return () => {
       alive = false;
@@ -99,19 +109,20 @@ export default function ConjugationGym({
     }
   }, [view]);
 
+  const poolDefinition = POOLS.find((option) => option.value === pool) || POOLS[1];
   const poolVerbs = useMemo(() => {
     if (pool === "saved") return library.saved;
-    const allowed = new Set(pool === "core20" ? CORE_20 : CORE_50);
+    const allowed = new Set(poolDefinition.lemmas);
     return library.core
       .filter((verb) => allowed.has(verb.lemma))
       .map((verb) => ({ ...verb, curriculum: pool }));
-  }, [library, pool]);
+  }, [library, pool, poolDefinition]);
 
   const unavailableInPool = useMemo(() => {
     if (pool === "saved") return 0;
-    const allowed = new Set(pool === "core20" ? CORE_20 : CORE_50);
+    const allowed = new Set(poolDefinition.lemmas);
     return library.unavailableCore.filter((lemma) => allowed.has(lemma)).length;
-  }, [library, pool]);
+  }, [library, pool, poolDefinition]);
 
   const advanced = sessionKind !== "quick";
   const baseSelectedTenses = tensePack === "customize" ? customTenses : TENSE_PACKS[tensePack].tenses;
@@ -326,9 +337,11 @@ export default function ConjugationGym({
           <SectionTitle>Verb pool</SectionTitle>
           <Segmented label="Verb pool" value={pool} options={poolOptions} onChange={choosePool} />
           <div className="mt-2 text-xs" style={{ color: C.mut }}>
-            {pool === "saved"
-              ? `${library.saved.length} saved ${library.saved.length === 1 ? "verb" : "verbs"} available`
-              : `${poolVerbs.length} of ${pool === "core20" ? 20 : 50} core verbs available`}
+            <span>
+              {pool === "saved"
+                ? `${library.saved.length} saved ${library.saved.length === 1 ? "verb" : "verbs"} available`
+                : `${poolVerbs.length} of ${poolDefinition.lemmas.length} ${poolDefinition.availabilityLabel} available`}
+            </span>
             {unavailableInPool > 0 && ` · ${unavailableInPool} unavailable in this dictionary version`}
           </div>
 

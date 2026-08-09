@@ -3,8 +3,11 @@ import {
   ALL_GYM_TENSES,
   CORE_20,
   CORE_50,
+  CURATED_GYM_LEMMAS,
   EVERYDAY_TENSES,
   GYM_SLOTS,
+  IRREGULAR_PRETERITES,
+  STEM_CHANGERS,
   buildAdaptiveGymDeck,
   buildBalancedGymDeck,
   buildFocusedGymDeck,
@@ -35,6 +38,19 @@ describe("Conjugation Gym curriculum", () => {
     expect(CORE_50).toHaveLength(50);
     expect(new Set(CORE_50).size).toBe(50);
     expect(CORE_50.slice(0, 20)).toEqual(CORE_20);
+  });
+
+  it("ships the approved pattern packs inside one de-duplicated curated lookup", () => {
+    expect(STEM_CHANGERS).toEqual([
+      "pensar", "querer", "entender", "perder", "empezar", "sentir", "preferir", "poder", "volver",
+      "encontrar", "dormir", "morir", "pedir", "seguir", "servir", "repetir", "jugar",
+    ]);
+    expect(IRREGULAR_PRETERITES).toEqual([
+      "ser", "ir", "dar", "ver", "hacer", "decir", "querer", "venir", "poner", "poder", "saber",
+      "tener", "estar", "traer", "andar", "conducir",
+    ]);
+    expect(new Set(CURATED_GYM_LEMMAS).size).toBe(CURATED_GYM_LEMMAS.length);
+    expect(CURATED_GYM_LEMMAS).toHaveLength(56);
   });
 
   it("offers every stored and composed tense without duplicating keys", () => {

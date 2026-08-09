@@ -4,7 +4,7 @@ import {
   getVerbTablesByLemma,
   resolveEntry,
 } from "./entries.js";
-import { CORE_50, verbKeyForLemma } from "../../lib/conjugationGym.js";
+import { CURATED_GYM_LEMMAS, verbKeyForLemma } from "../../lib/conjugationGym.js";
 
 /**
  * Loads the Gym's optional dictionary-backed library after the owner opens it.
@@ -12,7 +12,7 @@ import { CORE_50, verbKeyForLemma } from "../../lib/conjugationGym.js";
  */
 export async function loadGymLibrary(items) {
   if (!(await dictionaryInstalled())) {
-    return { installed: false, saved: [], core: [], unavailableCore: [...CORE_50] };
+    return { installed: false, saved: [], core: [], unavailableCore: [...CURATED_GYM_LEMMAS] };
   }
 
   const attached = (items || [])
@@ -49,7 +49,7 @@ export async function loadGymLibrary(items) {
     personalByEntry.set(entry.id, list);
   }
 
-  const resolvedCore = await getVerbTablesByLemma(CORE_50);
+  const resolvedCore = await getVerbTablesByLemma(CURATED_GYM_LEMMAS);
   const core = resolvedCore
     .filter((row) => row.available)
     .map(({ lemma, entry, conjugation }) => {

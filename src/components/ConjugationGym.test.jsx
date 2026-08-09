@@ -10,6 +10,7 @@ import { FIXTURE_CONJUGATIONS, FIXTURE_ENTRIES, FIXTURE_FORM_SHARDS } from "../t
 import { makeLexical } from "../test/factories.js";
 
 const SACAR = "dict:wiktionary-es:sacar:verb";
+const PREFERIR = "dict:fixture:preferir:verb";
 
 async function seedGymDictionary() {
   const db = refDb("a");
@@ -22,10 +23,22 @@ async function seedGymDictionary() {
       },
     },
   };
+  const preferirTable = {
+    id: "conj:fixture:preferir",
+    source: "fixture",
+    tenses: {
+      "Indicative/Present": {
+        yo: "prefiero", "tú": "prefieres", "él/ella/usted": "prefiere",
+        nosotros: "preferimos", "ustedes/ellos": "prefieren",
+      },
+    },
+  };
   await Promise.all([
-    db.entries.bulkPut(FIXTURE_ENTRIES),
-    db.conjugations.bulkPut([...FIXTURE_CONJUGATIONS.filter((row) => row.id !== serTable.id), serTable]),
-    db.formShards.bulkPut(FIXTURE_FORM_SHARDS),
+    db.entries.bulkPut([...FIXTURE_ENTRIES, {
+      id: PREFERIR, lemma: "preferir", pos: "verb", conjugationId: preferirTable.id, senses: [],
+    }]),
+    db.conjugations.bulkPut([...FIXTURE_CONJUGATIONS.filter((row) => row.id !== serTable.id), serTable, preferirTable]),
+    db.formShards.bulkPut([...FIXTURE_FORM_SHARDS, { id: "pr", terms: { preferir: [PREFERIR] } }]),
     db.meta.put({ key: META_KEYS.dataset, value: { datasetVersion: "gym-fixture", previousIds: {} } }),
   ]);
   setActiveSlot("a");
@@ -76,6 +89,20 @@ describe("Conjugation Gym setup", () => {
 
     await waitFor(() => expect(screen.getByText(/2 of 20 core verbs available/)).toBeTruthy());
     await user.click(screen.getByRole("button", { name: "Start quick session" }));
+    expect(screen.getByLabelText("Type the form")).toBeTruthy();
+  });
+
+  it("offers the two curated pattern packs as reference-only pools", async () => {
+    const user = userEvent.setup();
+    await seedGymDictionary();
+    render(<ConjugationGym items={[]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await waitFor(() => expect(screen.getByRole("radio", { name: "Stem changers" })).toBeTruthy());
+    await user.click(screen.getByRole("radio", { name: "Stem changers" }));
+    expect(screen.getByText("1 of 17 stem changers available")).toBeTruthy();
+    expect(screen.getByRole("radio", { name: "Irregular preterites" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Start quick session" }));
+    expect(screen.getByText("preferir")).toBeTruthy();
     expect(screen.getByLabelText("Type the form")).toBeTruthy();
   });
 
