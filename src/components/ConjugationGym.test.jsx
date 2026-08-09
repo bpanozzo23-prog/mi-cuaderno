@@ -136,6 +136,31 @@ describe("Conjugation Gym setup", () => {
     expect(screen.getByRole("checkbox", { name: "tú" }).checked).toBe(false);
   });
 
+  it("resets every setup choice before applying a performance practice action", async () => {
+    const user = userEvent.setup();
+    await seedGymDictionary();
+    const saved = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
+    render(<ConjugationGym items={[saved]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /Focus/ })).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: /Focus/ }));
+    await user.click(screen.getByRole("radio", { name: "Saved" }));
+    await user.click(screen.getByRole("radio", { name: "Reveal" }));
+    await user.selectOptions(screen.getByLabelText("Tense pack"), "commands");
+    await user.click(screen.getByRole("checkbox", { name: "yo" }));
+    await user.selectOptions(screen.getByLabelText("Prompts"), "20");
+    await user.selectOptions(screen.getByLabelText("One verb (optional)"), "user:sacar");
+    await user.click(screen.getByRole("button", { name: "View conjugation performance" }));
+    await user.click(screen.getByRole("button", { name: "Practice next" }));
+
+    expect(screen.getByRole("radio", { name: "Core 20" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("radio", { name: "Type" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByLabelText("Tense pack").value).toBe("everyday");
+    expect(screen.getByLabelText("Prompts").value).toBe("10");
+    expect(screen.getByLabelText("One verb (optional)").value).toBe("");
+    expect(screen.getByRole("checkbox", { name: "yo" }).checked).toBe(true);
+  });
+
   it("feeds persisted initial misses into an Adaptive session", async () => {
     const user = userEvent.setup();
     await seedGymDictionary();

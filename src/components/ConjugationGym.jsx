@@ -163,8 +163,13 @@ export default function ConjugationGym({
 
   function practiceFromStats(focus) {
     setSessionKind("focus");
+    setPool("core20");
+    setOneVerb("");
     setMode("typed");
     setSize(10);
+    setTensePack("everyday");
+    setCustomTenses([...TENSE_PACKS.everyday.tenses]);
+    setSlots([...GYM_SLOTS]);
     if (focus?.target) {
       const nextPool = focus.target.source === "saved" ? "saved" : focus.target.curriculum || "core50";
       setPool(nextPool);
@@ -180,7 +185,7 @@ export default function ConjugationGym({
       setTensePack("customize");
       setCustomTenses([focus.tense]);
     }
-    setSlots(focus?.slot ? [focus.slot] : [...GYM_SLOTS]);
+    if (focus?.slot) setSlots([focus.slot]);
     setStartError("");
     setView("setup");
   }
