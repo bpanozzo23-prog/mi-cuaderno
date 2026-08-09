@@ -4,7 +4,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Estadisticas from "./Estadisticas.jsx";
 import { HEATMAP_WEEKS } from "../lib/stats.js";
-import { addDaysToLocalDate, localDate } from "../lib/dates.js";
+import { addDaysToLocalDate, addMonths, localDate, monthOfDate } from "../lib/dates.js";
 import { makeEvent, makeLexical, makePage } from "../test/factories.js";
 
 // These derivations read the real clock, so fixtures are built relative to it rather than
@@ -12,6 +12,20 @@ import { makeEvent, makeLexical, makePage } from "../test/factories.js";
 const today = localDate();
 const dayBefore = (n) => addDaysToLocalDate(today, -n);
 const at = (day) => `${day}T10:00:00.000Z`;
+
+const thisMonth = monthOfDate(today);
+const dayOfMonth = Number(today.slice(8, 10));
+
+// The month view only shows the month it is on, so a "recent day" fixture has to stay inside
+// it — n days back, or as far back as the 1st allows when the run happens early in a month.
+const backInMonth = (n) => dayBefore(Math.min(n, dayOfMonth - 1));
+
+const MONTHS_ES_FULL = [
+  "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
+const monthTitle = (yearMonth) =>
+  `${MONTHS_ES_FULL[Number(yearMonth.slice(5, 7)) - 1]} ${yearMonth.slice(0, 4)}`;
 
 const view = (day, overrides = {}) =>
   makeEvent({ type: "view", at: at(day), localDate: day, ...overrides });
@@ -21,41 +35,142 @@ const renderStats = (items = [], events = [], onBack = vi.fn()) => {
   return onBack;
 };
 
-const cells = () => document.querySelectorAll('[class*="rounded-[3px]"]');
+const marks = () => document.querySelectorAll(".activity-mark");
+const dots = () => document.querySelectorAll(".trend-dot");
+const labelledDays = () =>
+  screen.queryAllByLabelText(/^\d{4}-\d{2}-\d{2}: \d+ events$/);
+
+const showTrend = async (user) =>
+  user.click(screen.getByRole("radio", { name: "tendencia" }));
 
 afterEach(cleanup);
 
 describe("the activity calendar", () => {
-  it("draws sixteen weeks of seven days", () => {
+  it("opens on the month the owner is standing in", () => {
     renderStats();
 
-    expect(cells()).toHaveLength(HEATMAP_WEEKS * 7);
+    expect(screen.getByText(monthTitle(thisMonth))).toBeTruthy();
   });
 
   it("labels a day with what happened on it", () => {
-    renderStats([], [view(dayBefore(3)), view(dayBefore(3))]);
+    const day = backInMonth(3);
+    renderStats([], [view(day), view(day)]);
 
-    expect(screen.getByLabelText(`${dayBefore(3)}: 2 events`)).toBeTruthy();
+    expect(screen.getByLabelText(`${day}: 2 events`)).toBeTruthy();
   });
 
   it("counts an event whose item has since been deleted", () => {
     // The Phase 11 owner decision, visible on screen: a day the owner studied stays studied.
-    renderStats([], [view(dayBefore(2), { itemKey: "user:long-gone" })]);
+    renderStats([], [view(backInMonth(2), { itemKey: "user:long-gone" })]);
 
-    expect(screen.getByLabelText(`${dayBefore(2)}: 1 events`)).toBeTruthy();
+    expect(screen.getByLabelText(`${backInMonth(2)}: 1 events`)).toBeTruthy();
   });
 
-  it("leaves the days after today unlabelled rather than showing them as empty days", () => {
+  it("labels every day up to today and none of the days after it", () => {
+    // Counting rather than probing one date: a day that has not happened yet must not appear
+    // as a day with nothing in it, and the count catches an off-by-one at either end.
     renderStats([], [view(today)]);
 
+    expect(labelledDays()).toHaveLength(dayOfMonth);
     expect(screen.getByLabelText(`${today}: 1 events`)).toBeTruthy();
-    expect(screen.queryByLabelText(new RegExp(`^${addDaysToLocalDate(today, 1)}`))).toBeNull();
   });
 
+  it("circles the days with activity and leaves the quiet days bare", () => {
+    renderStats([], [view(today), view(backInMonth(1))]);
+
+    // Two circles when today and yesterday are distinct; one when the run lands on the 1st.
+    expect(marks()).toHaveLength(today === backInMonth(1) ? 1 : 2);
+  });
+
+  it("draws no ink at all in a month the owner did nothing", () => {
+    renderStats();
+
+    expect(marks()).toHaveLength(0);
+  });
+
+  it("rules today in red so the page says where the owner is", () => {
+    renderStats([], [view(today)]);
+
+    expect(document.querySelectorAll(".today-rule")).toHaveLength(1);
+  });
+});
+
+describe("paging the activity calendar", () => {
+  const lastMonth = addMonths(thisMonth, -1);
+
+  it("steps back a month and comes forward again", async () => {
+    const user = userEvent.setup();
+    renderStats([], [view(`${lastMonth}-15`)]);
+
+    await user.click(screen.getByRole("button", { name: "Mes anterior" }));
+    expect(screen.getByText(monthTitle(lastMonth))).toBeTruthy();
+    expect(screen.getByLabelText(`${lastMonth}-15: 1 events`)).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Mes siguiente" }));
+    expect(screen.getByText(monthTitle(thisMonth))).toBeTruthy();
+  });
+
+  it("stops at the first month with anything in it", () => {
+    renderStats([], [view(today)]);
+
+    expect(screen.getByRole("button", { name: "Mes anterior" }).disabled).toBe(true);
+  });
+
+  it("stops at the month the owner is in rather than paging into empty pages", () => {
+    renderStats([], [view(today)]);
+
+    expect(screen.getByRole("button", { name: "Mes siguiente" }).disabled).toBe(true);
+  });
+
+  it("keeps the back arrow live while there is an earlier month to reach", () => {
+    renderStats([], [view(`${lastMonth}-15`)]);
+
+    expect(screen.getByRole("button", { name: "Mes anterior" }).disabled).toBe(false);
+  });
+});
+
+describe("the activity trend view", () => {
+  it("swaps the month page for sixteen weeks of dots", async () => {
+    const user = userEvent.setup();
+    renderStats([], [view(today)]);
+
+    await showTrend(user);
+
+    expect(screen.queryByText(monthTitle(thisMonth))).toBeNull();
+    expect(labelledDays()).toHaveLength(0);
+    expect(screen.getAllByLabelText(/^Week of \d{4}-\d{2}-\d{2}: \d+ active days$/)).toHaveLength(
+      HEATMAP_WEEKS
+    );
+  });
+
+  it("draws one dot per day the owner showed up, and none for the quiet days", async () => {
+    const user = userEvent.setup();
+    renderStats([], [view(today), view(dayBefore(1)), view(dayBefore(1))]);
+
+    await showTrend(user);
+
+    expect(dots()).toHaveLength(2);
+  });
+
+  it("comes back to the month page", async () => {
+    const user = userEvent.setup();
+    renderStats([], [view(today)]);
+
+    await showTrend(user);
+    await user.click(screen.getByRole("radio", { name: "mes" }));
+
+    expect(screen.getByText(monthTitle(thisMonth))).toBeTruthy();
+    expect(dots()).toHaveLength(0);
+  });
+});
+
+describe("the streak", () => {
   it("shows the streak above the calendar", () => {
     renderStats([], [view(today), view(dayBefore(1))]);
 
-    expect(screen.getByText("2")).toBeTruthy();
+    // Scoped to the streak tile: the calendar below now prints day numbers, so a bare
+    // getByText("2") matches the second of the month as readily as a two-day run.
+    expect(screen.getByText("2", { selector: ".text-3xl" })).toBeTruthy();
     expect(screen.getByText("days in a row")).toBeTruthy();
   });
 

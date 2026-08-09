@@ -1,13 +1,16 @@
-import { useLayoutEffect, useMemo } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { C, HEAT, SERIF, MONO, dotGrid, SectionTitle, Card } from "../theme.jsx";
+import { C, HEAT, SERIF, MONO, dotGrid, SectionTitle, Card, Segmented } from "../theme.jsx";
 import {
   activityByDay,
   streakFrom,
   heatmapWeeks,
+  monthGrid,
+  earliestActivityMonth,
   cumulativeWordsByWeek,
   HEATMAP_WEEKS,
 } from "../lib/stats.js";
+import { localDate, monthOfDate, addMonths } from "../lib/dates.js";
 import { conjugationPerformance } from "../lib/conjugationStats.js";
 
 /**
@@ -19,23 +22,200 @@ import { conjugationPerformance } from "../lib/conjugationStats.js";
  * occasionally, where the streak and the review ladder are worth seeing daily.
  */
 
-/** Monday-first, the Spanish convention. Only alternate rows are labelled; seven would crowd. */
+/** Monday-first, the Spanish convention. */
 const WEEKDAY_INITIALS = ["L", "M", "X", "J", "V", "S", "D"];
-const LABELLED_ROWS = new Set([0, 2, 4]);
 
 const MONTHS_ES = [
   "ene", "feb", "mar", "abr", "may", "jun",
   "jul", "ago", "sep", "oct", "nov", "dic",
 ];
 
-const CELL = 14;
-const GAP = 2;
+const MONTHS_ES_FULL = [
+  "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
 
 const monthOf = (localDateStr) => Number(localDateStr.slice(5, 7)) - 1;
 
 /** "2026-07-27" → "27 jul". A full ISO date is too wide to read at 9px on a phone. */
 const shortDate = (localDateStr) =>
   `${Number(localDateStr.slice(8, 10))} ${MONTHS_ES[monthOf(localDateStr)]}`;
+
+/** "2026-08" → "agosto 2026", the calendar's own heading. */
+const monthTitle = (yearMonth) =>
+  `${MONTHS_ES_FULL[Number(yearMonth.slice(5, 7)) - 1]} ${yearMonth.slice(0, 4)}`;
+
+/**
+ * How hard the day was circled. The five intensity levels the trend view uses collapse to
+ * three weights here on purpose: the month page answers "did I show up", and a hand holding
+ * one pen can only press so many distinguishable ways. Volume stays with the trend view.
+ */
+const INK = {
+  1: { color: HEAT[2], width: 1.5 },
+  2: { color: HEAT[2], width: 1.5 },
+  3: { color: C.pen, width: 2 },
+  4: { color: C.penDark, width: 2.5 },
+};
+
+/**
+ * Three slightly-off ellipses, picked by day number so the same date always looks the same.
+ * A circle drawn by hand is never the circle next to it, and repeating one shape 31 times is
+ * what would make these read as a UI control rather than as ink.
+ */
+const WOBBLES = [
+  { borderRadius: "50% 46% 54% 48% / 54% 48% 52% 46%", rotate: -5 },
+  { borderRadius: "47% 53% 45% 55% / 50% 52% 48% 50%", rotate: 3 },
+  { borderRadius: "53% 47% 52% 48% / 46% 54% 46% 54%", rotate: -2 },
+];
+
+const ROW_HEIGHT = 34;
+
+/**
+ * One month as a planner page: printed rules and typeset numbers, with the owner's own marks
+ * on top. The contrast is the point — the page looks printed so the ink looks handwritten.
+ *
+ * Divs rather than SVG, as the strip before it was: each day needs its own `title` and
+ * `aria-label`, which a grid of elements gives for free and a single drawing would not.
+ */
+function MonthCalendar({ cells, today }) {
+  return (
+    <div>
+      <div className="grid" style={{ gridTemplateColumns: "repeat(7, 1fr)" }} aria-hidden="true">
+        {WEEKDAY_INITIALS.map((initial) => (
+          <div
+            key={initial}
+            className="text-center text-[9px] leading-none pb-1"
+            style={{ fontFamily: MONO, color: C.mut }}
+          >
+            {initial}
+          </div>
+        ))}
+      </div>
+
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: "repeat(7, 1fr)",
+          borderTop: `1px solid ${C.line}`,
+          borderLeft: `1px solid ${C.line}`,
+        }}
+      >
+        {cells.map((cell) => {
+          const ink = cell.inMonth && !cell.future ? INK[cell.level] : null;
+          const wobble = WOBBLES[cell.dayOfMonth % WOBBLES.length];
+          const isToday = cell.date === today;
+          return (
+            <div
+              key={cell.date}
+              className="relative flex items-center justify-center"
+              style={{
+                height: ROW_HEIGHT,
+                borderRight: `1px solid ${C.line}`,
+                borderBottom: `1px solid ${C.line}`,
+              }}
+              title={cell.inMonth && !cell.future ? `${cell.date}: ${cell.count}` : undefined}
+              aria-label={
+                cell.inMonth && !cell.future ? `${cell.date}: ${cell.count} events` : undefined
+              }
+            >
+              {ink && (
+                <span
+                  className="activity-mark pointer-events-none absolute"
+                  aria-hidden="true"
+                  style={{
+                    inset: "4px 6px",
+                    border: `${ink.width}px solid ${ink.color}`,
+                    borderRadius: wobble.borderRadius,
+                    transform: `rotate(${wobble.rotate}deg)`,
+                  }}
+                />
+              )}
+              {isToday && (
+                <span
+                  className="today-rule pointer-events-none absolute"
+                  aria-hidden="true"
+                  style={{ left: "32%", right: "32%", bottom: 4, height: 2, background: C.red }}
+                />
+              )}
+              {cell.inMonth && (
+                <span
+                  className="relative text-[11px] leading-none"
+                  style={{ fontFamily: MONO, color: cell.future ? C.mut : C.ink }}
+                >
+                  {cell.dayOfMonth}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** A trend dot is one day shown up, tinted by how busy it was. */
+const DOT = 8;
+
+/**
+ * The trailing sixteen weeks as one column per week, one dot per day the owner showed up.
+ *
+ * Deliberately not a calendar: at this zoom which weekday a day was carries nothing, while
+ * how full each column is carries the whole story. A column of seven is a perfect week, and
+ * a run of tall columns is the habit holding.
+ */
+function TrendWeeks({ weeks }) {
+  return (
+    <div>
+      <div className="flex items-end gap-1" style={{ height: 7 * DOT + 6 * 2 }}>
+        {weeks.map((week) => {
+          const active = week.days.filter((day) => !day.future && day.count > 0);
+          return (
+            <div
+              key={week.weekStart}
+              className="flex min-w-0 flex-1 flex-col-reverse items-center gap-[2px]"
+              aria-label={`Week of ${week.weekStart}: ${active.length} active days`}
+            >
+              {active.map((day) => (
+                <span
+                  key={day.date}
+                  className="trend-dot rounded-full"
+                  style={{ width: DOT, height: DOT, background: HEAT[day.level] }}
+                />
+              ))}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-1 flex gap-1" aria-hidden="true">
+        {weeks.map((week, i) => {
+          const opensMonth = i === 0 || monthOf(week.weekStart) !== monthOf(weeks[i - 1].weekStart);
+          return (
+            <div
+              key={week.weekStart}
+              className="min-w-0 flex-1 overflow-visible whitespace-nowrap text-[9px] leading-none"
+              style={{ fontFamily: MONO, color: C.mut }}
+            >
+              {opensMonth ? MONTHS_ES[monthOf(week.weekStart)] : ""}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-2 flex items-center justify-end gap-1">
+        <span className="text-[9px]" style={{ fontFamily: MONO, color: C.mut }}>
+          menos
+        </span>
+        {HEAT.map((tone, level) => (
+          <div key={level} className="w-2.5 h-2.5 rounded-[2px]" style={{ background: tone }} />
+        ))}
+        <span className="text-[9px]" style={{ fontFamily: MONO, color: C.mut }}>
+          más
+        </span>
+      </div>
+    </div>
+  );
+}
 
 /**
  * The growth chart's drawing area inside its 320×140 viewBox. The left gutter holds the
@@ -132,11 +312,26 @@ export default function Estadisticas({ items, events, onBack, onOpenConjugationP
     window.scrollTo(0, 0);
   }, []);
 
+  // Two views of the same activity: the month page for "did I show up", the trend for how
+  // that has held over time. The month is the default because it is the one the owner is
+  // standing in.
+  const [activityView, setActivityView] = useState("mes");
+  const today = localDate();
+  const thisMonth = monthOfDate(today);
+  const [month, setMonth] = useState(thisMonth);
+
   const activity = useMemo(() => activityByDay(events), [events]);
   const streak = useMemo(() => streakFrom(activity), [activity]);
   const weeks = useMemo(() => heatmapWeeks(activity), [activity]);
+  const cells = useMemo(() => monthGrid(activity, month, today), [activity, month, today]);
+  const earliest = useMemo(() => earliestActivityMonth(activity), [activity]);
   const growth = useMemo(() => cumulativeWordsByWeek(items), [items]);
   const conjugations = useMemo(() => conjugationPerformance(events, { items }), [events, items]);
+
+  // Paging stops at the first month with anything in it and at the month the owner is in:
+  // there is nothing to see on either side, and an arrow that always works invites the hunt.
+  const canGoBack = Boolean(earliest) && month > earliest;
+  const canGoForward = month < thisMonth;
 
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
@@ -159,88 +354,57 @@ export default function Estadisticas({ items, events, onBack, onOpenConjugationP
 
       <SectionTitle>Actividad</SectionTitle>
       <Card className="p-3">
-        <div className="flex gap-1">
-          <div
-            className="grid shrink-0"
-            style={{ gridTemplateRows: `repeat(7, ${CELL}px)`, gap: `${GAP}px` }}
-            aria-hidden="true"
-          >
-            {WEEKDAY_INITIALS.map((initial, row) => (
-              <div
-                key={initial}
-                className="flex items-center text-[9px] leading-none"
-                style={{ fontFamily: MONO, color: C.mut, height: CELL }}
-              >
-                {LABELLED_ROWS.has(row) ? initial : ""}
-              </div>
-            ))}
-          </div>
-
-          <div className="min-w-0">
-            {/* Month names sit above the column that opens each month, so a 16-week strip
-                still says roughly when it is without a full axis. */}
-            <div
-              className="grid mb-1"
-              style={{
-                gridAutoFlow: "column",
-                gridAutoColumns: `${CELL}px`,
-                gap: `${GAP}px`,
-              }}
-              aria-hidden="true"
+        {activityView === "mes" && (
+          <div className="mb-2 flex items-center justify-between">
+            <button
+              type="button"
+              aria-label="Mes anterior"
+              disabled={!canGoBack}
+              onClick={() => setMonth(addMonths(month, -1))}
+              className="p-1"
+              style={{ color: canGoBack ? C.pen : C.disabled }}
             >
-              {weeks.map((week, i) => {
-                const opensMonth = i === 0 || monthOf(week.weekStart) !== monthOf(weeks[i - 1].weekStart);
-                return (
-                  <div
-                    key={week.weekStart}
-                    className="text-[9px] leading-none overflow-visible whitespace-nowrap"
-                    style={{ fontFamily: MONO, color: C.mut }}
-                  >
-                    {opensMonth ? MONTHS_ES[monthOf(week.weekStart)] : ""}
-                  </div>
-                );
-              })}
+              <ChevronLeft size={18} />
+            </button>
+            <div className="text-sm" style={{ fontFamily: SERIF, color: C.ink }}>
+              {monthTitle(month)}
             </div>
-
-            <div
-              className="grid"
-              style={{
-                gridAutoFlow: "column",
-                gridTemplateRows: `repeat(7, ${CELL}px)`,
-                gridAutoColumns: `${CELL}px`,
-                gap: `${GAP}px`,
-              }}
+            <button
+              type="button"
+              aria-label="Mes siguiente"
+              disabled={!canGoForward}
+              onClick={() => setMonth(addMonths(month, 1))}
+              className="p-1"
+              style={{ color: canGoForward ? C.pen : C.disabled }}
             >
-              {weeks.flatMap((week) =>
-                week.days.map((day) => (
-                  <div
-                    key={day.date}
-                    className="rounded-[3px]"
-                    title={day.future ? undefined : `${day.date}: ${day.count}`}
-                    aria-label={day.future ? undefined : `${day.date}: ${day.count} events`}
-                    style={{ background: day.future ? "transparent" : HEAT[day.level] }}
-                  />
-                ))
-              )}
-            </div>
+              <ChevronRight size={18} />
+            </button>
           </div>
-        </div>
+        )}
 
-        <div className="mt-2 flex items-center justify-end gap-1">
-          <span className="text-[9px]" style={{ fontFamily: MONO, color: C.mut }}>
-            menos
-          </span>
-          {HEAT.map((tone, level) => (
-            <div key={level} className="w-2.5 h-2.5 rounded-[2px]" style={{ background: tone }} />
-          ))}
-          <span className="text-[9px]" style={{ fontFamily: MONO, color: C.mut }}>
-            más
-          </span>
-        </div>
+        {activityView === "mes" ? (
+          <MonthCalendar cells={cells} today={today} />
+        ) : (
+          <TrendWeeks weeks={weeks} />
+        )}
 
         <div className="mt-2 text-xs" style={{ color: C.mut }}>
-          The last {HEATMAP_WEEKS} weeks. Every kind of activity counts, including words since
-          deleted.
+          {activityView === "mes"
+            ? "A circled day is a day you studied; heavier ink, busier day."
+            : `The last ${HEATMAP_WEEKS} weeks, one dot per day you showed up.`}{" "}
+          Every kind of activity counts, including words since deleted.
+        </div>
+
+        <div className="mt-3">
+          <Segmented
+            label="Vista de actividad"
+            value={activityView}
+            options={[
+              { value: "mes", label: "mes" },
+              { value: "tendencia", label: "tendencia" },
+            ]}
+            onChange={setActivityView}
+          />
         </div>
       </Card>
 
