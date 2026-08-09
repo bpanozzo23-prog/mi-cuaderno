@@ -1,6 +1,6 @@
 /** Design tokens and small shared pieces, lifted from the prototype (docs/mi-cuaderno.jsx). */
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 /**
  * The palette, as CSS variable references.
@@ -106,24 +106,36 @@ export function useHubTitleSize(text, { weight = 700, letterSpacing = "0px" } = 
   const ref = useRef(null);
   const [size, setSize] = useState(HUB_TITLE_FULL);
 
-  useLayoutEffect(() => {
+  const fit = useCallback(() => {
     const element = ref.current;
-    if (!element) return undefined;
-    const fit = () => {
-      const available = element.clientWidth;
-      if (!available) return;
-      const needed = naturalTitleWidth(text, HUB_TITLE_FULL, weight, letterSpacing);
-      setSize(needed <= available ? HUB_TITLE_FULL : HUB_TITLE_TIGHT);
-    };
-    fit();
-    /* The available width changes with the viewport, not with anything React re-renders on, so the
-       observer is what keeps a rotated phone honest. Absent in jsdom, where the one-shot fit above
-       is the whole behaviour. */
-    if (typeof ResizeObserver === "undefined") return undefined;
-    const observer = new ResizeObserver(fit);
-    observer.observe(element);
-    return () => observer.disconnect();
+    if (!element) return;
+    const available = element.clientWidth;
+    /* Zero means the title has no box to fill yet — every hub mounts behind a `display: none`
+       route, so this is the state a card is born in, not an edge case. Bail without deciding and
+       let a later run answer, rather than committing to a size measured against nothing. */
+    if (!available) return;
+    const needed = naturalTitleWidth(text, HUB_TITLE_FULL, weight, letterSpacing);
+    setSize(needed <= available ? HUB_TITLE_FULL : HUB_TITLE_TIGHT);
   }, [text, weight, letterSpacing]);
+
+  /* Deliberately no dependency array: the fit must re-run on every render, because the render that
+     matters is the one where the card's route stops being hidden and the title finally has a
+     width. Keying this to [text] instead left a hub card measuring 0 at mount and never asking
+     again, which is how a 30-character phrase sat at full size in 254px of space. The work is a
+     canvas measure and one `clientWidth` read, and settling on the same size is a no-op because
+     React bails out of an identical state update. */
+  useLayoutEffect(fit);
+
+  /* The viewport can change without React rendering anything — a rotation — which is the one case
+     the every-render fit above cannot see. This was a ResizeObserver on the title, which looked
+     more precise and did not work: every hub mounts hidden, so the observer was attached to an
+     element with no box and never delivered once it had one. The window's own resize event has no
+     such dependency, and the card's width here follows the viewport anyway. */
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, [fit]);
 
   return [ref, size];
 }

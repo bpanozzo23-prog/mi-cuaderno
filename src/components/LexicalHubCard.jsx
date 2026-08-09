@@ -68,7 +68,7 @@ export default function LexicalHubCard({
 
         {gloss && (
           <div
-            className="mt-2 pl-[26px] -indent-[16px] line-clamp-2 text-[14px] leading-relaxed"
+            className="mt-2 pl-[26px] -indent-[16px] line-clamp-2 text-[15px] leading-relaxed"
             style={{ color: C.entryMeaning }}
           >
             <span style={{ color: C.entryMeaningDash }}>—</span> {gloss}
