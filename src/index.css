@@ -88,6 +88,24 @@
   --color-heat-2: #93A9DB;
   --color-heat-3: #5C7EC1;
   --color-heat-4: #2D4EA0;
+
+  /* The Repaso stats chalkboard (owner-picked 2026-08-09): green slate in a two-tone wood
+     frame whose bottom edge is a deeper, lighter-wood chalk tray. Chalk text is warm
+     off-white; -dim is the same chalk with hex alpha for labels and the dashed underline
+     (a token, never string surgery on C.* — see --color-hi-soft). */
+  --color-chalk-board: #2F4038;
+  --color-chalk-frame: #8B5A2B;
+  --color-chalk-frame-dark: #6B4420;
+  --color-chalk-tray: #A06A35;
+  --color-chalk-tray-shadow: #5C3A1B;
+  --color-chalk: #FBF8EC;
+  --color-chalk-dim: #F2EFE4BF;
+  --color-chalk-rule: #F2EFE473;
+  --color-chalk-stick: #F7F4E8;
+  --color-chalk-stick-pink: #E8A0A8;
+  --color-chalk-eraser-back: #2A2A2C;
+  --color-chalk-eraser-felt: #57575C;
+  --color-chalk-eraser-dust: #FBF8EC59;
 }
 
 /* The tab now carries the page's role badge, so it is a real element sized by its own content

@@ -51,6 +51,19 @@ export const C = {
   roleVocabularyInk: "var(--color-role-vocabulary-ink)",
   roleGrammarPale: "var(--color-role-grammar-pale)",
   roleGrammarInk: "var(--color-role-grammar-ink)",
+  chalkBoard: "var(--color-chalk-board)",
+  chalkFrame: "var(--color-chalk-frame)",
+  chalkFrameDark: "var(--color-chalk-frame-dark)",
+  chalkTray: "var(--color-chalk-tray)",
+  chalkTrayShadow: "var(--color-chalk-tray-shadow)",
+  chalk: "var(--color-chalk)",
+  chalkDim: "var(--color-chalk-dim)",
+  chalkRule: "var(--color-chalk-rule)",
+  chalkStick: "var(--color-chalk-stick)",
+  chalkStickPink: "var(--color-chalk-stick-pink)",
+  chalkEraserBack: "var(--color-chalk-eraser-back)",
+  chalkEraserFelt: "var(--color-chalk-eraser-felt)",
+  chalkEraserDust: "var(--color-chalk-eraser-dust)",
 };
 
 /** The activity calendar's ramp, indexed by intensity level 0–4 (Phase 11). */
@@ -64,6 +77,10 @@ export const HEAT = [
 
 export const SERIF = 'Georgia, "Iowan Old Style", "Times New Roman", serif';
 export const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
+/* The chalkboard's two hands (self-hosted via @fontsource, imported in main.jsx): a rough
+   print for the numbers, a quicker script for labels and the heading. */
+export const CHALK_PRINT = '"Gloria Hallelujah", cursive';
+export const CHALK_SCRIPT = '"Caveat", cursive';
 
 export const HUB_TITLE_FULL = 18;
 export const HUB_TITLE_TIGHT = 17;

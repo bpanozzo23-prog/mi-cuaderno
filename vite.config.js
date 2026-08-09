@@ -17,7 +17,7 @@ export default defineConfig({
         // (brief §11) — the service worker must not quietly precache 22 MB of chunks on
         // first visit. globPatterns is already js/css/html-only by default; both entries
         // are stated rather than inherited so a later Workbox default cannot change it.
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest,woff2}"],
         globIgnores: ["**/dict/**"],
         navigateFallbackDenylist: [/^\/mi-cuaderno\/dict\//],
       },

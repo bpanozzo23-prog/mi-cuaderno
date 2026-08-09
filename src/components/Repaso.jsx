@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Highlighter, SearchX, Play, CheckCircle2, Eye, ChevronRight, Dumbbell } from "lucide-react";
-import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button } from "../theme.jsx";
+import { C, SERIF, MONO, CHALK_PRINT, CHALK_SCRIPT, dotGrid, Hi, SectionTitle, Card, Button } from "../theme.jsx";
 import ItemCard from "./ItemCard.jsx";
 import ReviewSession from "./ReviewSession.jsx";
 import ConjugationGym from "./ConjugationGym.jsx";
@@ -51,16 +51,81 @@ const DIRECTION_OPTIONS = [
 const itemHeading = (item) =>
   item.type === "page" ? item.title || "Untitled page" : item.term;
 
-function Stat({ label, value }) {
+function ChalkStat({ label, value }) {
   return (
-    <Card className="text-center">
-      <div className="text-xl font-semibold" style={{ fontFamily: MONO, color: C.ink }}>
+    <div className="text-center px-1 py-2">
+      <div className="text-3xl leading-tight" style={{ fontFamily: CHALK_PRINT, color: C.chalk }}>
         {value}
       </div>
-      <div className="text-xs" style={{ color: C.mut }}>
+      <div className="text-xl leading-tight" style={{ fontFamily: CHALK_SCRIPT, color: C.chalkDim }}>
         {label}
       </div>
-    </Card>
+    </div>
+  );
+}
+
+/**
+ * The four Repaso stats as one classroom chalkboard (owner-picked 2026-08-09, mockups in chat):
+ * green slate in a wood frame whose bottom edge is a distinct chalk tray — a deeper, lighter
+ * ledge holding two chalk sticks and a felt eraser. Decoration is aria-hidden; the numbers and
+ * labels remain ordinary text.
+ */
+function ChalkboardStats({ children }) {
+  return (
+    <div className="mt-6">
+      <div
+        className="rounded-t-[10px] border-[14px] border-b-0"
+        style={{ borderColor: C.chalkFrame, background: C.chalkBoard }}
+      >
+        <div
+          className="rounded-t-[2px] border-[3px] border-b-0 px-4 pt-5 pb-4"
+          style={{ borderColor: C.chalkFrameDark, background: C.chalkBoard }}
+        >
+          <div
+            className="text-center text-2xl font-bold tracking-wide pb-1 mb-3"
+            style={{
+              fontFamily: CHALK_SCRIPT,
+              color: C.chalk,
+              borderBottom: `1.5px dashed ${C.chalkRule}`,
+            }}
+          >
+            Mis estadísticas
+          </div>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1">{children}</div>
+        </div>
+      </div>
+      <div
+        className="relative h-[42px] rounded-b-md border-t-[3px]"
+        style={{ background: C.chalkTray, borderColor: C.chalkTrayShadow }}
+        aria-hidden="true"
+      >
+        <div className="absolute inset-x-0 top-0 h-2 opacity-50" style={{ background: C.chalkFrameDark }} />
+        <div
+          className="absolute top-3 right-10 w-14 h-2.5 rounded-[2px] -rotate-2"
+          style={{ background: C.chalkStick }}
+        />
+        <div
+          className="absolute top-4 right-28 w-10 h-2 rounded-[2px] rotate-2"
+          style={{ background: C.chalkStickPink }}
+        />
+        <div className="absolute top-2 left-9 w-[74px] h-6 -rotate-1">
+          <div className="h-2.5 rounded-t-[3px]" style={{ background: C.chalkEraserBack }} />
+          <div
+            className="h-3.5 rounded-b-[3px] border-t"
+            style={{ background: C.chalkEraserFelt, borderColor: C.chalkEraserBack }}
+          />
+          <div
+            className="absolute left-1.5 bottom-0.5 w-[60px] h-1 rounded-sm"
+            style={{ background: C.chalkEraserDust }}
+          />
+        </div>
+      </div>
+      <div
+        className="mx-auto h-2 rounded-b-lg"
+        style={{ background: C.chalkFrame, width: "calc(100% - 24px)" }}
+        aria-hidden="true"
+      />
+    </div>
   );
 }
 
@@ -474,12 +539,12 @@ export default function Repaso({ notebook, onSelect }) {
 
       {/* Two by two rather than four across: at 375px a fourth column leaves each tile
           too narrow for a four-figure open count to sit under its label. */}
-      <div className="grid grid-cols-2 gap-2 mt-6">
-        <Stat label="day streak" value={streak} />
-        <Stat label="items" value={items.length} />
-        <Stat label="opens" value={totalOpens} />
-        <Stat label="tricky" value={tricky.length} />
-      </div>
+      <ChalkboardStats>
+        <ChalkStat label="day streak" value={streak} />
+        <ChalkStat label="items" value={items.length} />
+        <ChalkStat label="opens" value={totalOpens} />
+        <ChalkStat label="tricky" value={tricky.length} />
+      </ChalkboardStats>
 
       <SectionTitle>Estadísticas</SectionTitle>
       {ladder.tracked > 0 && (

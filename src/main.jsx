@@ -3,6 +3,11 @@ import { createRoot } from "react-dom/client";
 import SchemaUpgradeGate from "./components/SchemaUpgradeGate.jsx";
 import { preupgradeStatus } from "./db/preupgrade.js";
 import "./index.css";
+// The Repaso chalkboard's chalk faces, self-hosted so the PWA keeps them offline. Latin
+// subsets only: the app's own text is Spanish/English, which latin covers (í, ñ included).
+import "@fontsource/gloria-hallelujah/latin-400.css";
+import "@fontsource/caveat/latin-500.css";
+import "@fontsource/caveat/latin-700.css";
 
 const root = createRoot(document.getElementById("root"));
 
