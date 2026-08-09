@@ -41,13 +41,16 @@ export default function PageContextSummary({
 
   const [first] = pages;
   const remaining = pages.length - 1;
-  const row = (
-    <>
+  const chip = (
+    <span
+      className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border px-2 py-0.5"
+      style={{ background: C.card, borderColor: C.line }}
+    >
       <FileText size={11} className="shrink-0" style={{ color: C.mut }} />
       <span className="min-w-0 truncate" style={{ color: C.ink }}>{first.pageTitle}</span>
-    </>
+    </span>
   );
-  const rowClass = "flex w-full items-center gap-1.5 text-left";
+  const rowClass = "flex w-full items-center text-left";
 
   return (
     <div className={`text-xs ${className}`}>
@@ -58,10 +61,10 @@ export default function PageContextSummary({
           onClick={() => onOpenPage(first.pageId)}
           className={`${rowClass} min-h-8 active:opacity-70`}
         >
-          {row}
+          {chip}
         </button>
       ) : (
-        <div className={rowClass}>{row}</div>
+        <div className={rowClass}>{chip}</div>
       )}
       {remaining > 0 && (
         onOpenMore ? (
