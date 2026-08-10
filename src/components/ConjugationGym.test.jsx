@@ -71,6 +71,32 @@ describe("Conjugation Gym setup", () => {
     expect(screen.getByRole("button", { name: "Start tense usage" })).toBeTruthy();
   });
 
+  it("starts default all-selected Usage recall and permits a one-tense custom scope", async () => {
+    const user = userEvent.setup();
+    render(<ConjugationGym items={[]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await user.click(screen.getByRole("radio", { name: "Tense usage" }));
+    await user.click(screen.getByRole("radio", { name: "Recall uses" }));
+    expect(screen.getByLabelText("Prompts").value).toBe("all");
+    expect(screen.getByText("6 tenses available for these choices.")).toBeTruthy();
+
+    await user.selectOptions(screen.getByLabelText("Tense pack"), "customize");
+    for (const tense of [
+      "Indicative preterite",
+      "Indicative imperfect",
+      "Indicative future",
+      "Indicative conditional",
+      "Subjunctive present",
+    ]) {
+      await user.click(screen.getByRole("checkbox", { name: tense }));
+    }
+    expect(screen.getByText("1 tense available for these choices.")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Start tense usage" }));
+    expect(screen.getByText("Indicative present")).toBeTruthy();
+    expect(screen.getByText("1 / 1")).toBeTruthy();
+    expect(screen.getByText("Recall at least one valid use.")).toBeTruthy();
+  });
+
   it("keeps performance available when the dictionary is not installed", async () => {
     const user = userEvent.setup();
     render(<ConjugationGym items={[]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);

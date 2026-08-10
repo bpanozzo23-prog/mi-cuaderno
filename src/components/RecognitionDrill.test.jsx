@@ -97,7 +97,7 @@ describe("recognition multiple-choice sessions", () => {
     expect([...secondOrder].sort()).toEqual([...firstOrder].sort());
 
     await user.click(screen.getByRole("button", { name: "Indicative preterite" }));
-    await user.click(screen.getByRole("button", { name: "Done" }));
+    await user.click(await screen.findByRole("button", { name: "Done" }));
     expect(screen.getByText("Missed round complete")).toBeTruthy();
     expect(screen.getByText("Missed round: 1/1")).toBeTruthy();
     expect((await allEvents()).map((event) => [event.type, event.metadata.stage])).toEqual([

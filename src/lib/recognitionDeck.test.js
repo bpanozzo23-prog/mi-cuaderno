@@ -9,8 +9,11 @@ import {
 } from "./recognitionContent.js";
 import {
   buildRecognitionDeck,
+  buildUsageRecallDeck,
   rebuildMissedRecognitionDeck,
+  rebuildMissedUsageRecallDeck,
   recognitionOptions,
+  usageRecallCards,
 } from "./recognitionDeck.js";
 
 const rngFrom = (values) => {
@@ -88,6 +91,74 @@ describe("recognition choices and balanced decks", () => {
     expect(again.id).toBe(card.id);
     expect(again.options).not.toEqual(card.options);
     expect(optionSet(again.options)).toBe(optionSet(card.options));
+  });
+});
+
+describe("usage recall aggregation and balanced cycles", () => {
+  it("builds one stable card per canonical tense with every authored use", () => {
+    const cards = usageRecallCards(TENSE_USAGE_CARDS);
+    const preterite = cards.find((card) => card.answer === "Indicative/Preterite");
+
+    expect(cards).toHaveLength(recognitionTenses("usage").length);
+    expect(new Set(cards.map((card) => card.id)).size).toBe(cards.length);
+    expect(preterite.id).toBe("usage:recall:Indicative/Preterite");
+    expect(preterite.uses.map((use) => use.id)).toEqual([
+      "usage:preterite-completed",
+      "usage:preterite-sequence",
+      "usage:preterite-interruption",
+    ]);
+    expect(preterite.contrasts).toEqual(expect.arrayContaining([
+      expect.stringMatching(/action that finished/),
+      expect.stringMatching(/interrupting event/),
+    ]));
+  });
+
+  it("uses each selected tense once by default and is deterministic with injected rng", () => {
+    const options = { tenseScope: RECOGNITION_EVERYDAY_TENSES };
+    const first = buildUsageRecallDeck(TENSE_USAGE_CARDS, {
+      ...options,
+      rng: rngFrom([0.12, 0.84, 0.31, 0.67, 0.45]),
+    });
+    const second = buildUsageRecallDeck(TENSE_USAGE_CARDS, {
+      ...options,
+      rng: rngFrom([0.12, 0.84, 0.31, 0.67, 0.45]),
+    });
+
+    expect(first.map((card) => card.answer)).toEqual(second.map((card) => card.answer));
+    expect(first).toHaveLength(RECOGNITION_EVERYDAY_TENSES.length);
+    expect(new Set(first.map((card) => card.answer))).toEqual(new Set(RECOGNITION_EVERYDAY_TENSES));
+  });
+
+  it("repeats 10 and 20 prompts only after complete balanced cycles", () => {
+    for (const size of [10, 20]) {
+      const deck = buildUsageRecallDeck(TENSE_USAGE_CARDS, {
+        size,
+        tenseScope: RECOGNITION_EVERYDAY_TENSES,
+        rng: rngFrom([0.12, 0.84, 0.31, 0.67, 0.45]),
+      });
+      expect(deck).toHaveLength(size);
+      for (let index = 0; index < deck.length; index += RECOGNITION_EVERYDAY_TENSES.length) {
+        const cycle = deck.slice(index, index + RECOGNITION_EVERYDAY_TENSES.length);
+        expect(new Set(cycle.map((card) => card.answer)).size).toBe(cycle.length);
+      }
+      for (let index = 1; index < deck.length; index += 1) {
+        expect(deck[index].answer).not.toBe(deck[index - 1].answer);
+      }
+      const counts = RECOGNITION_EVERYDAY_TENSES.map((tense) => deck.filter((card) => card.answer === tense).length);
+      expect(Math.max(...counts) - Math.min(...counts)).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("rebuilds one missed card per tense even after repeated misses", () => {
+    const present = usageRecallCards(TENSE_USAGE_CARDS).find((card) => card.answer === "Indicative/Present");
+    const preterite = usageRecallCards(TENSE_USAGE_CARDS).find((card) => card.answer === "Indicative/Preterite");
+    const missed = rebuildMissedUsageRecallDeck([present, present, preterite], { rng: () => 0.4 });
+
+    expect(missed).toHaveLength(2);
+    expect(new Set(missed.map((card) => card.answer))).toEqual(new Set([
+      "Indicative/Present",
+      "Indicative/Preterite",
+    ]));
   });
 });
 

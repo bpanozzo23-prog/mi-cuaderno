@@ -100,3 +100,66 @@ export function rebuildMissedRecognitionDeck(cards, options = {}) {
     return { ...card, options: rebuilt };
   }).filter((card) => card.options.length === 4);
 }
+
+/** Aggregates the authored usage prompts into one stable recall card per canonical tense. */
+export function usageRecallCards(cards) {
+  const byTense = new Map();
+  for (const card of cards || []) {
+    const tense = card.answer;
+    if (!tense) continue;
+    const current = byTense.get(tense) || {
+      id: `usage:recall:${tense}`,
+      skill: "usage",
+      answer: tense,
+      uses: [],
+      contrasts: [],
+    };
+    const uses = card.uses?.length ? card.uses : [{
+      id: card.id,
+      prompt: card.prompt,
+      alsoAcceptable: card.alsoAcceptable || [],
+    }];
+    for (const use of uses) {
+      if (use?.id && !current.uses.some((row) => row.id === use.id)) current.uses.push(use);
+    }
+    for (const contrast of card.contrasts || (card.contrast ? [card.contrast] : [])) {
+      if (contrast && !current.contrasts.includes(contrast)) current.contrasts.push(contrast);
+    }
+    byTense.set(tense, current);
+  }
+  return [...byTense.values()];
+}
+
+function recallCycle(cards, rng, previousTense = null) {
+  const cycle = shuffle(cards, rng);
+  if (cycle.length > 1 && cycle[0].answer === previousTense) {
+    const replacement = cycle.findIndex((card) => card.answer !== previousTense);
+    [cycle[0], cycle[replacement]] = [cycle[replacement], cycle[0]];
+  }
+  return cycle;
+}
+
+/**
+ * Builds Usage recall in complete balanced cycles. `all` presents every selected tense once;
+ * numeric lengths repeat only after a cycle has exhausted every selected tense.
+ */
+export function buildUsageRecallDeck(
+  cards,
+  { size = "all", tenseScope = [], rng = Math.random } = {}
+) {
+  const allowed = tenseScope?.length ? new Set(tenseScope) : null;
+  const candidates = usageRecallCards(cards).filter((card) => !allowed || allowed.has(card.answer));
+  if (!candidates.length) return [];
+  const requested = size === "all" ? candidates.length : Math.max(0, Number(size) || 0);
+  const deck = [];
+  while (deck.length < requested) {
+    const cycle = recallCycle(candidates, rng, deck.at(-1)?.answer || null);
+    deck.push(...cycle.slice(0, requested - deck.length));
+  }
+  return deck;
+}
+
+/** Repeats each missed tense once, even when it appeared or was missed more than once. */
+export function rebuildMissedUsageRecallDeck(cards, { rng = Math.random } = {}) {
+  return buildUsageRecallDeck(usageRecallCards(cards), { size: "all", rng });
+}
