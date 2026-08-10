@@ -1,6 +1,8 @@
 # Phase 17 — Gym recognition lanes (report)
 
-Implemented and verified locally 2026-08-09 on `main`; **not deployed**. The owner requested the
+Implemented and verified locally 2026-08-09 on `main`; **pushed and deployed later the same day**
+with the post-implementation review's content corrections (the verification below describes the
+pre-push closeout). The owner requested the
 approved direction be implemented in its written delivery sequence. The complete scope and
 boundaries remain in [PHASE-17-DIRECTION.md](PHASE-17-DIRECTION.md), and durable choices are
 recorded in `DECISIONS.md` under Phase 17.

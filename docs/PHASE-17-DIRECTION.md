@@ -1,6 +1,7 @@
 # Phase 17 direction — Gym recognition lanes: tense usage and endings
 
-**Status:** Implemented and verified locally 2026-08-09; not deployed. The owner requested
+**Status:** Implemented and verified locally 2026-08-09; pushed and deployed later the same day
+with the review's content corrections. The owner requested
 implementation in this delivery sequence, approving the mechanics and boundaries. The two content
 tables (§2's endings, §3's usage cards) remain open to line-by-line wording corrections without
 re-approving the mechanic.

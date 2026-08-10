@@ -190,7 +190,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   1,044/1,044 across 87 files, the production build and `git diff --check` pass, and a disposable
   375×812 closeout passed without horizontal overflow or console warnings/errors. See the approved
   [direction](docs/PHASE-16-DIRECTION.md) and [implementation report](docs/PHASE-16-REPORT.md).
-- **Phase 17 — implemented locally; not deployed.** The Gym now has Forms, Tense usage and
+- **Phase 17 — deployed.** The Gym now has Forms, Tense usage and
   Endings lanes. Usage and Endings use one objective four-choice engine with balanced decks,
   curated confusables, no immediate retry, one reshuffled missed round, and dictionary-backed
   regular/perfect reveals when available. Recognition answers reuse `drill_pass`/`drill_fail`
