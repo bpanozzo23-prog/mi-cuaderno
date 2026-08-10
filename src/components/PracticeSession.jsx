@@ -5,11 +5,20 @@ import { shufflePracticeItems } from "../lib/practice.js";
 import { PracticeCard, SelfAssessmentStrip, usePracticeCardState } from "./PracticeCard.jsx";
 
 /** One or more in-memory passes through a free-practice deck. No event writer is imported. */
-export default function PracticeSession({ cards, onFinish, onOpen, random = Math.random }) {
+export default function PracticeSession({
+  cards,
+  onFinish,
+  onOpen,
+  random = Math.random,
+  mode = "reveal",
+  backLabel = "Back to words & phrases",
+  sessionLabel = "Free practice",
+}) {
   const [round, setRound] = useState(cards);
   const [roundNumber, setRoundNumber] = useState(1);
   const [index, setIndex] = useState(0);
   const [missed, setMissed] = useState([]);
+  const [typedWrong, setTypedWrong] = useState(false);
   const cardState = usePracticeCardState();
 
   const item = round[index] || null;
@@ -19,7 +28,13 @@ export default function PracticeSession({ cards, onFinish, onOpen, random = Math
     if (!item) return;
     if (!gotIt) setMissed((current) => [...current, item]);
     cardState.reset();
+    setTypedWrong(false);
     setIndex((current) => current + 1);
+  }
+
+  function markTyped(result) {
+    cardState.markTyped(result);
+    setTypedWrong(result.verdict === "wrong");
   }
 
   function repeatMissed() {
@@ -28,6 +43,7 @@ export default function PracticeSession({ cards, onFinish, onOpen, random = Math
     setIndex(0);
     setMissed([]);
     cardState.reset();
+    setTypedWrong(false);
   }
 
   if (done) {
@@ -59,7 +75,7 @@ export default function PracticeSession({ cards, onFinish, onOpen, random = Math
                 </Button>
               )}
               <Button className="min-h-11" tone={missed.length > 0 ? "quiet" : "primary"} onClick={onFinish}>
-                Back to words &amp; phrases
+                {backLabel}
               </Button>
             </div>
           </Card>
@@ -73,7 +89,7 @@ export default function PracticeSession({ cards, onFinish, onOpen, random = Math
       <PracticeHeader onFinish={onFinish} label={`${index + 1} / ${round.length}`} />
       <main className="px-4 py-5 pb-28" style={dotGrid}>
         <div className="mb-3 text-center text-[11px] uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.1em" }}>
-          Free practice · round {roundNumber}
+          {sessionLabel} · round {roundNumber}
         </div>
         <PracticeCard
           item={item}
@@ -82,11 +98,20 @@ export default function PracticeSession({ cards, onFinish, onOpen, random = Math
           showContext={cardState.showContext}
           onToggleContext={cardState.toggleContext}
           onOpen={onOpen}
-          revealLabel="Reveal meanings"
-          revealIcon
+          revealLabel={item.direction !== "reverse" && !item.cloze?.answer ? "Reveal meanings" : null}
+          revealIcon={item.direction !== "reverse" && !item.cloze?.answer}
+          mode={mode}
+          typedValue={cardState.typedValue}
+          onTypedValueChange={cardState.setTypedValue}
+          typedResult={cardState.typedResult}
+          onTypedResult={markTyped}
         />
 
-        {cardState.revealed && (
+        {typedWrong ? (
+          <Button className="mt-4 min-h-11 w-full" onClick={() => answer(false)}>
+            Continue
+          </Button>
+        ) : cardState.revealed && (
           <SelfAssessmentStrip onAnswer={answer} />
         )}
       </main>

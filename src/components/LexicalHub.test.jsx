@@ -492,6 +492,23 @@ describe("the Words & phrases hub", () => {
       expect(screen.queryByText("dar con")).toBeNull();
     });
 
+    it("uses the shared reverse face and typed answer mode selected for this session", async () => {
+      const user = userEvent.setup();
+      render(<LexicalHub {...propsFor([lexical("madrugar")])} />);
+
+      await user.click(screen.getByRole("button", { name: "Practice" }));
+      await user.click(screen.getByRole("button", { name: "Hub order" }));
+      await user.click(screen.getByRole("radio", { name: "en→es" }));
+      await user.click(screen.getByRole("radio", { name: "Type" }));
+      await user.click(screen.getByRole("button", { name: "Start 1-card practice" }));
+
+      expect(screen.getByText("meaning of madrugar")).toBeTruthy();
+      await user.type(screen.getByRole("textbox", { name: "Type the Spanish word" }), "madrugar");
+      await user.click(screen.getByRole("button", { name: "Check answer" }));
+      expect(screen.getByText("Exact answer")).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Got it" })).toBeTruthy();
+    });
+
     it("disables Practice when the current view has no meanings", async () => {
       const user = userEvent.setup();
       render(<LexicalHub {...propsFor([

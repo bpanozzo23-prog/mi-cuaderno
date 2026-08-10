@@ -9,17 +9,16 @@ import { EVENT_TYPES } from "../db/events.js";
 import { createItem, newLexicalFromEntry } from "../db/items.js";
 import {
   dictionaryInstalled,
-  getConjugation,
   getEntries,
   isDictKey,
   resolveEntry,
 } from "../db/ref/entries.js";
 import { emptyItemState } from "../useNotebook.js";
 import { timeAgo } from "../lib/dates.js";
-import { deriveReviewState, deriveDictSuggestions, cardDirection } from "../lib/review.js";
+import { deriveReviewState, deriveDictSuggestions } from "../lib/review.js";
 import { activityByDay, streakFrom, boxDistribution } from "../lib/stats.js";
-import { pickCloze, verbForms } from "../lib/cloze.js";
 import { PRACTICE_LIMITS } from "../lib/practice.js";
+import { preparePracticeCards } from "../lib/practiceCards.js";
 
 /**
  * Every number here is derived from the event log at render time — there are no
@@ -372,40 +371,8 @@ export default function Repaso({ notebook, onSelect }) {
     const cards = selectedDue.map((item) => ({
       ...item,
       ...review.states.get(item.id),
-      direction: cardDirection(item, direction),
     }));
-
-    let entries = new Map();
-    let tables = new Map();
-    try {
-      const keys = [...new Set(cards.map((card) => card.dictKey).filter(Boolean))];
-      if (keys.length) {
-        const resolved = await Promise.all(
-          keys.map(async (key) => [key, (await resolveEntry(key)).entry])
-        );
-        entries = new Map(resolved.filter(([, entry]) => entry));
-
-        const conjugationIds = [
-          ...new Set(resolved.map(([, entry]) => entry?.conjugationId).filter(Boolean)),
-        ];
-        const loaded = await Promise.all(conjugationIds.map((id) => getConjugation(id)));
-        tables = new Map(conjugationIds.map((id, index) => [id, loaded[index]]).filter(([, table]) => table));
-      }
-    } catch {
-      // The reference layer is optional (§11). A card without its entry is still a card.
-    }
-
-    setSessionCards(
-      cards.map((card) => {
-        if (card.direction === "reverse") return card;
-        // The map is keyed by the attachment as stored on the card. resolveEntry may have
-        // followed an alias to a differently named canonical entry behind that key.
-        const entry = card.dictKey ? entries.get(card.dictKey) || null : null;
-        const table = entry?.conjugationId ? tables.get(entry.conjugationId) : null;
-        const cloze = pickCloze(card, entry, { forms: table ? verbForms(table) : null });
-        return cloze ? { ...card, cloze, face: "cloze" } : card;
-      })
-    );
+    setSessionCards(await preparePracticeCards(cards, { direction }));
     setSessionChunkSize(cards.length);
     setSessionRun((current) => current + 1);
     setStarting(false);

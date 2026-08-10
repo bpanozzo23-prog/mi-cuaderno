@@ -29,7 +29,12 @@ describe("free-practice preflight", () => {
     await user.click(screen.getByRole("button", { name: "Hub order" }));
     await user.click(screen.getByRole("button", { name: "Start 10-card practice" }));
 
-    expect(onStart).toHaveBeenCalledWith({ limit: 10, order: PRACTICE_ORDERS.current });
+    expect(onStart).toHaveBeenCalledWith({
+      limit: 10,
+      order: PRACTICE_ORDERS.current,
+      direction: "forward",
+      mode: "reveal",
+    });
   });
 
   it("passes through the All choice", async () => {
@@ -47,6 +52,30 @@ describe("free-practice preflight", () => {
     await user.click(screen.getByRole("button", { name: "All 25" }));
     await user.click(screen.getByRole("button", { name: "Start 25-card practice" }));
 
-    expect(onStart).toHaveBeenCalledWith({ limit: "all", order: PRACTICE_ORDERS.shuffled });
+    expect(onStart).toHaveBeenCalledWith({
+      limit: "all",
+      order: PRACTICE_ORDERS.shuffled,
+      direction: "forward",
+      mode: "reveal",
+    });
+  });
+
+  it("can ask English first and mark typed answers without remembering either choice", async () => {
+    const user = userEvent.setup();
+    const onStart = vi.fn();
+    render(
+      <PracticeSetupSheet
+        eligibleCount={12}
+        omittedCount={0}
+        onClose={vi.fn()}
+        onStart={onStart}
+      />
+    );
+
+    await user.click(screen.getByRole("radio", { name: "en→es" }));
+    await user.click(screen.getByRole("radio", { name: "Type" }));
+    await user.click(screen.getByRole("button", { name: "Start 12-card practice" }));
+
+    expect(onStart).toHaveBeenCalledWith(expect.objectContaining({ direction: "reverse", mode: "typed" }));
   });
 });

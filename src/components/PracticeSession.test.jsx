@@ -104,4 +104,38 @@ describe("session-only free practice", () => {
     expect(onFinish).toHaveBeenCalledTimes(1);
     expect(await allEvents()).toEqual([]);
   });
+
+  it("renders reverse and cloze faces from the shared engine without writing history", async () => {
+    const user = userEvent.setup();
+    const reverse = card("madrugar", { direction: "reverse" });
+    const first = render(<PracticeSession cards={[reverse]} onFinish={vi.fn()} onOpen={vi.fn()} />);
+
+    expect(screen.getByText("meaning of madrugar")).toBeTruthy();
+    expect(screen.queryByText("madrugar")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Tap to see the word" }));
+    expect(screen.getByText("madrugar")).toBeTruthy();
+
+    first.unmount();
+    render(<PracticeSession cards={[card("sacar", {
+      face: "cloze",
+      cloze: { before: "Ayer ", answer: "saqué", after: " la basura.", es: "Ayer saqué la basura.", en: "" },
+    })]} onFinish={vi.fn()} onOpen={vi.fn()} />);
+    expect(screen.getByLabelText("missing word")).toBeTruthy();
+    expect(await allEvents()).toEqual([]);
+  });
+
+  it("marks a typed miss as Again locally and carries it into the existing missed round", async () => {
+    const user = userEvent.setup();
+    render(<PracticeSession mode="typed" cards={[card("madrugar", { direction: "reverse" })]} onFinish={vi.fn()} onOpen={vi.fn()} />);
+
+    await user.type(screen.getByRole("textbox", { name: "Type the Spanish word" }), "levantarse");
+    await user.click(screen.getByRole("button", { name: "Check answer" }));
+    expect(screen.getByText("Not yet")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Got it" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+
+    expect(screen.getByText("1 card marked Again.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Practice 1 again" })).toBeTruthy();
+    expect(await allEvents()).toEqual([]);
+  });
 });

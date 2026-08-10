@@ -26,6 +26,7 @@ import {
   pageContextIndex,
 } from "../lib/lexicalViews.js";
 import { buildPracticeDeck, isPracticeEligible } from "../lib/practice.js";
+import { preparePracticeCards } from "../lib/practiceCards.js";
 
 /**
  * The Words & phrases hub (Phase 8) — the lexical twin of the Pages hub.
@@ -108,7 +109,8 @@ export default function LexicalHub({
   const [refineOpen, setRefineOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [practiceSetupOpen, setPracticeSetupOpen] = useState(false);
-  const [practiceCards, setPracticeCards] = useState(null);
+  const [practiceSession, setPracticeSession] = useState(null);
+  const [practiceStarting, setPracticeStarting] = useState(false);
 
   // The chip the owner tapped in Cuaderno arrives as a fresh request object each time, so tapping
   // "frases" twice still selects Phrases even after they changed the chip inside the hub.
@@ -215,11 +217,18 @@ export default function LexicalHub({
     else setSearchOpen(false);
   }
 
-  function startPractice(options) {
-    const deck = buildPracticeDeck(practiceSource, options);
-    if (deck.length === 0) return;
-    setPracticeCards(deck);
+  async function startPractice({ direction, mode, ...deckOptions }) {
+    if (practiceStarting) return;
+    setPracticeStarting(true);
+    const deck = buildPracticeDeck(practiceSource, deckOptions);
+    if (deck.length === 0) {
+      setPracticeStarting(false);
+      return;
+    }
+    const cards = await preparePracticeCards(deck, { direction });
+    setPracticeSession({ cards, mode });
     setPracticeSetupOpen(false);
+    setPracticeStarting(false);
   }
 
   const renderCard = (item, reason = null) => (
@@ -235,11 +244,12 @@ export default function LexicalHub({
     />
   );
 
-  if (practiceCards) {
+  if (practiceSession) {
     return (
       <PracticeSession
-        cards={practiceCards}
-        onFinish={() => setPracticeCards(null)}
+        cards={practiceSession.cards}
+        mode={practiceSession.mode}
+        onFinish={() => setPracticeSession(null)}
         onOpen={onSelect}
       />
     );
@@ -488,6 +498,7 @@ export default function LexicalHub({
         <PracticeSetupSheet
           eligibleCount={practiceEligibleCount}
           omittedCount={practiceOmittedCount}
+          starting={practiceStarting}
           onClose={() => setPracticeSetupOpen(false)}
           onStart={startPractice}
         />
