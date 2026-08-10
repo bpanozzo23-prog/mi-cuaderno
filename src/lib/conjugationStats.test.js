@@ -65,7 +65,33 @@ describe("Conjugation Gym performance contracts", () => {
       },
     };
 
-    expect(conjugationPerformance([formEvent, recognitionEvent]))
+    const recallEvent = {
+      ...recognitionEvent,
+      id: "recall-1",
+      metadata: {
+        skill: "usage",
+        cardId: "usage:recall:Indicative/Preterite",
+        tense: "Indicative/Preterite",
+        mode: "recall",
+        verdict: "self",
+        stage: "initial",
+      },
+    };
+    const typedEndingsEvent = {
+      ...recognitionEvent,
+      id: "typed-endings-1",
+      metadata: {
+        skill: "endings",
+        cardId: "endings:indicative-preterite-ar",
+        tense: "Indicative/Preterite",
+        mode: "typed",
+        verdict: "wrong",
+        slotVerdicts: { yo: "wrong" },
+        stage: "initial",
+      },
+    };
+
+    expect(conjugationPerformance([formEvent, recognitionEvent, recallEvent, typedEndingsEvent]))
       .toEqual(conjugationPerformance([formEvent]));
   });
 

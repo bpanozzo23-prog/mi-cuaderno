@@ -5,11 +5,12 @@ import { conjugationPerformance } from "../lib/conjugationStats.js";
 import { TENSE_PACKS } from "../lib/conjugationGym.js";
 import { qualifiedTenseLabel } from "../lib/conjugation.js";
 import { recognitionPerformance } from "../lib/recognitionStats.js";
+import { gymDepthPerformance } from "../lib/gymDepthStats.js";
 
 const SOURCE_OPTIONS = [
   { value: "all", label: "All" },
   { value: "saved", label: "Saved" },
-  { value: "core", label: "Core" },
+  { value: "core", label: "Built-in" },
 ];
 
 const PACK_OPTIONS = [
@@ -86,6 +87,10 @@ export default function ConjugationPerformance({
     () => recognitionPerformance(events, { tenses: selectedPack.tenses }),
     [events, selectedPack]
   );
+  const depth = useMemo(
+    () => gymDepthPerformance(events, { tenses: selectedPack.tenses }),
+    [events, selectedPack]
+  );
   const weakVerbs = stats.verbs.filter((row) => row.weak);
   const productionByTense = new Map(stats.tenses.map((row) => [row.tense, row]));
 
@@ -158,7 +163,7 @@ export default function ConjugationPerformance({
         )}
       </Card>
 
-      <SectionTitle>Recognition</SectionTitle>
+      <SectionTitle>Choice recognition</SectionTitle>
       <Card className="p-4">
         {recognition.lifetime.answered === 0 ? (
           <div className="text-sm" style={{ color: C.mut }}>No recognition answers in this tense pack yet.</div>
@@ -192,7 +197,7 @@ export default function ConjugationPerformance({
               </div>
             </div>
             <div className="mt-3 text-[10px]" style={{ color: C.mut }}>
-              Recognition is global; the tense-pack filter applies, while Saved/Core filters only Forms.
+              Choice recognition is global; the tense-pack filter applies, while Saved/Built-in filters only Forms.
             </div>
           </>
         )}
@@ -200,7 +205,7 @@ export default function ConjugationPerformance({
 
       {recognition.confusions.length > 0 && (
         <>
-          <SectionTitle>Recognition confusions</SectionTitle>
+          <SectionTitle>Choice confusions</SectionTitle>
           <Card className="space-y-2 p-4">
             {recognition.confusions.map((row) => (
               <div key={`${row.tense}|${row.chosen}`} className="flex items-start justify-between gap-3 text-sm">
@@ -216,9 +221,59 @@ export default function ConjugationPerformance({
 
       {recognition.missed.answered > 0 && (
         <div className="mt-3 rounded-lg border px-3 py-2 text-xs" style={{ borderColor: C.line, color: C.mut, background: C.paper }}>
-          Recognition missed round: {recognition.missed.passed}/{recognition.missed.answered} correct — separate from first attempts above.
+          Choice missed round: {recognition.missed.passed}/{recognition.missed.answered} correct — separate from first attempts above.
         </div>
       )}
+
+      <SectionTitle>Usage recall</SectionTitle>
+      <Card className="p-4">
+        {depth.usageRecall.firstAttempts.answered === 0 ? (
+          <div className="text-sm" style={{ color: C.mut }}>No self-graded Usage recall in this tense pack yet.</div>
+        ) : (
+          <>
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-2xl" style={{ fontFamily: MONO, color: C.ink }}>{pct(depth.usageRecall.firstAttempts.accuracy)}</span>
+              <span className="text-xs text-right" style={{ color: C.mut }}>
+                {depth.usageRecall.firstAttempts.passed}/{depth.usageRecall.firstAttempts.answered} first-attempt self-grades
+              </span>
+            </div>
+            {depth.usageRecall.missed.answered > 0 && (
+              <div className="mt-3 border-t pt-3 text-xs" style={{ borderColor: C.line, color: C.mut }}>
+                Missed round: {depth.usageRecall.missed.passed}/{depth.usageRecall.missed.answered} recalled
+              </div>
+            )}
+          </>
+        )}
+      </Card>
+
+      <SectionTitle>Typed Endings</SectionTitle>
+      <Card className="p-4">
+        {depth.typedEndings.firstAttempts.answered === 0 ? (
+          <div className="text-sm" style={{ color: C.mut }}>No typed Endings rows in this tense pack yet.</div>
+        ) : (
+          <>
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-2xl" style={{ fontFamily: MONO, color: C.ink }}>{pct(depth.typedEndings.firstAttempts.accuracy)}</span>
+              <span className="text-xs text-right" style={{ color: C.mut }}>
+                {depth.typedEndings.firstAttempts.passed}/{depth.typedEndings.firstAttempts.answered} first-attempt rows
+              </span>
+            </div>
+            <div className="mt-2 text-xs" style={{ color: C.mut }}>
+              {depth.typedEndings.firstAttempts.exact} exact · {depth.typedEndings.firstAttempts.accents} accent-assisted
+            </div>
+            {depth.typedEndings.immediate.attempted > 0 && (
+              <div className="mt-3 border-t pt-3 text-xs" style={{ borderColor: C.line, color: C.mut }}>
+                Immediate recovery: {depth.typedEndings.immediate.recovered}/{depth.typedEndings.immediate.attempted}
+              </div>
+            )}
+            {depth.typedEndings.missed.attempted > 0 && (
+              <div className="mt-1 text-xs" style={{ color: C.mut }}>
+                Missed round: {depth.typedEndings.missed.recovered}/{depth.typedEndings.missed.attempted} recovered
+              </div>
+            )}
+          </>
+        )}
+      </Card>
 
       <SectionTitle>Coverage</SectionTitle>
       <Card className="p-4">

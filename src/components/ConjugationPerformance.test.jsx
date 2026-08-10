@@ -86,6 +86,33 @@ const recognitionAnswer = ({
   };
 };
 
+const depthAnswer = ({
+  passed,
+  skill,
+  mode,
+  tense = "Indicative/Preterite",
+  stage = "initial",
+  verdict,
+  promptId,
+}) => {
+  eventNumber += 1;
+  return {
+    id: `depth-${eventNumber}`,
+    type: passed ? "drill_pass" : "drill_fail",
+    itemKey: null,
+    at: `2026-08-07T14:${String(eventNumber).padStart(2, "0")}:00.000Z`,
+    localDate: "2026-08-07",
+    metadata: {
+      skill,
+      mode,
+      tense,
+      stage,
+      verdict: verdict || (skill === "usage" ? "self" : passed ? "exact" : "wrong"),
+      promptId: promptId || `depth-p${eventNumber}`,
+    },
+  };
+};
+
 const library = (overrides = {}) => ({
   loading: false,
   installed: true,
@@ -110,14 +137,37 @@ describe("dedicated Conjugation Gym performance", () => {
     ];
     render(<ConjugationPerformance items={[]} events={events} library={library()} onBack={vi.fn()} />);
 
-    expect(screen.getByText("Recognition")).toBeTruthy();
+    expect(screen.getByText("Choice recognition")).toBeTruthy();
     expect(screen.getByText("Tense usage")).toBeTruthy();
     expect(screen.getByText("Endings")).toBeTruthy();
     expect(screen.getByText("recognition 50% / 2")).toBeTruthy();
     expect(screen.getByText(/Tense usage 0\/1 · Endings 1\/1 · Forms 1\/1/)).toBeTruthy();
     expect(screen.getByText(/Indicative preterite answered as Indicative imperfect/)).toBeTruthy();
     expect(screen.getByText("×1")).toBeTruthy();
-    expect(screen.getByText(/Recognition missed round: 1\/1 correct/)).toBeTruthy();
+    expect(screen.getByText(/Choice missed round: 1\/1 correct/)).toBeTruthy();
+  });
+
+  it("reports Usage recall and Typed Endings without blending retries into primary accuracy", () => {
+    const events = [
+      depthAnswer({ passed: true, skill: "usage", mode: "recall", promptId: "u1" }),
+      depthAnswer({ passed: false, skill: "usage", mode: "recall", promptId: "u2" }),
+      depthAnswer({ passed: true, skill: "usage", mode: "recall", promptId: "u2", stage: "missed" }),
+      depthAnswer({ passed: true, skill: "endings", mode: "typed", promptId: "e1", verdict: "exact" }),
+      depthAnswer({ passed: true, skill: "endings", mode: "typed", promptId: "e2", verdict: "accents" }),
+      depthAnswer({ passed: false, skill: "endings", mode: "typed", promptId: "e3", verdict: "wrong" }),
+      depthAnswer({ passed: true, skill: "endings", mode: "typed", promptId: "e3", verdict: "exact", stage: "retry" }),
+      depthAnswer({ passed: true, skill: "endings", mode: "typed", promptId: "e3", verdict: "exact", stage: "missed" }),
+    ];
+    render(<ConjugationPerformance items={[]} events={events} library={library()} onBack={vi.fn()} />);
+
+    expect(screen.getByText("Usage recall")).toBeTruthy();
+    expect(screen.getByText("1/2 first-attempt self-grades")).toBeTruthy();
+    expect(screen.getByText("Missed round: 1/1 recalled")).toBeTruthy();
+    expect(screen.getByText("Typed Endings")).toBeTruthy();
+    expect(screen.getByText("2/3 first-attempt rows")).toBeTruthy();
+    expect(screen.getByText("1 exact · 1 accent-assisted")).toBeTruthy();
+    expect(screen.getByText("Immediate recovery: 1/1")).toBeTruthy();
+    expect(screen.getByText("Missed round: 1/1 recovered")).toBeTruthy();
   });
 
   it("defaults to Everyday and makes every tense and person row actionable", async () => {
@@ -172,7 +222,7 @@ describe("dedicated Conjugation Gym performance", () => {
     expect(screen.getByText("50%")).toBeTruthy();
     await user.click(screen.getByRole("radio", { name: "Saved" }));
     expect(screen.getByText("100%")).toBeTruthy();
-    await user.click(screen.getByRole("radio", { name: "Core" }));
+    await user.click(screen.getByRole("radio", { name: "Built-in" }));
     expect(screen.getByText("0%")).toBeTruthy();
   });
 

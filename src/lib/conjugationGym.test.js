@@ -423,6 +423,29 @@ describe("adaptive decks", () => {
         mode: "choice",
         stage: "initial",
       },
+    }, {
+      type: "drill_fail",
+      at: "2026-08-09T12:01:00.000Z",
+      metadata: {
+        skill: "usage",
+        cardId: "usage:recall:Indicative/Preterite",
+        tense: "Indicative/Preterite",
+        mode: "recall",
+        verdict: "self",
+        stage: "initial",
+      },
+    }, {
+      type: "drill_fail",
+      at: "2026-08-09T12:02:00.000Z",
+      metadata: {
+        skill: "endings",
+        cardId: "endings:indicative-preterite-ar",
+        tense: "Indicative/Preterite",
+        mode: "typed",
+        verdict: "wrong",
+        slotVerdicts: { yo: "wrong" },
+        stage: "initial",
+      },
     }];
     const options = { size: 10, now: "2026-08-09T13:00:00.000Z" };
 

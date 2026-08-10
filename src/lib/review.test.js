@@ -544,7 +544,7 @@ describe("drill events stay out of the review model", () => {
     expect(state.due).toEqual([]);
   });
 
-  it("leaves every Leitner value unchanged after a recognition answer", () => {
+  it("leaves every Leitner value unchanged after every Gym depth answer", () => {
     const reviewed = stateOf([word], [pass("user:1", "2026-07-30")]);
     const recognition = makeEvent({
       type: "drill_fail",
@@ -559,7 +559,34 @@ describe("drill events stay out of the review model", () => {
         mode: "choice",
       },
     });
-    const after = stateOf([word], [pass("user:1", "2026-07-30"), recognition]);
+    const recall = makeEvent({
+      type: "drill_fail",
+      itemKey: null,
+      at: at("2026-08-01"),
+      localDate: "2026-08-01",
+      metadata: {
+        skill: "usage",
+        cardId: "usage:recall:Indicative/Preterite",
+        tense: "Indicative/Preterite",
+        mode: "recall",
+        verdict: "self",
+      },
+    });
+    const typedEndings = makeEvent({
+      type: "drill_fail",
+      itemKey: null,
+      at: at("2026-08-02"),
+      localDate: "2026-08-02",
+      metadata: {
+        skill: "endings",
+        cardId: "endings:indicative-preterite-ar",
+        tense: "Indicative/Preterite",
+        mode: "typed",
+        verdict: "wrong",
+        slotVerdicts: { yo: "wrong" },
+      },
+    });
+    const after = stateOf([word], [pass("user:1", "2026-07-30"), recognition, recall, typedEndings]);
 
     expect(after.states.get(word.id)).toEqual(reviewed.states.get(word.id));
     expect(after.due).toEqual(reviewed.due);
