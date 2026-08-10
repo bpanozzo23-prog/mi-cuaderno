@@ -30,7 +30,7 @@ import { localDate, addDaysToLocalDate } from "./dates.js";
 export const LEITNER_INTERVALS_DAYS = [1, 2, 4, 8, 16];
 export const MAX_BOX = LEITNER_INTERVALS_DAYS.length;
 
-/** Section 7's locked 4-point scale. The UI shows pass/fail; the log records the grade. */
+/** Section 7's locked 4-point scale, now exposed by scheduled review in Phase 16. */
 export const GRADES = { again: 0, hard: 1, good: 2, easy: 3 };
 export const PASS_GRADE = GRADES.good;
 export const FAIL_GRADE = GRADES.again;
@@ -95,26 +95,42 @@ export function lookupWindowStart(today) {
  * that only grows. A retired word re-enters through the ordinary rules and resumes at
  * box 5, so one pass retires it again and one fail sends it down the whole ladder.
  */
+function readableGrade(event) {
+  const grade = event?.metadata?.grade;
+  if (Object.values(GRADES).includes(grade)) return grade;
+  // Historical Phase 3–15 events always used the type consistently, but the grade
+  // field was not deeply interpreted. Preserve their exact old replay when metadata
+  // is absent or malformed: pass meant Good and fail meant Again.
+  return event?.type === REVIEW_PASS ? GRADES.good : GRADES.again;
+}
+
 function replayReviews(reviews) {
   let box = 1;
   let graduated = false;
   let graduatedAt = null;
 
   for (const event of reviews) {
-    if (event.type === REVIEW_PASS) {
-      if (box >= MAX_BOX) {
-        graduated = true;
-        graduatedAt = event.at;
-      } else {
-        box += 1;
-        graduated = false;
-        graduatedAt = null;
-      }
-    } else {
+    const grade = readableGrade(event);
+    if (grade === GRADES.again) {
       box = 1;
       graduated = false;
       graduatedAt = null;
+      continue;
     }
+
+    // Retirement still requires a pass earned while the word was already in box 5.
+    // Easy from box 4 therefore lands in box 5 rather than skipping straight out.
+    if (box >= MAX_BOX) {
+      graduated = true;
+      graduatedAt = event.at;
+      continue;
+    }
+
+    if (grade === GRADES.good) box += 1;
+    if (grade === GRADES.easy) box = Math.min(MAX_BOX, box + 2);
+    // Hard deliberately leaves `box` unchanged and restarts its interval from this event.
+    graduated = false;
+    graduatedAt = null;
   }
 
   const last = reviews[reviews.length - 1] || null;

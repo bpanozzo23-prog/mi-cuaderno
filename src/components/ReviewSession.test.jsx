@@ -42,7 +42,7 @@ describe("entry-level review with structured meanings", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "Tap to see the meaning" }));
-    await user.click(screen.getByRole("button", { name: "Got it" }));
+    await user.click(screen.getByRole("button", { name: "Good" }));
 
     await waitFor(async () => expect(await allEvents()).toHaveLength(1));
     expect((await allEvents())[0]).toMatchObject({ type: "review_pass", itemKey: "user:sacar" });
@@ -88,7 +88,7 @@ describe("Phase 10a: reverse cards", () => {
     render(<ReviewSession cards={[reverseCard()]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
 
     await user.click(screen.getByRole("button", { name: "Tap to see the word" }));
-    await user.click(screen.getByRole("button", { name: "Got it" }));
+    await user.click(screen.getByRole("button", { name: "Good" }));
 
     await waitFor(async () => expect(await allEvents()).toHaveLength(1));
     expect((await allEvents())[0].metadata).toEqual({ direction: "reverse", face: "plain", grade: 2 });
@@ -100,7 +100,7 @@ describe("Phase 10a: reverse cards", () => {
     render(<ReviewSession cards={[card]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
 
     await user.click(screen.getByRole("button", { name: "Tap to see the meaning" }));
-    await user.click(screen.getByRole("button", { name: "Missed it" }));
+    await user.click(screen.getByRole("button", { name: "Again" }));
 
     await waitFor(async () => expect(await allEvents()).toHaveLength(1));
     expect((await allEvents())[0].metadata).toEqual({ direction: "forward", face: "plain", grade: 0 });
@@ -167,7 +167,7 @@ describe("Phase 10b: cloze cards", () => {
     render(<ReviewSession cards={[clozeCard()]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
 
     await user.click(screen.getByRole("button", { name: "Tap to see the word" }));
-    await user.click(screen.getByRole("button", { name: "Got it" }));
+    await user.click(screen.getByRole("button", { name: "Good" }));
 
     await waitFor(async () => expect(await allEvents()).toHaveLength(1));
     expect((await allEvents())[0].metadata).toEqual({ direction: "forward", face: "cloze", grade: 2 });
@@ -199,5 +199,15 @@ describe("Phase 10b: cloze cards", () => {
 
     expect(screen.getByText("sacar")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Tap to see the meaning" })).toBeTruthy();
+  });
+
+  it("offers all four scheduler grades after reveal", async () => {
+    const user = userEvent.setup();
+    render(<ReviewSession cards={[clozeCard({ cloze: null, face: "plain" })]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: "Tap to see the meaning" }));
+    for (const label of ["Again", "Hard", "Good", "Easy"]) {
+      expect(screen.getByRole("button", { name: label })).toBeTruthy();
+    }
   });
 });

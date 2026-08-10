@@ -1,7 +1,7 @@
 import { db } from "./db.js";
 import { newEventId } from "../lib/ids.js";
 import { nowIso, localDate } from "../lib/dates.js";
-import { PASS_GRADE, FAIL_GRADE } from "../lib/review.js";
+import { GRADES } from "../lib/review.js";
 
 /**
  * Events are the single source of truth for state and statistics (brief section 7).
@@ -73,9 +73,8 @@ export async function logView(itemKey, now = new Date()) {
 }
 
 /**
- * Records one review. The UI offers pass and fail, but the log stores a grade on
- * section 7's 4-point scale (0 again / 1 hard / 2 good / 3 easy) so a richer scheduler
- * fitted later has the full history to work from rather than two coarse buckets.
+ * Records one scheduled review from an explicit section 7 grade: 0 Again, 1 Hard,
+ * 2 Good, or 3 Easy. Again is the sole failure event; all other grades are passes.
  *
  * `details` records how the card was asked (Phase 10a): direction (forward | reverse)
  * and face (plain | cloze). Same reasoning as the grade — a per-direction scheduler
@@ -84,16 +83,20 @@ export async function logView(itemKey, now = new Date()) {
  * that predate it simply do not read it. The grade is spread last so no detail can
  * ever overwrite it.
  */
-export async function logReview(itemKey, passed, details = null, when = new Date()) {
+export async function logReview(itemKey, grade, details = null, when = new Date()) {
   // A Date landing in the details slot is the pre-Phase-10 three-argument call. Spreading
   // one yields no keys, so without this the timestamp would be silently replaced by "now"
   // and the metadata would look perfectly correct — the worst kind of wrong.
-  if (details instanceof Date) return logReview(itemKey, passed, null, details);
+  if (details instanceof Date) return logReview(itemKey, grade, null, details);
+
+  if (!Object.values(GRADES).includes(grade)) {
+    throw new RangeError("Review grade must be Again (0), Hard (1), Good (2), or Easy (3).");
+  }
 
   return logEvent(
-    passed ? EVENT_TYPES.reviewPass : EVENT_TYPES.reviewFail,
+    grade === GRADES.again ? EVENT_TYPES.reviewFail : EVENT_TYPES.reviewPass,
     itemKey,
-    { ...(details || {}), grade: passed ? PASS_GRADE : FAIL_GRADE },
+    { ...(details || {}), grade },
     when
   );
 }

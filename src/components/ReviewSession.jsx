@@ -3,6 +3,7 @@ import { ChevronLeft, Check, X, Eye, Highlighter, RotateCcw, ArrowLeftRight } fr
 import { C, SERIF, MONO, dotGrid, Hi, Card, Button } from "../theme.jsx";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
 import { logReview } from "../db/events.js";
+import { GRADES } from "../lib/review.js";
 import LexicalAnswer, { MeaningRow } from "./LexicalAnswer.jsx";
 import SpeakButton from "./SpeakButton.jsx";
 
@@ -13,7 +14,7 @@ import SpeakButton from "./SpeakButton.jsx";
  * the counts behind this screen stay true, and the reload re-derives every due date —
  * so without the snapshot the card under the owner's thumb would vanish mid-session.
  *
- * The two buttons write through logReview and nothing else, which is what guarantees
+ * The four grade buttons write through logReview and nothing else, which is what guarantees
  * section 12's "every review event carries a grade": there is no other way to log one.
  * They are disabled between the tap and the advance, so a double-tap cannot grade the
  * next word — the same hazard the session window solved for view events in Phase 1d,
@@ -35,13 +36,14 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
   const item = cards[index] || null;
   const done = index >= cards.length;
 
-  async function grade(passed) {
+  async function grade(reviewGrade) {
     if (busy || !item) return;
     setBusy(true);
-    await logReview(item.id, passed, {
+    await logReview(item.id, reviewGrade, {
       direction: item.direction === "reverse" ? "reverse" : "forward",
       face: item.face === "cloze" ? "cloze" : "plain",
     });
+    const passed = reviewGrade !== GRADES.again;
     setTally((t) => ({
       passed: t.passed + (passed ? 1 : 0),
       failed: t.failed + (passed ? 0 : 1),
@@ -220,18 +222,19 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
       </Card>
 
       {revealed && (
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <Button tone="danger" disabled={busy} onClick={() => grade(false)}>
-            <X size={16} /> Missed it
+        <div className="mt-4 grid grid-cols-2 gap-2" aria-label="Review grade">
+          <Button className="min-h-11" tone="danger" disabled={busy} onClick={() => grade(GRADES.again)}>
+            <X size={16} /> Again
           </Button>
-          <button
-            disabled={busy}
-            onClick={() => grade(true)}
-            className="inline-flex items-center justify-center gap-2 text-sm px-3 py-2 rounded-lg border font-medium"
-            style={{ background: busy ? C.disabled : C.green, color: "#fff", borderColor: "transparent" }}
-          >
-            <Check size={16} /> Got it
-          </button>
+          <Button className="min-h-11" tone="quiet" disabled={busy} onClick={() => grade(GRADES.hard)}>
+            Hard
+          </Button>
+          <Button className="min-h-11" disabled={busy} onClick={() => grade(GRADES.good)}>
+            <Check size={16} /> Good
+          </Button>
+          <Button className="min-h-11" disabled={busy} onClick={() => grade(GRADES.easy)}>
+            Easy
+          </Button>
         </div>
       )}
 

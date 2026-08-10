@@ -116,21 +116,33 @@ describe("tricky state is derived, never stored", () => {
 });
 
 describe("every review event carries a grade", () => {
-  it("logs pass as good (2) and fail as again (0), on section 7's 4-point scale", async () => {
+  it("maps Again to fail and Hard, Good, and Easy to pass", async () => {
     const item = await createItem(newLexical({ term: "madrugar" }));
 
-    const passed = await logReview(item.id, true);
-    const failed = await logReview(item.id, false);
+    const events = await Promise.all([
+      logReview(item.id, GRADES.again),
+      logReview(item.id, GRADES.hard),
+      logReview(item.id, GRADES.good),
+      logReview(item.id, GRADES.easy),
+    ]);
 
-    expect(passed.type).toBe(EVENT_TYPES.reviewPass);
-    expect(passed.metadata).toEqual({ grade: GRADES.good });
-    expect(failed.type).toBe(EVENT_TYPES.reviewFail);
-    expect(failed.metadata).toEqual({ grade: GRADES.again });
+    expect(events.map((event) => event.type)).toEqual([
+      EVENT_TYPES.reviewFail,
+      EVENT_TYPES.reviewPass,
+      EVENT_TYPES.reviewPass,
+      EVENT_TYPES.reviewPass,
+    ]);
+    expect(events.map((event) => event.metadata.grade)).toEqual([
+      GRADES.again,
+      GRADES.hard,
+      GRADES.good,
+      GRADES.easy,
+    ]);
   });
 
   it("stamps the grade into the log itself, not just the return value", async () => {
     const item = await createItem(newLexical({ term: "madrugar" }));
-    await logReview(item.id, true);
+    await logReview(item.id, GRADES.good);
 
     const stored = (await eventsFor(item.id)).filter((e) => e.type.startsWith("review_"));
     expect(stored).toHaveLength(1);
@@ -142,7 +154,7 @@ describe("every review event carries a grade", () => {
     const item = await createItem(newLexical({ term: "madrugar" }));
     const when = new Date(2026, 6, 15, 9, 0, 0);
 
-    const event = await logReview(item.id, true, null, when);
+    const event = await logReview(item.id, GRADES.good, null, when);
 
     expect(event.at).toBe(when.toISOString());
     expect(event.localDate).toBe("2026-07-15");
@@ -154,7 +166,7 @@ describe("every review event carries a grade", () => {
     const item = await createItem(newLexical({ term: "madrugar" }));
     const when = new Date(2026, 6, 15, 9, 0, 0);
 
-    const event = await logReview(item.id, true, when);
+    const event = await logReview(item.id, GRADES.good, when);
 
     expect(event.at).toBe(when.toISOString());
     expect(event.metadata).toEqual({ grade: GRADES.good });
@@ -163,7 +175,7 @@ describe("every review event carries a grade", () => {
   it("records how the card was asked alongside the grade (Phase 10a)", async () => {
     const item = await createItem(newLexical({ term: "madrugar" }));
 
-    const event = await logReview(item.id, true, { direction: "reverse", face: "cloze" });
+    const event = await logReview(item.id, GRADES.good, { direction: "reverse", face: "cloze" });
 
     expect(event.metadata).toEqual({ direction: "reverse", face: "cloze", grade: GRADES.good });
   });
@@ -171,7 +183,7 @@ describe("every review event carries a grade", () => {
   it("never lets a detail overwrite the grade", async () => {
     const item = await createItem(newLexical({ term: "madrugar" }));
 
-    const event = await logReview(item.id, false, { grade: 3, direction: "forward" });
+    const event = await logReview(item.id, GRADES.again, { grade: GRADES.easy, direction: "forward" });
 
     expect(event.metadata.grade).toBe(GRADES.again);
   });

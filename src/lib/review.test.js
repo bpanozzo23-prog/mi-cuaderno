@@ -7,6 +7,7 @@ import {
   LOOKUP_WINDOW_DAYS,
   DICT_SUGGEST_MIN_VIEWS,
   MAX_BOX,
+  GRADES,
   cardDirection,
 } from "./review.js";
 import { addDaysToLocalDate } from "./dates.js";
@@ -18,10 +19,17 @@ const at = (day, hour = 10) => `${day}T${String(hour).padStart(2, "0")}:00:00.00
 
 const view = (key, day, hour = 10) =>
   makeEvent({ type: "view", itemKey: key, at: at(day, hour), localDate: day });
-const pass = (key, day, hour = 10) =>
-  makeEvent({ type: "review_pass", itemKey: key, at: at(day, hour), localDate: day, metadata: { grade: 2 } });
+const graded = (key, day, grade, hour = 10) =>
+  makeEvent({
+    type: grade === GRADES.again ? "review_fail" : "review_pass",
+    itemKey: key,
+    at: at(day, hour),
+    localDate: day,
+    metadata: { grade },
+  });
+const pass = (key, day, hour = 10) => graded(key, day, GRADES.good, hour);
 const fail = (key, day, hour = 10) =>
-  makeEvent({ type: "review_fail", itemKey: key, at: at(day, hour), localDate: day, metadata: { grade: 0 } });
+  graded(key, day, GRADES.again, hour);
 const trickyOn = (key, day) =>
   makeEvent({ type: "tricky_on", itemKey: key, at: at(day), localDate: day });
 const trickyOff = (key, day) =>
@@ -168,6 +176,63 @@ describe("the Leitner ladder", () => {
     expect(state.box).toBe(1);
     expect(state.dueDate).toBe("2026-08-01");
     expect(state.due).toBe(false);
+  });
+
+  it("holds the current box on Hard and restarts that box's interval", () => {
+    const word = makeLexical({ term: "madrugar" });
+    const events = [
+      trickyOn(word.id, "2026-07-01"),
+      pass(word.id, "2026-07-10"),
+      pass(word.id, "2026-07-12"),
+      graded(word.id, "2026-07-31", GRADES.hard),
+    ];
+
+    const state = stateOf([word], events).states.get(word.id);
+    expect(state.box).toBe(3);
+    expect(state.dueDate).toBe("2026-08-04");
+  });
+
+  it("moves up two boxes on Easy and caps at box 5", () => {
+    const word = makeLexical({ term: "madrugar" });
+    const events = [
+      trickyOn(word.id, "2026-07-01"),
+      graded(word.id, "2026-07-10", GRADES.easy),
+      graded(word.id, "2026-07-20", GRADES.easy),
+    ];
+
+    const state = stateOf([word], events).states.get(word.id);
+    expect(state.box).toBe(MAX_BOX);
+    expect(state.graduated).toBe(false);
+  });
+
+  it("lands Easy from box 4 in box 5 without retiring", () => {
+    const word = makeLexical({ term: "madrugar" });
+    const events = [
+      trickyOn(word.id, "2026-07-01"),
+      pass(word.id, "2026-07-10"),
+      pass(word.id, "2026-07-12"),
+      pass(word.id, "2026-07-16"),
+      graded(word.id, "2026-07-31", GRADES.easy),
+    ];
+
+    const state = stateOf([word], events).states.get(word.id);
+    expect(state.box).toBe(MAX_BOX);
+    expect(state.graduated).toBe(false);
+  });
+
+  it("replays a historical gradeless pass as Good", () => {
+    const word = makeLexical({ term: "madrugar" });
+    const legacyPass = makeEvent({
+      type: "review_pass",
+      itemKey: word.id,
+      at: at("2026-07-31"),
+      localDate: "2026-07-31",
+      metadata: null,
+    });
+
+    const state = stateOf([word], [trickyOn(word.id, "2026-07-01"), legacyPass]).states.get(word.id);
+    expect(state.box).toBe(2);
+    expect(state.dueDate).toBe("2026-08-02");
   });
 
   it("takes a reviewed word out of today's queue by arithmetic, with no 'done' list", () => {

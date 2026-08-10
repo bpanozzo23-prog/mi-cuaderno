@@ -110,7 +110,7 @@ describe("personal word and phrase terminology", () => {
     expect(screen.getByText("tener ganas de salir")).toBeTruthy();
     expect(screen.getByText("tener ganas de algo")).toBeTruthy();
     expect(screen.getByText("Mexico")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Got it" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Missed it" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Good" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Again" })).toBeTruthy();
   });
 });
