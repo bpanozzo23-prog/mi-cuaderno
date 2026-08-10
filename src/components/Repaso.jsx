@@ -48,6 +48,11 @@ const DIRECTION_OPTIONS = [
   { value: "mixed", label: "mixed" },
 ];
 
+const REVIEW_MODE_OPTIONS = [
+  { value: "reveal", label: "Reveal" },
+  { value: "typed", label: "Type" },
+];
+
 const itemHeading = (item) =>
   item.type === "page" ? item.title || "Untitled page" : item.term;
 
@@ -206,6 +211,7 @@ export default function Repaso({ notebook, onSelect }) {
   // default is the one you get by just tapping Start, and a remembered direction would
   // be a stored preference nobody asked for.
   const [direction, setDirection] = useState("forward");
+  const [reviewMode, setReviewMode] = useState("reveal");
 
   // Starting now reads the reference layer for cloze material, so the tap has to be
   // guarded against a second one landing before the first finishes.
@@ -428,6 +434,7 @@ export default function Repaso({ notebook, onSelect }) {
     return (
       <ReviewSession
         cards={sessionCards}
+        mode={reviewMode}
         onFinish={() => {
           setView("home");
           reload();
@@ -487,7 +494,35 @@ export default function Repaso({ notebook, onSelect }) {
                     style={{
                       fontFamily: MONO,
                       background: active ? C.pen : "transparent",
-                      color: active ? "#fff" : C.mut,
+                      color: active ? C.card : C.mut,
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div
+              role="radiogroup"
+              aria-label="How to answer"
+              className="mt-2 flex gap-1 rounded-lg border p-0.5"
+              style={{ borderColor: C.line, background: C.paper }}
+            >
+              {REVIEW_MODE_OPTIONS.map((option) => {
+                const active = reviewMode === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setReviewMode(option.value)}
+                    className="flex-1 rounded-md px-2 py-1.5 text-xs"
+                    style={{
+                      fontFamily: MONO,
+                      background: active ? C.pen : "transparent",
+                      color: active ? C.card : C.mut,
                     }}
                   >
                     {option.label}

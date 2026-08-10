@@ -188,19 +188,22 @@ describe("Phase 10a/10b: how a session is set up", () => {
   const dueWord = (overrides) => makeLexical({ id: "user:due", ...overrides });
   const enrolls = (id) => makeEvent({ type: EVENT_TYPES.trickyOn, itemKey: id, at: at(1) });
 
-  it("defaults to asking Spanish first, and offers the other two ways", () => {
+  it("defaults to Spanish-first Reveal, and offers the other directions plus Type", () => {
     const word = dueWord({});
     render(<Repaso notebook={notebookFor([word], [enrolls(word.id)])} onSelect={vi.fn()} />);
 
     expect(screen.getByRole("radio", { name: "es→en" }).getAttribute("aria-checked")).toBe("true");
     expect(screen.getByRole("radio", { name: "en→es" }).getAttribute("aria-checked")).toBe("false");
     expect(screen.getByRole("radio", { name: "mixed" })).toBeTruthy();
+    expect(screen.getByRole("radio", { name: "Reveal" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("radio", { name: "Type" }).getAttribute("aria-checked")).toBe("false");
   });
 
   it("offers no direction control on a day with nothing due", () => {
     render(<Repaso notebook={notebookFor([dueWord({})], [])} onSelect={vi.fn()} />);
 
     expect(screen.queryByRole("radio", { name: "es→en" })).toBeNull();
+    expect(screen.queryByRole("radio", { name: "Type" })).toBeNull();
   });
 
   it("builds a cloze from the owner's own example, blanking the conjugated form", async () => {

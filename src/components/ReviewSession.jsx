@@ -24,29 +24,59 @@ import { PracticeCard, ReviewGradeStrip, usePracticeCardState } from "./Practice
  * are Spanish and routinely contain the term itself. The grade is logged with the
  * direction and face it was earned on, because that history cannot be reconstructed.
  */
-export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
+export default function ReviewSession({ cards, mode = "reveal", onFinish, onOpen, onGraded }) {
   const [index, setIndex] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [wrongRecorded, setWrongRecorded] = useState(false);
   const [tally, setTally] = useState({ passed: 0, failed: 0 });
   const cardState = usePracticeCardState();
 
   const item = cards[index] || null;
   const done = index >= cards.length;
 
-  async function grade(reviewGrade) {
-    if (busy || !item) return;
-    setBusy(true);
-    await logReview(item.id, reviewGrade, {
-      direction: item.direction === "reverse" ? "reverse" : "forward",
-      face: item.face === "cloze" ? "cloze" : "plain",
-    });
+  const eventDetails = (extra = null) => ({
+    direction: item.direction === "reverse" ? "reverse" : "forward",
+    face: item.face === "cloze" ? "cloze" : "plain",
+    ...(extra || {}),
+  });
+
+  function countGrade(reviewGrade) {
     const passed = reviewGrade !== GRADES.again;
     setTally((t) => ({
       passed: t.passed + (passed ? 1 : 0),
       failed: t.failed + (passed ? 0 : 1),
     }));
+  }
+
+  function advance() {
     cardState.reset();
+    setWrongRecorded(false);
     setIndex((i) => i + 1);
+  }
+
+  async function grade(reviewGrade) {
+    if (busy || !item) return;
+    setBusy(true);
+    const typed = cardState.typedResult;
+    await logReview(item.id, reviewGrade, eventDetails(typed ? {
+      mode: "typed",
+      verdict: typed.verdict,
+    } : null));
+    countGrade(reviewGrade);
+    advance();
+    setBusy(false);
+    onGraded?.();
+  }
+
+  async function markTyped(result) {
+    if (busy || !item) return;
+    cardState.markTyped(result);
+    if (result.verdict !== "wrong") return;
+
+    setBusy(true);
+    await logReview(item.id, GRADES.again, eventDetails({ mode: "typed", verdict: "wrong" }));
+    countGrade(GRADES.again);
+    setWrongRecorded(true);
     setBusy(false);
     onGraded?.();
   }
@@ -99,6 +129,12 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
         onToggleContext={cardState.toggleContext}
         onOpen={onOpen}
         speak
+        mode={mode}
+        busy={busy}
+        typedValue={cardState.typedValue}
+        onTypedValueChange={cardState.setTypedValue}
+        typedResult={cardState.typedResult}
+        onTypedResult={markTyped}
         metadata={(
           <div className="mt-1.5 text-xs inline-flex items-center gap-2" style={{ fontFamily: MONO, color: C.mut }}>
             <span>caja {item.box}</span>
@@ -121,8 +157,17 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
         )}
       />
 
-      {cardState.revealed && (
-        <ReviewGradeStrip busy={busy} grades={GRADES} onGrade={grade} />
+      {cardState.revealed && cardState.typedResult?.verdict === "wrong" ? (
+        <Button className="mt-4 min-h-11 w-full" disabled={busy || !wrongRecorded} onClick={advance}>
+          Continue
+        </Button>
+      ) : cardState.revealed && (
+        <ReviewGradeStrip
+          busy={busy}
+          grades={GRADES}
+          onGrade={grade}
+          includeAgain={!cardState.typedResult}
+        />
       )}
 
       <div className="mt-6 text-center text-xs" style={{ color: C.mut }}>

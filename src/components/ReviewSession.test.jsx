@@ -211,3 +211,103 @@ describe("Phase 10b: cloze cards", () => {
     }
   });
 });
+
+describe("Phase 16: typed scheduled review", () => {
+  const reverseCard = (overrides = {}) => ({
+    id: "user:te",
+    term: "te",
+    form: "word",
+    direction: "reverse",
+    meanings: [newMeaning({ id: "meaning:tea", gloss: "tea" })],
+    notes: "",
+    myExamples: [],
+    box: 2,
+    reason: "reviewing",
+    tricky: false,
+    ...overrides,
+  });
+
+  it("marks a correct reverse answer, then asks only for effort", async () => {
+    const user = userEvent.setup();
+    render(<ReviewSession mode="typed" cards={[reverseCard({ term: "madrugar" })]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    const input = screen.getByRole("textbox", { name: "Type the Spanish word" });
+    await user.type(input, "MADRUGAR");
+    await user.click(screen.getByRole("button", { name: "Check answer" }));
+
+    expect(screen.getByText("Exact answer")).toBeTruthy();
+    expect(screen.getByText(/You typed.*MADRUGAR/)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Again" })).toBeNull();
+    for (const label of ["Hard", "Good", "Easy"]) {
+      expect(screen.getByRole("button", { name: label })).toBeTruthy();
+    }
+
+    await user.click(screen.getByRole("button", { name: "Hard" }));
+    await waitFor(async () => expect(await allEvents()).toHaveLength(1));
+    const [event] = await allEvents();
+    expect(event).toMatchObject({ type: "review_pass", metadata: {
+      direction: "reverse",
+      face: "plain",
+      mode: "typed",
+      verdict: "exact",
+      grade: 1,
+    } });
+    expect(JSON.stringify(event)).not.toContain("MADRUGAR");
+  });
+
+  it("records Again automatically on a wrong answer, shows the correction, and never writes twice", async () => {
+    const user = userEvent.setup();
+    render(<ReviewSession mode="typed" cards={[reverseCard({ term: "madrugar" })]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await user.type(screen.getByRole("textbox", { name: "Type the Spanish word" }), "levantarse");
+    await user.click(screen.getByRole("button", { name: "Check answer" }));
+
+    await waitFor(async () => expect(await allEvents()).toHaveLength(1));
+    expect(screen.getByText("Not yet")).toBeTruthy();
+    expect(screen.getByText(/You typed.*levantarse/)).toBeTruthy();
+    expect(screen.getByText(/Answer.*madrugar/)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Again" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+
+    expect(screen.getByText("¡Ya está!")).toBeTruthy();
+    const [event] = await allEvents();
+    expect(event).toMatchObject({ type: "review_fail", metadata: {
+      mode: "typed",
+      verdict: "wrong",
+      grade: 0,
+    } });
+    expect(await allEvents()).toHaveLength(1);
+  });
+
+  it("accepts an accent-only difference and still asks for effort", async () => {
+    const user = userEvent.setup();
+    render(<ReviewSession mode="typed" cards={[reverseCard()]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await user.type(screen.getByRole("textbox", { name: "Type the Spanish word" }), "té");
+    await user.click(screen.getByRole("button", { name: "Check answer" }));
+
+    expect(screen.getByText("Correct · accent slip")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Good" })).toBeTruthy();
+    expect(await allEvents()).toEqual([]);
+
+    await user.click(screen.getByRole("button", { name: "Good" }));
+    await waitFor(async () => expect(await allEvents()).toHaveLength(1));
+    expect((await allEvents())[0].metadata).toMatchObject({ mode: "typed", verdict: "accents", grade: 2 });
+  });
+
+  it("types a cloze answer but leaves a plain forward card on reveal", () => {
+    const cloze = reverseCard({
+      direction: "forward",
+      face: "cloze",
+      term: "sacar",
+      cloze: { before: "Ayer ", answer: "saqué", after: " la basura.", es: "Ayer saqué la basura.", en: "" },
+    });
+    const first = render(<ReviewSession mode="typed" cards={[cloze]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+    expect(screen.getByRole("textbox", { name: "Type the missing word" })).toBeTruthy();
+
+    first.unmount();
+    render(<ReviewSession mode="typed" cards={[reverseCard({ direction: "forward" })]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+    expect(screen.queryByRole("textbox")).toBeNull();
+    expect(screen.getByRole("button", { name: "Tap to see the meaning" })).toBeTruthy();
+  });
+});

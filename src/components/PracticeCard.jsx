@@ -4,20 +4,32 @@ import { Button, C, Card, Hi, SERIF } from "../theme.jsx";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
 import LexicalAnswer, { MeaningRow } from "./LexicalAnswer.jsx";
 import SpeakButton from "./SpeakButton.jsx";
+import { checkTypedAnswer } from "../lib/drill.js";
 
 /** Visit-local reveal and answer-context state shared by both practice shells. */
 export function usePracticeCardState() {
   const [revealed, setRevealed] = useState(false);
   const [showContext, setShowContext] = useState(false);
+  const [typedValue, setTypedValue] = useState("");
+  const [typedResult, setTypedResult] = useState(null);
 
   return {
     revealed,
     showContext,
+    typedValue,
+    typedResult,
     reveal: () => setRevealed(true),
     toggleContext: () => setShowContext((shown) => !shown),
+    setTypedValue,
+    markTyped: (result) => {
+      setTypedResult(result);
+      setRevealed(true);
+    },
     reset: () => {
       setRevealed(false);
       setShowContext(false);
+      setTypedValue("");
+      setTypedResult(null);
     },
   };
 }
@@ -63,6 +75,12 @@ export function PracticeCard({
   revealLabel = null,
   revealIcon = false,
   speak = false,
+  mode = "reveal",
+  busy = false,
+  typedValue = "",
+  onTypedValueChange,
+  typedResult = null,
+  onTypedResult,
 }) {
   // A card with no written gloss has no reverse question side. `cardDirection` normally
   // prevents that shape; the guard also keeps fixtures and legacy callers honest.
@@ -71,6 +89,18 @@ export function PracticeCard({
   const cloze = !reverse && item.cloze?.answer ? item.cloze : null;
   const resolvedRevealLabel = revealLabel
     || (reverse || cloze ? "Tap to see the word" : "Tap to see the meaning");
+  const typedAnswer = deterministicCardAnswer(item);
+  const canType = mode === "typed" && Boolean(typedAnswer);
+
+  function submitTyped(event) {
+    event.preventDefault();
+    if (busy || !typedValue.trim() || !typedAnswer) return;
+    // Vocabulary recall deliberately uses only the pure exact/accent-aware checker.
+    // Do not add the Gym's paradigm-collision diagnosis here: that requires a full forms
+    // table and answers a tense-identity question this card is not asking (Phase 16 §2).
+    const verdict = checkTypedAnswer(typedValue, typedAnswer);
+    onTypedResult?.({ attempt: typedValue, answer: typedAnswer, verdict });
+  }
 
   return (
     <Card className="p-5">
@@ -97,7 +127,25 @@ export function PracticeCard({
         {metadata}
       </div>
 
-      {!revealed ? (
+      {!revealed && canType ? (
+        <form className="mt-5" onSubmit={submitTyped}>
+          <label className="block text-left text-xs font-semibold" style={{ color: C.mut }}>
+            {reverse ? "Type the Spanish word" : "Type the missing word"}
+            <input
+              autoFocus
+              autoComplete="off"
+              spellCheck="false"
+              value={typedValue}
+              onChange={(event) => onTypedValueChange?.(event.target.value)}
+              className="mt-1.5 min-h-11 w-full rounded-lg border px-3 py-2 text-base outline-none"
+              style={{ background: C.paper, borderColor: C.line, color: C.ink }}
+            />
+          </label>
+          <Button type="submit" className="mt-3 min-h-11 w-full" disabled={busy || !typedValue.trim()}>
+            Check answer
+          </Button>
+        </form>
+      ) : !revealed ? (
         <button
           type="button"
           onClick={onReveal}
@@ -129,6 +177,27 @@ export function PracticeCard({
               )}
             </div>
           )}
+          {typedResult && (
+            <div
+              role="status"
+              className="mt-4 rounded-lg border p-3 text-left"
+              style={{
+                background: typedResult.verdict === "wrong" ? C.redPale : C.greenPale,
+                borderColor: typedResult.verdict === "wrong" ? C.dangerBorder : C.green,
+              }}
+            >
+              <div className="text-sm font-semibold" style={{ color: typedResult.verdict === "wrong" ? C.red : C.ink }}>
+                {typedResult.verdict === "exact"
+                  ? "Exact answer"
+                  : typedResult.verdict === "accents"
+                    ? "Correct · accent slip"
+                    : "Not yet"}
+              </div>
+              <div className="mt-1 text-sm break-words" style={{ color: C.ink }}>
+                You typed “{typedResult.attempt}” · Answer “{typedResult.answer}”
+              </div>
+            </div>
+          )}
           <LexicalAnswer
             item={item}
             showContext={showContext}
@@ -142,12 +211,14 @@ export function PracticeCard({
 }
 
 /** Four scheduled grades; the shell decides what each one writes and advances. */
-export function ReviewGradeStrip({ busy = false, grades, onGrade }) {
+export function ReviewGradeStrip({ busy = false, grades, onGrade, includeAgain = true }) {
   return (
-    <div className="mt-4 grid grid-cols-2 gap-2" aria-label="Review grade">
-      <Button className="min-h-11" tone="danger" disabled={busy} onClick={() => onGrade(grades.again)}>
-        <X size={16} /> Again
-      </Button>
+    <div className={includeAgain ? "mt-4 grid grid-cols-2 gap-2" : "mt-4 grid grid-cols-3 gap-2"} aria-label="Review grade">
+      {includeAgain && (
+        <Button className="min-h-11" tone="danger" disabled={busy} onClick={() => onGrade(grades.again)}>
+          <X size={16} /> Again
+        </Button>
+      )}
       <Button className="min-h-11" tone="quiet" disabled={busy} onClick={() => onGrade(grades.hard)}>
         Hard
       </Button>
