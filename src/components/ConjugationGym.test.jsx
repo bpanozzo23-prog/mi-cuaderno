@@ -5,10 +5,12 @@ import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ConjugationGym from "./ConjugationGym.jsx";
 import * as gymReference from "../db/ref/gym.js";
+import { clearAllPersonalData } from "../db/db.js";
+import { allEvents } from "../db/events.js";
 import { removeDictionary } from "../db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "../db/ref/refdb.js";
 import { FIXTURE_CONJUGATIONS, FIXTURE_ENTRIES, FIXTURE_FORM_SHARDS } from "../test/dictFixture.js";
-import { makeLexical } from "../test/factories.js";
+import { makeLexical, makePage } from "../test/factories.js";
 
 const SACAR = "dict:wiktionary-es:sacar:verb";
 const PREFERIR = "dict:fixture:preferir:verb";
@@ -194,6 +196,153 @@ describe("Conjugation Gym setup", () => {
     expect(screen.getByText("1 of 18 spelling-change verbs available")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Start quick session" }));
     expect(screen.getByText("sacar")).toBeTruthy();
+  });
+
+  it("constrains Quick, Focus, Adaptive, one-verb choices, and counts to one exact Saved tag", async () => {
+    const user = userEvent.setup();
+    await clearAllPersonalData();
+    await seedGymDictionary();
+    const sacar = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR, tags: ["Travel"] });
+    const preferir = makeLexical({ id: "user:preferir", term: "preferir", dictKey: PREFERIR, tags: ["Study"] });
+    render(<ConjugationGym items={[sacar, preferir]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    const poolPicker = await screen.findByLabelText("Verb pool");
+    await user.selectOptions(poolPicker, "saved");
+    await user.selectOptions(screen.getByLabelText("Saved refinement"), "tag");
+    await user.selectOptions(screen.getByLabelText("Exact tag"), "Travel");
+    expect(screen.getByText("1 saved verb available")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Start quick session" }));
+    expect(screen.getByText("sacar")).toBeTruthy();
+    expect(screen.queryByText("preferir")).toBeNull();
+    const prompt = screen.getByText(/Indicative present ·/).textContent;
+    const slot = prompt.split(" · ")[1];
+    const answers = {
+      yo: "saco",
+      tú: "sacas",
+      "él/ella/usted": "saca",
+      nosotros: "sacamos",
+      "ustedes/ellos": "sacan",
+    };
+    await user.type(screen.getByLabelText("Type the form"), answers[slot]);
+    await user.click(screen.getByRole("button", { name: "Check" }));
+    await waitFor(async () => expect(await allEvents()).toHaveLength(1));
+    const [event] = await allEvents();
+    expect(event.metadata).not.toHaveProperty("savedSubset");
+    expect(event.metadata).not.toHaveProperty("tag");
+    expect(event.metadata).not.toHaveProperty("pageId");
+    await user.click(screen.getByRole("button", { name: "Finish" }));
+
+    await user.click(screen.getByRole("button", { name: /Focus/ }));
+    const oneVerb = screen.getByLabelText("One verb (optional)");
+    expect([...oneVerb.options].map((option) => option.textContent)).toEqual(["All verbs", "sacar"]);
+    await user.click(screen.getByRole("button", { name: "Start focus session" }));
+    expect(screen.getByText("sacar")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Finish" }));
+
+    await user.click(screen.getByRole("button", { name: /Adaptive/ }));
+    await user.click(screen.getByRole("button", { name: "Start adaptive session" }));
+    expect(screen.getByText("sacar")).toBeTruthy();
+  });
+
+  it("uses whole-page linked membership, ignores phantom groups, and hides ineligible targets", async () => {
+    const user = userEvent.setup();
+    await seedGymDictionary();
+    const sacar = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR, tags: ["Travel"] });
+    const preferir = makeLexical({ id: "user:preferir", term: "preferir", dictKey: PREFERIR, tags: ["travel"] });
+    const ghost = makeLexical({ id: "user:ghost", term: "inventado", dictKey: "dict:missing", tags: ["Ghost"] });
+    const active = makePage({
+      id: "user:travel-page",
+      title: "Travel verbs",
+      pageFocus: "grammar",
+      linkedKeys: [sacar.id, ghost.id],
+      collection: {
+        enabled: true,
+        groups: [{ id: "page-group:phantom", name: "Visual only", itemKeys: [preferir.id] }],
+      },
+    });
+    const zero = makePage({
+      id: "user:zero-page",
+      title: "Only unresolved",
+      linkedKeys: [ghost.id],
+      collection: { enabled: true, groups: [] },
+    });
+    render(<ConjugationGym items={[sacar, preferir, ghost, active, zero]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await user.selectOptions(await screen.findByLabelText("Verb pool"), "saved");
+    await user.selectOptions(screen.getByLabelText("Saved refinement"), "page");
+    expect([...screen.getByLabelText("Vocabulary page").options].map((option) => option.textContent)).toEqual(["Travel verbs · 1"]);
+    expect(screen.getByText("1 saved verb available")).toBeTruthy();
+    expect(screen.queryByRole("option", { name: /Only unresolved/ })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: /Focus/ }));
+    expect([...screen.getByLabelText("One verb (optional)").options].map((option) => option.textContent))
+      .toEqual(["All verbs", "sacar"]);
+  });
+
+  it("keeps exact tag case and safely resets an invalidated setup selection to All saved", async () => {
+    const user = userEvent.setup();
+    await seedGymDictionary();
+    const sacar = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR, tags: ["Travel"] });
+    const preferir = makeLexical({ id: "user:preferir", term: "preferir", dictKey: PREFERIR, tags: ["travel"] });
+    const props = { events: [], onBack: vi.fn(), onOpen: vi.fn(), onGraded: vi.fn() };
+    const { rerender } = render(<ConjugationGym items={[sacar, preferir]} {...props} />);
+
+    await user.selectOptions(await screen.findByLabelText("Verb pool"), "saved");
+    await user.selectOptions(screen.getByLabelText("Saved refinement"), "tag");
+    expect([...screen.getByLabelText("Exact tag").options].map((option) => option.value)).toEqual(["travel", "Travel"]);
+    await user.selectOptions(screen.getByLabelText("Exact tag"), "Travel");
+    expect(screen.getByText("1 saved verb available")).toBeTruthy();
+
+    const changed = { ...sacar, tags: ["Changed"] };
+    rerender(<ConjugationGym items={[changed, preferir]} {...props} />);
+    await waitFor(() => expect(screen.getByLabelText("Saved refinement").value).toBe("all"));
+    await waitFor(() => expect(screen.getByText("2 saved verbs available")).toBeTruthy());
+  });
+
+  it("resets Saved refinement before a Performance-to-Focus handoff", async () => {
+    const user = userEvent.setup();
+    await seedGymDictionary();
+    const sacar = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR, tags: ["Travel"] });
+    const preferir = makeLexical({ id: "user:preferir", term: "preferir", dictKey: PREFERIR, tags: ["Study"] });
+    const events = [1, 2, 3].map((number) => ({
+      id: `preferir-fail-${number}`,
+      type: "drill_fail",
+      itemKey: preferir.id,
+      at: `2026-08-10T12:0${number}:00.000Z`,
+      localDate: "2026-08-10",
+      metadata: {
+        sessionId: "old-session",
+        promptId: `preferir-${number}`,
+        sessionKind: "focus",
+        source: "saved",
+        curriculum: null,
+        verbKey: "lemma:preferir",
+        lemma: "preferir",
+        dictKey: PREFERIR,
+        tense: "Indicative/Present",
+        slot: "yo",
+        mode: "typed",
+        verdict: "wrong",
+        diagnosis: "wrong",
+        stage: "initial",
+        cardIndex: number,
+        deckSize: 3,
+      },
+    }));
+    render(<ConjugationGym items={[sacar, preferir]} events={events} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await user.selectOptions(await screen.findByLabelText("Verb pool"), "saved");
+    await user.selectOptions(screen.getByLabelText("Saved refinement"), "tag");
+    await user.selectOptions(screen.getByLabelText("Exact tag"), "Travel");
+    expect(screen.getByText("1 saved verb available")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "View conjugation performance" }));
+    await user.click(screen.getByRole("button", { name: "Practice next" }));
+    expect(screen.getByLabelText("Verb pool").value).toBe("saved");
+    expect(screen.getByLabelText("Saved refinement").value).toBe("all");
+    expect(screen.getByText("2 saved verbs available")).toBeTruthy();
+    expect(screen.getByText("preferir · Indicative present · yo")).toBeTruthy();
   });
 
   it("exposes Focus packs, exact persisted person strings, and rare custom labels", async () => {

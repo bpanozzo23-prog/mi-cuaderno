@@ -17,6 +17,11 @@ import {
 import { qualifiedTenseLabel } from "../lib/conjugation.js";
 import { conjugationForms } from "../lib/drill.js";
 import {
+  deriveSavedGymTargeting,
+  isSavedGymSubsetValid,
+  savedGymVerbsForSubset,
+} from "../lib/gymTargeting.js";
+import {
   RECOGNITION_CARDS,
   RECOGNITION_EVERYDAY_TENSES,
   RECOGNITION_LANES,
@@ -87,6 +92,7 @@ export default function ConjugationGym({
   const [endingsDirection, setEndingsDirection] = useState("choice");
   const [slots, setSlots] = useState([...GYM_SLOTS]);
   const [oneVerb, setOneVerb] = useState("");
+  const [savedSubset, setSavedSubset] = useState({ kind: "all", value: "" });
   const [focusTarget, setFocusTarget] = useState(null);
   const [session, setSession] = useState(null);
   const [startError, setStartError] = useState("");
@@ -121,14 +127,27 @@ export default function ConjugationGym({
     }
   }, [view]);
 
+  const savedTargeting = useMemo(
+    () => deriveSavedGymTargeting(items, library.saved),
+    [items, library.saved]
+  );
   const poolDefinition = GYM_CURRICULUM_REGISTRY[pool] || GYM_CURRICULUM_REGISTRY.core20;
   const poolVerbs = useMemo(() => {
-    if (pool === "saved") return library.saved;
+    if (pool === "saved") return savedGymVerbsForSubset(library.saved, savedTargeting, savedSubset);
     const allowed = new Set(poolDefinition.lemmas);
     return library.core
       .filter((verb) => allowed.has(verb.lemma))
       .map((verb) => ({ ...verb, curriculum: pool }));
-  }, [library, pool, poolDefinition]);
+  }, [library, pool, poolDefinition, savedSubset, savedTargeting]);
+
+  useEffect(() => {
+    if (view === "session" || pool !== "saved" || library.loading) return;
+    if (isSavedGymSubsetValid(savedSubset, savedTargeting)) return;
+    setSavedSubset({ kind: "all", value: "" });
+    setOneVerb("");
+    setFocusTarget(null);
+    setStartError("");
+  }, [library.loading, pool, savedSubset, savedTargeting, view]);
 
   const unavailableInPool = useMemo(() => {
     if (pool === "saved") return 0;
@@ -184,6 +203,25 @@ export default function ConjugationGym({
 
   function choosePool(next) {
     setPool(next);
+    setOneVerb("");
+    setFocusTarget(null);
+    setStartError("");
+  }
+
+  function chooseSavedSubsetKind(kind) {
+    const value = kind === "tag"
+      ? savedTargeting.tags[0]?.tag || ""
+      : kind === "page"
+        ? savedTargeting.pages[0]?.id || ""
+        : "";
+    setSavedSubset({ kind, value });
+    setOneVerb("");
+    setFocusTarget(null);
+    setStartError("");
+  }
+
+  function chooseSavedSubsetValue(value) {
+    setSavedSubset((current) => ({ ...current, value }));
     setOneVerb("");
     setFocusTarget(null);
     setStartError("");
@@ -292,6 +330,7 @@ export default function ConjugationGym({
     setSessionKind("focus");
     setPool("core20");
     setOneVerb("");
+    setSavedSubset({ kind: "all", value: "" });
     setMode("typed");
     setSize(10);
     setTensePack("everyday");
@@ -594,11 +633,67 @@ export default function ConjugationGym({
           <div className="mt-2 text-xs" style={{ color: C.mut }}>
             <span>
               {pool === "saved"
-                ? `${library.saved.length} saved ${library.saved.length === 1 ? "verb" : "verbs"} available`
+                ? `${poolVerbs.length} saved ${poolVerbs.length === 1 ? "verb" : "verbs"} available`
                 : `${poolVerbs.length} of ${poolDefinition.lemmas.length} ${poolDefinition.availabilityLabel} available`}
             </span>
             {unavailableInPool > 0 && ` · ${unavailableInPool} unavailable in this dictionary version`}
           </div>
+
+          {pool === "saved" && library.saved.length > 0 && (
+            <>
+              <SectionTitle>Saved target</SectionTitle>
+              <Card className="space-y-4 p-4">
+                <div>
+                  <label htmlFor="gym-saved-subset" className="mb-1 block text-xs" style={{ color: C.mut }}>Saved refinement</label>
+                  <select
+                    id="gym-saved-subset"
+                    value={savedSubset.kind}
+                    onChange={(event) => chooseSavedSubsetKind(event.target.value)}
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    style={{ color: C.ink, borderColor: C.line, background: C.paper }}
+                  >
+                    <option value="all">All saved</option>
+                    <option value="tag" disabled={savedTargeting.tags.length === 0}>One exact tag</option>
+                    <option value="page" disabled={savedTargeting.pages.length === 0}>One Vocabulary page</option>
+                  </select>
+                </div>
+
+                {savedSubset.kind === "tag" && (
+                  <div>
+                    <label htmlFor="gym-saved-tag" className="mb-1 block text-xs" style={{ color: C.mut }}>Exact tag</label>
+                    <select
+                      id="gym-saved-tag"
+                      value={savedSubset.value}
+                      onChange={(event) => chooseSavedSubsetValue(event.target.value)}
+                      className="w-full rounded-lg border px-3 py-2 text-sm"
+                      style={{ color: C.ink, borderColor: C.line, background: C.paper }}
+                    >
+                      {savedTargeting.tags.map((row) => (
+                        <option key={row.tag} value={row.tag}>{row.tag} · {row.count}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {savedSubset.kind === "page" && (
+                  <div>
+                    <label htmlFor="gym-saved-page" className="mb-1 block text-xs" style={{ color: C.mut }}>Vocabulary page</label>
+                    <select
+                      id="gym-saved-page"
+                      value={savedSubset.value}
+                      onChange={(event) => chooseSavedSubsetValue(event.target.value)}
+                      className="w-full rounded-lg border px-3 py-2 text-sm"
+                      style={{ color: C.ink, borderColor: C.line, background: C.paper }}
+                    >
+                      {savedTargeting.pages.map((row) => (
+                        <option key={row.id} value={row.id}>{row.title} · {row.count}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </Card>
+            </>
+          )}
 
           <SectionTitle>Answer</SectionTitle>
           <Segmented
