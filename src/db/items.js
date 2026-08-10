@@ -94,6 +94,7 @@ export function newPage({
   body = "",
   pageDate = null,
   pageFocus = undefined,
+  noteSections = undefined,
   // Temporary creation compatibility while the schema-v4 UI is replaced. Never persisted.
   pageProfile = undefined,
   collection = undefined,
@@ -115,6 +116,7 @@ export function newPage({
     ?? (pageProfile === PAGE_PROFILES.collection ? PAGE_FOCUSES.vocabulary : PAGE_FOCUSES.notes);
   const structures = normalizePageStructures({
     pageFocus: requestedFocus,
+    noteSections,
     pageProfile,
     collection: {
       ...(collection || {}),

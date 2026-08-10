@@ -187,6 +187,7 @@ export default function AddSheet({
             pageDate: isStructured ? pageDate || null : null,
             tags,
             pageFocus: seed.pageFocus,
+            noteSections: seed.noteSections,
             collection: {
               enabled: collectionEnabled,
               groups: collectionDraft.groups,

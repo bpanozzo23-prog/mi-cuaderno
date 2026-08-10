@@ -45,10 +45,18 @@ describe("pre-open schema upgrade gate", () => {
     expect(onContinue).toHaveBeenCalledTimes(1);
   });
 
-  it("explains the exact v5 → v6 Grammar migration", () => {
+  it("explains every migration crossed from v5 to v7", () => {
     render(<SchemaUpgradeGate fromVersion={5} onContinue={vi.fn()} />);
 
-    expect(screen.getByText(/Every existing guide section stays in the same order as a top-level section/)).toBeTruthy();
+    expect(screen.getByText(/adds one level of Grammar subsections/i)).toBeTruthy();
+    expect(screen.getByText(/adds an empty structured Notes outline/i)).toBeTruthy();
+  });
+
+  it("describes only Structured Notes when upgrading from v6", () => {
+    render(<SchemaUpgradeGate fromVersion={6} onContinue={vi.fn()} />);
+
+    expect(screen.getByText(/adds an empty structured Notes outline/i)).toBeTruthy();
+    expect(screen.queryByText(/adds one level of Grammar subsections/i)).toBeNull();
   });
 
   it("keeps the upgrade blocked when backup preparation fails", async () => {

@@ -8,7 +8,7 @@ import {
   canonicalGrammarSections,
   emptyGrammar,
   emptySource,
-  hasEnabledStructuredCapability,
+  hasDurablePageStructure,
   isPageFocus,
   isPageFocusEnabled,
   newGrammarExample,
@@ -34,6 +34,7 @@ const assertPage = (page, pageId) => {
 
 const clonePage = (page) => ({
   ...page,
+  noteSections: (page.noteSections || []).map((section) => ({ ...section })),
   linkedKeys: [...(page.linkedKeys || [])],
   linkAnnotations: [...(page.linkAnnotations || [])],
   collection: {
@@ -142,7 +143,7 @@ export async function savePageConfiguration(pageId, {
     result = {
       page: saved,
       changed: true,
-      movesToJournal: Boolean(saved.pageDate) && !hasEnabledStructuredCapability(saved),
+      movesToJournal: Boolean(saved.pageDate) && !hasDurablePageStructure(saved),
     };
   });
   return result;

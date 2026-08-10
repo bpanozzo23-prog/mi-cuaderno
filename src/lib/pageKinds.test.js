@@ -12,6 +12,11 @@ import {
   isJournalPage,
   newGrammarExample,
   newGrammarSection,
+  newNoteSection,
+  noteSectionBreadcrumb,
+  noteSectionHierarchy,
+  noteStructureCounts,
+  canonicalNoteSections,
   newSourceCapture,
   normalizePageStructures,
   PAGE_FOCUSES,
@@ -23,6 +28,7 @@ const validPage = (overrides = {}) => ({
   type: "page",
   pageDate: null,
   pageFocus: PAGE_FOCUSES.notes,
+  noteSections: [],
   collection: emptyCollection(),
   source: emptySource(),
   grammar: emptyGrammar(),
@@ -42,14 +48,15 @@ describe("composable page kinds", () => {
       collection: { groups: [group] },
     })).toEqual({
       pageFocus: "vocabulary",
+      noteSections: [],
       collection: { enabled: true, groups: [group] },
       source: emptySource(),
       grammar: emptyGrammar(),
     });
   });
 
-  it("derives Diario only from dated pages with no enabled structured capability", () => {
-    expect(isJournalPage(validPage({ pageDate: "2026-08-04" }))).toBe(true);
+  it("derives Diario from date plus no durable structure, independently of body length", () => {
+    expect(isJournalPage(validPage({ pageDate: "2026-08-04", body: "A very long journal body." }))).toBe(true);
     expect(isJournalPage(validPage({
       pageDate: "2026-08-04",
       source: emptySource({ enabled: true }),
@@ -58,6 +65,10 @@ describe("composable page kinds", () => {
       pageDate: "2026-08-04",
       source: emptySource({ enabled: false, context: "Preserved hidden notes" }),
     }))).toBe(true);
+    expect(isJournalPage(validPage({
+      pageDate: "2026-08-04",
+      noteSections: [newNoteSection({ name: "Durable outline" })],
+    }))).toBe(false);
   });
 
   it("orders badges with saved focus first and includes Notes only when Notes leads", () => {
@@ -80,6 +91,7 @@ describe("composable page kinds", () => {
     const capture = newSourceCapture({ text: "Nomás dime." });
     const example = newGrammarExample({ es: "Nomás dime." });
     const section = newGrammarSection({ name: "  Use  ", examples: [example] });
+    const noteSection = newNoteSection({ name: "  Context  ", body: "Why this collection exists." });
 
     expect(capture.id).toMatch(/^source-capture:/);
     expect(example.id).toMatch(/^grammar-example:/);
@@ -87,6 +99,9 @@ describe("composable page kinds", () => {
     expect(section.name).toBe("Use");
     expect(section.parentId).toBeNull();
     expect(section.examples[0]).toEqual(example);
+    expect(noteSection.id).toMatch(/^note-section:/);
+    expect(noteSection.name).toBe("Context");
+    expect(noteSection.parentId).toBeNull();
   });
 
   it("accepts one level of Grammar subsections regardless of stored parent order", () => {
@@ -143,6 +158,62 @@ describe("composable page kinds", () => {
     expect(grammarSectionBreadcrumb(root, stored)).toBe("Indicative");
   });
 
+  it("uses the shared one-level mechanics for Notes without changing section objects", () => {
+    const root = {
+      id: "note-section:11111111-1111-4111-8111-111111111111",
+      parentId: null,
+      name: "About this collection",
+      body: "Scope",
+    };
+    const child = {
+      id: "note-section:22222222-2222-4222-8222-222222222222",
+      parentId: root.id,
+      name: "Register",
+      body: "Formal and informal usage.",
+    };
+    const otherRoot = {
+      id: "note-section:33333333-3333-4333-8333-333333333333",
+      parentId: null,
+      name: "Study plan",
+      body: "",
+    };
+    const stored = [child, root, otherRoot];
+
+    expect(noteSectionHierarchy(stored).childrenByParent.get(root.id)).toEqual([child]);
+    expect(canonicalNoteSections(stored)).toEqual([root, child, otherRoot]);
+    expect(noteStructureCounts(stored)).toEqual({ sections: 2, subsections: 1 });
+    expect(noteSectionBreadcrumb(child, stored)).toBe("About this collection › Register");
+  });
+
+  it.each([
+    ["a missing parent", (sections) => { delete sections[0].parentId; }, /parentId/],
+    ["a dangling parent", (sections) => {
+      sections[1].parentId = "note-section:99999999-9999-4999-8999-999999999999";
+    }, /same page/],
+    ["a grandchild", (sections) => { sections[2].parentId = sections[1].id; }, /one subsection level/],
+    ["a duplicate sibling name", (sections) => { sections[2].name = "child"; }, /unique names among siblings/],
+    ["a non-string body", (sections) => { sections[0].body = 42; }, /body must be a string/],
+  ])("rejects Notes outline with %s", (_label, mutate, message) => {
+    const rootId = "note-section:11111111-1111-4111-8111-111111111111";
+    const sections = [
+      { id: rootId, parentId: null, name: "Root", body: "" },
+      {
+        id: "note-section:22222222-2222-4222-8222-222222222222",
+        parentId: rootId,
+        name: "Child",
+        body: "",
+      },
+      {
+        id: "note-section:33333333-3333-4333-8333-333333333333",
+        parentId: rootId,
+        name: "Other child",
+        body: "",
+      },
+    ];
+    mutate(sections);
+    expect(validatePageStructures(validPage({ noteSections: sections })).join(" ")).toMatch(message);
+  });
+
   it.each([
     ["a missing parent field", (sections) => { delete sections[0].parentId; }, /parentId/],
     ["a self parent", (sections) => { sections[0].parentId = sections[0].id; }, /itself/],
@@ -196,7 +267,7 @@ describe("composable page kinds", () => {
       pattern: "",
       examples: [],
     };
-    const page = validPage({
+    const { noteSections: _noteSections, ...page } = validPage({
       grammar: { enabled: false, keyIdea: "", sections: [section] },
     });
 
@@ -206,6 +277,14 @@ describe("composable page kinds", () => {
       ...page,
       grammar: { ...page.grammar, sections: [{ ...section, parentId: null }] },
     }, { schemaVersion: 5 }).join(" ")).toMatch(/not part of schema v5/);
+  });
+
+  it("fences Notes outline storage by schema version and requires it in v7", () => {
+    const current = validPage();
+    const { noteSections: _noteSections, ...v6 } = current;
+    expect(validatePageStructures(v6, { schemaVersion: 6 })).toEqual([]);
+    expect(validatePageStructures(current, { schemaVersion: 6 }).join(" ")).toMatch(/not part of schema v6/);
+    expect(validatePageStructures(v6).join(" ")).toMatch(/noteSections must be an array/);
   });
 
   it("deeply validates active or hidden structures and focus consistency", () => {
@@ -228,7 +307,7 @@ describe("composable page kinds", () => {
       source: { ...hidden.source, url: "example.com" },
     }).join(" ")).toMatch(/http\(s\) URL/);
     expect(validatePageStructures({ ...hidden, pageProfile: "general" }).join(" ")).toMatch(
-      /not part of schema v6/
+      /not part of schema v7/
     );
   });
 

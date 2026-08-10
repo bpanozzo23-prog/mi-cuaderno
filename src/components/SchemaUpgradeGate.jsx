@@ -17,9 +17,17 @@ export default function SchemaUpgradeGate({ fromVersion = null, onContinue }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const sourceVersion = fromVersion ?? legacyVersionLabel();
-  const upgradeDescription = fromVersion === 5
-    ? "It adds one level of Grammar subsections. Every existing guide section stays in the same order as a top-level section; its prose, patterns, examples, links, and timestamps are unchanged."
-    : "It brings older meaning formats, page profiles, relationship metadata, composable page structures, and Grammar organization up to the current format.";
+  const knownVersion = Number.isInteger(fromVersion) ? fromVersion : null;
+  const changes = [];
+  if (knownVersion === null || knownVersion < 6) {
+    changes.push("adds one level of Grammar subsections while keeping every existing guide section as a top-level section");
+  }
+  if (knownVersion === null || knownVersion < 7) {
+    changes.push("adds an empty structured Notes outline to every Page while leaving every existing Page body unchanged");
+  }
+  const upgradeDescription = changes.length
+    ? `It ${changes.join(" and ")}. IDs, prose, links, timestamps, events, and preferences are unchanged.`
+    : "It brings the notebook up to the current personal-data format without changing owner content.";
 
   async function downloadBackup() {
     setBusy(true);

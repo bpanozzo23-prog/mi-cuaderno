@@ -35,6 +35,11 @@ export function newGrammarSectionKey() {
   return `grammar-section:${newId()}`;
 }
 
+/** Stable identity for an editable section inside one Page's permanent Notes outline. */
+export function newNoteSectionKey() {
+  return `note-section:${newId()}`;
+}
+
 /** Stable identity for one example pair inside a Grammar guide section. */
 export function newGrammarExampleKey() {
   return `grammar-example:${newId()}`;
@@ -65,6 +70,10 @@ export function isSourceCaptureKey(key) {
 
 export function isGrammarSectionKey(key) {
   return typeof key === "string" && key.startsWith("grammar-section:") && UUID_PATTERN.test(key.slice(16));
+}
+
+export function isNoteSectionKey(key) {
+  return typeof key === "string" && key.startsWith("note-section:") && UUID_PATTERN.test(key.slice(13));
 }
 
 export function isGrammarExampleKey(key) {

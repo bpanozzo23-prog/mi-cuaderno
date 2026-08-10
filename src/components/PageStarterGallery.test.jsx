@@ -41,6 +41,7 @@ describe("page starting points", () => {
       collectionEnabled: true,
       sourceEnabled: true,
       grammarEnabled: false,
+      noteSections: [],
       groupNames: [],
       sectionNames: [],
       sourceFormat: "audio",

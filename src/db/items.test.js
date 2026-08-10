@@ -23,6 +23,7 @@ import {
   emptySource,
   newGrammarExample,
   newGrammarSection,
+  newNoteSection,
   newSourceCapture,
 } from "../lib/pageKinds.js";
 
@@ -116,11 +117,30 @@ describe("pages", () => {
     expect(stored.title).toBe("Preterite vs imperfect");
     expect(stored.pageDate).toBe("2026-07-30");
     expect(stored.pageFocus).toBe("notes");
+    expect(stored.noteSections).toEqual([]);
     expect(stored).not.toHaveProperty("pageProfile");
     expect(stored.collection).toEqual({ enabled: false, groups: [] });
     expect(stored.source).toEqual(emptySource());
     expect(stored.grammar).toEqual(emptyGrammar());
     expect(displayTitle(stored)).toBe("Preterite vs imperfect");
+  });
+
+  it("stores an independently cloned and normalized Notes outline", () => {
+    const root = newNoteSection({ name: "About" });
+    const child = newNoteSection({ parentId: root.id, name: "Register", body: "Usage notes" });
+    child.name = "  Register  ";
+    const source = [root, child];
+
+    const page = newPage({ title: "Collection notes", noteSections: source });
+
+    expect(page.noteSections).toEqual([
+      root,
+      { ...child, name: "Register" },
+    ]);
+    expect(page.noteSections).not.toBe(source);
+    expect(page.noteSections[0]).not.toBe(source[0]);
+    source[0].name = "Mutated later";
+    expect(page.noteSections[0].name).toBe("About");
   });
 
   it("leaves pageDate null when it is not a journal entry", async () => {

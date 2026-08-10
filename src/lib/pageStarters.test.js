@@ -16,6 +16,7 @@ describe("page starters", () => {
       collectionEnabled: true,
       sourceEnabled: true,
       grammarEnabled: false,
+      noteSections: [],
       groupNames: [],
       sectionNames: [],
       sourceFormat: "audio",

@@ -37,6 +37,7 @@ export function makePage(overrides = {}) {
   const {
     pageProfile,
     pageFocus,
+    noteSections,
     collection,
     source,
     grammar,
@@ -50,6 +51,7 @@ export function makePage(overrides = {}) {
     body: "",
     pageDate: null,
     pageFocus: pageFocus ?? (legacyCollection ? PAGE_FOCUSES.vocabulary : PAGE_FOCUSES.notes),
+    noteSections: (noteSections || []).map((section) => ({ ...section })),
     collection: emptyCollection({
       ...(collection || {}),
       enabled: typeof collection?.enabled === "boolean" ? collection.enabled : legacyCollection,

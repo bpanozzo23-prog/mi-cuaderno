@@ -51,14 +51,19 @@ async function seedLegacyDatabase(schemaVersion) {
   const relationshipShape = schemaVersion < 4
     ? (({ linkAnnotations: _linkAnnotations, ...legacyPage }) => legacyPage)(currentPage)
     : currentPage;
+  const { noteSections: _noteSections, ...pageBeforeNotesOutline } = relationshipShape;
   let page;
-  if (schemaVersion === 5) {
+  if (schemaVersion >= 5) {
     page = {
-      ...relationshipShape,
-      grammar: {
-        ...relationshipShape.grammar,
-        sections: relationshipShape.grammar.sections.map(({ parentId: _parentId, ...section }) => section),
-      },
+      ...pageBeforeNotesOutline,
+      ...(schemaVersion === 5
+        ? {
+            grammar: {
+              ...pageBeforeNotesOutline.grammar,
+              sections: pageBeforeNotesOutline.grammar.sections.map(({ parentId: _parentId, ...section }) => section),
+            },
+          }
+        : {}),
     };
   } else {
     const {
@@ -67,7 +72,7 @@ async function seedLegacyDatabase(schemaVersion) {
       grammar: _grammar,
       collection,
       ...pageBase
-    } = relationshipShape;
+    } = pageBeforeNotesOutline;
     page = schemaVersion >= 3
       ? { ...pageBase, pageProfile: "general", collection: { groups: collection.groups } }
       : pageBase;
@@ -96,7 +101,7 @@ describe("export-first schema gate", () => {
     });
   });
 
-  it.each([1, 2, 3, 4, 5])("exports the untouched schema-v%s envelope before v6 can open", async (schemaVersion) => {
+  it.each([1, 2, 3, 4, 5, 6])("exports the untouched schema-v%s envelope before v7 can open", async (schemaVersion) => {
     const { lexical, page } = await seedLegacyDatabase(schemaVersion);
 
     expect(await preupgradeStatus()).toMatchObject({
@@ -111,7 +116,7 @@ describe("export-first schema gate", () => {
     expect(backup.userItems).toContainEqual(lexical);
     expect(backup.userItems).toContainEqual(page);
     expect(backup.userItems.every((item) => Object.hasOwn(item, "linkAnnotations"))).toBe(schemaVersion >= 4);
-    if (schemaVersion < 3 || schemaVersion === 5) {
+    if (schemaVersion < 3 || schemaVersion >= 5) {
       expect(backup.userItems.find((item) => item.id === page.id)).not.toHaveProperty("pageProfile");
     } else {
       expect(backup.userItems.find((item) => item.id === page.id)).toMatchObject({
@@ -122,6 +127,7 @@ describe("export-first schema gate", () => {
     if (schemaVersion === 5) {
       expect(backup.userItems.find((item) => item.id === page.id).grammar.sections[0]).not.toHaveProperty("parentId");
     }
+    expect(backup.userItems.find((item) => item.id === page.id)).not.toHaveProperty("noteSections");
     if (schemaVersion === 1) {
       expect(backup.userItems.find((item) => item.id === lexical.id).translation).toBe("take out\nwithdraw");
       expect(backup.userItems.find((item) => item.id === lexical.id)).not.toHaveProperty("meanings");
@@ -144,7 +150,7 @@ describe("export-first schema gate", () => {
       needsBackup: false,
       unsupported: true,
     });
-    await expect(buildPreupgradeBackup()).rejects.toThrow(/Expected schema 1, 2, 3, 4, 5/);
+    await expect(buildPreupgradeBackup()).rejects.toThrow(/Expected schema 1, 2, 3, 4, 5, 6/);
     expect(await currentPersonalDatabaseVersion()).toBe(SCHEMA_VERSION + 1);
   });
 });

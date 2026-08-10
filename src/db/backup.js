@@ -6,6 +6,7 @@ import {
   upgradePageItemV2,
   upgradePageItemV4,
   upgradePageItemV5,
+  upgradePageItemV6,
 } from "./db.js";
 import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
 import { nowIso } from "../lib/dates.js";
@@ -228,7 +229,8 @@ function validateItem(
   seenGroupIds,
   seenCaptureIds,
   seenSectionIds,
-  seenGrammarExampleIds
+  seenGrammarExampleIds,
+  seenNoteSectionIds
 ) {
   const where = `userItems[${index}]`;
   if (!item || typeof item !== "object" || Array.isArray(item)) return errors.push(`${where} is not an object`);
@@ -272,6 +274,9 @@ function validateItem(
     if (item.pageDate !== null && item.pageDate !== undefined && !isString(item.pageDate)) {
       errors.push(`${where}.pageDate must be a string or null`);
     }
+    if (schemaVersion < 5 && Object.prototype.hasOwnProperty.call(item, "noteSections")) {
+      errors.push(`${where}.noteSections is not part of schema v${schemaVersion}`);
+    }
     if (schemaVersion === 3 || schemaVersion === 4) {
       if (!isPageProfile(item.pageProfile)) {
         errors.push(`${where}.pageProfile must be "general" or "collection"`);
@@ -285,6 +290,7 @@ function validateItem(
         seenCaptureIds,
         seenSectionIds,
         seenExampleIds: seenGrammarExampleIds,
+        seenNoteSectionIds,
       }));
     }
   }
@@ -540,6 +546,7 @@ function validateSchemaState(userItems, events, preferences, schemaVersion, erro
   const seenCaptureIds = new Set();
   const seenSectionIds = new Set();
   const seenGrammarExampleIds = new Set();
+  const seenNoteSectionIds = new Set();
   userItems.forEach((item, index) =>
     validateItem(
       item,
@@ -550,7 +557,8 @@ function validateSchemaState(userItems, events, preferences, schemaVersion, erro
       seenGroupIds,
       seenCaptureIds,
       seenSectionIds,
-      seenGrammarExampleIds
+      seenGrammarExampleIds,
+      seenNoteSectionIds
     )
   );
   events.forEach((event, index) => validateEvent(event, index, errors));
@@ -584,6 +592,7 @@ const upgradeItemsV2ToV3 = (userItems) => userItems.map((item) => upgradePageIte
 const upgradeItemsV3ToV4 = (userItems) => userItems.map((item) => upgradeItemV3(item));
 const upgradeItemsV4ToV5 = (userItems) => userItems.map((item) => upgradePageItemV4(item));
 const upgradeItemsV5ToV6 = (userItems) => userItems.map((item) => upgradePageItemV5(item));
+const upgradeItemsV6ToV7 = (userItems) => userItems.map((item) => upgradePageItemV6(item));
 
 function validateEvent(event, index, errors) {
   const where = `events[${index}]`;
@@ -624,7 +633,7 @@ export function validateBackup(raw) {
     errors.push(
       `This backup is schema version ${parsed.schemaVersion}, newer than this app understands (${SCHEMA_VERSION}). Update the app first.`
     );
-  } else if (![1, 2, 3, 4, 5, 6].includes(parsed.schemaVersion)) {
+  } else if (![1, 2, 3, 4, 5, 6, 7].includes(parsed.schemaVersion)) {
     errors.push(`Schema version ${parsed.schemaVersion} is not supported.`);
   }
   if (!Array.isArray(parsed.userItems)) errors.push("userItems must be an array.");
@@ -675,6 +684,13 @@ export function validateBackup(raw) {
   if (upgradedSchemaVersion === 5) {
     upgradedItems = upgradeItemsV5ToV6(upgradedItems);
     upgradedSchemaVersion = 6;
+    validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
+  }
+  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
+
+  if (upgradedSchemaVersion === 6) {
+    upgradedItems = upgradeItemsV6ToV7(upgradedItems);
+    upgradedSchemaVersion = 7;
     validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
   }
   if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };

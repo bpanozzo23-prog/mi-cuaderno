@@ -19,6 +19,7 @@ const makeV4Page = (overrides = {}) => {
     pageFocus: _pageFocus,
     source: _source,
     grammar: _grammar,
+    noteSections: _noteSections,
     collection,
     ...legacy
   } = current;
@@ -30,6 +31,7 @@ const makeLegacyPage = (overrides = {}) => {
     collection: _collection,
     source: _source,
     grammar: _grammar,
+    noteSections: _noteSections,
     linkAnnotations: _linkAnnotations,
     ...page
   } = makePage(overrides);
@@ -39,10 +41,15 @@ const withoutAnnotations = (item) => {
   const { linkAnnotations: _linkAnnotations, ...legacy } = item;
   return legacy;
 };
+const withoutNoteSections = (page) => {
+  const { noteSections: _noteSections, ...legacy } = page;
+  return legacy;
+};
 const upgradedGeneralPage = (legacyPage, linkAnnotations = []) => ({
   ...legacyPage,
   linkAnnotations,
   pageFocus: "notes",
+  noteSections: [],
   collection: { enabled: false, groups: [] },
   source: emptySource(),
   grammar: emptyGrammar(),
@@ -503,7 +510,7 @@ describe("import: replace and restore", () => {
       schemaVersion: 5,
       exportedAt: "2026-08-04T10:00:00.000Z",
       appVersion: "0.1.0",
-      userItems: [word, sourcePage, legacyGrammarPage],
+      userItems: [word, withoutNoteSections(sourcePage), withoutNoteSections(legacyGrammarPage)],
       events: [],
       preferences: {},
     };
@@ -525,7 +532,7 @@ describe("import: replace and restore", () => {
     });
   });
 
-  it("round-trips an exact schema-v6 Grammar hierarchy", () => {
+  it("upgrades an exact schema-v6 Grammar hierarchy without mutating its source envelope", () => {
     const rootId = "grammar-section:66666666-6666-4666-8666-666666666666";
     const page = makePage({
       id: "user:hierarchy",
@@ -548,18 +555,52 @@ describe("import: replace and restore", () => {
     });
     const v6 = {
       format: BACKUP_FORMAT,
-      schemaVersion: SCHEMA_VERSION,
+      schemaVersion: 6,
       exportedAt: "2026-08-10T10:00:00.000Z",
+      appVersion: "0.1.0",
+      userItems: [withoutNoteSections(page)],
+      events: [],
+      preferences: {},
+    };
+
+    const snapshot = structuredClone(v6);
+    const checked = validateBackup(v6);
+
+    expect(checked.ok).toBe(true);
+    expect(v6).toEqual(snapshot);
+    expect(checked.envelope).toEqual({ ...v6, schemaVersion: SCHEMA_VERSION, userItems: [page] });
+    expect(checked.summary.willUpgrade).toBe(true);
+  });
+
+  it("round-trips exact schema-v7 Notes and Grammar hierarchies", () => {
+    const rootId = "note-section:66666666-6666-4666-8666-666666666666";
+    const page = makePage({
+      id: "user:notes-hierarchy",
+      body: "Existing Overview",
+      noteSections: [
+        { id: rootId, parentId: null, name: "About", body: "Collection purpose." },
+        {
+          id: "note-section:77777777-7777-4777-8777-777777777777",
+          parentId: rootId,
+          name: "Register",
+          body: "**Formal** and informal usage.",
+        },
+      ],
+    });
+    const v7 = {
+      format: BACKUP_FORMAT,
+      schemaVersion: SCHEMA_VERSION,
+      exportedAt: "2026-08-10T11:00:00.000Z",
       appVersion: "0.1.0",
       userItems: [page],
       events: [],
       preferences: {},
     };
 
-    const checked = validateBackup(JSON.stringify(v6));
+    const checked = validateBackup(JSON.stringify(v7));
 
     expect(checked.ok).toBe(true);
-    expect(checked.envelope).toEqual(v6);
+    expect(checked.envelope).toEqual(v7);
     expect(checked.summary.willUpgrade).toBe(false);
   });
 
@@ -746,6 +787,39 @@ describe("validation happens before anything is written", () => {
     ["an event missing localDate", { ...baseline(), events: [{ ...makeEvent(), localDate: undefined }] }],
     ["duplicate item ids", { ...baseline(), userItems: [makeLexical({ id: "user:a" }), makeLexical({ id: "user:a" })] }],
     ["a lingering schema-v4 pageProfile", { ...baseline(), userItems: [{ ...makePage(), pageProfile: "general" }] }],
+    ["a missing Notes outline array", { ...baseline(), userItems: [{ ...makePage(), noteSections: undefined }] }],
+    ["a Notes subsection whose parent is on another page", (() => {
+      const parentId = "note-section:11111111-1111-4111-8111-111111111111";
+      const parentPage = makePage({
+        id: "user:note-parent",
+        noteSections: [{ id: parentId, parentId: null, name: "Parent", body: "" }],
+      });
+      const childPage = makePage({
+        id: "user:note-child",
+        noteSections: [{
+          id: "note-section:22222222-2222-4222-8222-222222222222",
+          parentId,
+          name: "Child",
+          body: "",
+        }],
+      });
+      return { ...baseline(), userItems: [parentPage, childPage] };
+    })()],
+    ["duplicate Notes section ids across Pages", (() => {
+      const section = {
+        id: "note-section:33333333-3333-4333-8333-333333333333",
+        parentId: null,
+        name: "Shared identity",
+        body: "",
+      };
+      return {
+        ...baseline(),
+        userItems: [
+          makePage({ id: "user:notes-one", noteSections: [section] }),
+          makePage({ id: "user:notes-two", noteSections: [{ ...section }] }),
+        ],
+      };
+    })()],
     ["an unknown page focus", collectionInput({ pageFocus: "worksheet" })],
     ["a focus whose structure is disabled", { ...baseline(), userItems: [makePage({ pageFocus: "source" })] }],
     ["missing collection metadata", collectionInput({ collection: null })],
@@ -887,6 +961,28 @@ describe("validation happens before anything is written", () => {
     expect(checked.errors.join(" ")).toMatch(/Duplicate meaning id/);
     await expect(importBackup(input)).rejects.toThrow(/Refusing to import/);
     expect(await db.items.toArray()).toEqual([survivor]);
+  });
+
+  it("rejects a schema-v6 envelope that tries to smuggle in schema-v7 Notes storage", () => {
+    const current = makePage({
+      id: "user:sneaky-notes",
+      noteSections: [{
+        id: "note-section:44444444-4444-4444-8444-444444444444",
+        parentId: null,
+        name: "Too early",
+        body: "Not valid in v6.",
+      }],
+    });
+    const input = {
+      ...baseline(),
+      schemaVersion: 6,
+      userItems: [current],
+    };
+
+    const checked = validateBackup(input);
+
+    expect(checked.ok).toBe(false);
+    expect(checked.errors.join(" ")).toMatch(/noteSections is not part of schema v6/);
   });
 
   it("rejects annotations stored on both sides of one reciprocal personal pair", () => {

@@ -159,6 +159,29 @@ db.version(6)
   .stores(PERSONAL_STORES)
   .upgrade(migratePersonalDataToV6);
 
+/** Schema v7 adds the permanent one-level Notes outline without restructuring the Page body. */
+export function upgradePageItemV6(item) {
+  if (!item || item.type !== "page") return { ...item };
+  return {
+    ...item,
+    noteSections: [],
+  };
+}
+
+export async function migratePersonalDataToV7(transaction) {
+  await transaction
+    .table("items")
+    .where("type")
+    .equals("page")
+    .modify((item) => {
+      Object.assign(item, upgradePageItemV6(item));
+    });
+}
+
+db.version(7)
+  .stores(PERSONAL_STORES)
+  .upgrade(migratePersonalDataToV7);
+
 export async function getPref(key, fallback = null) {
   const row = await db.prefs.get(key);
   return row === undefined ? fallback : row.value;

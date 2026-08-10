@@ -1,11 +1,13 @@
 import {
   isGrammarExampleKey,
   isGrammarSectionKey,
+  isNoteSectionKey,
   isPageGroupKey,
   isSourceCaptureKey,
   isUserKey,
   newGrammarExampleKey,
   newGrammarSectionKey,
+  newNoteSectionKey,
   newSourceCaptureKey,
 } from "./ids.js";
 import {
@@ -181,6 +183,45 @@ export function newGrammarSection({
   };
 }
 
+export function newNoteSection({
+  parentId = null,
+  name = "",
+  body = "",
+} = {}) {
+  return {
+    id: newNoteSectionKey(),
+    parentId,
+    name: String(name).trim(),
+    body,
+  };
+}
+
+export function normalizeNoteSections(sections = []) {
+  return Array.isArray(sections)
+    ? sections.map((section) => ({
+        ...section,
+        parentId: section?.parentId ?? null,
+        name: typeof section?.name === "string" ? section.name.trim() : section?.name,
+      }))
+    : sections;
+}
+
+export function noteSectionHierarchy(sections = []) {
+  return outlineHierarchy(sections);
+}
+
+export function canonicalNoteSections(sections = []) {
+  return canonicalOutline(sections);
+}
+
+export function noteStructureCounts(sections = []) {
+  return outlineCounts(sections);
+}
+
+export function noteSectionBreadcrumb(section, sections = []) {
+  return outlineBreadcrumb(section, sections);
+}
+
 /** Read the flat schema-v6 array as one root level plus one child level without cloning content. */
 export function grammarSectionHierarchy(sections = []) {
   return outlineHierarchy(sections);
@@ -218,6 +259,7 @@ export function normalizePageStructures(page = {}) {
   });
   const source = emptySource(page?.source || {});
   const grammar = emptyGrammar(page?.grammar || {});
+  const noteSections = normalizeNoteSections(page?.noteSections ?? []);
 
   let pageFocus = isPageFocus(page?.pageFocus)
     ? page.pageFocus
@@ -228,15 +270,19 @@ export function normalizePageStructures(page = {}) {
     pageFocus = PAGE_FOCUSES.notes;
   }
 
-  return { pageFocus, collection, source, grammar };
+  return { pageFocus, noteSections, collection, source, grammar };
 }
 
 export function hasEnabledStructuredCapability(page) {
   return page?.collection?.enabled === true || page?.source?.enabled === true || page?.grammar?.enabled === true;
 }
 
+export function hasDurablePageStructure(page) {
+  return hasEnabledStructuredCapability(page) || (Array.isArray(page?.noteSections) && page.noteSections.length > 0);
+}
+
 export function isJournalPage(page) {
-  return page?.type === "page" && Boolean(page.pageDate) && !hasEnabledStructuredCapability(page);
+  return page?.type === "page" && Boolean(page.pageDate) && !hasDurablePageStructure(page);
 }
 
 export function isPageFocusEnabled(focus, page) {
@@ -282,11 +328,12 @@ const registerStableId = (id, where, label, predicate, seen, errors) => {
  */
 export function validatePageStructures(page, {
   where = "page",
-  schemaVersion = 6,
+  schemaVersion = 7,
   seenGroupIds = new Set(),
   seenCaptureIds = new Set(),
   seenSectionIds = new Set(),
   seenExampleIds = new Set(),
+  seenNoteSectionIds = new Set(),
 } = {}) {
   const errors = [];
   if (!isPlainObject(page)) return [`${where} must be an object`];
@@ -295,6 +342,26 @@ export function validatePageStructures(page, {
   }
   if (!isPageFocus(page.pageFocus)) {
     errors.push(`${where}.pageFocus is not supported`);
+  }
+
+  if (schemaVersion < 7) {
+    if (Object.prototype.hasOwnProperty.call(page, "noteSections")) {
+      errors.push(`${where}.noteSections is not part of schema v${schemaVersion}`);
+    }
+  } else if (!Array.isArray(page.noteSections)) {
+    errors.push(`${where}.noteSections must be an array`);
+  } else {
+    errors.push(...validateOneLevelOutline(page.noteSections, {
+      where: `${where}.noteSections`,
+      isId: isNoteSectionKey,
+      idLabel: "note-section",
+      seenIds: seenNoteSectionIds,
+      normalizeName: pageStructureNameKey,
+    }));
+    page.noteSections.forEach((section, index) => {
+      if (!isPlainObject(section)) return;
+      if (!isString(section.body)) errors.push(`${where}.noteSections[${index}].body must be a string`);
+    });
   }
 
   const collection = page.collection;

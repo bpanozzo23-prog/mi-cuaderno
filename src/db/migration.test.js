@@ -6,8 +6,10 @@ import {
   migratePersonalDataToV4,
   migratePersonalDataToV5,
   migratePersonalDataToV6,
+  migratePersonalDataToV7,
   PERSONAL_STORES,
   upgradePageItemV5,
+  upgradePageItemV6,
 } from "./db.js";
 import { emptyGrammar, emptySource } from "../lib/pageKinds.js";
 
@@ -46,10 +48,12 @@ function declareCurrentSchema(database) {
   database.version(4).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV4);
   database.version(5).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV5);
   database.version(6).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV6);
+  database.version(7).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV7);
 }
 
 const upgradedNotesPage = (page, { linkAnnotations = [], groups = [] } = {}) => ({
   ...page,
+  noteSections: [],
   linkAnnotations,
   pageFocus: "notes",
   collection: { enabled: false, groups },
@@ -57,8 +61,8 @@ const upgradedNotesPage = (page, { linkAnnotations = [], groups = [] } = {}) => 
   grammar: emptyGrammar(),
 });
 
-describe("personal-data schema v6 migrations", () => {
-  it("runs v1 → v2 → v3 → v4 → v5 → v6 in order without touching unrelated data", async () => {
+describe("personal-data schema v7 migrations", () => {
+  it("runs v1 → v2 → v3 → v4 → v5 → v6 → v7 in order without touching unrelated data", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(1).stores(PERSONAL_STORES);
@@ -110,7 +114,7 @@ describe("personal-data schema v6 migrations", () => {
     }
   });
 
-  it("runs v2 → v3 → v4 → v5 → v6 while preserving structured content, events, preferences and timestamps", async () => {
+  it("runs v2 → v3 → v4 → v5 → v6 → v7 while preserving structured content, events, preferences and timestamps", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(2).stores(PERSONAL_STORES);
@@ -164,7 +168,7 @@ describe("personal-data schema v6 migrations", () => {
     }
   });
 
-  it("runs v3 → v4 → v5 → v6 and preserves redundant legacy topology", async () => {
+  it("runs v3 → v4 → v5 → v6 → v7 and preserves redundant legacy topology", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(3).stores(PERSONAL_STORES);
@@ -220,6 +224,7 @@ describe("personal-data schema v6 migrations", () => {
         ...pageBase,
         linkAnnotations: [],
         pageFocus: "vocabulary",
+        noteSections: [],
         collection: { enabled: true, groups: collection.groups },
         source: emptySource(),
         grammar: emptyGrammar(),
@@ -237,7 +242,7 @@ describe("personal-data schema v6 migrations", () => {
     }
   });
 
-  it("runs v4 → v5 → v6 by replacing only page identity and adding empty structures", async () => {
+  it("runs v4 → v5 → v6 → v7 by replacing only page identity and adding empty structures", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(4).stores(PERSONAL_STORES);
@@ -283,6 +288,7 @@ describe("personal-data schema v6 migrations", () => {
           ...rest
         }) => rest)(page)),
         pageFocus: "vocabulary",
+        noteSections: [],
         collection: { enabled: true, groups: [group] },
         source: emptySource(),
         grammar: emptyGrammar(),
@@ -337,8 +343,52 @@ describe("personal-data schema v6 migrations", () => {
     try {
       await upgraded.open();
       const stored = await upgraded.items.get(page.id);
-      expect(stored).toEqual(pureUpgrade);
+      expect(stored).toEqual(upgradePageItemV6(pureUpgrade));
       expect(stored.updatedAt).toBe(page.updatedAt);
+    } finally {
+      upgraded.close();
+      await Dexie.delete(name);
+    }
+  });
+
+  it("runs v6 → v7 as a pure root-field addition without restructuring Page content", async () => {
+    const page = {
+      ...pageFixture(),
+      linkAnnotations: [],
+      pageFocus: "grammar",
+      collection: { enabled: false, groups: [] },
+      source: emptySource(),
+      grammar: emptyGrammar({
+        enabled: true,
+        sections: [{
+          id: "grammar-section:11111111-1111-4111-8111-111111111111",
+          parentId: null,
+          name: "Indicative",
+          explanation: "Definition",
+          pattern: "SPOCK",
+          examples: [],
+        }],
+      }),
+    };
+    const snapshot = structuredClone(page);
+    const upgradedPage = upgradePageItemV6(page);
+
+    expect(page).toEqual(snapshot);
+    expect(upgradedPage).toEqual({ ...page, noteSections: [] });
+    expect(upgradedPage.grammar).toBe(page.grammar);
+
+    const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
+    const legacy = new Dexie(name);
+    legacy.version(6).stores(PERSONAL_STORES);
+    await legacy.open();
+    await legacy.items.add(page);
+    legacy.close();
+
+    const upgraded = new Dexie(name);
+    declareCurrentSchema(upgraded);
+    try {
+      await upgraded.open();
+      expect(await upgraded.items.get(page.id)).toEqual(upgradedPage);
     } finally {
       upgraded.close();
       await Dexie.delete(name);
