@@ -258,7 +258,7 @@ export default function AddSheet({
                   A fresh page will reuse only the chosen page’s focus and empty organization.
                 </div>
                 <div className="text-xs mt-1 leading-relaxed" style={{ color: C.mut }}>
-                  Notes, dates, tags, Source details, captures, examples, vocabulary, and connections are not copied.
+                  The Overview, section bodies, dates, tags, Source details, captures, examples, vocabulary, and connections are not copied.
                 </div>
               </Card>
             ) : (

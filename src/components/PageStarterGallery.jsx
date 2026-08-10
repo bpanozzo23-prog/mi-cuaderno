@@ -132,7 +132,7 @@ export default function PageStarterGallery({ items = [], onChoose, onClose }) {
           <ChoiceCard
             key={page.id}
             title={page.title || "Untitled page"}
-            description="Copy its focus, enabled structures, group names, and Grammar section names."
+            description="Copy its focus, enabled structures, group names, and empty Notes and Grammar outlines."
             icon={Copy}
             ariaLabel={`Copy structure from ${page.title || "Untitled page"}`}
             onClick={() => onChoose({ copySourcePageId: page.id })}

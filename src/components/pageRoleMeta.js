@@ -5,6 +5,7 @@ import {
   enabledPageRoles,
   grammarStructureCounts,
   isJournalPage,
+  noteStructureCounts,
   PAGE_FOCUSES,
 } from "../lib/pageKinds.js";
 
@@ -162,7 +163,8 @@ const countPart = (count, singular) =>
 export function pageSummary(page, items) {
   const parts = [];
   const structured =
-    page.source?.enabled || page.grammar?.enabled || page.collection?.enabled;
+    page.source?.enabled || page.grammar?.enabled || page.collection?.enabled
+    || (page.noteSections || []).length > 0;
 
   if (page.source?.enabled) {
     /* Format and creator are identity, not a count, so they show even before the first capture. */
@@ -175,10 +177,14 @@ export function pageSummary(page, items) {
 
   if (page.grammar?.enabled) {
     const counts = grammarStructureCounts(page.grammar.sections);
-    parts.push(countPart(counts.sections, "section"));
-    parts.push(countPart(counts.subsections, "subsection"));
+    parts.push(countPart(counts.sections, "guide section"));
+    parts.push(countPart(counts.subsections, "guide subsection"));
     parts.push(countPart(counts.examples, "example"));
   }
+
+  const noteCounts = noteStructureCounts(page.noteSections);
+  parts.push(countPart(noteCounts.sections, "note section"));
+  parts.push(countPart(noteCounts.subsections, "note subsection"));
 
   if (page.collection?.enabled) {
     const collection = deriveCollection(page, items);

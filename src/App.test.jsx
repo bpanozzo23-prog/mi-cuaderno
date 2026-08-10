@@ -16,6 +16,7 @@ import {
 import { newMeaning } from "./lib/meanings.js";
 import { localDate } from "./lib/dates.js";
 import { TAG_COLORS_PREF } from "./lib/tagColors.js";
+import { newNoteSection } from "./lib/pageKinds.js";
 
 const CASA = "dict:wiktionary-es:casa:noun";
 
@@ -171,6 +172,33 @@ describe("study-session focus mode", () => {
 });
 
 describe("Phase 4z Pages hub navigation", () => {
+  it("keeps a dated outlined Page in Pages while a body-only dated record stays in Diario", async () => {
+    const user = userEvent.setup();
+    await createItem(newPage({
+      title: "Dated organized notes",
+      body: "An Overview can be long.",
+      pageDate: localDate(),
+      noteSections: [newNoteSection({ name: "Collection context" })],
+    }));
+    await createItem(newPage({
+      title: "Body-only moment",
+      body: "Body length still does not make durable Page organization.",
+      pageDate: localDate(),
+    }));
+    render(<App />);
+
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(screen.getByRole("button", { name: "páginas" }));
+    expect(screen.getByRole("button", { name: "Dated organized notes" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Body-only moment" })).toBeNull();
+
+    await user.click(within(screen.getByRole("region", { name: "Cuaderno surface" })).getByRole("button", { name: "Cuaderno" }));
+    await user.click(within(screen.getByRole("navigation", { name: "Primary" })).getByRole("button", { name: "Diario" }));
+    const diario = screen.getByRole("region", { name: "Diario surface" });
+    expect(within(diario).getByRole("button", { name: "Open Body-only moment" })).toBeTruthy();
+    expect(within(diario).queryByRole("button", { name: "Open Dated organized notes" })).toBeNull();
+  });
+
   it("opens a focused hub, shares pin state with detail, and restores its scroll through the route trail", async () => {
     const user = userEvent.setup();
     await createItem(newPage({ title: "Plain notes", body: "Keep this nearby." }));

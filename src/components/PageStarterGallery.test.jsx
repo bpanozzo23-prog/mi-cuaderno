@@ -4,7 +4,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PageStarterGallery from "./PageStarterGallery.jsx";
 import { newPage } from "../db/items.js";
-import { emptySource } from "../lib/pageKinds.js";
+import { emptySource, newNoteSection } from "../lib/pageKinds.js";
 
 afterEach(cleanup);
 
@@ -70,6 +70,11 @@ describe("page starting points", () => {
     const onChoose = vi.fn();
     const notes = newPage({ title: "Thinking and opinions" });
     const journal = newPage({ title: "A journal moment", pageDate: "2026-08-04" });
+    const datedOutline = newPage({
+      title: "Dated organized notes",
+      pageDate: "2026-08-04",
+      noteSections: [newNoteSection({ name: "Context" })],
+    });
     const datedSource = newPage({
       title: "Radio Ambulante",
       pageDate: "2026-08-03",
@@ -79,7 +84,7 @@ describe("page starting points", () => {
     });
     render(
       <PageStarterGallery
-        items={[journal, datedSource, notes, { id: "user:word", type: "lexical", term: "pensar" }]}
+        items={[journal, datedOutline, datedSource, notes, { id: "user:word", type: "lexical", term: "pensar" }]}
         onChoose={onChoose}
         onClose={vi.fn()}
       />
@@ -89,6 +94,7 @@ describe("page starting points", () => {
     expect(screen.queryByRole("button", { name: /A journal moment/ })).toBeNull();
     expect(screen.getByRole("button", { name: /Thinking and opinions/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Radio Ambulante/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Dated organized notes/ })).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: /Copy structure from Radio Ambulante/ }));
     expect(onChoose).toHaveBeenCalledWith({ copySourcePageId: datedSource.id });

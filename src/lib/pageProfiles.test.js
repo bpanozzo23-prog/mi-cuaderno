@@ -16,6 +16,13 @@ describe("page profiles", () => {
     expect(effectivePageKind({ pageProfile: PAGE_PROFILES.general, pageDate: null })).toBe(PAGE_KINDS.general);
   });
 
+  it("keeps a dated legacy-shaped record with a Notes outline in Pages", () => {
+    expect(effectivePageKind({
+      pageDate: "2026-08-03",
+      noteSections: [{ id: "note-section:outline", parentId: null, name: "Context", body: "" }],
+    })).toBe(PAGE_KINDS.general);
+  });
+
   it("recognizes only the two stored profiles", () => {
     expect(isPageProfile("general")).toBe(true);
     expect(isPageProfile("collection")).toBe(true);

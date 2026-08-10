@@ -40,6 +40,7 @@ const page = (title, over = {}) => ({
   linkedKeys: [],
   linkAnnotations: [],
   pageFocus: "notes",
+  noteSections: [],
   collection: { enabled: false, groups: [] },
   source: { enabled: false, format: "", creator: "", scope: "", url: "", context: "", captures: [] },
   grammar: { enabled: false, keyIdea: "", sections: [] },
@@ -96,8 +97,9 @@ describe("Pages hub", () => {
     const grammar = page("Aquí vs. acá", {
       pageFocus: "grammar",
       // Grammar with an empty collection turned on — the overlap that used to read
-      // "1 section · 1 example · 0 items · 0 groups".
+      // "1 guide section · 1 example · 0 items · 0 groups".
       collection: { enabled: true, groups: [] },
+      noteSections: [{ id: "note-section:context", parentId: null, name: "Context", body: "" }],
       grammar: {
         enabled: true,
         keyIdea: "A comparison",
@@ -115,7 +117,7 @@ describe("Pages hub", () => {
     expect(card("Aquí vs. acá")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Private moment" })).toBeNull();
     expect(screen.getByText("Audio · Camila Torres · 1 capture · 1 item · 1 group")).toBeTruthy();
-    expect(screen.getByText("1 section · 1 example")).toBeTruthy();
+    expect(screen.getByText("1 guide section · 1 example · 1 note section")).toBeTruthy();
 
     // The folder tab names the page's focus and nothing else: the Source page also has a
     // collection enabled, and that second role is left to the count line. Scoped to the card
@@ -128,7 +130,7 @@ describe("Pages hub", () => {
     // A count only appears when there is something to count: the Grammar page has a collection
     // enabled but nothing in it, and says nothing about items or groups.
     expect(within(card("Aquí vs. acá")).queryByText(/0 (items|groups)/)).toBeNull();
-    expect(within(card("Aquí vs. acá")).getByText("1 section · 1 example")).toBeTruthy();
+    expect(within(card("Aquí vs. acá")).getByText("1 guide section · 1 example · 1 note section")).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Sources" }));
     expect(card("Voces del mercado")).toBeTruthy();

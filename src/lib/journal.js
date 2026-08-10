@@ -4,7 +4,7 @@ import { plainTextFromMarkdown } from "./noteMarkdown.js";
 
 /**
  * Journal is a presentation of the existing page record, never a stored profile or third item
- * type. Any enabled structured capability keeps a dated page in Pages rather than Diario.
+ * type. Any enabled structured capability or named Notes outline keeps a dated page in Pages.
  */
 export function isJournalEntry(item) {
   return isJournalPage(item);

@@ -177,6 +177,12 @@ describe("composable page search", () => {
   const structuredPage = newPage({
     title: "Voces del mercado",
     linkedKeys: [word.id],
+    noteSections: [{
+      id: "note-section:00000000-0000-4000-8000-000000000001",
+      parentId: null,
+      name: "Collection context",
+      body: "**Phrases** used in\n> puestos pequeños",
+    }],
     collection: { enabled: true, groups: [] },
     source: {
       enabled: true,
@@ -223,6 +229,18 @@ describe("composable page search", () => {
     };
     expect(searchItems([hidden], "Camila")).toEqual([]);
     expect(searchItems([hidden], "imperfecto")).toEqual([]);
+  });
+
+  it("searches Notes section names and rendered Markdown text with its own tier-6 reason", () => {
+    expect(searchItems([structuredPage], "Collection context")[0]).toMatchObject({
+      tier: TIER.text,
+      reason: "in a Notes section",
+    });
+    expect(searchItems([structuredPage], "phrases used in puestos")[0]).toMatchObject({
+      tier: TIER.text,
+      reason: "in a Notes section",
+    });
+    expect(searchItems([structuredPage], ">")).toEqual([]);
   });
 
   it("searches the visible text of a formatted Grammar overview", () => {

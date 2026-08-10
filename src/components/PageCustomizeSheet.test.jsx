@@ -13,6 +13,7 @@ const page = {
   title: "Voces",
   pageDate: "2026-08-04",
   pageFocus: "source",
+  noteSections: [],
   linkedKeys: ["user:word"],
   collection: { enabled: true, groups: [] },
   source: { enabled: true, captures: [{ id: "source-capture:one" }] },
@@ -69,6 +70,22 @@ describe("PageCustomizeSheet", () => {
     }} onClose={() => {}} onSaved={() => {}} />);
 
     expect(screen.getByText("1 section · 1 subsection · 1 example")).toBeTruthy();
+  });
+
+  it("shows the always-included Notes outline and keeps an outlined dated page in Pages", async () => {
+    const user = userEvent.setup();
+    render(<PageCustomizeSheet page={{
+      ...page,
+      noteSections: [{ id: "note-section:one", parentId: null, name: "Context", body: "" }],
+      collection: { enabled: false, groups: [] },
+      grammar: { enabled: false, sections: [] },
+    }} onClose={() => {}} onSaved={() => {}} />);
+
+    expect(screen.getByLabelText("Notes outline")).toBeTruthy();
+    expect(screen.getByText("1 section")).toBeTruthy();
+    await user.click(screen.getByRole("checkbox", { name: /^Source notebook$/i }));
+    expect(screen.queryByRole("button", { name: "Save and move to Diario" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Save changes" })).toBeTruthy();
   });
 
   it("labels a dated page that loses its final structures before saving", async () => {

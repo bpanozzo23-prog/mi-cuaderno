@@ -180,6 +180,7 @@ describe("structured Notes mutations", () => {
       noteSections: [usage, register, examples],
     }));
     const before = await getItem(page.id);
+    const added = newNoteSection({ name: "Study prompts" });
 
     await expect(saveNoteOrganization(page.id, [
       { id: usage.id, parentId: null, name: "Usage" },
@@ -191,12 +192,14 @@ describe("structured Notes mutations", () => {
       { id: examples.id, parentId: null, name: "Examples in context" },
       { id: register.id, parentId: examples.id, name: "Register" },
       { id: usage.id, parentId: null, name: "Usage" },
+      { id: added.id, parentId: null, name: "Study prompts" },
     ]);
     const saved = await getItem(page.id);
     expect(saved.noteSections).toEqual([
       expect.objectContaining({ id: examples.id, parentId: null, name: "Examples in context", body: "Keep examples prose." }),
       expect.objectContaining({ id: register.id, parentId: examples.id, name: "Register", body: "Keep register prose." }),
       expect.objectContaining({ id: usage.id, parentId: null, name: "Usage", body: "Keep usage prose." }),
+      expect.objectContaining({ id: added.id, parentId: null, name: "Study prompts", body: "" }),
     ]);
     expect(await editEventsFor(page.id)).toHaveLength(1);
   });

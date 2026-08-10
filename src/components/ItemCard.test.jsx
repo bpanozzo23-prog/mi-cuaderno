@@ -32,6 +32,7 @@ const page = (overrides = {}) => ({
   linkedKeys: [],
   mediaLinks: [],
   pageFocus: "notes",
+  noteSections: [],
   collection: { enabled: false, groups: [] },
   source: { enabled: false, format: "", creator: "", scope: "", url: "", context: "", captures: [] },
   grammar: { enabled: false, keyIdea: "", sections: [] },
@@ -62,11 +63,15 @@ describe("page cards", () => {
     expect(screen.queryByText("2026-08-03")).toBeNull();
   });
 
-  it("separates Grammar root, subsection, and example counts", () => {
+  it("separates guide and Notes hierarchy counts in a mixed Page summary", () => {
     const rootId = "grammar-section:root";
     const grammar = page({
       title: "Indicative vs subjunctive",
       pageFocus: "grammar",
+      noteSections: [
+        { id: "note-section:root", parentId: null, name: "Context", body: "" },
+        { id: "note-section:child", parentId: "note-section:root", name: "Register", body: "" },
+      ],
       grammar: {
         enabled: true,
         keyIdea: "",
@@ -86,7 +91,7 @@ describe("page cards", () => {
 
     render(<ItemCard item={grammar} items={[grammar]} onOpen={vi.fn()} />);
 
-    expect(screen.getByText("1 section · 1 subsection · 1 example")).toBeTruthy();
+    expect(screen.getByText("1 guide section · 1 guide subsection · 1 example · 1 note section · 1 note subsection")).toBeTruthy();
   });
 
   it("keeps the dated Notes-only page presentation", () => {

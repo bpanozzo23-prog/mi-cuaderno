@@ -12,6 +12,7 @@ import {
   hasEnabledStructuredCapability,
   noteSectionHierarchy,
   noteStructureCounts,
+  newNoteSection,
   pageStructureNameKey,
 } from "../lib/pageKinds.js";
 import { outlineNamesValid } from "../lib/oneLevelOutline.js";
@@ -231,11 +232,20 @@ function NotesOrganizer({ sections, onCancel, onSaved }) {
   const changed = JSON.stringify(draft) !== JSON.stringify(initial);
   const namesValid = outlineNamesValid(draft, pageStructureNameKey);
 
+  function addSection() {
+    const section = newNoteSection();
+    setDraft((current) => [...current, {
+      id: section.id,
+      parentId: null,
+      name: "",
+    }]);
+  }
+
   return (
     <Card className="mt-3" style={{ borderColor: C.pen }}>
       <div className="text-sm font-semibold" style={{ color: C.ink }}>Organize Notes</div>
       <div className="mt-0.5 text-xs" style={{ color: C.mut }}>
-        Rename and reorder siblings, or promote and reparent subsections. Section prose stays unchanged.
+        Add, rename and reorder siblings, or promote and reparent subsections. Section prose stays unchanged.
       </div>
       <div className="mt-3 space-y-3">
         {draft.map((section, index) => (
@@ -248,6 +258,16 @@ function NotesOrganizer({ sections, onCancel, onSaved }) {
           </div>
         ))}
       </div>
+      <Button
+        type="button"
+        tone="quiet"
+        className="mt-3 min-h-11"
+        aria-label="Add Notes section to organizer"
+        disabled={saving}
+        onClick={addSection}
+      >
+        <Plus size={14} /> Section
+      </Button>
       {!namesValid && (
         <div role="alert" className="mt-2 text-xs" style={{ color: C.red }}>
           Section names must be nonblank and unique among siblings.

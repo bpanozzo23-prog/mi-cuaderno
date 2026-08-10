@@ -323,7 +323,7 @@ const registerStableId = (id, where, label, predicate, seen, errors) => {
 };
 
 /**
- * Deep structural validation shared by constructors and schema-v5/v6 backup validation. Cross-record
+ * Deep structural validation shared by constructors and schema-v5/v6/v7 backup validation. Cross-record
  * authority (target existence, lexical type and outgoing links) is validated by the database layer.
  */
 export function validatePageStructures(page, {

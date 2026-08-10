@@ -29,7 +29,12 @@ export function effectivePageKind(page) {
   if (page?.collection?.enabled === true || page?.pageProfile === PAGE_PROFILES.collection) {
     return PAGE_KINDS.collection;
   }
-  if (isJournalPage(page) || (page?.pageDate && !page?.source && !page?.grammar)) {
+  if (isJournalPage(page) || (
+    page?.pageDate
+    && !page?.source
+    && !page?.grammar
+    && !(page?.noteSections || []).length
+  )) {
     return PAGE_KINDS.journal;
   }
   return PAGE_KINDS.general;

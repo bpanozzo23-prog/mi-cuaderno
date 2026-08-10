@@ -1,11 +1,17 @@
 import { useMemo, useState } from "react";
 import { Copy, X } from "lucide-react";
 import { C, SERIF, Card, Button } from "../theme.jsx";
-import { grammarStructureCounts, PAGE_FOCUSES, isPageFocusEnabled } from "../lib/pageKinds.js";
+import {
+  grammarStructureCounts,
+  isJournalPage,
+  noteStructureCounts,
+  PAGE_FOCUSES,
+  isPageFocusEnabled,
+} from "../lib/pageKinds.js";
 import { savePageConfiguration } from "../db/pageStructures.js";
 
 const focusChoices = [
-  { id: PAGE_FOCUSES.notes, title: "Notes", description: "Flexible prose appears first." },
+  { id: PAGE_FOCUSES.notes, title: "Notes", description: "Flexible prose and note sections appear first." },
   { id: PAGE_FOCUSES.vocabulary, title: "Vocabulary", description: "Vocabulary groups lead." },
   { id: PAGE_FOCUSES.source, title: "Source notes", description: "Captured passages and notes lead." },
   { id: PAGE_FOCUSES.grammar, title: "Grammar guide", description: "Guide sections, subsections, and examples lead." },
@@ -54,18 +60,26 @@ export default function PageCustomizeSheet({ page, items = [], onClose, onSaved,
   const [problem, setProblem] = useState("");
 
   const preview = useMemo(() => ({
+    type: "page",
+    pageDate: page.pageDate,
     pageFocus: focus,
+    noteSections: page.noteSections || [],
     collection: { ...(page.collection || {}), enabled: enabled.collection },
     source: { ...(page.source || {}), enabled: enabled.source },
     grammar: { ...(page.grammar || {}), enabled: enabled.grammar },
-  }), [enabled, focus, page.collection, page.grammar, page.source]);
+  }), [enabled, focus, page.collection, page.grammar, page.noteSections, page.pageDate, page.source]);
 
   const lexicalIds = new Set(items.filter((item) => item?.type === "lexical").map((item) => item.id));
   const vocabularyCount = items.length
     ? (page.linkedKeys || []).filter((key) => lexicalIds.has(key)).length
     : (page.linkedKeys || []).length;
   const grammarCounts = grammarStructureCounts(page.grammar?.sections);
+  const noteCounts = noteStructureCounts(page.noteSections);
   const counts = {
+    notes: [
+      ...(noteCounts.sections ? [amount(noteCounts.sections, "section")] : []),
+      ...(noteCounts.subsections ? [amount(noteCounts.subsections, "subsection")] : []),
+    ].join(" · ") || "Empty",
     collection: `${amount(vocabularyCount, "linked item")} · ${amount(page.collection?.groups?.length || 0, "group")}`,
     source: amount(page.source?.captures?.length || 0, "capture"),
     grammar: [
@@ -74,7 +88,7 @@ export default function PageCustomizeSheet({ page, items = [], onClose, onSaved,
       ...(grammarCounts.examples ? [amount(grammarCounts.examples, "example")] : []),
     ].join(" · ") || "Empty",
   };
-  const movesToJournal = Boolean(page.pageDate) && !enabled.collection && !enabled.source && !enabled.grammar;
+  const movesToJournal = isJournalPage(preview);
   const previewSectionOrder = (previewOrders[focus] || previewOrders[PAGE_FOCUSES.notes])
     .filter((section) => section.key === "notes" || enabled[section.key])
     .map((section) => section.label);
@@ -128,6 +142,10 @@ export default function PageCustomizeSheet({ page, items = [], onClose, onSaved,
         <fieldset className="mt-5">
           <legend className="text-sm font-semibold" style={{ color: C.ink }}>Included structure</legend>
           <div className="mt-2 space-y-2">
+            <div aria-label="Notes outline" className="flex min-h-11 items-start gap-3 rounded-lg border p-3" style={{ borderColor: C.line }}>
+              <span aria-hidden="true" className="mt-0.5 text-xs" style={{ color: C.pen }}>Always</span>
+              <span><span className="block text-sm font-semibold" style={{ color: C.ink }}>Notes outline</span><span className="block text-xs" style={{ color: C.mut }}>{counts.notes}</span></span>
+            </div>
             {structureChoices.map((choice) => (
               <label key={choice.key} className="flex min-h-11 items-start gap-3 rounded-lg border p-3" style={{ borderColor: C.line }}>
                 <input aria-label={choice.title} type="checkbox" checked={enabled[choice.key]} onChange={(event) => toggleStructure(choice.key, event.target.checked)} />

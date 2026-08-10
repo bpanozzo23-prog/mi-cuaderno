@@ -44,6 +44,7 @@ const REASONS = {
   examples: "in your examples",
   meaning: "in a meaning",
   body: "in the page",
+  noteSection: "in a Notes section",
   source: "in source notes",
   grammar: "in the grammar guide",
 };
@@ -60,10 +61,10 @@ function containedVocabularyMatch(page, query, allItems) {
     if (lexical?.type !== "lexical") continue;
     const heading = String(lexical.term || "");
     if (normalize(heading).includes(q)) {
-      matches.push({ tier: TIER.text, reason: `contained vocabulary “${heading}”`, offset: 3 });
+      matches.push({ tier: TIER.text, reason: `contained vocabulary “${heading}”`, offset: 4 });
     }
     if (flattenSpace(normalize(meaningGlossText(lexical, " "))).includes(q)) {
-      matches.push({ tier: TIER.text, reason: `meaning of contained vocabulary “${heading}”`, offset: 4 });
+      matches.push({ tier: TIER.text, reason: `meaning of contained vocabulary “${heading}”`, offset: 5 });
     }
   }
   // One page produces one result. Prefer a matching Spanish heading over a personal meaning,
@@ -97,6 +98,13 @@ function activeGrammarText(page) {
       ...(section.examples || []).flatMap((example) => [example.es, example.en, example.note]),
     ]),
   ].filter(Boolean).join("\n");
+}
+
+function activeNoteSectionText(page) {
+  return (page?.noteSections || []).flatMap((section) => [
+    section.name,
+    flattenSpace(plainTextFromMarkdown(section.body)),
+  ]).filter(Boolean).join("\n");
 }
 
 function bestMatch(item, query, { allItems = [], includeContainedVocabulary = false } = {}) {
@@ -153,11 +161,14 @@ function bestMatch(item, query, { allItems = [], includeContainedVocabulary = fa
   if (isPage && normalize(plainTextFromMarkdown(item.body)).includes(q)) {
     return { tier: TIER.text, reason: REASONS.body, offset: 0 };
   }
+  if (isPage && normalize(activeNoteSectionText(item)).includes(q)) {
+    return { tier: TIER.text, reason: REASONS.noteSection, offset: 1 };
+  }
   if (isPage && normalize(activeSourceText(item)).includes(q)) {
-    return { tier: TIER.text, reason: REASONS.source, offset: 1 };
+    return { tier: TIER.text, reason: REASONS.source, offset: 2 };
   }
   if (isPage && normalize(activeGrammarText(item)).includes(q)) {
-    return { tier: TIER.text, reason: REASONS.grammar, offset: 2 };
+    return { tier: TIER.text, reason: REASONS.grammar, offset: 3 };
   }
   if (isPage && includeContainedVocabulary) {
     const contained = containedVocabularyMatch(item, query, allItems);

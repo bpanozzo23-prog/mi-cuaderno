@@ -379,7 +379,7 @@ export async function saveNoteOrganization(pageId, sections = []) {
     if (nextIdSet.size !== nextIds.length || nextIds.some((id) => !isNoteSectionKey(id))) {
       throw new Error("Notes organization section IDs must be stable and unique.");
     }
-    if (nextIds.length !== currentIds.size || nextIds.some((id) => !currentIds.has(id))) {
+    if ([...currentIds].some((id) => !nextIdSet.has(id))) {
       throw new Error("Notes organization must include every current section exactly once.");
     }
 
@@ -393,10 +393,14 @@ export async function saveNoteOrganization(pageId, sections = []) {
     page.noteSections = canonicalNoteSections(sections.map((draft) => {
       const current = sectionsById.get(draft.id);
       return {
-        ...current,
+        ...(current || {
+          id: draft.id,
+          parentId: null,
+          body: "",
+        }),
         parentId: Object.prototype.hasOwnProperty.call(draft, "parentId")
           ? draft.parentId
-          : current.parentId,
+          : current?.parentId ?? null,
         name: String(draft.name || "").trim(),
       };
     }));

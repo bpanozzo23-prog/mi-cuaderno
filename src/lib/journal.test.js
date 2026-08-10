@@ -16,6 +16,7 @@ const page = (overrides = {}) => ({
   id: "user:page",
   type: "page",
   pageFocus: "notes",
+  noteSections: [],
   collection: { enabled: false, groups: [] },
   source: { enabled: false, format: "", creator: "", scope: "", url: "", context: "", captures: [] },
   grammar: { enabled: false, keyIdea: "", sections: [] },
@@ -29,7 +30,7 @@ const page = (overrides = {}) => ({
 });
 
 describe("journal derivation", () => {
-  it("includes only dated Notes-only pages and never a dated enhanced page", () => {
+  it("includes only dated unstructured pages and excludes enabled or outlined Pages", () => {
     const general = page({ id: "user:general" });
     const journal = page({ id: "user:journal", pageDate: "2026-08-03" });
     const collection = page({
@@ -38,16 +39,24 @@ describe("journal derivation", () => {
       pageFocus: "vocabulary",
       collection: { enabled: true, groups: [] },
     });
+    const outlined = page({
+      id: "user:outlined",
+      pageDate: "2026-08-03",
+      body: "Body length does not decide the boundary.",
+      noteSections: [{ id: "note-section:outline", parentId: null, name: "Context", body: "" }],
+    });
     const lexical = { id: "user:word", type: "lexical" };
 
     expect(isJournalEntry(journal)).toBe(true);
     expect(isJournalEntry(general)).toBe(false);
     expect(isJournalEntry(collection)).toBe(false);
+    expect(isJournalEntry(outlined)).toBe(false);
     expect(isJournalEntry(lexical)).toBe(false);
-    expect(journalEntries([general, journal, collection, lexical])).toEqual([journal]);
-    expect(withoutJournalEntries([general, journal, collection, lexical])).toEqual([
+    expect(journalEntries([general, journal, collection, outlined, lexical])).toEqual([journal]);
+    expect(withoutJournalEntries([general, journal, collection, outlined, lexical])).toEqual([
       general,
       collection,
+      outlined,
       lexical,
     ]);
   });

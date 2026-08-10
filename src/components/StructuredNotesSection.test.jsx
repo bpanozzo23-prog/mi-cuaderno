@@ -89,17 +89,25 @@ describe("Structured Notes", () => {
     await user.type(firstName, "When to use it");
     await user.selectOptions(within(organizer).getByRole("combobox", { name: "Parent for Register" }), examples.id);
     await user.click(within(organizer).getByRole("button", { name: "Move section Examples up" }));
+    await user.click(within(organizer).getByRole("button", { name: "Add Notes section to organizer" }));
+    await user.type(within(organizer).getByRole("textbox", { name: "Section 4 name" }), "Study prompts");
     await user.click(within(organizer).getByRole("button", { name: "Save organization" }));
 
     await waitFor(async () => {
       const saved = await getItem(page.id);
-      expect(saved.noteSections.map((section) => section.id)).toEqual([examples.id, register.id, usage.id]);
+      expect(saved.noteSections.map((section) => section.name)).toEqual([
+        "Examples",
+        "Register",
+        "When to use it",
+        "Study prompts",
+      ]);
     });
     const saved = await getItem(page.id);
     expect(saved.noteSections).toEqual([
       expect.objectContaining({ id: examples.id, body: "Keep examples." }),
       expect.objectContaining({ id: register.id, parentId: examples.id, body: "Keep register." }),
       expect.objectContaining({ id: usage.id, name: "When to use it", body: "Keep usage." }),
+      expect.objectContaining({ name: "Study prompts", parentId: null, body: "" }),
     ]);
   });
 
