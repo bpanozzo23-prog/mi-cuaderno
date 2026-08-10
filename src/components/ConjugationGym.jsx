@@ -27,12 +27,14 @@ import {
   recognitionTenses,
 } from "../lib/recognitionContent.js";
 import { buildRecognitionDeck, buildUsageRecallDeck } from "../lib/recognitionDeck.js";
+import { buildEndingsProductionDeck } from "../lib/endingsProduction.js";
 import ConjugationDrill from "./ConjugationDrill.jsx";
 import ConjugationPerformance from "./ConjugationPerformance.jsx";
 import RecognitionDrill from "./RecognitionDrill.jsx";
 import EndingsReveal from "./EndingsReveal.jsx";
 import UsageReveal from "./UsageReveal.jsx";
 import UsageRecallDrill from "./UsageRecallDrill.jsx";
+import EndingsProductionDrill from "./EndingsProductionDrill.jsx";
 
 const SESSION_KINDS = [
   { value: "quick", label: "Quick", detail: "10 everyday prompts" },
@@ -98,6 +100,7 @@ export default function ConjugationGym({
   const [recognitionCustomTenses, setRecognitionCustomTenses] = useState([...RECOGNITION_EVERYDAY_TENSES]);
   const [usageDirection, setUsageDirection] = useState("choice");
   const [usageRecallSize, setUsageRecallSize] = useState("all");
+  const [endingsDirection, setEndingsDirection] = useState("choice");
   const [slots, setSlots] = useState([...GYM_SLOTS]);
   const [oneVerb, setOneVerb] = useState("");
   const [focusTarget, setFocusTarget] = useState(null);
@@ -174,6 +177,7 @@ export default function ConjugationGym({
     ? recognitionCustomTenses.filter((tense) => laneTenses.includes(tense))
     : RECOGNITION_EVERYDAY_TENSES.filter((tense) => laneTenses.includes(tense));
   const usageRecall = drill === "usage" && usageDirection === "recall";
+  const endingsProduction = drill === "endings" && endingsDirection === "typed";
   const recognitionAvailable = drill === "forms"
     ? 0
     : usageRecall
@@ -221,11 +225,11 @@ export default function ConjugationGym({
 
   function start() {
     if (drill !== "forms") {
-      if (usageRecall && recognitionTenseScope.length < 1) {
-        setStartError("Choose at least one tense for recall.");
+      if ((usageRecall || endingsProduction) && recognitionTenseScope.length < 1) {
+        setStartError(`Choose at least one tense for ${usageRecall ? "recall" : "production"}.`);
         return;
       }
-      if (!usageRecall && recognitionTenseScope.length < 4) {
+      if (!usageRecall && !endingsProduction && recognitionTenseScope.length < 4) {
         setStartError("Choose at least four tenses so every card can have four distinct choices.");
         return;
       }
@@ -234,13 +238,18 @@ export default function ConjugationGym({
             size: usageRecallSize,
             tenseScope: recognitionTenseScope,
           })
-        : buildRecognitionDeck(RECOGNITION_CARDS[drill], {
-            size,
-            tenseScope: recognitionTenseScope,
-            allTenses: recognitionTenseScope,
-          });
+        : endingsProduction
+          ? buildEndingsProductionDeck(RECOGNITION_CARDS.endings, {
+              size,
+              tenseScope: recognitionTenseScope,
+            })
+          : buildRecognitionDeck(RECOGNITION_CARDS[drill], {
+              size,
+              tenseScope: recognitionTenseScope,
+              allTenses: recognitionTenseScope,
+            });
       if (!built.length) {
-        setStartError("No recognition cards match these choices.");
+        setStartError("No cards match these choices.");
         return;
       }
       const id = sessionId();
@@ -252,7 +261,11 @@ export default function ConjugationGym({
         deckSize: built.length,
       }));
       setStartError("");
-      setSession({ deck: cards, skill: drill, mode: usageRecall ? "recall" : "choice" });
+      setSession({
+        deck: cards,
+        skill: drill,
+        mode: usageRecall ? "recall" : endingsProduction ? "typed" : "choice",
+      });
       setView("session");
       return;
     }
@@ -351,6 +364,16 @@ export default function ConjugationGym({
           />
         );
       }
+      if (session.mode === "typed") {
+        return (
+          <EndingsProductionDrill
+            deck={session.deck}
+            library={library}
+            onFinish={() => setView("setup")}
+            onGraded={onGraded}
+          />
+        );
+      }
       return (
         <RecognitionDrill
           deck={session.deck}
@@ -422,7 +445,9 @@ export default function ConjugationGym({
             <p className="mt-1 text-xs" style={{ color: C.mut }}>
               {usageRecall
                 ? "Name at least one valid use, reveal the curated set, then grade your recall."
-                : "Choose the tense from four options. Recognition practice never changes your vocabulary review schedule."}
+                : endingsProduction
+                  ? "Produce all five endings, with one retry that keeps passing fields locked."
+                  : "Choose the tense from four options. Recognition practice never changes your vocabulary review schedule."}
             </p>
           </Card>
 
@@ -438,6 +463,24 @@ export default function ConjugationGym({
                 ]}
                 onChange={(value) => {
                   setUsageDirection(value);
+                  setStartError("");
+                }}
+              />
+            </>
+          )}
+
+          {drill === "endings" && (
+            <>
+              <SectionTitle>Direction</SectionTitle>
+              <Segmented
+                label="Endings direction"
+                value={endingsDirection}
+                options={[
+                  { value: "choice", label: "Choose tense" },
+                  { value: "typed", label: "Type endings" },
+                ]}
+                onChange={(value) => {
+                  setEndingsDirection(value);
                   setStartError("");
                 }}
               />
@@ -508,7 +551,7 @@ export default function ConjugationGym({
           <Button
             className="mt-4 w-full py-3"
             onClick={start}
-            disabled={!recognitionAvailable || recognitionTenseScope.length < (usageRecall ? 1 : 4)}
+            disabled={!recognitionAvailable || recognitionTenseScope.length < (usageRecall || endingsProduction ? 1 : 4)}
           >
             <Play size={16} /> Start {RECOGNITION_LANES[drill].label.toLowerCase()}
           </Button>

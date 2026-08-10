@@ -97,6 +97,19 @@ describe("Conjugation Gym setup", () => {
     expect(screen.getByText("Recall at least one valid use.")).toBeTruthy();
   });
 
+  it("starts five-field Typed Endings without an installed dictionary", async () => {
+    const user = userEvent.setup();
+    render(<ConjugationGym items={[]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await user.click(screen.getByRole("radio", { name: "Endings" }));
+    await user.click(screen.getByRole("radio", { name: "Type endings" }));
+    expect(screen.queryByText("Dictionary not installed")).toBeNull();
+    expect(screen.getByText("11 cards available for these choices.")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Start endings" }));
+    expect(screen.getAllByRole("textbox")).toHaveLength(5);
+    expect(screen.getByText("Endings · Production")).toBeTruthy();
+  });
+
   it("keeps performance available when the dictionary is not installed", async () => {
     const user = userEvent.setup();
     render(<ConjugationGym items={[]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
