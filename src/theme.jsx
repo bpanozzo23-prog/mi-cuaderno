@@ -269,6 +269,7 @@ export function Card({ children, className = "", style = {} }) {
 export function Button({ children, onClick, disabled, tone = "primary", className = "", ...rest }) {
   const tones = {
     primary: { background: disabled ? C.disabled : C.pen, color: "#fff", borderColor: "transparent" },
+    success: { background: disabled ? C.disabled : C.green, color: "#fff", borderColor: "transparent" },
     quiet: { background: C.card, color: C.ink, borderColor: C.line },
     danger: { background: C.card, color: C.red, borderColor: C.dangerBorder },
     dangerArmed: { background: C.red, color: "#fff", borderColor: C.red },

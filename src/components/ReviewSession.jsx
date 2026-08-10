@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { ChevronLeft, Check, X, Eye, Highlighter, RotateCcw, ArrowLeftRight } from "lucide-react";
-import { C, SERIF, MONO, dotGrid, Hi, Card, Button } from "../theme.jsx";
-import { personalHeadingSuffix } from "./ItemCard.jsx";
+import { ChevronLeft, Eye, Highlighter, RotateCcw, ArrowLeftRight } from "lucide-react";
+import { C, SERIF, MONO, dotGrid, Card, Button } from "../theme.jsx";
 import { logReview } from "../db/events.js";
 import { GRADES } from "../lib/review.js";
-import LexicalAnswer, { MeaningRow } from "./LexicalAnswer.jsx";
-import SpeakButton from "./SpeakButton.jsx";
+import { PracticeCard, ReviewGradeStrip, usePracticeCardState } from "./PracticeCard.jsx";
 
 /**
  * One pass through today's due words (brief section 12).
@@ -28,10 +26,9 @@ import SpeakButton from "./SpeakButton.jsx";
  */
 export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
   const [index, setIndex] = useState(0);
-  const [revealed, setRevealed] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [showContext, setShowContext] = useState(false);
   const [tally, setTally] = useState({ passed: 0, failed: 0 });
+  const cardState = usePracticeCardState();
 
   const item = cards[index] || null;
   const done = index >= cards.length;
@@ -48,8 +45,7 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
       passed: t.passed + (passed ? 1 : 0),
       failed: t.failed + (passed ? 0 : 1),
     }));
-    setRevealed(false);
-    setShowContext(false);
+    cardState.reset();
     setIndex((i) => i + 1);
     setBusy(false);
     onGraded?.();
@@ -84,13 +80,6 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
   }
 
   const remaining = cards.length - index;
-  // A card with no written gloss has no reverse question side; cardDirection already
-  // forces those forward, and this guard keeps a hand-built card from rendering blank.
-  const reverse = item.direction === "reverse" && item.meanings?.length > 0;
-  // Cloze belongs to the forward face only: a reverse card asks for the term, and a
-  // sentence built around it would hand the answer over.
-  const cloze = !reverse && item.cloze?.answer ? item.cloze : null;
-
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
       <div className="flex items-center justify-between mb-3">
@@ -102,57 +91,18 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
         </span>
       </div>
 
-      <Card className="p-5">
-        <div className="text-center">
-          {reverse ? (
-            /*
-              The question side of a reverse card. Glosses and their labels only: the term,
-              its suffix and every usage cue stay hidden until reveal, because each of them
-              is or contains the Spanish being asked for.
-            */
-            <div className="space-y-2 text-left">
-              {item.meanings.map((meaning, meaningIndex) => (
-                <MeaningRow key={meaning.id} meaning={meaning} index={meaningIndex} showCue={false} />
-              ))}
-            </div>
-          ) : cloze && !revealed ? (
-            /*
-              A cloze asks the word in the place it gets used. The English side is withheld
-              here — it would translate the missing word — and appears on reveal.
-            */
-            <div className="text-left text-xl leading-relaxed" style={{ fontFamily: SERIF, color: C.ink }}>
-              {cloze.before}
-              {/*
-                A real gap, not the answer painted invisible: hiding it with a colour would
-                still leave the word in the DOM for a screen reader — and for anyone who
-                selects the text. The width is fixed so it gives no hint of the length.
-              */}
-              <span
-                aria-label="missing word"
-                className="mx-1 inline-block rounded align-baseline"
-                style={{ background: C.penPale, width: "4.5rem", height: "1.1em" }}
-              />
-              {cloze.after}
-            </div>
-          ) : (
-            <div className="text-3xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
-              <Hi on={item.tricky}>{item.term}</Hi>
-              {personalHeadingSuffix(item) && (
-                <>
-                  {" "}
-                  <span className="italic font-normal text-base ml-2" style={{ color: C.mut }}>
-                    {personalHeadingSuffix(item)}
-                  </span>
-                </>
-              )}
-              {/* Only where the term is already on screen. On a hidden face, speaking it
-                  would read the answer out before it has been asked for. */}
-              <SpeakButton text={item.term} className="align-middle ml-1" size={16} />
-            </div>
-          )}
+      <PracticeCard
+        item={item}
+        revealed={cardState.revealed}
+        onReveal={cardState.reveal}
+        showContext={cardState.showContext}
+        onToggleContext={cardState.toggleContext}
+        onOpen={onOpen}
+        speak
+        metadata={(
           <div className="mt-1.5 text-xs inline-flex items-center gap-2" style={{ fontFamily: MONO, color: C.mut }}>
             <span>caja {item.box}</span>
-            {reverse && (
+            {item.direction === "reverse" && item.meanings?.length > 0 && (
               <span className="inline-flex items-center gap-1">
                 <ArrowLeftRight size={11} /> en→es
               </span>
@@ -168,74 +118,11 @@ export default function ReviewSession({ cards, onFinish, onOpen, onGraded }) {
               </span>
             )}
           </div>
-        </div>
-
-        {!revealed ? (
-          <button
-            onClick={() => setRevealed(true)}
-            className="w-full mt-5 py-6 rounded-xl border border-dashed text-sm"
-            style={{ borderColor: C.line, color: C.mut, background: C.paper }}
-          >
-            {reverse || cloze ? "Tap to see the word" : "Tap to see the meaning"}
-          </button>
-        ) : (
-          <>
-            {/* Reverse hides the term in its heading slot, so the answer is shown here. */}
-            {reverse && (
-              <div className="mt-5 text-center text-3xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
-                <Hi on={item.tricky}>{item.term}</Hi>
-                {personalHeadingSuffix(item) && (
-                  <>
-                    {" "}
-                    <span className="italic font-normal text-base ml-2" style={{ color: C.mut }}>
-                      {personalHeadingSuffix(item)}
-                    </span>
-                  </>
-                )}
-                <SpeakButton text={item.term} className="align-middle ml-1" size={16} />
-              </div>
-            )}
-            {/* The sentence again, filled in, so the word is seen back in its context. */}
-            {cloze && (
-              <div className="mt-4 text-left text-base leading-relaxed" style={{ fontFamily: SERIF, color: C.ink }}>
-                {cloze.before}
-                <span className="rounded px-1" style={{ background: C.penPale, color: C.penDark, fontWeight: 700 }}>
-                  {cloze.answer}
-                </span>
-                {cloze.after}
-                <SpeakButton text={cloze.es} label={`Play the sentence`} className="align-middle" />
-                {cloze.en && (
-                  <div className="mt-1 text-xs" style={{ color: C.mut }}>
-                    {cloze.en}
-                  </div>
-                )}
-              </div>
-            )}
-            <LexicalAnswer
-              item={item}
-              showContext={showContext}
-              onToggleContext={() => setShowContext((shown) => !shown)}
-              onOpen={onOpen}
-            />
-          </>
         )}
-      </Card>
+      />
 
-      {revealed && (
-        <div className="mt-4 grid grid-cols-2 gap-2" aria-label="Review grade">
-          <Button className="min-h-11" tone="danger" disabled={busy} onClick={() => grade(GRADES.again)}>
-            <X size={16} /> Again
-          </Button>
-          <Button className="min-h-11" tone="quiet" disabled={busy} onClick={() => grade(GRADES.hard)}>
-            Hard
-          </Button>
-          <Button className="min-h-11" disabled={busy} onClick={() => grade(GRADES.good)}>
-            <Check size={16} /> Good
-          </Button>
-          <Button className="min-h-11" disabled={busy} onClick={() => grade(GRADES.easy)}>
-            Easy
-          </Button>
-        </div>
+      {cardState.revealed && (
+        <ReviewGradeStrip busy={busy} grades={GRADES} onGrade={grade} />
       )}
 
       <div className="mt-6 text-center text-xs" style={{ color: C.mut }}>

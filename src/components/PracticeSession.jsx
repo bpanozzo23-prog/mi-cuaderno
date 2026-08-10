@@ -1,18 +1,16 @@
 import { useState } from "react";
-import { Check, ChevronLeft, Eye, RotateCcw, X } from "lucide-react";
+import { ChevronLeft, RotateCcw } from "lucide-react";
 import { Button, C, Card, MONO, SERIF, dotGrid } from "../theme.jsx";
-import { personalHeadingSuffix } from "./ItemCard.jsx";
-import LexicalAnswer from "./LexicalAnswer.jsx";
 import { shufflePracticeItems } from "../lib/practice.js";
+import { PracticeCard, SelfAssessmentStrip, usePracticeCardState } from "./PracticeCard.jsx";
 
 /** One or more in-memory passes through a free-practice deck. No event writer is imported. */
 export default function PracticeSession({ cards, onFinish, onOpen, random = Math.random }) {
   const [round, setRound] = useState(cards);
   const [roundNumber, setRoundNumber] = useState(1);
   const [index, setIndex] = useState(0);
-  const [revealed, setRevealed] = useState(false);
-  const [showContext, setShowContext] = useState(false);
   const [missed, setMissed] = useState([]);
+  const cardState = usePracticeCardState();
 
   const item = round[index] || null;
   const done = index >= round.length;
@@ -20,8 +18,7 @@ export default function PracticeSession({ cards, onFinish, onOpen, random = Math
   function answer(gotIt) {
     if (!item) return;
     if (!gotIt) setMissed((current) => [...current, item]);
-    setRevealed(false);
-    setShowContext(false);
+    cardState.reset();
     setIndex((current) => current + 1);
   }
 
@@ -30,8 +27,7 @@ export default function PracticeSession({ cards, onFinish, onOpen, random = Math
     setRoundNumber((current) => current + 1);
     setIndex(0);
     setMissed([]);
-    setRevealed(false);
-    setShowContext(false);
+    cardState.reset();
   }
 
   if (done) {
@@ -72,8 +68,6 @@ export default function PracticeSession({ cards, onFinish, onOpen, random = Math
     );
   }
 
-  const suffix = personalHeadingSuffix(item);
-
   return (
     <>
       <PracticeHeader onFinish={onFinish} label={`${index + 1} / ${round.length}`} />
@@ -81,51 +75,19 @@ export default function PracticeSession({ cards, onFinish, onOpen, random = Math
         <div className="mb-3 text-center text-[11px] uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.1em" }}>
           Free practice · round {roundNumber}
         </div>
-        <Card className="p-5">
-          <div className="text-center">
-            <div className="text-3xl break-words" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
-              {item.term}
-              {suffix && (
-                <span className="italic font-normal text-base ml-2" style={{ color: C.mut }}>
-                  {suffix}
-                </span>
-              )}
-            </div>
-          </div>
+        <PracticeCard
+          item={item}
+          revealed={cardState.revealed}
+          onReveal={cardState.reveal}
+          showContext={cardState.showContext}
+          onToggleContext={cardState.toggleContext}
+          onOpen={onOpen}
+          revealLabel="Reveal meanings"
+          revealIcon
+        />
 
-          {!revealed ? (
-            <button
-              type="button"
-              onClick={() => setRevealed(true)}
-              className="w-full mt-5 py-6 rounded-xl border border-dashed text-sm"
-              style={{ borderColor: C.line, color: C.mut, background: C.paper }}
-            >
-              <Eye size={15} className="inline mr-1.5 -mt-0.5" /> Reveal meanings
-            </button>
-          ) : (
-            <LexicalAnswer
-              item={item}
-              showContext={showContext}
-              onToggleContext={() => setShowContext((shown) => !shown)}
-              onOpen={onOpen}
-            />
-          )}
-        </Card>
-
-        {revealed && (
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            <Button className="min-h-11" tone="danger" onClick={() => answer(false)}>
-              <X size={16} /> Again
-            </Button>
-            <button
-              type="button"
-              onClick={() => answer(true)}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium"
-              style={{ background: C.green, color: "#fff", borderColor: "transparent" }}
-            >
-              <Check size={16} /> Got it
-            </button>
-          </div>
+        {cardState.revealed && (
+          <SelfAssessmentStrip onAnswer={answer} />
         )}
       </main>
     </>
