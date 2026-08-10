@@ -47,6 +47,40 @@ Useful information to retain for each idea:
 | Owner-centric stats (streak, calendar, growth, ladder, per-item strip) | 2026-08-06 | Implemented locally | Phase 11; retention, coverage and per-direction breakdowns need real data volume |
 | Grammar guide depth and callouts | 2026-08-10 | Implemented locally | Phase 19 first release verified; not deployed |
 | Global tag management | 2026-08-10 | Implemented locally | Phase 20 verified; not deployed |
+| Phase 19/20 review nits (edge polish) | 2026-08-10 | Captured | Whenever a related area is next touched; none is urgent |
+
+---
+
+## Phase 19/20 review nits (edge polish)
+
+- **Date added:** 2026-08-10
+- **Status:** Captured
+- **Origin:** Independent code review of the committed Phase 19 and Phase 20 branches found no
+  correctness bugs. Three minor observations were deliberately left unfixed (per the working
+  agreement, reviews do not implement) and are recorded here so they are not lost.
+- **Potential data impact:** None; each would be a small behavior or accessibility refinement.
+
+Verify each against the current code before acting — any of these may already have been fixed or
+made obsolete by later phases.
+
+1. **Interleaved-order organizer save writes an event (Phase 19).** In `saveGrammarOrganization`
+   (`src/db/pageStructures.js`), the no-op signature is computed from the *stored* section order
+   but compared after depth-first canonicalization. If a valid interleaved backup was imported, a
+   save-without-changes in the Grammar organizer canonicalizes the stored order and logs one
+   `edit`, slightly bending "no-op organization is event-free". Only reachable after importing an
+   interleaved backup, and canonicalizing storage is arguably a real change; fix or formally
+   accept.
+2. **Note callout announces "Note" twice (Phase 19).** The Grammar callout in
+   `src/components/MarkdownText.jsx` has both `aria-label="Note"` on the `role="note"` aside and a
+   visible "Note" label div inside it, so some screen readers read "Note" twice. Dropping the
+   `aria-label` (the visible label suffices) or wiring `aria-labelledby` would fix it. Cosmetic.
+3. **Rename/merge kind seam between preview and transaction (Phase 20).** `TagManagementSheet`
+   decides rename-versus-merge from its `items` prop, while `applyGlobalTagChange` re-plans from
+   live index queries inside the transaction. If the prop were ever stale, a button labeled
+   "Rename tag" could execute what is actually a merge without the merge confirmation. Effectively
+   unreachable in a single-owner app whose mutations reload the notebook, and the atomic re-plan
+   is the right design; a cheap belt-and-braces option is having the writer compare the caller's
+   expected `kind` and abort on mismatch.
 
 ---
 
