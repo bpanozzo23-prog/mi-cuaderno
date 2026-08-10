@@ -143,7 +143,7 @@ describe("Phase 5a navigation continuity", () => {
 });
 
 describe("Phase 4z Pages hub navigation", () => {
-  it("opens a focused hub, shares pin state with detail, and returns through the real route trail", async () => {
+  it("opens a focused hub, shares pin state with detail, and restores its scroll through the route trail", async () => {
     const user = userEvent.setup();
     await createItem(newPage({ title: "Plain notes", body: "Keep this nearby." }));
     await createItem(newPage({
@@ -165,15 +165,20 @@ describe("Phase 4z Pages hub navigation", () => {
 
     await user.click(screen.getByRole("button", { name: "Pin Listening source" }));
     await waitFor(() => expect(screen.getByRole("button", { name: "Unpin Listening source" })).toBeTruthy());
+    Object.defineProperty(window, "scrollY", { value: 436, configurable: true });
+    window.scrollTo.mockClear();
     await user.click(screen.getByRole("button", { name: "Listening source" }));
 
     expect(screen.getByRole("button", { name: "Pages" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Unpin page" }).getAttribute("aria-pressed")).toBe("true");
+    await waitFor(() => expect(window.scrollTo).toHaveBeenLastCalledWith(0, 0));
+    window.scrollTo.mockClear();
     await user.click(screen.getByRole("button", { name: "Pages" }));
 
     expect(screen.getByRole("heading", { name: "Pages" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Listening source" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Plain notes" })).toBeNull();
+    await waitFor(() => expect(window.scrollTo).toHaveBeenLastCalledWith(0, 436));
     await user.click(within(screen.getByRole("region", { name: "Cuaderno surface" })).getByRole("button", { name: "Cuaderno" }));
     expect(screen.getByRole("textbox", { name: "Search notebook" })).toBeTruthy();
     expect(screen.getByText("Spanish notebook")).toBeTruthy();
@@ -190,7 +195,7 @@ describe("Phase 8 Words & phrases hub navigation", () => {
     return { word, phrase };
   }
 
-  it("opens a focused hub from frases, keeps pin state through detail, and returns by the trail", async () => {
+  it("opens a focused hub from frases, keeps pin state, and restores its scroll by the trail", async () => {
     const user = userEvent.setup();
     await seedVocabulary();
     render(<App />);
@@ -207,14 +212,19 @@ describe("Phase 8 Words & phrases hub navigation", () => {
     await user.click(screen.getByRole("button", { name: "Pin de repente" }));
     await waitFor(() => expect(screen.getByRole("button", { name: "Unpin de repente" })).toBeTruthy());
 
+    Object.defineProperty(window, "scrollY", { value: 512, configurable: true });
+    window.scrollTo.mockClear();
     await user.click(screen.getByRole("button", { name: "de repente" }));
     expect(screen.getByRole("button", { name: "Words & phrases" })).toBeTruthy();
+    await waitFor(() => expect(window.scrollTo).toHaveBeenLastCalledWith(0, 0));
+    window.scrollTo.mockClear();
     await user.click(screen.getByRole("button", { name: "Words & phrases" }));
 
     // Back lands on the hub with its visit-local chip and the pin both intact.
     expect(screen.getByRole("heading", { name: "Words & phrases" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Unpin de repente" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "madrugar" })).toBeNull();
+    await waitFor(() => expect(window.scrollTo).toHaveBeenLastCalledWith(0, 512));
 
     await user.click(within(screen.getByRole("region", { name: "Cuaderno surface" })).getByRole("button", { name: "Cuaderno" }));
     expect(screen.getByRole("textbox", { name: "Search notebook" })).toBeTruthy();

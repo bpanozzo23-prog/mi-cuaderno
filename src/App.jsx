@@ -33,6 +33,8 @@ const TABS = [
 ];
 
 const baseRoute = (tab) => ({ tab, screen: "list", id: null });
+const isHubRoute = (route) => route?.tab === "cuaderno"
+  && (route.screen === "pages" || route.screen === "lexical");
 
 export default function App() {
   // Every destination, including a list, is part of one session-only trail. This preserves
@@ -133,12 +135,17 @@ export default function App() {
 
   function openItem(id) {
     if (!id) return;
+    const originScrollY = window.scrollY;
     const item = notebook.items.find((candidate) => candidate.id === id);
     const targetTab = !isDictKey(id) && isJournalEntry(item) ? "diario" : "cuaderno";
     const next = { tab: targetTab, screen: targetTab === "diario" ? "read" : "detail", id };
     setRouteTrail((trail) => {
       const current = trail[trail.length - 1];
-      return current.id === id && current.tab === targetTab ? trail : [...trail, next];
+      if (current.id === id && current.tab === targetTab) return trail;
+      const origin = isHubRoute(current)
+        ? { ...current, returnScrollY: originScrollY }
+        : current;
+      return [...trail.slice(0, -1), origin, next];
     });
   }
 
@@ -237,9 +244,14 @@ export default function App() {
     && (cuadernoRoute.screen === "pages" || cuadernoRoute.screen === "lexical");
 
   // The document is the scroll container. A newly selected tab or detail must never inherit
-  // a long source page's scroll offset and appear to open halfway down the destination.
+  // a long source page's scroll offset and appear to open halfway down the destination. The two
+  // dedicated hubs are the narrow exception: Back restores the offset captured when their entry
+  // was opened, while that entry still arrives at the top.
   useLayoutEffect(() => {
-    window.scrollTo(0, 0);
+    const destinationY = isHubRoute(route) && Number.isFinite(route.returnScrollY)
+      ? route.returnScrollY
+      : 0;
+    window.scrollTo(0, destinationY);
   }, [route.screen, tab, selectedId]);
 
   return (
