@@ -82,6 +82,7 @@ function normalizeEvents(events, { items, itemLemmas, targets, source, tenses })
 
   return (events || [])
     .filter((event) => DRILL_TYPES.has(event?.type))
+    .filter((event) => event?.metadata?.skill !== "usage" && event?.metadata?.skill !== "endings")
     .map((event, order) => {
       const metadata = event.metadata || {};
       const item = event.itemKey ? itemById.get(event.itemKey) : null;

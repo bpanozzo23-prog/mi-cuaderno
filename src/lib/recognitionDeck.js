@@ -91,7 +91,9 @@ export function buildRecognitionDeck(
 /** Re-asks missed cards without changing identity and guarantees a fresh option order. */
 export function rebuildMissedRecognitionDeck(cards, options = {}) {
   return (cards || []).map((card) => {
-    let rebuilt = recognitionOptions(card, { ...options, previousOptions: null });
+    let rebuilt = card.options?.length === 4
+      ? shuffle(card.options, options.rng || Math.random)
+      : recognitionOptions(card, { ...options, previousOptions: null });
     if (rebuilt.length === 4 && rebuilt.every((value, index) => value === card.options?.[index])) {
       rebuilt = [...rebuilt.slice(1), rebuilt[0]];
     }

@@ -544,6 +544,27 @@ describe("drill events stay out of the review model", () => {
     expect(state.due).toEqual([]);
   });
 
+  it("leaves every Leitner value unchanged after a recognition answer", () => {
+    const reviewed = stateOf([word], [pass("user:1", "2026-07-30")]);
+    const recognition = makeEvent({
+      type: "drill_fail",
+      itemKey: null,
+      at: at("2026-07-31"),
+      localDate: "2026-07-31",
+      metadata: {
+        skill: "usage",
+        cardId: "usage:preterite-completed",
+        tense: "Indicative/Preterite",
+        chosen: "Indicative/Imperfect",
+        mode: "choice",
+      },
+    });
+    const after = stateOf([word], [pass("user:1", "2026-07-30"), recognition]);
+
+    expect(after.states.get(word.id)).toEqual(reviewed.states.get(word.id));
+    expect(after.due).toEqual(reviewed.due);
+  });
+
   it("does not move a box, and does not count as a lookup", () => {
     // One real review puts the word in box 2; three drills on three separate days would
     // reach the lookup threshold if they were miscounted as views.

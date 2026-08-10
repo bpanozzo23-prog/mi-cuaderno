@@ -58,6 +58,19 @@ afterEach(async () => {
 });
 
 describe("Conjugation Gym setup", () => {
+  it("offers recognition lanes without a dictionary and hides form-only controls", async () => {
+    const user = userEvent.setup();
+    render(<ConjugationGym items={[]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await user.click(screen.getByRole("radio", { name: "Tense usage" }));
+    expect(screen.getByText("What is it for?")).toBeTruthy();
+    expect(screen.queryByText("Dictionary not installed")).toBeNull();
+    expect(screen.queryByText("Verb pool")).toBeNull();
+    expect(screen.queryByRole("radio", { name: "Type" })).toBeNull();
+    expect(screen.queryByText("People")).toBeNull();
+    expect(screen.getByRole("button", { name: "Start tense usage" })).toBeTruthy();
+  });
+
   it("keeps performance available when the dictionary is not installed", async () => {
     const user = userEvent.setup();
     render(<ConjugationGym items={[]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);

@@ -19,13 +19,27 @@ import {
 } from "../lib/conjugationGym.js";
 import { qualifiedTenseLabel } from "../lib/conjugation.js";
 import { conjugationForms } from "../lib/drill.js";
+import {
+  RECOGNITION_CARDS,
+  RECOGNITION_EVERYDAY_TENSES,
+  RECOGNITION_LANES,
+  recognitionTenses,
+} from "../lib/recognitionContent.js";
+import { buildRecognitionDeck } from "../lib/recognitionDeck.js";
 import ConjugationDrill from "./ConjugationDrill.jsx";
 import ConjugationPerformance from "./ConjugationPerformance.jsx";
+import RecognitionDrill from "./RecognitionDrill.jsx";
 
 const SESSION_KINDS = [
   { value: "quick", label: "Quick", detail: "10 everyday prompts" },
   { value: "focus", label: "Focus", detail: "Choose exactly what to practise" },
   { value: "adaptive", label: "Adaptive", detail: "Use your recent weak spots" },
+];
+
+const DRILLS = [
+  { value: "forms", label: "Forms" },
+  { value: "usage", label: "Tense usage" },
+  { value: "endings", label: "Endings" },
 ];
 
 const POOLS = [
@@ -69,12 +83,15 @@ export default function ConjugationGym({
   const [view, setView] = useState(initialView);
   const [library, setLibrary] = useState({ loading: true, installed: false, saved: [], core: [], unavailableCore: [] });
   const [loadError, setLoadError] = useState(false);
+  const [drill, setDrill] = useState("forms");
   const [sessionKind, setSessionKind] = useState("quick");
   const [pool, setPool] = useState("core20");
   const [mode, setMode] = useState("typed");
   const [size, setSize] = useState(10);
   const [tensePack, setTensePack] = useState("everyday");
   const [customTenses, setCustomTenses] = useState([...TENSE_PACKS.everyday.tenses]);
+  const [recognitionPack, setRecognitionPack] = useState("everyday");
+  const [recognitionCustomTenses, setRecognitionCustomTenses] = useState([...RECOGNITION_EVERYDAY_TENSES]);
   const [slots, setSlots] = useState([...GYM_SLOTS]);
   const [oneVerb, setOneVerb] = useState("");
   const [focusTarget, setFocusTarget] = useState(null);
@@ -146,6 +163,13 @@ export default function ConjugationGym({
     ? poolVerbs.filter((verb) => (verb.itemKey || verb.verbKey) === oneVerb)
     : poolVerbs;
   const requestedSize = advanced ? size : 10;
+  const laneTenses = drill === "forms" ? [] : recognitionTenses(drill);
+  const recognitionTenseScope = recognitionPack === "customize"
+    ? recognitionCustomTenses.filter((tense) => laneTenses.includes(tense))
+    : RECOGNITION_EVERYDAY_TENSES.filter((tense) => laneTenses.includes(tense));
+  const recognitionAvailable = drill === "forms"
+    ? 0
+    : RECOGNITION_CARDS[drill].filter((card) => recognitionTenseScope.includes(card.answer)).length;
   const availableForms = useMemo(
     () => gymCellCount(deckVerbs, {
       tenses: advanced ? selectedTenses : TENSE_PACKS.everyday.tenses,
@@ -180,7 +204,41 @@ export default function ConjugationGym({
     );
   }
 
+  function toggleRecognitionTense(tense) {
+    setRecognitionCustomTenses((current) =>
+      current.includes(tense) ? current.filter((value) => value !== tense) : [...current, tense]
+    );
+  }
+
   function start() {
+    if (drill !== "forms") {
+      if (recognitionTenseScope.length < 4) {
+        setStartError("Choose at least four tenses so every card can have four distinct choices.");
+        return;
+      }
+      const built = buildRecognitionDeck(RECOGNITION_CARDS[drill], {
+        size,
+        tenseScope: recognitionTenseScope,
+        allTenses: recognitionTenseScope,
+      });
+      if (!built.length) {
+        setStartError("No recognition cards match these choices.");
+        return;
+      }
+      const id = sessionId();
+      const cards = built.map((card, index) => ({
+        ...card,
+        sessionId: id,
+        promptId: `${id}:${index + 1}`,
+        cardIndex: index + 1,
+        deckSize: built.length,
+      }));
+      setStartError("");
+      setSession({ deck: cards, skill: drill });
+      setView("session");
+      return;
+    }
+
     const options = advanced
       ? { size, tenses: selectedTenses, slots }
       : { size: 10, tenses: TENSE_PACKS.everyday.tenses, slots: GYM_SLOTS };
@@ -263,6 +321,15 @@ export default function ConjugationGym({
   }
 
   if (view === "session" && session) {
+    if (session.skill) {
+      return (
+        <RecognitionDrill
+          deck={session.deck}
+          onFinish={() => setView("setup")}
+          onGraded={onGraded}
+        />
+      );
+    }
     return (
       <ConjugationDrill
         deck={session.deck}
@@ -302,7 +369,95 @@ export default function ConjugationGym({
         </p>
       </div>
 
-      {library.loading ? (
+      <SectionTitle>Drill</SectionTitle>
+      <Segmented
+        label="Drill type"
+        value={drill}
+        options={DRILLS}
+        onChange={(value) => {
+          setDrill(value);
+          setStartError("");
+        }}
+      />
+
+      {drill !== "forms" ? (
+        <>
+          <Card className="mt-4 p-4">
+            <div className="text-sm font-semibold" style={{ color: C.ink }}>
+              {RECOGNITION_LANES[drill].eyebrow}
+            </div>
+            <p className="mt-1 text-xs" style={{ color: C.mut }}>
+              Choose the tense from four options. Recognition practice never changes your vocabulary review schedule.
+            </p>
+          </Card>
+
+          <SectionTitle>Tense scope</SectionTitle>
+          <Card className="space-y-4 p-4">
+            <div>
+              <label htmlFor="recognition-tense-pack" className="mb-1 block text-xs" style={{ color: C.mut }}>Tense pack</label>
+              <select
+                id="recognition-tense-pack"
+                value={recognitionPack}
+                onChange={(event) => setRecognitionPack(event.target.value)}
+                className="w-full rounded-lg border px-3 py-2 text-sm"
+                style={{ color: C.ink, borderColor: C.line, background: C.paper }}
+              >
+                <option value="everyday">Everyday</option>
+                <option value="customize">Customize</option>
+              </select>
+            </div>
+
+            {recognitionPack === "customize" && (
+              <fieldset>
+                <legend className="mb-2 text-xs" style={{ color: C.mut }}>Tenses with {RECOGNITION_LANES[drill].label.toLowerCase()} cards</legend>
+                <div className="space-y-1.5">
+                  {laneTenses.map((tense) => (
+                    <label key={tense} className="flex items-start gap-2 text-sm" style={{ color: C.ink }}>
+                      <input
+                        type="checkbox"
+                        checked={recognitionCustomTenses.includes(tense)}
+                        onChange={() => toggleRecognitionTense(tense)}
+                      />
+                      <span>{qualifiedTenseLabel(tense)}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+
+            <div>
+              <label htmlFor="recognition-size" className="mb-1 block text-xs" style={{ color: C.mut }}>Prompts</label>
+              <select
+                id="recognition-size"
+                value={size}
+                onChange={(event) => setSize(Number(event.target.value))}
+                className="w-full rounded-lg border px-3 py-2 text-sm"
+                style={{ color: C.ink, borderColor: C.line, background: C.paper }}
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+              </select>
+            </div>
+          </Card>
+
+          <div className="mt-3 text-xs" style={{ color: C.mut }}>
+            {recognitionAvailable} {recognitionAvailable === 1 ? "card" : "cards"} available for these choices.
+          </div>
+          {recognitionAvailable > 0 && recognitionAvailable < size && (
+            <div className="mt-2 rounded-lg px-3 py-2 text-xs" role="status" style={{ background: C.hi, color: C.ink }}>
+              This session will use all {recognitionAvailable} available cards.
+            </div>
+          )}
+          {startError && <div className="mt-3 text-sm" role="alert" style={{ color: C.red }}>{startError}</div>}
+          <Button
+            className="mt-4 w-full py-3"
+            onClick={start}
+            disabled={!recognitionAvailable || recognitionTenseScope.length < 4}
+          >
+            <Play size={16} /> Start {RECOGNITION_LANES[drill].label.toLowerCase()}
+          </Button>
+        </>
+      ) : library.loading ? (
         <Card className="p-5 text-center text-sm" style={{ color: C.mut }}>
           Loading conjugation tables…
         </Card>

@@ -45,6 +45,30 @@ const active = (lemma, source, overrides = {}) => ({
 });
 
 describe("Conjugation Gym performance contracts", () => {
+  it("ignores recognition answers entirely even though they reuse drill event types", () => {
+    const formEvent = answer({ passed: true, minute: 1 });
+    const recognitionEvent = {
+      id: "recognition-1",
+      type: "drill_fail",
+      itemKey: null,
+      at: at(2),
+      localDate: "2026-08-07",
+      metadata: {
+        skill: "usage",
+        cardId: "usage:preterite-completed",
+        tense: "Indicative/Preterite",
+        chosen: "Indicative/Imperfect",
+        // Deliberately collide with a form mode: skill remains the hard boundary even if
+        // an imported or future event carries malformed additive metadata.
+        mode: "typed",
+        stage: "initial",
+      },
+    };
+
+    expect(conjugationPerformance([formEvent, recognitionEvent]))
+      .toEqual(conjugationPerformance([formEvent]));
+  });
+
   it("does not let retry or missed-round passes inflate first-attempt accuracy", () => {
     const events = [
       answer({ passed: false, minute: 1, promptId: "p-1" }),

@@ -291,6 +291,26 @@ describe("adaptive decks", () => {
     expect(deck).toHaveLength(10);
   });
 
+  it("does not let recognition misses target an Adaptive forms deck", () => {
+    const verbs = [verb("ser"), verb("estar")];
+    const recognition = [{
+      type: "drill_fail",
+      at: "2026-08-09T12:00:00.000Z",
+      metadata: {
+        skill: "endings",
+        cardId: "endings:indicative-preterite-ar",
+        tense: "Indicative/Preterite",
+        chosen: "Indicative/Imperfect",
+        mode: "choice",
+        stage: "initial",
+      },
+    }];
+    const options = { size: 10, now: "2026-08-09T13:00:00.000Z" };
+
+    expect(buildAdaptiveGymDeck(verbs, recognition, { ...options, rng: seeded([0.3, 0.7]) }))
+      .toEqual(buildAdaptiveGymDeck(verbs, [], { ...options, rng: seeded([0.3, 0.7]) }));
+  });
+
   it("treats a reveal Missed grade as targeting evidence", () => {
     const verbs = [verb("ser"), verb("estar")];
     const events = [{
