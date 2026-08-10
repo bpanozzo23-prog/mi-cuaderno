@@ -78,4 +78,37 @@ describe("free-practice preflight", () => {
 
     expect(onStart).toHaveBeenCalledWith(expect.objectContaining({ direction: "reverse", mode: "typed" }));
   });
+
+  it("can scope a session to one Collection group and report that group's omissions", async () => {
+    const user = userEvent.setup();
+    const onStart = vi.fn();
+    render(
+      <PracticeSetupSheet
+        eligibleCount={3}
+        omittedCount={1}
+        sourceLabel="Travel phrases"
+        orderLabel="Collection order"
+        scopeOptions={[
+          { value: "all", label: "Whole collection", eligibleCount: 3, omittedCount: 1 },
+          { value: "questions", label: "Questions", eligibleCount: 1, omittedCount: 1 },
+        ]}
+        onClose={vi.fn()}
+        onStart={onStart}
+      />
+    );
+
+    expect(screen.getByRole("radio", { name: "Whole collection" }).checked).toBe(true);
+    await user.click(screen.getByRole("radio", { name: "Questions" }));
+    expect(screen.getByText("Practice 1 of 1 eligible card. 1 entry needs a meaning.")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Collection order" }));
+    await user.click(screen.getByRole("button", { name: "Start 1-card practice" }));
+
+    expect(onStart).toHaveBeenCalledWith({
+      limit: 20,
+      order: PRACTICE_ORDERS.current,
+      direction: "forward",
+      mode: "reveal",
+      scope: "questions",
+    });
+  });
 });

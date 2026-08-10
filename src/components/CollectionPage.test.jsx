@@ -198,6 +198,37 @@ describe("Collection reading and practice", () => {
 
     expect(await allEvents()).toEqual(before);
   });
+
+  it("launches one chosen group as a full event-free practice session with a missed round", async () => {
+    const user = userEvent.setup();
+    const fixture = await collectionFixture();
+    renderDetail(fixture.page, await allItems());
+
+    await waitFor(async () => {
+      expect((await allEvents()).some((event) => event.type === EVENT_TYPES.view)).toBe(true);
+    });
+    const before = await allEvents();
+
+    await user.click(screen.getByRole("button", { name: "Start practice session" }));
+    expect(screen.getByRole("dialog", { name: "Set up practice" })).toBeTruthy();
+    expect(screen.getByText("Practice 2 of 2 eligible cards. 1 entry needs a meaning.")).toBeTruthy();
+    await user.click(screen.getByRole("radio", { name: "Questions" }));
+    expect(screen.getByText("Practice 2 of 2 eligible cards.")).toBeTruthy();
+    await user.click(screen.getByRole("radio", { name: "en→es" }));
+    await user.click(screen.getByRole("button", { name: "Collection order" }));
+    await user.click(screen.getByRole("button", { name: "Start 2-card practice" }));
+
+    expect(screen.getByText("What do you think?")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Tap to see the word" }));
+    await user.click(screen.getByRole("button", { name: "Again" }));
+    expect(screen.getByText("How does it seem to you?")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Tap to see the word" }));
+    await user.click(screen.getByRole("button", { name: "Got it" }));
+
+    expect(screen.getByText("1 card marked Again.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Practice 1 again" })).toBeTruthy();
+    expect(await allEvents()).toEqual(before);
+  });
 });
 
 describe("Collection organization and capture", () => {

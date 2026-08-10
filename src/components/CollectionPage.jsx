@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Bookmark, BookmarkCheck, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink,
-  Goal, ListTree, MoreHorizontal, Pencil, Plus, Settings2, Trash2, X,
+  Goal, ListTree, MoreHorizontal, Pencil, Play, Plus, Settings2, Trash2, X,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Card, Button, IconButton } from "../theme.jsx";
 import { allTagsIn } from "../lib/tags.js";
@@ -38,6 +38,10 @@ import PageCustomizeSheet from "./PageCustomizeSheet.jsx";
 import PageSectionDisclosure, { SectionSpineNode } from "./PageSectionDisclosure.jsx";
 import MarkdownText from "./MarkdownText.jsx";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
+import PracticeSession from "./PracticeSession.jsx";
+import PracticeSetupSheet from "./PracticeSetupSheet.jsx";
+import { buildPracticeDeck, isPracticeEligible } from "../lib/practice.js";
+import { preparePracticeCards } from "../lib/practiceCards.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
@@ -614,7 +618,16 @@ function VocabularyGroupHeader({
   );
 }
 
-function VocabularySection({ page, items, collection, onOpen, onChanged, onOrganize, onPractice }) {
+function VocabularySection({
+  page,
+  items,
+  collection,
+  onOpen,
+  onChanged,
+  onOrganize,
+  onPractice,
+  onPracticeSession,
+}) {
   const [expanded, setExpanded] = useState(() => new Set());
   const [collapsedGroups, setCollapsedGroups] = useState(() => new Set(
     collection.groups.filter((group) => group.items.length === 0).map((group) => group.id)
@@ -695,8 +708,11 @@ function VocabularySection({ page, items, collection, onOpen, onChanged, onOrgan
         </>
       ) : !collapsed ? (
         <>
-          <IconButton tone="primary" aria-label="Practice" onClick={onPractice} disabled={!collection.practiceEligible}>
+          <IconButton tone="quiet" aria-label="Practice" onClick={onPractice} disabled={!collection.practiceEligible}>
             <Goal size={18} />
+          </IconButton>
+          <IconButton tone="primary" aria-label="Start practice session" onClick={onPracticeSession} disabled={!collection.practiceEligible}>
+            <Play size={18} />
           </IconButton>
           <IconButton tone="quiet" aria-label="Organize" onClick={() => onOrganize(false)}>
             <ListTree size={17} />
@@ -810,8 +826,36 @@ export default function CollectionPage({
   const [linkedEntryLinks, setLinkedEntryLinks] = useState([]);
   const [orphanKeys, setOrphanKeys] = useState([]);
   const [linkConflicts, setLinkConflicts] = useState([]);
+  const [practiceSetupOpen, setPracticeSetupOpen] = useState(false);
+  const [practiceStarting, setPracticeStarting] = useState(false);
+  const [practiceSession, setPracticeSession] = useState(null);
 
   const collection = useMemo(() => deriveCollection(item, items), [item, items]);
+  const practiceScopes = useMemo(() => {
+    const describe = (value, label, scopeItems) => {
+      const eligibleCount = scopeItems.filter(isPracticeEligible).length;
+      return {
+        value,
+        label,
+        items: scopeItems,
+        eligibleCount,
+        omittedCount: scopeItems.length - eligibleCount,
+      };
+    };
+    const collectionOrder = [
+      ...collection.groups.flatMap((group) => group.items),
+      ...collection.ungroupedItems,
+    ];
+    return [
+      describe("all", "Whole collection", collectionOrder),
+      ...collection.groups
+        .filter((group) => group.items.length > 0)
+        .map((group) => describe(group.id, group.name, group.items)),
+      ...(collection.ungroupedItems.length > 0
+        ? [describe(UNGROUPED_COLLAPSE_KEY, NOT_GROUPED_LABEL, collection.ungroupedItems)]
+        : []),
+    ];
+  }, [collection]);
   const itemById = useMemo(() => new Map(items.map((candidate) => [candidate.id, candidate])), [items]);
   const focusChoices = useMemo(() => availableFocusChoices(item), [item]);
   const roles = useMemo(() => enabledPageRoles(item), [item]);
@@ -823,6 +867,9 @@ export default function CollectionPage({
     setEditingDetails(false);
     setDeleteArm(false);
     setCustomizing(false);
+    setPracticeSetupOpen(false);
+    setPracticeStarting(false);
+    setPracticeSession(null);
   }, [item.id]);
 
   useEffect(() => {
@@ -848,6 +895,35 @@ export default function CollectionPage({
     setEditingDetails(false);
     if (next !== "organize") setStartWithNewGroup(false);
     setMode(next);
+  }
+
+  async function startCollectionPractice({ scope, direction, mode: answerMode, ...deckOptions }) {
+    if (practiceStarting) return;
+    const selectedScope = practiceScopes.find((candidate) => candidate.value === scope);
+    if (!selectedScope) return;
+    setPracticeStarting(true);
+    try {
+      const deck = buildPracticeDeck(selectedScope.items, deckOptions);
+      if (deck.length === 0) return;
+      const cards = await preparePracticeCards(deck, { direction });
+      setPracticeSession({ cards, mode: answerMode });
+      setPracticeSetupOpen(false);
+    } finally {
+      setPracticeStarting(false);
+    }
+  }
+
+  if (practiceSession && item.collection?.enabled) {
+    return (
+      <PracticeSession
+        cards={practiceSession.cards}
+        mode={practiceSession.mode}
+        onFinish={() => setPracticeSession(null)}
+        onOpen={onOpen}
+        backLabel="Back to collection"
+        sessionLabel="Collection practice"
+      />
+    );
   }
 
   if (mode === "organize" && item.collection?.enabled) {
@@ -1066,6 +1142,7 @@ export default function CollectionPage({
                       onOpen={onOpen}
                       onChanged={onChanged}
                       onPractice={() => enterMode("practice")}
+                      onPracticeSession={() => setPracticeSetupOpen(true)}
                       onOrganize={(newGroup) => {
                         setStartWithNewGroup(Boolean(newGroup));
                         enterMode("organize");
@@ -1122,6 +1199,18 @@ export default function CollectionPage({
             setCustomizing(false);
             await onChanged();
           }}
+        />
+      )}
+      {practiceSetupOpen && (
+        <PracticeSetupSheet
+          eligibleCount={practiceScopes[0]?.eligibleCount || 0}
+          omittedCount={practiceScopes[0]?.omittedCount || 0}
+          sourceLabel={item.title || "Collection"}
+          orderLabel="Collection order"
+          scopeOptions={practiceScopes}
+          starting={practiceStarting}
+          onClose={() => setPracticeSetupOpen(false)}
+          onStart={startCollectionPractice}
         />
       )}
     </div>
