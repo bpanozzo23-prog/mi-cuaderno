@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import userEvent from "@testing-library/user-event";
 import App from "./App.jsx";
 import { db, clearAllPersonalData } from "./db/db.js";
+import { EVENT_TYPES, logEvent } from "./db/events.js";
 import { allItems, createItem, getItem, linkItems, newLexical, newPage } from "./db/items.js";
 import { removeDictionary } from "./db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "./db/ref/refdb.js";
@@ -139,6 +140,32 @@ describe("Phase 5a navigation continuity", () => {
 
     await user.click(screen.getByRole("button", { name: "Atrás" }));
     expect(await screen.findByText("casa", { selector: ".text-2xl" })).toBeTruthy();
+  });
+});
+
+describe("study-session focus mode", () => {
+  it("removes the app header and primary navigation until the session finishes", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({
+      term: "madrugar",
+      meanings: [newMeaning({ gloss: "to get up early" })],
+    }));
+    await logEvent(EVENT_TYPES.trickyOn, word.id);
+    render(<App />);
+
+    const navigation = await screen.findByRole("navigation", { name: "Primary" });
+    expect(screen.getByText("Spanish notebook")).toBeTruthy();
+    await user.click(within(navigation).getByRole("button", { name: "Repaso" }));
+    await user.click(await screen.findByRole("button", { name: "Start" }));
+
+    expect(await screen.findByRole("region", { name: "Review session" })).toBeTruthy();
+    expect(screen.queryByText("Spanish notebook")).toBeNull();
+    expect(screen.queryByRole("navigation", { name: "Primary" })).toBeNull();
+    expect(screen.getByRole("progressbar", { name: "Session progress" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Finish" }));
+    expect(await screen.findByText("Spanish notebook")).toBeTruthy();
+    expect(screen.getByRole("navigation", { name: "Primary" })).toBeTruthy();
   });
 });
 

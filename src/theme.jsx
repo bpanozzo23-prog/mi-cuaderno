@@ -32,6 +32,8 @@ export const C = {
   redPale: "var(--color-red-pale)",
   green: "var(--color-green)",
   greenPale: "var(--color-green-pale)",
+  amber: "var(--color-amber)",
+  amberPale: "var(--color-amber-pale)",
   chipBorder: "var(--color-chip-border)",
   dangerBorder: "var(--color-danger-border)",
   disabled: "var(--color-disabled)",
@@ -273,6 +275,10 @@ export function Button({ children, onClick, disabled, tone = "primary", classNam
     quiet: { background: C.card, color: C.ink, borderColor: C.line },
     danger: { background: C.card, color: C.red, borderColor: C.dangerBorder },
     dangerArmed: { background: C.red, color: "#fff", borderColor: C.red },
+    gradeAgain: { background: C.redPale, color: C.red, borderColor: C.red },
+    gradeHard: { background: C.amberPale, color: C.amber, borderColor: C.amber },
+    gradeGood: { background: C.penPale, color: C.penDark, borderColor: C.pen },
+    gradeEasy: { background: C.greenPale, color: C.green, borderColor: C.green },
   };
   return (
     <button

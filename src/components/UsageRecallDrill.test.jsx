@@ -79,7 +79,8 @@ describe("Usage recall sessions", () => {
     }
     expect(screen.getByRole("button", { name: "Practice 1 missed tense" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Practice 1 missed tense" }));
-    expect(screen.getByText("Missed · 1 / 1")).toBeTruthy();
+    expect(screen.getByText("Missed round · recall")).toBeTruthy();
+    expect(screen.getByText("1 of 1")).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Show uses" }));
     await user.click(screen.getByRole("button", { name: "Recalled one" }));
@@ -94,6 +95,7 @@ describe("Usage recall sessions", () => {
   it("requires a second guide tap before ending the session", async () => {
     const user = userEvent.setup();
     const onOpen = vi.fn();
+    const onFinish = vi.fn();
     const items = [{
       id: "user:guide",
       type: "page",
@@ -101,7 +103,7 @@ describe("Usage recall sessions", () => {
       pageFocus: "grammar",
       grammar: { enabled: true },
     }];
-    render(<UsageRecallDrill deck={[recallCard()]} items={items} onFinish={vi.fn()} onOpen={onOpen} />);
+    render(<UsageRecallDrill deck={[recallCard()]} items={items} onFinish={onFinish} onOpen={onOpen} />);
 
     await user.click(screen.getByRole("button", { name: "Show uses" }));
     await user.click(screen.getByRole("button", { name: "Open your guide · Pretérito guide" }));
@@ -109,5 +111,6 @@ describe("Usage recall sessions", () => {
     expect(screen.getByText("Opening this guide ends the session. 1 prompt remains.")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Open Pretérito guide and end session" }));
     expect(onOpen).toHaveBeenCalledWith("user:guide");
+    expect(onFinish).toHaveBeenCalledTimes(1);
   });
 });

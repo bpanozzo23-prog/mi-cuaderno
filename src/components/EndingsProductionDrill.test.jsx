@@ -89,7 +89,8 @@ describe("Typed Endings sessions", () => {
     expect(screen.getByRole("button", { name: "Practice 1 missed row" })).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Practice 1 missed row" }));
-    expect(screen.getByText("Missed · 1 / 1")).toBeTruthy();
+    expect(screen.getByText("Missed round · production")).toBeTruthy();
+    expect(screen.getByText("1 of 1")).toBeTruthy();
     await fillRow(user, row.endings);
     await user.click(screen.getByRole("button", { name: "Check endings" }));
     await user.click(await screen.findByRole("button", { name: "Done" }));

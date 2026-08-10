@@ -95,7 +95,7 @@ describe("Conjugation Gym setup", () => {
     expect(screen.getByText("1 tense available for these choices.")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Start tense usage" }));
     expect(screen.getByText("Indicative present")).toBeTruthy();
-    expect(screen.getByText("1 / 1")).toBeTruthy();
+    expect(screen.getByText("1 of 1")).toBeTruthy();
     expect(screen.getByText("Recall at least one valid use.")).toBeTruthy();
   });
 
@@ -215,15 +215,25 @@ describe("Conjugation Gym setup", () => {
     await user.click(screen.getByRole("button", { name: "Start quick session" }));
     expect(screen.getByText("sacar")).toBeTruthy();
     expect(screen.queryByText("preferir")).toBeNull();
-    const prompt = screen.getByText(/Indicative present ·/).textContent;
-    const slot = prompt.split(" · ")[1];
-    const answers = {
-      yo: "saco",
-      tú: "sacas",
-      "él/ella/usted": "saca",
-      nosotros: "sacamos",
-      "ustedes/ellos": "sacan",
-    };
+    // Quick session order is genuinely randomized (src/lib/conjugationGym.js), and sacar's
+    // present and preterite are equally available here, so either can come first.
+    const prompt = screen.getByText(/Indicative (present|preterite) ·/).textContent;
+    const [tenseLabel, slot] = prompt.split(" · ");
+    const answers = tenseLabel.endsWith("preterite")
+      ? {
+          yo: "saqué",
+          tú: "sacaste",
+          "él/ella/usted": "sacó",
+          nosotros: "sacamos",
+          "ustedes/ellos": "sacaron",
+        }
+      : {
+          yo: "saco",
+          tú: "sacas",
+          "él/ella/usted": "saca",
+          nosotros: "sacamos",
+          "ustedes/ellos": "sacan",
+        };
     await user.type(screen.getByLabelText("Type the form"), answers[slot]);
     await user.click(screen.getByRole("button", { name: "Check" }));
     await waitFor(async () => expect(await allEvents()).toHaveLength(1));
@@ -410,7 +420,7 @@ describe("Conjugation Gym setup", () => {
     await user.click(screen.getByRole("button", { name: "Practice next" }));
     await user.click(screen.getByRole("button", { name: "Start focus session" }));
     expect(screen.getByText(/Indicative present · yo/)).toBeTruthy();
-    expect(screen.getByText("1 / 10")).toBeTruthy();
+    expect(screen.getByText("1 of 10")).toBeTruthy();
   });
 
   it("previews a short unique-form supply and starts the shorter deck without blocking", async () => {
@@ -429,7 +439,7 @@ describe("Conjugation Gym setup", () => {
     expect(screen.getByText("2 unique forms available for these choices.")).toBeTruthy();
     expect(screen.getByText("Only 2 forms are available, so this 10-prompt session will use all 2.")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Start focus session" }));
-    expect(screen.getByText("1 / 2")).toBeTruthy();
+    expect(screen.getByText("1 of 2")).toBeTruthy();
   });
 
   it("resets every setup choice before applying a performance practice action", async () => {

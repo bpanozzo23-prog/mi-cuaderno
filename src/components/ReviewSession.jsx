@@ -1,15 +1,17 @@
 import { useState } from "react";
-import { ChevronLeft, Eye, Highlighter, RotateCcw, ArrowLeftRight } from "lucide-react";
-import { C, SERIF, MONO, dotGrid, Card, Button } from "../theme.jsx";
+import { Eye, Highlighter, RotateCcw, ArrowLeftRight } from "lucide-react";
+import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
 import { logReview } from "../db/events.js";
 import { GRADES } from "../lib/review.js";
 import { shufflePracticeItems } from "../lib/practice.js";
 import {
   PracticeCard,
+  deterministicCardAnswer,
   ReviewGradeStrip,
   SelfAssessmentStrip,
   usePracticeCardState,
 } from "./PracticeCard.jsx";
+import StudySessionFrame from "./StudySessionFrame.jsx";
 
 /**
  * One pass through today's due words (brief section 12).
@@ -55,6 +57,7 @@ export default function ReviewSession({
   const recovery = stage === "recovery";
   const item = roundCards[index] || null;
   const done = index >= roundCards.length;
+  const formId = "scheduled-review-answer";
 
   const eventDetails = (extra = null) => ({
     direction: item.direction === "reverse" ? "reverse" : "forward",
@@ -127,8 +130,26 @@ export default function ReviewSession({
   if (done) {
     const nextCount = Math.min(remainingDueCount, Math.max(1, Number(chunkSize) || 20));
     if (recovery) {
+      const recoveryActions = (
+        <div className="flex flex-col gap-2">
+          {nextCount > 0 && onStartNext && (
+            <Button className="min-h-11 w-full" disabled={startingNext} onClick={onStartNext}>
+              Start next {nextCount}
+            </Button>
+          )}
+          <Button className="min-h-11 w-full" tone={nextCount > 0 ? "quiet" : "primary"} onClick={onFinish}>
+            Back to Repaso
+          </Button>
+        </div>
+      );
       return (
-        <div className="px-4 py-4 pb-28" style={dotGrid}>
+        <StudySessionFrame
+          title="Review"
+          current={roundCards.length}
+          total={roundCards.length}
+          summary
+          actions={recoveryActions}
+        >
           <Card className="p-5 text-center">
             <div className="text-xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
               Recovery complete
@@ -141,24 +162,42 @@ export default function ReviewSession({
                 ? "Every missed card came back this round."
                 : `${roundCards.length - recovered} still worth another look tomorrow.`}
             </div>
-            <div className="mt-4 flex flex-col gap-2">
-              {nextCount > 0 && onStartNext && (
-                <Button className="min-h-11" disabled={startingNext} onClick={onStartNext}>
-                  Start next {nextCount}
-                </Button>
-              )}
-              <Button className="min-h-11" tone={nextCount > 0 ? "quiet" : "primary"} onClick={onFinish}>
-                Back to Repaso
-              </Button>
-            </div>
           </Card>
-        </div>
+        </StudySessionFrame>
       );
     }
 
     const total = tally.passed + tally.failed;
+    const summaryActions = (
+      <div className="flex flex-col gap-2">
+        {missedCards.length > 0 && (
+          <Button className="min-h-11 w-full" onClick={beginRecovery}>
+            <RotateCcw size={15} /> Practice {missedCards.length} missed again
+          </Button>
+        )}
+        {nextCount > 0 && onStartNext && (
+          <Button className="min-h-11 w-full" disabled={startingNext} onClick={onStartNext}>
+            Start next {nextCount}
+          </Button>
+        )}
+        <Button
+          className="min-h-11 w-full"
+          tone={missedCards.length > 0 || nextCount > 0 ? "quiet" : "primary"}
+          onClick={onFinish}
+        >
+          Back to Repaso
+        </Button>
+      </div>
+    );
     return (
-      <div className="px-4 py-4 pb-28" style={dotGrid}>
+      <StudySessionFrame
+        title="Review"
+        stageLabel="Session complete"
+        current={roundCards.length}
+        total={roundCards.length}
+        summary
+        actions={summaryActions}
+      >
         <Card className="p-5 text-center">
           <div className="text-xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
             {total === 0 ? "Nothing to review" : "¡Ya está!"}
@@ -175,64 +214,76 @@ export default function ReviewSession({
               </div>
             </>
           )}
-          <div className="mt-4 flex flex-col gap-2">
-            {missedCards.length > 0 && (
-              <Button className="min-h-11" onClick={beginRecovery}>
-                <RotateCcw size={15} /> Practice {missedCards.length} missed again
-              </Button>
-            )}
-            {nextCount > 0 && onStartNext && (
-              <Button className="min-h-11" disabled={startingNext} onClick={onStartNext}>
-                Start next {nextCount}
-              </Button>
-            )}
-            <Button
-              className="min-h-11"
-              tone={missedCards.length > 0 || nextCount > 0 ? "quiet" : "primary"}
-              onClick={onFinish}
-            >
-              Back to Repaso
-            </Button>
-          </div>
         </Card>
-      </div>
+      </StudySessionFrame>
     );
   }
 
-  const remaining = roundCards.length - index;
+  const reverse = item.direction === "reverse" && item.meanings?.length > 0;
+  const canType = mode === "typed" && Boolean(deterministicCardAnswer(item));
+  const revealLabel = reverse || (!reverse && item.cloze?.answer)
+    ? "Tap to see the word"
+    : "Tap to see the meaning";
+  const actions = !cardState.revealed ? (
+    canType ? (
+      <Button
+        type="submit"
+        form={formId}
+        className="min-h-11 w-full"
+        disabled={busy || !cardState.typedValue.trim()}
+      >
+        Check answer
+      </Button>
+    ) : (
+      <Button className="min-h-11 w-full" disabled={busy} onClick={cardState.reveal}>
+        {revealLabel}
+      </Button>
+    )
+  ) : cardState.typedResult?.verdict === "wrong" ? (
+    <Button
+      className="min-h-11 w-full"
+      disabled={busy || !wrongRecorded}
+      onClick={() => recovery ? answerRecovery(false) : advance()}
+    >
+      Continue
+    </Button>
+  ) : recovery ? (
+    <SelfAssessmentStrip busy={busy} onAnswer={answerRecovery} />
+  ) : (
+    <ReviewGradeStrip
+      busy={busy}
+      grades={GRADES}
+      onGrade={grade}
+      includeAgain={!cardState.typedResult}
+    />
+  );
+
   return (
-    <div className="px-4 py-4 pb-28" style={dotGrid}>
-      <div className="flex items-center justify-between mb-3">
-        <button onClick={onFinish} className="flex items-center gap-1 text-sm" style={{ color: C.pen }}>
-          <ChevronLeft size={16} /> Finish
-        </button>
-        <span className="text-xs" style={{ fontFamily: MONO, color: C.mut }}>
-          {index + 1} / {roundCards.length}
-        </span>
-      </div>
-
-      {recovery && (
-        <div className="mb-3 text-center text-[11px] font-semibold uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.1em" }}>
-          Missed round
-        </div>
-      )}
-
+    <StudySessionFrame
+      title="Review"
+      stageLabel={recovery ? "Missed round" : ""}
+      current={index + 1}
+      total={roundCards.length}
+      onFinish={onFinish}
+      actions={actions}
+    >
       <PracticeCard
         item={item}
         revealed={cardState.revealed}
-        onReveal={cardState.reveal}
         showContext={cardState.showContext}
         onToggleContext={cardState.toggleContext}
         onOpen={onOpen}
+        onExit={onFinish}
         speak
         mode={mode}
         busy={busy}
+        formId={formId}
         typedValue={cardState.typedValue}
         onTypedValueChange={cardState.setTypedValue}
         typedResult={cardState.typedResult}
         onTypedResult={markTyped}
         metadata={(
-          <div className="mt-1.5 text-xs inline-flex items-center gap-2" style={{ fontFamily: MONO, color: C.mut }}>
+          <div className="inline-flex flex-wrap items-center justify-center gap-2 text-xs" style={{ fontFamily: MONO, color: C.mut }}>
             <span>caja {item.box}</span>
             {item.direction === "reverse" && item.meanings?.length > 0 && (
               <span className="inline-flex items-center gap-1">
@@ -252,30 +303,6 @@ export default function ReviewSession({
           </div>
         )}
       />
-
-      {cardState.revealed && cardState.typedResult?.verdict === "wrong" ? (
-        <Button
-          className="mt-4 min-h-11 w-full"
-          disabled={busy || !wrongRecorded}
-          onClick={() => recovery ? answerRecovery(false) : advance()}
-        >
-          Continue
-        </Button>
-      ) : recovery && cardState.revealed ? (
-        <SelfAssessmentStrip onAnswer={answerRecovery} />
-      ) : cardState.revealed && (
-        <ReviewGradeStrip
-          busy={busy}
-          grades={GRADES}
-          onGrade={grade}
-          includeAgain={!cardState.typedResult}
-        />
-      )}
-
-      <div className="mt-6 text-center text-xs" style={{ color: C.mut }}>
-        <RotateCcw size={11} className="inline mr-1 -mt-0.5" />
-        {remaining === 1 ? "Last one" : `${remaining} left ${recovery ? "in this round" : "today"}`}
-      </div>
-    </div>
+    </StudySessionFrame>
   );
 }

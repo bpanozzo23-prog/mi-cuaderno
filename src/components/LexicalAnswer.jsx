@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { BookOpen } from "lucide-react";
 import { C, SERIF, MONO } from "../theme.jsx";
 import { meaningLabels } from "../lib/meanings.js";
@@ -28,10 +29,22 @@ export function MeaningRow({ meaning, index, showCue = true }) {
 }
 
 /** The shared answer side for scheduled Repaso and session-only free practice. */
-export default function LexicalAnswer({ item, showContext, onToggleContext, onOpen }) {
+export default function LexicalAnswer({ item, showContext, onToggleContext, onOpen, onExit }) {
+  const [openArmed, setOpenArmed] = useState(false);
   const hasMeaningContext = item.meanings?.some(
     (meaning) => meaning.note || meaning.examples?.length
   );
+
+  useEffect(() => setOpenArmed(false), [item.id]);
+
+  function openFullEntry() {
+    if (onExit && !openArmed) {
+      setOpenArmed(true);
+      return;
+    }
+    onExit?.();
+    onOpen?.(item.id);
+  }
 
   return (
     <div className="mt-4 pt-4 border-t space-y-3" style={{ borderColor: C.line }}>
@@ -86,14 +99,21 @@ export default function LexicalAnswer({ item, showContext, onToggleContext, onOp
       ))}
 
       {onOpen && (
-        <button
-          type="button"
-          onClick={() => onOpen(item.id)}
-          className="text-xs inline-flex items-center gap-1 underline underline-offset-2"
-          style={{ color: C.pen }}
-        >
-          <BookOpen size={12} /> Open the full entry
-        </button>
+        <div className="space-y-1.5">
+          {openArmed && (
+            <div role="alert" className="text-xs" style={{ color: C.red }}>
+              Opening the full entry ends this session.
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={openFullEntry}
+            className="text-xs inline-flex items-center gap-1 underline underline-offset-2"
+            style={{ color: openArmed ? C.red : C.pen }}
+          >
+            <BookOpen size={12} /> {openArmed ? "Open the full entry and end session" : "Open the full entry"}
+          </button>
+        </div>
       )}
     </div>
   );

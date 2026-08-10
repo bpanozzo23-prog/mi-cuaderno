@@ -206,9 +206,34 @@ describe("Phase 10b: cloze cards", () => {
     render(<ReviewSession cards={[clozeCard({ cloze: null, face: "plain" })]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
 
     await user.click(screen.getByRole("button", { name: "Tap to see the meaning" }));
-    for (const label of ["Again", "Hard", "Good", "Easy"]) {
-      expect(screen.getByRole("button", { name: label })).toBeTruthy();
+    const grades = screen.getByLabelText("Review grade");
+    expect(grades.className).toContain("grid-cols-4");
+    const tones = {
+      Again: "var(--color-red-pale)",
+      Hard: "var(--color-amber-pale)",
+      Good: "var(--color-pen-pale)",
+      Easy: "var(--color-green-pale)",
+    };
+    for (const [label, background] of Object.entries(tones)) {
+      expect(screen.getByRole("button", { name: label }).style.background).toBe(background);
     }
+  });
+
+  it("confirms that opening the full entry exits the session", async () => {
+    const user = userEvent.setup();
+    const onFinish = vi.fn();
+    const onOpen = vi.fn();
+    render(<ReviewSession cards={[clozeCard({ cloze: null, face: "plain" })]} onFinish={onFinish} onOpen={onOpen} onGraded={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: "Tap to see the meaning" }));
+    await user.click(screen.getByRole("button", { name: "Open the full entry" }));
+    expect(screen.getByRole("alert").textContent).toContain("ends this session");
+    expect(onFinish).not.toHaveBeenCalled();
+    expect(onOpen).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Open the full entry and end session" }));
+    expect(onFinish).toHaveBeenCalledTimes(1);
+    expect(onOpen).toHaveBeenCalledWith("user:sacar");
   });
 });
 

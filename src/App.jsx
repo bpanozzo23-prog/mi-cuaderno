@@ -17,6 +17,7 @@ import { FILTERS } from "./lib/filters.js";
 import { allTagsIn } from "./lib/tags.js";
 import { DEFAULT_SWATCH, TAG_COLORS_PREF, normalizeTagColors } from "./lib/tagColors.js";
 import { TagColorProvider } from "./components/TagChip.jsx";
+import { StudySessionProvider } from "./components/StudySessionFrame.jsx";
 
 /**
  * Spanish pluralization for the header counts: only 1 takes the singular, 0 takes the plural.
@@ -43,6 +44,7 @@ export default function App() {
   const [pinnedPageIds, setPinnedPageIds] = useState([]);
   const [pinnedLexicalIds, setPinnedLexicalIds] = useState([]);
   const [tagColors, setTagColors] = useState({});
+  const [studySessionActive, setStudySessionActive] = useState(false);
   const notebook = useNotebook();
   const route = routeTrail[routeTrail.length - 1];
   const tab = route.tab;
@@ -255,10 +257,11 @@ export default function App() {
   }, [route.screen, tab, selectedId]);
 
   return (
+    <StudySessionProvider onActiveChange={setStudySessionActive}>
     <TagColorProvider colors={tagColors}>
     <div className="min-h-screen" style={{ background: C.paper, color: C.ink }}>
       <div className="max-w-md mx-auto min-h-screen relative" style={{ background: C.paper }}>
-        {!hubOpen && (
+        {!hubOpen && !studySessionActive && (
           <header
             className="sticky top-0 z-20 px-4 pt-4 pb-3"
             style={{ background: C.paper, borderBottom: `1px solid ${C.line}` }}
@@ -362,7 +365,7 @@ export default function App() {
           </>
         )}
 
-        <nav aria-label="Primary" className="fixed bottom-0 inset-x-0 z-30">
+        {!studySessionActive && <nav aria-label="Primary" className="fixed bottom-0 inset-x-0 z-30">
           <div className="max-w-md mx-auto flex border-t" style={{ background: C.card, borderColor: C.line }}>
             {TABS.map((t) => {
               const Icon = t.icon;
@@ -385,9 +388,10 @@ export default function App() {
               );
             })}
           </div>
-        </nav>
+        </nav>}
       </div>
     </div>
     </TagColorProvider>
+    </StudySessionProvider>
   );
 }

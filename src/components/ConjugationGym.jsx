@@ -404,6 +404,7 @@ export default function ConjugationGym({
       return (
         <RecognitionDrill
           deck={session.deck}
+          title={session.skill === "endings" ? "Endings" : "Tense usage"}
           onFinish={() => setView("setup")}
           onGraded={onGraded}
           onOpen={onOpen}

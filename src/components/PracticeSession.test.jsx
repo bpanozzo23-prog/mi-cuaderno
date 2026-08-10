@@ -29,6 +29,7 @@ describe("session-only free practice", () => {
   it("reveals the shared answer, opens optional context, and writes no event", async () => {
     const user = userEvent.setup();
     const onOpen = vi.fn();
+    const onFinish = vi.fn();
     render(
       <PracticeSession
         cards={[card("sacar", {
@@ -40,7 +41,7 @@ describe("session-only free practice", () => {
             examples: [{ es: "Saca la basura.", en: "Take out the trash." }],
           })],
         })]}
-        onFinish={vi.fn()}
+        onFinish={onFinish}
         onOpen={onOpen}
       />
     );
@@ -55,7 +56,13 @@ describe("session-only free practice", () => {
     expect(screen.getByText("Saca la basura.")).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Open the full entry" }));
+    expect(screen.getByText("Opening the full entry ends this session.")).toBeTruthy();
+    expect(onOpen).not.toHaveBeenCalled();
+    expect(onFinish).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Open the full entry and end session" }));
     expect(onOpen).toHaveBeenCalledWith("user:sacar");
+    expect(onFinish).toHaveBeenCalledTimes(1);
     expect(await allEvents()).toEqual([]);
   });
 

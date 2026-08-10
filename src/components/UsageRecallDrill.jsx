@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Check, ChevronLeft, RotateCcw, X } from "lucide-react";
-import { C, MONO, SERIF, Button, Card, dotGrid } from "../theme.jsx";
+import { Check, RotateCcw, X } from "lucide-react";
+import { C, MONO, SERIF, Button, Card } from "../theme.jsx";
 import { logDrill } from "../db/events.js";
 import { qualifiedTenseLabel } from "../lib/conjugation.js";
 import { grammarGuidesForTense } from "../lib/recognitionGuides.js";
 import { rebuildMissedUsageRecallDeck } from "../lib/recognitionDeck.js";
+import StudySessionFrame, { StudyCardEyebrow } from "./StudySessionFrame.jsx";
 
 const fallbackSessionId = () =>
   globalThis.crypto?.randomUUID?.() || `usage-recall-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -153,6 +154,7 @@ export default function UsageRecallDrill({
       return;
     }
     setOpenArmed(null);
+    onFinish?.();
     onOpen(target);
   }
 
@@ -167,8 +169,25 @@ export default function UsageRecallDrill({
 
   if (done) {
     const initialComplete = round === "initial";
+    const summaryActions = initialComplete && missedCards.length > 0 ? (
+      <div className="flex flex-col gap-2">
+        <Button className="min-h-11 w-full" onClick={startMissedRound}>
+          <RotateCcw size={15} /> Practice {missedCards.length} missed {missedCards.length === 1 ? "tense" : "tenses"}
+        </Button>
+        <Button tone="quiet" className="min-h-11 w-full" onClick={onFinish}>Finish session</Button>
+      </div>
+    ) : (
+      <Button className="min-h-11 w-full" onClick={onFinish}>Back to Gym</Button>
+    );
     return (
-      <div className="px-4 py-4 pb-28" style={dotGrid}>
+      <StudySessionFrame
+        title="Tense usage"
+        stageLabel={initialComplete ? "Recall" : "Missed round · recall"}
+        current={activeDeck.length}
+        total={activeDeck.length}
+        summary
+        actions={summaryActions}
+      >
         <Card className="p-5 text-center">
           <div className="text-xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
             {deck.length === 0 ? "Nothing to practise" : initialComplete ? "Session complete" : "Missed round complete"}
@@ -185,46 +204,45 @@ export default function UsageRecallDrill({
               )}
             </>
           )}
-          {initialComplete && missedCards.length > 0 ? (
-            <div className="mt-4 space-y-2">
-              <Button className="w-full" onClick={startMissedRound}>
-                <RotateCcw size={15} /> Practice {missedCards.length} missed {missedCards.length === 1 ? "tense" : "tenses"}
-              </Button>
-              <Button tone="quiet" className="w-full" onClick={onFinish}>Finish session</Button>
-            </div>
-          ) : (
-            <Button className="mt-4" onClick={onFinish}>Back to Gym</Button>
-          )}
         </Card>
-      </div>
+      </StudySessionFrame>
     );
   }
 
-  return (
-    <div className="px-4 py-4 pb-28" style={dotGrid}>
-      <div className="mb-3 flex items-center justify-between">
-        <button onClick={onFinish} className="flex items-center gap-1 text-sm" style={{ color: C.pen }}>
-          <ChevronLeft size={16} /> Finish
-        </button>
-        <span className="text-xs" style={{ fontFamily: MONO, color: C.mut }}>
-          {round === "missed" && "Missed · "}{index + 1} / {activeDeck.length}
-        </span>
-      </div>
+  const actions = !revealed ? (
+    <Button className="min-h-11 w-full" onClick={() => setRevealed(true)}>Show uses</Button>
+  ) : !result ? (
+    <div className="grid grid-cols-2 gap-2" aria-label="Recall grade">
+      <Button tone="gradeAgain" className="min-h-11" disabled={busy} onClick={() => grade(false)}>
+        <X size={16} /> Couldn’t recall
+      </Button>
+      <Button tone="gradeEasy" className="min-h-11" disabled={busy} onClick={() => grade(true)}>
+        <Check size={16} /> Recalled one
+      </Button>
+    </div>
+  ) : (
+    <Button className="min-h-11 w-full" onClick={advance}>
+      {index + 1 === activeDeck.length ? "Done" : "Next"}
+    </Button>
+  );
 
+  return (
+    <StudySessionFrame
+      title="Tense usage"
+      stageLabel={round === "missed" ? "Missed round · recall" : "Recall"}
+      current={index + 1}
+      total={activeDeck.length}
+      onFinish={onFinish}
+      actions={actions}
+    >
       <Card className="p-5">
-        <div className="text-center text-xs" style={{ fontFamily: MONO, color: C.mut }}>
-          Tense usage · Recall
-        </div>
+        <StudyCardEyebrow>Tense usage · Recall</StudyCardEyebrow>
         <div className="mt-3 text-center text-2xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
           {qualifiedTenseLabel(card.answer)}
         </div>
         <p className="mt-2 text-center text-sm" style={{ color: C.mut }}>
           Recall at least one valid use.
         </p>
-
-        {!revealed && (
-          <Button className="mt-5 w-full" onClick={() => setRevealed(true)}>Show uses</Button>
-        )}
 
         {revealed && (
           <>
@@ -233,16 +251,7 @@ export default function UsageRecallDrill({
               items={items}
               controls={{ requestOpen, openArmed, remaining: activeDeck.length - index }}
             />
-            {!result ? (
-              <div className="mt-5 grid grid-cols-2 gap-2" aria-label="Recall grade">
-                <Button tone="quiet" disabled={busy} onClick={() => grade(false)}>
-                  <X size={16} /> Couldn’t recall
-                </Button>
-                <Button disabled={busy} onClick={() => grade(true)}>
-                  <Check size={16} /> Recalled one
-                </Button>
-              </div>
-            ) : (
+            {result && (
               <div className="mt-5 flex items-center gap-2 text-sm" style={{ color: result.passed ? C.green : C.red }}>
                 {result.passed ? <Check size={17} /> : <X size={17} />}
                 {result.passed ? "Marked recalled." : "Marked for the optional missed round."}
@@ -251,12 +260,6 @@ export default function UsageRecallDrill({
           </>
         )}
       </Card>
-
-      {result && (
-        <Button className="mt-4 w-full" onClick={advance}>
-          {index + 1 === activeDeck.length ? "Done" : "Next"}
-        </Button>
-      )}
-    </div>
+    </StudySessionFrame>
   );
 }

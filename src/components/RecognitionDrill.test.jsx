@@ -109,10 +109,11 @@ describe("recognition multiple-choice sessions", () => {
   it("requires a second tap before a reveal link leaves the session", async () => {
     const user = userEvent.setup();
     const onOpen = vi.fn();
+    const onFinish = vi.fn();
     render(
       <RecognitionDrill
         deck={[card()]}
-        onFinish={vi.fn()}
+        onFinish={onFinish}
         onOpen={onOpen}
         renderReveal={(_card, _result, controls) => (
           <button type="button" onClick={() => controls.requestOpen("user:guide")}>
@@ -127,5 +128,6 @@ describe("recognition multiple-choice sessions", () => {
     expect(onOpen).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Confirm guide" }));
     expect(onOpen).toHaveBeenCalledWith("user:guide");
+    expect(onFinish).toHaveBeenCalledTimes(1);
   });
 });

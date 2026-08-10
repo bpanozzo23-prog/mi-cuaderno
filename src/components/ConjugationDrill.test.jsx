@@ -150,20 +150,23 @@ describe("reveal sessions", () => {
   it("opens personal and unsaved Core targets honestly", async () => {
     const user = userEvent.setup();
     const onOpen = vi.fn();
-    const { rerender } = render(<ConjugationDrill deck={[card()]} onFinish={vi.fn()} onOpen={onOpen} />);
+    const onFinish = vi.fn();
+    const { rerender } = render(<ConjugationDrill deck={[card()]} onFinish={onFinish} onOpen={onOpen} />);
     await user.click(screen.getByRole("button", { name: "Tap to see the form" }));
     await user.click(screen.getByRole("button", { name: "Open saved entry" }));
     expect(onOpen).not.toHaveBeenCalled();
     expect(screen.getByText("Opening this entry ends the session. 1 prompt remains.")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Open saved entry and end session" }));
     expect(onOpen).toHaveBeenLastCalledWith("user:sacar");
+    expect(onFinish).toHaveBeenCalledTimes(1);
 
-    rerender(<ConjugationDrill deck={[card({ itemId: null, itemKey: null, source: "core", openKey: "dict:wiktionary-es:sacar:verb" })]} onFinish={vi.fn()} onOpen={onOpen} />);
+    rerender(<ConjugationDrill deck={[card({ itemId: null, itemKey: null, source: "core", openKey: "dict:wiktionary-es:sacar:verb" })]} onFinish={onFinish} onOpen={onOpen} />);
     await user.click(screen.getByRole("button", { name: "Open dictionary entry" }));
     expect(onOpen).toHaveBeenCalledTimes(1);
     expect(screen.getByText("Opening this entry ends the session. 1 prompt remains.")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Open dictionary entry and end session" }));
     expect(onOpen).toHaveBeenLastCalledWith("dict:wiktionary-es:sacar:verb");
+    expect(onFinish).toHaveBeenCalledTimes(2);
   });
 
   it("says so plainly when the deck has no answerable cells", () => {
@@ -279,7 +282,8 @@ describe("typed attempts, retry, and missed round", () => {
     await user.click(screen.getByRole("button", { name: "Done" }));
     await user.click(screen.getByRole("button", { name: "Practice 1 missed form" }));
 
-    expect(screen.getByText(/Missed · 1 \/ 1/)).toBeTruthy();
+    expect(screen.getByText("Missed round")).toBeTruthy();
+    expect(screen.getByText("1 of 1")).toBeTruthy();
     await typeAndCheck(user, "sacaron");
     await waitFor(() => expect(screen.getByText("Exactly right.")).toBeTruthy());
     await user.click(screen.getByRole("button", { name: "Done" }));

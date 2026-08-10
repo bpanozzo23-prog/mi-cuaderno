@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Eye, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { Button, C, Card, Hi, SERIF } from "../theme.jsx";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
 import LexicalAnswer, { MeaningRow } from "./LexicalAnswer.jsx";
@@ -67,16 +67,15 @@ function TermHeading({ item, speak }) {
 export function PracticeCard({
   item,
   revealed,
-  onReveal,
   showContext,
   onToggleContext,
   onOpen,
+  onExit,
   metadata = null,
-  revealLabel = null,
-  revealIcon = false,
   speak = false,
   mode = "reveal",
   busy = false,
+  formId = "practice-card-answer",
   typedValue = "",
   onTypedValueChange,
   typedResult = null,
@@ -87,8 +86,6 @@ export function PracticeCard({
   const reverse = item.direction === "reverse" && item.meanings?.length > 0;
   // A reverse prompt cannot also be cloze: its sentence would contain the answer.
   const cloze = !reverse && item.cloze?.answer ? item.cloze : null;
-  const resolvedRevealLabel = revealLabel
-    || (reverse || cloze ? "Tap to see the word" : "Tap to see the meaning");
   const typedAnswer = deterministicCardAnswer(item);
   const canType = mode === "typed" && Boolean(typedAnswer);
 
@@ -104,6 +101,7 @@ export function PracticeCard({
 
   return (
     <Card className="p-5">
+      {metadata && <div className="mb-4 flex justify-center">{metadata}</div>}
       <div className="text-center">
         {reverse ? (
           <div className="space-y-2 text-left">
@@ -124,11 +122,10 @@ export function PracticeCard({
         ) : (
           <TermHeading item={item} speak={speak} />
         )}
-        {metadata}
       </div>
 
       {!revealed && canType ? (
-        <form className="mt-5" onSubmit={submitTyped}>
+        <form id={formId} className="mt-5" onSubmit={submitTyped}>
           <label className="block text-left text-xs font-semibold" style={{ color: C.mut }}>
             {reverse ? "Type the Spanish word" : "Type the missing word"}
             <input
@@ -141,21 +138,8 @@ export function PracticeCard({
               style={{ background: C.paper, borderColor: C.line, color: C.ink }}
             />
           </label>
-          <Button type="submit" className="mt-3 min-h-11 w-full" disabled={busy || !typedValue.trim()}>
-            Check answer
-          </Button>
         </form>
-      ) : !revealed ? (
-        <button
-          type="button"
-          onClick={onReveal}
-          className="w-full mt-5 py-6 rounded-xl border border-dashed text-sm"
-          style={{ borderColor: C.line, color: C.mut, background: C.paper }}
-        >
-          {revealIcon && <Eye size={15} className="inline mr-1.5 -mt-0.5" />}
-          {resolvedRevealLabel}
-        </button>
-      ) : (
+      ) : revealed ? (
         <>
           {reverse && (
             <div className="mt-5 text-center">
@@ -203,9 +187,10 @@ export function PracticeCard({
             showContext={showContext}
             onToggleContext={onToggleContext}
             onOpen={onOpen}
+            onExit={onExit}
           />
         </>
-      )}
+      ) : null}
     </Card>
   );
 }
@@ -213,19 +198,19 @@ export function PracticeCard({
 /** Four scheduled grades; the shell decides what each one writes and advances. */
 export function ReviewGradeStrip({ busy = false, grades, onGrade, includeAgain = true }) {
   return (
-    <div className={includeAgain ? "mt-4 grid grid-cols-2 gap-2" : "mt-4 grid grid-cols-3 gap-2"} aria-label="Review grade">
+    <div className={includeAgain ? "grid grid-cols-4 gap-1.5" : "grid grid-cols-3 gap-2"} aria-label="Review grade">
       {includeAgain && (
-        <Button className="min-h-11" tone="danger" disabled={busy} onClick={() => onGrade(grades.again)}>
-          <X size={16} /> Again
+        <Button className="min-h-11 min-w-0 px-1" tone="gradeAgain" disabled={busy} onClick={() => onGrade(grades.again)}>
+          Again
         </Button>
       )}
-      <Button className="min-h-11" tone="quiet" disabled={busy} onClick={() => onGrade(grades.hard)}>
+      <Button className="min-h-11 min-w-0 px-1" tone="gradeHard" disabled={busy} onClick={() => onGrade(grades.hard)}>
         Hard
       </Button>
-      <Button className="min-h-11" disabled={busy} onClick={() => onGrade(grades.good)}>
-        <Check size={16} /> Good
+      <Button className="min-h-11 min-w-0 px-1" tone="gradeGood" disabled={busy} onClick={() => onGrade(grades.good)}>
+        Good
       </Button>
-      <Button className="min-h-11" disabled={busy} onClick={() => onGrade(grades.easy)}>
+      <Button className="min-h-11 min-w-0 px-1" tone="gradeEasy" disabled={busy} onClick={() => onGrade(grades.easy)}>
         Easy
       </Button>
     </div>
@@ -235,11 +220,11 @@ export function ReviewGradeStrip({ busy = false, grades, onGrade, includeAgain =
 /** Two history-free outcomes used by free practice and recovery rounds. */
 export function SelfAssessmentStrip({ busy = false, onAnswer }) {
   return (
-    <div className="mt-4 grid grid-cols-2 gap-2">
-      <Button className="min-h-11" tone="danger" disabled={busy} onClick={() => onAnswer(false)}>
+    <div className="grid grid-cols-2 gap-2">
+      <Button className="min-h-11" tone="gradeAgain" disabled={busy} onClick={() => onAnswer(false)}>
         <X size={16} /> Again
       </Button>
-      <Button className="min-h-11" tone="success" disabled={busy} onClick={() => onAnswer(true)}>
+      <Button className="min-h-11" tone="gradeEasy" disabled={busy} onClick={() => onAnswer(true)}>
         <Check size={16} /> Got it
       </Button>
     </div>

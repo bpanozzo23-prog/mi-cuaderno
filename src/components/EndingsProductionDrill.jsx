@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Check, ChevronLeft, LockKeyhole, RotateCcw, X } from "lucide-react";
-import { C, MONO, SERIF, Button, Card, dotGrid } from "../theme.jsx";
+import { Check, LockKeyhole, RotateCcw, X } from "lucide-react";
+import { C, MONO, SERIF, Button, Card } from "../theme.jsx";
 import { logDrill } from "../db/events.js";
 import { qualifiedTenseLabel } from "../lib/conjugation.js";
 import { GYM_SLOTS } from "../lib/conjugationGym.js";
 import { gradeEndingRow, rebuildMissedEndingsProductionDeck } from "../lib/endingsProduction.js";
 import EndingsReveal from "./EndingsReveal.jsx";
+import StudySessionFrame, { StudyCardEyebrow } from "./StudySessionFrame.jsx";
 
 const fallbackSessionId = () =>
   globalThis.crypto?.randomUUID?.() || `endings-production-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -163,8 +164,25 @@ export default function EndingsProductionDrill({ deck, library, onFinish, onGrad
 
   if (done) {
     const initialComplete = round === "initial";
+    const summaryActions = initialComplete && missedCards.length > 0 ? (
+      <div className="flex flex-col gap-2">
+        <Button className="min-h-11 w-full" onClick={startMissedRound}>
+          <RotateCcw size={15} /> Practice {missedCards.length} missed {missedCards.length === 1 ? "row" : "rows"}
+        </Button>
+        <Button tone="quiet" className="min-h-11 w-full" onClick={onFinish}>Finish session</Button>
+      </div>
+    ) : (
+      <Button className="min-h-11 w-full" onClick={onFinish}>Back to Gym</Button>
+    );
     return (
-      <div className="px-4 py-4 pb-28" style={dotGrid}>
+      <StudySessionFrame
+        title="Endings"
+        stageLabel={initialComplete ? "Production" : "Missed round · production"}
+        current={activeDeck.length}
+        total={activeDeck.length}
+        summary
+        actions={summaryActions}
+      >
         <Card className="p-5 text-center">
           <div className="text-xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
             {deck.length === 0 ? "Nothing to practise" : initialComplete ? "Session complete" : "Missed round complete"}
@@ -185,36 +203,38 @@ export default function EndingsProductionDrill({ deck, library, onFinish, onGrad
               )}
             </>
           )}
-          {initialComplete && missedCards.length > 0 ? (
-            <div className="mt-4 space-y-2">
-              <Button className="w-full" onClick={startMissedRound}>
-                <RotateCcw size={15} /> Practice {missedCards.length} missed {missedCards.length === 1 ? "row" : "rows"}
-              </Button>
-              <Button tone="quiet" className="w-full" onClick={onFinish}>Finish session</Button>
-            </div>
-          ) : (
-            <Button className="mt-4" onClick={onFinish}>Back to Gym</Button>
-          )}
         </Card>
-      </div>
+      </StudySessionFrame>
     );
   }
 
-  return (
-    <div className="px-4 py-4 pb-28" style={dotGrid}>
-      <div className="mb-3 flex items-center justify-between">
-        <button onClick={onFinish} className="flex items-center gap-1 text-sm" style={{ color: C.pen }}>
-          <ChevronLeft size={16} /> Finish
-        </button>
-        <span className="text-xs" style={{ fontFamily: MONO, color: C.mut }}>
-          {round === "missed" && "Missed · "}{index + 1} / {activeDeck.length}
-        </span>
-      </div>
+  const formId = "endings-production-answer";
+  const actions = !revealed ? (
+    <Button
+      type="submit"
+      form={formId}
+      className="min-h-11 w-full"
+      disabled={busy || !complete}
+    >
+      {awaitingRetry ? "Check retry" : "Check endings"}
+    </Button>
+  ) : (
+    <Button className="min-h-11 w-full" onClick={advance}>
+      {index + 1 === activeDeck.length ? "Done" : "Next"}
+    </Button>
+  );
 
+  return (
+    <StudySessionFrame
+      title="Endings"
+      stageLabel={round === "missed" ? "Missed round · production" : "Production"}
+      current={index + 1}
+      total={activeDeck.length}
+      onFinish={onFinish}
+      actions={actions}
+    >
       <Card className="p-5">
-        <div className="text-center text-xs" style={{ fontFamily: MONO, color: C.mut }}>
-          Endings · Production
-        </div>
+        <StudyCardEyebrow>Endings · Production</StudyCardEyebrow>
         <div className="mt-3 text-center text-2xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
           {qualifiedTenseLabel(card.answer)}
         </div>
@@ -222,7 +242,7 @@ export default function EndingsProductionDrill({ deck, library, onFinish, onGrad
         <PromptCue card={card} />
 
         {!revealed && (
-          <form className="mt-5" onSubmit={submit}>
+          <form id={formId} className="mt-5" onSubmit={submit}>
             {awaitingRetry && (
               <div className="mb-3 rounded-lg px-3 py-2 text-center text-sm" style={{ background: C.redPale, color: C.red }}>
                 Keep the passing endings. Try the failed endings once more.
@@ -266,9 +286,6 @@ export default function EndingsProductionDrill({ deck, library, onFinish, onGrad
                 );
               })}
             </div>
-            <Button type="submit" className="mt-4 w-full" disabled={busy || !complete}>
-              {awaitingRetry ? "Check retry" : "Check endings"}
-            </Button>
           </form>
         )}
 
@@ -288,12 +305,6 @@ export default function EndingsProductionDrill({ deck, library, onFinish, onGrad
           </>
         )}
       </Card>
-
-      {revealed && (
-        <Button className="mt-4 w-full" onClick={advance}>
-          {index + 1 === activeDeck.length ? "Done" : "Next"}
-        </Button>
-      )}
-    </div>
+    </StudySessionFrame>
   );
 }

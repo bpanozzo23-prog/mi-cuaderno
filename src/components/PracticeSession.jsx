@@ -1,8 +1,14 @@
 import { useState } from "react";
-import { ChevronLeft, RotateCcw } from "lucide-react";
-import { Button, C, Card, MONO, SERIF, dotGrid } from "../theme.jsx";
+import { Eye, RotateCcw } from "lucide-react";
+import { Button, C, Card, MONO, SERIF } from "../theme.jsx";
 import { shufflePracticeItems } from "../lib/practice.js";
-import { PracticeCard, SelfAssessmentStrip, usePracticeCardState } from "./PracticeCard.jsx";
+import {
+  deterministicCardAnswer,
+  PracticeCard,
+  SelfAssessmentStrip,
+  usePracticeCardState,
+} from "./PracticeCard.jsx";
+import StudySessionFrame from "./StudySessionFrame.jsx";
 
 /** One or more in-memory passes through a free-practice deck. No event writer is imported. */
 export default function PracticeSession({
@@ -23,6 +29,7 @@ export default function PracticeSession({
 
   const item = round[index] || null;
   const done = index >= round.length;
+  const formId = "free-practice-answer";
 
   function answer(gotIt) {
     if (!item) return;
@@ -48,87 +55,94 @@ export default function PracticeSession({
 
   if (done) {
     const gotIt = round.length - missed.length;
+    const summaryActions = (
+      <div className="flex flex-col gap-2">
+        {missed.length > 0 && (
+          <Button className="min-h-11 w-full" onClick={repeatMissed}>
+            <RotateCcw size={15} /> Practice {missed.length} again
+          </Button>
+        )}
+        <Button className="min-h-11 w-full" tone={missed.length > 0 ? "quiet" : "primary"} onClick={onFinish}>
+          {backLabel}
+        </Button>
+      </div>
+    );
     return (
-      <>
-        <PracticeHeader onFinish={onFinish} label={`Round ${roundNumber}`} />
-        <main className="px-4 py-6 pb-28" style={dotGrid}>
-          <Card className="p-5 text-center">
-            <div className="text-xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
-              {round.length === 0 ? "Nothing to practice" : "Round complete"}
-            </div>
-            {round.length > 0 && (
-              <>
-                <div className="mt-2 text-3xl" style={{ fontFamily: MONO, color: C.ink }}>
-                  {gotIt}/{round.length}
-                </div>
-                <div className="mt-1 text-sm" style={{ color: C.mut }}>
-                  {missed.length === 0
-                    ? "All of them felt familiar this round."
-                    : `${missed.length} ${missed.length === 1 ? "card" : "cards"} marked Again.`}
-                </div>
-              </>
-            )}
-            <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
-              {missed.length > 0 && (
-                <Button className="min-h-11" onClick={repeatMissed}>
-                  <RotateCcw size={15} /> Practice {missed.length} again
-                </Button>
-              )}
-              <Button className="min-h-11" tone={missed.length > 0 ? "quiet" : "primary"} onClick={onFinish}>
-                {backLabel}
-              </Button>
-            </div>
-          </Card>
-        </main>
-      </>
+      <StudySessionFrame
+        title="Practice"
+        stageLabel={`Round ${roundNumber}`}
+        current={round.length}
+        total={round.length}
+        summary
+        actions={summaryActions}
+      >
+        <Card className="p-5 text-center">
+          <div className="text-xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
+            {round.length === 0 ? "Nothing to practice" : "Round complete"}
+          </div>
+          {round.length > 0 && (
+            <>
+              <div className="mt-2 text-3xl" style={{ fontFamily: MONO, color: C.ink }}>
+                {gotIt}/{round.length}
+              </div>
+              <div className="mt-1 text-sm" style={{ color: C.mut }}>
+                {missed.length === 0
+                  ? "All of them felt familiar this round."
+                  : `${missed.length} ${missed.length === 1 ? "card" : "cards"} marked Again.`}
+              </div>
+            </>
+          )}
+        </Card>
+      </StudySessionFrame>
     );
   }
 
-  return (
-    <>
-      <PracticeHeader onFinish={onFinish} label={`${index + 1} / ${round.length}`} />
-      <main className="px-4 py-5 pb-28" style={dotGrid}>
-        <div className="mb-3 text-center text-[11px] uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.1em" }}>
-          {sessionLabel} · round {roundNumber}
-        </div>
-        <PracticeCard
-          item={item}
-          revealed={cardState.revealed}
-          onReveal={cardState.reveal}
-          showContext={cardState.showContext}
-          onToggleContext={cardState.toggleContext}
-          onOpen={onOpen}
-          revealLabel={item.direction !== "reverse" && !item.cloze?.answer ? "Reveal meanings" : null}
-          revealIcon={item.direction !== "reverse" && !item.cloze?.answer}
-          mode={mode}
-          typedValue={cardState.typedValue}
-          onTypedValueChange={cardState.setTypedValue}
-          typedResult={cardState.typedResult}
-          onTypedResult={markTyped}
-        />
-
-        {typedWrong ? (
-          <Button className="mt-4 min-h-11 w-full" onClick={() => answer(false)}>
-            Continue
-          </Button>
-        ) : cardState.revealed && (
-          <SelfAssessmentStrip onAnswer={answer} />
-        )}
-      </main>
-    </>
+  const canType = mode === "typed" && Boolean(deterministicCardAnswer(item));
+  const revealLabel = item.direction !== "reverse" && !item.cloze?.answer
+    ? "Reveal meanings"
+    : "Tap to see the word";
+  const actions = !cardState.revealed ? (
+    canType ? (
+      <Button type="submit" form={formId} className="min-h-11 w-full" disabled={!cardState.typedValue.trim()}>
+        Check answer
+      </Button>
+    ) : (
+      <Button className="min-h-11 w-full" onClick={cardState.reveal}>
+        {item.direction !== "reverse" && !item.cloze?.answer && <Eye size={15} />}
+        {revealLabel}
+      </Button>
+    )
+  ) : typedWrong ? (
+    <Button className="min-h-11 w-full" onClick={() => answer(false)}>
+      Continue
+    </Button>
+  ) : (
+    <SelfAssessmentStrip onAnswer={answer} />
   );
-}
 
-function PracticeHeader({ onFinish, label }) {
   return (
-    <header className="sticky top-0 z-20 border-b px-3 py-3" style={{ background: C.card, borderColor: C.line }}>
-      <div className="grid min-h-11 grid-cols-[1fr_auto_1fr] items-center gap-2">
-        <button type="button" onClick={onFinish} className="inline-flex min-h-11 items-center justify-self-start text-sm" style={{ color: C.pen }}>
-          <ChevronLeft size={18} /> Finish
-        </button>
-        <div className="text-lg font-semibold" style={{ fontFamily: SERIF, color: C.ink }}>Practice</div>
-        <span className="justify-self-end text-xs" style={{ fontFamily: MONO, color: C.mut }}>{label}</span>
-      </div>
-    </header>
+    <StudySessionFrame
+      title="Practice"
+      stageLabel={`${sessionLabel} · round ${roundNumber}`}
+      current={index + 1}
+      total={round.length}
+      onFinish={onFinish}
+      actions={actions}
+    >
+      <PracticeCard
+        item={item}
+        revealed={cardState.revealed}
+        showContext={cardState.showContext}
+        onToggleContext={cardState.toggleContext}
+        onOpen={onOpen}
+        onExit={onFinish}
+        mode={mode}
+        formId={formId}
+        typedValue={cardState.typedValue}
+        onTypedValueChange={cardState.setTypedValue}
+        typedResult={cardState.typedResult}
+        onTypedResult={markTyped}
+      />
+    </StudySessionFrame>
   );
 }

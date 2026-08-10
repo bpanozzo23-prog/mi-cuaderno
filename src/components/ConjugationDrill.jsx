@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
-import { ChevronLeft, RotateCcw, Check, X } from "lucide-react";
-import { C, SERIF, MONO, dotGrid, Card, Button } from "../theme.jsx";
+import { RotateCcw, Check, X } from "lucide-react";
+import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
 import { qualifiedTenseLabel } from "../lib/conjugation.js";
 import { diagnoseTypedAnswer } from "../lib/drill.js";
 import { verbKeyForLemma } from "../lib/conjugationGym.js";
 import { logDrill } from "../db/events.js";
 import SpeakButton from "./SpeakButton.jsx";
+import StudySessionFrame, { StudyCardEyebrow } from "./StudySessionFrame.jsx";
 
 const DIAGNOSIS_TEXT = {
   exact: "Exactly right.",
@@ -174,14 +175,32 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
       return;
     }
     setOpenArmed(false);
+    onFinish?.();
     onOpen(target);
   }
 
   if (done) {
     const hasAnswers = tally.answered > 0;
     const initialComplete = round === "initial";
+    const summaryActions = initialComplete && missedCards.length > 0 ? (
+      <div className="flex flex-col gap-2">
+        <Button className="min-h-11 w-full" onClick={startMissedRound}>
+          <RotateCcw size={15} /> Practice {missedCards.length} missed {missedCards.length === 1 ? "form" : "forms"}
+        </Button>
+        <Button tone="quiet" className="min-h-11 w-full" onClick={onFinish}>Finish session</Button>
+      </div>
+    ) : (
+      <Button className="min-h-11 w-full" onClick={onFinish}>Back to Gym</Button>
+    );
     return (
-      <div className="px-4 py-4 pb-28" style={dotGrid}>
+      <StudySessionFrame
+        title="Forms"
+        stageLabel={initialComplete ? "" : "Missed round"}
+        current={activeDeck.length}
+        total={activeDeck.length}
+        summary
+        actions={summaryActions}
+      >
         <Card className="p-5 text-center">
           <div className="text-xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
             {deck.length === 0 ? "Nothing to drill" : initialComplete ? "Session complete" : "Missed round complete"}
@@ -205,44 +224,63 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
             </>
           )}
 
-          {initialComplete && missedCards.length > 0 ? (
-            <div className="mt-4 space-y-2">
-              <Button className="w-full" onClick={startMissedRound}>
-                <RotateCcw size={15} /> Practice {missedCards.length} missed {missedCards.length === 1 ? "form" : "forms"}
-              </Button>
-              <Button tone="quiet" className="w-full" onClick={onFinish}>Finish session</Button>
-            </div>
-          ) : (
-            <Button className="mt-4" onClick={onFinish}>Back to Gym</Button>
-          )}
         </Card>
-      </div>
+      </StudySessionFrame>
     );
   }
 
-  return (
-    <div className="px-4 py-4 pb-28" style={dotGrid}>
-      <div className="mb-3 flex items-center justify-between">
-        <button onClick={onFinish} className="flex items-center gap-1 text-sm" style={{ color: C.pen }}>
-          <ChevronLeft size={16} /> Finish
-        </button>
-        <span className="text-xs" style={{ fontFamily: MONO, color: C.mut }}>
-          {round === "missed" && "Missed · "}{index + 1} / {activeDeck.length}
-        </span>
-      </div>
+  const formId = "conjugation-drill-answer";
+  const actions = isTyped ? (
+    !revealed ? (
+      <Button
+        type="submit"
+        form={formId}
+        className="min-h-11 w-full"
+        disabled={busy || !typed.trim()}
+      >
+        {awaitingRetry ? "Check retry" : "Check"}
+      </Button>
+    ) : result ? (
+      <Button className="min-h-11 w-full" disabled={busy} onClick={advance}>
+        {index + 1 === activeDeck.length ? "Done" : "Next"}
+      </Button>
+    ) : null
+  ) : !revealed ? (
+    <Button className="min-h-11 w-full" onClick={() => setRevealed(true)}>
+      Tap to see the form
+    </Button>
+  ) : (
+    <div className="grid grid-cols-2 gap-2">
+      <Button tone="gradeAgain" className="min-h-11" disabled={busy} onClick={() => gradeReveal(false)}>
+        <X size={16} /> Missed it
+      </Button>
+      <Button tone="gradeEasy" className="min-h-11" disabled={busy} onClick={() => gradeReveal(true)}>
+        <Check size={16} /> Got it
+      </Button>
+    </div>
+  );
 
+  return (
+    <StudySessionFrame
+      title="Forms"
+      stageLabel={round === "missed" ? "Missed round" : ""}
+      current={index + 1}
+      total={activeDeck.length}
+      onFinish={onFinish}
+      actions={actions}
+    >
       <Card className="p-5">
         <div className="text-center">
-          <div className="text-xs" style={{ fontFamily: MONO, color: C.mut }}>
+          <StudyCardEyebrow>
             {qualifiedTenseLabel(card.tense)} · {card.slot}
-          </div>
+          </StudyCardEyebrow>
           <div className="mt-2 text-3xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
             {card.term}
           </div>
         </div>
 
         {!revealed && isTyped ? (
-          <form onSubmit={submitTyped} className="mt-5">
+          <form id={formId} onSubmit={submitTyped} className="mt-5">
             {awaitingRetry && result && (
               <div className="mb-3 text-center">
                 <div className="text-sm" style={{ color: C.red }}>{DIAGNOSIS_TEXT[result.diagnosis]}</div>
@@ -263,19 +301,8 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
               className="w-full rounded-xl border px-3 py-3 text-center text-2xl outline-none"
               style={{ fontFamily: SERIF, color: C.ink, borderColor: C.line, background: C.paper }}
             />
-            <Button type="submit" className="mt-3 w-full" disabled={busy || !typed.trim()}>
-              {awaitingRetry ? "Check retry" : "Check"}
-            </Button>
           </form>
-        ) : !revealed ? (
-          <button
-            onClick={() => setRevealed(true)}
-            className="mt-5 w-full rounded-xl border border-dashed py-6 text-sm"
-            style={{ borderColor: C.line, color: C.mut, background: C.paper }}
-          >
-            Tap to see the form
-          </button>
-        ) : (
+        ) : revealed ? (
           <div className="mt-4 space-y-3 border-t pt-4 text-center" style={{ borderColor: C.line }}>
             {result && (
               <div className="text-sm" style={{ color: result.passed ? C.green : C.red }}>
@@ -313,30 +340,8 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
               </div>
             )}
           </div>
-        )}
+        ) : null}
       </Card>
-
-      {revealed && isTyped && result && (
-        <Button className="mt-4 w-full" disabled={busy} onClick={advance}>
-          {index + 1 === activeDeck.length ? "Done" : "Next"}
-        </Button>
-      )}
-
-      {revealed && !isTyped && (
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <Button tone="danger" disabled={busy} onClick={() => gradeReveal(false)}>
-            <X size={16} /> Missed it
-          </Button>
-          <Button disabled={busy} onClick={() => gradeReveal(true)}>
-            <Check size={16} /> Got it
-          </Button>
-        </div>
-      )}
-
-      <div className="mt-6 text-center text-xs" style={{ color: C.mut }}>
-        <RotateCcw size={11} className="mr-1 -mt-0.5 inline" />
-        {activeDeck.length - index === 1 ? "Last one" : `${activeDeck.length - index} left`}
-      </div>
-    </div>
+    </StudySessionFrame>
   );
 }

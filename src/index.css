@@ -45,6 +45,11 @@
   --color-green: #3E6B44;
   --color-green-pale: #EAF2EA;
 
+  /* Scheduled-review grades use four equal soft surfaces. Red, pen blue and green already own
+     Again, Good and Easy; Hard needs the same base/pale pair rather than a one-off component hex. */
+  --color-amber: #8A5A0A;
+  --color-amber-pale: #F8F0DC;
+
   /* Named here for the first time. Each was previously a bare hex repeated across components,
      which is exactly the drift this file exists to stop. */
   --color-chip-border: #D9E1F2;
@@ -110,6 +115,16 @@
      and Retired keeps its green meaning as mint chalk — pen blue reads muddy on the slate. */
   --color-chalk-track: #F2EFE424;
   --color-chalk-mint: #A8D8B0;
+}
+
+.study-session-progress-fill {
+  transition: width 180ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .study-session-progress-fill {
+    transition: none;
+  }
 }
 
 /* The tab now carries the page's role badge, so it is a real element sized by its own content

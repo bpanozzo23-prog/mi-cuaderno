@@ -238,7 +238,7 @@ describe("Phase 10a/10b: how a session is set up", () => {
     expect(screen.getByRole("radio", { name: "All 40" })).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: /Start/ }));
-    await waitFor(() => expect(screen.getByText("1 / 20")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("1 of 20")).toBeTruthy());
     expect(screen.getByText("word 01")).toBeTruthy();
   });
 
@@ -252,7 +252,7 @@ describe("Phase 10a/10b: how a session is set up", () => {
 
     expect(screen.queryByRole("radiogroup", { name: "Cards this sitting" })).toBeNull();
     await user.click(screen.getByRole("button", { name: /Start/ }));
-    await waitFor(() => expect(screen.getByText("1 / 20")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("1 of 20")).toBeTruthy());
   });
 
   it("builds the same cloze when the attached dictionary key moved", async () => {
