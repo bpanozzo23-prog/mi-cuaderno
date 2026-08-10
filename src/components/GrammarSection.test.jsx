@@ -531,6 +531,26 @@ describe("GrammarSection organization", () => {
     expect(screen.getByRole("button", { name: "Expand grammar subsection SPOCK" }).getAttribute("aria-expanded")).toBe("false");
   });
 
+  it("summarizes named empty structure instead of hiding it behind Empty", () => {
+    const emptyStructure = hierarchicalPage();
+    emptyStructure.grammar = {
+      ...emptyStructure.grammar,
+      keyIdea: "",
+      sections: emptyStructure.grammar.sections.map((section) => ({
+        ...section,
+        explanation: "",
+        pattern: "",
+        examples: [],
+      })),
+    };
+
+    render(<GrammarSection {...baseProps({ page: emptyStructure })} />);
+
+    expect(screen.getByText("2 sections · 1 subsection")).toBeTruthy();
+    expect(screen.queryByText(/0 examples/)).toBeNull();
+    expect(screen.getByRole("button", { name: "Expand Grammar guide section" })).toBeTruthy();
+  });
+
   it("adds a subsection from a root and never offers a third level", async () => {
     const user = userEvent.setup();
     render(<GrammarSection {...baseProps({ page: hierarchicalPage() })} />);

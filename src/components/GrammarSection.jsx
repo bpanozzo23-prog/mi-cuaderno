@@ -944,11 +944,15 @@ export default function GrammarSection({
   }
 
   const structureSummary = [
-    `${structureCounts.sections} ${structureCounts.sections === 1 ? "section" : "sections"}`,
+    ...(structureCounts.sections
+      ? [`${structureCounts.sections} ${structureCounts.sections === 1 ? "section" : "sections"}`]
+      : []),
     ...(structureCounts.subsections
       ? [`${structureCounts.subsections} ${structureCounts.subsections === 1 ? "subsection" : "subsections"}`]
       : []),
-    `${structureCounts.examples} ${structureCounts.examples === 1 ? "example" : "examples"}`,
+    ...(structureCounts.examples
+      ? [`${structureCounts.examples} ${structureCounts.examples === 1 ? "example" : "examples"}`]
+      : []),
   ].join(" · ");
 
   function openSectionEditor(section) {
@@ -1138,9 +1142,7 @@ export default function GrammarSection({
       id="page-grammar"
       family="grammar"
       title="Grammar guide"
-      summary={hasContent
-        ? structureSummary
-        : "Empty"}
+      summary={structureSummary || (grammar?.keyIdea?.trim() ? "Key idea" : "Empty")}
       defaultCollapsed={!hasContent}
       resetKey={page.id}
       actions={({ collapsed }) => !organizing && (

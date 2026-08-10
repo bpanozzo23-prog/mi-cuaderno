@@ -69,10 +69,10 @@ export default function PageCustomizeSheet({ page, items = [], onClose, onSaved,
     collection: `${amount(vocabularyCount, "linked item")} · ${amount(page.collection?.groups?.length || 0, "group")}`,
     source: amount(page.source?.captures?.length || 0, "capture"),
     grammar: [
-      amount(grammarCounts.sections, "section"),
+      ...(grammarCounts.sections ? [amount(grammarCounts.sections, "section")] : []),
       ...(grammarCounts.subsections ? [amount(grammarCounts.subsections, "subsection")] : []),
-      amount(grammarCounts.examples, "example"),
-    ].join(" · "),
+      ...(grammarCounts.examples ? [amount(grammarCounts.examples, "example")] : []),
+    ].join(" · ") || "Empty",
   };
   const movesToJournal = Boolean(page.pageDate) && !enabled.collection && !enabled.source && !enabled.grammar;
   const previewSectionOrder = (previewOrders[focus] || previewOrders[PAGE_FOCUSES.notes])
