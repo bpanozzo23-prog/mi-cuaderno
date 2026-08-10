@@ -23,7 +23,11 @@ function aggregate(rows, field, outputField = field) {
 export function recognitionPerformance(events, { tenses = null } = {}) {
   const allowed = tenses?.length ? new Set(tenses) : null;
   const rows = (events || [])
-    .filter((event) => (event?.type === "drill_pass" || event?.type === "drill_fail") && SKILLS.has(event?.metadata?.skill))
+    .filter((event) => (
+      (event?.type === "drill_pass" || event?.type === "drill_fail")
+      && SKILLS.has(event?.metadata?.skill)
+      && event?.metadata?.mode === "choice"
+    ))
     .map((event) => ({
       passed: event.type === "drill_pass",
       skill: event.metadata.skill,

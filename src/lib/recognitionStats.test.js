@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { recognitionPerformance } from "./recognitionStats.js";
 
 let order = 0;
-const answer = ({ passed, skill, tense, chosen = null, stage = "initial" }) => ({
+const answer = ({ passed, skill, tense, chosen = null, stage = "initial", mode = "choice" }) => ({
   id: `recognition-${++order}`,
   type: passed ? "drill_pass" : "drill_fail",
   itemKey: null,
@@ -12,7 +12,7 @@ const answer = ({ passed, skill, tense, chosen = null, stage = "initial" }) => (
     skill,
     cardId: `${skill}:card-${order}`,
     tense,
-    mode: "choice",
+    mode,
     ...(chosen ? { chosen } : {}),
     stage,
   },
@@ -63,5 +63,22 @@ describe("recognition performance", () => {
 
     expect(stats.lifetime).toEqual({ answered: 1, passed: 0, accuracy: 0 });
     expect(stats.tenses.map((row) => row.tense)).toEqual(["Subjunctive/Present"]);
+  });
+
+  it("keeps recall and typed events byte-for-byte outside Phase 17 choice figures", () => {
+    const choiceEvents = [
+      answer({ passed: true, skill: "usage", tense: "Indicative/Present" }),
+      answer({ passed: false, skill: "endings", tense: "Indicative/Preterite", chosen: "Indicative/Imperfect" }),
+      answer({ passed: true, skill: "usage", tense: "Indicative/Present", stage: "missed" }),
+    ];
+    const baseline = recognitionPerformance(choiceEvents);
+
+    expect(recognitionPerformance([
+      ...choiceEvents,
+      answer({ passed: false, skill: "usage", tense: "Indicative/Present", mode: "recall" }),
+      answer({ passed: true, skill: "usage", tense: "Indicative/Present", mode: "recall", stage: "missed" }),
+      answer({ passed: true, skill: "endings", tense: "Indicative/Preterite", mode: "typed" }),
+      answer({ passed: false, skill: "endings", tense: "Indicative/Preterite", mode: "typed", stage: "retry" }),
+    ])).toEqual(baseline);
   });
 });
