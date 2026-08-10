@@ -46,6 +46,7 @@ Useful information to retain for each idea:
 | Learning depth (cloze, reverse, drill, audio) | 2026-08-06 | Implemented locally | Phase 10a–10d; deferred members need real-use evidence |
 | Owner-centric stats (streak, calendar, growth, ladder, per-item strip) | 2026-08-06 | Implemented locally | Phase 11; retention, coverage and per-direction breakdowns need real data volume |
 | Grammar guide depth and callouts | 2026-08-10 | Implemented locally | Phase 19 first release verified; not deployed |
+| Structured Notes outlines | 2026-08-10 | Approved; implementation in progress | Phase 19 increment |
 | Global tag management | 2026-08-10 | Implemented locally | Phase 20 verified; not deployed |
 | Phase 19/20 review nits (edge polish) | 2026-08-10 | Captured | Whenever a related area is next touched; none is urgent |
 
@@ -123,6 +124,27 @@ follow-up product decision.
    over a batch event type. If a large cleanup ever makes the stats screens feel dishonest or
    noisy, that is the evidence for reopening the grouped-batch-history deferral rather than
    filtering events after the fact.
+
+---
+
+## Structured Notes outlines
+
+- **Date added:** 2026-08-10
+- **Status:** Owner-approved as a Phase 19 increment; implementation in progress
+- **Origin:** Real-use need to explain a Vocabulary collection and organize a general Notes Page
+  beyond one undifferentiated body
+- **Potential data impact:** schema v7 adds mandatory `noteSections[]` to every Page
+
+The approved design retains the existing Page body as Notes Overview and adds named top-level
+sections plus exactly one subsection level. Notes remain permanently available without an enable
+switch, use ordinary safe Markdown, and share hierarchy mechanics with Grammar without introducing
+a general block editor. Structure copy preserves names/hierarchy with fresh IDs but clears prose.
+
+A nonempty Notes outline deliberately counts as durable Page organization: a dated outlined record
+stays in Pages, while a dated body-only record remains Diario regardless of length. The brief and
+`DECISIONS.md` record the asymmetry, the real classification routes and the deliberate leaf-body
+deletion rule. The schema-v7 release requires version fencing, pure export-first migration and a
+complete sweep of Page/Diario consumers.
 
 ---
 

@@ -1,6 +1,7 @@
 # Phase 19 direction — page organization and formatting
 
-**Status:** First release implemented and verified locally 2026-08-10. Not pushed or deployed.
+**Status:** First release implemented and verified locally 2026-08-10. Structured Notes increment
+owner-approved 2026-08-10 and in implementation.
 **Origin:** Real-use friction while building an Indicative-versus-Subjunctive Grammar guide whose
 definition, cautions, trigger families and examples required more hierarchy than one flat sequence
 of explanation/pattern/example sections could express.
@@ -23,6 +24,10 @@ Phase 19 retains exactly two top-level personal content types, the composable Pa
 authoritative `linkedKeys[]` page vocabulary, exact Source-capture references and event-derived
 learning. It adds no general block editor, arbitrary nesting, custom page-kind builder, stored
 template identity, new event, preference, dictionary dependency or automatic classification.
+
+The approved second increment extends the same one-level organization to the permanent Notes
+foundation on every Page. It keeps existing `page.body` prose as the Notes Overview and introduces
+named Notes sections without adding an enable switch or converting prose into blocks.
 
 ## 1 — Formatted Grammar overviews and Note callouts
 
@@ -128,6 +133,47 @@ The owner selected **continuous guide spine** treatment A on 2026-08-10.
 - Existing flat cleanup loops continue to prune vocabulary and exact Source references from child
   examples. `linkedKeys[]` remains the sole page-vocabulary authority.
 
+## 7 — Structured Notes increment (schema v7)
+
+Every schema-v7 Page adds one mandatory flat array while retaining `body` as its Notes Overview:
+
+```js
+noteSections: [{
+  id: "note-section:<uuid>",
+  parentId: null | "note-section:<uuid>",
+  name: string,
+  body: string
+}]
+```
+
+- Null identifies a top-level Notes section; a non-null parent must identify a top-level Notes
+  section on the same Page. Self, dangling, cross-page, cyclic and child-of-child parents are
+  invalid, and names are trimmed, nonblank and normalized-unique among siblings.
+- Notes and Grammar use one parameterized one-level hierarchy engine for reading, canonical
+  depth-first writes, counts, breadcrumbs, sibling movement, reparenting and validation. Shared
+  organizer rows own those structural controls; Grammar-specific example movement remains an
+  extension rather than becoming a general block editor.
+- Notes are always available. The Notes disclosure shows the existing `body` as Overview, then
+  collapsible roots and continuous-spine child nodes. Roots add one subsection level; the organizer
+  adds, renames, reorders, promotes and reparents sections. Section bodies use the existing safe
+  Page Markdown reader and ordinary blockquotes, not Grammar's labeled Note callout.
+- A root with children cannot be demoted or deleted. Confirmed deletion of a leaf removes its own
+  Markdown body because that prose belongs to the section itself; Grammar examples remain protected
+  structured children that must move or be deleted independently.
+- A nonempty Notes outline counts as durable Page organization. A dated record is Diario only when
+  Vocabulary, Source and Grammar are disabled and `noteSections` is empty; body length remains
+  irrelevant. Dating or importing an outlined Page keeps it in Pages, while deleting the final
+  outline section warns before the otherwise unstructured dated record moves to Diario. Diario
+  exposes no outline editor in this increment.
+- Search gives section names and the visible-text projection of each section body the existing
+  Tier-6 Page treatment with reason **in a Notes section**. Copy Page structure remaps fresh IDs and
+  hierarchy while clearing the Overview and all section bodies. Mixed Page-card counts explicitly
+  say guide section/subsection versus note section/subsection and may wrap safely at 375 px.
+- Schema v7 changes no stores or indexes. The pure v6→v7 migration adds `noteSections: []` to every
+  Page. Schemas 1–6 must reject a premature field, v7 requires and deeply validates it, legacy
+  backups upgrade sequentially, and the range-aware export-first gate describes every migration
+  the source database will cross.
+
 ## Delivery sequence
 
 1. Record the approved contract, the Phase 19 umbrella boundary and visual treatment A.
@@ -142,6 +188,12 @@ The owner selected **continuous guide spine** treatment A on 2026-08-10.
    export→upgrade→edit→export→wipe→import flow.
 8. Update the report and current-state documentation. Nothing is pushed or deployed without a
    separate owner request.
+
+The Structured Notes increment then proceeds in independently verifiable slices: record its brief
+and Diario amendment; characterize and extract the shared hierarchy engine without changing
+Grammar; add schema-v7 migration/fencing; add Notes mutations; add the Notes reader/editor and
+organizer; integrate search, copy, counts and every Journal-classification consumer; then run the
+complete durability, phone and restore closeout before updating the report.
 
 Each completed feature or subphase receives its own commit. Logic and subjective visual styling
 remain separate commits so either can be reverted independently.

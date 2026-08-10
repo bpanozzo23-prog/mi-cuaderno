@@ -12,6 +12,10 @@
 Grammar subsections, formatted Grammar overviews and accessible Note callouts while retaining the
 two-type composable Page model and excluding a general block editor.
 
+**Phase 19 Structured Notes amendment, 2026-08-10 — §§5, 7, 8, 10, 12 and 13:** schema v7 adds
+one-level named Notes outlines while preserving every existing Page body as Overview. A nonempty
+outline is durable Page organization for the Pages/Diario boundary; body length remains irrelevant.
+
 **Phase 20 amendment, 2026-08-10 — §§7 and 12:** Ajustes gains exact global tag rename, merge and
 removal across personal items. Each changed item keeps its timestamp but receives one ordinary
 `edit`; item, event and colour-preference writes are atomic and schema v6 remains unchanged.
@@ -77,6 +81,9 @@ The app code and the bundled reference data are licensed separately. Reference-d
 - **Schema-v6 hierarchy amendment, 2026-08-10:** adding one-level Grammar subsection ownership is
   a personal-layer shape change even though stores and indexes stay fixed. Schema-v1 through v5
   databases therefore pass through the same untouched export-first gate before v6 opens.
+- **Schema-v7 Notes-outline amendment, 2026-08-10:** every Page gains mandatory
+  `noteSections[]`; stores and indexes remain fixed. Schema-v1 through v6 databases pass through
+  the untouched export-first gate before v7 opens, and earlier schemas must reject the field.
 - **The seam rule:** *personal items always have their own stable ID; attaching one to a dictionary entry is a reversible relationship, not its identity.* ~~Lexical items always store their own `term` (and `translation`, when given) even while attached, so they stay meaningful on their own.~~ **Amended 2026-08-02:** lexical items always store their own `term` and ordered personal `meanings[]` even while attached. Each personal meaning has its own `meaning:<uuid>` identity and never stores or derives its identity from a dictionary sense ID, index or ordering.
 - ~~**Page-profile seam amendment, 2026-08-03:** Collection membership can contain only independent
   personal lexical items. A selected dictionary entry must first create or reuse its personal
@@ -108,7 +115,7 @@ The app code and the bundled reference data are licensed separately. Reference-d
 
 | Area | Decision |
 |---|---|
-| Personal content scope | Two types: **lexical** items and **pages**. ~~A dated page is a journal entry; a page can be a grammar topic or a source (film, podcast, book).~~ ~~**Amended 2026-08-03:** every page stores `pageProfile: general \| collection`. Collection wins over `pageDate`; a dated General page remains a Journal entry. Grammar topics and sources remain General pages in this release.~~ **Amended 2026-08-04 (Phase 7):** every page stores one leading `pageFocus: notes \| vocabulary \| source \| grammar` and independently enabled Vocabulary, Source and Grammar structures. Notes remain the permanent body-based foundation. A dated page is a Journal entry only when no structured capability is enabled; dated enhanced pages remain Pages. No third top-level type without a brief amendment |
+| Personal content scope | Two types: **lexical** items and **pages**. ~~A dated page is a journal entry; a page can be a grammar topic or a source (film, podcast, book).~~ ~~**Amended 2026-08-03:** every page stores `pageProfile: general \| collection`. Collection wins over `pageDate`; a dated General page remains a Journal entry. Grammar topics and sources remain General pages in this release.~~ ~~**Amended 2026-08-04 (Phase 7):** every page stores one leading `pageFocus: notes \| vocabulary \| source \| grammar` and independently enabled Vocabulary, Source and Grammar structures. Notes remain the permanent body-based foundation. A dated page is a Journal entry only when no structured capability is enabled; dated enhanced pages remain Pages.~~ **Amended 2026-08-10 (Phase 19 Structured Notes):** Notes remain the permanent body-based foundation and gain optional named organization through mandatory `noteSections[]` storage. A dated page is Diario only when Vocabulary, Source and Grammar are disabled and `noteSections` is empty; body length never decides. A nonempty outline is durable Page organization, so dated outlined Pages remain Pages. No third top-level type without a brief amendment |
 | Identity | UUIDs for all personal records, independent of dictionary records; namespaced keys per §6 |
 | Reference attachment | Optional and reversible (§5 seam rule); orphan-safe |
 | Lexical form | `form: word \| phrase` |
@@ -194,6 +201,22 @@ child-of-child parents are invalid, so the hierarchy has exactly one subsection 
 trimmed, nonblank and Unicode-NFKC/case-fold unique among siblings; identical names under different
 top-level parents are allowed. Existing schema-v5 sections migrate to `parentId: null` without an
 ID, content or order change.
+
+**Schema-v7 Notes-outline addition, 2026-08-10:** every Page additionally stores:
+
+```
+noteSections[{
+  id: note-section:<uuid>,
+  parentId: null | note-section:<uuid>,
+  name, body
+}]
+```
+
+`body` on the Page itself remains the Notes Overview and is never moved or parsed into sections.
+Notes parents obey the same exactly-one-level, same-page, no-cycle and sibling-name rules as
+Grammar, through one shared parameterized hierarchy engine. The Notes body strings use the safe
+Page Markdown dialect and ordinary blockquotes. A schema-v6 Page migrates by receiving only
+`noteSections: []`.
 
 Array order is display order among siblings. Source URLs are blank or HTTP(S). Saved Source
 captures require nonblank `text`; saved Grammar examples require nonblank Spanish `es`. All nested
@@ -345,6 +368,9 @@ changes no page timestamp and writes no event.
 - **Phase-19 search clarification, 2026-08-10:** Grammar Overview Markdown contributes only its
   visible-text projection, never markers or the generated Note label. A subsection example's
   lexical context identifies both levels as `Parent › Child`; roots retain their ordinary name.
+- **Phase-19 Structured Notes search clarification, 2026-08-10:** Notes section names and the
+  visible-text projection of each section body match at Tier 6 with reason **in a Notes section**.
+  Page-body matches retain their existing earlier check and reason.
 
 ## 9. AI assistant policy (~~Phase 5~~ **Phase 6**)
 
@@ -423,6 +449,12 @@ Backup envelope:
   any write; versions newer than 6 remain blocked. V6 validation requires same-page one-level
   parent references, rejects self/dangling/cyclic/grandchild parents, and applies section-name
   uniqueness among siblings. Current v6 exports round-trip exactly.
+- **Schema-v7 amendment, 2026-08-10:** stores and indexes remain unchanged. Every Page receives
+  mandatory `noteSections: []`; all schema-v6 nested data remains untouched. Schemas 1 through 6
+  require an untouched validated export before v7 opens and upgrade sequentially in memory or
+  Dexie. Source schemas through v6 reject a premature `noteSections` field; v7 requires it and
+  validates globally unique IDs, same-page one-level parents, cycles and sibling names. Current v7
+  exports round-trip exactly and newer versions remain blocked.
 - On first meaningful use, request persistent storage (`navigator.storage.persist()`), surface whether it was granted, and tell the owner plainly that clearing browser data, uninstalling, or losing the device destroys local data — which is why export is one tap away and the settings screen shows "last backup: N days ago".
 
 ## 11. Reference-data delivery and caching
@@ -686,6 +718,17 @@ consistent; and the complete serial suite, production build, diff check, deliber
 and a disposable schema-v5 375×812 export→upgrade→restore flow pass without overflow, warnings or
 console errors.
 
+**Phase 19 Structured Notes increment, approved 2026-08-10.** Preserve `page.body` as Overview and
+add schema-v7 one-level Notes outlines to every Page. Grammar and Notes share hierarchy machinery,
+while their content fields and readers remain domain-specific. Notes outlines support read/edit,
+organization, copy-empty-structure, counts and visible-text search. A nonempty outline keeps a
+dated record in Pages; Diario remains the body-only workspace and exposes no outline editor.
+*Done when:* schemas 1–6 cross the untouched export-first gate into deeply validated v7; existing
+data remains exact; every constructor and backup path carries the mandatory array; Notes roots and
+children create/edit/reorder/reparent/delete according to the contract; search, copying, counts and
+all Page/Diario consumers agree; and the full suite, build, diff check, failure proofs and seeded
+375×812 v6 export→upgrade→edit→export→wipe→restore flow pass without overflow or console errors.
+
 **Amended 2026-08-10 — Phase 20: global tag management.** Ajustes can rename one exact stored tag
 across every personal item, merge it into one exact existing destination, or remove it everywhere.
 Normalized lookalikes are suggestions only. Rename preserves tag position; overlap keeps the
@@ -712,9 +755,10 @@ stored/user-authored template manager, rich-media catalog, deep provenance graph
 Journal-only schema, or AI behavior. Source content remains text plus URLs; existing media links
 remain links only.
 
-Phase 19 does not relax that boundary. Its formatted Grammar Overview remains one string in the
-existing safe Markdown dialect, and `parentId` permits exactly one Grammar subsection level rather
-than arbitrary blocks, fields or nesting.
+Phase 19 does not relax that boundary. Grammar Overview and the Page Notes Overview remain strings
+in the existing safe Markdown dialect. Grammar and Notes each permit exactly one subsection level
+through shared hierarchy machinery rather than arbitrary blocks, custom fields or recursive
+nesting. Diario receives no separate schema or outline editor.
 
 ## 14. Deferred decisions — do not solve early
 
