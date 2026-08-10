@@ -45,14 +45,14 @@ Useful information to retain for each idea:
 | Personal-content provenance | 2026-08-02 | Captured | Before or alongside Phase 6 AI design; source needs can be studied earlier |
 | Learning depth (cloze, reverse, drill, audio) | 2026-08-06 | Implemented locally | Phase 10a–10d; deferred members need real-use evidence |
 | Owner-centric stats (streak, calendar, growth, ladder, per-item strip) | 2026-08-06 | Implemented locally | Phase 11; retention, coverage and per-direction breakdowns need real data volume |
-| Grammar guide depth and callouts | 2026-08-10 | Approved for Phase 19 | Implement in the approved Phase 19 sequence |
+| Grammar guide depth and callouts | 2026-08-10 | Implemented locally | Phase 19 first release verified; not deployed |
 
 ---
 
 ## Grammar guide depth and callouts
 
 - **Date added:** 2026-08-10
-- **Status:** Approved for implementation as the first Phase 19 release
+- **Status:** Implemented and verified locally as the first Phase 19 release; not deployed
 - **Origin:** Real-use friction while creating an Indicative-versus-Subjunctive comparison guide
 - **Potential data impact:** schema v6 adds one-level Grammar section ownership; formatted
   Overviews remain strings
@@ -72,6 +72,10 @@ Phase 19 is also the grouping home for later owner-approved Page organization/fo
 increments. That is a bookkeeping choice, not advance scope approval; each later increment still
 needs its own concrete decision, tests and any required migration. See
 `docs/PHASE-19-DIRECTION.md` for the decision-complete first release.
+
+The complete 1,145-test suite, production build, four deliberate failure proofs and disposable
+375×812 creation/copy plus schema-v5 upgrade→restore browser flows pass. See
+`docs/PHASE-19-REPORT.md` for the implementation and numerical closeout.
 
 ---
 

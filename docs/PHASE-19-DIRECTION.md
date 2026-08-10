@@ -1,6 +1,6 @@
 # Phase 19 direction — page organization and formatting
 
-**Status:** Approved for implementation 2026-08-10. Not yet implemented, pushed, or deployed.
+**Status:** First release implemented and verified locally 2026-08-10. Not pushed or deployed.
 **Origin:** Real-use friction while building an Indicative-versus-Subjunctive Grammar guide whose
 definition, cautions, trigger families and examples required more hierarchy than one flat sequence
 of explanation/pattern/example sections could express.
@@ -39,7 +39,8 @@ template identity, new event, preference, dictionary dependency or automatic cla
 - Key idea, Pattern, Spanish and English example text, and example notes remain plain text. Raw
   HTML, images, tables, code and clickable Markdown links remain unsupported.
 - A changed explicit section save writes one ordinary page `edit`; Cancel and no-op Save write
-  nothing. The first formatting slice remains schema v5 and may release independently.
+  nothing. The formatting slice was committed independently while schema remained v5, before the
+  schema-v6 hierarchy was integrated.
 
 ## 2 — Schema-v6 section hierarchy
 
