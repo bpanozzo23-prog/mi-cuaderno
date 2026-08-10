@@ -61,6 +61,31 @@ const answer = ({
   };
 };
 
+const recognitionAnswer = ({
+  passed,
+  skill = "usage",
+  tense = "Indicative/Preterite",
+  chosen = null,
+  stage = "initial",
+}) => {
+  eventNumber += 1;
+  return {
+    id: `recognition-${eventNumber}`,
+    type: passed ? "drill_pass" : "drill_fail",
+    itemKey: null,
+    at: `2026-08-07T13:${String(eventNumber).padStart(2, "0")}:00.000Z`,
+    localDate: "2026-08-07",
+    metadata: {
+      skill,
+      cardId: `${skill}:card-${eventNumber}`,
+      tense,
+      mode: "choice",
+      ...(chosen ? { chosen } : {}),
+      stage,
+    },
+  };
+};
+
 const library = (overrides = {}) => ({
   loading: false,
   installed: true,
@@ -76,6 +101,25 @@ afterEach(() => {
 });
 
 describe("dedicated Conjugation Gym performance", () => {
+  it("shows lane accuracy, tense-side form comparison, confusions, and missed recovery separately", () => {
+    const events = [
+      answer({ passed: true, tense: "Indicative/Preterite" }),
+      recognitionAnswer({ passed: true, skill: "endings" }),
+      recognitionAnswer({ passed: false, skill: "usage", chosen: "Indicative/Imperfect" }),
+      recognitionAnswer({ passed: true, skill: "usage", stage: "missed" }),
+    ];
+    render(<ConjugationPerformance items={[]} events={events} library={library()} onBack={vi.fn()} />);
+
+    expect(screen.getByText("Recognition")).toBeTruthy();
+    expect(screen.getByText("Tense usage")).toBeTruthy();
+    expect(screen.getByText("Endings")).toBeTruthy();
+    expect(screen.getByText("recognition 50% / 2")).toBeTruthy();
+    expect(screen.getByText(/Tense usage 0\/1 · Endings 1\/1 · Forms 1\/1/)).toBeTruthy();
+    expect(screen.getByText(/Indicative preterite answered as Indicative imperfect/)).toBeTruthy();
+    expect(screen.getByText("×1")).toBeTruthy();
+    expect(screen.getByText(/Recognition missed round: 1\/1 correct/)).toBeTruthy();
+  });
+
   it("defaults to Everyday and makes every tense and person row actionable", async () => {
     const user = userEvent.setup();
     const onPractice = vi.fn();

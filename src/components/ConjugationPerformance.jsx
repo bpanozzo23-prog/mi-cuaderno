@@ -4,6 +4,7 @@ import { C, MONO, SERIF, Card, Button, SectionTitle, dotGrid } from "../theme.js
 import { conjugationPerformance } from "../lib/conjugationStats.js";
 import { TENSE_PACKS } from "../lib/conjugationGym.js";
 import { qualifiedTenseLabel } from "../lib/conjugation.js";
+import { recognitionPerformance } from "../lib/recognitionStats.js";
 
 const SOURCE_OPTIONS = [
   { value: "all", label: "All" },
@@ -30,6 +31,7 @@ const DIAGNOSIS_LABEL = {
 };
 
 const pct = (value) => value === null || value === undefined ? "—" : `${Math.round(value * 100)}%`;
+const SKILL_LABEL = { usage: "Tense usage", endings: "Endings" };
 
 function AccuracyRow({ label, row, weak = row.weak, onPractice = null }) {
   const percent = Math.round((row.accuracy || 0) * 100);
@@ -80,7 +82,12 @@ export default function ConjugationPerformance({
     }),
     [events, items, itemLemmas, activeVerbs, library.installed, source, selectedPack]
   );
+  const recognition = useMemo(
+    () => recognitionPerformance(events, { tenses: selectedPack.tenses }),
+    [events, selectedPack]
+  );
   const weakVerbs = stats.verbs.filter((row) => row.weak);
+  const productionByTense = new Map(stats.tenses.map((row) => [row.tense, row]));
 
   const startFocus = (focus = stats.practiceNext || { kind: "balanced" }) =>
     onPractice?.({ ...focus, source });
@@ -150,6 +157,68 @@ export default function ConjugationPerformance({
           </Button>
         )}
       </Card>
+
+      <SectionTitle>Recognition</SectionTitle>
+      <Card className="p-4">
+        {recognition.lifetime.answered === 0 ? (
+          <div className="text-sm" style={{ color: C.mut }}>No recognition answers in this tense pack yet.</div>
+        ) : (
+          <>
+            <div className="space-y-2.5">
+              {recognition.lanes.map((lane) => (
+                <AccuracyRow key={lane.skill} label={SKILL_LABEL[lane.skill] || lane.skill} row={lane} weak={false} />
+              ))}
+            </div>
+            <div className="mt-4 border-t pt-3" style={{ borderColor: C.line }}>
+              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wide" style={{ fontFamily: MONO, color: C.mut }}>By tense</div>
+              <div className="space-y-2.5">
+                {recognition.tenses.map((row) => {
+                  const production = productionByTense.get(row.tense);
+                  return (
+                    <div key={row.tense}>
+                      <div className="flex items-baseline justify-between gap-3 text-sm">
+                        <span className="min-w-0" style={{ color: C.ink }}>{qualifiedTenseLabel(row.tense)}</span>
+                        <span className="shrink-0 text-[10px]" style={{ fontFamily: MONO, color: C.mut }}>
+                          recognition {pct(row.accuracy)} / {row.answered}
+                        </span>
+                      </div>
+                      <div className="mt-0.5 text-[10px]" style={{ fontFamily: MONO, color: C.mut }}>
+                        {row.lanes.map((lane) => `${SKILL_LABEL[lane.skill]} ${lane.passed}/${lane.answered}`).join(" · ")}
+                        {production && ` · Forms ${production.passed}/${production.answered}`}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="mt-3 text-[10px]" style={{ color: C.mut }}>
+              Recognition is global; the tense-pack filter applies, while Saved/Core filters only Forms.
+            </div>
+          </>
+        )}
+      </Card>
+
+      {recognition.confusions.length > 0 && (
+        <>
+          <SectionTitle>Recognition confusions</SectionTitle>
+          <Card className="space-y-2 p-4">
+            {recognition.confusions.map((row) => (
+              <div key={`${row.tense}|${row.chosen}`} className="flex items-start justify-between gap-3 text-sm">
+                <span style={{ color: C.ink }}>
+                  {qualifiedTenseLabel(row.tense)} answered as {qualifiedTenseLabel(row.chosen)}
+                </span>
+                <span className="shrink-0" style={{ fontFamily: MONO, color: C.red }}>×{row.count}</span>
+              </div>
+            ))}
+          </Card>
+        </>
+      )}
+
+      {recognition.missed.answered > 0 && (
+        <div className="mt-3 rounded-lg border px-3 py-2 text-xs" style={{ borderColor: C.line, color: C.mut, background: C.paper }}>
+          Recognition missed round: {recognition.missed.passed}/{recognition.missed.answered} correct — separate from first attempts above.
+        </div>
+      )}
 
       <SectionTitle>Coverage</SectionTitle>
       <Card className="p-4">
