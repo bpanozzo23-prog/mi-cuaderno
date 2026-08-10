@@ -1,10 +1,8 @@
 import {
   ALL_GYM_TENSES,
-  CORE_20,
-  CORE_50,
+  GYM_CURRICULUM_REGISTRY,
   GYM_SLOTS,
-  IRREGULAR_PRETERITES,
-  STEM_CHANGERS,
+  gymCurriculumForLemma,
   gymCellKey,
   gymCells,
   verbKeyForLemma,
@@ -46,7 +44,9 @@ function aggregate(rows, field, outputField = field) {
 
 function targetPriority(target) {
   if (target.source === "saved") return 0;
-  return CORE_20.includes(target.lemma) ? 1 : 2;
+  const curriculum = target.curriculum || gymCurriculumForLemma(target.lemma);
+  const index = Object.keys(GYM_CURRICULUM_REGISTRY).indexOf(curriculum);
+  return index < 0 ? Number.MAX_SAFE_INTEGER : index + 1;
 }
 
 function activeTargetsFor(activeVerbs, source) {
@@ -55,12 +55,7 @@ function activeTargetsFor(activeVerbs, source) {
     .map((target) => ({
       ...target,
       curriculum: target.source === "core"
-        ? target.curriculum || (
-            CORE_20.includes(target.lemma) ? "core20" :
-              CORE_50.includes(target.lemma) ? "core50" :
-                STEM_CHANGERS.includes(target.lemma) ? "stemChangers" :
-                  IRREGULAR_PRETERITES.includes(target.lemma) ? "irregularPreterites" : null
-          )
+        ? (GYM_CURRICULUM_REGISTRY[target.curriculum] ? target.curriculum : gymCurriculumForLemma(target.lemma))
         : null,
     }))
     .sort((a, b) => targetPriority(a) - targetPriority(b) || a.lemma.localeCompare(b.lemma));

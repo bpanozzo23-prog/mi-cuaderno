@@ -3,11 +3,8 @@ import { BarChart3, ChevronLeft, Dumbbell, Play, SlidersHorizontal } from "lucid
 import { C, MONO, SERIF, Card, Button, SectionTitle, Segmented, dotGrid } from "../theme.jsx";
 import { loadGymLibrary } from "../db/ref/gym.js";
 import {
-  CORE_20,
-  CORE_50,
   CURATED_GYM_LEMMAS,
-  IRREGULAR_PRETERITES,
-  STEM_CHANGERS,
+  GYM_CURRICULUM_REGISTRY,
   ALTERNATIVE_TENSES,
   GYM_SLOTS,
   RARE_TENSES,
@@ -46,19 +43,6 @@ const DRILLS = [
   { value: "forms", label: "Forms" },
   { value: "usage", label: "Tense usage" },
   { value: "endings", label: "Endings" },
-];
-
-const POOLS = [
-  { value: "saved", label: "Saved", lemmas: null, availabilityLabel: "saved verbs" },
-  { value: "core20", label: "Core 20", lemmas: CORE_20, availabilityLabel: "core verbs" },
-  { value: "core50", label: "Core 50", lemmas: CORE_50, availabilityLabel: "core verbs" },
-  { value: "stemChangers", label: "Stem changers", lemmas: STEM_CHANGERS, availabilityLabel: "stem changers" },
-  {
-    value: "irregularPreterites",
-    label: "Irregular preterites",
-    lemmas: IRREGULAR_PRETERITES,
-    availabilityLabel: "irregular preterites",
-  },
 ];
 
 function Header({ title, backLabel, onBack, action }) {
@@ -137,7 +121,7 @@ export default function ConjugationGym({
     }
   }, [view]);
 
-  const poolDefinition = POOLS.find((option) => option.value === pool) || POOLS[1];
+  const poolDefinition = GYM_CURRICULUM_REGISTRY[pool] || GYM_CURRICULUM_REGISTRY.core20;
   const poolVerbs = useMemo(() => {
     if (pool === "saved") return library.saved;
     const allowed = new Set(poolDefinition.lemmas);
@@ -315,7 +299,11 @@ export default function ConjugationGym({
     setSlots([...GYM_SLOTS]);
     setFocusTarget(null);
     if (focus?.target) {
-      const nextPool = focus.target.source === "saved" ? "saved" : focus.target.curriculum || "core50";
+      const nextPool = focus.target.source === "saved"
+        ? "saved"
+        : GYM_CURRICULUM_REGISTRY[focus.target.curriculum]
+          ? focus.target.curriculum
+          : "core50";
       setPool(nextPool);
     } else if (focus?.source === "saved" && library.saved.length) {
       setPool("saved");
@@ -396,11 +384,6 @@ export default function ConjugationGym({
       />
     );
   }
-
-  const poolOptions = POOLS.map((option) => ({
-    ...option,
-    disabled: option.value === "saved" && library.saved.length === 0,
-  }));
 
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
@@ -591,7 +574,23 @@ export default function ConjugationGym({
           </div>
 
           <SectionTitle>Verb pool</SectionTitle>
-          <Segmented label="Verb pool" value={pool} options={poolOptions} onChange={choosePool} />
+          <label htmlFor="gym-pool" className="sr-only">Verb pool</label>
+          <select
+            id="gym-pool"
+            value={pool}
+            onChange={(event) => choosePool(event.target.value)}
+            className="w-full rounded-xl border px-3 py-3 text-sm font-semibold"
+            style={{ color: C.ink, borderColor: C.line, background: C.card }}
+          >
+            <optgroup label="Personal">
+              <option value="saved" disabled={library.saved.length === 0}>Saved</option>
+            </optgroup>
+            <optgroup label="Built-in">
+              {Object.entries(GYM_CURRICULUM_REGISTRY).map(([key, curriculum]) => (
+                <option key={key} value={key}>{curriculum.label}</option>
+              ))}
+            </optgroup>
+          </select>
           <div className="mt-2 text-xs" style={{ color: C.mut }}>
             <span>
               {pool === "saved"

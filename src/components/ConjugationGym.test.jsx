@@ -126,9 +126,9 @@ describe("Conjugation Gym setup", () => {
     const saved = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
     render(<ConjugationGym items={[saved]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
 
-    await waitFor(() => expect(screen.getByRole("radio", { name: "Saved" })).toBeTruthy());
+    await waitFor(() => expect(screen.getByLabelText("Verb pool")).toBeTruthy());
     expect(screen.getByRole("radio", { name: "Type" }).getAttribute("aria-checked")).toBe("true");
-    await user.click(screen.getByRole("radio", { name: "Saved" }));
+    await user.selectOptions(screen.getByLabelText("Verb pool"), "saved");
     await user.click(screen.getByRole("button", { name: "Start quick session" }));
 
     expect(screen.getByLabelText("Type the form")).toBeTruthy();
@@ -161,13 +161,26 @@ describe("Conjugation Gym setup", () => {
     await seedGymDictionary();
     render(<ConjugationGym items={[]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
 
-    await waitFor(() => expect(screen.getByRole("radio", { name: "Stem changers" })).toBeTruthy());
-    await user.click(screen.getByRole("radio", { name: "Stem changers" }));
+    await waitFor(() => expect(screen.getByRole("option", { name: "Stem changers" })).toBeTruthy());
+    await user.selectOptions(screen.getByLabelText("Verb pool"), "stemChangers");
     expect(screen.getByText("1 of 17 stem changers available")).toBeTruthy();
-    expect(screen.getByRole("radio", { name: "Irregular preterites" })).toBeTruthy();
+    expect(screen.getByRole("option", { name: "Irregular preterites" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Start quick session" }));
     expect(screen.getByText("preferir")).toBeTruthy();
     expect(screen.getByLabelText("Type the form")).toBeTruthy();
+  });
+
+  it("uses a grouped native pool picker and exposes the verified Regular pack", async () => {
+    const user = userEvent.setup();
+    await seedGymDictionary();
+    render(<ConjugationGym items={[]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    const picker = await screen.findByLabelText("Verb pool");
+    expect([...picker.querySelectorAll("optgroup")].map((group) => group.label)).toEqual(["Personal", "Built-in"]);
+    expect(screen.getByRole("option", { name: "Regulars" })).toBeTruthy();
+    await user.selectOptions(picker, "regulars");
+    expect(screen.getByText("0 of 18 regular verbs available")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Start quick session" }).disabled).toBe(true);
   });
 
   it("exposes Focus packs, exact persisted person strings, and rare custom labels", async () => {
@@ -223,7 +236,7 @@ describe("Conjugation Gym setup", () => {
     await user.click(screen.getByRole("button", { name: "Practice next" }));
 
     expect(screen.getByRole("button", { name: /Focus/ }).getAttribute("aria-pressed")).toBe("true");
-    expect(screen.getByRole("radio", { name: "Saved" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByLabelText("Verb pool").value).toBe("saved");
     expect(screen.getByLabelText("Tense pack").value).toBe("everyday");
     expect(screen.getByLabelText("One verb (optional)").value).toBe("");
     expect(screen.getByText("sacar · Indicative present · yo")).toBeTruthy();
@@ -246,7 +259,7 @@ describe("Conjugation Gym setup", () => {
 
     await waitFor(() => expect(screen.getByRole("button", { name: /Focus/ })).toBeTruthy());
     await user.click(screen.getByRole("button", { name: /Focus/ }));
-    await user.click(screen.getByRole("radio", { name: "Saved" }));
+    await user.selectOptions(screen.getByLabelText("Verb pool"), "saved");
     for (const slot of ["tú", "él/ella/usted", "nosotros", "ustedes/ellos"]) {
       await user.click(screen.getByRole("checkbox", { name: slot }));
     }
@@ -265,7 +278,7 @@ describe("Conjugation Gym setup", () => {
 
     await waitFor(() => expect(screen.getByRole("button", { name: /Focus/ })).toBeTruthy());
     await user.click(screen.getByRole("button", { name: /Focus/ }));
-    await user.click(screen.getByRole("radio", { name: "Saved" }));
+    await user.selectOptions(screen.getByLabelText("Verb pool"), "saved");
     await user.click(screen.getByRole("radio", { name: "Reveal" }));
     await user.selectOptions(screen.getByLabelText("Tense pack"), "commands");
     await user.click(screen.getByRole("checkbox", { name: "yo" }));
@@ -274,7 +287,7 @@ describe("Conjugation Gym setup", () => {
     await user.click(screen.getByRole("button", { name: "View conjugation performance" }));
     await user.click(screen.getByRole("button", { name: "Practice next" }));
 
-    expect(screen.getByRole("radio", { name: "Core 20" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByLabelText("Verb pool").value).toBe("core20");
     expect(screen.getByRole("radio", { name: "Type" }).getAttribute("aria-checked")).toBe("true");
     expect(screen.getByLabelText("Tense pack").value).toBe("everyday");
     expect(screen.getByLabelText("Prompts").value).toBe("10");
@@ -313,8 +326,8 @@ describe("Conjugation Gym setup", () => {
     };
     render(<ConjugationGym items={[saved]} events={[missed]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
 
-    await waitFor(() => expect(screen.getByRole("radio", { name: "Saved" })).toBeTruthy());
-    await user.click(screen.getByRole("radio", { name: "Saved" }));
+    await waitFor(() => expect(screen.getByLabelText("Verb pool")).toBeTruthy());
+    await user.selectOptions(screen.getByLabelText("Verb pool"), "saved");
     await user.click(screen.getByRole("button", { name: /Adaptive/ }));
     await user.click(screen.getByRole("button", { name: "Start adaptive session" }));
 

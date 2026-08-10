@@ -35,9 +35,33 @@ export const IRREGULAR_PRETERITES = [
   "tener", "estar", "traer", "andar", "conducir",
 ];
 
-export const CURATED_GYM_LEMMAS = [
-  ...new Set([...CORE_50, ...STEM_CHANGERS, ...IRREGULAR_PRETERITES]),
+export const REGULAR_VERBS = [
+  "hablar", "trabajar", "mirar", "escuchar", "preguntar", "ayudar",
+  "comer", "deber", "beber", "aprender", "vender", "comprender",
+  "vivir", "recibir", "permitir", "subir", "decidir", "compartir",
 ];
+
+/** The one registry for every built-in Forms pool and its persisted curriculum key. */
+export const GYM_CURRICULUM_REGISTRY = {
+  core20: { label: "Core 20", lemmas: CORE_20, availabilityLabel: "core verbs" },
+  core50: { label: "Core 50", lemmas: CORE_50, availabilityLabel: "core verbs" },
+  regulars: { label: "Regulars", lemmas: REGULAR_VERBS, availabilityLabel: "regular verbs" },
+  stemChangers: { label: "Stem changers", lemmas: STEM_CHANGERS, availabilityLabel: "stem changers" },
+  irregularPreterites: {
+    label: "Irregular preterites",
+    lemmas: IRREGULAR_PRETERITES,
+    availabilityLabel: "irregular preterites",
+  },
+};
+
+export const CURATED_GYM_LEMMAS = [
+  ...new Set(Object.values(GYM_CURRICULUM_REGISTRY).flatMap((curriculum) => curriculum.lemmas)),
+];
+
+export function gymCurriculumForLemma(lemma) {
+  return Object.entries(GYM_CURRICULUM_REGISTRY)
+    .find(([, curriculum]) => curriculum.lemmas.includes(lemma))?.[0] || null;
+}
 
 export const GYM_SLOTS = SLOTS.filter((slot) => !COLLAPSED_SLOTS.has(slot));
 

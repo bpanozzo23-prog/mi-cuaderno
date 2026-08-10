@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   ALL_GYM_TENSES,
@@ -6,7 +7,9 @@ import {
   CURATED_GYM_LEMMAS,
   EVERYDAY_TENSES,
   GYM_SLOTS,
+  GYM_CURRICULUM_REGISTRY,
   IRREGULAR_PRETERITES,
+  REGULAR_VERBS,
   STEM_CHANGERS,
   buildAdaptiveGymDeck,
   buildBalancedGymDeck,
@@ -15,6 +18,7 @@ import {
   gymCellCount,
   gymCellKey,
   gymCells,
+  gymCurriculumForLemma,
   verbKeyForLemma,
 } from "./conjugationGym.js";
 
@@ -50,13 +54,80 @@ describe("Conjugation Gym curriculum", () => {
       "tener", "estar", "traer", "andar", "conducir",
     ]);
     expect(new Set(CURATED_GYM_LEMMAS).size).toBe(CURATED_GYM_LEMMAS.length);
-    expect(CURATED_GYM_LEMMAS).toHaveLength(56);
+    expect(CURATED_GYM_LEMMAS).toHaveLength(65);
+  });
+
+  it("keeps setup labels, lemma lookup, metadata keys, and handoffs in one curriculum registry", () => {
+    expect(Object.keys(GYM_CURRICULUM_REGISTRY)).toEqual([
+      "core20", "core50", "regulars", "stemChangers", "irregularPreterites",
+    ]);
+    expect(GYM_CURRICULUM_REGISTRY.regulars).toMatchObject({
+      label: "Regulars",
+      availabilityLabel: "regular verbs",
+      lemmas: REGULAR_VERBS,
+    });
+    expect(gymCurriculumForLemma("beber")).toBe("regulars");
   });
 
   it("offers every stored and composed tense without duplicating keys", () => {
     expect(new Set(ALL_GYM_TENSES).size).toBe(19);
     expect(ALL_GYM_TENSES).toContain("Imperative Negative/Present");
     expect(ALL_GYM_TENSES).toContain("Subjunctive/Future Perfect");
+  });
+});
+
+function shippedGymData() {
+  const manifest = JSON.parse(readFileSync(new URL("../../public/dict/manifest.json", import.meta.url), "utf8"));
+  const entries = [];
+  const conjugations = [];
+  for (const chunk of manifest.chunks) {
+    const body = JSON.parse(readFileSync(new URL(`../../public/dict/${manifest.path}/${chunk.file}`, import.meta.url), "utf8"));
+    entries.push(...(body.stores.entries || []));
+    conjugations.push(...(body.stores.conjugations || []));
+  }
+  return { entries, tables: new Map(conjugations.map((table) => [table.id, table])) };
+}
+
+describe("Regular curriculum against the shipped dictionary", () => {
+  it("resolves every curated lemma exactly once with a packaged table", () => {
+    const { entries, tables } = shippedGymData();
+    for (const lemma of CURATED_GYM_LEMMAS) {
+      const matches = entries.filter((entry) => entry.pos === "verb" && entry.conjugationId && entry.lemma === lemma);
+      expect(matches, lemma).toHaveLength(1);
+      expect(tables.has(matches[0].conjugationId), lemma).toBe(true);
+    }
+  });
+
+  it("reproduces each class anchor across every supported packaged form", () => {
+    expect(REGULAR_VERBS).toEqual([
+      "hablar", "trabajar", "mirar", "escuchar", "preguntar", "ayudar",
+      "comer", "deber", "beber", "aprender", "vender", "comprender",
+      "vivir", "recibir", "permitir", "subir", "decidir", "compartir",
+    ]);
+    const { entries, tables } = shippedGymData();
+    const tableFor = (lemma) => {
+      const entry = entries.find((candidate) => candidate.pos === "verb" && candidate.lemma === lemma);
+      return tables.get(entry.conjugationId);
+    };
+
+    for (const lemma of REGULAR_VERBS) {
+      const anchorLemma = lemma.endsWith("ar") ? "hablar" : lemma.endsWith("er") ? "comer" : "vivir";
+      const anchor = tableFor(anchorLemma);
+      const actual = tableFor(lemma);
+      const anchorStem = anchorLemma.slice(0, -2);
+      const stem = lemma.slice(0, -2);
+      const derived = (form) => String(form).replaceAll(anchorStem, stem);
+
+      expect(actual.gerund, `${lemma} gerund`).toBe(derived(anchor.gerund));
+      expect(actual.pastParticiple, `${lemma} participle`).toBe(derived(anchor.pastParticiple));
+      expect(Object.keys(actual.tenses), `${lemma} tenses`).toEqual(Object.keys(anchor.tenses));
+      for (const [tense, row] of Object.entries(anchor.tenses)) {
+        expect(Object.keys(actual.tenses[tense]), `${lemma} ${tense} slots`).toEqual(Object.keys(row));
+        for (const [slot, form] of Object.entries(row)) {
+          expect(actual.tenses[tense][slot], `${lemma} ${tense} ${slot}`).toBe(derived(form));
+        }
+      }
+    }
   });
 });
 

@@ -138,12 +138,14 @@ describe("Conjugation Gym performance contracts", () => {
       activeVerbs: [
         active("preferir", "core", { curriculum: null }),
         active("conducir", "core", { curriculum: null }),
+        active("beber", "core", { curriculum: null }),
       ],
       dictionaryAvailable: true,
     });
 
     expect(stats.activeTargets.find((target) => target.lemma === "preferir").curriculum).toBe("stemChangers");
     expect(stats.activeTargets.find((target) => target.lemma === "conducir").curriculum).toBe("irregularPreterites");
+    expect(stats.activeTargets.find((target) => target.lemma === "beber").curriculum).toBe("regulars");
   });
 
   it("compares the last 50 with the previous window only when both have enough evidence", () => {
