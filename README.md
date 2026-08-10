@@ -202,6 +202,18 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   failure proofs reddened as intended, and a disposable 375×812 closeout passed without overflow
   or console warnings/errors. See the approved [direction](docs/PHASE-17-DIRECTION.md) and
   [implementation report](docs/PHASE-17-REPORT.md).
+- **Phase 18 — implemented and verified locally; not deployed.** Tense usage now supports
+  self-graded recall from a tense to all of its curated uses, while Endings adds five-field typed
+  production with exact-first accent grading, locked passing fields, one retry and one optional
+  de-duplicated missed round. A centralized grouped pool picker adds balanced 18-verb Regular and
+  Spelling-change packs, and Saved Forms sessions can target one exact tag or one whole active
+  Vocabulary page. Performance keeps choice, recall and typed evidence separate; Forms,
+  Adaptive and Leitner consumers remain unchanged. Schema v5 and existing event types remain.
+  The final serial suite passes 1,111/1,111 across 98 files, the production build and
+  `git diff --check` pass, three deliberate data/isolation failures reddened as intended, and a
+  disposable 375×812 closeout passed without horizontal overflow or console warnings/errors.
+  See the approved [direction](docs/PHASE-18-DIRECTION.md) and
+  [implementation report](docs/PHASE-18-REPORT.md).
 - **Collection bulk capture — deployed.** A Vocabulary page's existing
   Add vocabulary panel can now narrow saved entries to Words, Phrases, and an exact existing tag,
   then select every available match together. Existing members remain excluded and the final Add

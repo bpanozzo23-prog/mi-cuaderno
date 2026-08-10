@@ -367,8 +367,8 @@ describe("Phase 10c: the conjugation drill", () => {
 
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Open" }));
-    await waitFor(() => expect(screen.getByRole("radio", { name: "Saved" }).disabled).toBe(false));
-    await user.click(screen.getByRole("radio", { name: "Saved" }));
+    await waitFor(() => expect(screen.getByLabelText("Verb pool").querySelector('option[value="saved"]').disabled).toBe(false));
+    await user.selectOptions(screen.getByLabelText("Verb pool"), "saved");
     expect(screen.getByText(/1 saved verb available/)).toBeTruthy();
   });
 
@@ -379,8 +379,8 @@ describe("Phase 10c: the conjugation drill", () => {
 
     render(<Repaso notebook={notebookFor([verb], [])} onSelect={vi.fn()} />);
     await user.click(screen.getByRole("button", { name: "Open" }));
-    await waitFor(() => expect(screen.getByRole("radio", { name: "Saved" })).toBeTruthy());
-    await user.click(screen.getByRole("radio", { name: "Saved" }));
+    await waitFor(() => expect(screen.getByLabelText("Verb pool")).toBeTruthy());
+    await user.selectOptions(screen.getByLabelText("Verb pool"), "saved");
     await user.click(screen.getByRole("radio", { name: "Reveal" }));
     await user.click(screen.getByRole("button", { name: "Start quick session" }));
 
@@ -399,8 +399,8 @@ describe("Phase 10c: the conjugation drill", () => {
 
     render(<Repaso notebook={notebook} onSelect={vi.fn()} />);
     await user.click(screen.getByRole("button", { name: "Open" }));
-    await waitFor(() => expect(screen.getByRole("radio", { name: "Saved" })).toBeTruthy());
-    await user.click(screen.getByRole("radio", { name: "Saved" }));
+    await waitFor(() => expect(screen.getByLabelText("Verb pool")).toBeTruthy());
+    await user.selectOptions(screen.getByLabelText("Verb pool"), "saved");
     await user.click(screen.getByRole("radio", { name: "Reveal" }));
     await user.click(screen.getByRole("button", { name: "Start quick session" }));
     await user.click(screen.getByRole("button", { name: "Tap to see the form" }));
@@ -534,11 +534,11 @@ describe("Phase 14: choosing how the Gym asks", () => {
 
     render(<Repaso notebook={notebookFor([verb], [])} onSelect={vi.fn()} />);
     await user.click(screen.getByRole("button", { name: "Open" }));
-    await waitFor(() => expect(screen.getByRole("radio", { name: "Saved" })).toBeTruthy());
+    await waitFor(() => expect(screen.getByLabelText("Verb pool")).toBeTruthy());
     expect(screen.getByRole("radio", { name: "Type" }).getAttribute("aria-checked")).toBe("true");
     expect(screen.getByRole("radio", { name: "Reveal" }).getAttribute("aria-checked")).toBe("false");
 
-    await user.click(screen.getByRole("radio", { name: "Saved" }));
+    await user.selectOptions(screen.getByLabelText("Verb pool"), "saved");
     await user.click(screen.getByRole("button", { name: "Start quick session" }));
 
     // The chosen mode reached the drill: typed asks for the form instead of revealing it.

@@ -1,6 +1,6 @@
 # Phase 18 direction — Gym depth and targeting
 
-**Status:** Approved by the owner and implementation requested 2026-08-10. Not deployed.
+**Status:** Implemented and verified locally 2026-08-10. Not pushed or deployed.
 **Origin:** Phase 17 follow-up planning for the reverse side of its recognition lanes, deeper
 production practice, broader built-in verb targeting, and exact Saved subsets.
 
