@@ -29,6 +29,7 @@ import { buildRecognitionDeck } from "../lib/recognitionDeck.js";
 import ConjugationDrill from "./ConjugationDrill.jsx";
 import ConjugationPerformance from "./ConjugationPerformance.jsx";
 import RecognitionDrill from "./RecognitionDrill.jsx";
+import EndingsReveal from "./EndingsReveal.jsx";
 
 const SESSION_KINDS = [
   { value: "quick", label: "Quick", detail: "10 everyday prompts" },
@@ -327,6 +328,9 @@ export default function ConjugationGym({
           deck={session.deck}
           onFinish={() => setView("setup")}
           onGraded={onGraded}
+          renderReveal={session.skill === "endings"
+            ? (card) => <EndingsReveal card={card} library={library} />
+            : null}
         />
       );
     }
