@@ -41,12 +41,28 @@ export const REGULAR_VERBS = [
   "vivir", "recibir", "permitir", "subir", "decidir", "compartir",
 ];
 
+export const SPELLING_CHANGE_FAMILIES = {
+  "c→qu": ["buscar", "sacar", "practicar"],
+  "g→gu": ["llegar", "pagar", "apagar"],
+  "z→c": ["cruzar", "alcanzar", "utilizar"],
+  "g→j": ["escoger", "dirigir", "proteger"],
+  "gu adjustments": ["distinguir", "averiguar", "seguir"],
+  "i→y": ["construir", "huir", "incluir"],
+};
+
+export const SPELLING_CHANGE_VERBS = Object.values(SPELLING_CHANGE_FAMILIES).flat();
+
 /** The one registry for every built-in Forms pool and its persisted curriculum key. */
 export const GYM_CURRICULUM_REGISTRY = {
   core20: { label: "Core 20", lemmas: CORE_20, availabilityLabel: "core verbs" },
   core50: { label: "Core 50", lemmas: CORE_50, availabilityLabel: "core verbs" },
   regulars: { label: "Regulars", lemmas: REGULAR_VERBS, availabilityLabel: "regular verbs" },
   stemChangers: { label: "Stem changers", lemmas: STEM_CHANGERS, availabilityLabel: "stem changers" },
+  spellingChanges: {
+    label: "Spelling changes",
+    lemmas: SPELLING_CHANGE_VERBS,
+    availabilityLabel: "spelling-change verbs",
+  },
   irregularPreterites: {
     label: "Irregular preterites",
     lemmas: IRREGULAR_PRETERITES,

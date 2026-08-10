@@ -183,6 +183,19 @@ describe("Conjugation Gym setup", () => {
     expect(screen.getByRole("button", { name: "Start quick session" }).disabled).toBe(true);
   });
 
+  it("loads the verified Spelling-change pack through the same registry", async () => {
+    const user = userEvent.setup();
+    await seedGymDictionary();
+    render(<ConjugationGym items={[]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    const picker = await screen.findByLabelText("Verb pool");
+    expect(screen.getByRole("option", { name: "Spelling changes" })).toBeTruthy();
+    await user.selectOptions(picker, "spellingChanges");
+    expect(screen.getByText("1 of 18 spelling-change verbs available")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Start quick session" }));
+    expect(screen.getByText("sacar")).toBeTruthy();
+  });
+
   it("exposes Focus packs, exact persisted person strings, and rare custom labels", async () => {
     const user = userEvent.setup();
     await seedGymDictionary();

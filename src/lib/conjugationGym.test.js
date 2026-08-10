@@ -10,6 +10,8 @@ import {
   GYM_CURRICULUM_REGISTRY,
   IRREGULAR_PRETERITES,
   REGULAR_VERBS,
+  SPELLING_CHANGE_FAMILIES,
+  SPELLING_CHANGE_VERBS,
   STEM_CHANGERS,
   buildAdaptiveGymDeck,
   buildBalancedGymDeck,
@@ -54,12 +56,12 @@ describe("Conjugation Gym curriculum", () => {
       "tener", "estar", "traer", "andar", "conducir",
     ]);
     expect(new Set(CURATED_GYM_LEMMAS).size).toBe(CURATED_GYM_LEMMAS.length);
-    expect(CURATED_GYM_LEMMAS).toHaveLength(65);
+    expect(CURATED_GYM_LEMMAS).toHaveLength(80);
   });
 
   it("keeps setup labels, lemma lookup, metadata keys, and handoffs in one curriculum registry", () => {
     expect(Object.keys(GYM_CURRICULUM_REGISTRY)).toEqual([
-      "core20", "core50", "regulars", "stemChangers", "irregularPreterites",
+      "core20", "core50", "regulars", "stemChangers", "spellingChanges", "irregularPreterites",
     ]);
     expect(GYM_CURRICULUM_REGISTRY.regulars).toMatchObject({
       label: "Regulars",
@@ -126,6 +128,52 @@ describe("Regular curriculum against the shipped dictionary", () => {
         for (const [slot, form] of Object.entries(row)) {
           expect(actual.tenses[tense][slot], `${lemma} ${tense} ${slot}`).toBe(derived(form));
         }
+      }
+    }
+  });
+});
+
+describe("Spelling-change curriculum against the shipped dictionary", () => {
+  it("ships three approved verbs in each declared family", () => {
+    expect(SPELLING_CHANGE_FAMILIES).toEqual({
+      "c→qu": ["buscar", "sacar", "practicar"],
+      "g→gu": ["llegar", "pagar", "apagar"],
+      "z→c": ["cruzar", "alcanzar", "utilizar"],
+      "g→j": ["escoger", "dirigir", "proteger"],
+      "gu adjustments": ["distinguir", "averiguar", "seguir"],
+      "i→y": ["construir", "huir", "incluir"],
+    });
+    expect(Object.values(SPELLING_CHANGE_FAMILIES).every((family) => family.length === 3)).toBe(true);
+    expect(new Set(SPELLING_CHANGE_VERBS).size).toBe(18);
+  });
+
+  it("contains every declared characteristic cell in the packaged tables", () => {
+    const proofs = {
+      buscar: [["Indicative/Preterite", "yo", "busqué"], ["Subjunctive/Present", "yo", "busque"]],
+      sacar: [["Indicative/Preterite", "yo", "saqué"], ["Subjunctive/Present", "yo", "saque"]],
+      practicar: [["Indicative/Preterite", "yo", "practiqué"], ["Subjunctive/Present", "yo", "practique"]],
+      llegar: [["Indicative/Preterite", "yo", "llegué"], ["Subjunctive/Present", "yo", "llegue"]],
+      pagar: [["Indicative/Preterite", "yo", "pagué"], ["Subjunctive/Present", "yo", "pague"]],
+      apagar: [["Indicative/Preterite", "yo", "apagué"], ["Subjunctive/Present", "yo", "apague"]],
+      cruzar: [["Indicative/Preterite", "yo", "crucé"], ["Subjunctive/Present", "yo", "cruce"]],
+      alcanzar: [["Indicative/Preterite", "yo", "alcancé"], ["Subjunctive/Present", "yo", "alcance"]],
+      utilizar: [["Indicative/Preterite", "yo", "utilicé"], ["Subjunctive/Present", "yo", "utilice"]],
+      escoger: [["Subjunctive/Present", "yo", "escoja"]],
+      dirigir: [["Subjunctive/Present", "yo", "dirija"]],
+      proteger: [["Subjunctive/Present", "yo", "proteja"]],
+      distinguir: [["Subjunctive/Present", "yo", "distinga"]],
+      averiguar: [["Indicative/Preterite", "yo", "averigüé"], ["Subjunctive/Present", "yo", "averigüe"]],
+      seguir: [["Subjunctive/Present", "yo", "siga"]],
+      construir: [["Indicative/Preterite", "él/ella/usted", "construyó"], ["Subjunctive/Present", "yo", "construya"]],
+      huir: [["Indicative/Preterite", "él/ella/usted", "huyó"], ["Subjunctive/Present", "yo", "huya"]],
+      incluir: [["Indicative/Preterite", "él/ella/usted", "incluyó"], ["Subjunctive/Present", "yo", "incluya"]],
+    };
+    const { entries, tables } = shippedGymData();
+    for (const [lemma, cells] of Object.entries(proofs)) {
+      const entry = entries.find((candidate) => candidate.pos === "verb" && candidate.lemma === lemma);
+      const table = tables.get(entry.conjugationId);
+      for (const [tense, slot, expected] of cells) {
+        expect(table.tenses[tense][slot], `${lemma} ${tense} ${slot}`).toBe(expected);
       }
     }
   });
