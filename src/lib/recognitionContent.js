@@ -129,8 +129,8 @@ export const TENSE_USAGE_CARDS = [
   usage("subj-present-want", "Subjunctive/Present", "After wanting or requesting that someone else do something (quiero que…).", { contrast: "A present main-clause trigger takes the present subjunctive; a past trigger takes the imperfect subjunctive." }),
   usage("subj-present-doubt", "Subjunctive/Present", "After doubt or denial (no creo que…)."),
   usage("subj-present-emotion", "Subjunctive/Present", "After emotion or a value judgment (me alegra que…, es importante que…)."),
-  usage("subj-present-ojala", "Subjunctive/Present", "After ojalá."),
-  usage("subj-present-purpose", "Subjunctive/Present", "In purpose clauses (para que…)."),
+  usage("subj-present-ojala", "Subjunctive/Present", "After ojalá, for a wish that may still come true (ojalá venga).", { alsoAcceptable: ["Subjunctive/Imperfect"], contrast: "Ojalá with the imperfect subjunctive (ojalá tuviera) makes the wish unlikely or contrary to fact." }),
+  usage("subj-present-purpose", "Subjunctive/Present", "In a purpose clause after a present-tense main clause (trabajo para que puedas…).", { alsoAcceptable: ["Subjunctive/Imperfect"], contrast: "A past main clause (trabajé para que pudieras…) takes the imperfect subjunctive instead." }),
   usage("subj-present-nonexistent", "Subjunctive/Present", "Describing someone or something that may not exist (busco a alguien que…)."),
 
   usage("subj-imperfect-past-trigger", "Subjunctive/Imperfect", "A subjunctive trigger whose main clause is in the past (quería que…).", { contrast: "A past main-clause trigger takes the imperfect subjunctive; quiero que takes the present subjunctive." }),

@@ -17,6 +17,17 @@ describe("Usage reveal", () => {
     }
   });
 
+  it("labels non-dialect alternatives neutrally", () => {
+    for (const id of ["usage:present-scheduled-future", "usage:subj-present-ojala", "usage:subj-present-purpose"]) {
+      const card = TENSE_USAGE_CARDS.find((row) => row.id === id);
+      expect(card.alsoAcceptable.length, id).toBeGreaterThan(0);
+      const { unmount } = render(<UsageReveal card={card} />);
+      expect(screen.getByText("Also natural")).toBeTruthy();
+      expect(screen.queryByText("Mexican Spanish note")).toBeNull();
+      unmount();
+    }
+  });
+
   it("stays absent when a card has no acceptable alternative", () => {
     const card = TENSE_USAGE_CARDS.find((row) => row.id === "usage:preterite-completed");
     const { container } = render(<UsageReveal card={card} />);

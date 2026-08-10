@@ -10,7 +10,9 @@ export default function UsageReveal({ card, items = [], controls = null }) {
       {card.alsoAcceptable?.length > 0 && (
         <div className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: C.chipBorder, background: C.penPale, color: C.penDark }}>
           <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ fontFamily: MONO, color: C.mut }}>
-            Mexican Spanish note
+            {/* Only the Preterite alternative is a dialect fact (Mexican Spanish reaches for it
+                where Spain uses the present perfect); every other alternative is general Spanish. */}
+            {card.alsoAcceptable.includes("Indicative/Preterite") ? "Mexican Spanish note" : "Also natural"}
           </div>
           <div className="mt-0.5">
             {card.alsoAcceptable.map(qualifiedTenseLabel).join(" or ")} can also be natural here, so it was not offered as a distractor.
