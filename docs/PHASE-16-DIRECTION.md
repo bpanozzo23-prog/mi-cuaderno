@@ -1,8 +1,7 @@
 # Phase 16 direction — Review depth and one practice engine
 
-**Status:** Proposed — distilled 2026-08-09 from owner-approved recommendations; the grading and
-scope policies in §1–§2 and §5 were explicitly chosen by the owner in conversation. Confirm this
-written form before implementation begins.
+**Status:** Implemented and verified locally 2026-08-09; not deployed. The owner approved the
+policies in §1, §2, §3 and §5 as written and requested implementation in this delivery sequence.
 **Origin:** Claude Code review of the Repaso scheduled review, hub free practice (Phase 9),
 Vocabulary-page Collection practice, and their relationship to the Gym (2026-08-09).
 

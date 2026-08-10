@@ -179,6 +179,17 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   56 unique curated lemmas resolve to shipped tables, and a disposable 375×812 closeout passed
   without horizontal overflow or console warnings/errors. See the approved
   [direction](docs/PHASE-15-DIRECTION.md) and [implementation report](docs/PHASE-15-REPORT.md).
+- **Phase 16 — implemented locally; not deployed.** Scheduled review now uses the full
+  Again/Hard/Good/Easy grade scale, objectively marks typed reverse and cloze answers, offers one
+  history-free missed-card recovery round, and chunks queues over 20 into 10/20/All sittings.
+  Scheduled review and free practice now share one vocabulary-card engine; hub practice gains
+  direction, cloze and typed modes, while Vocabulary pages keep their in-place skim and add
+  launchable whole-collection or group-scoped sessions. Only the primary scheduled pass writes
+  review events; typed strings, recovery answers and both free-practice surfaces remain transient.
+  Schema v5 and the existing event types remain unchanged. The final serial suite passes
+  1,044/1,044 across 87 files, the production build and `git diff --check` pass, and a disposable
+  375×812 closeout passed without horizontal overflow or console warnings/errors. See the approved
+  [direction](docs/PHASE-16-DIRECTION.md) and [implementation report](docs/PHASE-16-REPORT.md).
 - **Collection bulk capture — deployed.** A Vocabulary page's existing
   Add vocabulary panel can now narrow saved entries to Words, Phrases, and an exact existing tag,
   then select every available match together. Existing members remain excluded and the final Add
