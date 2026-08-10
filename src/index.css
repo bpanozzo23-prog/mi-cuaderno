@@ -310,6 +310,56 @@
   margin-bottom: 0;
 }
 
+.grammar-guide-spine {
+  position: relative;
+  margin-left: 0.2rem;
+  border-left: 2px solid var(--color-page-folder-grammar-line);
+  padding-left: 0.7rem;
+}
+
+.grammar-guide-root {
+  position: relative;
+}
+
+.grammar-guide-root::before {
+  position: absolute;
+  top: 1.35rem;
+  left: -0.8rem;
+  width: 0.7rem;
+  border-top: 2px solid var(--color-page-folder-grammar-line);
+  content: "";
+}
+
+.grammar-guide-subsections {
+  margin-top: 1rem;
+  margin-left: 0.25rem;
+  border-left: 2px solid var(--color-page-folder-grammar-line);
+  padding-left: 0.85rem;
+}
+
+.grammar-guide-subsection {
+  position: relative;
+  padding: 0.55rem 0 0.25rem;
+}
+
+.grammar-guide-subsection::before {
+  position: absolute;
+  top: 1.55rem;
+  left: -1.08rem;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: var(--color-role-grammar-ink);
+  box-shadow: 0 0 0 3px var(--color-card);
+  content: "";
+}
+
+.grammar-guide-subsection + .grammar-guide-subsection {
+  margin-top: 0.55rem;
+  border-top: 1px solid var(--color-line);
+  padding-top: 0.85rem;
+}
+
 .note-markdown hr {
   margin: 1em 0;
   border: 0;
