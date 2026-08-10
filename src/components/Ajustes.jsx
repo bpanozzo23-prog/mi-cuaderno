@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Download, Upload, HardDrive, ShieldCheck, ShieldAlert, AlertTriangle } from "lucide-react";
+import { Download, Upload, HardDrive, ShieldCheck, ShieldAlert, AlertTriangle, Pencil } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, SectionTitle, Card, Button } from "../theme.jsx";
 import { db, getPref } from "../db/db.js";
 import {
@@ -20,6 +20,7 @@ import TagChip from "./TagChip.jsx";
 import { installedMeta } from "../db/ref/entries.js";
 import { tagCountsIn } from "../lib/organization.js";
 import { TAG_SWATCHES, tagSwatchId } from "../lib/tagColors.js";
+import TagManagementSheet from "./TagManagementSheet.jsx";
 
 function backupAgeLabel(iso) {
   if (!iso) return "never";
@@ -30,7 +31,13 @@ function backupAgeLabel(iso) {
   return `${days} days ago`;
 }
 
-export default function Ajustes({ notebook, tagColors = {}, onTagColorChange, onDataReplaced }) {
+export default function Ajustes({
+  notebook,
+  tagColors = {},
+  onTagColorChange,
+  onDataReplaced,
+  onTagsChanged,
+}) {
   const [storage, setStorage] = useState(null);
   const [lastBackup, setLastBackup] = useState(null);
   const [counts, setCounts] = useState({ items: 0, events: 0 });
@@ -39,6 +46,8 @@ export default function Ajustes({ notebook, tagColors = {}, onTagColorChange, on
   const [problems, setProblems] = useState([]);
   const [note, setNote] = useState("");
   const [dictionary, setDictionary] = useState(null);
+  const [managedTag, setManagedTag] = useState(null);
+  const [tagNote, setTagNote] = useState("");
 
   async function refresh() {
     const [status, last, items, events] = await Promise.all([
@@ -67,6 +76,27 @@ export default function Ajustes({ notebook, tagColors = {}, onTagColorChange, on
     await recordBackupTaken(envelope.exportedAt);
     setNote("Backup downloaded. Keep it somewhere off this phone.");
     refresh();
+  }
+
+  function handleTagSaved(result) {
+    if (result.kind === "rename") {
+      setTagNote(
+        `Renamed “${result.source}” to “${result.destination}” on ${result.changedCount} ${result.changedCount === 1 ? "entry" : "entries"}.`
+      );
+    } else if (result.kind === "merge") {
+      setTagNote(
+        `Merged “${result.source}” into “${result.destination}” on ${result.changedCount} ${result.changedCount === 1 ? "entry" : "entries"}.`
+      );
+    } else if (result.kind === "remove") {
+      setTagNote(
+        `Removed “${result.source}” from ${result.changedCount} ${result.changedCount === 1 ? "entry" : "entries"}.`
+      );
+    } else {
+      setTagNote("That tag was no longer in use. Nothing changed.");
+    }
+    setManagedTag(null);
+    onTagsChanged?.();
+    refresh().catch(() => {});
   }
 
   async function handleFilePicked(event) {
@@ -235,59 +265,87 @@ export default function Ajustes({ notebook, tagColors = {}, onTagColorChange, on
 
       <AiCard />
 
-      <SectionTitle>Tag colors</SectionTitle>
+      <SectionTitle>Tags</SectionTitle>
       <Card>
         {tags.length === 0 ? (
           <div className="text-sm" style={{ color: C.mut }}>
-            Tags you add to words, phrases and pages appear here, ready to colour.
+            Tags you add to words, phrases and pages appear here, ready to colour or manage.
           </div>
         ) : (
-          <>
-            <div className="text-sm" style={{ color: C.mut }}>
-              A colour applies to that tag everywhere it appears.
-            </div>
-            <div className="mt-3 space-y-4">
-              {tags.map(({ tag, count }) => (
-                <div key={tag}>
-                  <div className="flex items-baseline gap-2">
-                    <TagChip tag={tag} />
+          <div className="text-sm" style={{ color: C.mut }}>
+            A colour applies everywhere. Manage renames, merges or removes one exact tag across your notebook.
+          </div>
+        )}
+        {tagNote && (
+          <div className="mt-3 break-all rounded-lg p-2.5 text-xs" style={{ background: C.greenPale, color: C.green }}>
+            {tagNote}
+          </div>
+        )}
+        {tags.length > 0 && (
+          <div className="mt-3 space-y-4">
+            {tags.map(({ tag, count }) => (
+              <div key={tag}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2 pt-1">
+                    <TagChip tag={tag} className="max-w-full whitespace-normal break-all text-left" />
                     <span className="text-xs" style={{ fontFamily: MONO, color: C.mut }}>
                       {count === 1 ? "1 entry" : `${count} entries`}
                     </span>
                   </div>
-                  <div
-                    className="mt-1 flex flex-wrap gap-1"
-                    role="group"
-                    aria-label={`Colour for ${tag}`}
+                  <Button
+                    tone="quiet"
+                    className="min-h-11 shrink-0"
+                    aria-label={`Manage tag ${tag}`}
+                    onClick={() => {
+                      setTagNote("");
+                      setManagedTag(tag);
+                    }}
                   >
-                    {TAG_SWATCHES.map((swatch) => {
-                      const active = tagSwatchId(tag, tagColors) === swatch.id;
-                      return (
-                        <button
-                          key={swatch.id}
-                          type="button"
-                          aria-label={`${swatch.label} for ${tag}`}
-                          aria-pressed={active}
-                          onClick={() => onTagColorChange?.(tag, swatch.id)}
-                          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg"
-                        >
-                          <span
-                            className="inline-block h-6 w-6 rounded-full border-2"
-                            style={{
-                              background: swatch.background === "transparent" ? C.card : swatch.background,
-                              borderColor: active ? C.pen : swatch.border,
-                            }}
-                          />
-                        </button>
-                      );
-                    })}
-                  </div>
+                    <Pencil size={15} /> Manage
+                  </Button>
                 </div>
-              ))}
-            </div>
-          </>
+                <div
+                  className="mt-1 flex flex-wrap gap-1"
+                  role="group"
+                  aria-label={`Colour for ${tag}`}
+                >
+                  {TAG_SWATCHES.map((swatch) => {
+                    const active = tagSwatchId(tag, tagColors) === swatch.id;
+                    return (
+                      <button
+                        key={swatch.id}
+                        type="button"
+                        aria-label={`${swatch.label} for ${tag}`}
+                        aria-pressed={active}
+                        onClick={() => onTagColorChange?.(tag, swatch.id)}
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg"
+                      >
+                        <span
+                          className="inline-block h-6 w-6 rounded-full border-2"
+                          style={{
+                            background: swatch.background === "transparent" ? C.card : swatch.background,
+                            borderColor: active ? C.pen : swatch.border,
+                          }}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </Card>
+
+      {managedTag !== null && (
+        <TagManagementSheet
+          source={managedTag}
+          items={notebook?.items || []}
+          onClose={() => setManagedTag(null)}
+          onSaved={handleTagSaved}
+          onExportBackup={handleExport}
+        />
+      )}
 
       <SectionTitle>About</SectionTitle>
       <Card>

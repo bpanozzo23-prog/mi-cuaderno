@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App.jsx";
-import { db, clearAllPersonalData } from "./db/db.js";
+import { db, clearAllPersonalData, getPref, setPref } from "./db/db.js";
 import { EVENT_TYPES, logEvent } from "./db/events.js";
 import { allItems, createItem, getItem, linkItems, newLexical, newPage } from "./db/items.js";
 import { removeDictionary } from "./db/ref/install.js";
@@ -15,6 +15,7 @@ import {
 } from "./test/dictFixture.js";
 import { newMeaning } from "./lib/meanings.js";
 import { localDate } from "./lib/dates.js";
+import { TAG_COLORS_PREF } from "./lib/tagColors.js";
 
 const CASA = "dict:wiktionary-es:casa:noun";
 
@@ -480,5 +481,57 @@ describe("Phase 4s journal reading and connections", () => {
     await waitFor(() => expect(within(diario).getByRole("heading", { name: "Move into Diario" })).toBeTruthy());
     expect(within(diario).getByText("Keep this writing.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Back to Cuaderno" })).toBeTruthy();
+  });
+});
+
+describe("Phase 20 global tag management", () => {
+  it("renames and removes from Ajustes while reloading every personal item", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({ term: "hablar", tags: ["verbs"] }));
+    const page = await createItem(newPage({ title: "Grammar notes", tags: ["verbs"] }));
+    await setPref(TAG_COLORS_PREF, { verbs: "red" });
+    render(<App />);
+
+    const navigation = await screen.findByRole("navigation", { name: "Primary" });
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(screen.getByRole("button", { name: "Refine" }));
+    await user.selectOptions(screen.getByRole("combobox", { name: "Tag" }), "verbs");
+    expect(screen.getByRole("combobox", { name: "Tag" }).value).toBe("verbs");
+    await user.click(within(navigation).getByRole("button", { name: "Ajustes" }));
+    await user.click(await screen.findByRole("button", { name: "Manage tag verbs" }));
+    await user.type(screen.getByRole("textbox", { name: "New tag name" }), "word classes");
+    await user.click(screen.getByRole("button", { name: "Rename tag" }));
+
+    expect(await screen.findByText("Renamed “verbs” to “word classes” on 2 entries.")).toBeTruthy();
+    await waitFor(async () => {
+      expect((await getItem(word.id)).tags).toEqual(["word classes"]);
+      expect((await getItem(page.id)).tags).toEqual(["word classes"]);
+      expect(await getPref(TAG_COLORS_PREF, {})).toEqual({ "word classes": "red" });
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: "Manage tag verbs" })).toBeNull();
+      expect(screen.getByRole("button", { name: "Manage tag word classes" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Red for word classes" }).getAttribute("aria-pressed")).toBe("true");
+    });
+
+    await user.click(within(navigation).getByRole("button", { name: "Cuaderno" }));
+    await waitFor(() => expect(screen.getByRole("combobox", { name: "Tag" }).value).toBe(""));
+    expect(screen.getByRole("option", { name: "word classes · 2" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^hablar/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Grammar notes/ })).toBeTruthy();
+
+    await user.click(within(navigation).getByRole("button", { name: "Ajustes" }));
+    await user.click(await screen.findByRole("button", { name: "Manage tag word classes" }));
+    await user.click(screen.getByRole("button", { name: "Remove tag everywhere" }));
+    await user.click(screen.getByRole("button", { name: "Confirm removal" }));
+
+    expect(await screen.findByText("Removed “word classes” from 2 entries.")).toBeTruthy();
+    await waitFor(async () => {
+      expect((await getItem(word.id)).tags).toEqual([]);
+      expect((await getItem(page.id)).tags).toEqual([]);
+      expect(await getPref(TAG_COLORS_PREF, {})).toEqual({});
+      expect(screen.queryByRole("button", { name: "Manage tag word classes" })).toBeNull();
+    });
+    expect(screen.getByText("Tags you add to words, phrases and pages appear here, ready to colour or manage.")).toBeTruthy();
   });
 });

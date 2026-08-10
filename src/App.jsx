@@ -110,9 +110,9 @@ export default function App() {
   }, [notebook.items]);
 
   async function changeTagColor(tag, swatchId) {
-    const next = { ...tagColors };
-    if (swatchId === DEFAULT_SWATCH.id) delete next[tag];
-    else next[tag] = swatchId;
+    const entries = Object.entries(tagColors).filter(([storedTag]) => storedTag !== tag);
+    if (swatchId !== DEFAULT_SWATCH.id) entries.push([tag, swatchId]);
+    const next = Object.fromEntries(entries);
     setTagColors(next);
     await setPref(TAG_COLORS_PREF, next);
   }
@@ -360,6 +360,7 @@ export default function App() {
                 tagColors={tagColors}
                 onTagColorChange={changeTagColor}
                 onDataReplaced={notebook.reload}
+                onTagsChanged={notebook.reload}
               />
             )}
           </>
