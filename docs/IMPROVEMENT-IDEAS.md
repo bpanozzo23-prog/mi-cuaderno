@@ -101,6 +101,29 @@ The complete 1,168-test suite, production build, rollback/backup proofs and a di
 rename→merge→remove browser flow pass. See `docs/PHASE-20-REPORT.md` for the implementation and
 numerical closeout.
 
+### Evidence to watch in real use — 2026-08-10
+
+Recorded at review time so the deliberate Phase 20 trade-offs are re-examined against real usage
+rather than rediscovered. None of these is a defect; each names the evidence that would justify a
+follow-up product decision.
+
+1. **Multi-variant consolidation friction.** The phase's origin problem was consolidating spelling
+   variants, but merge is deliberately single-source: collapsing three variants into one takes two
+   sequential merges, each with its own preview and confirmation. If the owner's real tag clusters
+   are trios rather than pairs — repeated back-to-back merges of related spellings in practice —
+   that is the evidence for promoting the deferred multi-source merge.
+2. **Merge irreversibility rests on an opt-in backup.** The event log records that items changed,
+   not their previous tag values, so after a merge nothing in the app can reconstruct which entries
+   carried the old spelling. The safety net is the optional, non-gating **Export backup first**
+   action. If a merge is ever regretted without a fresh export on hand, that is the evidence for
+   revisiting persistent undo (which was excluded because it needs stored inverse data — a separate
+   product decision, per `DECISIONS.md`).
+3. **Batch maintenance inflates activity honestly.** One rename touching N entries writes N
+   ordinary `edit` events into Recent activity, the calendar and the streak — chosen deliberately
+   over a batch event type. If a large cleanup ever makes the stats screens feel dishonest or
+   noisy, that is the evidence for reopening the grouped-batch-history deferral rather than
+   filtering events after the fact.
+
 ---
 
 ## Grammar guide depth and callouts
