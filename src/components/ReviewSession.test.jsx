@@ -311,3 +311,60 @@ describe("Phase 16: typed scheduled review", () => {
     expect(screen.getByRole("button", { name: "Tap to see the meaning" })).toBeTruthy();
   });
 });
+
+describe("Phase 16: scheduled-review missed round", () => {
+  const card = (id, overrides = {}) => ({
+    id: `user:${id}`,
+    term: id,
+    form: "word",
+    direction: "forward",
+    meanings: [newMeaning({ id: `meaning:${id}`, gloss: `meaning of ${id}` })],
+    notes: "",
+    myExamples: [],
+    box: 1,
+    reason: "reviewing",
+    tricky: false,
+    ...overrides,
+  });
+
+  it("offers one shuffled recovery pass and writes no event during it", async () => {
+    const user = userEvent.setup();
+    render(<ReviewSession cards={[card("madrugar")]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} random={() => 0} />);
+
+    await user.click(screen.getByRole("button", { name: "Tap to see the meaning" }));
+    await user.click(screen.getByRole("button", { name: "Again" }));
+    await waitFor(async () => expect(await allEvents()).toHaveLength(1));
+
+    expect(screen.getByRole("button", { name: "Practice 1 missed again" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Practice 1 missed again" }));
+    expect(screen.getByText("Missed round")).toBeTruthy();
+    expect(screen.getByText("madrugar")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Tap to see the meaning" }));
+    await user.click(screen.getByRole("button", { name: "Got it" }));
+
+    expect(screen.getByText("Recovery complete")).toBeTruthy();
+    expect(screen.getByText("1/1")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Practice .* missed again/ })).toBeNull();
+    expect(await allEvents()).toHaveLength(1);
+  });
+
+  it("keeps a typed recovery failure local as well", async () => {
+    const user = userEvent.setup();
+    render(<ReviewSession mode="typed" cards={[card("madrugar", { direction: "reverse" })]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await user.type(screen.getByRole("textbox", { name: "Type the Spanish word" }), "wrong");
+    await user.click(screen.getByRole("button", { name: "Check answer" }));
+    await waitFor(async () => expect(await allEvents()).toHaveLength(1));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("button", { name: "Practice 1 missed again" }));
+
+    await user.type(screen.getByRole("textbox", { name: "Type the Spanish word" }), "still wrong");
+    await user.click(screen.getByRole("button", { name: "Check answer" }));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+
+    expect(screen.getByText("Recovery complete")).toBeTruthy();
+    expect(screen.getByText("0/1")).toBeTruthy();
+    expect(await allEvents()).toHaveLength(1);
+  });
+});

@@ -3,7 +3,13 @@ import { ChevronLeft, Eye, Highlighter, RotateCcw, ArrowLeftRight } from "lucide
 import { C, SERIF, MONO, dotGrid, Card, Button } from "../theme.jsx";
 import { logReview } from "../db/events.js";
 import { GRADES } from "../lib/review.js";
-import { PracticeCard, ReviewGradeStrip, usePracticeCardState } from "./PracticeCard.jsx";
+import { shufflePracticeItems } from "../lib/practice.js";
+import {
+  PracticeCard,
+  ReviewGradeStrip,
+  SelfAssessmentStrip,
+  usePracticeCardState,
+} from "./PracticeCard.jsx";
 
 /**
  * One pass through today's due words (brief section 12).
@@ -24,15 +30,27 @@ import { PracticeCard, ReviewGradeStrip, usePracticeCardState } from "./Practice
  * are Spanish and routinely contain the term itself. The grade is logged with the
  * direction and face it was earned on, because that history cannot be reconstructed.
  */
-export default function ReviewSession({ cards, mode = "reveal", onFinish, onOpen, onGraded }) {
+export default function ReviewSession({
+  cards,
+  mode = "reveal",
+  onFinish,
+  onOpen,
+  onGraded,
+  random = Math.random,
+}) {
+  const [stage, setStage] = useState("primary");
+  const [roundCards, setRoundCards] = useState(cards);
   const [index, setIndex] = useState(0);
   const [busy, setBusy] = useState(false);
   const [wrongRecorded, setWrongRecorded] = useState(false);
   const [tally, setTally] = useState({ passed: 0, failed: 0 });
+  const [missedCards, setMissedCards] = useState([]);
+  const [recovered, setRecovered] = useState(0);
   const cardState = usePracticeCardState();
 
-  const item = cards[index] || null;
-  const done = index >= cards.length;
+  const recovery = stage === "recovery";
+  const item = roundCards[index] || null;
+  const done = index >= roundCards.length;
 
   const eventDetails = (extra = null) => ({
     direction: item.direction === "reverse" ? "reverse" : "forward",
@@ -46,6 +64,7 @@ export default function ReviewSession({ cards, mode = "reveal", onFinish, onOpen
       passed: t.passed + (passed ? 1 : 0),
       failed: t.failed + (passed ? 0 : 1),
     }));
+    if (!passed) setMissedCards((current) => [...current, item]);
   }
 
   function advance() {
@@ -73,6 +92,11 @@ export default function ReviewSession({ cards, mode = "reveal", onFinish, onOpen
     cardState.markTyped(result);
     if (result.verdict !== "wrong") return;
 
+    if (recovery) {
+      setWrongRecorded(true);
+      return;
+    }
+
     setBusy(true);
     await logReview(item.id, GRADES.again, eventDetails({ mode: "typed", verdict: "wrong" }));
     countGrade(GRADES.again);
@@ -81,7 +105,45 @@ export default function ReviewSession({ cards, mode = "reveal", onFinish, onOpen
     onGraded?.();
   }
 
+  function answerRecovery(gotIt) {
+    if (!item) return;
+    if (gotIt) setRecovered((current) => current + 1);
+    advance();
+  }
+
+  function beginRecovery() {
+    setRoundCards(shufflePracticeItems(missedCards, random));
+    setStage("recovery");
+    setIndex(0);
+    setRecovered(0);
+    setWrongRecorded(false);
+    cardState.reset();
+  }
+
   if (done) {
+    if (recovery) {
+      return (
+        <div className="px-4 py-4 pb-28" style={dotGrid}>
+          <Card className="p-5 text-center">
+            <div className="text-xl" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
+              Recovery complete
+            </div>
+            <div className="mt-2 text-3xl" style={{ fontFamily: MONO, color: C.ink }}>
+              {recovered}/{roundCards.length}
+            </div>
+            <div className="mt-1 text-sm" style={{ color: C.mut }}>
+              {recovered === roundCards.length
+                ? "Every missed card came back this round."
+                : `${roundCards.length - recovered} still worth another look tomorrow.`}
+            </div>
+            <Button className="mt-4" onClick={onFinish}>
+              Back to Repaso
+            </Button>
+          </Card>
+        </div>
+      );
+    }
+
     const total = tally.passed + tally.failed;
     return (
       <div className="px-4 py-4 pb-28" style={dotGrid}>
@@ -101,15 +163,22 @@ export default function ReviewSession({ cards, mode = "reveal", onFinish, onOpen
               </div>
             </>
           )}
-          <Button className="mt-4" onClick={onFinish}>
-            Back to Repaso
-          </Button>
+          <div className="mt-4 flex flex-col gap-2">
+            {missedCards.length > 0 && (
+              <Button className="min-h-11" onClick={beginRecovery}>
+                <RotateCcw size={15} /> Practice {missedCards.length} missed again
+              </Button>
+            )}
+            <Button className="min-h-11" tone={missedCards.length > 0 ? "quiet" : "primary"} onClick={onFinish}>
+              Back to Repaso
+            </Button>
+          </div>
         </Card>
       </div>
     );
   }
 
-  const remaining = cards.length - index;
+  const remaining = roundCards.length - index;
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
       <div className="flex items-center justify-between mb-3">
@@ -117,9 +186,15 @@ export default function ReviewSession({ cards, mode = "reveal", onFinish, onOpen
           <ChevronLeft size={16} /> Finish
         </button>
         <span className="text-xs" style={{ fontFamily: MONO, color: C.mut }}>
-          {index + 1} / {cards.length}
+          {index + 1} / {roundCards.length}
         </span>
       </div>
+
+      {recovery && (
+        <div className="mb-3 text-center text-[11px] font-semibold uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.1em" }}>
+          Missed round
+        </div>
+      )}
 
       <PracticeCard
         item={item}
@@ -158,9 +233,15 @@ export default function ReviewSession({ cards, mode = "reveal", onFinish, onOpen
       />
 
       {cardState.revealed && cardState.typedResult?.verdict === "wrong" ? (
-        <Button className="mt-4 min-h-11 w-full" disabled={busy || !wrongRecorded} onClick={advance}>
+        <Button
+          className="mt-4 min-h-11 w-full"
+          disabled={busy || !wrongRecorded}
+          onClick={() => recovery ? answerRecovery(false) : advance()}
+        >
           Continue
         </Button>
+      ) : recovery && cardState.revealed ? (
+        <SelfAssessmentStrip onAnswer={answerRecovery} />
       ) : cardState.revealed && (
         <ReviewGradeStrip
           busy={busy}
@@ -172,7 +253,7 @@ export default function ReviewSession({ cards, mode = "reveal", onFinish, onOpen
 
       <div className="mt-6 text-center text-xs" style={{ color: C.mut }}>
         <RotateCcw size={11} className="inline mr-1 -mt-0.5" />
-        {remaining === 1 ? "Last one" : `${remaining} left today`}
+        {remaining === 1 ? "Last one" : `${remaining} left ${recovery ? "in this round" : "today"}`}
       </div>
     </div>
   );
