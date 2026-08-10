@@ -8,6 +8,13 @@ import {
   newGrammarSectionKey,
   newSourceCaptureKey,
 } from "./ids.js";
+import {
+  canonicalOutline,
+  outlineBreadcrumb,
+  outlineCounts,
+  outlineHierarchy,
+  validateOneLevelOutline,
+} from "./oneLevelOutline.js";
 
 /** The leading presentation focus stored on every structured page. */
 export const PAGE_FOCUSES = Object.freeze({
@@ -176,41 +183,25 @@ export function newGrammarSection({
 
 /** Read the flat schema-v6 array as one root level plus one child level without cloning content. */
 export function grammarSectionHierarchy(sections = []) {
-  const list = Array.isArray(sections) ? sections : [];
-  const roots = list.filter((section) => section?.parentId == null);
-  const childrenByParent = new Map(roots.map((section) => [section.id, []]));
-  const unplaced = [];
-  for (const section of list) {
-    if (section?.parentId == null) continue;
-    const siblings = childrenByParent.get(section.parentId);
-    if (siblings) siblings.push(section);
-    else unplaced.push(section);
-  }
-  return { roots, childrenByParent, unplaced };
+  return outlineHierarchy(sections);
 }
 
 /** Stable depth-first storage: each root is followed by its children; invalid leftovers are retained. */
 export function canonicalGrammarSections(sections = []) {
-  const list = Array.isArray(sections) ? sections : [];
-  const { roots, childrenByParent, unplaced } = grammarSectionHierarchy(list);
-  const ordered = roots.flatMap((root) => [root, ...(childrenByParent.get(root.id) || [])]);
-  return [...ordered, ...unplaced];
+  return canonicalOutline(sections);
 }
 
 export function grammarStructureCounts(sections = []) {
   const list = Array.isArray(sections) ? sections : [];
+  const hierarchyCounts = outlineCounts(list);
   return {
-    sections: list.filter((section) => section?.parentId == null).length,
-    subsections: list.filter((section) => section?.parentId != null).length,
+    ...hierarchyCounts,
     examples: list.reduce((total, section) => total + (section?.examples?.length || 0), 0),
   };
 }
 
 export function grammarSectionBreadcrumb(section, sections = []) {
-  if (!section) return "";
-  if (section.parentId == null) return section.name || "";
-  const parent = (sections || []).find((candidate) => candidate?.id === section.parentId);
-  return parent ? `${parent.name} › ${section.name}` : section.name || "";
+  return outlineBreadcrumb(section, sections);
 }
 
 /**
@@ -378,27 +369,20 @@ export function validatePageStructures(page, {
     if (!Array.isArray(grammar.sections)) {
       errors.push(`${where}.grammar.sections must be an array`);
     } else {
-      const localSectionsById = new Map();
+      errors.push(...validateOneLevelOutline(grammar.sections, {
+        where: `${where}.grammar.sections`,
+        isId: isGrammarSectionKey,
+        idLabel: "grammar-section",
+        seenIds: seenSectionIds,
+        normalizeName: pageStructureNameKey,
+        parentMode: schemaVersion >= 6 ? "required" : "forbidden",
+      }).map((error) => schemaVersion < 6 && error.endsWith("is not part of this schema")
+        ? `${error.slice(0, -"this schema".length)}schema v${schemaVersion}`
+        : error));
       grammar.sections.forEach((section, sectionIndex) => {
         const sectionWhere = `${where}.grammar.sections[${sectionIndex}]`;
         if (!isPlainObject(section)) {
-          errors.push(`${sectionWhere} is not an object`);
           return;
-        }
-        registerStableId(section.id, sectionWhere, "grammar-section", isGrammarSectionKey, seenSectionIds, errors);
-        if (isGrammarSectionKey(section.id) && !localSectionsById.has(section.id)) {
-          localSectionsById.set(section.id, section);
-        }
-        if (schemaVersion >= 6) {
-          if (section.parentId !== null && !isGrammarSectionKey(section.parentId)) {
-            errors.push(`${sectionWhere}.parentId must be null or a grammar-section UUID`);
-          }
-        } else if (Object.prototype.hasOwnProperty.call(section, "parentId")) {
-          errors.push(`${sectionWhere}.parentId is not part of schema v${schemaVersion}`);
-        }
-        if (!isNonblankString(section.name)) errors.push(`${sectionWhere}.name must be a nonblank string`);
-        else {
-          if (section.name !== section.name.trim()) errors.push(`${sectionWhere}.name must be trimmed`);
         }
         if (!isString(section.explanation)) errors.push(`${sectionWhere}.explanation must be a string`);
         if (!isString(section.pattern)) errors.push(`${sectionWhere}.pattern must be a string`);
@@ -428,56 +412,6 @@ export function validatePageStructures(page, {
         });
       });
 
-      const seenNamesByParent = new Map();
-      grammar.sections.forEach((section, sectionIndex) => {
-        if (!isPlainObject(section) || !isNonblankString(section.name)) return;
-        const sectionWhere = `${where}.grammar.sections[${sectionIndex}]`;
-        const parentKey = schemaVersion >= 6 ? section.parentId : null;
-        let seenNames = seenNamesByParent.get(parentKey);
-        if (!seenNames) {
-          seenNames = new Set();
-          seenNamesByParent.set(parentKey, seenNames);
-        }
-        const nameKey = pageStructureNameKey(section.name);
-        if (seenNames.has(nameKey)) {
-          errors.push(schemaVersion >= 6
-            ? `${where}.grammar.sections must have unique names among siblings`
-            : `${where}.grammar.sections must have unique names`);
-        } else {
-          seenNames.add(nameKey);
-        }
-
-        if (schemaVersion < 6 || section.parentId === null || !isGrammarSectionKey(section.parentId)) return;
-        if (section.parentId === section.id) {
-          errors.push(`${sectionWhere}.parentId must not point to the section itself`);
-          return;
-        }
-        const parent = localSectionsById.get(section.parentId);
-        if (!parent) {
-          errors.push(`${sectionWhere}.parentId must point to a section on the same page`);
-        } else if (parent.parentId !== null) {
-          errors.push(`${sectionWhere}.parentId would exceed the one subsection level`);
-        }
-      });
-
-      if (schemaVersion >= 6) {
-        let hasCycle = false;
-        for (const section of grammar.sections) {
-          if (!isPlainObject(section) || !isGrammarSectionKey(section.id)) continue;
-          const path = new Set();
-          let current = section;
-          while (current && current.parentId !== null && isGrammarSectionKey(current.parentId)) {
-            if (path.has(current.id)) {
-              hasCycle = true;
-              break;
-            }
-            path.add(current.id);
-            current = localSectionsById.get(current.parentId);
-          }
-          if (hasCycle) break;
-        }
-        if (hasCycle) errors.push(`${where}.grammar.sections must not contain a parent cycle`);
-      }
     }
   }
 

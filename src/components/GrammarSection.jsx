@@ -22,6 +22,12 @@ import {
   pageStructureNameKey,
 } from "../lib/pageKinds.js";
 import {
+  moveOutlineSibling,
+  outlineNamesValid,
+  outlineSiblingState,
+  reparentOutlineRow,
+} from "../lib/oneLevelOutline.js";
+import {
   deleteGrammarExample,
   deleteGrammarSection,
   saveGrammarDetails,
@@ -511,55 +517,14 @@ function GrammarOrganizer({ sections, onCancel, onSaved }) {
   const [problem, setProblem] = useState("");
   const changed = JSON.stringify(draft) !== JSON.stringify(initial);
   const hierarchy = grammarSectionHierarchy(draft);
-  const namesValid = (() => {
-    const seenByParent = new Map();
-    for (const section of draft) {
-      const name = pageStructureNameKey(section.name);
-      if (!name) return false;
-      const parentId = section.parentId ?? null;
-      const seen = seenByParent.get(parentId) || new Set();
-      if (seen.has(name)) return false;
-      seen.add(name);
-      seenByParent.set(parentId, seen);
-    }
-    return true;
-  })();
-
-  function siblingState(rows, sectionId) {
-    const index = rows.findIndex((section) => section.id === sectionId);
-    const section = rows[index];
-    if (!section) return { index: -1, indexes: [], position: -1 };
-    const parentId = section.parentId ?? null;
-    const indexes = rows.flatMap((candidate, candidateIndex) => (
-      (candidate.parentId ?? null) === parentId ? [candidateIndex] : []
-    ));
-    return { index, indexes, position: indexes.indexOf(index) };
-  }
+  const namesValid = outlineNamesValid(draft, pageStructureNameKey);
 
   function moveSection(sectionId, offset) {
-    setDraft((current) => {
-      const { indexes, position } = siblingState(current, sectionId);
-      const targetPosition = position + offset;
-      if (position < 0 || targetPosition < 0 || targetPosition >= indexes.length) return current;
-      const next = [...current];
-      const targetIndex = indexes[targetPosition];
-      const index = indexes[position];
-      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
-      return canonicalGrammarSections(next);
-    });
+    setDraft((current) => moveOutlineSibling(current, sectionId, offset));
   }
 
   function changeParent(sectionId, value) {
-    const parentId = value || null;
-    setDraft((current) => {
-      const section = current.find((candidate) => candidate.id === sectionId);
-      if (!section || section.parentId === parentId) return current;
-      const hasChildren = current.some((candidate) => candidate.parentId === sectionId);
-      if (hasChildren && parentId !== null) return current;
-      return canonicalGrammarSections(current.map((candidate) => candidate.id === sectionId
-        ? { ...candidate, parentId }
-        : candidate));
-    });
+    setDraft((current) => reparentOutlineRow(current, sectionId, value));
   }
 
   function moveExample(sectionIndex, exampleIndex, offset) {
@@ -618,7 +583,7 @@ function GrammarOrganizer({ sections, onCancel, onSaved }) {
               <button
                 type="button"
                 aria-label={`Move section ${section.name || sectionIndex + 1} up`}
-                disabled={siblingState(draft, section.id).position <= 0}
+                disabled={outlineSiblingState(draft, section.id).position <= 0}
                 onClick={() => moveSection(section.id, -1)}
                 className="flex min-h-11 min-w-11 items-center justify-center disabled:opacity-30"
               >
@@ -628,7 +593,7 @@ function GrammarOrganizer({ sections, onCancel, onSaved }) {
                 type="button"
                 aria-label={`Move section ${section.name || sectionIndex + 1} down`}
                 disabled={(() => {
-                  const { indexes, position } = siblingState(draft, section.id);
+                  const { indexes, position } = outlineSiblingState(draft, section.id);
                   return position < 0 || position === indexes.length - 1;
                 })()}
                 onClick={() => moveSection(section.id, 1)}
