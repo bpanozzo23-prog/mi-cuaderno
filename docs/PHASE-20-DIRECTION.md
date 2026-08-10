@@ -1,6 +1,7 @@
 # Phase 20 — Global tag management
 
-**Status:** Owner-approved for implementation 2026-08-10.
+**Status:** Implemented and verified locally 2026-08-10; not pushed or deployed. See
+[PHASE-20-REPORT.md](PHASE-20-REPORT.md).
 **Origin:** The existing tag suggestions prevent some new spelling variants, but the notebook has
 no way to repair an existing typo, consolidate two exact tags or remove an obsolete tag without
 editing every affected item separately.

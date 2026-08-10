@@ -46,6 +46,26 @@ Useful information to retain for each idea:
 | Learning depth (cloze, reverse, drill, audio) | 2026-08-06 | Implemented locally | Phase 10a–10d; deferred members need real-use evidence |
 | Owner-centric stats (streak, calendar, growth, ladder, per-item strip) | 2026-08-06 | Implemented locally | Phase 11; retention, coverage and per-direction breakdowns need real data volume |
 | Grammar guide depth and callouts | 2026-08-10 | Implemented locally | Phase 19 first release verified; not deployed |
+| Global tag management | 2026-08-10 | Implemented locally | Phase 20 verified; not deployed |
+
+---
+
+## Global tag management
+
+- **Date added:** 2026-08-10
+- **Status:** Implemented and verified locally as Phase 20; not deployed
+- **Origin:** Existing spelling variants and obsolete tags required one edit per affected entry
+- **Potential data impact:** None beyond existing item tags, ordinary edit events and the backed-up
+  `tagColors` preference; schema remains v6
+
+Ajustes is now the single exact-tag maintenance home. One source can be renamed to a new spelling,
+merged into one existing exact destination or removed globally. The timestamp-neutral atomic
+transaction, explicit merge/removal confirmations, optional backup and colour-ownership rules are
+recorded in `docs/PHASE-20-DIRECTION.md`.
+
+The complete 1,168-test suite, production build, rollback/backup proofs and a disposable 375×812
+rename→merge→remove browser flow pass. See `docs/PHASE-20-REPORT.md` for the implementation and
+numerical closeout.
 
 ---
 
