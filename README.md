@@ -224,6 +224,12 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   Page organization/formatting increments, but does not pre-approve unknown scope. See the
   approved [direction](docs/PHASE-19-DIRECTION.md) and
   [implementation report](docs/PHASE-19-REPORT.md).
+- **Phase 20 — approved; implementation in progress.** Ajustes will manage every exact personal
+  tag globally: rename to an unused spelling, explicitly merge into an existing tag, or remove the
+  tag without deleting entries. Mutations preserve item timestamps, log one ordinary `edit` per
+  changed item, update tag colours in the same transaction and offer an optional backup before
+  lossy actions. Schema v6 and the current backup format remain unchanged. See the approved
+  [direction](docs/PHASE-20-DIRECTION.md).
 - **Collection bulk capture — deployed.** A Vocabulary page's existing
   Add vocabulary panel can now narrow saved entries to Words, Phrases, and an exact existing tag,
   then select every available match together. Existing members remain excluded and the final Add

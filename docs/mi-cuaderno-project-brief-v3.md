@@ -12,6 +12,10 @@
 Grammar subsections, formatted Grammar overviews and accessible Note callouts while retaining the
 two-type composable Page model and excluding a general block editor.
 
+**Phase 20 amendment, 2026-08-10 — §§7 and 12:** Ajustes gains exact global tag rename, merge and
+removal across personal items. Each changed item keeps its timestamp but receives one ordinary
+`edit`; item, event and colour-preference writes are atomic and schema v6 remains unchanged.
+
 ---
 
 ## 1. What this is
@@ -301,6 +305,11 @@ changes no page timestamp and writes no event.
 - **Phase-19 event clarification, 2026-08-10:** subsection creation/editing and changed hierarchy
   organization are Grammar-guide content saves and write one page `edit`. Cancel and no-op Save
   remain event-free; automatic reference cleanup remains timestamp- and event-neutral.
+- **Phase-20 tag-maintenance clarification, 2026-08-10:** an exact global tag rename, merge or
+  removal writes one ordinary `edit` for every actually changed personal item while preserving
+  every item's `updatedAt`. The events retain their existing owner-activity behavior; the operation
+  adds no event type or metadata. All item, event and tag-colour writes succeed or roll back
+  together.
 - **Free-practice event amendment, 2026-08-05:** starting, revealing, answering, repeating or
   finishing a Words & phrases free-practice session writes no event and changes no item timestamp.
   Opening the full entry remains ordinary detail navigation and retains its existing view-event
@@ -676,6 +685,23 @@ deletion protection and structure copying obey the one-level contract; counts an
 consistent; and the complete serial suite, production build, diff check, deliberate failure proofs
 and a disposable schema-v5 375×812 export→upgrade→restore flow pass without overflow, warnings or
 console errors.
+
+**Amended 2026-08-10 — Phase 20: global tag management.** Ajustes can rename one exact stored tag
+across every personal item, merge it into one exact existing destination, or remove it everywhere.
+Normalized lookalikes are suggestions only. Rename preserves tag position; overlap keeps the
+destination's existing position. Rename carries the source colour, merge keeps the destination
+colour, and removal deletes the old colour key. Merge and removal require explicit confirmation
+and offer an optional backup export. The mutation is one transaction over items, events and
+preferences; every changed item receives one ordinary `edit` while `updatedAt` remains unchanged.
+No tag registry, alias, persistent undo, batch event, preference shape, backup format or schema
+change is introduced; `SCHEMA_VERSION` remains 6. The approved contract lives in
+`docs/PHASE-20-DIRECTION.md`.
+*Done when:* exact rename/merge/removal and colour/order rules hold for lexical items and Pages;
+failure rolls the whole batch back; timestamps remain byte-for-byte unchanged while edit events
+retain existing activity behavior; every derived search/filter/Gym consumer refreshes safely; a
+current schema-v6 backup round-trips the result; and the complete serial suite, production build,
+diff check, deliberate failure proofs and a disposable 375×812 flow pass without overflow,
+warnings or console errors.
 
 ## 13. Non-goals
 
