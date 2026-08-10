@@ -273,11 +273,11 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   overflow or console warnings/errors. See the Optional Grammar key idea entries in
   [DECISIONS.md](DECISIONS.md).
 
-`SCHEMA_VERSION` is **5**. Before Dexie opens v5, schema-v1 through schema-v4 owners must save and
+`SCHEMA_VERSION` is **6**. Before Dexie opens v6, schema-v1 through schema-v5 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
-relationship, and composable-page migrations in order. Backup schemas 1 through 5 are accepted,
-upgraded sequentially in memory, deeply validated as v5, and only then offered for
-replace-and-restore; newer versions remain blocked.
+relationship, composable-page, and Grammar-hierarchy migrations in order. Backup schemas 1
+through 6 are accepted, upgraded sequentially in memory, deeply validated as v6, and only then
+offered for replace-and-restore; newer versions remain blocked.
 
 ## Testing
 
