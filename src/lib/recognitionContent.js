@@ -108,7 +108,7 @@ const usage = (id, answer, prompt, options = {}) => ({
 export const TENSE_USAGE_CARDS = [
   usage("present-habit", "Indicative/Present", "A habitual action or routine — what someone does in general.", { contrast: "The present describes what happens habitually or generally." }),
   usage("present-state", "Indicative/Present", "A state or fact that is true in the present (Vivo en Chicago)."),
-  usage("present-scheduled-future", "Indicative/Present", "A scheduled or already-decided future event stated in the present (Salgo mañana; El tren sale a las ocho).", { alsoAcceptable: ["Indicative/Future"] }),
+  usage("present-scheduled-future", "Indicative/Present", "A scheduled or already-decided future event stated in the present (Salgo mañana; El tren sale a las ocho).", { alsoAcceptable: ["Indicative/Future"], contrast: "The present can state a scheduled future; the future tense makes a prediction, promise, or future statement." }),
 
   usage("preterite-completed", "Indicative/Preterite", "A completed past action with a clear beginning or end.", { contrast: "The preterite is for an action that finished; the imperfect frames an ongoing past." }),
   usage("preterite-sequence", "Indicative/Preterite", "A sequence of events in the past, each happening once."),

@@ -30,6 +30,7 @@ import ConjugationDrill from "./ConjugationDrill.jsx";
 import ConjugationPerformance from "./ConjugationPerformance.jsx";
 import RecognitionDrill from "./RecognitionDrill.jsx";
 import EndingsReveal from "./EndingsReveal.jsx";
+import UsageReveal from "./UsageReveal.jsx";
 
 const SESSION_KINDS = [
   { value: "quick", label: "Quick", detail: "10 everyday prompts" },
@@ -330,7 +331,7 @@ export default function ConjugationGym({
           onGraded={onGraded}
           renderReveal={session.skill === "endings"
             ? (card) => <EndingsReveal card={card} library={library} />
-            : null}
+            : (card) => <UsageReveal card={card} />}
         />
       );
     }
