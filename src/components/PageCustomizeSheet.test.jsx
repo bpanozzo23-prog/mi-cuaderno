@@ -55,6 +55,22 @@ describe("PageCustomizeSheet", () => {
     expect(screen.getByRole("radio", { name: /^Notes$/i }).checked).toBe(true);
   });
 
+  it("separates Grammar root, subsection, and example counts", () => {
+    const rootId = "grammar-section:root";
+    render(<PageCustomizeSheet page={{
+      ...page,
+      grammar: {
+        enabled: true,
+        sections: [
+          { id: rootId, parentId: null, examples: [] },
+          { id: "grammar-section:child", parentId: rootId, examples: [{ id: "grammar-example:one" }] },
+        ],
+      },
+    }} onClose={() => {}} onSaved={() => {}} />);
+
+    expect(screen.getByText("1 section · 1 subsection · 1 example")).toBeTruthy();
+  });
+
   it("labels a dated page that loses its final structures before saving", async () => {
     const user = userEvent.setup();
     render(<PageCustomizeSheet page={{

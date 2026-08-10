@@ -167,9 +167,24 @@ export async function copyPageStructure(sourcePageId, { title } = {}) {
     groups: (sourcePage.collection?.groups || []).map((group) => newPageGroup(group.name)),
   };
   const source = emptySource({ enabled: sourcePage.source?.enabled === true });
+  const sourceSections = sourcePage.grammar?.sections || [];
+  const copiedSectionsBySourceId = new Map(sourceSections.map((section) => [
+    section.id,
+    newGrammarSection({ name: section.name }),
+  ]));
+  const copiedSections = sourceSections.map((section) => {
+    const copied = copiedSectionsBySourceId.get(section.id);
+    const copiedParent = section.parentId === null
+      ? null
+      : copiedSectionsBySourceId.get(section.parentId);
+    if (section.parentId !== null && !copiedParent) {
+      throw new Error("The source page has an invalid Grammar subsection parent.");
+    }
+    return { ...copied, parentId: copiedParent?.id ?? null };
+  });
   const grammar = emptyGrammar({
     enabled: sourcePage.grammar?.enabled === true,
-    sections: (sourcePage.grammar?.sections || []).map((section) => newGrammarSection({ name: section.name })),
+    sections: copiedSections,
   });
   const created = newPage({
     title: copiedTitle,

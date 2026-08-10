@@ -1,4 +1,5 @@
 import { deriveCollection, NOT_GROUPED_LABEL } from "./collections.js";
+import { grammarSectionBreadcrumb } from "./pageKinds.js";
 
 const uniqueKeys = (keys = []) => [...new Set(keys || [])];
 
@@ -121,7 +122,12 @@ export function activePageContextsForLexical(itemKey, items = []) {
       for (const section of page.grammar.sections || []) {
         for (const example of section.examples || []) {
           if (!(example.itemKeys || []).includes(itemKey)) continue;
-          byKind.grammar.push(contextBase(page, "grammar", "Grammar example", section.name || ""));
+          byKind.grammar.push(contextBase(
+            page,
+            "grammar",
+            "Grammar example",
+            grammarSectionBreadcrumb(section, page.grammar.sections)
+          ));
         }
       }
     }

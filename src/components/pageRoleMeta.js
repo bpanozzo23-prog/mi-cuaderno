@@ -1,7 +1,12 @@
 import { BookOpen, Braces, FileText, Library } from "lucide-react";
 import { C } from "../theme.jsx";
 import { deriveCollection } from "../lib/collections.js";
-import { enabledPageRoles, isJournalPage, PAGE_FOCUSES } from "../lib/pageKinds.js";
+import {
+  enabledPageRoles,
+  grammarStructureCounts,
+  isJournalPage,
+  PAGE_FOCUSES,
+} from "../lib/pageKinds.js";
 
 /**
  * How a page role presents itself on a card: one label, one icon, one colour pair.
@@ -148,8 +153,8 @@ const countPart = (count, singular) =>
 /**
  * The one-line count summary under a page title, in a fixed order so two pages with the same
  * structures always read the same way. With the role pills reduced to the single tab badge, this
- * line is also what discloses a page's secondary structures: sections and examples mean Grammar,
- * items and groups mean Vocabulary.
+ * line is also what discloses a page's secondary structures: root sections, subsections and
+ * examples mean Grammar; items and groups mean Vocabulary.
  *
  * Returns "" when an enabled structure has nothing in it yet. The Notes fallback below is reserved
  * for a page with no structure at all, so it can never speak for a Vocabulary or Grammar page.
@@ -169,10 +174,10 @@ export function pageSummary(page, items) {
   }
 
   if (page.grammar?.enabled) {
-    const sections = page.grammar.sections || [];
-    const examples = sections.reduce((total, section) => total + (section.examples?.length || 0), 0);
-    parts.push(countPart(sections.length, "section"));
-    parts.push(countPart(examples, "example"));
+    const counts = grammarStructureCounts(page.grammar.sections);
+    parts.push(countPart(counts.sections, "section"));
+    parts.push(countPart(counts.subsections, "subsection"));
+    parts.push(countPart(counts.examples, "example"));
   }
 
   if (page.collection?.enabled) {

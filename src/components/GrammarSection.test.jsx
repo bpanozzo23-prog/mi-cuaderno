@@ -546,6 +546,23 @@ describe("GrammarSection organization", () => {
     ));
   });
 
+  it("labels a subsection’s contextual vocabulary action with its breadcrumb", async () => {
+    const user = userEvent.setup();
+    const nested = hierarchicalPage();
+    nested.grammar = {
+      ...nested.grammar,
+      sections: nested.grammar.sections.map((section) => section.id === SECTION_CHILD
+        ? { ...section, examples: [{ ...exampleOne, id: "grammar-example:33333333-3333-4333-8333-333333333333" }] }
+        : section),
+    };
+    render(<GrammarSection {...baseProps({ page: nested })} />);
+
+    const child = screen.getByRole("heading", { name: "SPOCK" }).closest(".grammar-guide-subsection");
+    await user.click(within(child).getByRole("button", { name: "Add vocabulary" }));
+
+    expect(screen.getByText("Formation › SPOCK example")).toBeTruthy();
+  });
+
   it("reparents a subsection in the organizer while blocking a root that owns children", async () => {
     const user = userEvent.setup();
     render(<GrammarSection {...baseProps({ page: hierarchicalPage() })} />);

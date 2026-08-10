@@ -26,6 +26,7 @@ const page = (patch = {}) => ({
     enabled: true,
     sections: [{
       id: "grammar-section:one",
+      parentId: null,
       name: "Pragmatics",
       explanation: "",
       pattern: "",
@@ -76,5 +77,20 @@ describe("page contextual references", () => {
       "grammar",
     ]);
     expect(activePageVocabularyKeys(active, items)).toEqual(["user:word"]);
+  });
+
+  it("uses a Parent › Child breadcrumb for Grammar subsection context", () => {
+    const root = { ...page().grammar.sections[0], examples: [] };
+    const child = {
+      ...page().grammar.sections[0],
+      id: "grammar-section:child",
+      parentId: root.id,
+      name: "SPOCK",
+    };
+    const nested = page({ grammar: { enabled: true, sections: [root, child] } });
+
+    const context = activePageContextsForLexical("user:word", [nested, lexical("user:word")])
+      .find(({ kind }) => kind === "grammar");
+    expect(context.detail).toBe("Pragmatics › SPOCK");
   });
 });

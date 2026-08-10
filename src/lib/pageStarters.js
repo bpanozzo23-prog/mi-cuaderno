@@ -4,7 +4,7 @@ export const PAGE_STARTER_FAMILIES = Object.freeze([
   Object.freeze({ id: "notes", title: "Notes", description: "Flexible prose and connections" }),
   Object.freeze({ id: "vocabulary", title: "Vocabulary", description: "Groups, expandable entries, and Practice" }),
   Object.freeze({ id: "source", title: "Source notebook", description: "Captured notes, source details, and vocabulary" }),
-  Object.freeze({ id: "grammar", title: "Grammar guide", description: "Named sections, patterns, and example pairs" }),
+  Object.freeze({ id: "grammar", title: "Grammar guide", description: "Sections, subsections, patterns, and example pairs" }),
   Object.freeze({ id: "copy", title: "Copy page structure", description: "Reuse focus and organization without copying content" }),
 ]);
 
@@ -43,19 +43,19 @@ export const PAGE_RECIPES = Object.freeze({
     Object.freeze({
       id: "rule-construction",
       title: "Rule or construction",
-      description: "Formation, use, and exceptions or contrasts",
+      description: "Top-level sections you can expand with subsections",
       sectionNames: ["Formation", "When to use it", "Exceptions and contrasts"],
     }),
     Object.freeze({
       id: "compare-forms",
       title: "Compare forms",
-      description: "Two forms and how to choose between them",
+      description: "Three top-level sections: two forms and how to choose",
       sectionNames: ["Form A", "Form B", "Choosing between them"],
     }),
     Object.freeze({
       id: "example-bank",
       title: "Example bank",
-      description: "One flexible examples section",
+      description: "One flexible top-level examples section",
       sectionNames: ["Examples"],
     }),
   ]),

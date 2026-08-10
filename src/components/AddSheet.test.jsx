@@ -335,6 +335,7 @@ describe("AddSheet", () => {
       "Choosing between them",
     ]);
     expect(created.grammar.sections.every(({ id }) => /^grammar-section:/.test(id))).toBe(true);
+    expect(created.grammar.sections.every(({ parentId }) => parentId === null)).toBe(true);
     expect(created.grammar.sections.every(({ examples }) => examples.length === 0)).toBe(true);
     expect(created.source.enabled).toBe(false);
   });

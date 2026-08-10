@@ -10,6 +10,7 @@ describe("page starters", () => {
       "grammar",
       "copy",
     ]);
+    expect(PAGE_STARTER_FAMILIES.find(({ id }) => id === "grammar").description).toMatch(/subsections/i);
     expect(pageSeedFromRecipe("source", "audio")).toEqual({
       pageFocus: "source",
       collectionEnabled: true,
@@ -33,6 +34,7 @@ describe("page starters", () => {
       "Form B",
       "Choosing between them",
     ]);
+    expect(PAGE_RECIPES.grammar.find(({ id }) => id === "compare-forms").description).toMatch(/top-level/i);
     expect(PAGE_RECIPES.grammar).toHaveLength(3);
   });
 });

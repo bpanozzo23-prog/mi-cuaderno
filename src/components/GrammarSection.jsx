@@ -890,7 +890,7 @@ function ExampleCard({
         <CollectionAddVocabularySheet
           items={items}
           memberLocations={memberLocations}
-          targetLabel={`${section.name} example`}
+          targetLabel={`${grammarSectionBreadcrumb(section, page.grammar?.sections)} example`}
           creationContext="this grammar example"
           onCancel={onCancelVocabulary}
           onCommit={onCommitVocabulary}

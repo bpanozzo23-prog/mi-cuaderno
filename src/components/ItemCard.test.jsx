@@ -62,6 +62,33 @@ describe("page cards", () => {
     expect(screen.queryByText("2026-08-03")).toBeNull();
   });
 
+  it("separates Grammar root, subsection, and example counts", () => {
+    const rootId = "grammar-section:root";
+    const grammar = page({
+      title: "Indicative vs subjunctive",
+      pageFocus: "grammar",
+      grammar: {
+        enabled: true,
+        keyIdea: "",
+        sections: [
+          { id: rootId, parentId: null, name: "Indicative", explanation: "", pattern: "", examples: [] },
+          {
+            id: "grammar-section:child",
+            parentId: rootId,
+            name: "SPOCK",
+            explanation: "",
+            pattern: "",
+            examples: [{ id: "grammar-example:one", es: "Creo que viene." }],
+          },
+        ],
+      },
+    });
+
+    render(<ItemCard item={grammar} items={[grammar]} onOpen={vi.fn()} />);
+
+    expect(screen.getByText("1 section · 1 subsection · 1 example")).toBeTruthy();
+  });
+
   it("keeps the dated Notes-only page presentation", () => {
     const { container } = render(<ItemCard item={page({ pageDate: "2026-08-03" })} onOpen={vi.fn()} />);
 

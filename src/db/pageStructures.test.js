@@ -73,13 +73,18 @@ describe("page configuration and structure copying", () => {
       name: "Formation",
       explanation: "Personal content",
     });
+    const subsection = newGrammarSection({
+      parentId: section.id,
+      name: "SPOCK",
+      explanation: "Do not copy",
+    });
     const source = await createItem(newPage({
       title: "Original",
       body: "Do not copy",
       pageFocus: PAGE_FOCUSES.grammar,
       collection: { enabled: true, groups: [group] },
       source: emptySource({ enabled: true, creator: "Do not copy", captures: [newSourceCapture({ text: "Do not copy" })] }),
-      grammar: emptyGrammar({ enabled: true, keyIdea: "Do not copy", sections: [section] }),
+      grammar: emptyGrammar({ enabled: true, keyIdea: "Do not copy", sections: [section, subsection] }),
       tags: ["private"],
       linkedKeys: [],
     }));
@@ -98,9 +103,13 @@ describe("page configuration and structure copying", () => {
     });
     expect(copy.collection.groups.map(({ name }) => name)).toEqual(["Softening"]);
     expect(copy.collection.groups[0].id).not.toBe(group.id);
-    expect(copy.grammar.sections.map(({ name }) => name)).toEqual(["Formation"]);
+    expect(copy.grammar.sections.map(({ name }) => name)).toEqual(["Formation", "SPOCK"]);
     expect(copy.grammar.sections[0].id).not.toBe(section.id);
+    expect(copy.grammar.sections[1].id).not.toBe(subsection.id);
+    expect(copy.grammar.sections[1].parentId).toBe(copy.grammar.sections[0].id);
+    expect(copy.grammar.sections[1].parentId).not.toBe(section.id);
     expect(copy.grammar.sections[0].explanation).toBe("");
+    expect(copy.grammar.sections[1].explanation).toBe("");
   });
 });
 

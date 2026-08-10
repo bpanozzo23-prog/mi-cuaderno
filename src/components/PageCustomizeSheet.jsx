@@ -1,14 +1,14 @@
 import { useMemo, useState } from "react";
 import { Copy, X } from "lucide-react";
 import { C, SERIF, Card, Button } from "../theme.jsx";
-import { PAGE_FOCUSES, isPageFocusEnabled } from "../lib/pageKinds.js";
+import { grammarStructureCounts, PAGE_FOCUSES, isPageFocusEnabled } from "../lib/pageKinds.js";
 import { savePageConfiguration } from "../db/pageStructures.js";
 
 const focusChoices = [
   { id: PAGE_FOCUSES.notes, title: "Notes", description: "Flexible prose appears first." },
   { id: PAGE_FOCUSES.vocabulary, title: "Vocabulary", description: "Vocabulary groups lead." },
   { id: PAGE_FOCUSES.source, title: "Source notes", description: "Captured passages and notes lead." },
-  { id: PAGE_FOCUSES.grammar, title: "Grammar guide", description: "Guide sections and examples lead." },
+  { id: PAGE_FOCUSES.grammar, title: "Grammar guide", description: "Guide sections, subsections, and examples lead." },
 ];
 
 const structureChoices = [
@@ -64,10 +64,15 @@ export default function PageCustomizeSheet({ page, items = [], onClose, onSaved,
   const vocabularyCount = items.length
     ? (page.linkedKeys || []).filter((key) => lexicalIds.has(key)).length
     : (page.linkedKeys || []).length;
+  const grammarCounts = grammarStructureCounts(page.grammar?.sections);
   const counts = {
     collection: `${amount(vocabularyCount, "linked item")} · ${amount(page.collection?.groups?.length || 0, "group")}`,
     source: amount(page.source?.captures?.length || 0, "capture"),
-    grammar: `${amount(page.grammar?.sections?.length || 0, "section")} · ${amount((page.grammar?.sections || []).reduce((total, section) => total + (section.examples || []).length, 0), "example")}`,
+    grammar: [
+      amount(grammarCounts.sections, "section"),
+      ...(grammarCounts.subsections ? [amount(grammarCounts.subsections, "subsection")] : []),
+      amount(grammarCounts.examples, "example"),
+    ].join(" · "),
   };
   const movesToJournal = Boolean(page.pageDate) && !enabled.collection && !enabled.source && !enabled.grammar;
   const previewSectionOrder = (previewOrders[focus] || previewOrders[PAGE_FOCUSES.notes])
