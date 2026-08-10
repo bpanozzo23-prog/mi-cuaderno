@@ -50,7 +50,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   Its planned work is kept separate from Phase 4's friction-only maintenance stream. See
   [docs/PHASE-5-DIRECTION.md](docs/PHASE-5-DIRECTION.md) and
   [docs/PHASE-5-REPORT.md](docs/PHASE-5-REPORT.md).
-- **Phase 6 — first slice implemented locally; not deployed.** The AI assistant (brief §9), opened
+- **Phase 6 — first slice deployed.** The AI assistant (brief §9), opened
   with one narrow feature rather than an app-wide assistant: a user-initiated review of a single
   Diario entry, judging whether it is understandable and where it is correct but unnatural. Off by
   default, enabled in Ajustes behind an acknowledged Anthropic spend cap, using the owner's own key
@@ -93,7 +93,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   375×812 visual browser flow passed without overflow, warnings or errors. See
   [docs/PHASE-9-DIRECTION.md](docs/PHASE-9-DIRECTION.md) and
   [docs/PHASE-9-REPORT.md](docs/PHASE-9-REPORT.md).
-- **Phase 10 — implemented locally; not deployed.** Learning depth in Repaso, built only from
+- **Phase 10 — deployed.** Learning depth in Repaso, built only from
   data the notebook already holds: **session direction** (10a — es→en, en→es or mixed, chosen
   per session and fixed per card, with reverse withholding the term and its Spanish usage cue),
   **cloze cards** (10b — the word blanked out of one of its own example sentences, matching
@@ -108,7 +108,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   red/green proofs behaved as intended, and a disposable 375×812 browser closeout drove all
   three session directions and the drill. See the Phase 10 entries in [DECISIONS.md](DECISIONS.md).
 
-- **Phase 11 — implemented locally; not deployed.** Owner-centric stats, spending data the
+- **Phase 11 — deployed.** Owner-centric stats, spending data the
   notebook already keeps rather than recording anything new: a **study streak** and a 16-week
   **activity calendar** from each event's `localDate`, a cumulative **growth line** from lexical
   items' `createdAt`, the **Leitner ladder** as boxes 1–5 plus Retired, and a **per-item strip**
@@ -124,7 +124,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   build passes, three deliberate red/green proofs behaved as intended, and a disposable 375×812
   closeout verified every surface numerically. See the Phase 11 entries in
   [DECISIONS.md](DECISIONS.md).
-- **Phase 12 — implemented locally; not deployed.** An optional **import of meanings from the
+- **Phase 12 — deployed.** An optional **import of meanings from the
   attached dictionary entry**. A lexical item whose `dictKey` resolves offers a sheet listing that
   entry's senses; each is previewed as the meaning row it would become, nothing is selected by
   default, and confirming appends the chosen ones to the item's own `meanings[]`. Regions and the
@@ -140,7 +140,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   in the new tests, which were fixed — and a disposable 375×812 closeout verified the sheet, the
   append and the follow-up edit numerically. See the Phase 12 entries in
   [DECISIONS.md](DECISIONS.md).
-- **Phase 13 — implemented locally; not deployed.** The conjugation drill is **graded and
+- **Phase 13 — deployed.** The conjugation drill is **graded and
   recorded**, and asks one of two ways. A launch-card control chooses **reveal** (see the form,
   then Got it / Missed it) or **type it** (write the form and be marked); the choice is not
   remembered, like the session-direction control beside it. Typed answers are compared exactly
@@ -168,7 +168,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   seeded 375×812 closeout independently reproduced the displayed score from the raw event log.
   It introduces no schema change, due date, automatic queue or Leitner effect. See the approved
   [direction](docs/PHASE-14-DIRECTION.md) and [implementation report](docs/PHASE-14-REPORT.md).
-- **Phase 15 — implemented locally; not deployed.** Gym correctness and depth: accent-near
+- **Phase 15 — deployed.** Gym correctness and depth: accent-near
   answers now fail when the missing accent changes the tense, performance actions open full
   target-centred Focus decks, and Adaptive uses resolved misses, a 90-day window and rolling
   last-10 accuracy rather than lifetime weakness alone. Stem changers and Irregular preterites
@@ -179,7 +179,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   56 unique curated lemmas resolve to shipped tables, and a disposable 375×812 closeout passed
   without horizontal overflow or console warnings/errors. See the approved
   [direction](docs/PHASE-15-DIRECTION.md) and [implementation report](docs/PHASE-15-REPORT.md).
-- **Phase 16 — implemented locally; not deployed.** Scheduled review now uses the full
+- **Phase 16 — deployed.** Scheduled review now uses the full
   Again/Hard/Good/Easy grade scale, objectively marks typed reverse and cloze answers, offers one
   history-free missed-card recovery round, and chunks queues over 20 into 10/20/All sittings.
   Scheduled review and free practice now share one vocabulary-card engine; hub practice gains

@@ -1,6 +1,7 @@
 # Phase 16 — Review depth and one vocabulary-card engine (report)
 
-Implemented and verified 2026-08-09 on `main`. **Local only; not pushed or deployed.** The owner
+Implemented and verified 2026-08-09 on `main`. **Pushed and deployed later the same day** (the
+verification below describes the pre-push closeout). The owner
 approved §1, §2, §3 and §5 as written; the full approved scope and delivery order are in
 [PHASE-16-DIRECTION.md](PHASE-16-DIRECTION.md). Durable policy choices are recorded in
 `DECISIONS.md` under Phase 16.

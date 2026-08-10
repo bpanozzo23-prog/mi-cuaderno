@@ -1,6 +1,7 @@
 # Phase 15 — Gym correctness, Focus depth and accent semantics (report)
 
-Implemented and verified 2026-08-09 on `main`. **Local only; not pushed or deployed.** The
+Implemented and verified 2026-08-09 on `main`. **Pushed and deployed later the same day** (the
+verification below describes the pre-push closeout). The
 approved scope and delivery order are in [PHASE-15-DIRECTION.md](PHASE-15-DIRECTION.md); durable
 contract decisions are recorded in `DECISIONS.md` under Phase 15.
 

@@ -1,7 +1,8 @@
 # Phase 15 direction — Gym correctness, Focus depth and accent semantics
 
 **Approved:** 2026-08-09
-**Status:** Implemented locally and verified — not deployed
+**Status:** Implemented, verified, and deployed (pushed to `main` 2026-08-09; the Pages run for
+the closeout push succeeded)
 **Origin:** External review (Codex, 2026-08-09) verified claim-by-claim against the source in a
 second review (Claude Code, 2026-08-09). Every item below names the verified problem it fixes.
 

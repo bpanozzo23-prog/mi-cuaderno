@@ -1,6 +1,7 @@
 # Phase 16 direction — Review depth and one practice engine
 
-**Status:** Implemented and verified locally 2026-08-09; not deployed. The owner approved the
+**Status:** Implemented and verified locally 2026-08-09; pushed and deployed later the same day.
+The owner approved the
 policies in §1, §2, §3 and §5 as written and requested implementation in this delivery sequence.
 **Origin:** Claude Code review of the Repaso scheduled review, hub free practice (Phase 9),
 Vocabulary-page Collection practice, and their relationship to the Gym (2026-08-09).
