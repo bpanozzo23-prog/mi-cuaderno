@@ -6,10 +6,13 @@ import {
   copyPageStructure,
   deleteGrammarExample,
   deleteGrammarSection,
+  deleteNoteSection,
   deleteSourceCapture,
   saveGrammarExample,
   saveGrammarOrganization,
   saveGrammarSection,
+  saveNoteOrganization,
+  saveNoteSection,
   savePageConfiguration,
   savePageFocus,
   saveSourceCapture,
@@ -21,6 +24,7 @@ import {
   emptySource,
   newGrammarExample,
   newGrammarSection,
+  newNoteSection,
   newSourceCapture,
 } from "../lib/pageKinds.js";
 import { newPageGroup } from "../lib/collections.js";
@@ -78,9 +82,16 @@ describe("page configuration and structure copying", () => {
       name: "SPOCK",
       explanation: "Do not copy",
     });
+    const noteSection = newNoteSection({ name: "Context", body: "Do not copy" });
+    const noteSubsection = newNoteSection({
+      parentId: noteSection.id,
+      name: "Register",
+      body: "Do not copy",
+    });
     const source = await createItem(newPage({
       title: "Original",
       body: "Do not copy",
+      noteSections: [noteSection, noteSubsection],
       pageFocus: PAGE_FOCUSES.grammar,
       collection: { enabled: true, groups: [group] },
       source: emptySource({ enabled: true, creator: "Do not copy", captures: [newSourceCapture({ text: "Do not copy" })] }),
@@ -103,6 +114,12 @@ describe("page configuration and structure copying", () => {
     });
     expect(copy.collection.groups.map(({ name }) => name)).toEqual(["Softening"]);
     expect(copy.collection.groups[0].id).not.toBe(group.id);
+    expect(copy.noteSections.map(({ name }) => name)).toEqual(["Context", "Register"]);
+    expect(copy.noteSections[0].id).not.toBe(noteSection.id);
+    expect(copy.noteSections[1].id).not.toBe(noteSubsection.id);
+    expect(copy.noteSections[1].parentId).toBe(copy.noteSections[0].id);
+    expect(copy.noteSections[0].body).toBe("");
+    expect(copy.noteSections[1].body).toBe("");
     expect(copy.grammar.sections.map(({ name }) => name)).toEqual(["Formation", "SPOCK"]);
     expect(copy.grammar.sections[0].id).not.toBe(section.id);
     expect(copy.grammar.sections[1].id).not.toBe(subsection.id);
@@ -110,6 +127,138 @@ describe("page configuration and structure copying", () => {
     expect(copy.grammar.sections[1].parentId).not.toBe(section.id);
     expect(copy.grammar.sections[0].explanation).toBe("");
     expect(copy.grammar.sections[1].explanation).toBe("");
+  });
+});
+
+describe("structured Notes mutations", () => {
+  it("adds a subsection canonically, edits it without changing its ID, and skips unchanged writes", async () => {
+    const root = newNoteSection({ name: "Collection context", body: "Why these words belong together." });
+    const nextRoot = newNoteSection({ name: "Study plan", body: "Review on Friday." });
+    const page = await createItem(newPage({
+      title: "Market vocabulary",
+      noteSections: [root, nextRoot],
+    }));
+
+    const added = await saveNoteSection(page.id, {
+      parentId: root.id,
+      name: "Register",
+      body: "Mostly informal.",
+    });
+    expect((await getItem(page.id)).noteSections.map((section) => section.id)).toEqual([
+      root.id,
+      added.section.id,
+      nextRoot.id,
+    ]);
+
+    const edited = await saveNoteSection(page.id, {
+      id: added.section.id,
+      name: "Usage and register",
+      body: "Mostly conversational.",
+    });
+    expect(edited.section).toMatchObject({
+      id: added.section.id,
+      parentId: root.id,
+      name: "Usage and register",
+      body: "Mostly conversational.",
+    });
+
+    const unchanged = await saveNoteSection(page.id, {
+      id: added.section.id,
+      name: "Usage and register",
+      body: "Mostly conversational.",
+    });
+    expect(unchanged.changed).toBe(false);
+    expect(await editEventsFor(page.id)).toHaveLength(2);
+  });
+
+  it("renames, reorders, and reparents the complete outline while preserving section prose", async () => {
+    const usage = newNoteSection({ name: "Usage", body: "Keep usage prose." });
+    const register = newNoteSection({ parentId: usage.id, name: "Register", body: "Keep register prose." });
+    const examples = newNoteSection({ name: "Examples", body: "Keep examples prose." });
+    const page = await createItem(newPage({
+      title: "Collection notes",
+      noteSections: [usage, register, examples],
+    }));
+    const before = await getItem(page.id);
+
+    await expect(saveNoteOrganization(page.id, [
+      { id: usage.id, parentId: null, name: "Usage" },
+      { id: register.id, parentId: usage.id, name: "Register" },
+    ])).rejects.toThrow(/every current section/i);
+    expect(await getItem(page.id)).toEqual(before);
+
+    await saveNoteOrganization(page.id, [
+      { id: examples.id, parentId: null, name: "Examples in context" },
+      { id: register.id, parentId: examples.id, name: "Register" },
+      { id: usage.id, parentId: null, name: "Usage" },
+    ]);
+    const saved = await getItem(page.id);
+    expect(saved.noteSections).toEqual([
+      expect.objectContaining({ id: examples.id, parentId: null, name: "Examples in context", body: "Keep examples prose." }),
+      expect.objectContaining({ id: register.id, parentId: examples.id, name: "Register", body: "Keep register prose." }),
+      expect.objectContaining({ id: usage.id, parentId: null, name: "Usage", body: "Keep usage prose." }),
+    ]);
+    expect(await editEventsFor(page.id)).toHaveLength(1);
+  });
+
+  it("rejects invalid hierarchy changes atomically and does not log an unchanged organization", async () => {
+    const root = newNoteSection({ name: "Root", body: "Root prose." });
+    const child = newNoteSection({ parentId: root.id, name: "Child", body: "Child prose." });
+    const other = newNoteSection({ name: "Other", body: "Other prose." });
+    const page = await createItem(newPage({ title: "Outline", noteSections: [root, child, other] }));
+    const before = await getItem(page.id);
+
+    await expect(saveNoteOrganization(page.id, [
+      { id: root.id, parentId: child.id, name: "Root" },
+      { id: child.id, parentId: other.id, name: "Child" },
+      { id: other.id, parentId: null, name: "Other" },
+    ])).rejects.toThrow(/grandchild|one subsection level|cycle/i);
+    expect(await getItem(page.id)).toEqual(before);
+
+    const unchanged = await saveNoteOrganization(page.id, [
+      { id: root.id, parentId: null, name: "Root" },
+      { id: child.id, parentId: root.id, name: "Child" },
+      { id: other.id, parentId: null, name: "Other" },
+    ]);
+    expect(unchanged).toEqual(before);
+    expect(await editEventsFor(page.id)).toEqual([]);
+  });
+
+  it("blocks deleting a parent, but deletes a leaf together with its own prose", async () => {
+    const root = newNoteSection({ name: "Root", body: "Root prose." });
+    const child = newNoteSection({ parentId: root.id, name: "Child", body: "Leaf prose may be deleted." });
+    const page = await createItem(newPage({ title: "Outline", noteSections: [root, child] }));
+    const before = await getItem(page.id);
+
+    await expect(deleteNoteSection(page.id, root.id)).rejects.toThrow(/subsections/i);
+    expect(await getItem(page.id)).toEqual(before);
+    expect(await editEventsFor(page.id)).toEqual([]);
+
+    await deleteNoteSection(page.id, child.id);
+    expect((await getItem(page.id)).noteSections).toEqual([root]);
+    expect(await editEventsFor(page.id)).toHaveLength(1);
+  });
+
+  it("reports when deleting the final outline moves a dated Notes-only page to Diario", async () => {
+    const only = newNoteSection({ name: "Named structure", body: "This body may be empty or full." });
+    const dated = await createItem(newPage({
+      title: "Dated outline",
+      pageDate: "2026-08-10",
+      body: "A long Overview does not decide the boundary.",
+      noteSections: [only],
+    }));
+    const moved = await deleteNoteSection(dated.id, only.id);
+    expect(moved.movesToJournal).toBe(true);
+
+    const retained = newNoteSection({ name: "Named structure" });
+    const structured = await createItem(newPage({
+      title: "Dated vocabulary page",
+      pageDate: "2026-08-10",
+      collection: { enabled: true, groups: [] },
+      noteSections: [retained],
+    }));
+    const stays = await deleteNoteSection(structured.id, retained.id);
+    expect(stays.movesToJournal).toBe(false);
   });
 });
 

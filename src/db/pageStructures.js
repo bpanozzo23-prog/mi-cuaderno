@@ -6,6 +6,7 @@ import { newPageGroup } from "../lib/collections.js";
 import {
   PAGE_FOCUSES,
   canonicalGrammarSections,
+  canonicalNoteSections,
   emptyGrammar,
   emptySource,
   hasDurablePageStructure,
@@ -13,10 +14,16 @@ import {
   isPageFocusEnabled,
   newGrammarExample,
   newGrammarSection,
+  newNoteSection,
   newSourceCapture,
   validatePageStructures,
 } from "../lib/pageKinds.js";
-import { isGrammarExampleKey, isGrammarSectionKey, isSourceCaptureKey } from "../lib/ids.js";
+import {
+  isGrammarExampleKey,
+  isGrammarSectionKey,
+  isNoteSectionKey,
+  isSourceCaptureKey,
+} from "../lib/ids.js";
 import {
   clearSourceCaptureReferences,
   clearSourcePageReferences,
@@ -163,6 +170,21 @@ export async function copyPageStructure(sourcePageId, { title } = {}) {
   const copiedTitle = String(title || "").trim();
   if (!copiedTitle) throw new Error("A copied page needs a title.");
 
+  const sourceNoteSections = sourcePage.noteSections || [];
+  const copiedNoteSectionsBySourceId = new Map(sourceNoteSections.map((section) => [
+    section.id,
+    newNoteSection({ name: section.name }),
+  ]));
+  const noteSections = sourceNoteSections.map((section) => {
+    const copied = copiedNoteSectionsBySourceId.get(section.id);
+    const copiedParent = section.parentId === null
+      ? null
+      : copiedNoteSectionsBySourceId.get(section.parentId);
+    if (section.parentId !== null && !copiedParent) {
+      throw new Error("The source page has an invalid Notes subsection parent.");
+    }
+    return { ...copied, parentId: copiedParent?.id ?? null };
+  });
   const collection = {
     enabled: sourcePage.collection?.enabled === true,
     groups: (sourcePage.collection?.groups || []).map((group) => newPageGroup(group.name)),
@@ -190,6 +212,7 @@ export async function copyPageStructure(sourcePageId, { title } = {}) {
   const created = newPage({
     title: copiedTitle,
     pageFocus: sourcePage.pageFocus,
+    noteSections,
     collection,
     source,
     grammar,
@@ -289,6 +312,99 @@ export async function saveGrammarDetails(pageId, { keyIdea } = {}) {
     const page = clonePage(assertPage(await db.items.get(pageId), pageId));
     if (!page.grammar.enabled) throw new Error("Enable Grammar guide before editing it.");
     page.grammar.keyIdea = keyIdea ?? page.grammar.keyIdea;
+    result = await putExplicitEdit(page);
+  });
+  return result;
+}
+
+export async function saveNoteSection(pageId, draft = {}) {
+  let result;
+  await db.transaction("rw", db.items, db.events, async () => {
+    const stored = assertPage(await db.items.get(pageId), pageId);
+    const page = clonePage(stored);
+    const sectionId = draft.id || null;
+    const index = sectionId
+      ? page.noteSections.findIndex((section) => section.id === sectionId)
+      : -1;
+    if (sectionId && (!isNoteSectionKey(sectionId) || index < 0)) {
+      throw new Error("Notes section does not exist.");
+    }
+    const current = index >= 0 ? page.noteSections[index] : null;
+    const section = current
+      ? {
+          ...current,
+          name: String(draft.name ?? current.name).trim(),
+          body: draft.body ?? current.body,
+        }
+      : newNoteSection(draft);
+    if (current && section.name === current.name && section.body === current.body) {
+      result = { page: stored, section: current, changed: false };
+      return;
+    }
+    if (index < 0) page.noteSections.push(section);
+    else page.noteSections[index] = section;
+    page.noteSections = canonicalNoteSections(page.noteSections);
+    result = { page: await putExplicitEdit(page), section, changed: true };
+  });
+  return result;
+}
+
+export async function deleteNoteSection(pageId, sectionId) {
+  let result;
+  await db.transaction("rw", db.items, db.events, async () => {
+    const page = clonePage(assertPage(await db.items.get(pageId), pageId));
+    if (!isNoteSectionKey(sectionId)) throw new Error("Notes section does not exist.");
+    const section = page.noteSections.find((candidate) => candidate.id === sectionId);
+    if (!section) throw new Error("Notes section does not exist.");
+    if (page.noteSections.some((candidate) => candidate.parentId === sectionId)) {
+      throw new Error("Promote or move this section’s subsections first.");
+    }
+    page.noteSections = page.noteSections.filter((candidate) => candidate.id !== sectionId);
+    const saved = await putExplicitEdit(page);
+    result = {
+      page: saved,
+      movesToJournal: Boolean(saved.pageDate) && !hasDurablePageStructure(saved),
+    };
+  });
+  return result;
+}
+
+export async function saveNoteOrganization(pageId, sections = []) {
+  let result;
+  await db.transaction("rw", db.items, db.events, async () => {
+    const page = clonePage(assertPage(await db.items.get(pageId), pageId));
+    const currentIds = new Set(page.noteSections.map((section) => section.id));
+    const nextIds = sections.map((section) => section?.id);
+    const nextIdSet = new Set(nextIds);
+    if (nextIdSet.size !== nextIds.length || nextIds.some((id) => !isNoteSectionKey(id))) {
+      throw new Error("Notes organization section IDs must be stable and unique.");
+    }
+    if (nextIds.length !== currentIds.size || nextIds.some((id) => !currentIds.has(id))) {
+      throw new Error("Notes organization must include every current section exactly once.");
+    }
+
+    const sectionsById = new Map(page.noteSections.map((section) => [section.id, section]));
+    const organizationSignature = (rows) => JSON.stringify(rows.map((section) => ({
+      id: section.id,
+      parentId: section.parentId ?? null,
+      name: section.name,
+    })));
+    const beforeSignature = organizationSignature(page.noteSections);
+    page.noteSections = canonicalNoteSections(sections.map((draft) => {
+      const current = sectionsById.get(draft.id);
+      return {
+        ...current,
+        parentId: Object.prototype.hasOwnProperty.call(draft, "parentId")
+          ? draft.parentId
+          : current.parentId,
+        name: String(draft.name || "").trim(),
+      };
+    }));
+    validateNextPage(page);
+    if (organizationSignature(page.noteSections) === beforeSignature) {
+      result = page;
+      return;
+    }
     result = await putExplicitEdit(page);
   });
   return result;
