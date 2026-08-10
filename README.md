@@ -190,6 +190,18 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   1,044/1,044 across 87 files, the production build and `git diff --check` pass, and a disposable
   375×812 closeout passed without horizontal overflow or console warnings/errors. See the approved
   [direction](docs/PHASE-16-DIRECTION.md) and [implementation report](docs/PHASE-16-REPORT.md).
+- **Phase 17 — implemented locally; not deployed.** The Gym now has Forms, Tense usage and
+  Endings lanes. Usage and Endings use one objective four-choice engine with balanced decks,
+  curated confusables, no immediate retry, one reshuffled missed round, and dictionary-backed
+  regular/perfect reveals when available. Recognition answers reuse `drill_pass`/`drill_fail`
+  through additive metadata while form statistics, Adaptive and Leitner replay explicitly ignore
+  them. Performance now shows Usage/Endings accuracy, per-tense recognition beside Forms, and
+  directional confusions; matching usage cards derive up to two personal Grammar-guide links.
+  Schema v5 and the existing event types remain unchanged. The final serial suite passes
+  1,073/1,073 across 93 files, the production build and `git diff --check` pass, two deliberate
+  failure proofs reddened as intended, and a disposable 375×812 closeout passed without overflow
+  or console warnings/errors. See the approved [direction](docs/PHASE-17-DIRECTION.md) and
+  [implementation report](docs/PHASE-17-REPORT.md).
 - **Collection bulk capture — deployed.** A Vocabulary page's existing
   Add vocabulary panel can now narrow saved entries to Words, Phrases, and an exact existing tag,
   then select every available match together. Existing members remain excluded and the final Add

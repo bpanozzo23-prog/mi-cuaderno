@@ -6,7 +6,7 @@
 **Companion file:** `mi-cuaderno.jsx` — a working single-file prototype of the notebook layer. It is the reference for features, interaction patterns, and visual design of **lexical entries**. Pages (§7) do not exist in the prototype and are new in v3. Where this brief contradicts the prototype's *implementation* (ID scheme, search normalization, the `struggling` field, event rules), **this brief wins** — the prototype shows what the app should feel like, not how it must be built.
 **Version:** v3 — revised after lock-in review. Product contract last amended
 ~~August 3, 2026~~ ~~August 4, 2026~~ ~~August 5, 2026~~ **August 9, 2026**; agent-facing framing refreshed August 2, 2026.
-**Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. §§3, 9 and 12 — 2026-08-02: organizational improvements became Phase 5 and the AI assistant moved to Phase 6. §12 — 2026-08-02: independently scoped phases may proceed concurrently under explicit coordination rules. §§5, 7, 8, 10, 12 and 14 — 2026-08-02: personal lexical meanings became stable, structured annotations in schema v2 while review remains entry-level and dictionary senses remain replaceable reference data. **§§5, 7, 10, 12 and 14 — 2026-08-03: schema v3 adds durable `general | collection` page profiles and the first specialized profile, Vocabulary Collection, while dated General pages remain Journal entries and richer profiles stay deferred.** **§§5, 7, 10, 12 and 14 — 2026-08-04: schema v4 adds sparse typed and explained ordinary-connection annotations while `linkedKeys[]` remains authoritative for connection existence and Collection membership.** **§§5, 7, 8, 10, 12 and 14 — 2026-08-04: Phase 7 approves schema v5 composable pages with one leading focus, independently enabled Vocabulary, Source and Grammar structures, contextual retrieval, and sequential legacy backup upgrades.** **§§7, 12 and 14 — 2026-08-05: Phase 9 approves filtered, session-only free practice from the Words & phrases hub while Repaso remains the sole scheduled and event-backed review flow.** **§§7, 12 and 14 — 2026-08-07: Phase 14 approves an owner-started, event-backed Conjugation Gym with curated reference-only verb pools, richer derived performance, and optional history-ranked sessions that never create a due date or alter Leitner review.** **§§7, 12 and 14 — 2026-08-09: Phase 16 approves four-grade scheduled review, objective typed vocabulary recall, queue chunking, one event-free recovery pass, a shared vocabulary-card engine and history-free hub/Collection sessions.** Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
+**Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. §§3, 9 and 12 — 2026-08-02: organizational improvements became Phase 5 and the AI assistant moved to Phase 6. §12 — 2026-08-02: independently scoped phases may proceed concurrently under explicit coordination rules. §§5, 7, 8, 10, 12 and 14 — 2026-08-02: personal lexical meanings became stable, structured annotations in schema v2 while review remains entry-level and dictionary senses remain replaceable reference data. **§§5, 7, 10, 12 and 14 — 2026-08-03: schema v3 adds durable `general | collection` page profiles and the first specialized profile, Vocabulary Collection, while dated General pages remain Journal entries and richer profiles stay deferred.** **§§5, 7, 10, 12 and 14 — 2026-08-04: schema v4 adds sparse typed and explained ordinary-connection annotations while `linkedKeys[]` remains authoritative for connection existence and Collection membership.** **§§5, 7, 8, 10, 12 and 14 — 2026-08-04: Phase 7 approves schema v5 composable pages with one leading focus, independently enabled Vocabulary, Source and Grammar structures, contextual retrieval, and sequential legacy backup upgrades.** **§§7, 12 and 14 — 2026-08-05: Phase 9 approves filtered, session-only free practice from the Words & phrases hub while Repaso remains the sole scheduled and event-backed review flow.** **§§7, 12 and 14 — 2026-08-07: Phase 14 approves an owner-started, event-backed Conjugation Gym with curated reference-only verb pools, richer derived performance, and optional history-ranked sessions that never create a due date or alter Leitner review.** **§§7, 12 and 14 — 2026-08-09: Phase 16 approves four-grade scheduled review, objective typed vocabulary recall, queue chunking, one event-free recovery pass, a shared vocabulary-card engine and history-free hub/Collection sessions.** **§§7, 12 and 14 — 2026-08-09: Phase 17 adds owner-started, event-backed Tense usage and Endings recognition lanes whose results remain isolated from form Adaptive, form statistics and Leitner review.** Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
 
 ---
 
@@ -280,6 +280,12 @@ changes no page timestamp and writes no event.
   finishing a Words & phrases free-practice session writes no event and changes no item timestamp.
   Opening the full entry remains ordinary detail navigation and retains its existing view-event
   rule. Only scheduled Repaso writes `review_pass` / `review_fail` and changes the Leitner replay.
+- **Recognition event amendment, 2026-08-09 (Phase 17):** Tense usage and Endings answers reuse
+  `drill_pass` / `drill_fail` with additive `skill`, stable `cardId`, canonical `tense`,
+  `mode: "choice"`, session/prompt/stage fields and miss-only `chosen`. They carry no `itemKey`,
+  `verbKey`, `slot` or response text. Form statistics and Adaptive ordering explicitly ignore
+  them; every review derivation continues to ignore all drill types. Missed-round answers remain
+  separately identifiable and never rewrite first-attempt evidence.
 
 ## 8. Search rules
 
@@ -571,6 +577,27 @@ due words default to a 20-card head chunk and offer the rest; hub and group-scop
 sessions exercise direction, cloze, typed marking and missed-only rounds without changing the
 event log; the complete serial suite, production build and diff check pass; and a disposable
 375×812 numerical closeout finds no horizontal overflow or console warning/error.
+
+**Amended 2026-08-09 — Phase 17: Gym recognition lanes.** Conjugation Gym adds two owner-started
+multiple-choice lanes beside Forms: Tense usage asks which tense fits a short canonical use, and
+Endings asks which tense matches a five-slot regular or perfect pattern. Both use curated original
+in-code content with stable card ids, four distinct options, curated confusables, balanced 10/20
+card decks, no immediate retry, one reshuffled missed round and session-ending confirmation on
+navigation. Endings may reveal hablar/comer/vivir through the optional reference seam; without an
+installed dictionary the complete plain-text pattern remains usable. Usage may derive up to two
+matching active Grammar-focused pages by normalized title; it stores no personal mapping.
+
+Objective answers reuse `drill_pass` / `drill_fail` with additive choice metadata and no verb or
+slot identity. Recognition never changes form accuracy, Adaptive form ordering, Leitner state,
+due dates or scheduling. Performance derives per-lane and per-tense first-attempt accuracy,
+directional chosen-vs-canonical confusions and separate missed-round recovery from the raw log.
+`SCHEMA_VERSION` remains 5; no event type, preference, stored counter, queue or schedule is added.
+*Done when:* shipped hablar/comer/vivir/haber tables reproduce every curated endings row; choice
+decks are deterministic under injected rng and never offer an also-acceptable answer; recognition
+events leave form Performance, Adaptive and review replay unchanged; Usage/Endings statistics and
+confusions reconcile with the log; a matching personal Grammar guide derives and opens through
+the session-ending guard; and the complete serial suite, production build, diff check and a
+disposable 375×812 numerical closeout pass without horizontal overflow or console warning/error.
 
 ## 13. Non-goals
 

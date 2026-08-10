@@ -1,9 +1,9 @@
 # Phase 17 direction — Gym recognition lanes: tense usage and endings
 
-**Status:** Proposed — drafted 2026-08-09 from the owner's request for two new drill methods.
-Approving this doc approves the mechanics, boundaries and delivery sequence. The two content
-tables (§2's endings, §3's usage cards) are **drafts for the owner's line-by-line correction**:
-individual rows may be reworded, added or cut during review without re-approving the doc.
+**Status:** Implemented and verified locally 2026-08-09; not deployed. The owner requested
+implementation in this delivery sequence, approving the mechanics and boundaries. The two content
+tables (§2's endings, §3's usage cards) remain open to line-by-line wording corrections without
+re-approving the mechanic.
 **Origin:** Owner request 2026-08-09: (1) given an English usage description, identify the tense
 it describes; (2) given a list of conjugation endings, identify the tense and verb class. The §3
 card list was revised 2026-08-09 against an external language review the owner supplied: sharper
