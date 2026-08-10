@@ -57,3 +57,95 @@ export function suggestTags(allTags = [], query, { exclude = [], limit = LIMIT }
     .slice(0, limit)
     .map((row) => row.tag);
 }
+
+const sameArray = (left, right) =>
+  left.length === right.length && left.every((value, index) => value === right[index]);
+
+/**
+ * Rewrites only the selected exact source/destination strings while preserving every unrelated
+ * tag byte-for-byte. Imported backups can contain duplicates that ordinary CRUD would clean; a
+ * global tag action must not silently turn into a cleanup of unrelated content.
+ */
+function tagsAfterGlobalChange(tags, source, destination) {
+  const current = Array.isArray(tags) ? tags : [];
+  if (destination === null) return current.filter((tag) => tag !== source);
+
+  const destinationAlreadyHere = current.includes(destination);
+  let keptDestination = false;
+  let replacedSource = false;
+  const next = [];
+
+  for (const tag of current) {
+    if (tag === source) {
+      if (destinationAlreadyHere || replacedSource) continue;
+      next.push(destination);
+      replacedSource = true;
+      continue;
+    }
+    if (tag === destination) {
+      if (keptDestination) continue;
+      keptDestination = true;
+    }
+    next.push(tag);
+  }
+
+  return next;
+}
+
+/**
+ * One pure plan powers both the confirmation copy and the database writer. Exact stored spelling
+ * is identity; normalization remains suggestion/search behavior only.
+ */
+export function planGlobalTagChange(items = [], { source, destination = null } = {}) {
+  const exactSource = typeof source === "string" ? source : "";
+  const cleanDestination = destination === null
+    ? null
+    : typeof destination === "string"
+      ? destination.trim()
+      : "";
+  const rows = Array.isArray(items) ? items : [];
+  const sourceRows = exactSource.trim()
+    ? rows.filter((item) => Array.isArray(item?.tags) && item.tags.includes(exactSource))
+    : [];
+  const destinationRows = cleanDestination
+    ? rows.filter((item) => Array.isArray(item?.tags) && item.tags.includes(cleanDestination))
+    : [];
+  const destinationIds = new Set(destinationRows.map((item) => item.id));
+  const overlapCount = sourceRows.filter((item) => destinationIds.has(item.id)).length;
+  const base = {
+    kind: "noop",
+    source: exactSource,
+    destination: cleanDestination,
+    sourceCount: sourceRows.length,
+    destinationCount: destinationRows.length,
+    overlapCount,
+    finalCount: destinationRows.length,
+    changedCount: 0,
+    updates: [],
+  };
+
+  if (!sourceRows.length) return base;
+  if (cleanDestination !== null && (!cleanDestination || cleanDestination === exactSource)) return base;
+
+  const kind = cleanDestination === null
+    ? "remove"
+    : destinationRows.length
+      ? "merge"
+      : "rename";
+  const updates = sourceRows
+    .map((item) => ({
+      id: item.id,
+      tags: tagsAfterGlobalChange(item.tags, exactSource, cleanDestination),
+    }))
+    .filter((update, index) => !sameArray(update.tags, sourceRows[index].tags));
+
+  return {
+    ...base,
+    kind,
+    finalCount: cleanDestination === null
+      ? 0
+      : destinationRows.length + sourceRows.length - overlapCount,
+    changedCount: updates.length,
+    updates,
+  };
+}

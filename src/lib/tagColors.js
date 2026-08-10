@@ -54,3 +54,27 @@ export function normalizeTagColors(colors, knownTags = null) {
   }
   return next;
 }
+
+/**
+ * Applies Phase 20's colour ownership rules without assigning through arbitrary object keys.
+ * Rebuilding from entries keeps legal tag strings such as `__proto__` as ordinary own data.
+ */
+export function tagColorsAfterChange(colors, { kind, source, destination = null } = {}) {
+  const entries = Object.entries(colors || {});
+  if (kind === "noop") return Object.fromEntries(entries);
+
+  if (kind === "remove") {
+    return Object.fromEntries(entries.filter(([tag]) => tag !== source));
+  }
+
+  if ((kind !== "rename" && kind !== "merge") || !destination) {
+    return Object.fromEntries(entries);
+  }
+
+  const survivingSwatch = kind === "rename"
+    ? tagSwatchId(source, colors)
+    : tagSwatchId(destination, colors);
+  const nextEntries = entries.filter(([tag]) => tag !== source && tag !== destination);
+  if (survivingSwatch !== DEFAULT_SWATCH.id) nextEntries.push([destination, survivingSwatch]);
+  return Object.fromEntries(nextEntries);
+}

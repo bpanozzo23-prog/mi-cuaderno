@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { suggestTags, allTagsIn } from "./tags.js";
+import { allTagsIn, planGlobalTagChange, suggestTags } from "./tags.js";
 
 const item = (tags) => ({ tags });
 
@@ -62,5 +62,100 @@ describe("suggestTags offers tags the owner already uses", () => {
 
   it("offers nothing when nothing matches", () => {
     expect(suggestTags(TAGS, "zzz")).toEqual([]);
+  });
+});
+
+describe("planGlobalTagChange previews the exact global mutation", () => {
+  const tagged = (id, tags) => ({ id, tags });
+
+  it("renames only the exact source and preserves its position", () => {
+    const plan = planGlobalTagChange([
+      tagged("word", ["study", "verbs", "mexico"]),
+      tagged("phrase", ["Verbs", "verbs"]),
+      tagged("page", ["vérbs"]),
+      tagged("enye", ["año"]),
+    ], { source: "verbs", destination: "grammar" });
+
+    expect(plan).toMatchObject({
+      kind: "rename",
+      source: "verbs",
+      destination: "grammar",
+      sourceCount: 2,
+      destinationCount: 0,
+      overlapCount: 0,
+      finalCount: 2,
+      changedCount: 2,
+    });
+    expect(plan.updates).toEqual([
+      { id: "word", tags: ["study", "grammar", "mexico"] },
+      { id: "phrase", tags: ["Verbs", "grammar"] },
+    ]);
+  });
+
+  it("merges into an exact existing destination and keeps its original position on overlap", () => {
+    const plan = planGlobalTagChange([
+      tagged("source-only", ["verbs", "study"]),
+      tagged("overlap-first", ["grammar", "verbs", "mexico"]),
+      tagged("overlap-later", ["verbs", "study", "grammar"]),
+      tagged("destination-only", ["grammar"]),
+    ], { source: "verbs", destination: "grammar" });
+
+    expect(plan).toMatchObject({
+      kind: "merge",
+      sourceCount: 3,
+      destinationCount: 3,
+      overlapCount: 2,
+      finalCount: 4,
+      changedCount: 3,
+    });
+    expect(plan.updates).toEqual([
+      { id: "source-only", tags: ["grammar", "study"] },
+      { id: "overlap-first", tags: ["grammar", "mexico"] },
+      { id: "overlap-later", tags: ["study", "grammar"] },
+    ]);
+  });
+
+  it("removes the exact source without touching the entries or loose lookalikes", () => {
+    const plan = planGlobalTagChange([
+      tagged("word", ["verbs", "Verbs", "vérbs"]),
+      tagged("page", ["verbs"]),
+      tagged("other", ["año", "ano"]),
+    ], { source: "verbs", destination: null });
+
+    expect(plan).toMatchObject({ kind: "remove", sourceCount: 2, changedCount: 2 });
+    expect(plan.updates).toEqual([
+      { id: "word", tags: ["Verbs", "vérbs"] },
+      { id: "page", tags: [] },
+    ]);
+  });
+
+  it("deduplicates only the selected source and destination on malformed imported rows", () => {
+    const plan = planGlobalTagChange([
+      tagged("rename", ["verbs", "other", "verbs", "other"]),
+      tagged("merge", ["grammar", "verbs", "grammar", "other", "other"]),
+      tagged("unrelated", ["other", "other"]),
+    ], { source: "verbs", destination: "grammar" });
+
+    expect(plan.updates).toEqual([
+      { id: "rename", tags: ["grammar", "other", "other"] },
+      { id: "merge", tags: ["grammar", "other", "other"] },
+    ]);
+  });
+
+  it("trims a new destination but preserves the selected source exactly", () => {
+    const plan = planGlobalTagChange([
+      tagged("spaced", [" verbs ", "verbs"]),
+    ], { source: " verbs ", destination: "  grammar  " });
+
+    expect(plan.destination).toBe("grammar");
+    expect(plan.updates).toEqual([{ id: "spaced", tags: ["grammar", "verbs"] }]);
+  });
+
+  it("returns no work for a blank destination, unchanged name or missing source", () => {
+    const items = [tagged("word", ["verbs"])];
+
+    expect(planGlobalTagChange(items, { source: "verbs", destination: "  " }).kind).toBe("noop");
+    expect(planGlobalTagChange(items, { source: "verbs", destination: "verbs" }).kind).toBe("noop");
+    expect(planGlobalTagChange(items, { source: "missing", destination: "grammar" }).kind).toBe("noop");
   });
 });
