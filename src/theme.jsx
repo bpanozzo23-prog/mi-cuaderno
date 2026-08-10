@@ -239,7 +239,7 @@ export function Segmented({ label, value, options, onChange }) {
             aria-checked={active}
             disabled={option.disabled}
             onClick={() => onChange(option.value)}
-            className="min-w-0 flex-1 rounded-md px-2 py-2 text-xs"
+            className="min-w-0 flex-1 rounded-md px-1 py-2 text-xs break-words text-center"
             style={{
               fontFamily: MONO,
               background: active ? C.pen : "transparent",
