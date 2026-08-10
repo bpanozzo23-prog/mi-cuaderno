@@ -45,6 +45,33 @@ Useful information to retain for each idea:
 | Personal-content provenance | 2026-08-02 | Captured | Before or alongside Phase 6 AI design; source needs can be studied earlier |
 | Learning depth (cloze, reverse, drill, audio) | 2026-08-06 | Implemented locally | Phase 10a–10d; deferred members need real-use evidence |
 | Owner-centric stats (streak, calendar, growth, ladder, per-item strip) | 2026-08-06 | Implemented locally | Phase 11; retention, coverage and per-direction breakdowns need real data volume |
+| Grammar guide depth and callouts | 2026-08-10 | Approved for Phase 19 | Implement in the approved Phase 19 sequence |
+
+---
+
+## Grammar guide depth and callouts
+
+- **Date added:** 2026-08-10
+- **Status:** Approved for implementation as the first Phase 19 release
+- **Origin:** Real-use friction while creating an Indicative-versus-Subjunctive comparison guide
+- **Potential data impact:** schema v6 adds one-level Grammar section ownership; formatted
+  Overviews remain strings
+
+The current `Page → Grammar section → examples` hierarchy cannot comfortably represent a concept
+such as Indicative, a highlighted caution about speaker belief, the SPOCK trigger family, each
+SPOCK component's related phrases and examples, followed by a parallel Subjunctive concept. The
+workaround is a long flat run of prefixed section names or splitting related content between Notes
+and Grammar.
+
+The approved direction keeps the feature bounded: safe Markdown and accessible Note callouts in
+the existing section Overview, plus exactly one subsection level represented by a same-page
+`parentId`. It does not introduce arbitrary blocks or recursive page trees. Existing sections
+migrate to top level and retain their complete content and identity.
+
+Phase 19 is also the grouping home for later owner-approved Page organization/formatting
+increments. That is a bookkeeping choice, not advance scope approval; each later increment still
+needs its own concrete decision, tests and any required migration. See
+`docs/PHASE-19-DIRECTION.md` for the decision-complete first release.
 
 ---
 

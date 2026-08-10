@@ -8,6 +8,10 @@
 ~~August 3, 2026~~ ~~August 4, 2026~~ ~~August 5, 2026~~ ~~August 9, 2026~~ **August 10, 2026**; agent-facing framing refreshed August 2, 2026.
 **Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. §§3, 9 and 12 — 2026-08-02: organizational improvements became Phase 5 and the AI assistant moved to Phase 6. §12 — 2026-08-02: independently scoped phases may proceed concurrently under explicit coordination rules. §§5, 7, 8, 10, 12 and 14 — 2026-08-02: personal lexical meanings became stable, structured annotations in schema v2 while review remains entry-level and dictionary senses remain replaceable reference data. **§§5, 7, 10, 12 and 14 — 2026-08-03: schema v3 adds durable `general | collection` page profiles and the first specialized profile, Vocabulary Collection, while dated General pages remain Journal entries and richer profiles stay deferred.** **§§5, 7, 10, 12 and 14 — 2026-08-04: schema v4 adds sparse typed and explained ordinary-connection annotations while `linkedKeys[]` remains authoritative for connection existence and Collection membership.** **§§5, 7, 8, 10, 12 and 14 — 2026-08-04: Phase 7 approves schema v5 composable pages with one leading focus, independently enabled Vocabulary, Source and Grammar structures, contextual retrieval, and sequential legacy backup upgrades.** **§§7, 12 and 14 — 2026-08-05: Phase 9 approves filtered, session-only free practice from the Words & phrases hub while Repaso remains the sole scheduled and event-backed review flow.** **§§7, 12 and 14 — 2026-08-07: Phase 14 approves an owner-started, event-backed Conjugation Gym with curated reference-only verb pools, richer derived performance, and optional history-ranked sessions that never create a due date or alter Leitner review.** **§§7, 12 and 14 — 2026-08-09: Phase 16 approves four-grade scheduled review, objective typed vocabulary recall, queue chunking, one event-free recovery pass, a shared vocabulary-card engine and history-free hub/Collection sessions.** **§§7, 12 and 14 — 2026-08-09: Phase 17 adds owner-started, event-backed Tense usage and Endings recognition lanes whose results remain isolated from form Adaptive, form statistics and Leitner review.** **§§7, 12 and 14 — 2026-08-10: Phase 18 adds the recall/production reverse of those lanes, balanced Regular and Spelling-change packs, exact Saved tag/page targeting and mode-separated depth reporting without changing schema, scheduling or choice evidence.** Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
 
+**Phase 19 amendment, 2026-08-10 — §§5, 7, 8, 10, 12 and 13:** schema v6 adds one-level
+Grammar subsections, formatted Grammar overviews and accessible Note callouts while retaining the
+two-type composable Page model and excluding a general block editor.
+
 ---
 
 ## 1. What this is
@@ -66,6 +70,9 @@ The app code and the bundled reference data are licensed separately. Reference-d
   schema change requires a versioned migration and schema bump; an older database must produce an
   untouched, fully validated export and receive explicit saved-file acknowledgement before the new
   schema opens it.
+- **Schema-v6 hierarchy amendment, 2026-08-10:** adding one-level Grammar subsection ownership is
+  a personal-layer shape change even though stores and indexes stay fixed. Schema-v1 through v5
+  databases therefore pass through the same untouched export-first gate before v6 opens.
 - **The seam rule:** *personal items always have their own stable ID; attaching one to a dictionary entry is a reversible relationship, not its identity.* ~~Lexical items always store their own `term` (and `translation`, when given) even while attached, so they stay meaningful on their own.~~ **Amended 2026-08-02:** lexical items always store their own `term` and ordered personal `meanings[]` even while attached. Each personal meaning has its own `meaning:<uuid>` identity and never stores or derives its identity from a dictionary sense ID, index or ordering.
 - ~~**Page-profile seam amendment, 2026-08-03:** Collection membership can contain only independent
   personal lexical items. A selected dictionary entry must first create or reuse its personal
@@ -175,10 +182,18 @@ grammar{
 }
 ```
 
-Array order is display order. Source URLs are blank or HTTP(S). Saved Source captures require
-nonblank `text`; saved Grammar examples require nonblank Spanish `es`. Grammar section names are
-trimmed, nonblank and unique within the guide under the same Unicode NFKC plus case-folding rule as
-Collection group names. All nested IDs are stable through editing and reordering.
+~~Through schema v5, Grammar sections had no parent field and their names were unique across the
+whole guide.~~ **Schema-v6 Grammar-section replacement, 2026-08-10:** every section additionally
+stores `parentId: null | "grammar-section:<uuid>"`. Null identifies a top-level section; a non-null
+value must reference a top-level section on the same page. Self, dangling, cross-page, cyclic and
+child-of-child parents are invalid, so the hierarchy has exactly one subsection level. Names are
+trimmed, nonblank and Unicode-NFKC/case-fold unique among siblings; identical names under different
+top-level parents are allowed. Existing schema-v5 sections migrate to `parentId: null` without an
+ID, content or order change.
+
+Array order is display order among siblings. Source URLs are blank or HTTP(S). Saved Source
+captures require nonblank `text`; saved Grammar examples require nonblank Spanish `es`. All nested
+IDs are stable through editing and reordering.
 
 ~~Through schema v3, `linkedKeys[]` was the complete stored shape for an ordinary link.~~
 **Relationship-shape amendment, 2026-08-04:** every schema-v4 `UserItem` has a mandatory
@@ -228,6 +243,13 @@ most one exact Source capture. A reference to another Source page requires an or
 between the two pages; a reference to a capture on the same composable page requires no illegal
 self-link.
 
+**Grammar-depth amendment, 2026-08-10.** A top-level Grammar section and its subsections use the
+same Overview, optional Pattern and structured examples. `explanation` remains a string but may
+contain the existing safe notebook Markdown dialect; only that field receives formatting in this
+release. Grammar blockquotes render as accessible labeled Note callouts, while Key idea, Pattern,
+example language and example notes stay plain. This is a bounded Grammar hierarchy, not the
+free-form block editor excluded by §13.
+
 ~~`linkedKeys[]` remains the sole relationship and Collection-membership authority.~~
 ~~**Schema-v4 relationship-authority amendment, 2026-08-04:** `linkedKeys[]` remains the sole
 connection-existence and Collection-membership authority; annotations describe but never create a
@@ -276,6 +298,9 @@ changes no page timestamp and writes no event.
   bookkeeping, automatic dependent-reference cleanup, Cancel and no-op Save write no events.
   Explicit saves update the owning page normally; cleanup performed only because another item or
   nested record changed is timestamp-neutral on the dependent page.
+- **Phase-19 event clarification, 2026-08-10:** subsection creation/editing and changed hierarchy
+  organization are Grammar-guide content saves and write one page `edit`. Cancel and no-op Save
+  remain event-free; automatic reference cleanup remains timestamp- and event-neutral.
 - **Free-practice event amendment, 2026-08-05:** starting, revealing, answering, repeating or
   finishing a Words & phrases free-practice session writes no event and changes no item timestamp.
   Opening the full entry remains ordinary detail navigation and retains its existing view-event
@@ -308,6 +333,9 @@ changes no page timestamp and writes no event.
   capture/location, or Grammar section/example). Disabled structures contribute no search text or
   context. Relationship notes remain outside search. Every new comparison uses the existing
   normalization that preserves ñ.
+- **Phase-19 search clarification, 2026-08-10:** Grammar Overview Markdown contributes only its
+  visible-text projection, never markers or the generated Note label. A subsection example's
+  lexical context identifies both levels as `Parent › Child`; roots retain their ordinary name.
 
 ## 9. AI assistant policy (~~Phase 5~~ **Phase 6**)
 
@@ -378,6 +406,14 @@ Backup envelope:
   IDs, ordered unique Grammar sections, vocabulary membership authority, dangling contextual
   references, and exact same-page or externally linked Source-capture references. Current v5
   exports round-trip exactly.
+- **Schema-v6 amendment, 2026-08-10:** stores and indexes remain unchanged. Every existing Grammar
+  section receives mandatory `parentId: null`; all other page and notebook data remains exact.
+  Before v6 opens, schema-v1 through v5 owners must save and acknowledge an untouched, deeply
+  validated source-schema export. Direct upgrades run all earlier migrations followed by the pure
+  v5→v6 addition. Backup schemas 1 through 6 upgrade sequentially and validate completely before
+  any write; versions newer than 6 remain blocked. V6 validation requires same-page one-level
+  parent references, rejects self/dangling/cyclic/grandchild parents, and applies section-name
+  uniqueness among siblings. Current v6 exports round-trip exactly.
 - On first meaningful use, request persistent storage (`navigator.storage.persist()`), surface whether it was granted, and tell the owner plainly that clearing browser data, uninstalling, or losing the device destroys local data — which is why export is one tap away and the settings screen shows "last backup: N days ago".
 
 ## 11. Reference-data delivery and caching
@@ -623,6 +659,24 @@ reconcile with each depth figure while prior choice/Form results remain byte-for
 and the complete serial suite, production build, diff check and disposable 375×812 closeout pass
 without horizontal overflow or console warning/error.
 
+**Amended 2026-08-10 — Phase 19: Page organization and formatting.** Phase 19 is the umbrella for
+related owner-approved improvements to how Pages are organized and formatted; that grouping does
+not pre-approve unknown future behavior or waive its decisions, tests or any required migration.
+The first release formats Grammar section Overviews with the existing safe Markdown dialect and an
+accessible Note callout, then introduces schema-v6 `parentId` ownership for exactly one Grammar
+subsection level. Existing sections migrate to roots; sibling names are unique within their parent;
+organizing, copying, counts, search and lexical contexts preserve the hierarchy. No general block
+editor, deeper nesting, new content type, event, preference, dictionary dependency or template
+identity is introduced. The approved contract and delivery order live in
+`docs/PHASE-19-DIRECTION.md`.
+*Done when:* schema-v1 through v5 databases and backup schemas 1–6 reach deeply validated v6
+through the untouched export-first gate; existing page content and references remain lossless;
+formatted Overviews search by visible text; root/subsection creation, editing, organization,
+deletion protection and structure copying obey the one-level contract; counts and breadcrumbs are
+consistent; and the complete serial suite, production build, diff check, deliberate failure proofs
+and a disposable schema-v5 375×812 export→upgrade→restore flow pass without overflow, warnings or
+console errors.
+
 ## 13. Non-goals
 
 No accounts, no server, no analytics (yet), no multi-user, no native Android build, no cloud sync (yet), no merge-mode import (yet), no file attachments (yet — model reserved).
@@ -631,6 +685,10 @@ Phase 7 adds no third content type, folders, free-form block editor, custom page
 stored/user-authored template manager, rich-media catalog, deep provenance graph, reading tracker,
 Journal-only schema, or AI behavior. Source content remains text plus URLs; existing media links
 remain links only.
+
+Phase 19 does not relax that boundary. Its formatted Grammar Overview remains one string in the
+existing safe Markdown dialect, and `parentId` permits exactly one Grammar subsection level rather
+than arbitrary blocks, fields or nesting.
 
 ## 14. Deferred decisions — do not solve early
 

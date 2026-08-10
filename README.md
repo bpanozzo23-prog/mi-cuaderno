@@ -214,6 +214,12 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   disposable 375×812 closeout passed without horizontal overflow or console warnings/errors.
   See the approved [direction](docs/PHASE-18-DIRECTION.md) and
   [implementation report](docs/PHASE-18-REPORT.md).
+- **Phase 19 — implementation in progress.** The first approved Page-organization release adds
+  safe formatted Grammar Overviews and accessible Note callouts, then schema-v6 one-level Grammar
+  subsections with lossless export-first migration, hierarchy-aware organization/copying, counts,
+  search and contextual breadcrumbs. Phase 19 may group later related owner-approved Page
+  organization/formatting increments, but does not pre-approve unknown scope. See the approved
+  [direction](docs/PHASE-19-DIRECTION.md).
 - **Collection bulk capture — deployed.** A Vocabulary page's existing
   Add vocabulary panel can now narrow saved entries to Words, Phrases, and an exact existing tag,
   then select every available match together. Existing members remain excluded and the final Add
