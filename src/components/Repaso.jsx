@@ -19,6 +19,7 @@ import { timeAgo } from "../lib/dates.js";
 import { deriveReviewState, deriveDictSuggestions, cardDirection } from "../lib/review.js";
 import { activityByDay, streakFrom, boxDistribution } from "../lib/stats.js";
 import { pickCloze, verbForms } from "../lib/cloze.js";
+import { PRACTICE_LIMITS } from "../lib/practice.js";
 
 /**
  * Every number here is derived from the event log at render time — there are no
@@ -206,12 +207,15 @@ export default function Repaso({ notebook, onSelect }) {
   // The session owns its own list once started, so re-deriving mid-session (a grade
   // changes what is due) cannot pull the card out from under the owner's thumb.
   const [sessionCards, setSessionCards] = useState([]);
+  const [sessionChunkSize, setSessionChunkSize] = useState(0);
+  const [sessionRun, setSessionRun] = useState(0);
 
   // Which way today's cards face. Deliberately not persisted (Phase 10a): the useful
   // default is the one you get by just tapping Start, and a remembered direction would
   // be a stored preference nobody asked for.
   const [direction, setDirection] = useState("forward");
   const [reviewMode, setReviewMode] = useState("reveal");
+  const [reviewLimit, setReviewLimit] = useState(20);
 
   // Starting now reads the reference layer for cloze material, so the tap has to be
   // guarded against a second one landing before the first finishes.
@@ -361,7 +365,11 @@ export default function Repaso({ notebook, onSelect }) {
     if (starting) return;
     setStarting(true);
 
-    const cards = review.due.map((item) => ({
+    const activeLimit = review.due.length > 20 ? reviewLimit : "all";
+    const selectedDue = activeLimit === "all"
+      ? review.due
+      : review.due.slice(0, Number(activeLimit));
+    const cards = selectedDue.map((item) => ({
       ...item,
       ...review.states.get(item.id),
       direction: cardDirection(item, direction),
@@ -398,6 +406,8 @@ export default function Repaso({ notebook, onSelect }) {
         return cloze ? { ...card, cloze, face: "cloze" } : card;
       })
     );
+    setSessionChunkSize(cards.length);
+    setSessionRun((current) => current + 1);
     setStarting(false);
     setView("review");
   }
@@ -433,6 +443,7 @@ export default function Repaso({ notebook, onSelect }) {
   if (view === "review") {
     return (
       <ReviewSession
+        key={sessionRun}
         cards={sessionCards}
         mode={reviewMode}
         onFinish={() => {
@@ -441,6 +452,10 @@ export default function Repaso({ notebook, onSelect }) {
         }}
         onOpen={onSelect}
         onGraded={reload}
+        remainingDueCount={review.due.length}
+        chunkSize={sessionChunkSize}
+        onStartNext={startSession}
+        startingNext={starting}
       />
     );
   }
@@ -502,6 +517,36 @@ export default function Repaso({ notebook, onSelect }) {
                 );
               })}
             </div>
+
+            {review.due.length > 20 && (
+              <div
+                role="radiogroup"
+                aria-label="Cards this sitting"
+                className="mt-2 grid grid-cols-3 gap-1 rounded-lg border p-0.5"
+                style={{ borderColor: C.line, background: C.paper }}
+              >
+                {PRACTICE_LIMITS.map((value) => {
+                  const active = reviewLimit === value;
+                  return (
+                    <button
+                      key={String(value)}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => setReviewLimit(value)}
+                      className="min-h-11 rounded-md px-2 py-1.5 text-xs"
+                      style={{
+                        fontFamily: MONO,
+                        background: active ? C.pen : "transparent",
+                        color: active ? C.card : C.mut,
+                      }}
+                    >
+                      {value === "all" ? `All ${review.due.length}` : value}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             <div
               role="radiogroup"

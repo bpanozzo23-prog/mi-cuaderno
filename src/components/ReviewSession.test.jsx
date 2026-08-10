@@ -367,4 +367,25 @@ describe("Phase 16: scheduled-review missed round", () => {
     expect(screen.getByText("0/1")).toBeTruthy();
     expect(await allEvents()).toHaveLength(1);
   });
+
+  it("offers the next freshly derived chunk after the primary or recovery completion", async () => {
+    const user = userEvent.setup();
+    const onStartNext = vi.fn();
+    render(
+      <ReviewSession
+        cards={[card("madrugar")]}
+        remainingDueCount={27}
+        chunkSize={20}
+        onStartNext={onStartNext}
+        onFinish={vi.fn()}
+        onOpen={vi.fn()}
+        onGraded={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: "Tap to see the meaning" }));
+    await user.click(screen.getByRole("button", { name: "Good" }));
+    await user.click(screen.getByRole("button", { name: "Start next 20" }));
+    expect(onStartNext).toHaveBeenCalledTimes(1);
+  });
 });

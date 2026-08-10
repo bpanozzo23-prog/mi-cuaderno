@@ -224,6 +224,37 @@ describe("Phase 10a/10b: how a session is set up", () => {
     expect(screen.getByRole("button", { name: "Tap to see the word" })).toBeTruthy();
   });
 
+  it("defaults a large due pile to the first 20 cards and offers 10, 20, or All", async () => {
+    const user = userEvent.setup();
+    const words = Array.from({ length: 40 }, (_, index) => dueWord({
+      id: `user:due-${String(index + 1).padStart(2, "0")}`,
+      term: `word ${String(index + 1).padStart(2, "0")}`,
+    }));
+    const events = words.map((word) => enrolls(word.id));
+    render(<Repaso notebook={notebookFor(words, events)} onSelect={vi.fn()} />);
+
+    expect(screen.getByRole("radio", { name: "20" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("radio", { name: "10" })).toBeTruthy();
+    expect(screen.getByRole("radio", { name: "All 40" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: /Start/ }));
+    await waitFor(() => expect(screen.getByText("1 / 20")).toBeTruthy());
+    expect(screen.getByText("word 01")).toBeTruthy();
+  });
+
+  it("hides sizing at 20 due and starts the full queue", async () => {
+    const user = userEvent.setup();
+    const words = Array.from({ length: 20 }, (_, index) => dueWord({
+      id: `user:small-${index}`,
+      term: `small ${index}`,
+    }));
+    render(<Repaso notebook={notebookFor(words, words.map((word) => enrolls(word.id)))} onSelect={vi.fn()} />);
+
+    expect(screen.queryByRole("radiogroup", { name: "Cards this sitting" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: /Start/ }));
+    await waitFor(() => expect(screen.getByText("1 / 20")).toBeTruthy());
+  });
+
   it("builds the same cloze when the attached dictionary key moved", async () => {
     const user = userEvent.setup();
     await seedWithConjugations([SACAR]);

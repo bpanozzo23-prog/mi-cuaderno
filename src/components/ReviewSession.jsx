@@ -37,6 +37,10 @@ export default function ReviewSession({
   onOpen,
   onGraded,
   random = Math.random,
+  remainingDueCount = 0,
+  chunkSize = cards.length,
+  onStartNext = null,
+  startingNext = false,
 }) {
   const [stage, setStage] = useState("primary");
   const [roundCards, setRoundCards] = useState(cards);
@@ -82,9 +86,9 @@ export default function ReviewSession({
       verdict: typed.verdict,
     } : null));
     countGrade(reviewGrade);
+    await onGraded?.();
     advance();
     setBusy(false);
-    onGraded?.();
   }
 
   async function markTyped(result) {
@@ -100,9 +104,9 @@ export default function ReviewSession({
     setBusy(true);
     await logReview(item.id, GRADES.again, eventDetails({ mode: "typed", verdict: "wrong" }));
     countGrade(GRADES.again);
+    await onGraded?.();
     setWrongRecorded(true);
     setBusy(false);
-    onGraded?.();
   }
 
   function answerRecovery(gotIt) {
@@ -121,6 +125,7 @@ export default function ReviewSession({
   }
 
   if (done) {
+    const nextCount = Math.min(remainingDueCount, Math.max(1, Number(chunkSize) || 20));
     if (recovery) {
       return (
         <div className="px-4 py-4 pb-28" style={dotGrid}>
@@ -136,9 +141,16 @@ export default function ReviewSession({
                 ? "Every missed card came back this round."
                 : `${roundCards.length - recovered} still worth another look tomorrow.`}
             </div>
-            <Button className="mt-4" onClick={onFinish}>
-              Back to Repaso
-            </Button>
+            <div className="mt-4 flex flex-col gap-2">
+              {nextCount > 0 && onStartNext && (
+                <Button className="min-h-11" disabled={startingNext} onClick={onStartNext}>
+                  Start next {nextCount}
+                </Button>
+              )}
+              <Button className="min-h-11" tone={nextCount > 0 ? "quiet" : "primary"} onClick={onFinish}>
+                Back to Repaso
+              </Button>
+            </div>
           </Card>
         </div>
       );
@@ -169,7 +181,16 @@ export default function ReviewSession({
                 <RotateCcw size={15} /> Practice {missedCards.length} missed again
               </Button>
             )}
-            <Button className="min-h-11" tone={missedCards.length > 0 ? "quiet" : "primary"} onClick={onFinish}>
+            {nextCount > 0 && onStartNext && (
+              <Button className="min-h-11" disabled={startingNext} onClick={onStartNext}>
+                Start next {nextCount}
+              </Button>
+            )}
+            <Button
+              className="min-h-11"
+              tone={missedCards.length > 0 || nextCount > 0 ? "quiet" : "primary"}
+              onClick={onFinish}
+            >
               Back to Repaso
             </Button>
           </div>
