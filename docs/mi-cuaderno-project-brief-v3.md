@@ -105,7 +105,7 @@ The app code and the bundled reference data are licensed separately. Reference-d
 | Links | Any personal item can link to any item in either layer |
 | Deletion | Confirm first; **hard-delete the record and log a `delete` event** — the append-only event log is the tombstone. No soft-delete flags. Remove links pointing to the deleted item. ~~Keep its historical events but exclude them from active queues and statistics.~~ **Amended 2026-08-07 (Phase 14): keep historical events; exclude a deleted record from active queues, current-item statistics, current-pool coverage and action targets. Owner-centric activity and aggregate conjugation-skill history may retain interpretable events, but must never reconstruct or act on deleted personal content.** |
 | Media | `mediaLinks[]` (URLs) only for now. **Reserved:** a separate `Attachment` store for future files. Items will reference attachments by ID; binary data is never embedded in item records; nothing in the schema may assume links are the only media type |
-| Review grades | ~~Review events log a 4-point grade in `metadata` (0 again / 1 hard / 2 good / 3 easy) even while the UI shows only pass (→2) / fail (→0).~~ **Amended 2026-08-09 (Phase 16): scheduled review exposes Again / Hard / Good / Easy. Again resets to box 1, Hard holds, Good climbs one and Easy climbs two capped at box 5; retirement still requires a pass while already in box 5. Historical gradeless pass/fail events replay strictly as Good/Again.** |
+| Review grades | ~~Review events log a 4-point grade in `metadata` (0 again / 1 hard / 2 good / 3 easy) even while the UI shows only pass (→2) / fail (→0).~~ **Amended 2026-08-09 (Phase 16): scheduled review exposes Again / Hard / Good / Easy. Again resets to box 1, Hard holds, Good climbs one and Easy climbs two capped at box 5; retirement ~~still requires a pass~~ **requires a Good or Easy pass — ruled later on 2026-08-09: Hard at box 5 holds rather than retires —** while already in box 5. Historical gradeless pass/fail events replay strictly as Good/Again.** |
 | Sync-readiness | UUIDs, `createdAt`/`updatedAt` on every personal record, stable event IDs, schema + app versions in backups. No sync built |
 
 ### Shapes through schema v4 (historical)
@@ -548,7 +548,8 @@ finds no horizontal overflow or console error.
 
 **Amended 2026-08-09 — Phase 16: review depth and one vocabulary-card engine.** Scheduled Repaso
 uses all four existing grades: Again resets to box 1; Hard logs a pass and holds the box; Good
-climbs one; Easy climbs two, capped at box 5. A word retires only after a pass while already in box
+climbs one; Easy climbs two, capped at box 5. A word retires only after a ~~pass~~ **Good or Easy
+pass (ruled later on 2026-08-09: Hard at box 5 holds rather than retires)** while already in box
 5. Malformed or absent legacy grades replay as Good for `review_pass` and Again for `review_fail`.
 Session-only Type mode objectively marks reverse-term and cloze-gap answers through the shared
 exact/accent-aware vocabulary checker; a wrong answer immediately grades Again, while a correct

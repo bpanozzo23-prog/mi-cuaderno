@@ -118,8 +118,16 @@ function replayReviews(reviews) {
       continue;
     }
 
-    // Retirement still requires a pass earned while the word was already in box 5.
-    // Easy from box 4 therefore lands in box 5 rather than skipping straight out.
+    // Hard holds its box everywhere, box 5 included: a word barely recalled after the
+    // top interval stays in the queue, and retirement must be earned with Good or Easy.
+    if (grade === GRADES.hard) {
+      graduated = false;
+      graduatedAt = null;
+      continue;
+    }
+
+    // Retirement requires a Good or Easy pass earned while the word was already in
+    // box 5. Easy from box 4 therefore lands in box 5 rather than skipping straight out.
     if (box >= MAX_BOX) {
       graduated = true;
       graduatedAt = event.at;
@@ -128,7 +136,6 @@ function replayReviews(reviews) {
 
     if (grade === GRADES.good) box += 1;
     if (grade === GRADES.easy) box = Math.min(MAX_BOX, box + 2);
-    // Hard deliberately leaves `box` unchanged and restarts its interval from this event.
     graduated = false;
     graduatedAt = null;
   }

@@ -220,6 +220,23 @@ describe("the Leitner ladder", () => {
     expect(state.graduated).toBe(false);
   });
 
+  it("holds box 5 on Hard without retiring", () => {
+    const word = makeLexical({ term: "madrugar" });
+    const events = [
+      trickyOn(word.id, "2026-07-01"),
+      pass(word.id, "2026-07-02"),
+      pass(word.id, "2026-07-04"),
+      pass(word.id, "2026-07-08"),
+      pass(word.id, "2026-07-16"),
+      graded(word.id, "2026-07-31", GRADES.hard),
+    ];
+
+    const state = stateOf([word], events).states.get(word.id);
+    expect(state.graduated).toBe(false);
+    expect(state.box).toBe(MAX_BOX);
+    expect(state.dueDate).toBe(addDaysToLocalDate("2026-07-31", LEITNER_INTERVALS_DAYS[MAX_BOX - 1]));
+  });
+
   it("replays a historical gradeless pass as Good", () => {
     const word = makeLexical({ term: "madrugar" });
     const legacyPass = makeEvent({

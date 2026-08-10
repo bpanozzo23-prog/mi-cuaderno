@@ -51,8 +51,12 @@ ladder identically.
 - The two grade buttons in scheduled review become four: **Again / Hard / Good / Easy**.
 - Box mapping: **Again → box 1. Hard → hold the current box** (a pass for streak and tally, but
   the word repeats its current interval). **Good → up one box. Easy → up two boxes, capped at
-  box 5.** Retirement still requires a pass logged while already in box 5 — Easy from box 4 lands
-  in box 5 rather than retiring, so no word retires without surviving the longest interval.
+  box 5.** Retirement still requires a ~~pass~~ **Good or Easy pass** logged while already in
+  box 5 — Easy from box 4 lands in box 5 rather than retiring, so no word retires without
+  surviving the longest interval. **(Owner ruling later on 2026-08-09: this sentence originally
+  said any pass, which contradicted "Hard → hold the current box" one bullet up; implementation
+  first read it as any-pass-retires, and the owner resolved the ambiguity the other way — Hard at
+  box 5 holds.)**
 - Event shape: `again` logs `review_fail`, the other three log `review_pass`; the difference lives
   in `metadata.grade`. `logReview` takes an explicit grade and keeps the existing spread-last rule
   so no detail can overwrite it.
