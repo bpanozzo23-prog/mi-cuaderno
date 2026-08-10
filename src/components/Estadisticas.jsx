@@ -134,7 +134,7 @@ function MonthCalendar({ cells, today }) {
                 <span
                   className="today-rule pointer-events-none absolute"
                   aria-hidden="true"
-                  style={{ left: "32%", right: "32%", bottom: 4, height: 2, background: C.red }}
+                  style={{ left: "32%", right: "32%", bottom: 1, height: 2, background: C.red, zIndex: 1 }}
                 />
               )}
               {cell.inMonth && (
