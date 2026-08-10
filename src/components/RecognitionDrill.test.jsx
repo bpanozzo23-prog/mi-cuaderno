@@ -105,4 +105,27 @@ describe("recognition multiple-choice sessions", () => {
       ["drill_pass", "missed"],
     ]);
   });
+
+  it("requires a second tap before a reveal link leaves the session", async () => {
+    const user = userEvent.setup();
+    const onOpen = vi.fn();
+    render(
+      <RecognitionDrill
+        deck={[card()]}
+        onFinish={vi.fn()}
+        onOpen={onOpen}
+        renderReveal={(_card, _result, controls) => (
+          <button type="button" onClick={() => controls.requestOpen("user:guide")}>
+            {controls.openArmed === "user:guide" ? "Confirm guide" : "Open guide"}
+          </button>
+        )}
+      />
+    );
+    await user.click(screen.getByRole("button", { name: "Indicative preterite" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Open guide" })).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: "Open guide" }));
+    expect(onOpen).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Confirm guide" }));
+    expect(onOpen).toHaveBeenCalledWith("user:guide");
+  });
 });

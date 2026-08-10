@@ -329,9 +329,10 @@ export default function ConjugationGym({
           deck={session.deck}
           onFinish={() => setView("setup")}
           onGraded={onGraded}
+          onOpen={onOpen}
           renderReveal={session.skill === "endings"
             ? (card) => <EndingsReveal card={card} library={library} />
-            : (card) => <UsageReveal card={card} />}
+            : (card, _result, controls) => <UsageReveal card={card} items={items} controls={controls} />}
         />
       );
     }

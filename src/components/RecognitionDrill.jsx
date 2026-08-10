@@ -15,6 +15,7 @@ export default function RecognitionDrill({
   deck,
   onFinish,
   onGraded,
+  onOpen,
   rng = Math.random,
   renderReveal = null,
 }) {
@@ -22,6 +23,7 @@ export default function RecognitionDrill({
   const [index, setIndex] = useState(0);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
+  const [openArmed, setOpenArmed] = useState(null);
   const [missedCards, setMissedCards] = useState([]);
   const [missedDeck, setMissedDeck] = useState([]);
   const [initialTally, setInitialTally] = useState({ answered: 0, passed: 0 });
@@ -73,7 +75,18 @@ export default function RecognitionDrill({
 
   function advance() {
     setResult(null);
+    setOpenArmed(null);
     setIndex((current) => current + 1);
+  }
+
+  function requestOpen(target) {
+    if (!target || !onOpen) return;
+    if (openArmed !== target) {
+      setOpenArmed(target);
+      return;
+    }
+    setOpenArmed(null);
+    onOpen(target);
   }
 
   function startMissedRound() {
@@ -175,7 +188,11 @@ export default function RecognitionDrill({
                   : `That’s ${lowerLabel(result.chosen)}. ${card.contrast || `The answer is ${lowerLabel(card.answer)}.`}`}
               </span>
             </div>
-            {renderReveal?.(card, result)}
+            {renderReveal?.(card, result, {
+              requestOpen,
+              openArmed,
+              remaining: activeDeck.length - index,
+            })}
           </div>
         )}
       </Card>
