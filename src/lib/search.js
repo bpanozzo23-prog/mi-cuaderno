@@ -92,7 +92,7 @@ function activeGrammarText(page) {
     page.grammar.keyIdea,
     ...(page.grammar.sections || []).flatMap((section) => [
       section.name,
-      section.explanation,
+      flattenSpace(plainTextFromMarkdown(section.explanation)),
       section.pattern,
       ...(section.examples || []).flatMap((example) => [example.es, example.en, example.note]),
     ]),

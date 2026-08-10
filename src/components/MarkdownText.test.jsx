@@ -52,4 +52,19 @@ This is **bold**, *italic*, and ==highlighted==.
     expect(container.querySelector("mark")).toBeNull();
     expect(screen.getByText("==literal==")).toBeTruthy();
   });
+
+  it("presents Grammar block quotes as labeled Note callouts", () => {
+    const { container } = render(
+      <MarkdownText calloutBlockquotes>{`Before.
+
+> The speaker only needs to believe it is true.
+
+After.`}</MarkdownText>
+    );
+
+    const note = screen.getByRole("note", { name: "Note" });
+    expect(note.textContent).toContain("Note");
+    expect(note.textContent).toContain("The speaker only needs to believe it is true.");
+    expect(container.querySelector("blockquote")).toBeNull();
+  });
 });

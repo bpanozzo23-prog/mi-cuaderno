@@ -200,7 +200,7 @@ describe("composable page search", () => {
       sections: [{
         id: "grammar-section:00000000-0000-4000-8000-000000000001",
         name: "Background",
-        explanation: "Acción en progreso",
+        explanation: "**Acción** en\n> progreso",
         pattern: "estar + gerundio",
         examples: [],
       }],
@@ -223,6 +223,15 @@ describe("composable page search", () => {
     };
     expect(searchItems([hidden], "Camila")).toEqual([]);
     expect(searchItems([hidden], "imperfecto")).toEqual([]);
+  });
+
+  it("searches the visible text of a formatted Grammar overview", () => {
+    expect(searchItems([structuredPage], "accion en progreso")[0]).toMatchObject({
+      tier: TIER.text,
+      reason: "in the grammar guide",
+    });
+    expect(searchItems([structuredPage], ">")).toEqual([]);
+    expect(searchItems([structuredPage], "Note")).toEqual([]);
   });
 
   it("matches contained vocabulary only for Pages retrieval and never adds a global page hit", () => {

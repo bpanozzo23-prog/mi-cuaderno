@@ -227,7 +227,7 @@ describe("GrammarSection editing", () => {
     expect(screen.queryByText(/Section 1 · 1 example/i)).toBeNull();
     expect(screen.queryByRole("button", { name: "Delete section Formation" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "Edit section Formation" }));
-    const explanation = screen.getByRole("textbox", { name: "Grammar section explanation" });
+    const explanation = screen.getByRole("textbox", { name: "Grammar section overview" });
     await user.clear(explanation);
     await user.type(explanation, "The imperfect describes an action from the inside.");
     const pattern = screen.getByRole("textbox", { name: "Grammar section pattern" });
@@ -249,7 +249,7 @@ describe("GrammarSection editing", () => {
     expect(addSection.textContent).toBe("");
     await user.click(addSection);
     await user.type(screen.getByRole("textbox", { name: "Grammar section name" }), "  Exceptions  ");
-    await user.type(screen.getByRole("textbox", { name: "Grammar section explanation" }), "Signals that change the framing.");
+    await user.type(screen.getByRole("textbox", { name: "Grammar section overview" }), "Signals that change the framing.");
     await user.click(screen.getByRole("button", { name: "Save section" }));
 
     await waitFor(() => expect(saveGrammarSection).toHaveBeenLastCalledWith(
@@ -257,6 +257,34 @@ describe("GrammarSection editing", () => {
       expect.objectContaining({ name: "Exceptions", explanation: "Signals that change the framing." })
     ));
     expect(props.onChanged).toHaveBeenCalledTimes(2);
+  });
+
+  it("formats section Overviews and offers a labeled Note callout action", async () => {
+    const user = userEvent.setup();
+    const formatted = page();
+    formatted.grammar = {
+      ...formatted.grammar,
+      sections: formatted.grammar.sections.map((section) => section.id === SECTION_ONE
+        ? {
+            ...section,
+            explanation: `## Definition
+
+The **indicative mood** describes what the speaker treats as certain.
+
+> It does not matter whether the belief is actually true.`,
+          }
+        : section),
+    };
+    const { container } = render(<GrammarSection {...baseProps({ page: formatted })} />);
+
+    expect(screen.getByRole("heading", { name: "Definition", level: 2 })).toBeTruthy();
+    expect(container.querySelector("strong")?.textContent).toBe("indicative mood");
+    expect(screen.getByRole("note", { name: "Note" }).textContent).toContain("actually true");
+
+    await user.click(screen.getByRole("button", { name: "Edit section Formation" }));
+    expect(screen.getByText("Overview")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Note callout" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Block quote" })).toBeNull();
   });
 
   it("saves example pairs with an exact enabled Source capture, including one on the same page", async () => {

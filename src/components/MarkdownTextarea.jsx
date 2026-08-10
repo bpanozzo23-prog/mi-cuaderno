@@ -43,7 +43,7 @@ function ToolbarButton({ label, icon: Icon, onAction }) {
   );
 }
 
-function MarkdownToolbar({ textareaRef, value, onChange }) {
+function MarkdownToolbar({ textareaRef, value, onChange, quoteLabel }) {
   function inline(before, after) {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -86,7 +86,10 @@ function MarkdownToolbar({ textareaRef, value, onChange }) {
     const remove = nonblank.length > 0 && nonblank.every(rule.matches);
     let orderedIndex = 0;
     const changed = lines.map((line) => {
-      if (!line.trim()) return line;
+      if (!line.trim()) {
+        if (kind === "quote" && !remove) return lines.length === 1 ? "> " : ">";
+        return line;
+      }
       const prefix = rule.add(orderedIndex++);
       return remove ? rule.strip(line) : `${prefix}${rule.strip(line)}`;
     }).join("\n");
@@ -124,20 +127,26 @@ function MarkdownToolbar({ textareaRef, value, onChange }) {
       <ToolbarButton label="Heading" icon={Heading2} onAction={() => prefixLines("heading")} />
       <ToolbarButton label="Bulleted list" icon={List} onAction={() => prefixLines("bullet")} />
       <ToolbarButton label="Numbered list" icon={ListOrdered} onAction={() => prefixLines("ordered")} />
-      <ToolbarButton label="Block quote" icon={Quote} onAction={() => prefixLines("quote")} />
+      <ToolbarButton label={quoteLabel} icon={Quote} onAction={() => prefixLines("quote")} />
       <ToolbarButton label="Divider" icon={Minus} onAction={divider} />
     </div>
   );
 }
 
 /** Plain textarea plus small Markdown insertion controls; formatting appears in read mode. */
-export default function MarkdownTextarea({ value, onChange, textareaRef = null, ...props }) {
+export default function MarkdownTextarea({
+  value,
+  onChange,
+  textareaRef = null,
+  quoteLabel = "Block quote",
+  ...props
+}) {
   const localRef = useRef(null);
   const ref = textareaRef || localRef;
 
   return (
     <div className="min-w-0">
-      <MarkdownToolbar textareaRef={ref} value={value} onChange={onChange} />
+      <MarkdownToolbar textareaRef={ref} value={value} onChange={onChange} quoteLabel={quoteLabel} />
       <textarea
         {...props}
         ref={ref}

@@ -23,6 +23,8 @@ import {
   saveGrammarSection,
 } from "../db/pageStructures.js";
 import CollectionAddVocabularySheet from "./CollectionAddVocabularySheet.jsx";
+import MarkdownText from "./MarkdownText.jsx";
+import MarkdownTextarea from "./MarkdownTextarea.jsx";
 import PageSectionDisclosure from "./PageSectionDisclosure.jsx";
 
 const fieldStyle = { background: C.card, borderColor: C.line, color: C.ink };
@@ -328,11 +330,12 @@ function SectionEditor({ section, onCancel, onSaved, onDelete }) {
             />
           </label>
           <label className="block text-xs" style={{ color: C.mut }}>
-            Explanation
-            <textarea
-              aria-label="Grammar section explanation"
+            Overview
+            <MarkdownTextarea
+              aria-label="Grammar section overview"
+              quoteLabel="Note callout"
               value={draft.explanation}
-              onChange={(event) => setDraft((current) => ({ ...current, explanation: event.target.value }))}
+              onChange={(explanation) => setDraft((current) => ({ ...current, explanation }))}
               placeholder="Explain the rule or contrast in your own words."
               className="mt-1 min-h-24 w-full resize-y rounded-lg border px-3 py-2 text-sm leading-relaxed outline-none"
               style={fieldStyle}
@@ -970,9 +973,14 @@ export default function GrammarSection({
 
                 <div id={contentId} hidden={collapsed}>
                   {section.explanation && (
-                    <div className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed" style={{ color: C.ink }}>
+                    <MarkdownText
+                      compact
+                      calloutBlockquotes
+                      className="mt-3 break-words text-sm leading-relaxed"
+                      style={{ color: C.ink }}
+                    >
                       {section.explanation}
-                    </div>
+                    </MarkdownText>
                   )}
                   {section.pattern && (
                     <div className="mt-3 overflow-x-auto rounded-lg border px-3 py-2 text-sm" style={{ background: C.paper, borderColor: C.line, color: C.penDark, fontFamily: MONO }}>

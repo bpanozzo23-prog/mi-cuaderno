@@ -7,9 +7,9 @@ import MarkdownTextarea from "./MarkdownTextarea.jsx";
 
 afterEach(cleanup);
 
-function Field({ initial }) {
+function Field({ initial, ...props }) {
   const [value, setValue] = useState(initial);
-  return <MarkdownTextarea aria-label="Notes" value={value} onChange={setValue} />;
+  return <MarkdownTextarea aria-label="Notes" value={value} onChange={setValue} {...props} />;
 }
 
 describe("MarkdownTextarea", () => {
@@ -47,5 +47,35 @@ describe("MarkdownTextarea", () => {
     for (const name of ["Bold", "Italic", "Highlight", "Heading", "Bulleted list", "Numbered list", "Block quote", "Divider"]) {
       expect(screen.getByRole("button", { name })).toBeTruthy();
     }
+  });
+
+  it("offers a Grammar Note callout without renaming ordinary block quotes", async () => {
+    const user = userEvent.setup();
+    const view = render(<Field initial="" quoteLabel="Note callout" />);
+
+    expect(screen.getByRole("button", { name: "Note callout" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Block quote" })).toBeNull();
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(0, 0);
+    await user.click(screen.getByRole("button", { name: "Note callout" }));
+    expect(field.value).toBe("> ");
+
+    view.unmount();
+    render(<Field initial="Ordinary quote" />);
+    expect(screen.getByRole("button", { name: "Block quote" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Note callout" })).toBeNull();
+  });
+
+  it("keeps selected paragraphs inside one callout", async () => {
+    const user = userEvent.setup();
+    render(<Field initial={"First paragraph\n\nSecond paragraph"} quoteLabel="Note callout" />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(0, field.value.length);
+
+    await user.click(screen.getByRole("button", { name: "Note callout" }));
+
+    expect(field.value).toBe("> First paragraph\n>\n> Second paragraph");
   });
 });
