@@ -5,6 +5,7 @@ import { nowIso } from "../lib/dates.js";
 import { newPageGroup } from "../lib/collections.js";
 import {
   PAGE_FOCUSES,
+  canonicalGrammarSections,
   emptyGrammar,
   emptySource,
   hasEnabledStructuredCapability,
@@ -298,6 +299,7 @@ export async function saveGrammarSection(pageId, draft = {}) {
       : newGrammarSection(draft);
     if (index < 0) page.grammar.sections.push(section);
     else page.grammar.sections[index] = section;
+    page.grammar.sections = canonicalGrammarSections(page.grammar.sections);
     result = { page: await putExplicitEdit(page), section };
   });
   return result;
@@ -310,6 +312,9 @@ export async function deleteGrammarSection(pageId, sectionId) {
     if (!page.grammar.enabled) throw new Error("Enable Grammar guide before deleting sections.");
     const section = page.grammar.sections.find((candidate) => candidate.id === sectionId);
     if (!section) throw new Error("Grammar section does not exist.");
+    if (page.grammar.sections.some((candidate) => candidate.parentId === sectionId)) {
+      throw new Error("Promote or move this section’s subsections first.");
+    }
     if ((section.examples || []).length) throw new Error("Move or delete this section’s examples first.");
     page.grammar.sections = page.grammar.sections.filter((candidate) => candidate.id !== sectionId);
     result = await putExplicitEdit(page);
@@ -399,7 +404,14 @@ export async function saveGrammarOrganization(pageId, sections = []) {
     }
     const examplesById = new Map(page.grammar.sections.flatMap((section) => section.examples).map((example) => [example.id, example]));
     const sectionsById = new Map(page.grammar.sections.map((section) => [section.id, section]));
-    page.grammar.sections = sections.map((draft) => {
+    const organizationSignature = (rows) => JSON.stringify(rows.map((section) => ({
+      id: section.id,
+      parentId: section.parentId ?? null,
+      name: section.name,
+      examples: (section.examples || []).map((example) => example.id),
+    })));
+    const beforeSignature = organizationSignature(page.grammar.sections);
+    page.grammar.sections = canonicalGrammarSections(sections.map((draft) => {
       const current = sectionsById.get(draft.id);
       return {
         ...(current || {
@@ -414,7 +426,12 @@ export async function saveGrammarOrganization(pageId, sections = []) {
         name: String(draft.name || "").trim(),
         examples: (draft.examples || []).map((example) => examplesById.get(example.id)),
       };
-    });
+    }));
+    validateNextPage(page);
+    if (organizationSignature(page.grammar.sections) === beforeSignature) {
+      result = page;
+      return;
+    }
     result = await putExplicitEdit(page);
   });
   return result;

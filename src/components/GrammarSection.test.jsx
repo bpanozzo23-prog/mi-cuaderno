@@ -36,6 +36,7 @@ vi.mock("./CollectionAddVocabularySheet.jsx", () => ({
 
 const SECTION_ONE = "grammar-section:11111111-1111-4111-8111-111111111111";
 const SECTION_TWO = "grammar-section:22222222-2222-4222-8222-222222222222";
+const SECTION_CHILD = "grammar-section:33333333-3333-4333-8333-333333333333";
 const EXAMPLE_ONE = "grammar-example:11111111-1111-4111-8111-111111111111";
 const EXAMPLE_TWO = "grammar-example:22222222-2222-4222-8222-222222222222";
 const SAME_CAPTURE = "source-capture:11111111-1111-4111-8111-111111111111";
@@ -82,6 +83,7 @@ function page(overrides = {}) {
       sections: [
         {
           id: SECTION_ONE,
+          parentId: null,
           name: "Formation",
           explanation: "Use the imperfect for background and repeated actions.",
           pattern: "stem + imperfect ending",
@@ -89,6 +91,7 @@ function page(overrides = {}) {
         },
         {
           id: SECTION_TWO,
+          parentId: null,
           name: "Comparison",
           explanation: "Compare bounded and ongoing actions.",
           pattern: "preterite ↔ imperfect",
@@ -97,6 +100,29 @@ function page(overrides = {}) {
       ],
     },
     ...overrides,
+  };
+}
+
+function hierarchicalPage() {
+  const current = page();
+  const [formation, comparison] = current.grammar.sections;
+  return {
+    ...current,
+    grammar: {
+      ...current.grammar,
+      sections: [
+        formation,
+        {
+          id: SECTION_CHILD,
+          parentId: SECTION_ONE,
+          name: "SPOCK",
+          explanation: "Speech, perceptions, occurrences, certainty, and knowledge.",
+          pattern: "",
+          examples: [],
+        },
+        comparison,
+      ],
+    },
   };
 }
 
@@ -435,11 +461,13 @@ describe("GrammarSection organization", () => {
       [
         {
           id: SECTION_TWO,
+          parentId: null,
           name: "Comparison",
           examples: [{ id: EXAMPLE_TWO }, { id: EXAMPLE_ONE }],
         },
         {
           id: SECTION_ONE,
+          parentId: null,
           name: "Background uses",
           examples: [],
         },
@@ -482,5 +510,58 @@ describe("GrammarSection organization", () => {
 
     expect(screen.getByRole("alert").textContent).toMatch(/nonblank and unique/i);
     expect(screen.getByRole("button", { name: "Save organization" }).disabled).toBe(true);
+  });
+
+  it("renders root-owned subtrees with independent subsection disclosure", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<GrammarSection {...baseProps({ page: hierarchicalPage() })} />);
+
+    expect(screen.getByText("2 sections · 1 subsection · 2 examples")).toBeTruthy();
+    const childHeading = screen.getByRole("heading", { name: "SPOCK" });
+    const childNode = childHeading.closest(".grammar-guide-subsection");
+    expect(childNode).toBeTruthy();
+    expect(childNode.querySelector(".rounded-xl")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Collapse grammar section Formation" }));
+    expect(screen.queryByRole("heading", { name: "SPOCK" })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Expand grammar section Formation" }));
+    await user.click(screen.getByRole("button", { name: "Collapse grammar subsection SPOCK" }));
+    expect(screen.getByRole("button", { name: "Collapse grammar section Formation" }).getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByRole("button", { name: "Expand grammar subsection SPOCK" }).getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("adds a subsection from a root and never offers a third level", async () => {
+    const user = userEvent.setup();
+    render(<GrammarSection {...baseProps({ page: hierarchicalPage() })} />);
+
+    expect(screen.queryByRole("button", { name: "Add subsection to SPOCK" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Add subsection to Formation" }));
+    await user.type(screen.getByRole("textbox", { name: "Grammar section name" }), "Triggers");
+    await user.click(screen.getByRole("button", { name: "Save section" }));
+
+    await waitFor(() => expect(saveGrammarSection).toHaveBeenCalledWith(
+      "user:grammar-page",
+      expect.objectContaining({ parentId: SECTION_ONE, name: "Triggers" })
+    ));
+  });
+
+  it("reparents a subsection in the organizer while blocking a root that owns children", async () => {
+    const user = userEvent.setup();
+    render(<GrammarSection {...baseProps({ page: hierarchicalPage() })} />);
+
+    await user.click(screen.getByRole("button", { name: "Organize" }));
+    expect(screen.getByRole("combobox", { name: "Parent for Formation" }).disabled).toBe(true);
+    await user.selectOptions(screen.getByRole("combobox", { name: "Parent for SPOCK" }), SECTION_TWO);
+    await user.click(screen.getByRole("button", { name: "Save organization" }));
+
+    await waitFor(() => expect(saveGrammarOrganization).toHaveBeenCalledWith(
+      "user:grammar-page",
+      [
+        { id: SECTION_ONE, parentId: null, name: "Formation", examples: [{ id: EXAMPLE_ONE }] },
+        { id: SECTION_TWO, parentId: null, name: "Comparison", examples: [{ id: EXAMPLE_TWO }] },
+        { id: SECTION_CHILD, parentId: SECTION_TWO, name: "SPOCK", examples: [] },
+      ]
+    ));
   });
 });

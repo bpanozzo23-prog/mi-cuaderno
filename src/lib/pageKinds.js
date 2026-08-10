@@ -174,6 +174,45 @@ export function newGrammarSection({
   };
 }
 
+/** Read the flat schema-v6 array as one root level plus one child level without cloning content. */
+export function grammarSectionHierarchy(sections = []) {
+  const list = Array.isArray(sections) ? sections : [];
+  const roots = list.filter((section) => section?.parentId == null);
+  const childrenByParent = new Map(roots.map((section) => [section.id, []]));
+  const unplaced = [];
+  for (const section of list) {
+    if (section?.parentId == null) continue;
+    const siblings = childrenByParent.get(section.parentId);
+    if (siblings) siblings.push(section);
+    else unplaced.push(section);
+  }
+  return { roots, childrenByParent, unplaced };
+}
+
+/** Stable depth-first storage: each root is followed by its children; invalid leftovers are retained. */
+export function canonicalGrammarSections(sections = []) {
+  const list = Array.isArray(sections) ? sections : [];
+  const { roots, childrenByParent, unplaced } = grammarSectionHierarchy(list);
+  const ordered = roots.flatMap((root) => [root, ...(childrenByParent.get(root.id) || [])]);
+  return [...ordered, ...unplaced];
+}
+
+export function grammarStructureCounts(sections = []) {
+  const list = Array.isArray(sections) ? sections : [];
+  return {
+    sections: list.filter((section) => section?.parentId == null).length,
+    subsections: list.filter((section) => section?.parentId != null).length,
+    examples: list.reduce((total, section) => total + (section?.examples?.length || 0), 0),
+  };
+}
+
+export function grammarSectionBreadcrumb(section, sections = []) {
+  if (!section) return "";
+  if (section.parentId == null) return section.name || "";
+  const parent = (sections || []).find((candidate) => candidate?.id === section.parentId);
+  return parent ? `${parent.name} › ${section.name}` : section.name || "";
+}
+
 /**
  * Produces the complete current structures without changing IDs, ordering or owner prose.
  * The legacy profile argument is used only by the v4→v5 migration and temporary callers.

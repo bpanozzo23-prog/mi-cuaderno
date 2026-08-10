@@ -247,6 +247,60 @@ describe("Source and Grammar structured mutations", () => {
     expect(await editEventsFor(page.id)).toHaveLength(1);
   });
 
+  it("inserts a new subsection after its existing siblings and before the next root", async () => {
+    const root = newGrammarSection({ name: "Indicative" });
+    const firstChild = newGrammarSection({ parentId: root.id, name: "Definition" });
+    const nextRoot = newGrammarSection({ name: "Subjunctive" });
+    const page = await createItem(newPage({
+      title: "Mood comparison",
+      grammar: emptyGrammar({ enabled: true, sections: [root, firstChild, nextRoot] }),
+    }));
+
+    const saved = await saveGrammarSection(page.id, { parentId: root.id, name: "SPOCK" });
+    const stored = await getItem(page.id);
+
+    expect(saved.section.parentId).toBe(root.id);
+    expect(stored.grammar.sections.map((section) => section.id)).toEqual([
+      root.id,
+      firstChild.id,
+      saved.section.id,
+      nextRoot.id,
+    ]);
+  });
+
+  it("refuses to delete a root that still owns subsections", async () => {
+    const root = newGrammarSection({ name: "Indicative" });
+    const child = newGrammarSection({ parentId: root.id, name: "SPOCK" });
+    const page = await createItem(newPage({
+      title: "Mood comparison",
+      grammar: emptyGrammar({ enabled: true, sections: [root, child] }),
+    }));
+    const before = await getItem(page.id);
+
+    await expect(deleteGrammarSection(page.id, root.id)).rejects.toThrow(/subsections/i);
+    expect(await getItem(page.id)).toEqual(before);
+    expect(await editEventsFor(page.id)).toEqual([]);
+  });
+
+  it("does not write or log an unchanged Grammar organization", async () => {
+    const root = newGrammarSection({ name: "Indicative" });
+    const child = newGrammarSection({ parentId: root.id, name: "SPOCK" });
+    const page = await createItem(newPage({
+      title: "Mood comparison",
+      grammar: emptyGrammar({ enabled: true, sections: [root, child] }),
+    }));
+    const before = await getItem(page.id);
+
+    const saved = await saveGrammarOrganization(page.id, [
+      { id: root.id, parentId: null, name: root.name, examples: [] },
+      { id: child.id, parentId: root.id, name: child.name, examples: [] },
+    ]);
+
+    expect(saved).toEqual(before);
+    expect(await getItem(page.id)).toEqual(before);
+    expect(await editEventsFor(page.id)).toEqual([]);
+  });
+
   it("owns an external exact reference with one outgoing link and retains that connection after the example is deleted", async () => {
     const capture = newSourceCapture({ text: "Mientras caminaba, empezó a llover." });
     const source = await createItem(newPage({

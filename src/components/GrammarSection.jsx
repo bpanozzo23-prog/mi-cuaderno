@@ -13,7 +13,14 @@ import {
   X,
 } from "lucide-react";
 import { Button, C, Card, IconButton, MONO, SERIF } from "../theme.jsx";
-import { newGrammarSection, pageStructureNameKey } from "../lib/pageKinds.js";
+import {
+  canonicalGrammarSections,
+  grammarSectionBreadcrumb,
+  grammarSectionHierarchy,
+  grammarStructureCounts,
+  newGrammarSection,
+  pageStructureNameKey,
+} from "../lib/pageKinds.js";
 import {
   deleteGrammarExample,
   deleteGrammarSection,
@@ -285,9 +292,12 @@ function KeyIdeaCard({ keyIdea, onSaved }) {
   );
 }
 
-function SectionEditor({ section, onCancel, onSaved, onDelete }) {
+function SectionEditor({ section, childCount = 0, onCancel, onSaved, onDelete }) {
   const [draft, setDraft] = useState(() => ({
     ...(section?.id ? { id: section.id } : {}),
+    ...(Object.prototype.hasOwnProperty.call(section || {}, "parentId")
+      ? { parentId: section.parentId }
+      : {}),
     name: section?.name || "",
     explanation: section?.explanation || "",
     pattern: section?.pattern || "",
@@ -313,7 +323,7 @@ function SectionEditor({ section, onCancel, onSaved, onDelete }) {
         }}
       >
         <div className="text-sm font-semibold" style={{ color: C.ink }}>
-          {section?.id ? "Edit guide section" : "New guide section"}
+          {section?.id ? "Edit guide section" : section?.parentId ? "New subsection" : "New guide section"}
         </div>
         <div className="mt-3 space-y-3">
           <label className="block text-xs" style={{ color: C.mut }}>
@@ -359,7 +369,9 @@ function SectionEditor({ section, onCancel, onSaved, onDelete }) {
           {section?.id && (
             <EditorDeleteAction
               label="Delete section"
-              description={(section.examples || []).length
+              description={childCount
+                ? "This section has subsections. Promote or move them before deleting the section."
+                : (section.examples || []).length
                 ? "This section has examples. Move or delete them before deleting the section."
                 : `Delete the “${section.name}” section?`}
               onDelete={onDelete}
@@ -485,8 +497,9 @@ function ExampleEditor({ example, sourceOptions, onCancel, onSaved, onDelete }) 
 }
 
 function GrammarOrganizer({ sections, onCancel, onSaved }) {
-  const initial = useMemo(() => sections.map((section) => ({
+  const initial = useMemo(() => canonicalGrammarSections(sections).map((section) => ({
     id: section.id,
+    parentId: section.parentId ?? null,
     name: section.name,
     examples: (section.examples || []).map((example) => ({ id: example.id, es: example.es })),
   })), [sections]);
@@ -497,8 +510,57 @@ function GrammarOrganizer({ sections, onCancel, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [problem, setProblem] = useState("");
   const changed = JSON.stringify(draft) !== JSON.stringify(initial);
-  const names = draft.map((section) => pageStructureNameKey(section.name));
-  const namesValid = names.every(Boolean) && new Set(names).size === names.length;
+  const hierarchy = grammarSectionHierarchy(draft);
+  const namesValid = (() => {
+    const seenByParent = new Map();
+    for (const section of draft) {
+      const name = pageStructureNameKey(section.name);
+      if (!name) return false;
+      const parentId = section.parentId ?? null;
+      const seen = seenByParent.get(parentId) || new Set();
+      if (seen.has(name)) return false;
+      seen.add(name);
+      seenByParent.set(parentId, seen);
+    }
+    return true;
+  })();
+
+  function siblingState(rows, sectionId) {
+    const index = rows.findIndex((section) => section.id === sectionId);
+    const section = rows[index];
+    if (!section) return { index: -1, indexes: [], position: -1 };
+    const parentId = section.parentId ?? null;
+    const indexes = rows.flatMap((candidate, candidateIndex) => (
+      (candidate.parentId ?? null) === parentId ? [candidateIndex] : []
+    ));
+    return { index, indexes, position: indexes.indexOf(index) };
+  }
+
+  function moveSection(sectionId, offset) {
+    setDraft((current) => {
+      const { indexes, position } = siblingState(current, sectionId);
+      const targetPosition = position + offset;
+      if (position < 0 || targetPosition < 0 || targetPosition >= indexes.length) return current;
+      const next = [...current];
+      const targetIndex = indexes[targetPosition];
+      const index = indexes[position];
+      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+      return canonicalGrammarSections(next);
+    });
+  }
+
+  function changeParent(sectionId, value) {
+    const parentId = value || null;
+    setDraft((current) => {
+      const section = current.find((candidate) => candidate.id === sectionId);
+      if (!section || section.parentId === parentId) return current;
+      const hasChildren = current.some((candidate) => candidate.parentId === sectionId);
+      if (hasChildren && parentId !== null) return current;
+      return canonicalGrammarSections(current.map((candidate) => candidate.id === sectionId
+        ? { ...candidate, parentId }
+        : candidate));
+    });
+  }
 
   function moveExample(sectionIndex, exampleIndex, offset) {
     setDraft((current) => current.map((section, index) => index === sectionIndex
@@ -520,19 +582,29 @@ function GrammarOrganizer({ sections, onCancel, onSaved }) {
 
   function addSection() {
     const section = newGrammarSection();
-    setDraft((current) => [...current, { id: section.id, name: "", examples: [] }]);
+    setDraft((current) => [...current, {
+      id: section.id,
+      parentId: null,
+      name: "",
+      examples: [],
+    }]);
   }
 
   return (
     <Card className="mt-3" style={{ borderColor: C.pen }}>
       <div className="text-sm font-semibold" style={{ color: C.ink }}>Organize Grammar guide</div>
       <div className="mt-0.5 text-xs" style={{ color: C.mut }}>
-        Rename, add, and reorder sections, or move examples. Nothing changes until Save.
+        Rename and reorder siblings, promote or reparent subsections, add sections, or move examples.
+        Nothing changes until Save.
       </div>
 
       <div className="mt-3 space-y-3">
         {draft.map((section, sectionIndex) => (
-          <div key={section.id} className="rounded-lg border p-2" style={{ background: C.paper, borderColor: C.line }}>
+          <div
+            key={section.id}
+            className={`rounded-lg border p-2 ${section.parentId ? "ml-4" : ""}`}
+            style={{ background: C.paper, borderColor: C.line }}
+          >
             <div className="flex items-center gap-1">
               <input
                 aria-label={`Section ${sectionIndex + 1} name`}
@@ -546,8 +618,8 @@ function GrammarOrganizer({ sections, onCancel, onSaved }) {
               <button
                 type="button"
                 aria-label={`Move section ${section.name || sectionIndex + 1} up`}
-                disabled={sectionIndex === 0}
-                onClick={() => setDraft((current) => moveAt(current, sectionIndex, -1))}
+                disabled={siblingState(draft, section.id).position <= 0}
+                onClick={() => moveSection(section.id, -1)}
                 className="flex min-h-11 min-w-11 items-center justify-center disabled:opacity-30"
               >
                 <ArrowUp size={15} style={{ color: C.mut }} />
@@ -555,12 +627,34 @@ function GrammarOrganizer({ sections, onCancel, onSaved }) {
               <button
                 type="button"
                 aria-label={`Move section ${section.name || sectionIndex + 1} down`}
-                disabled={sectionIndex === draft.length - 1}
-                onClick={() => setDraft((current) => moveAt(current, sectionIndex, 1))}
+                disabled={(() => {
+                  const { indexes, position } = siblingState(draft, section.id);
+                  return position < 0 || position === indexes.length - 1;
+                })()}
+                onClick={() => moveSection(section.id, 1)}
                 className="flex min-h-11 min-w-11 items-center justify-center disabled:opacity-30"
               >
                 <ArrowDown size={15} style={{ color: C.mut }} />
               </button>
+            </div>
+
+            <div className="mt-1 flex items-center gap-2">
+              <span className="text-[11px] font-semibold" style={{ color: C.mut }}>
+                {section.parentId ? "Subsection" : "Section"}
+              </span>
+              <select
+                aria-label={`Parent for ${section.name || `section ${sectionIndex + 1}`}`}
+                value={section.parentId || ""}
+                disabled={section.parentId === null && (hierarchy.childrenByParent.get(section.id) || []).length > 0}
+                onChange={(event) => changeParent(section.id, event.target.value)}
+                className="min-h-11 min-w-0 flex-1 rounded-lg border px-2 text-xs disabled:opacity-60"
+                style={fieldStyle}
+              >
+                <option value="">Top level</option>
+                {hierarchy.roots.filter((root) => root.id !== section.id).map((root) => (
+                  <option key={root.id} value={root.id}>Under {root.name || "Unnamed section"}</option>
+                ))}
+              </select>
             </div>
 
             {(section.examples || []).length > 0 && (
@@ -595,7 +689,9 @@ function GrammarOrganizer({ sections, onCancel, onSaved }) {
                         style={fieldStyle}
                       >
                         {draft.map((target) => (
-                          <option key={target.id} value={target.id}>Move to {target.name || "Unnamed section"}</option>
+                          <option key={target.id} value={target.id}>
+                            Move to {grammarSectionBreadcrumb(target, draft) || "Unnamed section"}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -620,7 +716,7 @@ function GrammarOrganizer({ sections, onCancel, onSaved }) {
 
       {!namesValid && (
         <div role="alert" className="mt-2 text-xs" style={{ color: C.red }}>
-          Section names must be nonblank and unique.
+          Section names must be nonblank and unique among siblings.
         </div>
       )}
       <div className="mt-3 flex flex-wrap gap-2 border-t pt-3" style={{ borderColor: C.line }}>
@@ -632,6 +728,7 @@ function GrammarOrganizer({ sections, onCancel, onSaved }) {
             try {
               await onSaved(draft.map((section) => ({
                 id: section.id,
+                parentId: section.parentId ?? null,
                 name: section.name.trim(),
                 examples: section.examples.map(({ id }) => ({ id })),
               })));
@@ -830,7 +927,8 @@ export default function GrammarSection({
   const [vocabularyTarget, setVocabularyTarget] = useState(null);
   const itemsById = useMemo(() => new Map((items || []).map((item) => [item.id, item])), [items]);
   const captureOptions = useMemo(() => sourceCaptureOptions(page, items), [page, items]);
-  const exampleCount = sections.reduce((total, section) => total + (section.examples || []).length, 0);
+  const hierarchy = useMemo(() => grammarSectionHierarchy(sections), [sections]);
+  const structureCounts = grammarStructureCounts(sections);
   const hasContent = Boolean(grammar?.keyIdea?.trim()) || sections.some(grammarSectionHasContent);
 
   useEffect(() => {
@@ -845,13 +943,203 @@ export default function GrammarSection({
     await onChanged?.();
   }
 
+  const structureSummary = [
+    `${structureCounts.sections} ${structureCounts.sections === 1 ? "section" : "sections"}`,
+    ...(structureCounts.subsections
+      ? [`${structureCounts.subsections} ${structureCounts.subsections === 1 ? "subsection" : "subsections"}`]
+      : []),
+    `${structureCounts.examples} ${structureCounts.examples === 1 ? "example" : "examples"}`,
+  ].join(" · ");
+
+  function openSectionEditor(section) {
+    setSectionDraft(section);
+    setExampleDraft(null);
+    setVocabularyTarget(null);
+    setCollapsedSections((current) => {
+      if (!current.has(section.id) && (!section.parentId || !current.has(section.parentId))) return current;
+      const next = new Set(current);
+      next.delete(section.id);
+      if (section.parentId) next.delete(section.parentId);
+      return next;
+    });
+  }
+
+  function toggleSection(sectionId) {
+    setCollapsedSections((current) => {
+      const next = new Set(current);
+      if (next.has(sectionId)) next.delete(sectionId); else next.add(sectionId);
+      return next;
+    });
+  }
+
+  function renderSectionOwnContent(section, isSubsection) {
+    return (
+      <>
+        {section.explanation && (
+          <MarkdownText
+            compact
+            calloutBlockquotes
+            className="mt-3 break-words text-sm leading-relaxed"
+            style={{ color: C.ink }}
+          >
+            {section.explanation}
+          </MarkdownText>
+        )}
+        {section.pattern && (
+          <div className="mt-3 overflow-x-auto rounded-lg border px-3 py-2 text-sm" style={{ background: C.paper, borderColor: C.line, color: C.penDark, fontFamily: MONO }}>
+            {section.pattern}
+          </div>
+        )}
+
+        <div className="mt-4 space-y-3">
+          {(section.examples || []).map((example) => (
+            <ExampleCard
+              key={example.id}
+              page={page}
+              section={section}
+              example={example}
+              items={items}
+              itemsById={itemsById}
+              onOpen={onOpen}
+              addingVocabulary={vocabularyTarget?.sectionId === section.id && vocabularyTarget?.exampleId === example.id}
+              onEdit={() => {
+                setExampleDraft({ sectionId: section.id, example });
+                setSectionDraft(null);
+                setVocabularyTarget(null);
+              }}
+              onBeginVocabulary={typeof onAddVocabulary === "function" ? () => {
+                setVocabularyTarget((current) => (
+                  current?.sectionId === section.id && current?.exampleId === example.id
+                    ? null
+                    : { sectionId: section.id, exampleId: example.id }
+                ));
+              } : null}
+              onCancelVocabulary={() => setVocabularyTarget(null)}
+              onCommitVocabulary={async (candidates) => {
+                await onAddVocabulary(section.id, example.id, candidates);
+                setVocabularyTarget(null);
+                await changed();
+              }}
+              onDetachVocabulary={async (itemId) => {
+                await saveGrammarExample(page.id, section.id, {
+                  ...example,
+                  itemKeys: (example.itemKeys || []).filter((key) => key !== itemId),
+                });
+                await changed();
+              }}
+            />
+          ))}
+        </div>
+
+        {exampleDraft?.sectionId === section.id && (
+          <ExampleEditor
+            key={exampleDraft.example?.id || `new-example:${section.id}`}
+            example={exampleDraft.example}
+            sourceOptions={captureOptions}
+            onCancel={() => setExampleDraft(null)}
+            onSaved={async (draft) => {
+              await saveGrammarExample(page.id, section.id, draft);
+              setExampleDraft(null);
+              await changed();
+            }}
+            onDelete={exampleDraft.example?.id ? async () => {
+              await deleteGrammarExample(page.id, section.id, exampleDraft.example.id);
+              setExampleDraft(null);
+              await changed();
+            } : null}
+          />
+        )}
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button
+            tone="quiet"
+            aria-label="Add example"
+            onClick={() => {
+              setExampleDraft({ sectionId: section.id, example: null });
+              setSectionDraft(null);
+              setVocabularyTarget(null);
+            }}
+          >
+            <Plus size={14} /> Example
+          </Button>
+          {!isSubsection && (
+            <Button
+              tone="quiet"
+              aria-label={`Add subsection to ${section.name}`}
+              onClick={() => {
+                setSectionDraft({ parentId: section.id });
+                setExampleDraft(null);
+                setVocabularyTarget(null);
+              }}
+            >
+              <Plus size={14} /> Subsection
+            </Button>
+          )}
+        </div>
+      </>
+    );
+  }
+
+  function renderSectionNode(section, isSubsection = false) {
+    const collapsed = collapsedSections.has(section.id);
+    const contentId = `grammar-section-content-${section.id}`;
+    const children = isSubsection ? [] : (hierarchy.childrenByParent.get(section.id) || []);
+    const Heading = isSubsection ? "h4" : "h3";
+    const node = (
+      <>
+        <div className="flex items-start justify-between gap-3">
+          <button
+            type="button"
+            aria-label={`${collapsed ? "Expand" : "Collapse"} grammar ${isSubsection ? "subsection" : "section"} ${section.name}`}
+            aria-expanded={!collapsed}
+            aria-controls={contentId}
+            onClick={() => toggleSection(section.id)}
+            className="-ml-2 min-h-11 min-w-0 flex-1 rounded-lg px-2 text-left flex items-center gap-2"
+          >
+            {collapsed
+              ? <ChevronRight size={16} className="shrink-0" style={{ color: C.mut }} />
+              : <ChevronDown size={16} className="shrink-0" style={{ color: C.mut }} />}
+            <Heading
+              className={`min-w-0 break-words font-bold leading-snug ${isSubsection ? "text-sm" : "text-base"}`}
+              style={{ color: C.ink, fontFamily: SERIF }}
+            >
+              {section.name}
+            </Heading>
+          </button>
+          <button
+            type="button"
+            aria-label={`Edit section ${section.name}`}
+            onClick={() => openSectionEditor(section)}
+            className="flex min-h-11 min-w-11 shrink-0 items-center justify-center"
+          >
+            <Pencil size={15} style={{ color: C.pen }} />
+          </button>
+        </div>
+
+        <div id={contentId} hidden={collapsed}>
+          {renderSectionOwnContent(section, isSubsection)}
+          {children.length > 0 && (
+            <div className="grammar-guide-subsections" aria-label={`${section.name} subsections`}>
+              {children.map((child) => renderSectionNode(child, true))}
+            </div>
+          )}
+        </div>
+      </>
+    );
+
+    if (isSubsection) {
+      return <div key={section.id} className="grammar-guide-subsection">{node}</div>;
+    }
+    return <Card key={section.id} className="grammar-guide-root">{node}</Card>;
+  }
+
   return (
     <PageSectionDisclosure
       id="page-grammar"
       family="grammar"
       title="Grammar guide"
       summary={hasContent
-        ? `${sections.length} ${sections.length === 1 ? "section" : "sections"} · ${exampleCount} ${exampleCount === 1 ? "example" : "examples"}`
+        ? structureSummary
         : "Empty"}
       defaultCollapsed={!hasContent}
       resetKey={page.id}
@@ -865,6 +1153,7 @@ export default function GrammarSection({
                 setOrganizing(true);
                 setSectionDraft(null);
                 setExampleDraft(null);
+                setVocabularyTarget(null);
               }}
             >
               <ListTree size={17} />
@@ -875,8 +1164,9 @@ export default function GrammarSection({
               tone="primary"
               aria-label="Add grammar section"
               onClick={() => {
-                setSectionDraft({});
+                setSectionDraft({ parentId: null });
                 setExampleDraft(null);
+                setVocabularyTarget(null);
               }}
             >
               <Plus size={17} />
@@ -897,8 +1187,9 @@ export default function GrammarSection({
 
       {sectionDraft && (
         <SectionEditor
-          key={sectionDraft.id || "new-section"}
+          key={sectionDraft.id || `new-section:${sectionDraft.parentId || "root"}`}
           section={sectionDraft}
+          childCount={sections.filter((section) => section.parentId === sectionDraft.id).length}
           onCancel={() => setSectionDraft(null)}
           onSaved={async (draft) => {
             await saveGrammarSection(page.id, draft);
@@ -926,144 +1217,8 @@ export default function GrammarSection({
       )}
 
       {!organizing && (
-        <div className="mt-4 space-y-4">
-          {sections.map((section) => {
-            const collapsed = collapsedSections.has(section.id);
-            const contentId = `grammar-section-content-${section.id}`;
-            return (
-              <Card key={section.id}>
-                <div className="flex items-start justify-between gap-3">
-                  <button
-                    type="button"
-                    aria-label={`${collapsed ? "Expand" : "Collapse"} grammar section ${section.name}`}
-                    aria-expanded={!collapsed}
-                    aria-controls={contentId}
-                    onClick={() => setCollapsedSections((current) => {
-                      const next = new Set(current);
-                      if (next.has(section.id)) next.delete(section.id); else next.add(section.id);
-                      return next;
-                    })}
-                    className="-ml-2 min-h-11 min-w-0 flex-1 rounded-lg px-2 text-left flex items-center gap-2"
-                  >
-                    {collapsed
-                      ? <ChevronRight size={16} className="shrink-0" style={{ color: C.mut }} />
-                      : <ChevronDown size={16} className="shrink-0" style={{ color: C.mut }} />}
-                    <h3 className="min-w-0 break-words text-base font-bold leading-snug" style={{ color: C.ink, fontFamily: SERIF }}>{section.name}</h3>
-                  </button>
-                  <div className="flex shrink-0 items-center">
-                    <button
-                      type="button"
-                      aria-label={`Edit section ${section.name}`}
-                      onClick={() => {
-                        setSectionDraft(section);
-                        setExampleDraft(null);
-                        setCollapsedSections((current) => {
-                          if (!current.has(section.id)) return current;
-                          const next = new Set(current);
-                          next.delete(section.id);
-                          return next;
-                        });
-                      }}
-                      className="flex min-h-11 min-w-11 items-center justify-center"
-                    >
-                      <Pencil size={15} style={{ color: C.pen }} />
-                    </button>
-                  </div>
-                </div>
-
-                <div id={contentId} hidden={collapsed}>
-                  {section.explanation && (
-                    <MarkdownText
-                      compact
-                      calloutBlockquotes
-                      className="mt-3 break-words text-sm leading-relaxed"
-                      style={{ color: C.ink }}
-                    >
-                      {section.explanation}
-                    </MarkdownText>
-                  )}
-                  {section.pattern && (
-                    <div className="mt-3 overflow-x-auto rounded-lg border px-3 py-2 text-sm" style={{ background: C.paper, borderColor: C.line, color: C.penDark, fontFamily: MONO }}>
-                      {section.pattern}
-                    </div>
-                  )}
-
-              <div className="mt-4 space-y-3">
-                {(section.examples || []).map((example) => (
-                  <ExampleCard
-                    key={example.id}
-                    page={page}
-                    section={section}
-                    example={example}
-                    items={items}
-                    itemsById={itemsById}
-                    onOpen={onOpen}
-                    addingVocabulary={vocabularyTarget?.sectionId === section.id && vocabularyTarget?.exampleId === example.id}
-                    onEdit={() => {
-                      setExampleDraft({ sectionId: section.id, example });
-                      setSectionDraft(null);
-                      setVocabularyTarget(null);
-                    }}
-                    onBeginVocabulary={typeof onAddVocabulary === "function" ? () => {
-                      setVocabularyTarget((current) => (
-                        current?.sectionId === section.id && current?.exampleId === example.id
-                          ? null
-                          : { sectionId: section.id, exampleId: example.id }
-                      ));
-                    } : null}
-                    onCancelVocabulary={() => setVocabularyTarget(null)}
-                    onCommitVocabulary={async (candidates) => {
-                      await onAddVocabulary(section.id, example.id, candidates);
-                      setVocabularyTarget(null);
-                      await changed();
-                    }}
-                    onDetachVocabulary={async (itemId) => {
-                      await saveGrammarExample(page.id, section.id, {
-                        ...example,
-                        itemKeys: (example.itemKeys || []).filter((key) => key !== itemId),
-                      });
-                      await changed();
-                    }}
-                  />
-                ))}
-              </div>
-
-              {exampleDraft?.sectionId === section.id && (
-                <ExampleEditor
-                  key={exampleDraft.example?.id || `new-example:${section.id}`}
-                  example={exampleDraft.example}
-                  sourceOptions={captureOptions}
-                  onCancel={() => setExampleDraft(null)}
-                  onSaved={async (draft) => {
-                    await saveGrammarExample(page.id, section.id, draft);
-                    setExampleDraft(null);
-                    await changed();
-                  }}
-                  onDelete={exampleDraft.example?.id ? async () => {
-                    await deleteGrammarExample(page.id, section.id, exampleDraft.example.id);
-                    setExampleDraft(null);
-                    await changed();
-                  } : null}
-                />
-              )}
-
-              <Button
-                tone="quiet"
-                className="mt-3"
-                aria-label="Add example"
-                onClick={() => {
-                  setExampleDraft({ sectionId: section.id, example: null });
-                  setSectionDraft(null);
-                  setVocabularyTarget(null);
-                }}
-              >
-                <Plus size={14} /> Example
-              </Button>
-
-                </div>
-              </Card>
-            );
-          })}
+        <div className="grammar-guide-spine mt-4 space-y-4">
+          {hierarchy.roots.map((section) => renderSectionNode(section))}
         </div>
       )}
 

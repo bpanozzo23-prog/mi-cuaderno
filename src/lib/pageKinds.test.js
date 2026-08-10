@@ -4,6 +4,10 @@ import {
   emptyGrammar,
   emptySource,
   enabledPageRoles,
+  canonicalGrammarSections,
+  grammarSectionBreadcrumb,
+  grammarSectionHierarchy,
+  grammarStructureCounts,
   isHttpSourceUrl,
   isJournalPage,
   newGrammarExample,
@@ -107,6 +111,36 @@ describe("composable page kinds", () => {
     });
 
     expect(validatePageStructures(validPage({ pageFocus: "grammar", grammar }))).toEqual([]);
+  });
+
+  it("derives a canonical tree, counts, and breadcrumbs without changing section objects", () => {
+    const root = {
+      id: "grammar-section:11111111-1111-4111-8111-111111111111",
+      parentId: null,
+      name: "Indicative",
+      examples: [{ id: "example:one" }],
+    };
+    const child = {
+      id: "grammar-section:22222222-2222-4222-8222-222222222222",
+      parentId: root.id,
+      name: "SPOCK",
+      examples: [{ id: "example:two" }, { id: "example:three" }],
+    };
+    const otherRoot = {
+      id: "grammar-section:33333333-3333-4333-8333-333333333333",
+      parentId: null,
+      name: "Subjunctive",
+      examples: [],
+    };
+    const stored = [child, root, otherRoot];
+
+    const hierarchy = grammarSectionHierarchy(stored);
+    expect(hierarchy.roots).toEqual([root, otherRoot]);
+    expect(hierarchy.childrenByParent.get(root.id)).toEqual([child]);
+    expect(canonicalGrammarSections(stored)).toEqual([root, child, otherRoot]);
+    expect(grammarStructureCounts(stored)).toEqual({ sections: 2, subsections: 1, examples: 3 });
+    expect(grammarSectionBreadcrumb(child, stored)).toBe("Indicative › SPOCK");
+    expect(grammarSectionBreadcrumb(root, stored)).toBe("Indicative");
   });
 
   it.each([
