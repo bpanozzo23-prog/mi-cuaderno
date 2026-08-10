@@ -14,3 +14,13 @@ Codex-specific notes only:
   `npm.cmd run dev`; plain `npm` resolves to `npm.ps1`, which this machine's execution policy
   blocks. When reading the repository's UTF-8 files with `Get-Content`, pass `-Encoding UTF8`
   (or use `rg`) so ñ, section signs and punctuation are not garbled.
+- **Subagents:** For substantial reviews, audits, or debugging with at least two independent
+  read-only investigations, use at most two subagents when doing so would materially improve
+  coverage or keep noisy exploration out of the main context. Suitable work includes mapping
+  separate code paths, checking requirements against implementation, reviewing test coverage,
+  and investigating independent failure hypotheses. Subagents must not edit files, commit, push,
+  perform browser-data operations, or run competing test suites. Do not delegate routine commands
+  or small tasks. Wait for every delegated result before synthesis. The primary agent owns
+  implementation, decisions, the complete serial suite, browser verification, and final synthesis.
+  Leave subagent model selection unpinned unless repeated experience demonstrates a need for
+  project-specific configuration.
