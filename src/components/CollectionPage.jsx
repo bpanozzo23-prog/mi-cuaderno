@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Bookmark, BookmarkCheck, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink,
   Goal, ListTree, MoreHorizontal, Pencil, Play, Plus, Settings2, Trash2, X,
@@ -36,8 +36,8 @@ import SourceSection from "./SourceSection.jsx";
 import GrammarSection from "./GrammarSection.jsx";
 import PageCustomizeSheet from "./PageCustomizeSheet.jsx";
 import PageSectionDisclosure, { SectionSpineNode } from "./PageSectionDisclosure.jsx";
-import MarkdownText from "./MarkdownText.jsx";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
+import StructuredNotesSection from "./StructuredNotesSection.jsx";
 import PracticeSession from "./PracticeSession.jsx";
 import PracticeSetupSheet from "./PracticeSetupSheet.jsx";
 import { buildPracticeDeck, isPracticeEligible } from "../lib/practice.js";
@@ -73,59 +73,6 @@ function availableFocusChoices(page) {
     page.source?.enabled && PAGE_FOCUSES.source,
     page.grammar?.enabled && PAGE_FOCUSES.grammar,
   ].filter(Boolean);
-}
-
-function CollectionOverview({ body }) {
-  const [expanded, setExpanded] = useState(false);
-  const [overflows, setOverflows] = useState(false);
-  const textRef = useRef(null);
-
-  useEffect(() => setExpanded(false), [body]);
-
-  useLayoutEffect(() => {
-    function measure() {
-      const element = textRef.current;
-      if (!element) return;
-      const clone = element.cloneNode(true);
-      clone.classList.remove("line-clamp-4");
-      Object.assign(clone.style, {
-        position: "fixed",
-        visibility: "hidden",
-        pointerEvents: "none",
-        inset: "0 auto auto 0",
-        width: `${element.getBoundingClientRect().width}px`,
-        height: "auto",
-        maxHeight: "none",
-        overflow: "visible",
-      });
-      document.body.appendChild(clone);
-      const lineHeight = Number.parseFloat(getComputedStyle(clone).lineHeight) || 20;
-      setOverflows(clone.scrollHeight > lineHeight * 4 + 1);
-      clone.remove();
-    }
-
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [body]);
-
-  return (
-    <div className="mt-4">
-      <MarkdownText
-        elementRef={textRef}
-        compact
-        className={`text-sm ${expanded ? "" : "line-clamp-4"}`}
-        style={{ color: C.ink }}
-      >
-        {body}
-      </MarkdownText>
-      {overflows && (
-        <button type="button" className="mt-1 text-xs" style={{ color: C.pen }} onClick={() => setExpanded((shown) => !shown)}>
-          {expanded ? "Show less" : "Show more"}
-        </button>
-      )}
-    </div>
-  );
 }
 
 function CollectionDetailsEditor({ item, items, onCancel, onSaved }) {
@@ -424,82 +371,6 @@ function ConnectionsSection({
         </>
       )}
       </div>
-    </PageSectionDisclosure>
-  );
-}
-
-function PageNotesSection({ page, onChanged, overview = false }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(page.body || "");
-  const [dirty, setDirty] = useState(false);
-
-  useEffect(() => {
-    setEditing(false);
-    setDraft(page.body || "");
-    setDirty(false);
-  }, [page.id]);
-
-  const saved = page.body || "";
-  const hasBody = saved.trim() !== "";
-
-  return (
-    <PageSectionDisclosure
-      id="page-notes"
-      family="notes"
-      title="Notes"
-      summary={hasBody ? "" : "Empty"}
-      defaultCollapsed={!hasBody}
-      resetKey={page.id}
-      actions={!editing ? (
-        <IconButton aria-label={hasBody ? "Edit page" : "Write page"} tone="quiet" onClick={() => {
-          setDraft(saved);
-          setDirty(false);
-          setEditing(true);
-        }}>
-          <Pencil size={15} />
-        </IconButton>
-      ) : null}
-    >
-      {overview && hasBody && !editing ? (
-        <CollectionOverview body={saved} />
-      ) : (
-      <Card className="mt-2">
-        {editing ? (
-          <>
-            <MarkdownTextarea
-              autoFocus
-              aria-label="Page body"
-              value={draft}
-              onChange={(value) => {
-                setDraft(value);
-                setDirty(true);
-              }}
-              className="min-h-40 w-full resize-y bg-transparent text-sm outline-none"
-              style={{ color: C.ink }}
-            />
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Button disabled={!dirty} onClick={async () => {
-                await updateItem(page.id, { body: draft });
-                setEditing(false);
-                setDirty(false);
-                await onChanged();
-              }}>Save page</Button>
-              <Button tone="quiet" onClick={() => {
-                setDraft(saved);
-                setEditing(false);
-                setDirty(false);
-              }}>Cancel</Button>
-            </div>
-          </>
-        ) : (
-          hasBody ? (
-            <MarkdownText compact className="text-sm" style={{ color: C.ink }}>{saved}</MarkdownText>
-          ) : (
-            <div className="text-sm italic" style={{ color: C.mut }}>This page is empty.</div>
-          )
-        )}
-      </Card>
-      )}
     </PageSectionDisclosure>
   );
 }
@@ -1090,11 +961,7 @@ export default function CollectionPage({
           </Card>
 
           <div className="mt-5">
-            <PageNotesSection
-              page={item}
-              onChanged={onChanged}
-              overview={item.pageFocus !== PAGE_FOCUSES.notes}
-            />
+            <StructuredNotesSection page={item} onChanged={onChanged} />
           </div>
 
           <div className="mt-5 space-y-7">

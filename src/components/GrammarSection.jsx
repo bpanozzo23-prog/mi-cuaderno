@@ -22,10 +22,7 @@ import {
   pageStructureNameKey,
 } from "../lib/pageKinds.js";
 import {
-  moveOutlineSibling,
   outlineNamesValid,
-  outlineSiblingState,
-  reparentOutlineRow,
 } from "../lib/oneLevelOutline.js";
 import {
   deleteGrammarExample,
@@ -39,6 +36,7 @@ import CollectionAddVocabularySheet from "./CollectionAddVocabularySheet.jsx";
 import MarkdownText from "./MarkdownText.jsx";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
 import PageSectionDisclosure from "./PageSectionDisclosure.jsx";
+import OutlineOrganizerFields from "./OutlineOrganizerFields.jsx";
 
 const fieldStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
@@ -516,16 +514,7 @@ function GrammarOrganizer({ sections, onCancel, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [problem, setProblem] = useState("");
   const changed = JSON.stringify(draft) !== JSON.stringify(initial);
-  const hierarchy = grammarSectionHierarchy(draft);
   const namesValid = outlineNamesValid(draft, pageStructureNameKey);
-
-  function moveSection(sectionId, offset) {
-    setDraft((current) => moveOutlineSibling(current, sectionId, offset));
-  }
-
-  function changeParent(sectionId, value) {
-    setDraft((current) => reparentOutlineRow(current, sectionId, value));
-  }
 
   function moveExample(sectionIndex, exampleIndex, offset) {
     setDraft((current) => current.map((section, index) => index === sectionIndex
@@ -570,57 +559,12 @@ function GrammarOrganizer({ sections, onCancel, onSaved }) {
             className={`rounded-lg border p-2 ${section.parentId ? "ml-4" : ""}`}
             style={{ background: C.paper, borderColor: C.line }}
           >
-            <div className="flex items-center gap-1">
-              <input
-                aria-label={`Section ${sectionIndex + 1} name`}
-                value={section.name}
-                onChange={(event) => setDraft((current) => current.map((candidate, index) => (
-                  index === sectionIndex ? { ...candidate, name: event.target.value } : candidate
-                )))}
-                className="min-h-11 min-w-0 flex-1 rounded-lg border px-2 text-sm outline-none"
-                style={fieldStyle}
-              />
-              <button
-                type="button"
-                aria-label={`Move section ${section.name || sectionIndex + 1} up`}
-                disabled={outlineSiblingState(draft, section.id).position <= 0}
-                onClick={() => moveSection(section.id, -1)}
-                className="flex min-h-11 min-w-11 items-center justify-center disabled:opacity-30"
-              >
-                <ArrowUp size={15} style={{ color: C.mut }} />
-              </button>
-              <button
-                type="button"
-                aria-label={`Move section ${section.name || sectionIndex + 1} down`}
-                disabled={(() => {
-                  const { indexes, position } = outlineSiblingState(draft, section.id);
-                  return position < 0 || position === indexes.length - 1;
-                })()}
-                onClick={() => moveSection(section.id, 1)}
-                className="flex min-h-11 min-w-11 items-center justify-center disabled:opacity-30"
-              >
-                <ArrowDown size={15} style={{ color: C.mut }} />
-              </button>
-            </div>
-
-            <div className="mt-1 flex items-center gap-2">
-              <span className="text-[11px] font-semibold" style={{ color: C.mut }}>
-                {section.parentId ? "Subsection" : "Section"}
-              </span>
-              <select
-                aria-label={`Parent for ${section.name || `section ${sectionIndex + 1}`}`}
-                value={section.parentId || ""}
-                disabled={section.parentId === null && (hierarchy.childrenByParent.get(section.id) || []).length > 0}
-                onChange={(event) => changeParent(section.id, event.target.value)}
-                className="min-h-11 min-w-0 flex-1 rounded-lg border px-2 text-xs disabled:opacity-60"
-                style={fieldStyle}
-              >
-                <option value="">Top level</option>
-                {hierarchy.roots.filter((root) => root.id !== section.id).map((root) => (
-                  <option key={root.id} value={root.id}>Under {root.name || "Unnamed section"}</option>
-                ))}
-              </select>
-            </div>
+            <OutlineOrganizerFields
+              rows={draft}
+              row={section}
+              index={sectionIndex}
+              onChange={setDraft}
+            />
 
             {(section.examples || []).length > 0 && (
               <div className="mt-2 space-y-2">
