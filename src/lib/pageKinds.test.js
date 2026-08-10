@@ -81,7 +81,97 @@ describe("composable page kinds", () => {
     expect(example.id).toMatch(/^grammar-example:/);
     expect(section.id).toMatch(/^grammar-section:/);
     expect(section.name).toBe("Use");
+    expect(section.parentId).toBeNull();
     expect(section.examples[0]).toEqual(example);
+  });
+
+  it("accepts one level of Grammar subsections regardless of stored parent order", () => {
+    const rootOne = "grammar-section:11111111-1111-4111-8111-111111111111";
+    const rootTwo = "grammar-section:22222222-2222-4222-8222-222222222222";
+    const child = "grammar-section:33333333-3333-4333-8333-333333333333";
+    const grammar = emptyGrammar({
+      enabled: true,
+      sections: [
+        { id: child, parentId: rootOne, name: "Examples", explanation: "", pattern: "", examples: [] },
+        { id: rootOne, parentId: null, name: "Indicative", explanation: "", pattern: "", examples: [] },
+        { id: rootTwo, parentId: null, name: "Subjunctive", explanation: "", pattern: "", examples: [] },
+        {
+          id: "grammar-section:44444444-4444-4444-8444-444444444444",
+          parentId: rootTwo,
+          name: "Examples",
+          explanation: "",
+          pattern: "",
+          examples: [],
+        },
+      ],
+    });
+
+    expect(validatePageStructures(validPage({ pageFocus: "grammar", grammar }))).toEqual([]);
+  });
+
+  it.each([
+    ["a missing parent field", (sections) => { delete sections[0].parentId; }, /parentId/],
+    ["a self parent", (sections) => { sections[0].parentId = sections[0].id; }, /itself/],
+    ["a dangling parent", (sections) => {
+      sections[0].parentId = "grammar-section:99999999-9999-4999-8999-999999999999";
+    }, /same page/],
+    ["a grandchild", (sections) => { sections[2].parentId = sections[1].id; }, /one subsection level/],
+    ["a parent cycle", (sections) => {
+      sections[0].parentId = sections[1].id;
+      sections[1].parentId = sections[0].id;
+    }, /cycle/],
+    ["a duplicate sibling name", (sections) => { sections[2].name = "Child"; }, /unique names among siblings/],
+  ])("rejects %s", (_label, mutate, message) => {
+    const sections = [
+      {
+        id: "grammar-section:11111111-1111-4111-8111-111111111111",
+        parentId: null,
+        name: "Root",
+        explanation: "",
+        pattern: "",
+        examples: [],
+      },
+      {
+        id: "grammar-section:22222222-2222-4222-8222-222222222222",
+        parentId: "grammar-section:11111111-1111-4111-8111-111111111111",
+        name: "Child",
+        explanation: "",
+        pattern: "",
+        examples: [],
+      },
+      {
+        id: "grammar-section:33333333-3333-4333-8333-333333333333",
+        parentId: "grammar-section:11111111-1111-4111-8111-111111111111",
+        name: "Other child",
+        explanation: "",
+        pattern: "",
+        examples: [],
+      },
+    ];
+    mutate(sections);
+    const grammar = { enabled: true, keyIdea: "", sections };
+
+    expect(validatePageStructures(validPage({ pageFocus: "grammar", grammar })).join(" ")).toMatch(message);
+  });
+
+  it("validates legacy schema-v5 sections before migration without changing them", () => {
+    const section = {
+      id: "grammar-section:11111111-1111-4111-8111-111111111111",
+      name: "Use",
+      explanation: "",
+      pattern: "",
+      examples: [],
+    };
+    const page = validPage({
+      grammar: { enabled: false, keyIdea: "", sections: [section] },
+    });
+
+    expect(validatePageStructures(page, { schemaVersion: 5 })).toEqual([]);
+    expect(section).not.toHaveProperty("parentId");
+    expect(validatePageStructures({
+      ...page,
+      grammar: { ...page.grammar, sections: [{ ...section, parentId: null }] },
+    }, { schemaVersion: 5 }).join(" ")).toMatch(/not part of schema v5/);
   });
 
   it("deeply validates active or hidden structures and focus consistency", () => {
@@ -104,7 +194,7 @@ describe("composable page kinds", () => {
       source: { ...hidden.source, url: "example.com" },
     }).join(" ")).toMatch(/http\(s\) URL/);
     expect(validatePageStructures({ ...hidden, pageProfile: "general" }).join(" ")).toMatch(
-      /not part of schema v5/
+      /not part of schema v6/
     );
   });
 

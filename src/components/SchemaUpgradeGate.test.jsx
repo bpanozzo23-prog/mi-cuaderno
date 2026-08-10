@@ -38,9 +38,17 @@ describe("pre-open schema upgrade gate", () => {
     await user.click(screen.getByRole("button", { name: "Download backup" }));
 
     await waitFor(() => expect(downloadJson).toHaveBeenCalledTimes(1));
-    expect(downloadJson.mock.calls[0][0]).toMatch(/^before-schema-v5-upgrade-mi-cuaderno-backup-/);
+    expect(downloadJson.mock.calls[0][0]).toMatch(
+      new RegExp(`^before-schema-v${SCHEMA_VERSION}-upgrade-mi-cuaderno-backup-`)
+    );
     await user.click(screen.getByRole("button", { name: /upgrade my notebook/i }));
     expect(onContinue).toHaveBeenCalledTimes(1);
+  });
+
+  it("explains the exact v5 → v6 Grammar migration", () => {
+    render(<SchemaUpgradeGate fromVersion={5} onContinue={vi.fn()} />);
+
+    expect(screen.getByText(/Every existing guide section stays in the same order as a top-level section/)).toBeTruthy();
   });
 
   it("keeps the upgrade blocked when backup preparation fails", async () => {

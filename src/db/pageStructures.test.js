@@ -233,6 +233,7 @@ describe("Source and Grammar structured mutations", () => {
     });
     expect(saved.grammar.sections[1]).toEqual({
       id: added.id,
+      parentId: null,
       name: "Exceptions",
       explanation: "",
       pattern: "",

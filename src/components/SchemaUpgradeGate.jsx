@@ -17,6 +17,9 @@ export default function SchemaUpgradeGate({ fromVersion = null, onContinue }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const sourceVersion = fromVersion ?? legacyVersionLabel();
+  const upgradeDescription = fromVersion === 5
+    ? "It adds one level of Grammar subsections. Every existing guide section stays in the same order as a top-level section; its prose, patterns, examples, links, and timestamps are unchanged."
+    : "It brings older meaning formats, page profiles, relationship metadata, composable page structures, and Grammar organization up to the current format.";
 
   async function downloadBackup() {
     setBusy(true);
@@ -44,9 +47,8 @@ export default function SchemaUpgradeGate({ fromVersion = null, onContinue }) {
               </h1>
               <p className="text-sm mt-2 leading-relaxed" style={{ color: C.mut }}>
                 Your notebook uses personal-data schema {sourceVersion}; this update needs schema {SCHEMA_VERSION}.
-                It replaces exclusive page profiles with composable Notes, Vocabulary, Source and Grammar
-                structures. Older meaning formats, missing page profiles and relationship metadata are upgraded
-                along the way. Download the untouched version of your notebook first so you can always return to it.
+                {" "}{upgradeDescription} Download the untouched version of your notebook first so you can always
+                return to it.
               </p>
             </div>
           </div>

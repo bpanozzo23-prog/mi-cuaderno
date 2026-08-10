@@ -34,20 +34,44 @@ async function seedLegacyDatabase(schemaVersion) {
         return { ...v1Item, translation: "take out\nwithdraw" };
       })()
     : currentForSchema;
-  const currentPage = makePage({ id: "user:page", title: "Thinking and opinions", linkedKeys: [current.id] });
-  const {
-    pageFocus: _pageFocus,
-    source: _source,
-    grammar: _grammar,
-    collection,
-    ...pageBase
-  } = currentPage;
+  const currentPage = makePage({
+    id: "user:page",
+    title: "Thinking and opinions",
+    linkedKeys: [current.id],
+    grammar: {
+      sections: [{
+        id: "grammar-section:11111111-1111-4111-8111-111111111111",
+        name: "Belief",
+        explanation: "What the speaker treats as true.",
+        pattern: "",
+        examples: [],
+      }],
+    },
+  });
   const relationshipShape = schemaVersion < 4
-    ? (({ linkAnnotations: _linkAnnotations, ...legacyPage }) => legacyPage)(pageBase)
-    : pageBase;
-  const page = schemaVersion >= 3
-    ? { ...relationshipShape, pageProfile: "general", collection: { groups: collection.groups } }
-    : relationshipShape;
+    ? (({ linkAnnotations: _linkAnnotations, ...legacyPage }) => legacyPage)(currentPage)
+    : currentPage;
+  let page;
+  if (schemaVersion === 5) {
+    page = {
+      ...relationshipShape,
+      grammar: {
+        ...relationshipShape.grammar,
+        sections: relationshipShape.grammar.sections.map(({ parentId: _parentId, ...section }) => section),
+      },
+    };
+  } else {
+    const {
+      pageFocus: _pageFocus,
+      source: _source,
+      grammar: _grammar,
+      collection,
+      ...pageBase
+    } = relationshipShape;
+    page = schemaVersion >= 3
+      ? { ...pageBase, pageProfile: "general", collection: { groups: collection.groups } }
+      : pageBase;
+  }
   await legacy.items.bulkAdd([lexical, page]);
   await legacy.events.add({
     id: "event:one",
@@ -72,7 +96,7 @@ describe("export-first schema gate", () => {
     });
   });
 
-  it.each([1, 2, 3, 4])("exports the untouched schema-v%s envelope before v5 can open", async (schemaVersion) => {
+  it.each([1, 2, 3, 4, 5])("exports the untouched schema-v%s envelope before v6 can open", async (schemaVersion) => {
     const { lexical, page } = await seedLegacyDatabase(schemaVersion);
 
     expect(await preupgradeStatus()).toMatchObject({
@@ -87,13 +111,16 @@ describe("export-first schema gate", () => {
     expect(backup.userItems).toContainEqual(lexical);
     expect(backup.userItems).toContainEqual(page);
     expect(backup.userItems.every((item) => Object.hasOwn(item, "linkAnnotations"))).toBe(schemaVersion >= 4);
-    if (schemaVersion < 3) {
+    if (schemaVersion < 3 || schemaVersion === 5) {
       expect(backup.userItems.find((item) => item.id === page.id)).not.toHaveProperty("pageProfile");
     } else {
       expect(backup.userItems.find((item) => item.id === page.id)).toMatchObject({
         pageProfile: "general",
         collection: { groups: [] },
       });
+    }
+    if (schemaVersion === 5) {
+      expect(backup.userItems.find((item) => item.id === page.id).grammar.sections[0]).not.toHaveProperty("parentId");
     }
     if (schemaVersion === 1) {
       expect(backup.userItems.find((item) => item.id === lexical.id).translation).toBe("take out\nwithdraw");
@@ -117,7 +144,7 @@ describe("export-first schema gate", () => {
       needsBackup: false,
       unsupported: true,
     });
-    await expect(buildPreupgradeBackup()).rejects.toThrow(/Expected schema 1, 2, 3, 4/);
+    await expect(buildPreupgradeBackup()).rejects.toThrow(/Expected schema 1, 2, 3, 4, 5/);
     expect(await currentPersonalDatabaseVersion()).toBe(SCHEMA_VERSION + 1);
   });
 });

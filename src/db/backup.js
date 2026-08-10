@@ -5,6 +5,7 @@ import {
   upgradeItemV3,
   upgradePageItemV2,
   upgradePageItemV4,
+  upgradePageItemV5,
 } from "./db.js";
 import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
 import { nowIso } from "../lib/dates.js";
@@ -276,9 +277,10 @@ function validateItem(
         errors.push(`${where}.pageProfile must be "general" or "collection"`);
       }
       validateCollection(item.collection, `${where}.collection`, errors, seenGroupIds);
-    } else if (schemaVersion === 5) {
+    } else if (schemaVersion >= 5) {
       errors.push(...validatePageStructures(item, {
         where,
+        schemaVersion,
         seenGroupIds,
         seenCaptureIds,
         seenSectionIds,
@@ -566,7 +568,7 @@ function validateSchemaState(userItems, events, preferences, schemaVersion, erro
 
   if (schemaVersion >= 3) validateV3References(userItems, preferences, errors);
   if (schemaVersion >= 4) validateV4References(userItems, errors);
-  if (schemaVersion === 5) validateV5References(userItems, errors);
+  if (schemaVersion >= 5) validateV5References(userItems, errors);
 }
 
 function upgradeItemsV1ToV2(userItems) {
@@ -581,6 +583,7 @@ function upgradeItemsV1ToV2(userItems) {
 const upgradeItemsV2ToV3 = (userItems) => userItems.map((item) => upgradePageItemV2(item));
 const upgradeItemsV3ToV4 = (userItems) => userItems.map((item) => upgradeItemV3(item));
 const upgradeItemsV4ToV5 = (userItems) => userItems.map((item) => upgradePageItemV4(item));
+const upgradeItemsV5ToV6 = (userItems) => userItems.map((item) => upgradePageItemV5(item));
 
 function validateEvent(event, index, errors) {
   const where = `events[${index}]`;
@@ -621,7 +624,7 @@ export function validateBackup(raw) {
     errors.push(
       `This backup is schema version ${parsed.schemaVersion}, newer than this app understands (${SCHEMA_VERSION}). Update the app first.`
     );
-  } else if (![1, 2, 3, 4, 5].includes(parsed.schemaVersion)) {
+  } else if (![1, 2, 3, 4, 5, 6].includes(parsed.schemaVersion)) {
     errors.push(`Schema version ${parsed.schemaVersion} is not supported.`);
   }
   if (!Array.isArray(parsed.userItems)) errors.push("userItems must be an array.");
@@ -668,6 +671,18 @@ export function validateBackup(raw) {
     validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
   }
   if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
+
+  if (upgradedSchemaVersion === 5) {
+    upgradedItems = upgradeItemsV5ToV6(upgradedItems);
+    upgradedSchemaVersion = 6;
+    validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
+  }
+  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
+
+  if (upgradedSchemaVersion !== SCHEMA_VERSION) {
+    errors.push(`Backup upgrade stopped at schema ${upgradedSchemaVersion}; expected ${SCHEMA_VERSION}.`);
+    return { ok: false, errors, envelope: null, summary: null };
+  }
 
   // Duplicate EVENT ids are skipped rather than rejected, per brief section 10.
   const seenEventIds = new Set();

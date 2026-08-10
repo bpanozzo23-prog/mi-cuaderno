@@ -404,9 +404,13 @@ export async function saveGrammarOrganization(pageId, sections = []) {
       return {
         ...(current || {
           id: draft.id,
+          parentId: null,
           explanation: "",
           pattern: "",
         }),
+        parentId: Object.prototype.hasOwnProperty.call(draft, "parentId")
+          ? draft.parentId
+          : current?.parentId ?? null,
         name: String(draft.name || "").trim(),
         examples: (draft.examples || []).map((example) => examplesById.get(example.id)),
       };

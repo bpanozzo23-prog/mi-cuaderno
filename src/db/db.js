@@ -128,6 +128,37 @@ db.version(5)
   .stores(PERSONAL_STORES)
   .upgrade(migratePersonalDataToV5);
 
+/** Schema v6 adds one optional hierarchy edge to each Grammar section. Existing sections are roots. */
+export function upgradePageItemV5(item) {
+  if (!item || item.type !== "page") return { ...item };
+  if (!item.grammar || typeof item.grammar !== "object" || Array.isArray(item.grammar)) {
+    return { ...item };
+  }
+  return {
+    ...item,
+    grammar: {
+      ...item.grammar,
+      sections: Array.isArray(item.grammar.sections)
+        ? item.grammar.sections.map((section) => ({ ...section, parentId: null }))
+        : item.grammar.sections,
+    },
+  };
+}
+
+export async function migratePersonalDataToV6(transaction) {
+  await transaction
+    .table("items")
+    .where("type")
+    .equals("page")
+    .modify((item) => {
+      Object.assign(item, upgradePageItemV5(item));
+    });
+}
+
+db.version(6)
+  .stores(PERSONAL_STORES)
+  .upgrade(migratePersonalDataToV6);
+
 export async function getPref(key, fallback = null) {
   const row = await db.prefs.get(key);
   return row === undefined ? fallback : row.value;

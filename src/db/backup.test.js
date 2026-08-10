@@ -334,8 +334,8 @@ describe("import: replace and restore", () => {
 
     const checked = validateBackup(v1);
     expect(checked.ok).toBe(true);
-    expect(checked.summary).toMatchObject({ schemaVersion: 1, targetSchemaVersion: 5, willUpgrade: true });
-    expect(checked.envelope.schemaVersion).toBe(5);
+    expect(checked.summary).toMatchObject({ schemaVersion: 1, targetSchemaVersion: SCHEMA_VERSION, willUpgrade: true });
+    expect(checked.envelope.schemaVersion).toBe(SCHEMA_VERSION);
     expect(checked.envelope.userItems[0].meanings.map((entry) => entry.gloss)).toEqual([
       "1. take out",
       "withdraw; draw out",
@@ -366,8 +366,8 @@ describe("import: replace and restore", () => {
     const checked = validateBackup(v2);
 
     expect(checked.ok).toBe(true);
-    expect(checked.summary).toMatchObject({ schemaVersion: 2, targetSchemaVersion: 5, willUpgrade: true });
-    expect(checked.envelope.schemaVersion).toBe(5);
+    expect(checked.summary).toMatchObject({ schemaVersion: 2, targetSchemaVersion: SCHEMA_VERSION, willUpgrade: true });
+    expect(checked.envelope.schemaVersion).toBe(SCHEMA_VERSION);
     expect(checked.envelope.userItems[0]).toEqual({ ...lexical, linkAnnotations: [] });
     expect(checked.envelope.userItems[1]).toEqual(upgradedGeneralPage(page));
     expect(checked.envelope.preferences.pinnedPageIds).toEqual([page.id]);
@@ -397,7 +397,7 @@ describe("import: replace and restore", () => {
     const checked = validateBackup(v3);
 
     expect(checked.ok).toBe(true);
-    expect(checked.summary).toMatchObject({ schemaVersion: 3, targetSchemaVersion: 5, willUpgrade: true });
+    expect(checked.summary).toMatchObject({ schemaVersion: 3, targetSchemaVersion: SCHEMA_VERSION, willUpgrade: true });
     expect(checked.envelope.userItems).toEqual([
       { ...lexical, linkAnnotations: [] },
       upgradedGeneralPage((({ pageProfile: _pageProfile, collection: _collection, ...rest }) => rest)(page)),
@@ -437,11 +437,11 @@ describe("import: replace and restore", () => {
     const checked = validateBackup(JSON.stringify(v4));
 
     expect(checked.ok).toBe(true);
-    expect(checked.envelope).toEqual({ ...v4, schemaVersion: 5 });
-    expect(checked.summary).toMatchObject({ schemaVersion: 4, targetSchemaVersion: 5, willUpgrade: true });
+    expect(checked.envelope).toEqual({ ...v4, schemaVersion: SCHEMA_VERSION });
+    expect(checked.summary).toMatchObject({ schemaVersion: 4, targetSchemaVersion: SCHEMA_VERSION, willUpgrade: true });
   });
 
-  it("round-trips exact schema-v5 Source and Grammar structures with stable contextual references", () => {
+  it("upgrades schema-v5 Source and Grammar structures without mutating the legacy envelope", () => {
     const word = makeLexical({ id: "user:word", term: "nomás" });
     const sourcePage = makePage({
       id: "user:source",
@@ -491,21 +491,76 @@ describe("import: replace and restore", () => {
         }],
       },
     });
+    const legacyGrammarPage = {
+      ...grammarPage,
+      grammar: {
+        ...grammarPage.grammar,
+        sections: grammarPage.grammar.sections.map(({ parentId: _parentId, ...section }) => section),
+      },
+    };
     const v5 = {
       format: BACKUP_FORMAT,
       schemaVersion: 5,
       exportedAt: "2026-08-04T10:00:00.000Z",
       appVersion: "0.1.0",
-      userItems: [word, sourcePage, grammarPage],
+      userItems: [word, sourcePage, legacyGrammarPage],
       events: [],
       preferences: {},
     };
 
-    const checked = validateBackup(JSON.stringify(v5));
+    const snapshot = structuredClone(v5);
+    const checked = validateBackup(v5);
 
     expect(checked.ok).toBe(true);
-    expect(checked.envelope).toEqual(v5);
-    expect(checked.summary).toMatchObject({ schemaVersion: 5, targetSchemaVersion: 5, willUpgrade: false });
+    expect(v5).toEqual(snapshot);
+    expect(checked.envelope).toEqual({
+      ...v5,
+      schemaVersion: SCHEMA_VERSION,
+      userItems: [word, sourcePage, grammarPage],
+    });
+    expect(checked.summary).toMatchObject({
+      schemaVersion: 5,
+      targetSchemaVersion: SCHEMA_VERSION,
+      willUpgrade: true,
+    });
+  });
+
+  it("round-trips an exact schema-v6 Grammar hierarchy", () => {
+    const rootId = "grammar-section:66666666-6666-4666-8666-666666666666";
+    const page = makePage({
+      id: "user:hierarchy",
+      pageFocus: "grammar",
+      grammar: {
+        enabled: true,
+        keyIdea: "Compare the moods",
+        sections: [
+          { id: rootId, parentId: null, name: "Indicative", explanation: "", pattern: "", examples: [] },
+          {
+            id: "grammar-section:77777777-7777-4777-8777-777777777777",
+            parentId: rootId,
+            name: "SPOCK",
+            explanation: "Speech, perceptions, occurrences, certainty, and knowledge.",
+            pattern: "",
+            examples: [],
+          },
+        ],
+      },
+    });
+    const v6 = {
+      format: BACKUP_FORMAT,
+      schemaVersion: SCHEMA_VERSION,
+      exportedAt: "2026-08-10T10:00:00.000Z",
+      appVersion: "0.1.0",
+      userItems: [page],
+      events: [],
+      preferences: {},
+    };
+
+    const checked = validateBackup(JSON.stringify(v6));
+
+    expect(checked.ok).toBe(true);
+    expect(checked.envelope).toEqual(v6);
+    expect(checked.summary.willUpgrade).toBe(false);
   });
 
   it("skips duplicate event ids rather than failing", async () => {
@@ -725,12 +780,40 @@ describe("validation happens before anything is written", () => {
       const input = contextualInput();
       input.userItems[2].grammar.sections.push({
         id: "grammar-section:77777777-7777-4777-8777-777777777777",
+        parentId: null,
         name: "u\u0073e",
         explanation: "",
         pattern: "",
         examples: [],
       });
       return input;
+    })()],
+    ["a Grammar parent from another page", (() => {
+      const parentId = "grammar-section:88888888-8888-4888-8888-888888888888";
+      const parentPage = makePage({
+        id: "user:parent-page",
+        pageFocus: "grammar",
+        grammar: {
+          enabled: true,
+          sections: [{ id: parentId, parentId: null, name: "Parent", explanation: "", pattern: "", examples: [] }],
+        },
+      });
+      const childPage = makePage({
+        id: "user:child-page",
+        pageFocus: "grammar",
+        grammar: {
+          enabled: true,
+          sections: [{
+            id: "grammar-section:99999999-9999-4999-8999-999999999999",
+            parentId,
+            name: "Child",
+            explanation: "",
+            pattern: "",
+            examples: [],
+          }],
+        },
+      });
+      return { ...baseline(), userItems: [parentPage, childPage] };
     })()],
     ["a malformed page-group id", collectionInput({
       collection: { enabled: true, groups: [{ id: "page-group:not-a-uuid", name: "Questions", itemKeys: ["user:member"] }] },
