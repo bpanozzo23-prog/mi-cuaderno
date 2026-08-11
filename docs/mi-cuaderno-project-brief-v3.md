@@ -231,6 +231,16 @@ first line is exactly `[!NOTE]` renders as a visibly labeled accessible Note cal
 formatting rather than visible prose and is excluded from search, previews and AI-visible text. A
 schema-v6 Page migrates by receiving only `noteSections: []`.
 
+**Inline-media amendment, 2026-08-11.** Everywhere the safe dialect renders, it additionally
+renders `![alt](url)` images and `[label](url)` hyperlinks when the URL is https; any other URL
+falls back to readable text. Images are always block-level regardless of placement, are height-
+capped for the phone viewport, open their source in a new tab on tap, and degrade to their alt
+text when they cannot load. Images remain excluded from search, previews and AI-visible text —
+so an image-only edit does not stale a stored Diario review — while link labels remain visible
+prose. Raw HTML stays discarded. This changes rendering only: the stored string is unchanged, no
+binary data enters any record, the §7 Media row still governs `mediaLinks[]` (which now preview
+image-extension URLs inline with the same fallback), and the Attachment store remains reserved.
+
 Array order is display order among siblings. Source URLs are blank or HTTP(S). Saved Source
 captures require nonblank `text`; saved Grammar examples require nonblank Spanish `es`. All nested
 IDs are stable through editing and reordering.
