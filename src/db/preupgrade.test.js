@@ -91,6 +91,10 @@ async function seedLegacyDatabase(schemaVersion) {
     metadata: null,
   });
   await legacy.prefs.add({ key: "preference", value: true });
+  // The owner's real database holds the AI key and flag; the export must drop the key (§10)
+  // while the flag rides along, and the key itself must survive in the database.
+  await legacy.prefs.add({ key: "aiApiKey", value: "sk-ant-owners-key" });
+  await legacy.prefs.add({ key: "aiEnabled", value: true });
   legacy.close();
   return { lexical, page };
 }
@@ -144,7 +148,15 @@ describe("export-first schema gate", () => {
       expect(backup.userItems.find((item) => item.id === lexical.id).meanings).toEqual(lexical.meanings);
       expect(backup.userItems.find((item) => item.id === lexical.id)).not.toHaveProperty("translation");
     }
-    expect(backup.preferences).toEqual({ preference: true });
+    expect(backup.preferences).toEqual({ preference: true, aiEnabled: true });
+    expect(backup.preferences).not.toHaveProperty("aiApiKey");
+    expect(JSON.stringify(backup)).not.toContain("sk-ant-owners-key");
+    // Only the downloaded file omits the key — the database keeps it through the migration.
+    const reopened = new Dexie("mi-cuaderno");
+    reopened.version(schemaVersion).stores(PERSONAL_STORES);
+    await reopened.open();
+    expect((await reopened.table("prefs").get("aiApiKey"))?.value).toBe("sk-ant-owners-key");
+    reopened.close();
     expect(await currentPersonalDatabaseVersion()).toBe(schemaVersion);
   });
 
