@@ -2,7 +2,8 @@
 
 **Status:** Grammar hierarchy and Structured Notes increments deployed 2026-08-10; the owner
 confirmed the production smoke screen passed. Explicit Notes callouts are implemented and verified
-locally 2026-08-10; not deployed.
+locally 2026-08-10; not deployed. Markdown Blank line controls for Page Notes, Grammar Overview and
+Diario are also implemented and verified locally 2026-08-10; not deployed.
 **Origin:** Real-use friction while building an Indicative-versus-Subjunctive Grammar guide whose
 definition, cautions, trigger families and examples required more hierarchy than one flat sequence
 of explanation/pattern/example sections could express.
@@ -265,3 +266,22 @@ surface/border to `rgb(237, 241, 250)` / `rgb(123, 147, 209)`. All nine formatti
 or console warnings/errors. The fixture was deleted through the UI, the origin returned to zero
 items, the viewport was reset and the isolated server stopped; no owner data was available or
 inspected. Nothing is pushed or deployed by this closeout.
+
+## Markdown blank-line implementation closeout
+
+The bounded editor/rendering increment is implemented locally on 2026-08-10. Four tests failed
+across the Markdown reader and toolbar before implementation and returned to green after the exact
+marker parser, non-destructive insertion action and safe spacer renderer landed. Nine focused files
+pass 111/111 tests; the complete serial suite passes 1,214/1,214 tests across 103 files, the
+production build transforms 2,088 modules, and `git diff --check` passes.
+
+A disposable 375×812 visible flow created one Notes Page, one Grammar guide and one Diario entry.
+Page Notes and Diario each stored two consecutive standalone `<br>` markers and rendered two
+unlabeled `aria-hidden` spacers; Grammar stored and rendered one. The marker never appeared in read
+mode or card/timeline previews, while the automated visible-text projection kept both surrounding
+prose strings and omitted the marker. Every enabled **Blank line** action measured 44×44 px, the
+document held `innerWidth === clientWidth === scrollWidth === 375`, and the browser logged no
+warnings or errors. All three records were deleted through the UI, totals returned to zero words,
+phrases and pages, the viewport was reset, the browser tab was finalized and the isolated server
+was stopped. No owner data was available or inspected. Nothing is pushed or deployed by this
+closeout.

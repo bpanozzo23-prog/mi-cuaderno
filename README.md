@@ -224,9 +224,12 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   production smoke screen passed. A follow-up explicit Notes-callout increment is implemented and
   verified locally but not deployed: Page Notes editors keep Block quote and add Note callout,
   `[!NOTE]` markers render as accessible Notes-blue panels and stay out of visible-text consumers,
-  and the combined suite passes 1,208/1,208. Phase 19 may group later related owner-approved Page
-  organization/formatting increments, but does not pre-approve unknown scope. See the approved
-  [direction](docs/PHASE-19-DIRECTION.md) and [implementation report](docs/PHASE-19-REPORT.md).
+  and a second local follow-up adds non-destructive Blank line controls to Page Notes, Grammar
+  Overviews and Diario while leaving lexical notes unchanged. Exact standalone `<br>` markers
+  render as spacing and stay out of visible-text consumers; the combined suite passes 1,214/1,214.
+  Phase 19 may group later related owner-approved Page organization/formatting increments, but does
+  not pre-approve unknown scope. See the approved [direction](docs/PHASE-19-DIRECTION.md) and
+  [implementation report](docs/PHASE-19-REPORT.md).
 - **Phase 20 — implemented and verified locally; not deployed.** Ajustes now manages every exact
   personal tag globally: rename to an unused spelling, explicitly merge into an existing tag, or
   remove it without deleting entries. One atomic transaction preserves item timestamps, records

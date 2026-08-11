@@ -148,6 +148,27 @@ returned to zero items without overflow or console warnings/errors.
 
 ---
 
+## Markdown blank-line spacing
+
+- **Date added:** 2026-08-10
+- **Status:** Implemented and verified locally as a Phase 19 increment; not deployed
+- **Origin:** Real-use need for deliberate visual spacing that repeated empty Markdown lines cannot preserve
+- **Potential data impact:** None; exact standalone `<br>` markers remain inside existing Markdown strings
+
+The bounded increment adds a non-destructive Blank line action to Page Notes, Grammar Overview and
+Diario while leaving lexical notes unchanged. One exact top-level standalone `<br>` renders as one
+unlabeled hidden spacer; repeated actions create repeated spacing. Inline `<br>` and all other raw
+HTML remain unsupported, and visible-text consumers omit the marker without losing surrounding
+prose. Storage, backup, events and schema v7 remain unchanged.
+
+Four deliberate tests reddened before implementation. Nine focused files pass 111/111 tests, the
+complete suite passes 1,214/1,214 across 103 files, the 2,088-module build and `git diff --check`
+pass, and a disposable 375×812 Notes/Grammar/Diario flow confirmed exact marker round-trips,
+44×44 px actions, repeated hidden spacers, marker-free read/previews, zero overflow, clean logs and
+zero retained records.
+
+---
+
 ## Structured Notes outlines
 
 - **Date added:** 2026-08-10

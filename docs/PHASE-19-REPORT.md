@@ -137,3 +137,24 @@ formatting actions at 44×44 px, returned Page/Notes-section search hits for cal
 for `[!NOTE]`, and held 360 px document content width without overflow or console warnings/errors.
 The disposable Page was deleted through the UI and the origin returned to zero items. No owner data
 was available or inspected. This follow-up remains local and is not pushed or deployed.
+
+## Markdown blank lines — local follow-up
+
+The owner-approved follow-up adds a non-destructive **Blank line** action to Page creation,
+Page-details Notes, Notes Overview, Notes section/subsection, Grammar Overview and Diario editors;
+lexical notes remain unchanged. The action writes an exact top-level standalone `<br>` after the
+current line or selected lines without replacing prose. Each marker renders as one unlabeled
+`aria-hidden` vertical spacer, while inline `<br>` and every other raw-HTML form remain discarded.
+Search, previews and AI-visible text omit the marker, and schema remains v7.
+
+Four deliberate reader/toolbar tests failed before implementation and returned to green. Nine
+focused files pass 111/111 tests; the complete serial suite passes **1,214/1,214 tests across 103
+files**; the 2,088-module production build and `git diff --check` pass.
+
+At 375×812, a visible Notes Page and Diario entry each round-tripped two consecutive markers and a
+Grammar Overview round-tripped one. Every marker produced exactly one hidden spacer, every enabled
+action measured 44×44 px, no marker appeared in read mode or previews, and the document remained
+375 px wide without horizontal overflow or console warnings/errors. The three records were deleted
+through the UI, the origin returned to zero words, phrases and pages, the viewport was reset, the
+browser tab was finalized and the isolated server stopped. No owner data was available or
+inspected. This follow-up remains local and is not pushed or deployed.
