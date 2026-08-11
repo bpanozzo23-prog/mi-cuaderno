@@ -90,7 +90,7 @@ export default function JournalHome({ entries, onOpen, onEdit, onStart, now = ne
     <div className="px-4 py-5 pb-28" style={dotGrid}>
       <div className="mb-5">
         <div className="flex items-center gap-2">
-          <PenLine size={20} style={{ color: C.pen }} />
+          <PenLine size={20} style={{ color: C.diario }} />
           <h1 className="text-2xl font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>Diario</h1>
         </div>
         <p className="mt-1 text-sm" style={{ color: C.mut }}>
@@ -98,8 +98,8 @@ export default function JournalHome({ entries, onOpen, onEdit, onStart, now = ne
         </p>
       </div>
 
-      <Card className="p-4" style={{ background: C.penPale, borderColor: C.chipBorder }}>
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase" style={{ color: C.penDark, letterSpacing: "0.08em" }}>
+      <Card className="p-4" style={{ background: C.diarioPale, borderColor: C.diarioBorder }}>
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase" style={{ color: C.diarioInk, letterSpacing: "0.08em" }}>
           <CalendarDays size={14} /> Today
         </div>
         <div className="mt-2 text-xl font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>
@@ -128,7 +128,7 @@ export default function JournalHome({ entries, onOpen, onEdit, onStart, now = ne
             className="w-full rounded-xl border p-3 text-left flex items-center gap-3"
             style={{ background: C.card, borderColor: C.line }}
           >
-            <Clock3 size={17} className="shrink-0" style={{ color: C.pen }} />
+            <Clock3 size={17} className="shrink-0" style={{ color: C.diario }} />
             <div className="min-w-0 flex-1">
               <div className="text-[11px] uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>Continue</div>
               <div className="truncate text-sm font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>
@@ -143,7 +143,7 @@ export default function JournalHome({ entries, onOpen, onEdit, onStart, now = ne
       {memory && (
         <div className="mt-5">
           <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>
-            <Sparkles size={14} style={{ color: C.pen }} /> Around this time
+            <Sparkles size={14} style={{ color: C.diario }} /> Around this time
           </div>
           <EntryCard entry={memory} onOpen={onOpen} eyebrow={`${journalDateLabel(memory.pageDate)} · memory`} />
         </div>
@@ -195,7 +195,7 @@ export default function JournalHome({ entries, onOpen, onEdit, onStart, now = ne
                 className="w-full rounded-xl border px-3 py-3 flex items-center gap-2 text-sm font-medium"
                 style={{ background: C.card, borderColor: C.line, color: C.ink }}
               >
-                <Archive size={16} style={{ color: C.pen }} /> Archive
+                <Archive size={16} style={{ color: C.diario }} /> Archive
                 <span className="ml-auto">{archiveOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</span>
               </button>
               {archiveOpen && (
