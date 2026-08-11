@@ -326,6 +326,10 @@
   margin-bottom: 0;
 }
 
+.note-markdown .note-blank-line {
+  height: 1em;
+}
+
 .grammar-guide-spine {
   position: relative;
   margin-left: 0.2rem;
