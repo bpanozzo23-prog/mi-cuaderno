@@ -9,8 +9,52 @@ import { unified } from "unified";
  */
 export const NOTE_MARKDOWN_PLUGINS = Object.freeze([remarkMark, remarkBreaks]);
 
+const NOTE_CALLOUT_CLASS = "note-callout-source";
+const NOTE_CALLOUT_MARKER = "[!NOTE]";
+
+function visitExplicitNoteCallouts(node) {
+  if (!node || typeof node !== "object") return;
+  if (node.type === "blockquote") {
+    const paragraph = node.children?.[0];
+    const first = paragraph?.type === "paragraph" ? paragraph.children?.[0] : null;
+    const marker = first?.type === "text"
+      ? first.value.match(/^\[!NOTE\][ \t]*(?:\r?\n|$)/)
+      : null;
+    if (marker) {
+      first.value = first.value.slice(marker[0].length);
+      if (!first.value) paragraph.children.shift();
+      if (!paragraph.children.length) node.children.shift();
+      const priorClasses = node.data?.hProperties?.className || [];
+      node.data = {
+        ...node.data,
+        hProperties: {
+          ...node.data?.hProperties,
+          className: [...(Array.isArray(priorClasses) ? priorClasses : [priorClasses]), NOTE_CALLOUT_CLASS],
+        },
+      };
+    }
+  }
+  for (const child of node.children || []) visitExplicitNoteCallouts(child);
+}
+
+/** Mark and de-label explicit Page Notes callouts without changing their saved Markdown source. */
+export function remarkExplicitNoteCallouts() {
+  return visitExplicitNoteCallouts;
+}
+
+export const NOTE_CALLOUT_MARKDOWN_PLUGINS = Object.freeze([
+  remarkExplicitNoteCallouts,
+  remarkMark,
+  remarkBreaks,
+]);
+
 const plainTextParser = unified()
   .use(remarkParse)
+  .use(remarkMark)
+  .use(remarkBreaks);
+const calloutPlainTextParser = unified()
+  .use(remarkParse)
+  .use(remarkExplicitNoteCallouts)
   .use(remarkMark)
   .use(remarkBreaks);
 const plainTextCache = new Map();
@@ -43,11 +87,13 @@ function visibleText(node) {
 }
 
 /** The words a reader can actually see, with Markdown punctuation and unsupported HTML removed. */
-export function plainTextFromMarkdown(source) {
+export function plainTextFromMarkdown(source, { noteCallouts = false } = {}) {
   const markdown = safeMarkdownSource(source);
   if (!markdown) return "";
-  if (plainTextCache.has(markdown)) return plainTextCache.get(markdown);
-  const tree = plainTextParser.runSync(plainTextParser.parse(markdown));
+  const cacheKey = `${noteCallouts ? "callout" : "plain"}:${markdown}`;
+  if (plainTextCache.has(cacheKey)) return plainTextCache.get(cacheKey);
+  const parser = noteCallouts ? calloutPlainTextParser : plainTextParser;
+  const tree = parser.runSync(parser.parse(markdown));
   const text = visibleText(tree)
     .replace(/[ \t]+\n/g, "\n")
     .replace(/\n[ \t]+/g, "\n")
@@ -56,11 +102,11 @@ export function plainTextFromMarkdown(source) {
   // Cards normally warm this before a search. Bound it anyway so a very long editing session
   // cannot retain every intermediate autosave string forever.
   if (plainTextCache.size >= 2000) plainTextCache.clear();
-  plainTextCache.set(markdown, text);
+  plainTextCache.set(cacheKey, text);
   return text;
 }
 
 /** One-line form for cards and pickers. Truncation remains the caller's layout decision. */
-export function markdownPreviewText(source) {
-  return plainTextFromMarkdown(source).replace(/\s+/g, " ").trim();
+export function markdownPreviewText(source, options) {
+  return plainTextFromMarkdown(source, options).replace(/\s+/g, " ").trim();
 }

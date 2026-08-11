@@ -39,7 +39,7 @@ export default function ItemCard({
   const headingSuffix = isPage ? "" : personalHeadingSuffix(item);
   const gloss = isPage ? "" : firstMeaningGloss(item);
   const title = isPage ? item.title || "Untitled page" : item.term;
-  const bodyPreview = isPage ? markdownPreviewText(item.body) : "";
+  const bodyPreview = isPage ? markdownPreviewText(item.body, { noteCallouts: !journal }) : "";
   /* A Diario entry is a page without a role to name, so its tab stays bare. */
   const [primaryRole = null] = isPage && !journal ? enabledPageRoles(item) : [];
   /* A folder says the same thing about itself wherever it appears (owner-requested 2026-08-08),

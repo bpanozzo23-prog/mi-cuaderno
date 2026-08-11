@@ -263,6 +263,7 @@ export default function AddSheet({
               </Card>
             ) : (
               <MarkdownTextarea
+                noteCallouts
                 value={body}
                 onChange={setBody}
                 aria-label="Page overview"

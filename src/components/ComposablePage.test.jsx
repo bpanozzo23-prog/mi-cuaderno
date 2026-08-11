@@ -106,6 +106,13 @@ describe("composable page workspace", () => {
     await user.click(screen.getByRole("button", { name: "Expand Notes section" }));
     expect(screen.getByRole("button", { name: "Write Notes overview" })).toBeTruthy();
 
+    await user.click(screen.getByLabelText("Page actions"));
+    await user.click(screen.getByRole("button", { name: "Edit details" }));
+    expect(screen.getByRole("textbox", { name: "Page notes" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Block quote" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Note callout" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+
     const connections = screen.getByRole("heading", { name: "Connections" }).closest("section");
     const media = screen.getByRole("heading", { name: "Media links" }).closest("section");
     expect(within(connections).queryByText("Empty")).toBeNull();

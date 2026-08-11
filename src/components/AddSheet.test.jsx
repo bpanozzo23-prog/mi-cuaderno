@@ -35,6 +35,8 @@ describe("AddSheet", () => {
     expect(screen.queryByLabelText(/date/i)).toBeNull();
     expect(screen.queryByText(/journal entry/i)).toBeNull();
     expect(screen.getByRole("textbox", { name: "Page overview" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Block quote" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Note callout" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Add notes page" })).toBeTruthy();
   });
 

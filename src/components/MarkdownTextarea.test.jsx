@@ -67,6 +67,32 @@ describe("MarkdownTextarea", () => {
     expect(screen.queryByRole("button", { name: "Note callout" })).toBeNull();
   });
 
+  it("offers separate Block quote and explicit Note callout actions for Page Notes", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="Remember this" noteCallouts />);
+
+    expect(screen.getByRole("button", { name: "Block quote" })).toBeTruthy();
+    const callout = screen.getByRole("button", { name: "Note callout" });
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(0, field.value.length);
+    await user.click(callout);
+
+    expect(field.value).toBe("> [!NOTE]\n> Remember this");
+  });
+
+  it("places the caret inside a new empty explicit Note callout", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="" noteCallouts />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+
+    await user.click(screen.getByRole("button", { name: "Note callout" }));
+
+    await waitFor(() => expect(field.selectionStart).toBe("> [!NOTE]\n> ".length));
+    expect(field.value).toBe("> [!NOTE]\n> ");
+    expect(field.selectionEnd).toBe(field.selectionStart);
+  });
+
   it("keeps selected paragraphs inside one callout", async () => {
     const user = userEvent.setup();
     render(<Field initial={"First paragraph\n\nSecond paragraph"} quoteLabel="Note callout" />);

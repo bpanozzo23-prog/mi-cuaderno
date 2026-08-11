@@ -46,7 +46,7 @@ const flatten = (text) => text.replace(/\s+/g, " ").trim();
 function contextLine(item) {
   if (item.type === "page") {
     if (item.pageDate) return item.pageDate;
-    return item.body ? markdownPreviewText(item.body).slice(0, 60) : "page";
+    return item.body ? markdownPreviewText(item.body, { noteCallouts: true }).slice(0, 60) : "page";
   }
   const glosses = meaningGlossText(item, " · ");
   return glosses ? flatten(glosses) : item.notes ? markdownPreviewText(item.notes).slice(0, 60) : "";

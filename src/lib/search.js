@@ -7,6 +7,7 @@ import {
   meaningNotes,
 } from "./meanings.js";
 import { activePageVocabularyKeys } from "./pageReferences.js";
+import { isJournalPage } from "./pageKinds.js";
 
 /**
  * Search over the personal layer, per brief section 8.
@@ -103,7 +104,7 @@ function activeGrammarText(page) {
 function activeNoteSectionText(page) {
   return (page?.noteSections || []).flatMap((section) => [
     section.name,
-    flattenSpace(plainTextFromMarkdown(section.body)),
+    flattenSpace(plainTextFromMarkdown(section.body, { noteCallouts: true })),
   ]).filter(Boolean).join("\n");
 }
 
@@ -158,7 +159,7 @@ function bestMatch(item, query, { allItems = [], includeContainedVocabulary = fa
   if (!isPage && normalize(meaningContextText(item)).includes(q)) {
     return { tier: TIER.text, reason: REASONS.meaning, offset: 2 };
   }
-  if (isPage && normalize(plainTextFromMarkdown(item.body)).includes(q)) {
+  if (isPage && normalize(plainTextFromMarkdown(item.body, { noteCallouts: !isJournalPage(item) })).includes(q)) {
     return { tier: TIER.text, reason: REASONS.body, offset: 0 };
   }
   if (isPage && normalize(activeNoteSectionText(item)).includes(q)) {

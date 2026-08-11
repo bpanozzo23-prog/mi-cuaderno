@@ -65,6 +65,23 @@ After.`}</MarkdownText>
     const note = screen.getByRole("note", { name: "Note" });
     expect(note.textContent).toContain("Note");
     expect(note.textContent).toContain("The speaker only needs to believe it is true.");
+    expect(note.getAttribute("aria-label")).toBeNull();
+    expect(note.getAttribute("aria-labelledby")).toBeTruthy();
     expect(container.querySelector("blockquote")).toBeNull();
+  });
+
+  it("presents only explicitly marked Page Notes block quotes as callouts", () => {
+    const { container } = render(
+      <MarkdownText explicitNoteCallouts>{`> [!NOTE]
+> Remember that belief is what matters.
+
+> This remains an ordinary quotation.`}</MarkdownText>
+    );
+
+    const note = screen.getByRole("note", { name: "Note" });
+    expect(note.textContent).toContain("Remember that belief is what matters.");
+    expect(note.textContent).not.toContain("[!NOTE]");
+    expect(container.querySelector(".notes-note-callout")).toBe(note);
+    expect(container.querySelector("blockquote")?.textContent).toContain("ordinary quotation");
   });
 });

@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import {
-  Bold, Heading2, Highlighter, Italic, List, ListOrdered, Minus, Quote,
+  Bold, Heading2, Highlighter, Italic, List, ListOrdered, Minus, Quote, StickyNote,
 } from "lucide-react";
 import { C } from "../theme.jsx";
 
@@ -43,7 +43,7 @@ function ToolbarButton({ label, icon: Icon, onAction }) {
   );
 }
 
-function MarkdownToolbar({ textareaRef, value, onChange, quoteLabel }) {
+function MarkdownToolbar({ textareaRef, value, onChange, quoteLabel, noteCallouts }) {
   function inline(before, after) {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -110,6 +110,20 @@ function MarkdownToolbar({ textareaRef, value, onChange, quoteLabel }) {
     focusSelection(textarea, caret, caret);
   }
 
+  function noteCallout() {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const [start, end] = lineRange(value, textarea.selectionStart, textarea.selectionEnd);
+    const selected = value.slice(start, end);
+    const quoted = selected
+      ? selected.split("\n").map((line) => line.trim() ? `> ${line}` : ">").join("\n")
+      : "> ";
+    const replacement = `> [!NOTE]\n${quoted}`;
+    replaceSelection(value, onChange, replacement, start, end);
+    const caret = start + replacement.length;
+    focusSelection(textarea, caret, caret);
+  }
+
   return (
     <div
       role="toolbar"
@@ -128,6 +142,7 @@ function MarkdownToolbar({ textareaRef, value, onChange, quoteLabel }) {
       <ToolbarButton label="Bulleted list" icon={List} onAction={() => prefixLines("bullet")} />
       <ToolbarButton label="Numbered list" icon={ListOrdered} onAction={() => prefixLines("ordered")} />
       <ToolbarButton label={quoteLabel} icon={Quote} onAction={() => prefixLines("quote")} />
+      {noteCallouts && <ToolbarButton label="Note callout" icon={StickyNote} onAction={noteCallout} />}
       <ToolbarButton label="Divider" icon={Minus} onAction={divider} />
     </div>
   );
@@ -139,6 +154,7 @@ export default function MarkdownTextarea({
   onChange,
   textareaRef = null,
   quoteLabel = "Block quote",
+  noteCallouts = false,
   ...props
 }) {
   const localRef = useRef(null);
@@ -146,7 +162,13 @@ export default function MarkdownTextarea({
 
   return (
     <div className="min-w-0">
-      <MarkdownToolbar textareaRef={ref} value={value} onChange={onChange} quoteLabel={quoteLabel} />
+      <MarkdownToolbar
+        textareaRef={ref}
+        value={value}
+        onChange={onChange}
+        quoteLabel={quoteLabel}
+        noteCallouts={noteCallouts}
+      />
       <textarea
         {...props}
         ref={ref}

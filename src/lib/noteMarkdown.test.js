@@ -30,4 +30,19 @@ Remember **quedar** can mean ==to arrange to meet==.
   it("preserves ñ in the visible text", () => {
     expect(plainTextFromMarkdown("**año** and ==señora==")).toBe("año and señora");
   });
+
+  it("omits an explicit Notes callout marker only when callouts are enabled", () => {
+    const source = `> [!NOTE]
+> The speaker only needs to believe it.
+
+> An ordinary quotation.`;
+
+    expect(plainTextFromMarkdown(source, { noteCallouts: true })).toBe(
+      "The speaker only needs to believe it.\nAn ordinary quotation."
+    );
+    expect(markdownPreviewText(source, { noteCallouts: true })).toBe(
+      "The speaker only needs to believe it. An ordinary quotation."
+    );
+    expect(plainTextFromMarkdown(source)).toContain("[!NOTE]");
+  });
 });

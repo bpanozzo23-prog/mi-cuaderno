@@ -181,7 +181,7 @@ describe("composable page search", () => {
       id: "note-section:00000000-0000-4000-8000-000000000001",
       parentId: null,
       name: "Collection context",
-      body: "**Phrases** used in\n> puestos pequeños",
+      body: "> [!NOTE]\n> **Phrases** used in puestos pequeños\n\n> Ordinary quotation",
     }],
     collection: { enabled: true, groups: [] },
     source: {
@@ -240,6 +240,11 @@ describe("composable page search", () => {
       tier: TIER.text,
       reason: "in a Notes section",
     });
+    expect(searchItems([structuredPage], "ordinary quotation")[0]).toMatchObject({
+      tier: TIER.text,
+      reason: "in a Notes section",
+    });
+    expect(searchItems([structuredPage], "[!NOTE]")).toEqual([]);
     expect(searchItems([structuredPage], ">")).toEqual([]);
   });
 

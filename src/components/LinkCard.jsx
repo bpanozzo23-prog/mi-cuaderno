@@ -8,6 +8,7 @@ import { meaningGlossText } from "../lib/meanings.js";
 import { normalizeRelationship } from "../lib/relationships.js";
 import RelationshipSelect from "./RelationshipSelect.jsx";
 import { markdownPreviewText } from "../lib/noteMarkdown.js";
+import { isJournalPage } from "../lib/pageKinds.js";
 
 /**
  * One link, shown as something you can recognise (requirement 4).
@@ -23,7 +24,7 @@ import { markdownPreviewText } from "../lib/noteMarkdown.js";
 
 const previewOf = (item) => {
   const text = item.type === "page" ? item.body : item.notes;
-  return markdownPreviewText(text).slice(0, 80);
+  return markdownPreviewText(text, { noteCallouts: item.type === "page" && !isJournalPage(item) }).slice(0, 80);
 };
 
 function ConnectionEditor({ connection, onSave, onCancel, onRemove }) {

@@ -16,7 +16,7 @@ export default function PageHubCard({
   const title = page.title || "Untitled page";
   const [primaryRole] = enabledPageRoles(page);
   const summary = pageSummary(page, items);
-  const bodyPreview = markdownPreviewText(page.body);
+  const bodyPreview = markdownPreviewText(page.body, { noteCallouts: true });
   const [titleRef, titlePx] = useHubTitleSize(title, { weight: 800, letterSpacing: "0.63px" });
 
   return (
