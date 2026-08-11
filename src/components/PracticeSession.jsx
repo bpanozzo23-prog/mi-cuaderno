@@ -98,9 +98,9 @@ export default function PracticeSession({
   }
 
   const canType = mode === "typed" && Boolean(deterministicCardAnswer(item));
-  const revealLabel = item.direction !== "reverse" && !item.cloze?.answer
-    ? "Reveal meanings"
-    : "Tap to see the word";
+  const asksForTerm = item.direction === "reverse" || Boolean(item.cloze?.answer)
+    || (item.face === "image" && Boolean(item.image?.url));
+  const revealLabel = asksForTerm ? "Tap to see the word" : "Reveal meanings";
   const actions = !cardState.revealed ? (
     canType ? (
       <Button type="submit" form={formId} className="min-h-11 w-full" disabled={!cardState.typedValue.trim()}>
@@ -108,7 +108,7 @@ export default function PracticeSession({
       </Button>
     ) : (
       <Button className="min-h-11 w-full" onClick={cardState.reveal}>
-        {item.direction !== "reverse" && !item.cloze?.answer && <Eye size={15} />}
+        {!asksForTerm && <Eye size={15} />}
         {revealLabel}
       </Button>
     )

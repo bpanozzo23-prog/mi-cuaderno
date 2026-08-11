@@ -3,6 +3,7 @@ import { Check, X } from "lucide-react";
 import { Button, C, Card, Hi, SERIF } from "../theme.jsx";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
 import LexicalAnswer, { MeaningRow } from "./LexicalAnswer.jsx";
+import MediaImage from "./MediaImage.jsx";
 import SpeakButton from "./SpeakButton.jsx";
 import { checkTypedAnswer } from "../lib/drill.js";
 
@@ -38,6 +39,7 @@ export function usePracticeCardState() {
 export function deterministicCardAnswer(item) {
   const reverse = item?.direction === "reverse" && item?.meanings?.length > 0;
   if (reverse) return item.term || "";
+  if (item?.face === "image" && item?.image?.url) return item.term || "";
   return item?.cloze?.answer || "";
 }
 
@@ -84,8 +86,9 @@ export function PracticeCard({
   // A card with no written gloss has no reverse question side. `cardDirection` normally
   // prevents that shape; the guard also keeps fixtures and legacy callers honest.
   const reverse = item.direction === "reverse" && item.meanings?.length > 0;
+  const image = !reverse && item.face === "image" && item.image?.url ? item.image : null;
   // A reverse prompt cannot also be cloze: its sentence would contain the answer.
-  const cloze = !reverse && item.cloze?.answer ? item.cloze : null;
+  const cloze = !reverse && !image && item.cloze?.answer ? item.cloze : null;
   const typedAnswer = deterministicCardAnswer(item);
   const canType = mode === "typed" && Boolean(typedAnswer);
 
@@ -109,6 +112,20 @@ export function PracticeCard({
               <MeaningRow key={meaning.id} meaning={meaning} index={meaningIndex} showCue={false} />
             ))}
           </div>
+        ) : image ? (
+          // The picture stays put through the flip; the word joins it on the answer side.
+          // Neutral alt and no caption: the link label is usually the term. A failed load
+          // degrades to the plain term front — but not after reveal, where the answer side
+          // already shows the term.
+          <div className="practice-image">
+            <MediaImage
+              src={image.url}
+              alt="Imagen"
+              caption={false}
+              link={false}
+              fallback={revealed ? null : <TermHeading item={item} speak={speak} />}
+            />
+          </div>
         ) : cloze && !revealed ? (
           <div className="text-left text-xl leading-relaxed" style={{ fontFamily: SERIF, color: C.ink }}>
             {cloze.before}
@@ -127,7 +144,7 @@ export function PracticeCard({
       {!revealed && canType ? (
         <form id={formId} className="mt-5" onSubmit={submitTyped}>
           <label className="block text-left text-xs font-semibold" style={{ color: C.mut }}>
-            {reverse ? "Type the Spanish word" : "Type the missing word"}
+            {reverse || image ? "Type the Spanish word" : "Type the missing word"}
             <input
               autoFocus
               autoComplete="off"
@@ -141,7 +158,7 @@ export function PracticeCard({
         </form>
       ) : revealed ? (
         <>
-          {reverse && (
+          {(reverse || image) && (
             <div className="mt-5 text-center">
               <TermHeading item={item} speak={speak} />
             </div>

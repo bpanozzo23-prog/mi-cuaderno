@@ -33,6 +33,36 @@ describe("shared vocabulary-card preparation", () => {
     expect(card.cloze).toBeUndefined();
   });
 
+  it("gives a forward card with an image link the picture face, outranking cloze", async () => {
+    const resolve = vi.fn();
+    const pictured = word({
+      mediaLinks: [
+        { url: "https://example.com/article", label: "Not an image" },
+        { url: "https://upload.wikimedia.org/sacar.jpg", label: "sacar" },
+      ],
+      dictKey: "dict:es-base:sacar",
+    });
+    const [card] = await preparePracticeCards([pictured], { random: () => 0, resolve });
+
+    expect(card.face).toBe("image");
+    expect(card.image).toEqual({ url: "https://upload.wikimedia.org/sacar.jpg" });
+    expect(card.image.label).toBeUndefined();
+    expect(card.cloze).toBeUndefined();
+    expect(resolve).not.toHaveBeenCalled();
+  });
+
+  it("never puts a picture on a reverse card and ignores non-image links", async () => {
+    const pictured = word({ mediaLinks: [{ url: "https://upload.wikimedia.org/sacar.jpg", label: "sacar" }] });
+    const [reverseCard] = await preparePracticeCards([pictured], { direction: "reverse", random: () => 0 });
+    expect(reverseCard.face).toBeUndefined();
+    expect(reverseCard.image).toBeUndefined();
+
+    const linkOnly = word({ mediaLinks: [{ url: "http://example.com/sacar.jpg", label: "insecure" }] });
+    const [plainCard] = await preparePracticeCards([linkOnly], { random: () => 0 });
+    expect(plainCard.face).toBe("cloze");
+    expect(plainCard.image).toBeUndefined();
+  });
+
   it("keeps a plain card usable when an optional dictionary read fails", async () => {
     const attached = word({
       dictKey: "dict:missing:sacar",

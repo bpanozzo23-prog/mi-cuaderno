@@ -1,5 +1,6 @@
 import { getConjugation, resolveEntry } from "../db/ref/entries.js";
 import { pickCloze, verbForms } from "./cloze.js";
+import { firstImageLink } from "./mediaUrls.js";
 import { cardDirection } from "./review.js";
 
 /**
@@ -19,15 +20,22 @@ export async function preparePracticeCards(
     loadConjugation = getConjugation,
   } = {}
 ) {
-  const cards = items.map((item) => ({
-    ...item,
-    direction: cardDirection(item, direction, random),
-  }));
+  const cards = items.map((item) => {
+    const card = { ...item, direction: cardDirection(item, direction, random) };
+    if (card.direction === "reverse") return card;
+    // A picture front outranks cloze: it is the rarer, owner-curated signal, and the owner
+    // opts a word in or out simply by keeping or removing its image link. Reverse stays
+    // excluded for the same reason as cloze — the term belongs on that card's back.
+    const picture = firstImageLink(item);
+    // Only the URL rides along: the link's label is usually the term itself, so it must
+    // never reach the question side, not even as alt text.
+    return picture ? { ...card, image: { url: picture.url }, face: "image" } : card;
+  });
 
   const keys = [
     ...new Set(
       cards
-        .filter((card) => card.direction !== "reverse")
+        .filter((card) => card.direction !== "reverse" && card.face !== "image")
         .map((card) => card.dictKey)
         .filter(Boolean)
     ),
@@ -58,7 +66,7 @@ export async function preparePracticeCards(
   return cards.map((card) => {
     // Reverse shows the meanings and asks for the term. A sentence containing that term
     // would expose the answer, so reverse and cloze are deliberately mutually exclusive.
-    if (card.direction === "reverse") return card;
+    if (card.direction === "reverse" || card.face === "image") return card;
     const entry = card.dictKey ? entries.get(card.dictKey) || null : null;
     const table = entry?.conjugationId ? tables.get(entry.conjugationId) : null;
     const cloze = pickCloze(card, entry, {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, Highlighter, RotateCcw, ArrowLeftRight } from "lucide-react";
+import { Eye, Highlighter, RotateCcw, ArrowLeftRight, Image as ImageIcon } from "lucide-react";
 import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
 import { logReview } from "../db/events.js";
 import { GRADES } from "../lib/review.js";
@@ -61,7 +61,7 @@ export default function ReviewSession({
 
   const eventDetails = (extra = null) => ({
     direction: item.direction === "reverse" ? "reverse" : "forward",
-    face: item.face === "cloze" ? "cloze" : "plain",
+    face: item.face === "cloze" ? "cloze" : item.face === "image" ? "image" : "plain",
     ...(extra || {}),
   });
 
@@ -220,8 +220,9 @@ export default function ReviewSession({
   }
 
   const reverse = item.direction === "reverse" && item.meanings?.length > 0;
+  const imageFace = !reverse && item.face === "image" && Boolean(item.image?.url);
   const canType = mode === "typed" && Boolean(deterministicCardAnswer(item));
-  const revealLabel = reverse || (!reverse && item.cloze?.answer)
+  const revealLabel = reverse || imageFace || (!reverse && item.cloze?.answer)
     ? "Tap to see the word"
     : "Tap to see the meaning";
   const actions = !cardState.revealed ? (
@@ -288,6 +289,11 @@ export default function ReviewSession({
             {item.direction === "reverse" && item.meanings?.length > 0 && (
               <span className="inline-flex items-center gap-1">
                 <ArrowLeftRight size={11} /> en→es
+              </span>
+            )}
+            {imageFace && (
+              <span className="inline-flex items-center gap-1">
+                <ImageIcon size={11} /> imagen
               </span>
             )}
             {item.reason === "tricky" && (

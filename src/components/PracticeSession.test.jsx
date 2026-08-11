@@ -146,3 +146,29 @@ describe("session-only free practice", () => {
     expect(await allEvents()).toEqual([]);
   });
 });
+
+describe("picture-front cards in free practice", () => {
+  it("shows the picture, reveals the word, and still writes nothing", async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <PracticeSession
+        cards={[card("botijo", {
+          direction: "forward",
+          face: "image",
+          image: { url: "https://upload.wikimedia.org/botijo.jpg" },
+        })]}
+        onFinish={vi.fn()}
+        onOpen={vi.fn()}
+      />
+    );
+
+    expect(container.querySelector("img")?.getAttribute("src")).toBe("https://upload.wikimedia.org/botijo.jpg");
+    expect(screen.queryByText("botijo")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Tap to see the word" }));
+
+    expect(screen.getByText("botijo")).toBeTruthy();
+    expect(screen.getByText("meaning of botijo")).toBeTruthy();
+    expect(await allEvents()).toEqual([]);
+  });
+});

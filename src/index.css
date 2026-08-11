@@ -402,6 +402,13 @@
   font-style: italic;
 }
 
+/* Card fronts: tighter cap than the reader's 60vh so the answer dock stays on a phone
+   screen, and centered because the card body is otherwise text-centered. */
+.practice-image img {
+  margin-inline: auto;
+  max-height: 40vh;
+}
+
 .grammar-guide-spine {
   position: relative;
   margin-left: 0;

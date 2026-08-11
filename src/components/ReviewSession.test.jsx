@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ReviewSession from "./ReviewSession.jsx";
 import { db, clearAllPersonalData } from "../db/db.js";
@@ -412,5 +412,87 @@ describe("Phase 16: scheduled-review missed round", () => {
     await user.click(screen.getByRole("button", { name: "Good" }));
     await user.click(screen.getByRole("button", { name: "Start next 20" }));
     expect(onStartNext).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("picture-front cards", () => {
+  const imageCard = (overrides = {}) => ({
+    id: "user:botijo",
+    term: "botijo",
+    form: "word",
+    pos: "noun",
+    direction: "forward",
+    face: "image",
+    image: { url: "https://upload.wikimedia.org/botijo.jpg" },
+    meanings: [
+      newMeaning({ id: "meaning:jug", gloss: "earthenware drinking jug", usageCue: "beber del botijo" }),
+    ],
+    notes: "",
+    myExamples: [],
+    box: 1,
+    reason: "tricky",
+    tricky: true,
+    ...overrides,
+  });
+
+  it("shows only the picture until reveal, then adds the word beside it", async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <ReviewSession cards={[imageCard()]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />
+    );
+
+    const img = container.querySelector("img");
+    expect(img?.getAttribute("src")).toBe("https://upload.wikimedia.org/botijo.jpg");
+    expect(img?.getAttribute("alt")).toBe("Imagen");
+    expect(img?.closest("a")).toBeNull();
+    expect(screen.queryByText("botijo")).toBeNull();
+    expect(screen.queryByText("earthenware drinking jug")).toBeNull();
+    expect(screen.getByText("imagen")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Tap to see the word" }));
+
+    expect(container.querySelector("img")).toBeTruthy();
+    expect(screen.getByText("botijo")).toBeTruthy();
+    expect(screen.getByText("earthenware drinking jug")).toBeTruthy();
+  });
+
+  it("records the image face on the review event", async () => {
+    const user = userEvent.setup();
+    render(<ReviewSession cards={[imageCard()]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: "Tap to see the word" }));
+    await user.click(screen.getByRole("button", { name: "Good" }));
+
+    await waitFor(async () => expect(await allEvents()).toHaveLength(1));
+    expect((await allEvents())[0].metadata).toEqual({ direction: "forward", face: "image", grade: 2 });
+  });
+
+  it("degrades to the plain term front when the picture fails to load", async () => {
+    const { container } = render(
+      <ReviewSession cards={[imageCard()]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />
+    );
+
+    fireEvent.error(container.querySelector("img"));
+
+    expect(container.querySelector("img")).toBeNull();
+    expect(screen.getByText("botijo")).toBeTruthy();
+  });
+
+  it("marks a typed answer against the term and keeps the face in the metadata", async () => {
+    const user = userEvent.setup();
+    render(
+      <ReviewSession cards={[imageCard()]} mode="typed" onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />
+    );
+
+    await user.type(screen.getByLabelText("Type the Spanish word"), "botijo");
+    await user.click(screen.getByRole("button", { name: "Check answer" }));
+    expect(screen.getByText("Exact answer")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Again" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Good" }));
+
+    await waitFor(async () => expect(await allEvents()).toHaveLength(1));
+    expect((await allEvents())[0].metadata).toEqual({
+      direction: "forward", face: "image", mode: "typed", verdict: "exact", grade: 2,
+    });
   });
 });

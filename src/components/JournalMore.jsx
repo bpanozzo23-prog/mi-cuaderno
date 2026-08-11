@@ -18,7 +18,8 @@ import {
   updateItem,
 } from "../db/items.js";
 import { toggleTricky } from "../db/events.js";
-import MediaImage, { isDirectImageUrl } from "./MediaImage.jsx";
+import MediaImage from "./MediaImage.jsx";
+import { isDirectImageUrl } from "../lib/mediaUrls.js";
 import { allTagsIn } from "../lib/tags.js";
 import { timeAgo } from "../lib/dates.js";
 import { groupConnections } from "../lib/relationships.js";
