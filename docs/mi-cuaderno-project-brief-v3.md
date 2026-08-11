@@ -679,6 +679,17 @@ sessions exercise direction, cloze, typed marking and missed-only rounds without
 event log; the complete serial suite, production build and diff check pass; and a disposable
 375×812 numerical closeout finds no horizontal overflow or console warning/error.
 
+**Picture-front amendment, 2026-08-11.** The shared card engine gains a fourth question face:
+a forward card whose item carries a direct-image media link (https, image extension) always
+shows that picture as the question, in both scheduled review and free practice. The reveal adds
+the word beside the picture; Type mode marks the term through the existing checker. The face is
+excluded on reverse cards and outranks cloze; only the URL reaches the card — the link label
+never appears on the question side. A picture that fails to load degrades to the plain term
+front. Scheduled grades log `face: "image"` as additive metadata that no replay or statistic
+reads. The prompt image is not a link and never leaves the session. No schema, preference,
+event type, scheduling or backup change; the owner opts a word in or out by keeping or removing
+its image link.
+
 **Amended 2026-08-09 — Phase 17: Gym recognition lanes.** Conjugation Gym adds two owner-started
 multiple-choice lanes beside Forms: Tense usage asks which tense fits a short canonical use, and
 Endings asks which tense matches a five-slot regular or perfect pattern. Both use curated original
