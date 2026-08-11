@@ -117,3 +117,23 @@ every new Notes action measures 44 px.
 
 Local `main` and `origin/main` matched at `4f73a45` after the fast-forward push. The resulting
 GitHub Pages deployment completed, and the owner confirmed the production smoke screen passed.
+
+## Explicit Notes callouts — local follow-up
+
+The owner-approved follow-up adds a separate **Note callout** beside **Block quote** in Page
+creation, Page-details, Notes Overview and Notes section/subsection editors. It stores explicit
+`> [!NOTE]` Markdown, so ordinary blockquotes retain their meaning and existing content does not
+change. The shared Markdown projection removes the marker only in Page Notes contexts; search and
+previews keep the prose, while lexical notes and Diario retain their prior behavior. Grammar keeps
+its purple all-blockquote callouts but now shares the corrected single accessible label.
+
+Five tests failed across three focused files before implementation and returned to green with
+the parser, reader and toolbar behavior. The final serial suite passes **1,208/1,208 tests across
+103 files**; the 2,088-module production build and `git diff --check` pass.
+
+At 375×812, the visible Page-creation and named-section flow inserted both exact marker strings,
+rendered two Notes-blue `ASIDE` Note regions, preserved one ordinary `BLOCKQUOTE`, kept all nine
+formatting actions at 44×44 px, returned Page/Notes-section search hits for callout prose and no hit
+for `[!NOTE]`, and held 360 px document content width without overflow or console warnings/errors.
+The disposable Page was deleted through the UI and the origin returned to zero items. No owner data
+was available or inspected. This follow-up remains local and is not pushed or deployed.

@@ -1,7 +1,8 @@
 # Phase 19 direction — page organization and formatting
 
 **Status:** Grammar hierarchy and Structured Notes increments deployed 2026-08-10; the owner
-confirmed the production smoke screen passed.
+confirmed the production smoke screen passed. Explicit Notes callouts are implemented and verified
+locally 2026-08-10; not deployed.
 **Origin:** Real-use friction while building an Indicative-versus-Subjunctive Grammar guide whose
 definition, cautions, trigger families and examples required more hierarchy than one flat sequence
 of explanation/pattern/example sections could express.
@@ -225,3 +226,22 @@ The browser logged no warnings or errors, all fixtures were deleted through the 
 the isolated origin returned to an empty notebook, and no owner browser data was available or
 inspected. The closeout itself made no deployment claim; `main` subsequently deployed at
 `4f73a45`, and the owner confirmed the production smoke screen passed.
+
+## Explicit Notes callout implementation closeout
+
+The bounded editor/rendering increment is implemented locally on 2026-08-10. Five tests
+failed across the Markdown projection, reader and toolbar before implementation and passed after
+the shared parser, explicit control and accessible renderer landed. The complete serial suite
+passes 1,208/1,208 tests across 103 files, the production build transforms 2,088 modules, and
+`git diff --check` passes.
+
+A disposable 375×812 visible flow created a Notes Page, selected Overview prose and used **Note
+callout**, added an ordinary quotation, then repeated the callout action in a named Notes section.
+Both editors stored the exact `> [!NOTE]` marker; read mode produced labeled `ASIDE` Note regions
+with no duplicate `aria-label`, preserved the ordinary `BLOCKQUOTE`, and resolved the Notes-blue
+surface/border to `rgb(237, 241, 250)` / `rgb(123, 147, 209)`. All nine formatting actions measured
+44×44 px. Callout prose remained searchable with the existing Page and Notes-section reasons while
+`[!NOTE]` returned no result. The document held 360 px content width inside 375 px with no overflow
+or console warnings/errors. The fixture was deleted through the UI, the origin returned to zero
+items, the viewport was reset and the isolated server stopped; no owner data was available or
+inspected. Nothing is pushed or deployed by this closeout.

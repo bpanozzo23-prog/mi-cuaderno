@@ -47,7 +47,7 @@ Useful information to retain for each idea:
 | Owner-centric stats (streak, calendar, growth, ladder, per-item strip) | 2026-08-06 | Implemented locally | Phase 11; retention, coverage and per-direction breakdowns need real data volume |
 | Grammar guide depth and callouts | 2026-08-10 | Implemented and deployed | Phase 19 first release |
 | Structured Notes outlines | 2026-08-10 | Implemented and deployed | Phase 19 schema-v7 increment; production smoke passed |
-| Explicit Notes callouts | 2026-08-10 | Approved; implementation in progress | Phase 19 rendering/editor increment; schema stays v7 |
+| Explicit Notes callouts | 2026-08-10 | Implemented locally | Phase 19 rendering/editor increment verified; not deployed; schema stays v7 |
 | Global tag management | 2026-08-10 | Implemented locally | Phase 20 verified; not deployed |
 | Phase 19/20 review nits (edge polish) | 2026-08-10 | Captured | Whenever a related area is next touched; none is urgent |
 
@@ -72,10 +72,10 @@ made obsolete by later phases.
    `edit`, slightly bending "no-op organization is event-free". Only reachable after importing an
    interleaved backup, and canonicalizing storage is arguably a real change; fix or formally
    accept.
-2. **Note callout announces "Note" twice (Phase 19).** The Grammar callout in
-   `src/components/MarkdownText.jsx` has both `aria-label="Note"` on the `role="note"` aside and a
-   visible "Note" label div inside it, so some screen readers read "Note" twice. Dropping the
-   `aria-label` (the visible label suffices) or wiring `aria-labelledby` would fix it. Cosmetic.
+2. **Resolved 2026-08-10 — Note callout announced "Note" twice (Phase 19).** The explicit Notes
+   callout increment replaced the Grammar aside's duplicate `aria-label` with `aria-labelledby`
+   wired to the one visible label, and the shared renderer applies the same accessible name to
+   Notes-family callouts.
 3. **Rename/merge kind seam between preview and transaction (Phase 20).** `TagManagementSheet`
    decides rename-versus-merge from its `items` prop, while `applyGlobalTagChange` re-plans from
    live index queries inside the transaction. If the prop were ever stale, a button labeled
@@ -131,7 +131,7 @@ follow-up product decision.
 ## Explicit Notes callouts
 
 - **Date added:** 2026-08-10
-- **Status:** Owner-approved as a Phase 19 increment; implementation in progress
+- **Status:** Implemented and verified locally as a Phase 19 increment; not deployed
 - **Origin:** Follow-up real-use request after Structured Notes deployed
 - **Potential data impact:** None; explicit `[!NOTE]` syntax remains inside existing Markdown strings
 
@@ -140,6 +140,11 @@ Notes editors. Only a blockquote beginning with `[!NOTE]` becomes a labeled acce
 existing and newly written unmarked blockquotes remain quotations. The marker is excluded from
 search, previews and AI-visible text, and the visual treatment reuses the Notes family. Lexical
 notes, Diario, storage, backups and schema v7 remain unchanged.
+
+The complete 1,208-test suite, production build, `git diff --check`, deliberate five-test red proof
+and disposable 375×812 Page-creation/section/search flow pass. Both stored marker strings round-trip,
+ordinary quotes remain blockquotes, all formatting actions measure 44×44 px, and the fixture origin
+returned to zero items without overflow or console warnings/errors.
 
 ---
 

@@ -221,7 +221,10 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   The final serial suite passes 1,204/1,204 across 103 files, the production build and
   `git diff --check` pass, and a disposable 375×812 integrated flow passed without horizontal
   overflow or console warnings/errors. `main` deployed at `4f73a45`, and the owner confirmed the
-  production smoke screen passed. Phase 19 may group later related owner-approved Page
+  production smoke screen passed. A follow-up explicit Notes-callout increment is implemented and
+  verified locally but not deployed: Page Notes editors keep Block quote and add Note callout,
+  `[!NOTE]` markers render as accessible Notes-blue panels and stay out of visible-text consumers,
+  and the combined suite passes 1,208/1,208. Phase 19 may group later related owner-approved Page
   organization/formatting increments, but does not pre-approve unknown scope. See the approved
   [direction](docs/PHASE-19-DIRECTION.md) and [implementation report](docs/PHASE-19-REPORT.md).
 - **Phase 20 — implemented and verified locally; not deployed.** Ajustes now manages every exact
