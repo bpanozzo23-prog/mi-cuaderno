@@ -282,19 +282,27 @@
   color: var(--color-mut);
 }
 
-.note-markdown .grammar-note-callout {
+.note-markdown .note-callout {
   margin: 0.75em 0;
-  border: 1px solid var(--color-page-folder-grammar-line);
+  border: 1px solid;
   border-left-width: 4px;
   border-radius: 0.75rem;
   padding: 0.7rem 0.8rem;
-  background: var(--color-role-grammar-pale);
   color: var(--color-ink);
 }
 
-.note-markdown .grammar-note-callout__label {
+.note-markdown .note-callout--grammar {
+  border-color: var(--color-page-folder-grammar-line);
+  background: var(--color-role-grammar-pale);
+}
+
+.note-markdown .note-callout--notes {
+  border-color: var(--color-page-folder-notes-line);
+  background: var(--color-pen-pale);
+}
+
+.note-markdown .note-callout__label {
   margin-bottom: 0.35rem;
-  color: var(--color-role-grammar-ink);
   font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -302,11 +310,19 @@
   text-transform: uppercase;
 }
 
-.note-markdown .grammar-note-callout > :first-child {
+.note-markdown .note-callout--grammar .note-callout__label {
+  color: var(--color-role-grammar-ink);
+}
+
+.note-markdown .note-callout--notes .note-callout__label {
+  color: var(--color-pen-dark);
+}
+
+.note-markdown .note-callout > :first-child {
   margin-top: 0;
 }
 
-.note-markdown .grammar-note-callout > :last-child {
+.note-markdown .note-callout > :last-child {
   margin-bottom: 0;
 }
 
