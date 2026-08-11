@@ -724,6 +724,15 @@ The Note action writes `> [!NOTE]` plus quoted prose; only that explicit marker 
 Notes-blue labeled callout treatment. Grammar retains its existing Grammar-colored callouts and
 ordinary lexical notes and Diario keep their existing Block quote control. No schema, backup,
 event, preference or content-type change is introduced.
+
+**Amended 2026-08-10 — Phase 19 Markdown blank lines.** Page Notes editors, Grammar Overview
+editors and Diario expose a **Blank line** action. The action preserves selected prose and writes
+one top-level standalone `<br>` line after the current line or selected lines; each exact marker
+renders as one unlabeled, noninteractive vertical spacer, so repeated markers intentionally create
+repeated spacing. Inline `<br>`, lexical notes and every other raw-HTML form retain the prior
+unsupported behavior. The marker is formatting rather than visible prose and is excluded from
+search, previews and AI-visible text. Existing strings, backups, events and schema v7 remain
+unchanged.
 *Done when:* schema-v1 through v5 databases and backup schemas 1–6 reach deeply validated v6
 through the untouched export-first gate; existing page content and references remain lossless;
 formatted Overviews search by visible text; root/subsection creation, editing, organization,

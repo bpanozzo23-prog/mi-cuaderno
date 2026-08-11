@@ -42,8 +42,11 @@ named Notes sections without adding an enable switch or converting prose into bl
 - Search consumes the existing visible-text projection of an overview, so Markdown punctuation
   and the generated Note label never become searchable content. Disabled Grammar structures remain
   excluded, and every comparison still passes through the normalizer that preserves ñ.
-- Key idea, Pattern, Spanish and English example text, and example notes remain plain text. Raw
-  HTML, images, tables, code and clickable Markdown links remain unsupported.
+- Key idea, Pattern, Spanish and English example text, and example notes remain plain text. ~~Raw
+  HTML, images, tables, code and clickable Markdown links remain unsupported.~~ The exact
+  top-level standalone `<br>` marker is the sole raw-HTML-shaped exception and renders as vertical
+  spacing in Grammar Overviews; inline `<br>`, every other raw HTML form, images, tables, code and
+  clickable Markdown links remain unsupported.
 - A changed explicit section save writes one ordinary page `edit`; Cancel and no-op Save write
   nothing. The formatting slice was committed independently while schema remained v5, before the
   schema-v6 hierarchy was integrated.
@@ -203,6 +206,23 @@ noteSections: [{
   string round-trips unchanged through ordinary Page persistence and backups.
 - This is a rendering/editor increment only. Schema remains v7; there is no migration, new field,
   event, preference, content type or general admonition/block system.
+
+## 9 — Markdown blank lines (owner-approved increment)
+
+- Page creation, Page-details Notes, Notes Overview, Notes section/subsection, Grammar Overview and
+  Diario editors gain a separate **Blank line** action. Lexical-note editors remain unchanged.
+- The action never replaces selected prose. It inserts one exact top-level standalone `<br>` line
+  after the current line or selected lines and leaves the caret after the marker; repeated actions
+  intentionally create repeated spacing.
+- Read mode renders each exact marker as one unlabeled, noninteractive vertical spacer. Inline
+  `<br>` and every other raw-HTML form remain discarded, preserving the safe Markdown boundary.
+- Search, previews and AI-visible text omit the marker. Page/Journal identity, backups, events and
+  schema v7 remain unchanged.
+- Delivery requires deliberate red/green parser, reader and toolbar proofs; integration coverage
+  for each enabled editor family and the lexical exclusion; the complete serial suite, production
+  build and `git diff --check`; and a disposable 375×812 Page Notes, Grammar and Diario flow with
+  44×44 px actions, repeated visible spacing, no horizontal overflow and no console warnings or
+  errors.
 
 The Structured Notes increment then proceeds in independently verifiable slices: record its brief
 and Diario amendment; characterize and extract the shared hierarchy engine without changing
