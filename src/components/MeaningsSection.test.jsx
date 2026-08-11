@@ -65,12 +65,12 @@ describe("structured meaning presentation and editing", () => {
     const onPatch = vi.fn().mockResolvedValue(undefined);
     render(<MeaningsSection item={item()} onPatch={onPatch} />);
 
-    await user.click(screen.getByRole("button", { name: /Organize meanings/ }));
+    await user.click(screen.getByRole("button", { name: /^Organize$/ }));
     await user.click(screen.getAllByRole("button", { name: "Move meaning down" })[0]);
     await user.click(screen.getByRole("button", { name: "Cancel" }));
     expect(onPatch).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole("button", { name: /Organize meanings/ }));
+    await user.click(screen.getByRole("button", { name: /^Organize$/ }));
     await user.click(screen.getAllByRole("button", { name: "Move meaning down" })[0]);
     await user.click(screen.getByRole("button", { name: "Save organization" }));
     expect(onPatch).toHaveBeenCalledTimes(1);
@@ -87,7 +87,7 @@ describe("structured meaning presentation and editing", () => {
     const onPatch = vi.fn().mockResolvedValue(undefined);
     render(<MeaningsSection item={source} onPatch={onPatch} />);
 
-    await user.click(screen.getByRole("button", { name: /Organize meanings/ }));
+    await user.click(screen.getByRole("button", { name: /^Organize$/ }));
     await user.click(screen.getByRole("button", { name: "Merge with next meaning" }));
     await user.click(screen.getByRole("button", { name: /Accept merge/ }));
     await user.click(screen.getByRole("button", { name: "Save organization" }));
@@ -103,7 +103,7 @@ describe("structured meaning presentation and editing", () => {
     const onPatch = vi.fn().mockResolvedValue(undefined);
     render(<MeaningsSection item={item()} onPatch={onPatch} />);
 
-    await user.click(screen.getByRole("button", { name: /Organize meanings/ }));
+    await user.click(screen.getByRole("button", { name: /^Organize$/ }));
     await user.click(screen.getAllByRole("button", { name: "Delete meaning" })[0]);
     await user.click(screen.getByRole("button", { name: "Preserve context" }));
     await user.click(screen.getByRole("button", { name: "Save organization" }));

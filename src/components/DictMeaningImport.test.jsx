@@ -78,7 +78,7 @@ describe("importing meanings from the attached dictionary entry", () => {
     await seedDictionary();
     render(<MeaningsSection item={item({ dictKey: null })} onPatch={vi.fn()} />);
 
-    await waitFor(() => expect(screen.getByRole("button", { name: /Organize meanings/ })).toBeTruthy());
+    await waitFor(() => expect(screen.getByRole("button", { name: /^Organize$/ })).toBeTruthy());
     await importDecisionSettled();
     expect(screen.queryByRole("button", { name: /Import from the dictionary/ })).toBeNull();
   });
@@ -86,7 +86,7 @@ describe("importing meanings from the attached dictionary entry", () => {
   it("offers nothing when no dictionary is installed", async () => {
     render(<MeaningsSection item={item()} onPatch={vi.fn()} />);
 
-    await waitFor(() => expect(screen.getByRole("button", { name: /Organize meanings/ })).toBeTruthy());
+    await waitFor(() => expect(screen.getByRole("button", { name: /^Organize$/ })).toBeTruthy());
     await importDecisionSettled();
     expect(screen.queryByRole("button", { name: /Import from the dictionary/ })).toBeNull();
   });
@@ -95,7 +95,7 @@ describe("importing meanings from the attached dictionary entry", () => {
     await seedDictionary([]);
     render(<MeaningsSection item={item()} onPatch={vi.fn()} />);
 
-    await waitFor(() => expect(screen.getByRole("button", { name: /Organize meanings/ })).toBeTruthy());
+    await waitFor(() => expect(screen.getByRole("button", { name: /^Organize$/ })).toBeTruthy());
     await importDecisionSettled();
     expect(screen.queryByRole("button", { name: /Import from the dictionary/ })).toBeNull();
   });

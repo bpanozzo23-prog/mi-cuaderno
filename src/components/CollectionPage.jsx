@@ -343,7 +343,7 @@ function ConnectionsSection({
       ))}
       {!picking && !empty && (
         <button type="button" onClick={() => setPicking(true)} className="inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs" style={{ background: C.card, borderColor: C.line, color: C.mut }}>
-          <Plus size={11} /> {vocabularyEnabled ? "link something related" : "link something"}
+          <Plus size={11} /> link
         </button>
       )}
       {picking && (

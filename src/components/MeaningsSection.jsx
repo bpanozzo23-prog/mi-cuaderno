@@ -368,7 +368,7 @@ export default function MeaningsSection({ item, onPatch }) {
 
       <div className="flex flex-wrap gap-2">
         <Button tone="quiet" className="mt-2" onClick={startOrganizer}>
-          <ListRestart size={14} /> Organize meanings
+          <ListRestart size={14} /> Organize
         </Button>
         <DictMeaningImport item={item} onImport={importMeanings} />
       </div>

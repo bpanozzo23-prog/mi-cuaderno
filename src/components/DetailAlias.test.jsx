@@ -114,7 +114,7 @@ describe("Detail dictionary alias safety", () => {
 
     renderStaleDetail(page);
     expect(await screen.findByRole("heading", { name: "Resolve dictionary connection" })).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "link something" }));
+    await user.click(screen.getByRole("button", { name: "link" }));
     await user.type(screen.getByPlaceholderText(/Link a word, phrase, page or dictionary entry/), "casa");
 
     const canonicalRow = await screen.findByRole("button", { name: /casa.*Needs resolution/i });

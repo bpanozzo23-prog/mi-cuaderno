@@ -95,7 +95,7 @@ describe("Collection reading and practice", () => {
     expect(screen.getByText("An older incoming connection")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Edit connection to legacy word" })).toBeTruthy();
 
-    await user.click(screen.getByText("link something related"));
+    await user.click(screen.getByText("link"));
     await user.type(
       screen.getByPlaceholderText(/Link a word, phrase, page or dictionary entry/),
       "outside word"
@@ -529,7 +529,7 @@ describe("lexical Collection placement", () => {
     await createItem(newPage({ title: "Travel diary", pageDate: "2026-08-04" }));
 
     renderDetail(word, await allItems());
-    await user.click(screen.getByRole("button", { name: "link something" }));
+    await user.click(screen.getByRole("button", { name: "link" }));
     await user.type(
       screen.getByPlaceholderText(/Link a word, phrase, page or dictionary entry/),
       "Travel"

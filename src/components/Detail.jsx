@@ -4,7 +4,7 @@ import {
   Highlighter, Eye, Clock, Plus, Bookmark, BookmarkCheck, Layers, RotateCcw,
   BarChart3, ChevronDown,
 } from "lucide-react";
-import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button } from "../theme.jsx";
+import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button, IconButton } from "../theme.jsx";
 import { POS_OPTIONS, personalHeadingSuffix, personalLexicalForm } from "./ItemCard.jsx";
 import DictAttachment from "./DictAttachment.jsx";
 import LinkPicker from "./LinkPicker.jsx";
@@ -867,9 +867,14 @@ function StandardDetail({
         <>
           <SectionTitle>Collections</SectionTitle>
           {collectionDestinations.length > 0 && !assigningCollection && (
-            <Button tone="quiet" onClick={() => setAssigningCollection(true)}>
-              <Plus size={14} /> Add to Collection
-            </Button>
+            <IconButton
+              tone="quiet"
+              className="mb-3"
+              aria-label="Add to Collection"
+              onClick={() => setAssigningCollection(true)}
+            >
+              <Plus size={17} />
+            </IconButton>
           )}
           {renderCollectionAssignment()}
           <div className="space-y-1.5">
@@ -1036,7 +1041,7 @@ function StandardDetail({
           className="text-xs px-2 py-1 rounded-full border inline-flex items-center gap-1"
           style={{ background: C.card, color: C.mut, borderColor: C.line }}
         >
-          <Plus size={11} /> link something
+          <Plus size={11} /> link
         </button>
       )}
 
