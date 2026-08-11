@@ -265,10 +265,12 @@ function ConnectionsSection({
       title="Connections"
       summary={empty ? "" : `${connectionCount} ${connectionCount === 1 ? "connection" : "connections"}`}
       defaultCollapsed={empty}
+      empty={empty}
       resetKey={item.id}
       actions={!picking && empty ? (
         <IconButton
           tone="quiet"
+          style={{ background: "transparent", color: C.mut }}
           aria-label={vocabularyEnabled ? "link something related" : "link something"}
           aria-expanded={picking}
           onClick={() => setPicking(true)}
@@ -381,6 +383,7 @@ function PageMediaSection({ page, onChanged }) {
   const [adding, setAdding] = useState(false);
   const [url, setUrl] = useState("");
   const [label, setLabel] = useState("");
+  const empty = (page.mediaLinks || []).length === 0;
 
   useEffect(() => {
     setAdding(false);
@@ -399,12 +402,14 @@ function PageMediaSection({ page, onChanged }) {
       id="page-media"
       family="neutral"
       title="Media links"
-      summary={(page.mediaLinks || []).length ? `${page.mediaLinks.length} ${page.mediaLinks.length === 1 ? "link" : "links"}` : ""}
-      defaultCollapsed={(page.mediaLinks || []).length === 0}
+      summary={empty ? "" : `${page.mediaLinks.length} ${page.mediaLinks.length === 1 ? "link" : "links"}`}
+      defaultCollapsed={empty}
+      empty={empty}
       resetKey={page.id}
       actions={(
         <IconButton
           tone="quiet"
+          style={empty ? { background: "transparent", color: C.mut } : undefined}
           aria-label={adding ? "Close media form" : "Add a media link"}
           aria-expanded={adding}
           aria-controls="page-media-composer"
@@ -1024,7 +1029,11 @@ export default function CollectionPage({
             })}
           </div>
 
-          <div className="mt-7">
+          {/* The page's trailing sections sit apart from its content, behind a short hairline,
+              and tuck close to one another (owner-picked 2026-08-10). */}
+          <hr aria-hidden="true" className="mx-auto mt-11 w-[120px] border-t" style={{ borderColor: C.line }} />
+
+          <div className="mt-11">
             <ConnectionsSection
               item={item}
               items={items}
@@ -1039,7 +1048,7 @@ export default function CollectionPage({
           </div>
 
           {item.tags?.length > 0 && (
-            <div className="mt-7">
+            <div className="mt-4">
               <PageSectionDisclosure
                 id="page-tags"
                 family="neutral"
@@ -1054,7 +1063,7 @@ export default function CollectionPage({
             </div>
           )}
 
-          <div className="mt-7">
+          <div className="mt-4">
             <PageMediaSection page={item} onChanged={onChanged} />
           </div>
         </>

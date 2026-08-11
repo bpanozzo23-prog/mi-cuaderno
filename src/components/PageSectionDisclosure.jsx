@@ -37,6 +37,11 @@ export function SectionSpineNode({ className = "top-[10px]", family = "notes" })
  * Shared read-mode disclosure for the durable sections of a composable page.
  * Collapse is visit-local presentation state; children stay mounted so an in-progress editor is
  * not discarded if the owner briefly closes its section.
+ *
+ * `empty` quiets the header band while the section has nothing in it (owner-picked 2026-08-10):
+ * the family fill drains to a dashed outline and the title drops to muted grey, so a section with
+ * no content stops competing with the ones that have some. The band ink returns with the first
+ * item, whatever colour the family wears then — the quiet state deliberately uses no family ink.
  */
 export default function PageSectionDisclosure({
   id,
@@ -46,6 +51,7 @@ export default function PageSectionDisclosure({
   resetKey,
   actions = null,
   family = "notes",
+  empty = false,
   children,
 }) {
   const colors = sectionFamily(family);
@@ -71,8 +77,8 @@ export default function PageSectionDisclosure({
   return (
     <section id={id} aria-labelledby={headingId}>
       <div
-        className="flex flex-wrap items-start justify-between gap-2 rounded-xl border px-2 py-1.5"
-        style={{ background: colors.band, borderColor: colors.line }}
+        className={`flex flex-wrap items-start justify-between gap-2 rounded-xl border px-2 py-1.5${empty ? " border-dashed" : ""}`}
+        style={{ background: empty ? "transparent" : colors.band, borderColor: colors.line }}
       >
         <button
           type="button"
@@ -86,7 +92,7 @@ export default function PageSectionDisclosure({
             ? <ChevronRight size={17} className="shrink-0" style={{ color: C.mut }} />
             : <ChevronDown size={17} className="shrink-0" style={{ color: C.mut }} />}
           <div className="min-w-0">
-            <h2 id={headingId} className="break-words text-lg font-bold leading-tight" style={{ color: colors.ink, fontFamily: SERIF }}>
+            <h2 id={headingId} className={`break-words text-lg leading-tight ${empty ? "font-normal" : "font-bold"}`} style={{ color: empty ? C.mut : colors.ink, fontFamily: SERIF }}>
               {title}
             </h2>
             {summary && <div className="break-words text-xs" style={{ color: C.mut }}>{summary}</div>}
