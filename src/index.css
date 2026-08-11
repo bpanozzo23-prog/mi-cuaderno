@@ -56,33 +56,52 @@
   --color-danger-border: #E5C4BC;
   --color-disabled: #B9C2D8;
 
-  /* A restrained manila-folder treatment for page cards. The body stays close to paper while the
-     tab and outline make Pages read as containers without competing with their role pills. */
-  --color-page-folder: #FFFAF0;
-  --color-page-folder-tab: #F3DF9F;
-  --color-page-folder-line: #CAA83F;
+  /* The desert-families palette (owner-picked 2026-08-10): the four page families retint to
+     southwest earth tones — marigold Vocabulary, sage Source, dusty-mauve Grammar — while Notes
+     keeps its denim blue and the base layer (paper, ink, pen) stays untouched. Vocabulary is
+     still the anchor trio: body close to paper, pastel tab, family outline. */
+  --color-page-folder: #FFF9EC;
+  --color-page-folder-tab: #F1D68C;
+  --color-page-folder-line: #C79127;
 
-  /* The page-role badge that rides on the folder tab. Notes and Source reuse the pen and green
-     families rather than duplicating their values; only these two pairs are their own colours, and
-     they were bare hex inside PageHubCard until the badge moved onto the tab. */
-  --color-role-vocabulary-pale: #F7F0D8;
-  --color-role-vocabulary-ink: #695B27;
-  --color-role-grammar-pale: #F0ECF8;
-  --color-role-grammar-ink: #574676;
+  /* The page-role badge that rides on the folder tab. Notes still reuses the pen family; Source
+     stopped borrowing the semantic success green when it went sage, so it now owns its pair like
+     Vocabulary and Grammar do. */
+  --color-role-vocabulary-pale: #F7EDCE;
+  --color-role-vocabulary-ink: #6E520E;
+  --color-role-source-pale: #EBF1DF;
+  --color-role-source-ink: #4E6132;
+  --color-role-grammar-pale: #F2EAF0;
+  --color-role-grammar-ink: #64425C;
 
-  /* Owner-picked 2026-08-08: each page type's folder wears its chip family — near-paper body,
-     pastel tab, family outline. Vocabulary is the anchor and keeps the manila trio above (the gold
-     family IS its chip colour), so only the other three declare their own trios. The tab label
-     sits directly on the tinted tab in the family ink; the pill dissolved with this change. */
+  /* Each page type's folder wears its family — near-paper body, pastel tab, family outline
+     (structure owner-picked 2026-08-08; desert values 2026-08-10). Vocabulary keeps the anchor
+     trio above, so only the other three declare their own. The tab label sits directly on the
+     tinted tab in the family ink. */
   --color-page-folder-notes: #FBFCFE;
   --color-page-folder-notes-tab: #D9E2F4;
   --color-page-folder-notes-line: #7B93D1;
-  --color-page-folder-source: #FAFDFA;
-  --color-page-folder-source-tab: #D3E5D4;
-  --color-page-folder-source-line: #79A17F;
-  --color-page-folder-grammar: #FCFBFE;
-  --color-page-folder-grammar-tab: #DFD5F0;
-  --color-page-folder-grammar-line: #9C88C6;
+  --color-page-folder-source: #FBFCF7;
+  --color-page-folder-source-tab: #DCE5CE;
+  --color-page-folder-source-line: #8CA06B;
+  --color-page-folder-grammar: #FDFBFC;
+  --color-page-folder-grammar-tab: #E7D7E1;
+  --color-page-folder-grammar-line: #AB86A4;
+
+  /* Neutral page sections — Connections, Media links, Tags — are chrome, not a fifth family
+     (owner-picked 2026-08-10, replacing the borrowed error red): a driftwood-gray band and spine
+     that recede next to the four family colours. Border and ink reuse --color-line/--color-mut,
+     which already are the app's chrome colours. */
+  --color-section-neutral-band: #F1EFE7;
+  --color-section-neutral-spine: #B0AB99;
+
+  /* Diario's own accent (owner-picked 2026-08-10): warm clay for the diary-identity surfaces —
+     the Today card, the screen's icon accents, the writing-prompt card. Navigation and buttons on
+     those screens stay pen blue; clay marks the diary, not the app. */
+  --color-diario: #B27049;
+  --color-diario-pale: #F7EADF;
+  --color-diario-border: #EBD3C4;
+  --color-diario-ink: #7C4A28;
 
   /* The activity calendar's five intensity steps (Phase 11), walking from an empty day to
      a busy one. Ink rather than the usual green: this is a page of the notebook filling up.
