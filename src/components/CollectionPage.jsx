@@ -36,7 +36,7 @@ import SourceSection from "./SourceSection.jsx";
 import GrammarSection from "./GrammarSection.jsx";
 import PageCustomizeSheet from "./PageCustomizeSheet.jsx";
 import PageSectionDisclosure, { SectionSpineNode } from "./PageSectionDisclosure.jsx";
-import { sectionFamily } from "./pageRoleMeta.js";
+import { PAGE_ROLE_META, sectionFamily } from "./pageRoleMeta.js";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
 import StructuredNotesSection from "./StructuredNotesSection.jsx";
 import PracticeSession from "./PracticeSession.jsx";
@@ -760,6 +760,8 @@ export default function CollectionPage({
   const focusChoices = useMemo(() => availableFocusChoices(item), [item]);
   const roles = useMemo(() => enabledPageRoles(item), [item]);
   const sectionOrder = SECTION_ORDERS[item.pageFocus] || SECTION_ORDERS[PAGE_FOCUSES.notes];
+  /* The kicker pill wears its focus family's pale/ink pair, same fallback as the heading text. */
+  const kickerMeta = PAGE_ROLE_META[item.pageFocus] || PAGE_ROLE_META[PAGE_FOCUSES.notes];
 
   useEffect(() => {
     setMode("read");
@@ -916,7 +918,7 @@ export default function CollectionPage({
           <Card className="p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <div className="text-[11px] uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.1em" }}>{FOCUS_HEADINGS[item.pageFocus] || "Notes page"}</div>
+                <div className="inline-block rounded-full px-2.5 py-[3px] text-[11px] uppercase" style={{ background: kickerMeta.background, color: kickerMeta.color, fontFamily: MONO, letterSpacing: "0.1em" }}>{FOCUS_HEADINGS[item.pageFocus] || "Notes page"}</div>
                 <h1 className="mt-1 break-words text-2xl" style={{ color: C.ink, fontFamily: SERIF, fontWeight: 700 }}><span>{item.title || "Untitled page"}</span></h1>
                 {item.pageDate && <div className="mt-1 inline-flex items-center gap-1 text-xs" style={{ color: C.mut, fontFamily: MONO }}><CalendarDays size={12} /> {item.pageDate}</div>}
                 <div className="mt-2 text-xs" style={{ color: C.mut, fontFamily: MONO }}>
