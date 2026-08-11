@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import {
-  BetweenHorizontalStart, Bold, Heading2, Highlighter, Italic, List, ListOrdered, Minus, Quote,
-  StickyNote,
+  BetweenHorizontalStart, Bold, Heading2, Highlighter, Image as ImageIcon, Italic, List,
+  ListOrdered, Minus, Quote, StickyNote,
 } from "lucide-react";
 import { C } from "../theme.jsx";
 
@@ -98,6 +98,20 @@ function MarkdownToolbar({ textareaRef, value, onChange, quoteLabel, noteCallout
     focusSelection(textarea, start, start + changed.length);
   }
 
+  function imageLink() {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selected = value.slice(start, end);
+    const placeholder = "https://";
+    const replacement = `![${selected}](${placeholder})`;
+    replaceSelection(value, onChange, replacement, start, end);
+    // Leave the placeholder selected so pasting a copied URL overwrites it in one gesture.
+    const urlStart = start + 2 + selected.length + 2;
+    focusSelection(textarea, urlStart, urlStart + placeholder.length);
+  }
+
   function divider() {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -166,6 +180,7 @@ function MarkdownToolbar({ textareaRef, value, onChange, quoteLabel, noteCallout
       <ToolbarButton label={quoteLabel} icon={Quote} onAction={() => prefixLines("quote")} />
       {noteCallouts && <ToolbarButton label="Note callout" icon={StickyNote} onAction={noteCallout} />}
       {blankLines && <ToolbarButton label="Blank line" icon={BetweenHorizontalStart} onAction={blankLine} />}
+      <ToolbarButton label="Image link" icon={ImageIcon} onAction={imageLink} />
       <ToolbarButton label="Divider" icon={Minus} onAction={divider} />
     </div>
   );

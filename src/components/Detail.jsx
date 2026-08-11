@@ -34,6 +34,7 @@ import SpeakButton from "./SpeakButton.jsx";
 import CollectionPage from "./CollectionPage.jsx";
 import MarkdownText from "./MarkdownText.jsx";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
+import MediaImage, { isDirectImageUrl } from "./MediaImage.jsx";
 import { getAvailableCollectionDestinations, getCollectionPlacements } from "../lib/collections.js";
 import { activePageContextsForLexical } from "../lib/pageReferences.js";
 import { commitCollectionAdd } from "../db/collections.js";
@@ -829,23 +830,28 @@ function StandardDetail({
           <SectionTitle>Media links</SectionTitle>
           <div className="space-y-2">
             {item.mediaLinks.map((m, i) => (
-              <Card key={i} className="flex items-center justify-between gap-2">
-                <a
-                  href={m.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-2 text-sm underline underline-offset-2 min-w-0"
-                  style={{ color: C.pen }}
-                >
-                  <ExternalLink size={14} className="shrink-0" />
-                  <span className="truncate">{m.label || m.url}</span>
-                </a>
-                <X
-                  size={14}
-                  className="shrink-0"
-                  style={{ color: C.mut }}
-                  onClick={() => patch({ mediaLinks: item.mediaLinks.filter((_, j) => j !== i) })}
-                />
+              <Card key={i} className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <a
+                    href={m.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 text-sm underline underline-offset-2 min-w-0"
+                    style={{ color: C.pen }}
+                  >
+                    <ExternalLink size={14} className="shrink-0" />
+                    <span className="truncate">{m.label || m.url}</span>
+                  </a>
+                  <X
+                    size={14}
+                    className="shrink-0"
+                    style={{ color: C.mut }}
+                    onClick={() => patch({ mediaLinks: item.mediaLinks.filter((_, j) => j !== i) })}
+                  />
+                </div>
+                {isDirectImageUrl(m.url) && (
+                  <MediaImage src={m.url} alt={m.label || ""} caption={false} />
+                )}
               </Card>
             ))}
             <Button

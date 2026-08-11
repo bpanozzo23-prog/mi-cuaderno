@@ -82,6 +82,20 @@ describe("Structured Notes", () => {
     expect(screen.getByRole("button", { name: "Organize Notes" })).toBeTruthy();
   });
 
+  it("renders an https image inside a saved section body", async () => {
+    const map = newNoteSection({
+      name: "Voseo map",
+      body: "El voseo por región:\n\n![Mapa del voseo](https://upload.wikimedia.org/mapa.svg)",
+    });
+    const page = await createItem(newPage({ title: "Grammar notes", noteSections: [map] }));
+
+    const { container } = renderNotes(page);
+
+    const img = container.querySelector("img");
+    expect(img?.getAttribute("src")).toBe("https://upload.wikimedia.org/mapa.svg");
+    expect(img?.closest("a")?.getAttribute("target")).toBe("_blank");
+  });
+
   it("organizes names, sibling order, and parents while preserving every Notes body", async () => {
     const user = userEvent.setup();
     const usage = newNoteSection({ name: "Usage", body: "Keep usage." });

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { useState } from "react";
-import { render, screen, waitFor, cleanup, within } from "@testing-library/react";
+import { render, screen, waitFor, cleanup, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Detail from "./Detail.jsx";
 import { db, clearAllPersonalData } from "../db/db.js";
@@ -296,6 +296,80 @@ describe("collapsed optional-field composers", () => {
     expect(screen.getByRole("button", { name: "Add a media link" })).toBeTruthy();
     expect(screen.queryByText("My examples")).toBeNull();
     expect(screen.queryByRole("button", { name: "Add an example" })).toBeNull();
+  });
+});
+
+describe("media link previews", () => {
+  it("previews image-extension links and keeps other links plain", async () => {
+    const page = await createItem(
+      newPage({
+        title: "Source",
+        mediaLinks: [
+          { url: "https://upload.wikimedia.org/botijo.JPG", label: "Botijo" },
+          { url: "https://example.com/articulo", label: "Article" },
+        ],
+      })
+    );
+
+    const { container } = renderDetail(page);
+
+    const img = container.querySelector("img");
+    expect(img?.getAttribute("src")).toBe("https://upload.wikimedia.org/botijo.JPG");
+    expect(img?.getAttribute("referrerpolicy")).toBe("no-referrer");
+    expect(container.querySelectorAll("img")).toHaveLength(1);
+    expect(screen.getByText("Botijo")).toBeTruthy();
+    expect(screen.getByText("Article")).toBeTruthy();
+  });
+
+  it("still deletes a previewed link from its row", async () => {
+    const user = userEvent.setup();
+    const page = await createItem(
+      newPage({
+        title: "Source",
+        mediaLinks: [{ url: "https://upload.wikimedia.org/botijo.jpg", label: "Botijo" }],
+      })
+    );
+
+    const { container } = renderDetail(page);
+    expect(container.querySelector("img")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Remove media Botijo" }));
+
+    await waitFor(async () => {
+      const saved = (await allItems()).find((candidate) => candidate.id === page.id);
+      expect(saved.mediaLinks).toEqual([]);
+    });
+  });
+
+  it("previews an image link on a lexical item too", async () => {
+    const word = await createItem(
+      newLexical({
+        term: "botijo",
+        mediaLinks: [{ url: "https://upload.wikimedia.org/botijo.png", label: "Botijo" }],
+      })
+    );
+
+    const { container } = renderDetail(word);
+
+    expect(container.querySelector("img")?.getAttribute("src"))
+      .toBe("https://upload.wikimedia.org/botijo.png");
+  });
+
+  it("drops the preview but keeps the link row when the image fails to load", async () => {
+    const page = await createItem(
+      newPage({
+        title: "Source",
+        mediaLinks: [{ url: "https://example.com/dead.png", label: "Dead image" }],
+      })
+    );
+
+    const { container } = renderDetail(page);
+
+    const img = container.querySelector("img");
+    expect(img).toBeTruthy();
+    fireEvent.error(img);
+    expect(container.querySelector("img")).toBeNull();
+    expect(screen.getByText("Dead image")).toBeTruthy();
   });
 });
 

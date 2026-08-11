@@ -7,11 +7,34 @@ import {
   NOTE_MARKDOWN_PLUGINS,
   safeMarkdownSource,
 } from "../lib/noteMarkdown.js";
+import MediaImage from "./MediaImage.jsx";
 
 const ALLOWED_ELEMENTS = [
   "p", "h1", "h2", "h3", "strong", "em", "mark",
   "ul", "ol", "li", "hr", "blockquote", "br",
+  "img", "a",
 ];
+
+const isHttps = (url) => /^https:\/\//i.test(url || "");
+
+function BodyImage({ src, alt }) {
+  return (
+    <MediaImage
+      src={src}
+      alt={alt || ""}
+      fallback={<span className="media-image__fallback">{alt || "Image unavailable"}</span>}
+    />
+  );
+}
+
+function BodyLink({ href, children }) {
+  if (!isHttps(href)) return <>{children}</>;
+  return (
+    <a href={href} target="_blank" rel="noreferrer">
+      {children}
+    </a>
+  );
+}
 
 function NoteCallout({ children, family }) {
   const labelId = useId();
@@ -39,7 +62,9 @@ function hasBlankLineClass(node) {
 
 /**
  * Safe, deliberately narrow rendering for page bodies and entry-level lexical notes. Unsupported
- * CommonMark containers are unwrapped to readable text; raw HTML and images are discarded.
+ * CommonMark containers are unwrapped to readable text and raw HTML is discarded. Images and
+ * hyperlinks render only from https URLs; anything else falls back to readable text, and images
+ * stay invisible to search, previews and AI-visible text (see noteMarkdown.js).
  */
 export default function MarkdownText({
   children,
@@ -51,7 +76,7 @@ export default function MarkdownText({
   explicitNoteCallouts = false,
   blankLines = false,
 }) {
-  const components = {};
+  const components = { img: BodyImage, a: BodyLink };
   if (calloutBlockquotes || explicitNoteCallouts) {
     components.blockquote = ({ children: quoteChildren, className, node }) => {
       if (calloutBlockquotes || (explicitNoteCallouts && hasExplicitCalloutClass(node))) {
@@ -79,7 +104,7 @@ export default function MarkdownText({
       <Markdown
         remarkPlugins={remarkPlugins}
         allowedElements={ALLOWED_ELEMENTS}
-        components={Object.keys(components).length ? components : undefined}
+        components={components}
         unwrapDisallowed
         skipHtml
       >

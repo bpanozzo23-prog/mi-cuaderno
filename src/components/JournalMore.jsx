@@ -18,6 +18,7 @@ import {
   updateItem,
 } from "../db/items.js";
 import { toggleTricky } from "../db/events.js";
+import MediaImage, { isDirectImageUrl } from "./MediaImage.jsx";
 import { allTagsIn } from "../lib/tags.js";
 import { timeAgo } from "../lib/dates.js";
 import { groupConnections } from "../lib/relationships.js";
@@ -91,7 +92,8 @@ export default function JournalMore({
       <SectionTitle>Media links</SectionTitle>
       <div className="space-y-2">
         {entry.mediaLinks.map((media, index) => (
-          <Card key={`${media.url}-${index}`} className="flex items-center justify-between gap-2">
+          <Card key={`${media.url}-${index}`} className="space-y-2">
+            <div className="flex items-center justify-between gap-2">
             <a
               href={media.url}
               target="_blank"
@@ -110,6 +112,10 @@ export default function JournalMore({
             >
               <X size={14} style={{ color: C.mut }} />
             </button>
+            </div>
+            {isDirectImageUrl(media.url) && (
+              <MediaImage src={media.url} alt={media.label || ""} caption={false} />
+            )}
           </Card>
         ))}
         <Button

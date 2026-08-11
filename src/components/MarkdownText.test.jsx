@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import MarkdownText from "./MarkdownText.jsx";
 
@@ -29,22 +29,64 @@ This is **bold**, *italic*, and ==highlighted==.
     expect(container.querySelector("hr")).toBeTruthy();
   });
 
-  it("does not render raw HTML, images, links, tables, or code as active elements", () => {
+  it("does not render raw HTML, tables, or code as active elements", () => {
     const { container } = render(
       <MarkdownText>{`Before <script>alert("no")</script> after.
-
-![private](https://example.com/image.png)
-
-[visible label](https://example.com)
 
 \`plain code\``}</MarkdownText>
     );
 
-    expect(container.querySelector("script, img, a, table, code, pre")).toBeNull();
-    expect(screen.getByText("visible label")).toBeTruthy();
+    expect(container.querySelector("script, table, code, pre, iframe")).toBeNull();
     expect(screen.getByText("plain code")).toBeTruthy();
     expect(container.textContent).not.toContain("alert");
     expect(container.textContent).toContain("Before  after.");
+  });
+
+  it("renders an https image as a tappable block figure with captioned lazy no-referrer loading", () => {
+    const { container } = render(
+      <MarkdownText>{`Mid ![Botijo de barro](https://upload.wikimedia.org/botijo.jpg) sentence.`}</MarkdownText>
+    );
+
+    const img = container.querySelector("img");
+    expect(img?.getAttribute("src")).toBe("https://upload.wikimedia.org/botijo.jpg");
+    expect(img?.getAttribute("alt")).toBe("Botijo de barro");
+    expect(img?.getAttribute("loading")).toBe("lazy");
+    expect(img?.getAttribute("referrerpolicy")).toBe("no-referrer");
+    const anchor = img?.closest("a");
+    expect(anchor?.getAttribute("href")).toBe("https://upload.wikimedia.org/botijo.jpg");
+    expect(anchor?.getAttribute("target")).toBe("_blank");
+    expect(anchor?.getAttribute("rel")).toContain("noreferrer");
+    expect(anchor?.className).toContain("media-image");
+    expect(screen.getByText("Botijo de barro")).toBeTruthy();
+  });
+
+  it("replaces a failed or non-https image with readable fallback text", () => {
+    const { container } = render(
+      <MarkdownText>{`![Mapa del voseo](https://example.com/map.png)
+
+![insecure](http://example.com/x.png)`}</MarkdownText>
+    );
+
+    expect(screen.getByText("insecure")).toBeTruthy();
+    expect(container.querySelectorAll("img")).toHaveLength(1);
+
+    fireEvent.error(container.querySelector("img"));
+    expect(container.querySelector("img")).toBeNull();
+    expect(screen.getByText("Mapa del voseo")).toBeTruthy();
+  });
+
+  it("renders https hyperlinks in a new tab and leaves other link labels as plain text", () => {
+    const { container } = render(
+      <MarkdownText>{`See [the article](https://es.wikipedia.org/wiki/Voseo) or [not this](http://example.com/insecure).`}</MarkdownText>
+    );
+
+    const anchor = container.querySelector("a");
+    expect(anchor?.getAttribute("href")).toBe("https://es.wikipedia.org/wiki/Voseo");
+    expect(anchor?.getAttribute("target")).toBe("_blank");
+    expect(anchor?.getAttribute("rel")).toContain("noreferrer");
+    expect(container.querySelectorAll("a")).toHaveLength(1);
+    expect(container.textContent).toContain("not this");
+    expect(container.textContent).not.toContain("http://example.com/insecure");
   });
 
   it("renders only a top-level standalone br marker as an unlabeled blank line", () => {

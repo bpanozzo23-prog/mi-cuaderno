@@ -44,10 +44,24 @@ describe("MarkdownTextarea", () => {
   it("offers every approved formatting action in one accessible toolbar", () => {
     render(<Field initial="" />);
     expect(screen.getByRole("toolbar", { name: "Text formatting" })).toBeTruthy();
-    for (const name of ["Bold", "Italic", "Highlight", "Heading", "Bulleted list", "Numbered list", "Block quote", "Divider"]) {
+    for (const name of ["Bold", "Italic", "Highlight", "Heading", "Bulleted list", "Numbered list", "Block quote", "Image link", "Divider"]) {
       expect(screen.getByRole("button", { name })).toBeTruthy();
     }
     expect(screen.queryByRole("button", { name: "Blank line" })).toBeNull();
+  });
+
+  it("inserts an image template with the URL placeholder selected for pasting", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="Mapa del voseo" />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(0, field.value.length);
+
+    await user.click(screen.getByRole("button", { name: "Image link" }));
+
+    expect(field.value).toBe("![Mapa del voseo](https://)");
+    await waitFor(() => expect(field.selectionStart).toBe("![Mapa del voseo](".length));
+    expect(field.selectionEnd).toBe(field.selectionStart + "https://".length);
   });
 
   it("inserts a blank-line marker after selected lines without replacing their prose", async () => {

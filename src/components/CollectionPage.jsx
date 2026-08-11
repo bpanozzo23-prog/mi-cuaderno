@@ -26,6 +26,7 @@ import { PAGE_FOCUSES, enabledPageRoles } from "../lib/pageKinds.js";
 import { savePageFocus } from "../db/pageStructures.js";
 import { vocabularyRemovalImpact } from "../lib/pageReferences.js";
 import { ItemLinkCard, EntryLinkCard, OrphanLinkCard } from "./LinkCard.jsx";
+import MediaImage, { isDirectImageUrl } from "./MediaImage.jsx";
 import CollectionVocabularyCard from "./CollectionVocabularyCard.jsx";
 import CollectionAddVocabularySheet from "./CollectionAddVocabularySheet.jsx";
 import CollectionOrganizer from "./CollectionOrganizer.jsx";
@@ -423,14 +424,19 @@ function PageMediaSection({ page, onChanged }) {
     >
       <div className="mt-3 space-y-2">
         {(page.mediaLinks || []).map((media, index) => (
-          <Card key={`${media.url}:${index}`} className="flex items-center justify-between gap-2">
-            <a href={media.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-2 text-sm underline underline-offset-2" style={{ color: C.pen }}>
-              <ExternalLink size={14} className="shrink-0" /><span className="truncate">{media.label || media.url}</span>
-            </a>
-            <button type="button" aria-label={`Remove media ${media.label || media.url}`} className="min-h-11 min-w-11 inline-flex items-center justify-center" onClick={async () => {
-              await updateItem(page.id, { mediaLinks: page.mediaLinks.filter((_, candidate) => candidate !== index) });
-              await onChanged();
-            }}><X size={14} style={{ color: C.mut }} /></button>
+          <Card key={`${media.url}:${index}`} className="space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <a href={media.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-2 text-sm underline underline-offset-2" style={{ color: C.pen }}>
+                <ExternalLink size={14} className="shrink-0" /><span className="truncate">{media.label || media.url}</span>
+              </a>
+              <button type="button" aria-label={`Remove media ${media.label || media.url}`} className="min-h-11 min-w-11 inline-flex items-center justify-center" onClick={async () => {
+                await updateItem(page.id, { mediaLinks: page.mediaLinks.filter((_, candidate) => candidate !== index) });
+                await onChanged();
+              }}><X size={14} style={{ color: C.mut }} /></button>
+            </div>
+            {isDirectImageUrl(media.url) && (
+              <MediaImage src={media.url} alt={media.label || ""} caption={false} />
+            )}
           </Card>
         ))}
         {adding && (

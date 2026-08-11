@@ -46,6 +46,15 @@ Remember **quedar** can mean ==to arrange to meet==.
     expect(plainTextFromMarkdown(source)).toContain("[!NOTE]");
   });
 
+  it("keeps link labels visible while images stay out of search and previews", () => {
+    const source = `See [el voseo](https://es.wikipedia.org/wiki/Voseo).
+
+![Mapa del voseo](https://upload.wikimedia.org/mapa.svg)`;
+
+    expect(plainTextFromMarkdown(source)).toBe("See el voseo.");
+    expect(markdownPreviewText(source)).toBe("See el voseo.");
+  });
+
   it("omits blank-line markers from visible text and previews", () => {
     const source = `Before the space.
 
