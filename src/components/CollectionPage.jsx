@@ -115,6 +115,7 @@ function CollectionDetailsEditor({ item, items, onCancel, onSaved }) {
       <label className="block text-xs" style={{ color: C.mut }}>
         Notes
         <MarkdownTextarea
+          blankLines
           noteCallouts
           aria-label="Page notes"
           value={draft.body}

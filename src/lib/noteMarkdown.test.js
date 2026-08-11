@@ -45,4 +45,15 @@ Remember **quedar** can mean ==to arrange to meet==.
     );
     expect(plainTextFromMarkdown(source)).toContain("[!NOTE]");
   });
+
+  it("omits blank-line markers from visible text and previews", () => {
+    const source = `Before the space.
+
+<br>
+
+After the space.`;
+
+    expect(plainTextFromMarkdown(source)).toBe("Before the space.\nAfter the space.");
+    expect(markdownPreviewText(source)).toBe("Before the space. After the space.");
+  });
 });

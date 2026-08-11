@@ -37,6 +37,7 @@ describe("AddSheet", () => {
     expect(screen.getByRole("textbox", { name: "Page overview" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Block quote" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Note callout" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Blank line" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Add notes page" })).toBeTruthy();
   });
 
@@ -55,6 +56,8 @@ describe("AddSheet", () => {
         onCreated={onCreated}
       />
     );
+
+    expect(screen.queryByRole("button", { name: "Blank line" })).toBeNull();
 
     await user.type(screen.getByPlaceholderText("Spanish word or phrase *"), "  BUENOS   DÍAS  ");
     expect(screen.getByRole("status").textContent).toMatch(/already in your cuaderno/i);

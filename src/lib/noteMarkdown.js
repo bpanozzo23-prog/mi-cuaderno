@@ -11,6 +11,7 @@ export const NOTE_MARKDOWN_PLUGINS = Object.freeze([remarkMark, remarkBreaks]);
 
 const NOTE_CALLOUT_CLASS = "note-callout-source";
 const NOTE_CALLOUT_MARKER = "[!NOTE]";
+const NOTE_BLANK_LINE_CLASS = "note-blank-line-source";
 
 function visitExplicitNoteCallouts(node) {
   if (!node || typeof node !== "object") return;
@@ -42,8 +43,34 @@ export function remarkExplicitNoteCallouts() {
   return visitExplicitNoteCallouts;
 }
 
+/** Convert only an exact top-level `<br>` line into the safe blank-line render node. */
+export function remarkStandaloneBlankLines() {
+  return (tree) => {
+    if (tree?.type !== "root" || !Array.isArray(tree.children)) return;
+    tree.children = tree.children.map((node) => node?.type === "html" && node.value === "<br>"
+      ? {
+          type: "thematicBreak",
+          data: { hProperties: { className: [NOTE_BLANK_LINE_CLASS] } },
+        }
+      : node);
+  };
+}
+
 export const NOTE_CALLOUT_MARKDOWN_PLUGINS = Object.freeze([
   remarkExplicitNoteCallouts,
+  remarkMark,
+  remarkBreaks,
+]);
+
+export const NOTE_BLANK_LINE_MARKDOWN_PLUGINS = Object.freeze([
+  remarkStandaloneBlankLines,
+  remarkMark,
+  remarkBreaks,
+]);
+
+export const NOTE_CALLOUT_BLANK_LINE_MARKDOWN_PLUGINS = Object.freeze([
+  remarkExplicitNoteCallouts,
+  remarkStandaloneBlankLines,
   remarkMark,
   remarkBreaks,
 ]);

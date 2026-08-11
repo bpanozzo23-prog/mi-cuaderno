@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import {
-  Bold, Heading2, Highlighter, Italic, List, ListOrdered, Minus, Quote, StickyNote,
+  BetweenHorizontalStart, Bold, Heading2, Highlighter, Italic, List, ListOrdered, Minus, Quote,
+  StickyNote,
 } from "lucide-react";
 import { C } from "../theme.jsx";
 
@@ -43,7 +44,7 @@ function ToolbarButton({ label, icon: Icon, onAction }) {
   );
 }
 
-function MarkdownToolbar({ textareaRef, value, onChange, quoteLabel, noteCallouts }) {
+function MarkdownToolbar({ textareaRef, value, onChange, quoteLabel, noteCallouts, blankLines }) {
   function inline(before, after) {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -124,6 +125,27 @@ function MarkdownToolbar({ textareaRef, value, onChange, quoteLabel, noteCallout
     focusSelection(textarea, caret, caret);
   }
 
+  function blankLine() {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const [, insertAt] = lineRange(value, textarea.selectionStart, textarea.selectionEnd);
+    let replaceEnd = insertAt;
+    while (replaceEnd < value.length && value[replaceEnd] === "\n" && replaceEnd - insertAt < 2) {
+      replaceEnd += 1;
+    }
+    let precedingBreaks = 0;
+    while (insertAt - precedingBreaks - 1 >= 0
+      && value[insertAt - precedingBreaks - 1] === "\n"
+      && precedingBreaks < 2) {
+      precedingBreaks += 1;
+    }
+    const before = insertAt === 0 ? "" : "\n".repeat(2 - precedingBreaks);
+    const replacement = `${before}<br>\n\n`;
+    replaceSelection(value, onChange, replacement, insertAt, replaceEnd);
+    const caret = insertAt + replacement.length;
+    focusSelection(textarea, caret, caret);
+  }
+
   return (
     <div
       role="toolbar"
@@ -143,6 +165,7 @@ function MarkdownToolbar({ textareaRef, value, onChange, quoteLabel, noteCallout
       <ToolbarButton label="Numbered list" icon={ListOrdered} onAction={() => prefixLines("ordered")} />
       <ToolbarButton label={quoteLabel} icon={Quote} onAction={() => prefixLines("quote")} />
       {noteCallouts && <ToolbarButton label="Note callout" icon={StickyNote} onAction={noteCallout} />}
+      {blankLines && <ToolbarButton label="Blank line" icon={BetweenHorizontalStart} onAction={blankLine} />}
       <ToolbarButton label="Divider" icon={Minus} onAction={divider} />
     </div>
   );
@@ -155,6 +178,7 @@ export default function MarkdownTextarea({
   textareaRef = null,
   quoteLabel = "Block quote",
   noteCallouts = false,
+  blankLines = false,
   ...props
 }) {
   const localRef = useRef(null);
@@ -168,6 +192,7 @@ export default function MarkdownTextarea({
         onChange={onChange}
         quoteLabel={quoteLabel}
         noteCallouts={noteCallouts}
+        blankLines={blankLines}
       />
       <textarea
         {...props}

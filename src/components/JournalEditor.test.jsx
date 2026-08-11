@@ -29,6 +29,24 @@ const baseProps = (overrides = {}) => ({
 });
 
 describe("JournalEditor autosave", () => {
+  it("autosaves a non-destructive blank-line marker", async () => {
+    const user = userEvent.setup();
+    const entry = await createItem(newPage({
+      title: "Spaced moment",
+      body: "Primero.\nDespués.",
+      pageDate: "2026-08-03",
+    }));
+    render(<JournalEditor {...baseProps({ entry })} />);
+    const body = screen.getByRole("textbox", { name: "Journal body" });
+    body.focus();
+    body.setSelectionRange(0, "Primero.".length);
+
+    await user.click(screen.getByRole("button", { name: "Blank line" }));
+
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe("Saved"));
+    expect((await allItems())[0].body).toBe("Primero.\n\n<br>\n\nDespués.");
+  });
+
   it("autosaves formatting inserted by the toolbar", async () => {
     const user = userEvent.setup();
     const entry = await createItem(newPage({

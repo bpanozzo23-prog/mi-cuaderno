@@ -310,6 +310,7 @@ The **indicative mood** describes what the speaker treats as certain.
     await user.click(screen.getByRole("button", { name: "Edit section Formation" }));
     expect(screen.getByText("Overview")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Note callout" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Blank line" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Block quote" })).toBeNull();
   });
 

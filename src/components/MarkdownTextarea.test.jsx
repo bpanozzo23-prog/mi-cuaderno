@@ -47,6 +47,33 @@ describe("MarkdownTextarea", () => {
     for (const name of ["Bold", "Italic", "Highlight", "Heading", "Bulleted list", "Numbered list", "Block quote", "Divider"]) {
       expect(screen.getByRole("button", { name })).toBeTruthy();
     }
+    expect(screen.queryByRole("button", { name: "Blank line" })).toBeNull();
+  });
+
+  it("inserts a blank-line marker after selected lines without replacing their prose", async () => {
+    const user = userEvent.setup();
+    render(<Field initial={"First paragraph\nSecond paragraph\nThird paragraph"} blankLines />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(2, 32);
+
+    await user.click(screen.getByRole("button", { name: "Blank line" }));
+
+    expect(field.value).toBe("First paragraph\nSecond paragraph\n\n<br>\n\nThird paragraph");
+    await waitFor(() => expect(field.selectionStart).toBe("First paragraph\nSecond paragraph\n\n<br>\n\n".length));
+    expect(field.selectionEnd).toBe(field.selectionStart);
+  });
+
+  it("allows repeated blank-line markers", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="First paragraph" blankLines />);
+
+    await user.click(screen.getByRole("button", { name: "Blank line" }));
+    await user.click(screen.getByRole("button", { name: "Blank line" }));
+
+    expect(screen.getByRole("textbox", { name: "Notes" }).value).toBe(
+      "First paragraph\n\n<br>\n\n<br>\n\n"
+    );
   });
 
   it("offers a Grammar Note callout without renaming ordinary block quotes", async () => {

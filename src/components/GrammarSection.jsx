@@ -347,6 +347,7 @@ function SectionEditor({ section, childCount = 0, onCancel, onSaved, onDelete })
             Overview
             <MarkdownTextarea
               aria-label="Grammar section overview"
+              blankLines
               quoteLabel="Note callout"
               value={draft.explanation}
               onChange={(explanation) => setDraft((current) => ({ ...current, explanation }))}
@@ -890,6 +891,7 @@ export default function GrammarSection({
       <>
         {section.explanation && (
           <MarkdownText
+            blankLines
             compact
             calloutBlockquotes
             className="mt-3 break-words text-sm leading-relaxed"

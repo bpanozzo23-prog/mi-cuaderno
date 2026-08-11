@@ -259,6 +259,7 @@ export default function JournalEditor({
         <MarkdownTextarea
           textareaRef={bodyRef}
           autoFocus
+          blankLines
           aria-label="Journal body"
           aria-describedby={prompt ? "active-journal-prompt" : undefined}
           value={body}

@@ -43,6 +43,7 @@ describe("Structured Notes", () => {
     await user.type(overview, "Why these words belong together.");
     overview.setSelectionRange(0, overview.value.length);
     expect(screen.getByRole("button", { name: "Block quote" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Blank line" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Note callout" }));
     await user.click(screen.getByRole("button", { name: "Save overview" }));
 

@@ -86,7 +86,7 @@ function NotesOverview({ page, onChanged }) {
           <div className="min-w-0 flex-1">
             <h3 className="text-sm font-bold" style={{ color: C.ink, fontFamily: SERIF }}>Overview</h3>
             {!editing && (saved.trim() ? (
-              <MarkdownText explicitNoteCallouts compact className="mt-2 break-words text-sm leading-relaxed" style={{ color: C.ink }}>
+              <MarkdownText blankLines explicitNoteCallouts compact className="mt-2 break-words text-sm leading-relaxed" style={{ color: C.ink }}>
                 {saved}
               </MarkdownText>
             ) : (
@@ -112,6 +112,7 @@ function NotesOverview({ page, onChanged }) {
           <div className="mt-3">
             <MarkdownTextarea
               autoFocus
+              blankLines
               noteCallouts
               aria-label="Notes overview"
               value={draft}
@@ -200,6 +201,7 @@ function NoteSectionEditor({ section, childCount, movesToJournal, onCancel, onSa
           <label className="block text-xs" style={{ color: C.mut }}>
             Notes
             <MarkdownTextarea
+              blankLines
               noteCallouts
               aria-label="Notes section body"
               value={draft.body}
@@ -382,7 +384,7 @@ export default function StructuredNotesSection({ page, onChanged }) {
         </div>
         <div id={contentId} hidden={collapsed}>
           {section.body?.trim() ? (
-            <MarkdownText explicitNoteCallouts compact className="mt-3 break-words text-sm leading-relaxed" style={{ color: C.ink }}>
+            <MarkdownText blankLines explicitNoteCallouts compact className="mt-3 break-words text-sm leading-relaxed" style={{ color: C.ink }}>
               {section.body}
             </MarkdownText>
           ) : (

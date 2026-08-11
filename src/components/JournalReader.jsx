@@ -210,6 +210,7 @@ export default function JournalReader({
 
       {entry.body?.trim() ? (
         <MarkdownText
+          blankLines
           className="mt-6 text-[17px] leading-8"
           style={{ color: C.ink, fontFamily: SERIF }}
         >

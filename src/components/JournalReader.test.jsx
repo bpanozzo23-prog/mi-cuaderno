@@ -60,16 +60,17 @@ describe("JournalReader", () => {
     const related = await createItem(newPage({ title: "Earlier thought", body: "Otra idea.", pageDate: "2026-08-01" }));
     const entry = await createItem(newPage({
       title: "Morning reflection",
-      body: "Hoy me levanté temprano.\nTuve más energía.",
+      body: "Hoy me levanté temprano.\n\n<br>\n\nTuve más energía.",
       pageDate: "2026-08-03",
       tags: ["rutina"],
       linkedKeys: [word.id, page.id, related.id],
     }));
     const props = propsFor(entry, await allItems());
-    render(<JournalReader {...props} />);
+    const { container } = render(<JournalReader {...props} />);
 
     expect(screen.getByRole("heading", { name: "Morning reflection" })).toBeTruthy();
     expect(screen.getByText(/Hoy me levanté temprano/)).toBeTruthy();
+    expect(container.querySelectorAll(".note-blank-line")).toHaveLength(1);
     expect(screen.getByText("rutina")).toBeTruthy();
     expect(screen.getByRole("button", { name: /^madrugar/ })).toBeTruthy();
     expect(screen.getByText("Earlier thought")).toBeTruthy();

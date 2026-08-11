@@ -47,6 +47,39 @@ This is **bold**, *italic*, and ==highlighted==.
     expect(container.textContent).toContain("Before  after.");
   });
 
+  it("renders only a top-level standalone br marker as an unlabeled blank line", () => {
+    const { container } = render(
+      <MarkdownText blankLines>{`First paragraph.
+
+<br>
+
+Second paragraph with an inline <br> marker.`}</MarkdownText>
+    );
+
+    const spacer = container.querySelector(".note-blank-line");
+    expect(spacer).toBeTruthy();
+    expect(spacer.getAttribute("aria-hidden")).toBe("true");
+    expect(container.querySelectorAll(".note-blank-line")).toHaveLength(1);
+    expect(container.querySelector("br")).toBeNull();
+    expect(container.textContent.replace(/\s+/g, " ").trim()).toBe(
+      "First paragraph. Second paragraph with an inline marker."
+    );
+  });
+
+  it("renders repeated blank-line markers as repeated spacers", () => {
+    const { container } = render(
+      <MarkdownText blankLines>{`Before.
+
+<br>
+
+<br>
+
+After.`}</MarkdownText>
+    );
+
+    expect(container.querySelectorAll(".note-blank-line")).toHaveLength(2);
+  });
+
   it("leaves escaped highlight markers visible", () => {
     const { container } = render(<MarkdownText>{String.raw`\==literal==`}</MarkdownText>);
     expect(container.querySelector("mark")).toBeNull();
@@ -72,8 +105,10 @@ After.`}</MarkdownText>
 
   it("presents only explicitly marked Page Notes block quotes as callouts", () => {
     const { container } = render(
-      <MarkdownText explicitNoteCallouts>{`> [!NOTE]
+      <MarkdownText blankLines explicitNoteCallouts>{`> [!NOTE]
 > Remember that belief is what matters.
+
+<br>
 
 > This remains an ordinary quotation.`}</MarkdownText>
     );
@@ -82,6 +117,7 @@ After.`}</MarkdownText>
     expect(note.textContent).toContain("Remember that belief is what matters.");
     expect(note.textContent).not.toContain("[!NOTE]");
     expect(container.querySelector(".notes-note-callout")).toBe(note);
+    expect(container.querySelectorAll(".note-blank-line")).toHaveLength(1);
     expect(container.querySelector("blockquote")?.textContent).toContain("ordinary quotation");
   });
 });

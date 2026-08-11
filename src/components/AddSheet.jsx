@@ -263,6 +263,7 @@ export default function AddSheet({
               </Card>
             ) : (
               <MarkdownTextarea
+                blankLines
                 noteCallouts
                 value={body}
                 onChange={setBody}

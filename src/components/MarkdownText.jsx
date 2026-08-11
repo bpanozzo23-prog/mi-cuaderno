@@ -1,6 +1,8 @@
 import { useId } from "react";
 import Markdown from "react-markdown";
 import {
+  NOTE_BLANK_LINE_MARKDOWN_PLUGINS,
+  NOTE_CALLOUT_BLANK_LINE_MARKDOWN_PLUGINS,
   NOTE_CALLOUT_MARKDOWN_PLUGINS,
   NOTE_MARKDOWN_PLUGINS,
   safeMarkdownSource,
@@ -30,6 +32,11 @@ function hasExplicitCalloutClass(node) {
   return (Array.isArray(names) ? names : String(names).split(/\s+/)).includes("note-callout-source");
 }
 
+function hasBlankLineClass(node) {
+  const names = node?.properties?.className || [];
+  return (Array.isArray(names) ? names : String(names).split(/\s+/)).includes("note-blank-line-source");
+}
+
 /**
  * Safe, deliberately narrow rendering for page bodies and entry-level lexical notes. Unsupported
  * CommonMark containers are unwrapped to readable text; raw HTML and images are discarded.
@@ -42,17 +49,26 @@ export default function MarkdownText({
   style = {},
   calloutBlockquotes = false,
   explicitNoteCallouts = false,
+  blankLines = false,
 }) {
-  const components = calloutBlockquotes || explicitNoteCallouts
-    ? {
-        blockquote: ({ children: quoteChildren, className, node }) => {
-          if (calloutBlockquotes || (explicitNoteCallouts && hasExplicitCalloutClass(node))) {
-            return <NoteCallout family={calloutBlockquotes ? "grammar" : "notes"}>{quoteChildren}</NoteCallout>;
-          }
-          return <blockquote className={className}>{quoteChildren}</blockquote>;
-        },
+  const components = {};
+  if (calloutBlockquotes || explicitNoteCallouts) {
+    components.blockquote = ({ children: quoteChildren, className, node }) => {
+      if (calloutBlockquotes || (explicitNoteCallouts && hasExplicitCalloutClass(node))) {
+        return <NoteCallout family={calloutBlockquotes ? "grammar" : "notes"}>{quoteChildren}</NoteCallout>;
       }
-    : undefined;
+      return <blockquote className={className}>{quoteChildren}</blockquote>;
+    };
+  }
+  if (blankLines) {
+    components.hr = ({ className, node }) => hasBlankLineClass(node)
+      ? <div className="note-blank-line" aria-hidden="true" />
+      : <hr className={className} />;
+  }
+
+  const remarkPlugins = explicitNoteCallouts
+    ? blankLines ? NOTE_CALLOUT_BLANK_LINE_MARKDOWN_PLUGINS : NOTE_CALLOUT_MARKDOWN_PLUGINS
+    : blankLines ? NOTE_BLANK_LINE_MARKDOWN_PLUGINS : NOTE_MARKDOWN_PLUGINS;
 
   return (
     <div
@@ -61,9 +77,9 @@ export default function MarkdownText({
       style={style}
     >
       <Markdown
-        remarkPlugins={explicitNoteCallouts ? NOTE_CALLOUT_MARKDOWN_PLUGINS : NOTE_MARKDOWN_PLUGINS}
+        remarkPlugins={remarkPlugins}
         allowedElements={ALLOWED_ELEMENTS}
-        components={components}
+        components={Object.keys(components).length ? components : undefined}
         unwrapDisallowed
         skipHtml
       >
