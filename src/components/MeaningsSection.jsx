@@ -10,7 +10,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { C, SERIF, MONO, Card, Button, IconButton } from "../theme.jsx";
+import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
 import DictMeaningImport from "./DictMeaningImport.jsx";
 import MeaningEditor from "./MeaningEditor.jsx";
 import SpeakButton from "./SpeakButton.jsx";
@@ -356,9 +356,14 @@ export default function MeaningsSection({ item, onPatch }) {
                     </div>
                   ))}
                   {!meaning.note && !meaning.examples.length && <div className="text-xs italic" style={{ color: C.mut }}>No note or examples for this meaning.</div>}
-                  <IconButton tone="quiet" aria-label={`Edit meaning ${meaning.gloss}`} onClick={() => startEditing(meaning)}>
-                    <Pencil size={15} />
-                  </IconButton>
+                  <button
+                    type="button"
+                    aria-label={`Edit meaning ${meaning.gloss}`}
+                    onClick={() => startEditing(meaning)}
+                    className="flex min-h-11 min-w-11 shrink-0 items-center justify-center"
+                  >
+                    <Pencil size={15} style={{ color: C.pen }} />
+                  </button>
                 </div>
               )}
             </Card>

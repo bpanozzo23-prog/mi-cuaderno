@@ -284,13 +284,14 @@ function KeyIdeaCard({ keyIdea, onSaved }) {
             {keyIdea}
           </div>
         </div>
-        <IconButton
+        <button
+          type="button"
           onClick={openEditor}
           aria-label="Edit grammar key idea"
-          style={{ color: C.pen }}
+          className="flex min-h-11 min-w-11 shrink-0 items-center justify-center"
         >
-          <Pencil size={15} />
-        </IconButton>
+          <Pencil size={15} style={{ color: C.pen }} />
+        </button>
       </div>
     </Card>
   );

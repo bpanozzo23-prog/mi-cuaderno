@@ -747,15 +747,14 @@ function StandardDetail({
                     ? "Write page"
                     : "Add note"
               }
-              className="shrink-0 inline-flex h-11 w-11 items-center justify-center rounded-lg border"
-              style={{ background: C.card, color: C.mut, borderColor: C.line }}
+              className="shrink-0 inline-flex h-11 w-11 items-center justify-center"
               onClick={() => {
                 setBodyDraft(savedBody);
                 setBodyDirty(false);
                 setEditingBody(true);
               }}
             >
-              <Pencil size={14} />
+              <Pencil size={14} style={{ color: C.pen }} />
             </button>
           </div>
         )}

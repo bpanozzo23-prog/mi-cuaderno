@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, ListTree, Pencil, Plus } from "lucide-react";
-import { Button, C, Card, IconButton, SERIF } from "../theme.jsx";
+import { Button, C, Card, SERIF } from "../theme.jsx";
 import { updateItem } from "../db/items.js";
 import {
   deleteNoteSection,
@@ -94,17 +94,18 @@ function NotesOverview({ page, onChanged }) {
             ))}
           </div>
           {!editing && (
-            <IconButton
-              tone="quiet"
+            <button
+              type="button"
               aria-label={saved.trim() ? "Edit Notes overview" : "Write Notes overview"}
               onClick={() => {
                 setDraft(saved);
                 setProblem("");
                 setEditing(true);
               }}
+              className="flex min-h-11 min-w-11 shrink-0 items-center justify-center"
             >
-              <Pencil size={15} />
-            </IconButton>
+              <Pencil size={15} style={{ color: C.pen }} />
+            </button>
           )}
         </div>
 
@@ -378,9 +379,14 @@ export default function StructuredNotesSection({ page, onChanged }) {
               {section.name}
             </Heading>
           </button>
-          <IconButton tone="quiet" aria-label={`Edit Notes section ${section.name}`} onClick={() => openEditor(section)}>
-            <Pencil size={15} />
-          </IconButton>
+          <button
+            type="button"
+            aria-label={`Edit Notes section ${section.name}`}
+            onClick={() => openEditor(section)}
+            className="flex min-h-11 min-w-11 shrink-0 items-center justify-center"
+          >
+            <Pencil size={15} style={{ color: C.pen }} />
+          </button>
         </div>
         <div id={contentId} hidden={collapsed}>
           {section.body?.trim() ? (
