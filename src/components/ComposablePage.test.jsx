@@ -100,9 +100,11 @@ describe("composable page workspace", () => {
       expect(screen.getByRole("button", { name }).getAttribute("aria-expanded")).toBe("false");
     }
     expect(screen.getByRole("button", { name: "Collapse Tags section" })).toBeTruthy();
-    for (const action of ["Write page", "Add vocabulary", "Capture", "Add grammar section", "link something related", "Add a media link"]) {
+    for (const action of ["Add Notes section", "Add vocabulary", "Capture", "Add grammar section", "link something related", "Add a media link"]) {
       expect(screen.getByRole("button", { name: action })).toBeTruthy();
     }
+    await user.click(screen.getByRole("button", { name: "Expand Notes section" }));
+    expect(screen.getByRole("button", { name: "Write Notes overview" })).toBeTruthy();
 
     const connections = screen.getByRole("heading", { name: "Connections" }).closest("section");
     const media = screen.getByRole("heading", { name: "Media links" }).closest("section");
@@ -147,7 +149,7 @@ describe("composable page workspace", () => {
     expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(1);
   });
 
-  it("renders Notes and Vocabulary leads in their exact orders and clamps only specialized overviews", async () => {
+  it("renders Notes and Vocabulary leads in their exact orders and keeps Overview prose untruncated", async () => {
     const notesFixture = await composableFixture({ title: "Notes-led page", pageFocus: "notes" });
     const notesView = renderPage(notesFixture.page, await allItems());
 
@@ -170,7 +172,7 @@ describe("composable page workspace", () => {
     const vocabularyLead = screen.getByRole("heading", { name: "Vocabulary" });
     const sourceAfter = screen.getByRole("heading", { name: "Source notebook" });
     const grammarAfter = screen.getByRole("heading", { name: "Grammar guide" });
-    expect(overview.closest(".note-markdown").classList.contains("line-clamp-4")).toBe(true);
+    expect(overview.closest(".note-markdown").classList.contains("line-clamp-4")).toBe(false);
     expect(appearsBefore(overview, vocabularyLead)).toBe(true);
     expect(appearsBefore(vocabularyLead, sourceAfter)).toBe(true);
     expect(appearsBefore(sourceAfter, grammarAfter)).toBe(true);

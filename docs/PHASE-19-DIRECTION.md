@@ -197,3 +197,16 @@ complete durability, phone and restore closeout before updating the report.
 
 Each completed feature or subphase receives its own commit. Logic and subjective visual styling
 remain separate commits so either can be reverted independently.
+
+## Structured Notes implementation closeout
+
+The schema-v7 Structured Notes increment is implemented locally on 2026-08-10. The complete
+serial suite passes 1,204/1,204 tests across 103 files, the production build transforms 2,088
+modules, and `git diff --check` passes. A disposable 375×812 visible-browser flow verified Notes
+Overview editing; root, subsection and organizer changes; Markdown search; structure-only copy;
+Vocabulary/Notes composition; final-outline Diario movement; and the longest mixed Page-card count.
+That count wrapped to two lines without truncation or horizontal overflow. Browser review exposed
+38 px text actions in the new Notes interface; they were raised to the required 44 px and rechecked.
+The browser logged no warnings or errors, all fixtures were deleted through the visible interface,
+the isolated origin returned to an empty notebook, and no owner browser data was available or
+inspected. Nothing is pushed or deployed by this closeout.

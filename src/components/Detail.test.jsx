@@ -109,18 +109,18 @@ describe("scan-first notes and page bodies", () => {
     renderDetail(page);
 
     expect(screen.getByText(/Uno/).textContent).toBe("Uno\nDos");
-    await waitFor(() => expect(screen.queryByRole("textbox", { name: "Page body" })).toBeNull());
-    await user.click(screen.getByRole("button", { name: "Edit page" }));
-    const editor = screen.getByRole("textbox", { name: "Page body" });
+    await waitFor(() => expect(screen.queryByRole("textbox", { name: "Notes overview" })).toBeNull());
+    await user.click(screen.getByRole("button", { name: "Edit Notes overview" }));
+    const editor = screen.getByRole("textbox", { name: "Notes overview" });
     await user.clear(editor);
     await user.type(editor, "Tres{enter}Cuatro");
-    await user.click(screen.getByRole("button", { name: "Save page" }));
+    await user.click(screen.getByRole("button", { name: "Save overview" }));
 
     await waitFor(async () => {
       const saved = (await allItems()).find((candidate) => candidate.id === page.id);
       expect(saved.body).toBe("Tres\nCuatro");
     });
-    await waitFor(() => expect(screen.queryByRole("textbox", { name: "Page body" })).toBeNull());
+    await waitFor(() => expect(screen.queryByRole("textbox", { name: "Notes overview" })).toBeNull());
     expect(screen.getByText(/Tres/).textContent).toBe("Tres\nCuatro");
   });
 
@@ -135,9 +135,9 @@ describe("scan-first notes and page bodies", () => {
 
     cleanup();
     renderDetail(page);
-    expect(screen.getByText("This page is empty.")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Write page" })).toBeTruthy();
-    expect(screen.queryByRole("textbox", { name: "Page body" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Expand Notes section" }).getAttribute("aria-expanded")).toBe("false");
+    expect(screen.getByRole("button", { name: "Add Notes section" })).toBeTruthy();
+    expect(screen.queryByRole("textbox", { name: "Notes overview" })).toBeNull();
   });
 });
 
@@ -310,8 +310,9 @@ describe("quick-create-and-link keeps the owner where they are", () => {
 
     renderDetail(page, onOpen, undefined, [page, existing]);
 
-    await user.click(screen.getByRole("button", { name: "Write page" }));
-    const body = screen.getByRole("textbox", { name: "Page body" });
+    await user.click(screen.getByRole("button", { name: "Expand Notes section" }));
+    await user.click(screen.getByRole("button", { name: "Write Notes overview" }));
+    const body = screen.getByRole("textbox", { name: "Notes overview" });
     await user.type(body, "Un borrador que todavía no está guardado");
 
     await user.click(screen.getByRole("button", { name: "link something" }));
@@ -368,8 +369,9 @@ describe("quick-create-and-link keeps the owner where they are", () => {
 
     // Start writing, and do NOT save. This is the work that must survive.
     const draft = "El pretérito para acciones terminadas";
-    await user.click(screen.getByRole("button", { name: "Write page" }));
-    const body = screen.getByRole("textbox", { name: "Page body" });
+    await user.click(screen.getByRole("button", { name: "Expand Notes section" }));
+    await user.click(screen.getByRole("button", { name: "Write Notes overview" }));
+    const body = screen.getByRole("textbox", { name: "Notes overview" });
     await user.type(body, draft);
     expect(body.value).toBe(draft);
 

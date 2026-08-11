@@ -33,7 +33,7 @@ function DeleteSectionAction({ description, onDelete }) {
 
   return (
     <>
-      <Button type="button" tone="danger" disabled={deleting} onClick={() => {
+      <Button type="button" tone="danger" className="min-h-11" disabled={deleting} onClick={() => {
         setProblem("");
         setArmed(true);
       }}>
@@ -46,6 +46,7 @@ function DeleteSectionAction({ description, onDelete }) {
             <Button
               type="button"
               tone="dangerArmed"
+              className="min-h-11"
               disabled={deleting}
               onClick={async () => {
                 setDeleting(true);
@@ -60,7 +61,7 @@ function DeleteSectionAction({ description, onDelete }) {
             >
               {deleting ? "Deleting…" : "Confirm delete"}
             </Button>
-            <Button type="button" tone="quiet" disabled={deleting} onClick={() => setArmed(false)}>Keep</Button>
+            <Button type="button" tone="quiet" className="min-h-11" disabled={deleting} onClick={() => setArmed(false)}>Keep</Button>
           </div>
           {problem && <div role="alert" className="mt-2 text-xs" style={{ color: C.red }}>{problem}</div>}
         </div>
@@ -119,7 +120,7 @@ function NotesOverview({ page, onChanged }) {
               style={fieldStyle}
             />
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button disabled={!dirty || saving} onClick={async () => {
+              <Button className="min-h-11" disabled={!dirty || saving} onClick={async () => {
                 setSaving(true);
                 setProblem("");
                 try {
@@ -132,7 +133,7 @@ function NotesOverview({ page, onChanged }) {
                   setSaving(false);
                 }
               }}>{saving ? "Saving…" : "Save overview"}</Button>
-              <Button tone="quiet" disabled={saving} onClick={() => {
+              <Button tone="quiet" className="min-h-11" disabled={saving} onClick={() => {
                 setDraft(saved);
                 setEditing(false);
                 setProblem("");
@@ -208,8 +209,8 @@ function NoteSectionEditor({ section, childCount, movesToJournal, onCancel, onSa
           </label>
         </div>
         <div className="mt-3 flex flex-wrap gap-2 border-t pt-3" style={{ borderColor: C.line }}>
-          <Button type="submit" disabled={!draft.name.trim() || !dirty || saving}>{saving ? "Saving…" : "Save section"}</Button>
-          <Button type="button" tone="quiet" disabled={saving} onClick={onCancel}>Cancel</Button>
+          <Button type="submit" className="min-h-11" disabled={!draft.name.trim() || !dirty || saving}>{saving ? "Saving…" : "Save section"}</Button>
+          <Button type="button" tone="quiet" className="min-h-11" disabled={saving} onClick={onCancel}>Cancel</Button>
           {section?.id && (
             <DeleteSectionAction description={deleteDescription} onDelete={onDelete} />
           )}
@@ -274,7 +275,7 @@ function NotesOrganizer({ sections, onCancel, onSaved }) {
         </div>
       )}
       <div className="mt-3 flex flex-wrap gap-2 border-t pt-3" style={{ borderColor: C.line }}>
-        <Button disabled={!changed || !namesValid || saving} onClick={async () => {
+        <Button className="min-h-11" disabled={!changed || !namesValid || saving} onClick={async () => {
           setSaving(true);
           setProblem("");
           try {
@@ -289,7 +290,7 @@ function NotesOrganizer({ sections, onCancel, onSaved }) {
             setSaving(false);
           }
         }}>{saving ? "Saving…" : "Save organization"}</Button>
-        <Button tone="quiet" disabled={saving} onClick={onCancel}>Cancel</Button>
+        <Button tone="quiet" className="min-h-11" disabled={saving} onClick={onCancel}>Cancel</Button>
       </div>
       {problem && <div role="alert" className="mt-2 text-xs" style={{ color: C.red }}>{problem}</div>}
     </Card>
@@ -388,7 +389,7 @@ export default function StructuredNotesSection({ page, onChanged }) {
           {!isSubsection && (
             <Button
               tone="quiet"
-              className="mt-3"
+              className="mt-3 min-h-11"
               aria-label={`Add Notes subsection to ${section.name}`}
               onClick={() => openEditor({ parentId: section.id })}
             >
@@ -429,14 +430,14 @@ export default function StructuredNotesSection({ page, onChanged }) {
       actions={!organizing ? (
         <>
           {sections.length > 0 && (
-            <Button tone="quiet" aria-label="Organize Notes" onClick={() => {
+            <Button tone="quiet" className="min-h-11" aria-label="Organize Notes" onClick={() => {
               setOrganizing(true);
               setSectionDraft(null);
             }}>
               <ListTree size={15} /> Organize
             </Button>
           )}
-          <Button tone="primary" aria-label="Add Notes section" onClick={() => openEditor({ parentId: null })}>
+          <Button tone="primary" className="min-h-11" aria-label="Add Notes section" onClick={() => openEditor({ parentId: null })}>
             <Plus size={15} /> Section
           </Button>
         </>
