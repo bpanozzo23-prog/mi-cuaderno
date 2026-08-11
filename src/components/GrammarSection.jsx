@@ -12,7 +12,7 @@ import {
   Plus,
   X,
 } from "lucide-react";
-import { Button, C, Card, IconButton, MONO, SERIF } from "../theme.jsx";
+import { Button, C, Card, MONO, SERIF } from "../theme.jsx";
 import {
   canonicalGrammarSections,
   grammarSectionBreadcrumb,
@@ -1064,8 +1064,8 @@ export default function GrammarSection({
       actions={({ collapsed }) => !organizing && (
         <>
           {!collapsed && sections.length > 0 && (
-            <IconButton
-              tone="quiet"
+            <button
+              type="button"
               aria-label="Organize"
               onClick={() => {
                 setOrganizing(true);
@@ -1073,22 +1073,26 @@ export default function GrammarSection({
                 setExampleDraft(null);
                 setVocabularyTarget(null);
               }}
+              className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium"
+              style={{ background: C.card, borderColor: C.line, color: C.ink }}
             >
-              <ListTree size={17} />
-            </IconButton>
+              <ListTree size={13} /> Organize
+            </button>
           )}
           {(!collapsed || !hasContent) && (
-            <IconButton
-              tone="primary"
+            <button
+              type="button"
               aria-label="Add grammar section"
               onClick={() => {
                 setSectionDraft({ parentId: null });
                 setExampleDraft(null);
                 setVocabularyTarget(null);
               }}
+              className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium"
+              style={{ background: C.penPale, borderColor: C.chipBorder, color: C.penDark }}
             >
-              <Plus size={17} />
-            </IconButton>
+              <Plus size={13} /> Section
+            </button>
           )}
         </>
       )}

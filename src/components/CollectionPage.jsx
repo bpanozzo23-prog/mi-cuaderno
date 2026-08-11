@@ -577,7 +577,15 @@ function VocabularySection({
       resetKey={page.id}
       actions={({ collapsed }) => collection.itemCount === 0 ? (
         <>
-          <Button aria-label="Add vocabulary" onClick={() => openAddTarget(null, NOT_GROUPED_LABEL)}><Plus size={14} /> Vocabulary</Button>
+          <button
+            type="button"
+            aria-label="Add vocabulary"
+            onClick={() => openAddTarget(null, NOT_GROUPED_LABEL)}
+            className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium"
+            style={{ background: C.penPale, borderColor: C.chipBorder, color: C.penDark }}
+          >
+            <Plus size={13} /> Vocabulary
+          </button>
           {!collapsed && (
             <IconButton tone="quiet" aria-label="Organize" onClick={() => onOrganize(false)}>
               <ListTree size={17} />
