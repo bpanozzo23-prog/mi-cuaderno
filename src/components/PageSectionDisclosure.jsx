@@ -77,7 +77,7 @@ export default function PageSectionDisclosure({
   return (
     <section id={id} aria-labelledby={headingId}>
       <div
-        className={`flex flex-wrap items-start justify-between gap-2 rounded-xl border px-2 py-1.5${empty ? " border-dashed" : ""}`}
+        className={`flex flex-wrap items-start justify-between gap-2 rounded-xl border px-3 py-2.5${empty ? " border-dashed" : ""}`}
         style={{ background: empty ? "transparent" : colors.band, borderColor: colors.line }}
       >
         <button
@@ -95,7 +95,7 @@ export default function PageSectionDisclosure({
             <h2 id={headingId} className={`break-words text-lg leading-tight ${empty ? "font-normal" : "font-bold"}`} style={{ color: empty ? C.mut : colors.ink, fontFamily: SERIF }}>
               {title}
             </h2>
-            {summary && <div className="break-words text-xs" style={{ color: C.mut }}>{summary}</div>}
+            {summary && <div className="mt-1 break-words text-xs" style={{ color: C.mut }}>{summary}</div>}
           </div>
         </button>
         {actionContent && (
