@@ -20,8 +20,10 @@ import MarkdownText from "./MarkdownText.jsx";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
 import OutlineOrganizerFields from "./OutlineOrganizerFields.jsx";
 import PageSectionDisclosure, { SectionSpineNode } from "./PageSectionDisclosure.jsx";
+import { sectionFamily } from "./pageRoleMeta.js";
 
 const fieldStyle = { background: C.card, borderColor: C.line, color: C.ink };
+const NOTES_FAMILY = sectionFamily("notes");
 
 const problemMessage = (error, fallback) =>
   error instanceof Error && error.message ? error.message : fallback;
@@ -447,20 +449,20 @@ export default function StructuredNotesSection({ page, onChanged }) {
                 setOrganizing(true);
                 setSectionDraft(null);
               }}
-              className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium"
-              style={{ background: C.card, borderColor: C.line, color: C.ink }}
+              className="inline-flex items-center justify-center rounded-lg border p-2"
+              style={{ background: NOTES_FAMILY.band, borderColor: NOTES_FAMILY.line, color: NOTES_FAMILY.ink }}
             >
-              <ListTree size={13} /> Organize
+              <ListTree size={15} />
             </button>
           )}
           <button
             type="button"
             aria-label="Add Notes section"
             onClick={() => openEditor({ parentId: null })}
-            className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium"
-            style={{ background: C.penPale, borderColor: C.chipBorder, color: C.penDark }}
+            className="inline-flex items-center justify-center rounded-lg border p-2"
+            style={{ background: NOTES_FAMILY.band, borderColor: NOTES_FAMILY.line, color: NOTES_FAMILY.ink }}
           >
-            <Plus size={13} /> Section
+            <Plus size={15} />
           </button>
         </>
       ) : null}

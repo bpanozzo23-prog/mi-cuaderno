@@ -36,6 +36,7 @@ import SourceSection from "./SourceSection.jsx";
 import GrammarSection from "./GrammarSection.jsx";
 import PageCustomizeSheet from "./PageCustomizeSheet.jsx";
 import PageSectionDisclosure, { SectionSpineNode } from "./PageSectionDisclosure.jsx";
+import { sectionFamily } from "./pageRoleMeta.js";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
 import StructuredNotesSection from "./StructuredNotesSection.jsx";
 import PracticeSession from "./PracticeSession.jsx";
@@ -44,6 +45,7 @@ import { buildPracticeDeck, isPracticeEligible } from "../lib/practice.js";
 import { preparePracticeCards } from "../lib/practiceCards.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
+const VOCABULARY_FAMILY = sectionFamily("vocabulary");
 
 const FOCUS_LABELS = {
   [PAGE_FOCUSES.notes]: "Notes",
@@ -581,15 +583,21 @@ function VocabularySection({
             type="button"
             aria-label="Add vocabulary"
             onClick={() => openAddTarget(null, NOT_GROUPED_LABEL)}
-            className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium"
-            style={{ background: C.penPale, borderColor: C.chipBorder, color: C.penDark }}
+            className="inline-flex items-center justify-center rounded-lg border p-2"
+            style={{ background: VOCABULARY_FAMILY.band, borderColor: VOCABULARY_FAMILY.line, color: VOCABULARY_FAMILY.ink }}
           >
-            <Plus size={13} /> Vocabulary
+            <Plus size={15} />
           </button>
           {!collapsed && (
-            <IconButton tone="quiet" aria-label="Organize" onClick={() => onOrganize(false)}>
-              <ListTree size={17} />
-            </IconButton>
+            <button
+              type="button"
+              aria-label="Organize"
+              onClick={() => onOrganize(false)}
+              className="inline-flex items-center justify-center rounded-lg border p-2"
+              style={{ background: VOCABULARY_FAMILY.band, borderColor: VOCABULARY_FAMILY.line, color: VOCABULARY_FAMILY.ink }}
+            >
+              <ListTree size={15} />
+            </button>
           )}
         </>
       ) : !collapsed ? (
@@ -600,9 +608,15 @@ function VocabularySection({
           <IconButton tone="primary" aria-label="Start practice session" onClick={onPracticeSession} disabled={!collection.practiceEligible}>
             <Play size={18} />
           </IconButton>
-          <IconButton tone="quiet" aria-label="Organize" onClick={() => onOrganize(false)}>
-            <ListTree size={17} />
-          </IconButton>
+          <button
+            type="button"
+            aria-label="Organize"
+            onClick={() => onOrganize(false)}
+            className="inline-flex items-center justify-center rounded-lg border p-2"
+            style={{ background: VOCABULARY_FAMILY.band, borderColor: VOCABULARY_FAMILY.line, color: VOCABULARY_FAMILY.ink }}
+          >
+            <ListTree size={15} />
+          </button>
         </>
       ) : null}
     >

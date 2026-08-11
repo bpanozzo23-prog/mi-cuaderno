@@ -36,7 +36,10 @@ import CollectionAddVocabularySheet from "./CollectionAddVocabularySheet.jsx";
 import MarkdownText from "./MarkdownText.jsx";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
 import PageSectionDisclosure from "./PageSectionDisclosure.jsx";
+import { sectionFamily } from "./pageRoleMeta.js";
 import OutlineOrganizerFields from "./OutlineOrganizerFields.jsx";
+
+const GRAMMAR_FAMILY = sectionFamily("grammar");
 
 const fieldStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
@@ -1073,10 +1076,10 @@ export default function GrammarSection({
                 setExampleDraft(null);
                 setVocabularyTarget(null);
               }}
-              className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium"
-              style={{ background: C.card, borderColor: C.line, color: C.ink }}
+              className="inline-flex items-center justify-center rounded-lg border p-2"
+              style={{ background: GRAMMAR_FAMILY.band, borderColor: GRAMMAR_FAMILY.line, color: GRAMMAR_FAMILY.ink }}
             >
-              <ListTree size={13} /> Organize
+              <ListTree size={15} />
             </button>
           )}
           {(!collapsed || !hasContent) && (
@@ -1088,10 +1091,10 @@ export default function GrammarSection({
                 setExampleDraft(null);
                 setVocabularyTarget(null);
               }}
-              className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium"
-              style={{ background: C.penPale, borderColor: C.chipBorder, color: C.penDark }}
+              className="inline-flex items-center justify-center rounded-lg border p-2"
+              style={{ background: GRAMMAR_FAMILY.band, borderColor: GRAMMAR_FAMILY.line, color: GRAMMAR_FAMILY.ink }}
             >
-              <Plus size={13} /> Section
+              <Plus size={15} />
             </button>
           )}
         </>

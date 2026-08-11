@@ -272,7 +272,7 @@ describe("GrammarSection editing", () => {
     ));
 
     const addSection = screen.getByRole("button", { name: "Add grammar section" });
-    expect(addSection.textContent.trim()).toBe("Section");
+    expect(addSection.textContent).toBe("");
     await user.click(addSection);
     await user.type(screen.getByRole("textbox", { name: "Grammar section name" }), "  Exceptions  ");
     await user.type(screen.getByRole("textbox", { name: "Grammar section overview" }), "Signals that change the framing.");
