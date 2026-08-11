@@ -9,8 +9,8 @@
  * hand-rolled-fetch-with-status-messages shape used here.
  *
  * Nothing in this module reads or writes the database. The caller passes the key in and takes the
- * result away; the feedback is never stored (§7 has exactly two content types, and this is not a
- * third).
+ * result away; persisting the latest review onto the entry (schema v8's `feedback` field) is the
+ * caller's business, through `db/items.js`.
  */
 
 const API_URL = "https://api.anthropic.com/v1/messages";

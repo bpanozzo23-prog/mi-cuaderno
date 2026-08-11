@@ -307,7 +307,7 @@ describe("composable page kinds", () => {
       source: { ...hidden.source, url: "example.com" },
     }).join(" ")).toMatch(/http\(s\) URL/);
     expect(validatePageStructures({ ...hidden, pageProfile: "general" }).join(" ")).toMatch(
-      /not part of schema v7/
+      /not part of schema v8/
     );
   });
 

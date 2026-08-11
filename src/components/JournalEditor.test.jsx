@@ -5,8 +5,9 @@ import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
 import JournalEditor from "./JournalEditor.jsx";
 import { clearAllPersonalData, db } from "../db/db.js";
-import { allItems, createItem, newPage } from "../db/items.js";
+import { allItems, createItem, getItem, newPage, saveEntryFeedback } from "../db/items.js";
 import { allEvents, EVENT_TYPES } from "../db/events.js";
+import { makeStoredFeedback } from "../lib/diarioReview.js";
 
 beforeEach(async () => {
   await db.open();
@@ -26,6 +27,77 @@ const baseProps = (overrides = {}) => ({
   onMaterialized: vi.fn(),
   autosaveMs: 15,
   ...overrides,
+});
+
+describe("JournalEditor stored feedback", () => {
+  const review = {
+    verdict: "mostly_clear",
+    summary: "One preposition slip is worth fixing.",
+    items: [
+      { category: "error", quote: "agradecido para", corrected: "agradecido por", explanation: "Wrong preposition." },
+    ],
+  };
+
+  const reviewedEntry = async (body = "Hoy estoy agradecido para mi familia.") => {
+    const created = await createItem(newPage({ title: "Martes", body, pageDate: "2026-08-03" }));
+    await saveEntryFeedback(created.id, makeStoredFeedback(review, created));
+    return getItem(created.id);
+  };
+
+  it("shows the stored review read-only beside the draft, without request controls", async () => {
+    const entry = await reviewedEntry();
+    render(<JournalEditor {...baseProps({ entry })} />);
+
+    expect(screen.getByText("Mostly clear")).toBeTruthy();
+    expect(screen.getByText("agradecido para")).toBeTruthy();
+    expect(screen.getByText(/→ agradecido por/)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Send and review/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Ask again/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Remove/i })).toBeNull();
+    // Fresh against the unedited draft: no staleness warning yet.
+    expect(screen.queryByText(/From before your last edit/i)).toBeNull();
+  });
+
+  it("renders no panel for an entry without feedback or a brand-new draft", async () => {
+    const entry = await createItem(newPage({ title: "Sin review", body: "Texto.", pageDate: "2026-08-03" }));
+    render(<JournalEditor {...baseProps({ entry })} />);
+    expect(screen.queryByText(/Margin notes/i)).toBeNull();
+    cleanup();
+
+    render(<JournalEditor {...baseProps()} />);
+    expect(screen.queryByText(/Margin notes/i)).toBeNull();
+  });
+
+  it("marks the review stale as the text changes, but not for formatting-only edits", async () => {
+    const user = userEvent.setup();
+    const entry = await reviewedEntry("Esto importa");
+    render(<JournalEditor {...baseProps({ entry })} />);
+    const body = screen.getByRole("textbox", { name: "Journal body" });
+
+    // Formatting only: the visible-text projection is unchanged, so the review stays fresh.
+    body.focus();
+    body.setSelectionRange(5, 12);
+    await user.click(screen.getByRole("button", { name: "Highlight" }));
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe("Saved"));
+    expect(screen.queryByText(/From before your last edit/i)).toBeNull();
+
+    await user.type(body, " mucho");
+
+    expect(screen.getByText(/From before your last edit/i)).toBeTruthy();
+  });
+
+  it("autosaves around the stored review without touching it", async () => {
+    const user = userEvent.setup();
+    const entry = await reviewedEntry();
+    render(<JournalEditor {...baseProps({ entry })} />);
+
+    await user.type(screen.getByRole("textbox", { name: "Journal body" }), " Y más.");
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe("Saved"));
+
+    const stored = await getItem(entry.id);
+    expect(stored.body).toContain("Y más.");
+    expect(stored.feedback).toEqual(entry.feedback);
+  });
 });
 
 describe("JournalEditor autosave", () => {

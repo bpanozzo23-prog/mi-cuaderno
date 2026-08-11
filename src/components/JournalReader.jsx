@@ -230,7 +230,10 @@ export default function JournalReader({
         </div>
       )}
 
-      {aiReady && (
+      {/* A stored review stays readable even when the AI feature is off or the key is gone; only
+          the request actions inside the panel need `aiReady`, so the button can never open a
+          panel whose only outcome is an error. */}
+      {(aiReady || entry.feedback) && (
         <div className="mt-4">
           {!showFeedback && (
             <button
@@ -247,6 +250,8 @@ export default function JournalReader({
             <DiarioFeedback
               key={entry.id}
               entry={entry}
+              canAsk={aiReady}
+              onChanged={onChanged}
               onClose={() => setShowFeedback(false)}
             />
           )}

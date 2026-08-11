@@ -11,8 +11,10 @@ import {
   allItems,
   displayTitle,
   getPinnedLexicalIds,
+  saveEntryFeedback,
   setLexicalPinned,
 } from "./items.js";
+import { makeStoredFeedback } from "../lib/diarioReview.js";
 import { allEvents, EVENT_TYPES } from "./events.js";
 import { localDate } from "../lib/dates.js";
 import { newMeaning } from "../lib/meanings.js";
@@ -122,6 +124,7 @@ describe("pages", () => {
     expect(stored.collection).toEqual({ enabled: false, groups: [] });
     expect(stored.source).toEqual(emptySource());
     expect(stored.grammar).toEqual(emptyGrammar());
+    expect(stored.feedback).toBeNull();
     expect(displayTitle(stored)).toBe("Preterite vs imperfect");
   });
 
@@ -240,6 +243,49 @@ describe("updating", () => {
     const item = await createItem(newLexical({ term: "sacar" }));
     await updateItem(item.id, { linkedKeys: ["user:other"] }, { logEdit: false });
     expect(await typesOf()).toEqual([EVENT_TYPES.create]);
+  });
+});
+
+describe("entry feedback", () => {
+  const review = {
+    verdict: "clear",
+    summary: "Reads well.",
+    items: [{ category: "praise", quote: "aunque llueva", corrected: null, explanation: "Good subjunctive." }],
+  };
+  const entryDraft = { title: "Mi día", body: "Hoy fui al mercado.", pageDate: "2026-08-11" };
+
+  it("stores the review verbatim without moving updatedAt or logging any event", async () => {
+    const page = await createItem(newPage(entryDraft));
+    const stored = makeStoredFeedback(review, page);
+    await new Promise((r) => setTimeout(r, 2));
+
+    const updated = await saveEntryFeedback(page.id, stored);
+
+    expect(updated.feedback).toEqual(stored);
+    expect((await getItem(page.id)).feedback).toEqual(stored);
+    expect(updated.updatedAt).toBe(page.updatedAt);
+    expect(await typesOf()).toEqual([EVENT_TYPES.create]);
+  });
+
+  it("clears with null, keeping the field present", async () => {
+    const page = await createItem(newPage(entryDraft));
+    await saveEntryFeedback(page.id, makeStoredFeedback(review, page));
+
+    const cleared = await saveEntryFeedback(page.id, null);
+
+    expect(cleared.feedback).toBeNull();
+    expect(Object.prototype.hasOwnProperty.call(cleared, "feedback")).toBe(true);
+    expect(await typesOf()).toEqual([EVENT_TYPES.create]);
+  });
+
+  it("rejects a missing id, a lexical target and an invalid shape", async () => {
+    const lexical = await createItem(newLexical({ term: "sacar" }));
+    const page = await createItem(newPage(entryDraft));
+
+    await expect(saveEntryFeedback("user:missing", null)).rejects.toThrow(/does not exist/i);
+    await expect(saveEntryFeedback(lexical.id, null)).rejects.toThrow(/does not exist/i);
+    await expect(saveEntryFeedback(page.id, { verdict: "meh" })).rejects.toThrow(/verdict/i);
+    expect((await getItem(page.id)).feedback).toBeNull();
   });
 });
 

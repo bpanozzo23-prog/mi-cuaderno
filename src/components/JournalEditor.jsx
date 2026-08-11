@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, Lightbulb, X } from "lucide-react";
 import { Button, C, Card, SERIF, dotGrid } from "../theme.jsx";
 import { createItem, newPage, updateItem } from "../db/items.js";
 import { logView } from "../db/events.js";
 import { localDate } from "../lib/dates.js";
+import { isFeedbackStale } from "../lib/diarioReview.js";
 import PromptLibrary from "./PromptLibrary.jsx";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
+import FeedbackReview from "./FeedbackReview.jsx";
 
 export const JOURNAL_AUTOSAVE_MS = 650;
 
@@ -59,6 +61,13 @@ export default function JournalEditor({
 
   const draft = cleanDraft({ title, body, pageDate: date });
   latestDraftRef.current = draft;
+
+  // Live against the draft, so the note appears the moment an edit outdates the stored review.
+  // Formatting-only changes correctly stay fresh: the hash covers the visible-text projection.
+  const feedbackStale = useMemo(
+    () => Boolean(entry?.feedback) && isFeedbackStale(entry.feedback, { title, body }),
+    [entry, title, body]
+  );
 
   async function persistDraft(requestedDraft, version, { quiet = false } = {}) {
     const currentId = materializedIdRef.current;
@@ -268,6 +277,27 @@ export default function JournalEditor({
           className="w-full min-h-80 resize-y rounded-xl border p-3 text-base leading-relaxed outline-none"
           style={{ background: C.card, borderColor: C.line, color: C.ink, fontFamily: SERIF }}
         />
+
+        {entry?.feedback && (
+          <section aria-label="Feedback on this entry">
+            <Card className="p-3" style={{ borderColor: C.chipBorder }}>
+              <div className="flex items-baseline justify-between gap-2">
+                <div className="font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>Feedback</div>
+                <div className="text-xs shrink-0" style={{ color: C.mut }}>
+                  {new Date(entry.feedback.reviewedAt).toLocaleDateString()}
+                </div>
+              </div>
+              <div className="mt-3">
+                <FeedbackReview
+                  review={entry.feedback}
+                  staleNote={feedbackStale
+                    ? "From before your last edit — the text has changed since this review."
+                    : undefined}
+                />
+              </div>
+            </Card>
+          </section>
+        )}
 
         <Button tone="quiet" onClick={() => setChoosingPrompt((open) => !open)} aria-expanded={choosingPrompt}>
           <Lightbulb size={15} /> {prompt ? "Change prompt" : "Need a prompt?"}

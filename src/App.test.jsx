@@ -438,10 +438,13 @@ describe("Phase 4s journal reading and connections", () => {
 
   it("creates reflection as a separate current-day moment linked to its source", async () => {
     const user = userEvent.setup();
+    // Same month-day one year back, so the entry always sits inside the ±7-day memory window
+    // that puts it on the Diario home screen — a fixed date walks out of that window over time.
+    const lastYearToday = localDate().replace(/^\d{4}/, (year) => String(Number(year) - 1));
     const source = await createItem(newPage({
       title: "A year ago",
       body: "Entonces pensaba otra cosa.",
-      pageDate: "2025-08-03",
+      pageDate: lastYearToday,
     }));
     render(<App />);
 

@@ -58,6 +58,7 @@ export function makePage(overrides = {}) {
     }),
     source: emptySource(source || {}),
     grammar: emptyGrammar(grammar || {}),
+    feedback: null,
     tags: [],
     linkedKeys: [],
     linkAnnotations: [],

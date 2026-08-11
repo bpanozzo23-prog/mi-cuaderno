@@ -182,6 +182,29 @@ db.version(7)
   .stores(PERSONAL_STORES)
   .upgrade(migratePersonalDataToV7);
 
+/** Schema v8 adds the persisted latest AI review to each page; no stored review is `null`. */
+export function upgradePageItemV7(item) {
+  if (!item || item.type !== "page") return { ...item };
+  return {
+    ...item,
+    feedback: null,
+  };
+}
+
+export async function migratePersonalDataToV8(transaction) {
+  await transaction
+    .table("items")
+    .where("type")
+    .equals("page")
+    .modify((item) => {
+      Object.assign(item, upgradePageItemV7(item));
+    });
+}
+
+db.version(8)
+  .stores(PERSONAL_STORES)
+  .upgrade(migratePersonalDataToV8);
+
 export async function getPref(key, fallback = null) {
   const row = await db.prefs.get(key);
   return row === undefined ? fallback : row.value;

@@ -20,6 +20,7 @@ const makeV4Page = (overrides = {}) => {
     source: _source,
     grammar: _grammar,
     noteSections: _noteSections,
+    feedback: _feedback,
     collection,
     ...legacy
   } = current;
@@ -32,6 +33,7 @@ const makeLegacyPage = (overrides = {}) => {
     source: _source,
     grammar: _grammar,
     noteSections: _noteSections,
+    feedback: _feedback,
     linkAnnotations: _linkAnnotations,
     ...page
   } = makePage(overrides);
@@ -45,11 +47,16 @@ const withoutNoteSections = (page) => {
   const { noteSections: _noteSections, ...legacy } = page;
   return legacy;
 };
+const withoutFeedback = (page) => {
+  const { feedback: _feedback, ...legacy } = page;
+  return legacy;
+};
 const upgradedGeneralPage = (legacyPage, linkAnnotations = []) => ({
   ...legacyPage,
   linkAnnotations,
   pageFocus: "notes",
   noteSections: [],
+  feedback: null,
   collection: { enabled: false, groups: [] },
   source: emptySource(),
   grammar: emptyGrammar(),
@@ -510,7 +517,7 @@ describe("import: replace and restore", () => {
       schemaVersion: 5,
       exportedAt: "2026-08-04T10:00:00.000Z",
       appVersion: "0.1.0",
-      userItems: [word, withoutNoteSections(sourcePage), withoutNoteSections(legacyGrammarPage)],
+      userItems: [word, withoutFeedback(withoutNoteSections(sourcePage)), withoutFeedback(withoutNoteSections(legacyGrammarPage))],
       events: [],
       preferences: {},
     };
@@ -558,7 +565,7 @@ describe("import: replace and restore", () => {
       schemaVersion: 6,
       exportedAt: "2026-08-10T10:00:00.000Z",
       appVersion: "0.1.0",
-      userItems: [withoutNoteSections(page)],
+      userItems: [withoutFeedback(withoutNoteSections(page))],
       events: [],
       preferences: {},
     };
@@ -572,9 +579,43 @@ describe("import: replace and restore", () => {
     expect(checked.summary.willUpgrade).toBe(true);
   });
 
-  it("round-trips exact schema-v7 Notes and Grammar hierarchies", () => {
-    const rootId = "note-section:66666666-6666-4666-8666-666666666666";
+  it("upgrades a schema-v7 envelope by adding the absent stored review to every page", () => {
     const page = makePage({
+      id: "user:pre-feedback",
+      body: "Hoy fui al mercado.",
+      pageDate: "2026-08-10",
+    });
+    const word = makeLexical({ id: "user:word", term: "mercado" });
+    const v7 = {
+      format: BACKUP_FORMAT,
+      schemaVersion: 7,
+      exportedAt: "2026-08-10T11:00:00.000Z",
+      appVersion: "0.1.0",
+      userItems: [word, withoutFeedback(page)],
+      events: [],
+      preferences: {},
+    };
+
+    const snapshot = structuredClone(v7);
+    const checked = validateBackup(v7);
+
+    expect(checked.ok).toBe(true);
+    expect(v7).toEqual(snapshot);
+    expect(checked.envelope).toEqual({
+      ...v7,
+      schemaVersion: SCHEMA_VERSION,
+      userItems: [word, page],
+    });
+    expect(checked.summary).toMatchObject({
+      schemaVersion: 7,
+      targetSchemaVersion: SCHEMA_VERSION,
+      willUpgrade: true,
+    });
+  });
+
+  it("round-trips exact schema-v8 Notes hierarchies and a stored entry review", () => {
+    const rootId = "note-section:66666666-6666-4666-8666-666666666666";
+    const notesPage = makePage({
       id: "user:notes-hierarchy",
       body: "Existing Overview",
       noteSections: [
@@ -587,20 +628,33 @@ describe("import: replace and restore", () => {
         },
       ],
     });
-    const v7 = {
+    const reviewedPage = makePage({
+      id: "user:reviewed-entry",
+      title: "Mi día",
+      body: "Hoy fui al mercado.",
+      pageDate: "2026-08-11",
+      feedback: {
+        verdict: "clear",
+        summary: "Reads well.",
+        items: [{ category: "praise", quote: "fui", corrected: null, explanation: "Correct preterite." }],
+        reviewedAt: "2026-08-11T10:00:00.000Z",
+        reviewedHash: "abc123",
+      },
+    });
+    const v8 = {
       format: BACKUP_FORMAT,
       schemaVersion: SCHEMA_VERSION,
-      exportedAt: "2026-08-10T11:00:00.000Z",
+      exportedAt: "2026-08-11T11:00:00.000Z",
       appVersion: "0.1.0",
-      userItems: [page],
+      userItems: [notesPage, reviewedPage],
       events: [],
       preferences: {},
     };
 
-    const checked = validateBackup(JSON.stringify(v7));
+    const checked = validateBackup(JSON.stringify(v8));
 
     expect(checked.ok).toBe(true);
-    expect(checked.envelope).toEqual(v7);
+    expect(checked.envelope).toEqual(v8);
     expect(checked.summary.willUpgrade).toBe(false);
   });
 
@@ -788,6 +842,20 @@ describe("validation happens before anything is written", () => {
     ["duplicate item ids", { ...baseline(), userItems: [makeLexical({ id: "user:a" }), makeLexical({ id: "user:a" })] }],
     ["a lingering schema-v4 pageProfile", { ...baseline(), userItems: [{ ...makePage(), pageProfile: "general" }] }],
     ["a missing Notes outline array", { ...baseline(), userItems: [{ ...makePage(), noteSections: undefined }] }],
+    ["a page without the stored-review field", { ...baseline(), userItems: [withoutFeedback(makePage())] }],
+    ["a stored review with an unknown verdict", { ...baseline(), userItems: [makePage({ feedback: {
+      verdict: "meh", summary: "", items: [], reviewedAt: "2026-08-11T10:00:00.000Z", reviewedHash: "abc",
+    } })] }],
+    ["a stored review item with an unknown category", { ...baseline(), userItems: [makePage({ feedback: {
+      verdict: "clear",
+      summary: "",
+      items: [{ category: "vibe", quote: "q", corrected: null, explanation: "e" }],
+      reviewedAt: "2026-08-11T10:00:00.000Z",
+      reviewedHash: "abc",
+    } })] }],
+    ["a stored review missing its content hash", { ...baseline(), userItems: [makePage({ feedback: {
+      verdict: "clear", summary: "", items: [], reviewedAt: "2026-08-11T10:00:00.000Z",
+    } })] }],
     ["a Notes subsection whose parent is on another page", (() => {
       const parentId = "note-section:11111111-1111-4111-8111-111111111111";
       const parentPage = makePage({
@@ -983,6 +1051,19 @@ describe("validation happens before anything is written", () => {
 
     expect(checked.ok).toBe(false);
     expect(checked.errors.join(" ")).toMatch(/noteSections is not part of schema v6/);
+  });
+
+  it("rejects a schema-v7 envelope that tries to smuggle in a schema-v8 stored review", () => {
+    const input = {
+      ...baseline(),
+      schemaVersion: 7,
+      userItems: [makePage({ id: "user:sneaky-review" })],
+    };
+
+    const checked = validateBackup(input);
+
+    expect(checked.ok).toBe(false);
+    expect(checked.errors.join(" ")).toMatch(/feedback is not part of schema v7/);
   });
 
   it("rejects annotations stored on both sides of one reciprocal personal pair", () => {

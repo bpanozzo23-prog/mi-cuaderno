@@ -51,9 +51,13 @@ async function seedLegacyDatabase(schemaVersion) {
   const relationshipShape = schemaVersion < 4
     ? (({ linkAnnotations: _linkAnnotations, ...legacyPage }) => legacyPage)(currentPage)
     : currentPage;
-  const { noteSections: _noteSections, ...pageBeforeNotesOutline } = relationshipShape;
+  // Every seeded version predates schema v8, so the stored-review field never appears.
+  const { feedback: _feedback, ...pageBeforeFeedback } = relationshipShape;
+  const { noteSections: _noteSections, ...pageBeforeNotesOutline } = pageBeforeFeedback;
   let page;
-  if (schemaVersion >= 5) {
+  if (schemaVersion >= 7) {
+    page = pageBeforeFeedback;
+  } else if (schemaVersion >= 5) {
     page = {
       ...pageBeforeNotesOutline,
       ...(schemaVersion === 5
@@ -101,7 +105,7 @@ describe("export-first schema gate", () => {
     });
   });
 
-  it.each([1, 2, 3, 4, 5, 6])("exports the untouched schema-v%s envelope before v7 can open", async (schemaVersion) => {
+  it.each([1, 2, 3, 4, 5, 6, 7])("exports the untouched schema-v%s envelope before v8 can open", async (schemaVersion) => {
     const { lexical, page } = await seedLegacyDatabase(schemaVersion);
 
     expect(await preupgradeStatus()).toMatchObject({
@@ -127,7 +131,12 @@ describe("export-first schema gate", () => {
     if (schemaVersion === 5) {
       expect(backup.userItems.find((item) => item.id === page.id).grammar.sections[0]).not.toHaveProperty("parentId");
     }
-    expect(backup.userItems.find((item) => item.id === page.id)).not.toHaveProperty("noteSections");
+    if (schemaVersion < 7) {
+      expect(backup.userItems.find((item) => item.id === page.id)).not.toHaveProperty("noteSections");
+    } else {
+      expect(backup.userItems.find((item) => item.id === page.id).noteSections).toEqual([]);
+    }
+    expect(backup.userItems.find((item) => item.id === page.id)).not.toHaveProperty("feedback");
     if (schemaVersion === 1) {
       expect(backup.userItems.find((item) => item.id === lexical.id).translation).toBe("take out\nwithdraw");
       expect(backup.userItems.find((item) => item.id === lexical.id)).not.toHaveProperty("meanings");

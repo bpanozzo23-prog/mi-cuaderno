@@ -13,6 +13,7 @@ import {
   PINNED_PAGE_IDS_PREF,
   validatePageStructures,
 } from "../lib/pageKinds.js";
+import { validateStoredFeedback } from "../lib/diarioReview.js";
 import { PINNED_LEXICAL_IDS_PREF } from "../lib/lexicalViews.js";
 import {
   annotationForTarget,
@@ -146,6 +147,8 @@ export function newPage({
     body,
     pageDate: pageDate || null,
     ...structures,
+    // Not a page structure — the persisted latest AI review (schema v8), absent as null.
+    feedback: null,
     tags: cleanTags(tags),
     linkedKeys,
     linkAnnotations: [...(linkAnnotations || [])],
@@ -272,6 +275,25 @@ export async function deleteItem(id) {
     // every dependent cleanup so an event-store failure rolls the entire operation back.
     await logEvent(EVENT_TYPES.delete, id);
   });
+}
+
+/**
+ * Stores or clears (`null`) the latest AI review on a Diario entry. The review is metadata about
+ * the entry, not an edit of it: no `updatedAt` bump and no event, so recency views and the lookup
+ * counts that decide what Repaso enrolls never move. Staleness against later edits is carried by
+ * the review's own `reviewedHash`, not by timestamps.
+ */
+export async function saveEntryFeedback(id, feedback) {
+  const errors = validateStoredFeedback(feedback);
+  if (errors.length) throw new Error(errors[0]);
+  let result;
+  await db.transaction("rw", db.items, async () => {
+    const item = await db.items.get(id);
+    if (!item || item.type !== "page") throw new Error(`Page ${id} does not exist.`);
+    await db.items.update(id, { feedback });
+    result = await db.items.get(id);
+  });
+  return result;
 }
 
 const annotationsWithoutTarget = (item, targetKey) =>

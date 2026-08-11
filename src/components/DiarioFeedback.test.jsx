@@ -4,13 +4,10 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import DiarioFeedback from "./DiarioFeedback.jsx";
 import { db, clearAllPersonalData, setPref } from "../db/db.js";
+import { createItem, getItem, newPage } from "../db/items.js";
+import { allEvents, EVENT_TYPES } from "../db/events.js";
 import { AI_API_KEY_PREF } from "../lib/aiPrefs.js";
-
-const entry = {
-  id: "user:entry",
-  title: "Martes",
-  body: "Hoy estoy agradecido para mi familia.",
-};
+import { makeStoredFeedback } from "../lib/diarioReview.js";
 
 const review = {
   verdict: "mostly_clear",
@@ -27,13 +24,21 @@ const respondWith = (payload, { ok = true, status = 200 } = {}) =>
 const succeeds = (json = review) =>
   respondWith({ stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify(json) }] });
 
-const shown = (shownEntry = entry) => render(<DiarioFeedback entry={shownEntry} onClose={() => {}} />);
+let entry;
+
+const shown = (overrides = {}, props = {}) =>
+  render(<DiarioFeedback entry={{ ...entry, ...overrides }} onClose={() => {}} {...props} />);
 const sendButton = () => screen.getByRole("button", { name: /Send and review/i });
 
 beforeEach(async () => {
   await db.open();
   await clearAllPersonalData();
   await setPref(AI_API_KEY_PREF, "sk-ant-owners-key");
+  entry = await createItem(newPage({
+    title: "Martes",
+    body: "Hoy estoy agradecido para mi familia.",
+    pageDate: "2026-08-01",
+  }));
   vi.stubGlobal("fetch", succeeds());
 });
 
@@ -47,7 +52,7 @@ describe("before anything is sent", () => {
     shown();
 
     expect(screen.getByText(/title and text — nothing else from your notebook/i)).toBeTruthy();
-    expect(screen.getByText(/Nothing here is saved/i)).toBeTruthy();
+    expect(screen.getByText(/latest review is kept with this entry/i)).toBeTruthy();
     // §9: the disclosure comes before the request, not alongside it.
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
@@ -63,7 +68,7 @@ describe("before anything is sent", () => {
 
   it("sends the visible journal text without Markdown markers", async () => {
     const user = userEvent.setup();
-    shown({ ...entry, body: "Hoy estoy **muy agradecido** por ==mi familia==." });
+    shown({ body: "Hoy estoy **muy agradecido** por ==mi familia==." });
 
     await user.click(sendButton());
 
@@ -72,6 +77,12 @@ describe("before anything is sent", () => {
     expect(requestBody.messages[0].content).toContain("Hoy estoy muy agradecido por mi familia.");
     expect(requestBody.messages[0].content).not.toContain("**");
     expect(requestBody.messages[0].content).not.toContain("==");
+  });
+
+  it("offers no send action when the AI feature is not usable", () => {
+    shown({}, { canAsk: false });
+
+    expect(screen.queryByRole("button", { name: /Send and review/i })).toBe(null);
   });
 });
 
@@ -112,29 +123,78 @@ describe("the review", () => {
     await waitFor(() => expect(screen.getByText(/Nothing to flag/i)).toBeTruthy());
   });
 
-  it("can be asked for again", async () => {
+  it("can be asked for again, back through the disclosure", async () => {
     const user = userEvent.setup();
     shown();
 
     await user.click(sendButton());
     await waitFor(() => expect(screen.getByRole("button", { name: /Ask again/i })).toBeTruthy());
 
+    // The replacement goes back through the §9 disclosure rather than straight to the network.
     await user.click(screen.getByRole("button", { name: /Ask again/i }));
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    await user.click(sendButton());
 
     await waitFor(() => expect(globalThis.fetch).toHaveBeenCalledTimes(2));
   });
 
-  it("is never written to the notebook", async () => {
+  it("keeps the latest review with the entry without moving updatedAt or logging events", async () => {
+    const onChanged = vi.fn();
     const user = userEvent.setup();
-    shown();
+    shown({}, { onChanged });
 
     await user.click(sendButton());
     await waitFor(() => expect(screen.getByText("Mostly clear")).toBeTruthy());
 
-    // §7 has exactly two content types and the event log is the source of truth: a review is
-    // neither, so it must leave no trace behind at all.
-    expect(await db.items.count()).toBe(0);
-    expect(await db.events.count()).toBe(0);
+    const stored = await getItem(entry.id);
+    expect(stored.feedback).toMatchObject(review);
+    expect(typeof stored.feedback.reviewedAt).toBe("string");
+    expect(typeof stored.feedback.reviewedHash).toBe("string");
+    expect(stored.updatedAt).toBe(entry.updatedAt);
+    expect((await allEvents()).map((event) => event.type)).toEqual([EVENT_TYPES.create]);
+    expect(onChanged).toHaveBeenCalled();
+  });
+
+  it("opens straight into a stored review without any request", async () => {
+    const stored = makeStoredFeedback(review, entry);
+    shown({ feedback: stored });
+
+    expect(screen.getByText("Mostly clear")).toBeTruthy();
+    expect(screen.getByText("agradecido para")).toBeTruthy();
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+    // Fresh against the entry it reviewed: no staleness warning.
+    expect(screen.queryByText(/text has changed since this review/i)).toBe(null);
+  });
+
+  it("marks a stored review as stale once the entry text has moved on", () => {
+    const stored = makeStoredFeedback(review, entry);
+    shown({ feedback: stored, body: "Hoy estoy agradecido por mi familia." });
+
+    expect(screen.getByText(/From before your last edit/i)).toBeTruthy();
+  });
+
+  it("hides the request actions but keeps a stored review readable when AI is off", () => {
+    const stored = makeStoredFeedback(review, entry);
+    shown({ feedback: stored }, { canAsk: false });
+
+    expect(screen.getByText("Mostly clear")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Ask again/i })).toBe(null);
+    expect(screen.getByRole("button", { name: /Remove/i })).toBeTruthy();
+  });
+
+  it("removes the stored review and returns to the disclosure", async () => {
+    const onChanged = vi.fn();
+    const stored = makeStoredFeedback(review, entry);
+    await db.items.update(entry.id, { feedback: stored });
+    const user = userEvent.setup();
+    shown({ feedback: stored }, { onChanged });
+
+    await user.click(screen.getByRole("button", { name: /Remove/i }));
+
+    await waitFor(() => expect(sendButton()).toBeTruthy());
+    expect((await getItem(entry.id)).feedback).toBeNull();
+    expect(onChanged).toHaveBeenCalled();
+    expect((await allEvents()).map((event) => event.type)).toEqual([EVENT_TYPES.create]);
   });
 });
 
@@ -149,6 +209,20 @@ describe("when it does not work", () => {
     await waitFor(() => expect(screen.getByText(/rejected the API key/i)).toBeTruthy());
     await user.click(screen.getByRole("button", { name: /Try again/i }));
     expect(sendButton()).toBeTruthy();
+  });
+
+  it("keeps the stored review when a replacement request fails", async () => {
+    const stored = makeStoredFeedback(review, entry);
+    await db.items.update(entry.id, { feedback: stored });
+    vi.stubGlobal("fetch", respondWith({}, { ok: false, status: 500 }));
+    const user = userEvent.setup();
+    shown({ feedback: stored });
+
+    await user.click(screen.getByRole("button", { name: /Ask again/i }));
+    await user.click(sendButton());
+
+    await waitFor(() => expect(screen.getByText(/busy or unavailable/i)).toBeTruthy());
+    expect((await getItem(entry.id)).feedback).toEqual(stored);
   });
 
   it("reports a refusal as itself rather than as a broken app", async () => {

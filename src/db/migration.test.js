@@ -7,9 +7,11 @@ import {
   migratePersonalDataToV5,
   migratePersonalDataToV6,
   migratePersonalDataToV7,
+  migratePersonalDataToV8,
   PERSONAL_STORES,
   upgradePageItemV5,
   upgradePageItemV6,
+  upgradePageItemV7,
 } from "./db.js";
 import { emptyGrammar, emptySource } from "../lib/pageKinds.js";
 
@@ -49,11 +51,13 @@ function declareCurrentSchema(database) {
   database.version(5).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV5);
   database.version(6).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV6);
   database.version(7).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV7);
+  database.version(8).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV8);
 }
 
 const upgradedNotesPage = (page, { linkAnnotations = [], groups = [] } = {}) => ({
   ...page,
   noteSections: [],
+  feedback: null,
   linkAnnotations,
   pageFocus: "notes",
   collection: { enabled: false, groups },
@@ -61,8 +65,8 @@ const upgradedNotesPage = (page, { linkAnnotations = [], groups = [] } = {}) => 
   grammar: emptyGrammar(),
 });
 
-describe("personal-data schema v7 migrations", () => {
-  it("runs v1 → v2 → v3 → v4 → v5 → v6 → v7 in order without touching unrelated data", async () => {
+describe("personal-data schema v8 migrations", () => {
+  it("runs v1 → v2 → v3 → v4 → v5 → v6 → v7 → v8 in order without touching unrelated data", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(1).stores(PERSONAL_STORES);
@@ -114,7 +118,7 @@ describe("personal-data schema v7 migrations", () => {
     }
   });
 
-  it("runs v2 → v3 → v4 → v5 → v6 → v7 while preserving structured content, events, preferences and timestamps", async () => {
+  it("runs v2 → v3 → v4 → v5 → v6 → v7 → v8 while preserving structured content, events, preferences and timestamps", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(2).stores(PERSONAL_STORES);
@@ -168,7 +172,7 @@ describe("personal-data schema v7 migrations", () => {
     }
   });
 
-  it("runs v3 → v4 → v5 → v6 → v7 and preserves redundant legacy topology", async () => {
+  it("runs v3 → v4 → v5 → v6 → v7 → v8 and preserves redundant legacy topology", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(3).stores(PERSONAL_STORES);
@@ -225,6 +229,7 @@ describe("personal-data schema v7 migrations", () => {
         linkAnnotations: [],
         pageFocus: "vocabulary",
         noteSections: [],
+        feedback: null,
         collection: { enabled: true, groups: collection.groups },
         source: emptySource(),
         grammar: emptyGrammar(),
@@ -242,7 +247,7 @@ describe("personal-data schema v7 migrations", () => {
     }
   });
 
-  it("runs v4 → v5 → v6 → v7 by replacing only page identity and adding empty structures", async () => {
+  it("runs v4 → v5 → v6 → v7 → v8 by replacing only page identity and adding empty structures", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(4).stores(PERSONAL_STORES);
@@ -289,6 +294,7 @@ describe("personal-data schema v7 migrations", () => {
         }) => rest)(page)),
         pageFocus: "vocabulary",
         noteSections: [],
+        feedback: null,
         collection: { enabled: true, groups: [group] },
         source: emptySource(),
         grammar: emptyGrammar(),
@@ -343,7 +349,7 @@ describe("personal-data schema v7 migrations", () => {
     try {
       await upgraded.open();
       const stored = await upgraded.items.get(page.id);
-      expect(stored).toEqual(upgradePageItemV6(pureUpgrade));
+      expect(stored).toEqual(upgradePageItemV7(upgradePageItemV6(pureUpgrade)));
       expect(stored.updatedAt).toBe(page.updatedAt);
     } finally {
       upgraded.close();
@@ -351,7 +357,7 @@ describe("personal-data schema v7 migrations", () => {
     }
   });
 
-  it("runs v6 → v7 as a pure root-field addition without restructuring Page content", async () => {
+  it("runs v6 → v7 → v8 as pure root-field additions without restructuring Page content", async () => {
     const page = {
       ...pageFixture(),
       linkAnnotations: [],
@@ -388,7 +394,73 @@ describe("personal-data schema v7 migrations", () => {
     declareCurrentSchema(upgraded);
     try {
       await upgraded.open();
-      expect(await upgraded.items.get(page.id)).toEqual(upgradedPage);
+      expect(await upgraded.items.get(page.id)).toEqual(upgradePageItemV7(upgradedPage));
+    } finally {
+      upgraded.close();
+      await Dexie.delete(name);
+    }
+  });
+
+  it("runs v7 → v8 as a pure root-field addition that leaves other records untouched", async () => {
+    const page = {
+      ...pageFixture(),
+      linkAnnotations: [],
+      pageFocus: "notes",
+      noteSections: [{
+        id: "note-section:11111111-1111-4111-8111-111111111111",
+        name: "Ideas",
+        body: "Outline body",
+      }],
+      collection: { enabled: false, groups: [] },
+      source: emptySource(),
+      grammar: emptyGrammar(),
+    };
+    const lexical = {
+      id: "user:sacar",
+      type: "lexical",
+      dictKey: null,
+      form: "word",
+      term: "sacar",
+      meanings: [],
+      pos: "verb",
+      notes: "",
+      myExamples: [],
+      tags: [],
+      linkedKeys: [],
+      linkAnnotations: [],
+      mediaLinks: [],
+      createdAt: "2026-08-01T10:00:00.000Z",
+      updatedAt: at,
+    };
+    const event = eventFixture();
+    const preference = { key: "preference", value: true };
+    const snapshot = structuredClone(page);
+    const upgradedPage = upgradePageItemV7(page);
+
+    expect(page).toEqual(snapshot);
+    expect(upgradedPage).toEqual({ ...page, feedback: null });
+    expect(upgradedPage.noteSections).toBe(page.noteSections);
+    expect(upgradePageItemV7(lexical)).toEqual(lexical);
+
+    const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
+    const legacy = new Dexie(name);
+    legacy.version(7).stores(PERSONAL_STORES);
+    await legacy.open();
+    await legacy.items.bulkAdd([page, lexical]);
+    await legacy.events.add(event);
+    await legacy.prefs.add(preference);
+    legacy.close();
+
+    const upgraded = new Dexie(name);
+    declareCurrentSchema(upgraded);
+    try {
+      await upgraded.open();
+      const stored = await upgraded.items.get(page.id);
+      expect(stored).toEqual(upgradedPage);
+      expect(stored.updatedAt).toBe(page.updatedAt);
+      expect(await upgraded.items.get(lexical.id)).toEqual(lexical);
+      expect(await upgraded.events.toArray()).toEqual([event]);
+      expect(await upgraded.prefs.toArray()).toEqual([preference]);
     } finally {
       upgraded.close();
       await Dexie.delete(name);

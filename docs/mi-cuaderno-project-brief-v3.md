@@ -24,6 +24,12 @@ remain quotations. This changes rendering and visible-text projection only; sche
 removal across personal items. Each changed item keeps its timestamp but receives one ordinary
 `edit`; item, event and colour-preference writes are atomic and schema v6 remains unchanged.
 
+**Diario feedback amendment, 2026-08-11 — §§5, 7, 9 and 10:** schema v8 persists the latest AI
+review on the Diario entry it judged (`feedback` on the page record, `null` when absent),
+replacing the Phase 6 session-only decision. One review per entry, replaceable and removable,
+stale-flagged by a content hash, exported in backups, and written without a timestamp bump or
+event. A field on an existing type — the two-content-type rule stands.
+
 ---
 
 ## 1. What this is
@@ -385,6 +391,7 @@ changes no page timestamp and writes no event.
 - Before anything is sent, the interface states which categories of notebook data are included in requests (e.g., entries, notes, activity summary). Only deliberately included data is transmitted, and only to the AI provider.
 - The API key is entered once and stored on-device. A browser-stored key is readable by code running on the page — an accepted, documented risk for a single-user app, contingent on the spend cap in §3. Log the acceptance in `DECISIONS.md`.
 - Proposed entries follow the prototype's pattern: nothing saves without explicit approval.
+- **Amended 2026-08-11:** the latest Diario review is persisted on the entry it judged, as schema v8's `feedback` field on the page record — a field on an existing type, not a third content type, so §7 stands. One review per entry; asking again replaces it, and the owner can remove it. A stored content hash of the reviewed text marks the review stale after later edits. The review rides in backups like any other item field, but saving it moves no timestamp and logs no event: requesting feedback is neither opening nor editing the entry.
 
 ## 10. Backup and durability
 

@@ -328,7 +328,7 @@ const registerStableId = (id, where, label, predicate, seen, errors) => {
  */
 export function validatePageStructures(page, {
   where = "page",
-  schemaVersion = 7,
+  schemaVersion = 8,
   seenGroupIds = new Set(),
   seenCaptureIds = new Set(),
   seenSectionIds = new Set(),

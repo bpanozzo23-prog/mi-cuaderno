@@ -7,6 +7,7 @@ import {
   upgradePageItemV4,
   upgradePageItemV5,
   upgradePageItemV6,
+  upgradePageItemV7,
 } from "./db.js";
 import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
 import { nowIso } from "../lib/dates.js";
@@ -29,6 +30,7 @@ import { validatePageStructures } from "../lib/pageKinds.js";
 import { PINNED_LEXICAL_IDS_PREF } from "../lib/lexicalViews.js";
 import { TAG_COLORS_PREF, TAG_SWATCHES } from "../lib/tagColors.js";
 import { AI_API_KEY_PREF, AI_ENABLED_PREF } from "../lib/aiPrefs.js";
+import { validateStoredFeedback } from "../lib/diarioReview.js";
 import {
   isDirectionalRelationshipType,
   RELATIONSHIP_SUBJECTS,
@@ -276,6 +278,17 @@ function validateItem(
     }
     if (schemaVersion < 5 && Object.prototype.hasOwnProperty.call(item, "noteSections")) {
       errors.push(`${where}.noteSections is not part of schema v${schemaVersion}`);
+    }
+    // The stored AI review is validated here rather than in validatePageStructures: it is not a
+    // page structure, and keeping it out of pageKinds keeps the version gate in exactly one place.
+    if (schemaVersion < 8) {
+      if (Object.prototype.hasOwnProperty.call(item, "feedback")) {
+        errors.push(`${where}.feedback is not part of schema v${schemaVersion}`);
+      }
+    } else if (!Object.prototype.hasOwnProperty.call(item, "feedback")) {
+      errors.push(`${where}.feedback is missing`);
+    } else {
+      errors.push(...validateStoredFeedback(item.feedback, `${where}.feedback`));
     }
     if (schemaVersion === 3 || schemaVersion === 4) {
       if (!isPageProfile(item.pageProfile)) {
@@ -593,6 +606,7 @@ const upgradeItemsV3ToV4 = (userItems) => userItems.map((item) => upgradeItemV3(
 const upgradeItemsV4ToV5 = (userItems) => userItems.map((item) => upgradePageItemV4(item));
 const upgradeItemsV5ToV6 = (userItems) => userItems.map((item) => upgradePageItemV5(item));
 const upgradeItemsV6ToV7 = (userItems) => userItems.map((item) => upgradePageItemV6(item));
+const upgradeItemsV7ToV8 = (userItems) => userItems.map((item) => upgradePageItemV7(item));
 
 function validateEvent(event, index, errors) {
   const where = `events[${index}]`;
@@ -633,7 +647,7 @@ export function validateBackup(raw) {
     errors.push(
       `This backup is schema version ${parsed.schemaVersion}, newer than this app understands (${SCHEMA_VERSION}). Update the app first.`
     );
-  } else if (![1, 2, 3, 4, 5, 6, 7].includes(parsed.schemaVersion)) {
+  } else if (![1, 2, 3, 4, 5, 6, 7, 8].includes(parsed.schemaVersion)) {
     errors.push(`Schema version ${parsed.schemaVersion} is not supported.`);
   }
   if (!Array.isArray(parsed.userItems)) errors.push("userItems must be an array.");
@@ -691,6 +705,13 @@ export function validateBackup(raw) {
   if (upgradedSchemaVersion === 6) {
     upgradedItems = upgradeItemsV6ToV7(upgradedItems);
     upgradedSchemaVersion = 7;
+    validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
+  }
+  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
+
+  if (upgradedSchemaVersion === 7) {
+    upgradedItems = upgradeItemsV7ToV8(upgradedItems);
+    upgradedSchemaVersion = 8;
     validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
   }
   if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };

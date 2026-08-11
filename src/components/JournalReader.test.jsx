@@ -377,6 +377,34 @@ describe("JournalReader", () => {
     expect(screen.queryByRole("button", { name: /Feedback/i })).toBeNull();
   });
 
+  it("keeps a stored review reachable and readable even when the AI feature is off", async () => {
+    const user = userEvent.setup();
+    const entry = await createItem(newPage({ body: "Hoy escribí un poco.", pageDate: "2026-08-03" }));
+    const withFeedback = {
+      ...entry,
+      feedback: {
+        verdict: "clear",
+        summary: "Reads well.",
+        items: [],
+        reviewedAt: "2026-08-03T10:00:00.000Z",
+        reviewedHash: "abc123",
+      },
+    };
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    render(<JournalReader {...propsFor(withFeedback, [withFeedback])} />);
+
+    await user.click(await screen.findByRole("button", { name: /Feedback/i }));
+
+    expect(screen.getByText("Clear")).toBeTruthy();
+    expect(screen.getByText(/Reads well/)).toBeTruthy();
+    // No key means no request controls — only reading and removing what is already stored.
+    expect(screen.queryByRole("button", { name: /Ask again/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Send and review/i })).toBeNull();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
   it("opens the feedback panel once the feature is on, disclosing what would be sent", async () => {
     const user = userEvent.setup();
     await setPref(AI_ENABLED_PREF, true);
