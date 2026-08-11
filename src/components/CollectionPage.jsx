@@ -967,11 +967,11 @@ export default function CollectionPage({
             </div>
           </Card>
 
-          <div className="mt-5">
+          <div className="mt-12">
             <StructuredNotesSection page={item} onChanged={onChanged} />
           </div>
 
-          <div className="mt-5 space-y-7">
+          <div className="mt-12 space-y-12">
             {sectionOrder.map((sectionKind) => {
               if (sectionKind === "source" && item.source?.enabled) {
                 return (
