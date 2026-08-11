@@ -790,10 +790,10 @@ function ExampleCard({
           aria-expanded={addingVocabulary}
           aria-label="Add vocabulary"
           onClick={onBeginVocabulary}
-          className="mt-2 inline-flex min-h-11 items-center gap-1 rounded-lg border px-2 text-xs"
-          style={{ ...fieldStyle, color: C.pen }}
+          className="mt-2 inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium"
+          style={{ background: C.card, borderColor: C.line, color: C.mut }}
         >
-          <Plus size={13} /> Vocabulary
+          <Plus size={12} /> Vocabulary
         </button>
       )}
 
@@ -967,29 +967,33 @@ export default function GrammarSection({
         )}
 
         <div className="mt-3 flex flex-wrap gap-2">
-          <Button
-            tone="quiet"
+          <button
+            type="button"
             aria-label="Add example"
             onClick={() => {
               setExampleDraft({ sectionId: section.id, example: null });
               setSectionDraft(null);
               setVocabularyTarget(null);
             }}
+            className="inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium"
+            style={{ background: C.card, borderColor: C.line, color: C.mut }}
           >
-            <Plus size={14} /> Example
-          </Button>
+            <Plus size={12} /> Example
+          </button>
           {!isSubsection && (
-            <Button
-              tone="quiet"
+            <button
+              type="button"
               aria-label={`Add subsection to ${section.name}`}
               onClick={() => {
                 setSectionDraft({ parentId: section.id });
                 setExampleDraft(null);
                 setVocabularyTarget(null);
               }}
+              className="inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium"
+              style={{ background: C.card, borderColor: C.line, color: C.mut }}
             >
-              <Plus size={14} /> Subsection
-            </Button>
+              <Plus size={12} /> Subsection
+            </button>
           )}
         </div>
       </>

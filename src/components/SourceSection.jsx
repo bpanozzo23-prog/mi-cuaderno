@@ -650,10 +650,10 @@ function CaptureCard({
               aria-expanded={addingVocabulary}
               aria-label="Add vocabulary"
               onClick={onBeginVocabulary}
-              className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-2 text-xs"
-              style={{ background: C.card, borderColor: C.line, color: C.pen }}
+              className="inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium"
+              style={{ background: C.card, borderColor: C.line, color: C.mut }}
             >
-              <Plus size={13} /> Vocabulary
+              <Plus size={12} /> Vocabulary
             </button>
           )}
         </div>

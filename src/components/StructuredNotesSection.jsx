@@ -440,16 +440,28 @@ export default function StructuredNotesSection({ page, onChanged }) {
       actions={!organizing ? (
         <>
           {sections.length > 0 && (
-            <Button tone="quiet" className="min-h-11" aria-label="Organize Notes" onClick={() => {
-              setOrganizing(true);
-              setSectionDraft(null);
-            }}>
-              <ListTree size={15} /> Organize
-            </Button>
+            <button
+              type="button"
+              aria-label="Organize Notes"
+              onClick={() => {
+                setOrganizing(true);
+                setSectionDraft(null);
+              }}
+              className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium"
+              style={{ background: C.card, borderColor: C.line, color: C.ink }}
+            >
+              <ListTree size={13} /> Organize
+            </button>
           )}
-          <Button tone="primary" className="min-h-11" aria-label="Add Notes section" onClick={() => openEditor({ parentId: null })}>
-            <Plus size={15} /> Section
-          </Button>
+          <button
+            type="button"
+            aria-label="Add Notes section"
+            onClick={() => openEditor({ parentId: null })}
+            className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium"
+            style={{ background: C.penPale, borderColor: C.chipBorder, color: C.penDark }}
+          >
+            <Plus size={13} /> Section
+          </button>
         </>
       ) : null}
     >
