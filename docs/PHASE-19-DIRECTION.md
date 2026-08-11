@@ -1,7 +1,7 @@
 # Phase 19 direction — page organization and formatting
 
-**Status:** First release implemented and verified locally 2026-08-10. Structured Notes increment
-owner-approved 2026-08-10 and in implementation.
+**Status:** Grammar hierarchy and Structured Notes increments deployed 2026-08-10; the owner
+confirmed the production smoke screen passed.
 **Origin:** Real-use friction while building an Indicative-versus-Subjunctive Grammar guide whose
 definition, cautions, trigger families and examples required more hierarchy than one flat sequence
 of explanation/pattern/example sections could express.
@@ -209,4 +209,5 @@ That count wrapped to two lines without truncation or horizontal overflow. Brows
 38 px text actions in the new Notes interface; they were raised to the required 44 px and rechecked.
 The browser logged no warnings or errors, all fixtures were deleted through the visible interface,
 the isolated origin returned to an empty notebook, and no owner browser data was available or
-inspected. Nothing is pushed or deployed by this closeout.
+inspected. The closeout itself made no deployment claim; `main` subsequently deployed at
+`4f73a45`, and the owner confirmed the production smoke screen passed.

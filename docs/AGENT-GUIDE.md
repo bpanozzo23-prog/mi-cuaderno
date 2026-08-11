@@ -62,11 +62,12 @@ this summary.
 - **The event log is the single source of truth** (§7). No stored counters, no state flags.
   Tricky state, lookup counts, review box and due date are all *derived at render*
   (`src/lib/review.js`, `src/db/events.js`).
-- **`SCHEMA_VERSION` is 5.** Phase 4i introduced v1→v2 structured meanings, Phase 4j–4o added
-  v2→v3 page profiles, Phase 4t added v3→v4 sparse link annotations, and Phase 7 adds v4→v5
-  composable pages. Startup requires an untouched validated v1, v2, v3, or v4 export before Dexie
-  opens; direct v1→v5 runs all four migrations in order. Backup schemas 1 through 5 upgrade
-  sequentially in memory and are deeply validated as v5 before any write; versions newer than 5
+- **`SCHEMA_VERSION` is 7.** Phase 4i introduced v1→v2 structured meanings, Phase 4j–4o added
+  v2→v3 page profiles, Phase 4t added v3→v4 sparse link annotations, Phase 7 added v4→v5
+  composable pages, and Phase 19 added v5→v6 Grammar hierarchy followed by v6→v7 Structured Notes.
+  Startup requires an untouched validated schema-1 through schema-6 export before Dexie opens;
+  direct legacy upgrades run every migration in order. Backup schemas 1 through 7 upgrade
+  sequentially in memory and are deeply validated as v7 before any write; versions newer than 7
   remain blocked. Any further personal schema change still triggers §5 in full: migration plan,
   export-first safety, version bump and matching backup validation. **If you conclude another is
   needed, stop and raise it.**

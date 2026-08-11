@@ -1,7 +1,7 @@
 # Phase 19 — Page organization and formatting (report)
 
-Implemented and verified locally 2026-08-10 on `codex/phase-19-grammar-guide-depth`; **not pushed or
-deployed**. The complete contract and boundaries remain in
+The Grammar first release and Structured Notes increment were implemented, verified and deployed
+2026-08-10. The complete contract and boundaries remain in
 [PHASE-19-DIRECTION.md](PHASE-19-DIRECTION.md), and durable choices are recorded in
 `DECISIONS.md` under Phase 19.
 
@@ -97,4 +97,23 @@ Deeper nesting, arbitrary custom blocks or fields, a general Page builder, store
 rich media, new content types and automatic grammar classification remain outside this release.
 Future related owner-approved Page organization/formatting increments may stay under Phase 19, but
 each still requires its own scope, decisions, tests and any independently required migration.
-Nothing was pushed or deployed.
+The first-release closeout above originally made no push or deployment claim; it was subsequently
+included in the deployed schema-v7 Phase 19 build.
+
+## Structured Notes increment and deployment
+
+The second Phase 19 increment keeps `page.body` as Notes Overview and adds mandatory schema-v7
+`noteSections[]` with exactly one subsection level. Grammar and Notes share the parameterized
+hierarchy engine and organizer controls, while Notes retain their own Markdown bodies and deletion
+semantics. Search, fresh-ID structure copying, mixed counts and every Pages/Diario consumer carry
+the outline consistently.
+
+The final complete serial suite passes **1,204/1,204 tests across 103 files**. The production build
+transforms 2,088 modules, `git diff --check` passes, and a disposable 375×812 visible flow covered
+Overview and section editing, hierarchy changes, Markdown search, structure copy, Vocabulary/Notes
+composition and final-outline Diario movement without overflow or console warnings/errors. The
+longest mixed count wrapped safely, and a browser-found 38 px action-height issue was corrected so
+every new Notes action measures 44 px.
+
+Local `main` and `origin/main` matched at `4f73a45` after the fast-forward push. The resulting
+GitHub Pages deployment completed, and the owner confirmed the production smoke screen passed.

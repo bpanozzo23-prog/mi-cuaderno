@@ -214,16 +214,16 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   disposable 375×812 closeout passed without horizontal overflow or console warnings/errors.
   See the approved [direction](docs/PHASE-18-DIRECTION.md) and
   [implementation report](docs/PHASE-18-REPORT.md).
-- **Phase 19 — implemented and verified locally; not deployed.** Grammar guides now have safe
-  formatted Overviews, accessible Note callouts and schema-v6 one-level subsections with lossless
-  export-first migration, hierarchy-aware organization/copying, counts, search and contextual
-  breadcrumbs. The final serial suite passes 1,145/1,145 across 99 files, the production build and
-  `git diff --check` pass, four deliberate failure proofs reddened as intended, and disposable
-  375×812 creation/copy and schema-v5 upgrade→edit→export→wipe→restore flows passed without
-  horizontal overflow or console warnings/errors. Phase 19 may group later related owner-approved
-  Page organization/formatting increments, but does not pre-approve unknown scope. See the
-  approved [direction](docs/PHASE-19-DIRECTION.md) and
-  [implementation report](docs/PHASE-19-REPORT.md).
+- **Phase 19 — deployed.** Grammar guides have safe formatted Overviews, accessible Note callouts
+  and schema-v6 one-level subsections. The schema-v7 Structured Notes increment keeps every Page
+  body as Notes Overview and adds one level of named Notes sections, shared hierarchy mechanics,
+  organization, search, structure-only copying, mixed counts and the approved Pages/Diario rule.
+  The final serial suite passes 1,204/1,204 across 103 files, the production build and
+  `git diff --check` pass, and a disposable 375×812 integrated flow passed without horizontal
+  overflow or console warnings/errors. `main` deployed at `4f73a45`, and the owner confirmed the
+  production smoke screen passed. Phase 19 may group later related owner-approved Page
+  organization/formatting increments, but does not pre-approve unknown scope. See the approved
+  [direction](docs/PHASE-19-DIRECTION.md) and [implementation report](docs/PHASE-19-REPORT.md).
 - **Phase 20 — implemented and verified locally; not deployed.** Ajustes now manages every exact
   personal tag globally: rename to an unused spelling, explicitly merge into an existing tag, or
   remove it without deleting entries. One atomic transaction preserves item timestamps, records
@@ -283,11 +283,11 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   overflow or console warnings/errors. See the Optional Grammar key idea entries in
   [DECISIONS.md](DECISIONS.md).
 
-`SCHEMA_VERSION` is **6**. Before Dexie opens v6, schema-v1 through schema-v5 owners must save and
+`SCHEMA_VERSION` is **7**. Before Dexie opens v7, schema-v1 through schema-v6 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
-relationship, composable-page, and Grammar-hierarchy migrations in order. Backup schemas 1
-through 6 are accepted, upgraded sequentially in memory, deeply validated as v6, and only then
-offered for replace-and-restore; newer versions remain blocked.
+relationship, composable-page, Grammar-hierarchy and Structured-Notes migrations in order. Backup
+schemas 1 through 7 are accepted, upgraded sequentially in memory, deeply validated as v7, and
+only then offered for replace-and-restore; newer versions remain blocked.
 
 ## Testing
 

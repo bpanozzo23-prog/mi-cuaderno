@@ -45,8 +45,8 @@ Useful information to retain for each idea:
 | Personal-content provenance | 2026-08-02 | Captured | Before or alongside Phase 6 AI design; source needs can be studied earlier |
 | Learning depth (cloze, reverse, drill, audio) | 2026-08-06 | Implemented locally | Phase 10a–10d; deferred members need real-use evidence |
 | Owner-centric stats (streak, calendar, growth, ladder, per-item strip) | 2026-08-06 | Implemented locally | Phase 11; retention, coverage and per-direction breakdowns need real data volume |
-| Grammar guide depth and callouts | 2026-08-10 | Implemented locally | Phase 19 first release verified; not deployed |
-| Structured Notes outlines | 2026-08-10 | Approved; implementation in progress | Phase 19 increment |
+| Grammar guide depth and callouts | 2026-08-10 | Implemented and deployed | Phase 19 first release |
+| Structured Notes outlines | 2026-08-10 | Implemented and deployed | Phase 19 schema-v7 increment; production smoke passed |
 | Global tag management | 2026-08-10 | Implemented locally | Phase 20 verified; not deployed |
 | Phase 19/20 review nits (edge polish) | 2026-08-10 | Captured | Whenever a related area is next touched; none is urgent |
 
@@ -130,7 +130,7 @@ follow-up product decision.
 ## Structured Notes outlines
 
 - **Date added:** 2026-08-10
-- **Status:** Owner-approved as a Phase 19 increment; implementation in progress
+- **Status:** Implemented, verified and deployed as a Phase 19 increment
 - **Origin:** Real-use need to explain a Vocabulary collection and organize a general Notes Page
   beyond one undifferentiated body
 - **Potential data impact:** schema v7 adds mandatory `noteSections[]` to every Page
@@ -146,12 +146,16 @@ stays in Pages, while a dated body-only record remains Diario regardless of leng
 deletion rule. The schema-v7 release requires version fencing, pure export-first migration and a
 complete sweep of Page/Diario consumers.
 
+The delivered increment passes the complete 1,204-test suite, production build, `git diff --check`
+and a disposable 375×812 integrated browser flow. It deployed from `main` at `4f73a45`, and the
+owner confirmed the production smoke screen passed.
+
 ---
 
 ## Grammar guide depth and callouts
 
 - **Date added:** 2026-08-10
-- **Status:** Implemented and verified locally as the first Phase 19 release; not deployed
+- **Status:** Implemented, verified and deployed as the first Phase 19 release
 - **Origin:** Real-use friction while creating an Indicative-versus-Subjunctive comparison guide
 - **Potential data impact:** schema v6 adds one-level Grammar section ownership; formatted
   Overviews remain strings
@@ -175,6 +179,9 @@ needs its own concrete decision, tests and any required migration. See
 The complete 1,145-test suite, production build, four deliberate failure proofs and disposable
 375×812 creation/copy plus schema-v5 upgrade→restore browser flows pass. See
 `docs/PHASE-19-REPORT.md` for the implementation and numerical closeout.
+
+This first release is deployed as part of the current schema-v7 Phase 19 build at `4f73a45`; the
+owner confirmed the production smoke screen passed after the Structured Notes increment landed.
 
 ---
 
