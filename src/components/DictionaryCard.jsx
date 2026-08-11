@@ -259,7 +259,7 @@ export default function DictionaryCard({ onInstalled }) {
           </div>
         )}
         {error && (
-          <div className="mt-3 text-xs rounded-lg p-2.5 flex items-start gap-1.5" style={{ background: "#F7ECEA", color: C.red }}>
+          <div className="mt-3 text-xs rounded-lg p-2.5 flex items-start gap-1.5" style={{ background: C.redPale, color: C.red }}>
             <AlertTriangle size={13} className="shrink-0 mt-0.5" /> {error}
           </div>
         )}

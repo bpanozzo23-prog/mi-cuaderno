@@ -958,7 +958,7 @@ export default function CollectionPage({
                   }}
                   className="min-h-11 rounded-full border px-3 py-1 text-xs font-semibold disabled:opacity-60"
                   style={item.pageFocus === focus
-                    ? { background: C.pen, borderColor: C.pen, color: "#fff" }
+                    ? { background: C.pen, borderColor: C.pen, color: C.onAccent }
                     : { background: C.card, borderColor: C.line, color: C.mut }}
                 >
                   {FOCUS_LABELS[focus]}

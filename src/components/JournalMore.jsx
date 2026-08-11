@@ -256,7 +256,7 @@ export default function JournalMore({
           }}
           className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium"
           style={state.tricky
-            ? { background: C.hi, borderColor: "#E3C93A", color: "#5B4E08" }
+            ? { background: C.hi, borderColor: C.hiBorder, color: C.hiInk }
             : { background: C.card, borderColor: C.line, color: C.mut }}
         >
           <Highlighter size={15} /> {state.tricky ? "Marked tricky" : "Highlight as tricky"}

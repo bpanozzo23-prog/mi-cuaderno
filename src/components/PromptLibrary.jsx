@@ -31,7 +31,7 @@ export default function PromptLibrary({ onSelect, onClose, random = Math.random 
             aria-pressed={category === option.id}
             className="shrink-0 rounded-full border px-2.5 py-1 text-xs"
             style={category === option.id
-              ? { background: C.pen, borderColor: C.pen, color: "#fff" }
+              ? { background: C.pen, borderColor: C.pen, color: C.onAccent }
               : { background: C.penPale, borderColor: C.chipBorder, color: C.penDark }}
           >
             {option.label}

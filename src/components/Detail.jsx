@@ -523,7 +523,7 @@ function StandardDetail({
                         key={f}
                         onClick={() => setHead({ ...head, form: f })}
                         className="text-sm px-3 py-2"
-                        style={head.form === f ? { background: C.pen, color: "#fff" } : { background: C.card, color: C.mut }}
+                        style={head.form === f ? { background: C.pen, color: C.onAccent } : { background: C.card, color: C.mut }}
                       >
                         {f}
                       </button>
@@ -627,7 +627,7 @@ function StandardDetail({
                 className="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border font-medium"
                 style={
                   state.tricky
-                    ? { background: C.hi, borderColor: "#E3C93A", color: "#5B4E08" }
+                    ? { background: C.hi, borderColor: C.hiBorder, color: C.hiInk }
                     : { background: C.card, borderColor: C.line, color: C.mut }
                 }
               >

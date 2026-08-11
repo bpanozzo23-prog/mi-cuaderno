@@ -24,6 +24,11 @@ export const C = {
   floatingAdd: "var(--color-floating-add)",
   hi: "var(--color-hi)",
   hiSoft: "var(--color-hi-soft)",
+  hiBorder: "var(--color-hi-border)",
+  hiInk: "var(--color-hi-ink)",
+  hiPale: "var(--color-hi-pale)",
+  onAccent: "var(--color-on-accent)",
+  scrim: "var(--color-scrim)",
   line: "var(--color-line)",
   mut: "var(--color-mut)",
   entryMeaning: "var(--color-entry-meaning)",
@@ -169,7 +174,7 @@ export function useHubTitleSize(text, { weight = 700, letterSpacing = "0px" } = 
 }
 
 export const dotGrid = {
-  backgroundImage: "radial-gradient(rgba(45,78,160,0.06) 1px, transparent 1.2px)",
+  backgroundImage: "radial-gradient(var(--color-dot-grid) 1px, transparent 1.2px)",
   backgroundSize: "18px 18px",
 };
 
@@ -217,7 +222,7 @@ export function Chip({ children, active, onClick, title, className = "" }) {
       className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border whitespace-nowrap ${className}`}
       style={
         active
-          ? { background: C.pen, color: "#fff", borderColor: C.pen }
+          ? { background: C.pen, color: C.onAccent, borderColor: C.pen }
           : { background: C.penPale, color: C.penDark, borderColor: C.chipBorder }
       }
     >
@@ -278,11 +283,11 @@ export function Card({ children, className = "", style = {} }) {
 
 export function Button({ children, onClick, disabled, tone = "primary", className = "", ...rest }) {
   const tones = {
-    primary: { background: disabled ? C.disabled : C.pen, color: "#fff", borderColor: "transparent" },
-    success: { background: disabled ? C.disabled : C.green, color: "#fff", borderColor: "transparent" },
+    primary: { background: disabled ? C.disabled : C.pen, color: C.onAccent, borderColor: "transparent" },
+    success: { background: disabled ? C.disabled : C.green, color: C.onAccent, borderColor: "transparent" },
     quiet: { background: C.card, color: C.ink, borderColor: C.line },
     danger: { background: C.card, color: C.red, borderColor: C.dangerBorder },
-    dangerArmed: { background: C.red, color: "#fff", borderColor: C.red },
+    dangerArmed: { background: C.red, color: C.onAccent, borderColor: C.red },
     gradeAgain: { background: C.redPale, color: C.red, borderColor: C.red },
     gradeHard: { background: C.amberPale, color: C.amber, borderColor: C.amber },
     gradeGood: { background: C.penPale, color: C.penDark, borderColor: C.pen },
@@ -304,7 +309,7 @@ export function Button({ children, onClick, disabled, tone = "primary", classNam
 /** A square, touch-sized action whose visible content is an icon and whose name is aria-label. */
 export function IconButton({ children, onClick, disabled, tone = "quiet", className = "", style = {}, ...rest }) {
   const tones = {
-    primary: { background: disabled ? C.disabled : C.pen, color: "#fff", borderColor: "transparent" },
+    primary: { background: disabled ? C.disabled : C.pen, color: C.onAccent, borderColor: "transparent" },
     quiet: { background: C.card, color: C.ink, borderColor: C.line },
     danger: { background: C.card, color: C.red, borderColor: C.dangerBorder },
   };

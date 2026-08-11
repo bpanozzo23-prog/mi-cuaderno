@@ -30,7 +30,7 @@ export default function PracticeSetupSheet({
   const selectedCount = limit === "all" ? availableCount : Math.min(availableCount, Number(limit));
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center" style={{ background: "rgba(33,42,61,0.35)" }} onClick={onClose}>
+    <div className="fixed inset-0 z-40 flex items-end justify-center" style={{ background: C.scrim }} onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"

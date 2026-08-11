@@ -71,7 +71,7 @@ export default function SchemaUpgradeGate({ fromVersion = null, onContinue }) {
               </div>
             )}
             {error && (
-              <div className="text-xs rounded-lg p-2.5" style={{ background: "#F8E8E4", color: C.red }}>
+              <div className="text-xs rounded-lg p-2.5" style={{ background: C.redPale, color: C.red }}>
                 {error} Nothing was upgraded.
               </div>
             )}

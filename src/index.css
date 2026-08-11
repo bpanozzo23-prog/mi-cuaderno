@@ -27,15 +27,33 @@
   --color-entry-meaning: #374151;
   --color-entry-meaning-dash: #9CA3AF;
 
+  /* Text and icon colour for anything sitting on an accent fill — a pressed Chip, a primary
+     Button, the floating Add button. Named here rather than left as bare "#fff" at the ~11 call
+     sites that already agreed on it. */
+  --color-on-accent: #FFFFFF;
+  /* The bottom-sheet backdrop: --color-ink at 35% alpha, hex8 rather than an rgba() string so a
+     future ink change carries the scrim with it. Repeated identically across six sheets before
+     being named. */
+  --color-scrim: #212A3D59;
+
   --color-pen: #2D4EA0;
   --color-pen-dark: #243F85;
   --color-pen-pale: #EDF1FA;
   --color-floating-add: #2D4EA0D1;
+  /* The browsing screens' dot grid: --color-pen at 6% alpha, hex8 for the same reason as the
+     scrim above. Was a literal rgba() string in theme.jsx. */
+  --color-dot-grid: #2D4EA00F;
 
   --color-hi: #F7DF4E;
   /* The highlighter gradient's 90% stop. A token rather than an alpha suffix appended in JS,
      which is what the hex values allowed and `var()` does not. */
   --color-hi-soft: #F7DF4EE6;
+  /* The "marked tricky" toggle's border and ink on its C.hi fill, and the duplicate-warning
+     banner's pale wash and matching border — three components had already converged on the same
+     two values independently. */
+  --color-hi-border: #E3C93A;
+  --color-hi-ink: #5B4E08;
+  --color-hi-pale: #FFF9D6;
 
   --color-line: #D8D4C4;
   --color-red: #B3402E;

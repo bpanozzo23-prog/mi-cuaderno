@@ -106,7 +106,7 @@ export default function PageCustomizeSheet({ page, items = [], onClose, onSaved,
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center" style={{ background: "rgba(33,42,61,0.35)" }} onClick={onClose}>
+    <div className="fixed inset-0 z-40 flex items-end justify-center" style={{ background: C.scrim }} onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-labelledby="customize-page-title" className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-2xl p-4 pb-6" style={{ background: C.paper }} onClick={(event) => event.stopPropagation()}>
         <div className="flex items-start justify-between gap-3">
           <div>

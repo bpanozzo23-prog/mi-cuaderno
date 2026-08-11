@@ -65,7 +65,7 @@ export default function PageStarterGallery({ items = [], onChoose, onClose }) {
   return (
     <div
       className="fixed inset-0 z-40 flex items-end justify-center"
-      style={{ background: "rgba(33,42,61,0.35)" }}
+      style={{ background: C.scrim }}
       onClick={onClose}
     >
       <div

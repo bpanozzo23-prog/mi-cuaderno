@@ -388,7 +388,7 @@ export default function Cuaderno({
         onClick={() => setAskKind(true)}
         aria-label="Add"
         className="fixed z-30 rounded-full p-4 shadow-lg"
-        style={{ background: C.floatingAdd, color: "#fff", bottom: 84, right: "max(16px, calc(50% - 208px))" }}
+        style={{ background: C.floatingAdd, color: C.onAccent, bottom: 84, right: "max(16px, calc(50% - 208px))" }}
       >
         <Plus size={22} />
       </button>
@@ -396,7 +396,7 @@ export default function Cuaderno({
       {askKind && (
         <div
           className="fixed inset-0 z-40 flex items-end justify-center"
-          style={{ background: "rgba(33,42,61,0.35)" }}
+          style={{ background: C.scrim }}
           onClick={() => setAskKind(false)}
         >
           <div

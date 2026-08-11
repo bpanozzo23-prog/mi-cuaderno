@@ -375,7 +375,7 @@ export default function CollectionAddVocabularySheet({
                   setQuick((current) => ({ ...current, form }));
                 }}
                 className="px-3 py-1.5 text-xs"
-                style={quick.form === form ? { background: C.pen, color: "#fff" } : { background: C.card, color: C.mut }}
+                style={quick.form === form ? { background: C.pen, color: C.onAccent } : { background: C.card, color: C.mut }}
               >
                 {form}
               </button>

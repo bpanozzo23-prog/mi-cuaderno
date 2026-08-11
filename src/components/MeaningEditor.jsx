@@ -26,7 +26,7 @@ function ChoiceChips({ values, options, onChange }) {
             onClick={() => onChange(toggle(values, option))}
             className="text-xs px-2 py-1 rounded-full border"
             style={active
-              ? { background: C.pen, borderColor: C.pen, color: "#fff" }
+              ? { background: C.pen, borderColor: C.pen, color: C.onAccent }
               : { background: C.card, borderColor: C.line, color: C.mut }}
           >
             {option}
