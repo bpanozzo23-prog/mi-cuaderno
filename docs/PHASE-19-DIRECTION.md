@@ -189,6 +189,20 @@ noteSections: [{
 8. Update the report and current-state documentation. Nothing is pushed or deployed without a
    separate owner request.
 
+## 8 — Explicit Notes callouts (owner-approved increment)
+
+- Page Notes callouts use an explicit first-line marker, `[!NOTE]`, inside an ordinary Markdown
+  blockquote. Unmarked blockquotes remain quotations, so existing prose never changes meaning.
+- Page creation, Page-details editing, Notes Overview and Notes section/subsection editors expose
+  both **Block quote** and **Note callout** actions. Lexical notes and Diario remain unchanged.
+- Read mode removes the marker and renders a visibly labeled `<aside role="note">` in the Notes
+  blue family. Grammar retains its purple family treatment; the shared accessible label is wired
+  once so screen readers do not announce “Note” twice.
+- Search, previews and AI-visible text keep the callout prose but omit `[!NOTE]`. The saved Markdown
+  string round-trips unchanged through ordinary Page persistence and backups.
+- This is a rendering/editor increment only. Schema remains v7; there is no migration, new field,
+  event, preference, content type or general admonition/block system.
+
 The Structured Notes increment then proceeds in independently verifiable slices: record its brief
 and Diario amendment; characterize and extract the shared hierarchy engine without changing
 Grammar; add schema-v7 migration/fencing; add Notes mutations; add the Notes reader/editor and

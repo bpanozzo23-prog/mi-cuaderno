@@ -47,6 +47,7 @@ Useful information to retain for each idea:
 | Owner-centric stats (streak, calendar, growth, ladder, per-item strip) | 2026-08-06 | Implemented locally | Phase 11; retention, coverage and per-direction breakdowns need real data volume |
 | Grammar guide depth and callouts | 2026-08-10 | Implemented and deployed | Phase 19 first release |
 | Structured Notes outlines | 2026-08-10 | Implemented and deployed | Phase 19 schema-v7 increment; production smoke passed |
+| Explicit Notes callouts | 2026-08-10 | Approved; implementation in progress | Phase 19 rendering/editor increment; schema stays v7 |
 | Global tag management | 2026-08-10 | Implemented locally | Phase 20 verified; not deployed |
 | Phase 19/20 review nits (edge polish) | 2026-08-10 | Captured | Whenever a related area is next touched; none is urgent |
 
@@ -124,6 +125,21 @@ follow-up product decision.
    over a batch event type. If a large cleanup ever makes the stats screens feel dishonest or
    noisy, that is the evidence for reopening the grouped-batch-history deferral rather than
    filtering events after the fact.
+
+---
+
+## Explicit Notes callouts
+
+- **Date added:** 2026-08-10
+- **Status:** Owner-approved as a Phase 19 increment; implementation in progress
+- **Origin:** Follow-up real-use request after Structured Notes deployed
+- **Potential data impact:** None; explicit `[!NOTE]` syntax remains inside existing Markdown strings
+
+The bounded increment adds a Note callout action beside the ordinary Block quote action in Page
+Notes editors. Only a blockquote beginning with `[!NOTE]` becomes a labeled accessible callout;
+existing and newly written unmarked blockquotes remain quotations. The marker is excluded from
+search, previews and AI-visible text, and the visual treatment reuses the Notes family. Lexical
+notes, Diario, storage, backups and schema v7 remain unchanged.
 
 ---
 

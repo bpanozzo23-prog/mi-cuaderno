@@ -16,6 +16,10 @@ two-type composable Page model and excluding a general block editor.
 one-level named Notes outlines while preserving every existing Page body as Overview. A nonempty
 outline is durable Page organization for the Pages/Diario boundary; body length remains irrelevant.
 
+**Phase 19 Notes callout amendment, 2026-08-10 — §§7, 8, 12 and 13:** Page Notes Overview and
+Notes-section bodies may store explicit `[!NOTE]` Markdown callouts while ordinary blockquotes
+remain quotations. This changes rendering and visible-text projection only; schema stays v7.
+
 **Phase 20 amendment, 2026-08-10 — §§7 and 12:** Ajustes gains exact global tag rename, merge and
 removal across personal items. Each changed item keeps its timestamp but receives one ordinary
 `edit`; item, event and colour-preference writes are atomic and schema v6 remains unchanged.
@@ -214,9 +218,12 @@ noteSections[{
 
 `body` on the Page itself remains the Notes Overview and is never moved or parsed into sections.
 Notes parents obey the same exactly-one-level, same-page, no-cycle and sibling-name rules as
-Grammar, through one shared parameterized hierarchy engine. The Notes body strings use the safe
-Page Markdown dialect and ordinary blockquotes. A schema-v6 Page migrates by receiving only
-`noteSections: []`.
+Grammar, through one shared parameterized hierarchy engine. ~~The Notes body strings use the safe
+Page Markdown dialect and ordinary blockquotes.~~ **Phase 19 Notes-callout amendment:** Notes body
+strings retain the safe Page Markdown dialect and ordinary unmarked blockquotes; a blockquote whose
+first line is exactly `[!NOTE]` renders as a visibly labeled accessible Note callout. The marker is
+formatting rather than visible prose and is excluded from search, previews and AI-visible text. A
+schema-v6 Page migrates by receiving only `noteSections: []`.
 
 Array order is display order among siblings. Source URLs are blank or HTTP(S). Saved Source
 captures require nonblank `text`; saved Grammar examples require nonblank Spanish `es`. All nested
@@ -710,6 +717,13 @@ organizing, copying, counts, search and lexical contexts preserve the hierarchy.
 editor, deeper nesting, new content type, event, preference, dictionary dependency or template
 identity is introduced. The approved contract and delivery order live in
 `docs/PHASE-19-DIRECTION.md`.
+
+**Amended 2026-08-10 — Phase 19 Notes callouts.** Page creation, Page-details editing, Notes
+Overview editing and Notes section/subsection editing expose both Block quote and Note callout.
+The Note action writes `> [!NOTE]` plus quoted prose; only that explicit marker receives the
+Notes-blue labeled callout treatment. Grammar retains its existing Grammar-colored callouts and
+ordinary lexical notes and Diario keep their existing Block quote control. No schema, backup,
+event, preference or content-type change is introduced.
 *Done when:* schema-v1 through v5 databases and backup schemas 1–6 reach deeply validated v6
 through the untouched export-first gate; existing page content and references remain lossless;
 formatted Overviews search by visible text; root/subsection creation, editing, organization,
