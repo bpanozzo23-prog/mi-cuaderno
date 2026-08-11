@@ -12,15 +12,26 @@
  */
 export const TAG_COLORS_PREF = "tagColors";
 
+/*
+ * The talavera set (owner-picked 2026-08-10): the desert-theme retune of the original eight ids —
+ * denim blue, cactus green, chile red, cempasúchil amber, bougainvillea plum, talavera teal,
+ * driftwood slate — plus three browns. Ids are the stored identity and never change; only the
+ * values moved, so every previously picked tag colour follows automatically. The browns separate
+ * by character, not hue alone: amber is yellow, clay saturated orange, leather a desaturated
+ * saddle tan, and espresso a near-black coffee ink whose milky background carries the warmth.
+ */
 export const TAG_SWATCHES = [
-  { id: "plain", label: "Plain", background: "transparent", color: "#7A8199", border: "#E6E3D7" },
-  { id: "blue", label: "Blue", background: "#EDF1FA", color: "#243F85", border: "#D9E1F2" },
-  { id: "green", label: "Green", background: "#EAF2EA", color: "#3E6B44", border: "#D3E3D5" },
-  { id: "red", label: "Red", background: "#F7E9E5", color: "#B3402E", border: "#EDD5CE" },
-  { id: "amber", label: "Amber", background: "#FBF0DA", color: "#8A6516", border: "#EFDFBE" },
-  { id: "plum", label: "Plum", background: "#F2EAF5", color: "#6B3F7A", border: "#E2D3E8" },
-  { id: "teal", label: "Teal", background: "#E4F1F0", color: "#2F6360", border: "#CFE3E1" },
-  { id: "slate", label: "Slate", background: "#ECEEF2", color: "#4A5468", border: "#DCE0E7" },
+  { id: "plain", label: "Plain", background: "transparent", color: "#8B8578", border: "#E3DFD2" },
+  { id: "blue", label: "Blue", background: "#E3EBFA", color: "#2D4EA0", border: "#C7D5F0" },
+  { id: "green", label: "Green", background: "#E4F0D9", color: "#44682C", border: "#CBDFB4" },
+  { id: "red", label: "Red", background: "#F9E3DC", color: "#A2301F", border: "#F0C9BC" },
+  { id: "amber", label: "Amber", background: "#FBEBC4", color: "#8A5E06", border: "#F1D98F" },
+  { id: "plum", label: "Plum", background: "#F7E5EE", color: "#8A3D64", border: "#EDCBDC" },
+  { id: "teal", label: "Teal", background: "#DCF0ED", color: "#1F6E68", border: "#B9E1DB" },
+  { id: "slate", label: "Slate", background: "#EFEDE6", color: "#66625A", border: "#DBD6C7" },
+  { id: "clay", label: "Clay", background: "#F6E3D3", color: "#94502A", border: "#EDD0B8" },
+  { id: "leather", label: "Leather", background: "#F1E8D6", color: "#7A5A38", border: "#E2D2B6" },
+  { id: "espresso", label: "Espresso", background: "#EFE5DE", color: "#2C1B15", border: "#DECDC2" },
 ];
 
 export const DEFAULT_SWATCH = TAG_SWATCHES[0];
