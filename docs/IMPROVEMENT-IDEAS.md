@@ -51,6 +51,230 @@ Useful information to retain for each idea:
 | Markdown blank-line spacing | 2026-08-10 | Implemented and deployed | Phase 19 spacing increment; schema stayed v7 |
 | Global tag management | 2026-08-10 | Implemented and deployed | Phase 20 |
 | Phase 19/20 review nits (edge polish) | 2026-08-10 | Captured | Whenever a related area is next touched; none is urgent |
+| Android share target | 2026-08-11 | Captured | Any time; independent of other work and needs no schema change |
+| Dictation cards | 2026-08-11 | Captured | After real use of the picture face settles the face-priority pattern |
+| Non-verb grammar drills | 2026-08-11 | Captured | After Diario AI feedback accumulates evidence of which confusions recur |
+| Frequency coverage | 2026-08-11 | Captured | Any time; a derived Estadísticas view over existing `freqRank` data |
+
+---
+
+## Android share target
+
+- **Date added:** 2026-08-11
+- **Status:** Captured
+- **Origin:** Brainstorming session on unconsidered possibilities; not yet requested from real friction
+- **Potential data impact:** None; a manifest and routing change only, no schema, storage or backup change
+
+### Description and current context
+
+An installed PWA can register as an Android share target (`share_target` in the web app manifest).
+Text or a URL highlighted in any other app — a browser article, a subtitle, a chat message — could
+be shared straight into Mi Cuaderno instead of retyped. Today every encounter made away from the
+app must be remembered and re-entered by hand, which is exactly where capture is most likely to be
+lost. This moves capture to where encounters actually happen.
+
+### Potential options
+
+1. **Shared text → lookup.** A shared word or phrase lands in the existing two-layer search
+   (dictionary plus personal), from which the normal save/attach flows already exist.
+2. **Shared URL → Source page.** A shared link prefills Source-page creation (URL into the existing
+   Source identity field), using the established family-first creation flow.
+3. **Both, dispatched by content.** A URL routes to Source creation, anything else to lookup, with
+   a small chooser when ambiguous.
+
+### Expected owner value
+
+- Removes the retype-it-later step for vocabulary met outside the app, where most new Spanish is
+  actually encountered.
+- Makes Source pages cheaper to start at the moment of consumption rather than after.
+
+### Risks and tradeoffs
+
+- Android/Chrome-specific behavior; the share sheet entry exists only while the PWA is installed.
+- The app is served under `/mi-cuaderno/`, so the share-target action URL and service-worker
+  routing must respect the base path.
+- A share arrives with no context; the receiving screen must degrade gracefully when the shared
+  text is long prose rather than a word or phrase.
+- Nothing may be saved implicitly: a share opens a screen, and every write stays behind the
+  existing explicit save actions.
+
+### Evidence needed
+
+- How often encounters currently die between another app and the notebook — the owner's sense of
+  lost captures is sufficient; this does not need instrumentation.
+- Whether shared content is mostly single words, phrases, or article URLs, which decides how much
+  dispatch logic option 3 needs.
+
+### Questions for a future discussion
+
+- Should a shared URL ever land anywhere other than Source creation (e.g., a Media link on an
+  existing page)?
+- What should long shared prose do — open lookup with the first word, or offer a picker?
+
+---
+
+## Dictation cards
+
+- **Date added:** 2026-08-11
+- **Status:** Captured
+- **Origin:** Brainstorming session on unconsidered possibilities; not yet requested from real friction
+- **Potential data impact:** None expected; additive `face` metadata on existing review events,
+  following the cloze and image precedents
+
+### Description and current context
+
+The browser's Spanish TTS voice (Phase 10d) speaks the term; the owner types what they heard. This
+trains listening and spelling together — including accents, which the Phase 13 exact-first checker
+already grades correctly (`hablo` vs `habló`). The card engine now has four question faces (term,
+reverse, cloze, image) with an established priority rule and session-start snapshotting; a
+dictation face would follow the same pattern. Everything runs on-device; TTS sends nothing
+anywhere, and the existing rule that TTS-dependent surfaces hide entirely where the device has no
+Spanish voice would govern availability.
+
+### Potential options
+
+1. **A fifth question face** in the shared card engine, available in scheduled Repaso and free
+   practice wherever Type mode is active, with a position in the face-priority order.
+2. **A free-practice-only mode** first, keeping the scheduled queue unchanged until the face
+   proves itself.
+3. **A Gym lane** instead, treating dictation as a drill over a chosen pool rather than a face on
+   vocabulary cards.
+
+### Expected owner value
+
+- Trains the one skill pairing (listening + spelling) no current surface touches.
+- Reuses the accent-aware checker, so a missing accent is a named near miss rather than a silent
+  pass — the same reason the conjugation drill grades exactly first.
+
+### Risks and tradeoffs
+
+- TTS quality varies by device; a mispronounced word grades the owner on the voice's error, not
+  their listening. A per-card way to fall back to the plain face may be necessary.
+- Spanish homophones and near-homophones (b/v, ll/y, silent h) make some words ungradable from
+  audio alone; the checker or the card selection must account for words whose spelling cannot be
+  recovered from sound.
+- Scheduled grades from a new face affect the one Leitner ladder; the cloze/image precedent
+  (additive metadata nothing reads) covers this, but the grading-fairness question is real.
+
+### Evidence needed
+
+- Real use of the picture face: whether always-when-available face substitution feels right or
+  needs owner control, before adding a fifth face to the same rule.
+- Whether the device's Spanish voice is good enough to grade against — the existing pronunciation
+  button provides this evidence passively.
+
+### Questions for a future discussion
+
+- Where does dictation sit in the face-priority order relative to image and cloze?
+- Should homophone-risk words be excluded automatically, accept either spelling, or be graded
+  with a named near miss?
+
+---
+
+## Non-verb grammar drills
+
+- **Date added:** 2026-08-11
+- **Status:** Captured
+- **Origin:** Brainstorming session on unconsidered possibilities; not yet requested from real friction
+- **Potential data impact:** None expected; curated reference data plus existing
+  `drill_pass`/`drill_fail` events with additive metadata, following the Usage/Endings precedent
+
+### Description and current context
+
+The Gym's lane structure and engines generalize past conjugation: the four-choice recognition
+engine (Phase 17) and typed production with exact-first grading (Phase 18) could drive drills for
+*ser/estar*, *por/para*, preposition choice, and gender/article agreement. Each lane needs what
+Usage needed: a curated item set with confusables and explanations. This is content work more than
+engineering — the machinery is built.
+
+### Potential options
+
+1. **One lane first.** Ship the single highest-value confusion (likely *ser/estar* or *por/para*)
+   as one new lane with a curated deck, and let real use decide whether more follow.
+2. **A generic confusable-pair lane** fed by curated data files, so later pairs are data additions
+   rather than new lanes.
+3. **Gender/article drills** driven by the dictionary's own entry data rather than hand curation,
+   if the shipped entries carry reliable gender.
+
+### Expected owner value
+
+- Extends deliberate practice to the errors that most persist for English speakers, which
+  conjugation drills cannot touch.
+- Reuses the Gym's session anatomy, missed rounds and performance reporting without new concepts.
+
+### Risks and tradeoffs
+
+- Curation is the real cost: each item needs a correct answer, plausible distractors and an
+  explanation, and a wrong or ambiguous curated item teaches the error it exists to prevent.
+- Context-dependent items (*ser/estar* especially) can have two defensible answers; items must be
+  chosen so the deck is objectively gradable, the same bar the Usage lane set.
+- Every existing consumer of `drill_pass`/`drill_fail` (form statistics, Adaptive, Leitner replay)
+  must explicitly ignore the new metadata kinds, as they already do for recognition answers.
+
+### Evidence needed
+
+- Which confusions actually recur in the owner's own Spanish — Diario AI feedback is accumulating
+  exactly this evidence, and it should pick the first lane rather than guessing from a textbook's
+  priorities.
+- Whether the dictionary's entry data carries gender reliably enough for option 3.
+
+### Questions for a future discussion
+
+- First lane: *ser/estar*, *por/para*, or whatever the Diario feedback names most often?
+- Do these belong inside the Conjugation Gym (renaming it), or as a sibling practice home?
+
+---
+
+## Frequency coverage
+
+- **Date added:** 2026-08-11
+- **Status:** Captured
+- **Origin:** Brainstorming session on unconsidered possibilities; not yet requested from real friction
+- **Potential data impact:** None; derived at render from existing `freqRank` reference data and
+  the personal layer, in the Phase 11 pattern
+
+### Description and current context
+
+The dictionary carries `freqRank`, and no stat uses it. Joining it against the personal layer
+yields "you know N of the 1,000 most common Spanish words" — an absolute progress measure that
+streaks and the Leitner ladder (which only measure activity and scheduling) cannot give. The same
+computation inverted gives a browse view of high-frequency dictionary words not yet in the
+notebook, a principled answer to "what should I learn next?" that the miss log cannot provide
+(a search miss has no entry and therefore no rank).
+
+### Potential options
+
+1. **A single Estadísticas tile**: coverage of the top 1,000, perhaps with a small band breakdown
+   (top 100 / 500 / 1,000 / 5,000).
+2. **Coverage plus a browse view** of unsaved high-frequency words, feeding the existing
+   save-from-dictionary flow.
+3. **A "known" threshold choice**: saved at all, versus reviewed to some Leitner box, versus
+   retired — each tells a different story.
+
+### Expected owner value
+
+- An honest, motivating absolute measure of progress against the language rather than against
+  the owner's own past activity.
+- A ranked next-words list grounded in corpus frequency rather than whim.
+
+### Risks and tradeoffs
+
+- Corpus frequency is not personal relevance; the words the owner needs for their life may rank
+  low. The view must inform, not nag — no goal-setting, no pressure mechanics, per the project's
+  no-analytics temperament.
+- "Known" is genuinely ambiguous (option 3), and the tile is only honest if its definition is
+  stated on the surface.
+- Multiword phrases have no rank; coverage is a words-only statistic and should say so.
+
+### Evidence needed
+
+- Whether `freqRank` coverage across the 10,278 shipped lemmas is dense enough for stable band
+  percentages (what fraction of shipped entries carry a rank at all).
+
+### Questions for a future discussion
+
+- Which "known" definition matches what the owner wants the number to mean?
+- Does the browse view belong in Estadísticas, the dictionary surface, or the Words & phrases hub?
 
 ---
 
@@ -1066,6 +1290,14 @@ cheapest — all derivable from existing data — were approved together as Phas
 ---
 
 ## Document history
+
+- **2026-08-11 — Four ideas captured from a brainstorming session: Android share target,
+  dictation cards, non-verb grammar drills, and frequency coverage.** All four are Captured, not
+  approved: they came from a discussion of unconsidered possibilities rather than observed
+  friction, and each records the evidence that would justify promotion. None changes schema,
+  storage or backup as described. Two adjacent ideas from the same session were deliberately not
+  captured: assisted reading (large enough to deserve its own discussion first) and active
+  vocabulary detection (worth capturing once Diario volume makes it testable).
 
 - **2026-08-11 — Status sweep: stale "implemented locally; not deployed" claims synced to
   deployed reality.** Local `main` and `origin/main` both sit at `9503f96`, and the GitHub Pages
