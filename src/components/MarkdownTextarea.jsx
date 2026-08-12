@@ -11,6 +11,18 @@ const INLINE_ACTIONS = [
   { label: "Highlight", icon: Highlighter, before: "==", after: "==" },
 ];
 
+// One grammar for both the toolbar's line rules and Enter continuation, so the two can never
+// disagree about what counts as a list or quote line.
+const BULLET_LINE = /^(\s*)([-*+])\s+(.*)$/;
+const ORDERED_LINE = /^(\s*)(\d+)([.)])\s+(.*)$/;
+const QUOTE_LINE = /^(>\s?)(.*)$/;
+
+const CONTINUATIONS = [
+  { pattern: ORDERED_LINE, next: (m) => `${m[1]}${Number(m[2]) + 1}${m[3]} `, content: (m) => m[4] },
+  { pattern: BULLET_LINE, next: (m) => `${m[1]}${m[2]} `, content: (m) => m[3] },
+  { pattern: QUOTE_LINE, next: () => "> ", content: (m) => m[2] },
+];
+
 const focusSelection = (textarea, start, end) => {
   requestAnimationFrame(() => {
     textarea?.focus({ preventScroll: true });
@@ -78,9 +90,9 @@ function MarkdownToolbar({ textareaRef, value, onChange, quoteLabel, noteCallout
     const lines = value.slice(start, end).split("\n");
     const rules = {
       heading: { matches: (line) => /^##\s+/.test(line), strip: (line) => line.replace(/^#{1,6}\s+/, ""), add: () => "## " },
-      bullet: { matches: (line) => /^\s*[-*+]\s+/.test(line), strip: (line) => line.replace(/^(\s*)[-*+]\s+/, "$1"), add: () => "- " },
-      ordered: { matches: (line) => /^\s*\d+[.)]\s+/.test(line), strip: (line) => line.replace(/^(\s*)\d+[.)]\s+/, "$1"), add: (index) => `${index + 1}. ` },
-      quote: { matches: (line) => /^>\s?/.test(line), strip: (line) => line.replace(/^>\s?/, ""), add: () => "> " },
+      bullet: { matches: (line) => BULLET_LINE.test(line), strip: (line) => line.replace(BULLET_LINE, "$1$3"), add: () => "- " },
+      ordered: { matches: (line) => ORDERED_LINE.test(line), strip: (line) => line.replace(ORDERED_LINE, "$1$4"), add: (index) => `${index + 1}. ` },
+      quote: { matches: (line) => QUOTE_LINE.test(line), strip: (line) => line.replace(QUOTE_LINE, "$2"), add: () => "> " },
     };
     const rule = rules[kind];
     const nonblank = lines.filter((line) => line.trim());
@@ -194,10 +206,42 @@ export default function MarkdownTextarea({
   quoteLabel = "Block quote",
   noteCallouts = false,
   blankLines = false,
+  onKeyDown = null,
   ...props
 }) {
   const localRef = useRef(null);
   const ref = textareaRef || localRef;
+
+  function continueListOnEnter(event) {
+    onKeyDown?.(event);
+    if (event.defaultPrevented) return;
+    if (event.key !== "Enter") return;
+    if (event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return;
+    // Android keyboards report keyCode 229 while predictive text is composing; never
+    // preventDefault a composition commit — the worst case is a native newline.
+    if (event.nativeEvent.isComposing || event.keyCode === 229) return;
+    const textarea = event.target;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const lineStart = value.lastIndexOf("\n", Math.max(0, start - 1)) + 1;
+    const nextBreak = value.indexOf("\n", start);
+    const lineEnd = nextBreak === -1 ? value.length : nextBreak;
+    const match = CONTINUATIONS
+      .map((rule) => ({ rule, found: value.slice(lineStart, lineEnd).match(rule.pattern) }))
+      .find(({ found }) => found);
+    if (!match) return;
+    event.preventDefault();
+    const { rule, found } = match;
+    if (start === end && !rule.content(found).trim()) {
+      // Enter on an empty item ends the list instead of continuing it.
+      replaceSelection(value, onChange, "", lineStart, lineEnd);
+      focusSelection(textarea, lineStart, lineStart);
+      return;
+    }
+    const insert = `\n${rule.next(found)}`;
+    replaceSelection(value, onChange, insert, start, end);
+    focusSelection(textarea, start + insert.length, start + insert.length);
+  }
 
   return (
     <div className="min-w-0">
@@ -214,6 +258,7 @@ export default function MarkdownTextarea({
         ref={ref}
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        onKeyDown={continueListOnEnter}
       />
     </div>
   );

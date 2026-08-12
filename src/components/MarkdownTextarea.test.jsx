@@ -134,6 +134,99 @@ describe("MarkdownTextarea", () => {
     expect(field.selectionEnd).toBe(field.selectionStart);
   });
 
+  it("continues a bulleted list on Enter", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="- uno" />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(5, 5);
+
+    await user.keyboard("{Enter}");
+
+    expect(field.value).toBe("- uno\n- ");
+    await waitFor(() => expect(field.selectionStart).toBe("- uno\n- ".length));
+  });
+
+  it("continues numbered lists with the next number and the same delimiter", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="3. tres" />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(7, 7);
+    await user.keyboard("{Enter}");
+    expect(field.value).toBe("3. tres\n4. ");
+
+    cleanup();
+    render(<Field initial="1) uno" />);
+    const paren = screen.getByRole("textbox", { name: "Notes" });
+    paren.focus();
+    paren.setSelectionRange(6, 6);
+    await user.keyboard("{Enter}");
+    expect(paren.value).toBe("1) uno\n2) ");
+  });
+
+  it("continues block quotes, including the explicit callout marker line", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="> [!NOTE]" />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+
+    await user.keyboard("{Enter}");
+
+    expect(field.value).toBe("> [!NOTE]\n> ");
+  });
+
+  it("preserves indentation when continuing a nested bullet", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="  - sub" />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+
+    await user.keyboard("{Enter}");
+
+    expect(field.value).toBe("  - sub\n  - ");
+  });
+
+  it("ends the list when Enter is pressed on an empty item", async () => {
+    const user = userEvent.setup();
+    render(<Field initial={"- uno\n- "} />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+
+    await user.keyboard("{Enter}");
+
+    expect(field.value).toBe("- uno\n");
+    await waitFor(() => expect(field.selectionStart).toBe("- uno\n".length));
+  });
+
+  it("carries the rest of the line onto the new item on mid-line Enter", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="- uno dos" />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange("- uno".length, "- uno".length);
+
+    await user.keyboard("{Enter}");
+
+    expect(field.value).toBe("- uno\n-  dos");
+    await waitFor(() => expect(field.selectionStart).toBe("- uno\n- ".length));
+  });
+
+  it("leaves Enter alone on ordinary prose lines", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="hola" />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(4, 4);
+
+    await user.keyboard("{Enter}");
+
+    expect(field.value).toBe("hola\n");
+  });
+
   it("keeps selected paragraphs inside one callout", async () => {
     const user = userEvent.setup();
     render(<Field initial={"First paragraph\n\nSecond paragraph"} quoteLabel="Note callout" />);
