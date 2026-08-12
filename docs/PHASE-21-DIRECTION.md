@@ -1,6 +1,6 @@
 # Phase 21 — What to notice and conjugation families
 
-**Status:** Approved for local implementation 2026-08-12; not pushed or deployed.
+**Status:** Implemented and verified locally 2026-08-12; not pushed or deployed.
 **Origin:** The owner approved the active improvement idea after a teaching-first product
 discussion and an architecture review against the replaceable reference-data seam.
 
@@ -103,4 +103,3 @@ Closeout requires focused tests, one deliberately broken classifier/package proo
 broken navigation/ordering proof, the complete serial suite, production build, package verifier,
 `git diff --check`, and a disposable seeded 375×812 numerical browser pass. Repository r3 artifacts
 are prepared locally; pushing and deployment require a separate owner request.
-

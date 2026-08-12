@@ -4,7 +4,7 @@
 everyday vocabulary, Mexico-flagged terms, mixed parts of speech, verbs with conjugations,
 and examples with their attribution.
 
-Dataset version: `kaikki-es-2026-07-25-r2`  ·  10,278 entries total
+Dataset version: `kaikki-es-2026-07-25-r3`  ·  10,278 entries total
 
 ---
 

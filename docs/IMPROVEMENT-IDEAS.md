@@ -58,7 +58,6 @@ Useful information to retain for each idea:
 | PWA app shortcuts | 2026-08-12 | Captured | Any time; manifest-only, recorded so it is not forgotten |
 | "Did you mean" search suggestions | 2026-08-12 | Captured | Any time; a suggestion layer that leaves `normalize.js` untouched |
 | English→Spanish lookup | 2026-08-12 | Captured | Needs a reference-layer index decision (pipeline and §5 seam) |
-| "Conjugates like" verb families | 2026-08-12 | Planned | Approved as Phase 21; corpus gate precedes r3 packaging and dictionary UI |
 | Tag hubs | 2026-08-12 | Captured | Revisit when the owner has more tags and uses them more |
 | Review→writing bridge | 2026-08-12 | Captured | Worth considering once Diario AI feedback and review volume coexist |
 | Time-boxed mixed session | 2026-08-12 | Captured | After enough real data exists for "weakest" selections to mean something |
@@ -82,6 +81,7 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Implemented as | Full records |
 |---|---|---|---|
+| "Conjugates like" verb families | 2026-08-12 | Phase 21, implemented locally; not deployed | `PHASE-21-DIRECTION.md`, `PHASE-21-REPORT.md` |
 | Global tag management | 2026-08-10 | Phase 20, deployed | `PHASE-20-DIRECTION.md`, `PHASE-20-REPORT.md` |
 | Markdown blank-line spacing | 2026-08-10 | Phase 19 increment, deployed | Phase 19 entries in `DECISIONS.md` |
 | Explicit Notes callouts | 2026-08-10 | Phase 19 increment, deployed | Phase 19 entries in `DECISIONS.md` |
@@ -116,11 +116,11 @@ save them through existing flows. This is a **derivational**-family feature — 
 root across parts of speech — and a vocabulary *growth* feature: it teaches "you almost know
 three more words," and pairs naturally with Frequency coverage's "what next?" question.
 
-**Sibling idea, deliberately separate:** "Conjugates like" verb families (below) is the
-**inflectional** counterpart — verbs sharing a paradigm — and a *consolidation* feature. It is
-derivable today from shipped paradigm tables, while this idea needs new shipped data; keeping
-them separate stops the cheap, likely-to-happen idea from inheriting this one's pipeline
-prerequisite.
+**Sibling idea, deliberately separate:** "Conjugates like" verb families, implemented as Phase
+21 (history index above), is the **inflectional** counterpart — verbs sharing a paradigm — and a
+*consolidation* feature. It derives from shipped paradigm tables, while this idea needs new source
+fields; keeping them separate stops this coverage question from inheriting Phase 21's product
+semantics merely because both appear at lookup time.
 
 #### Verified data facts — 2026-08-12
 
@@ -138,7 +138,7 @@ Checked against the repository, not assumed:
 - **Coverage among kept lemmas is unknown.** The raw counts span mostly inflected-form records,
   and the pipeline filters lemmas by frequency; what fraction of the shipped 10,278 have a useful
   family needs a targeted pass over the raw dump before this is worth planning — the analogue of
-  the paradigm-count gate on "Conjugates like".
+  Phase 21's completed paradigm-count gate.
 - **Family members may not be shipped.** Kaikki's `derived`/`related` lists can point at lemmas
   the frequency cut excluded, so the explorer must render "not installed" gracefully — and the
   agent-guide tripwire applies directly: "not installed" is **not** "orphaned".
@@ -367,54 +367,6 @@ mid-sentence.
 - Where does reverse lookup live: the existing search field detecting an English query, or an
   explicit direction toggle?
 - Do multiword glosses ("to be stubborn") match on the phrase, the head word, or both?
-
----
-
-### "Conjugates like" verb families
-
-- **Date added:** 2026-08-12
-- **Last reviewed:** 2026-08-12
-- **Status:** Planned as Phase 21 — see `PHASE-21-DIRECTION.md`
-- **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
-- **Owner interest:** Likely to be done — the owner expects to pursue this.
-- **Potential data impact:** None to personal data; requires an r3 replaceable dictionary package
-  and a v2 reference-store declaration for precomputed family membership
-
-#### Description and current context
-
-The paradigm data behind ~1,250 conjugated verbs already encodes that *pedir* and *servir* share
-a pattern. A line on a verb's detail — "conjugates like *pedir* (e→i)" with the family's other
-members — turns memorizing one verb into recognizing a class. The Gym already ships curated
-stem-changer and irregular-preterite pools, so the concept of pattern families exists in the
-app's vocabulary; this surfaces it on the reference side where a verb is actually looked up.
-
-**Sibling idea, deliberately separate:** the Dictionary word-family explorer (above) is the
-**derivational** counterpart — *decidir* → *decisión* — and needs new shipped data, while this
-idea derives from paradigm tables already on-device. Same "family at lookup" pattern, very
-different cost.
-
-#### Potential options
-
-1. **A family line on the dictionary entry's conjugation view**, linking to sibling verbs.
-2. **The same line on personal lexical entries** whose `dictKey` resolves to a conjugated verb.
-3. **A browsable family view** (all e→i verbs the dictionary ships), which would also make a
-   natural Gym pool source later.
-
-#### Expected owner value
-
-- Converts one verb's memorized table into a transferable rule, at the exact moment of lookup.
-- Sibling verbs are a built-in "you also know…" discovery path.
-
-#### Risks and tradeoffs
-
-- Family derivation must come from the actual paradigm data, not from spelling heuristics —
-  a verb that looks regular but ships an irregular table must land in the right family.
-- Naming families needs care: "e→i" is compact but jargon; the label should teach, not gatekeep.
-
-#### Evidence needed
-
-- A pass over the shipped paradigms to confirm families can be derived cleanly and to count how
-  many verbs land in each — if most families have one member, the feature collapses.
 
 ---
 

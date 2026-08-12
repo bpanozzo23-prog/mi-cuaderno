@@ -1,0 +1,90 @@
+# Phase 21 — What to notice and conjugation families (report)
+
+Implemented and verified locally 2026-08-12 on
+`codex/phase-21-conjugation-patterns`; **not pushed or deployed**. The approved behavior and
+boundaries remain in [PHASE-21-DIRECTION.md](PHASE-21-DIRECTION.md), and durable choices are in
+`DECISIONS.md` under Phase 21.
+
+## What shipped in the repository
+
+| Piece | Result |
+|---|---|
+| Shared analysis | One browser-safe analyzer compares shipped paradigms with regular baselines and returns stable IDs, prioritized lessons, exact emphasis spans, and the three regular anchors |
+| Evidence gate | A durable corpus report covers all 1,795 conjugable entry rows / 1,771 distinct lemmas before packaging |
+| r3 package | `kaikki-es-2026-07-25-r3` keeps format v1, stores verified non-indexed pattern IDs on entries, and includes 30 discoverable `patternFamilies` rows |
+| Reference v2 | A fifth primary-key store preserves the no-multi-entry-index rule; reads bulk-get only the current notices' rows and members |
+| Atomic health | Every declared physical store count is checked before the A/B pointer flips, and a same-version r3 family-store mismatch offers an explicit repair |
+| Teaching UI | **What to notice** leads the existing Conjugation card: two notices initially, exact non-color-only emphasis, four siblings initially, at most 20 after expansion, and an honest remainder |
+| Personal context | Direct and `previousIds`-aliased cuaderno matches stable-partition first and receive a badge without rewriting personal data |
+| Navigation | Sibling buttons use ordinary dictionary detail navigation, scroll to the top, log one deduplicated view per distinct entry, and leave the original one Atrás away |
+
+Regular verbs show exactly one quiet hablar/comer/vivir anchor and never load a regular family.
+Singleton lessons, including the measured u→ue behavior of *jugar*, teach without advertising
+siblings. An r2 install still derives lessons from its tables while family rows remain silently
+absent. Personal `SCHEMA_VERSION` remains 8; backups, preferences, personal records, and event
+types are unchanged.
+
+## Corpus and package proof
+
+The early sweep passed with 1,148 exact regular lemmas, 591 noticed lemmas, 32 lower-frequency
+unclassified lemmas, zero conflicting duplicate paradigms, and complete top-100 teaching output
+(47 regular summaries plus 53 concrete notices). Thirty catalog patterns have at least two
+members and became discoverable family rows; teaching-only and unused definitions did not.
+
+The independent package verifier passed **33/33** checks over all 15 chunks: byte length and hash,
+all five store counts, every entry assignment versus recomputation, known IDs, valid non-vosotros
+evidence, exact bidirectional family equality, deterministic members, resolvable conjugable rows,
+top-100 output, and existing search/licensing invariants. The package contains 10,278 entries,
+1,771 conjugation tables, 30 family rows, 223,500 form postings, and 16,063 English words; it is
+3.3 MB gzipped.
+
+## Automated and failure-path verification
+
+- Complete final-tree serial suite: **1,306/1,306 tests across 107 files** (`npm.cmd test`,
+  320.78 s).
+- Production build: passed; Vite transformed 2,094 modules and generated the PWA.
+- Package verifier: **33/33 passed**.
+- `git diff --check`: passed.
+- Focused tests cover analyzer overlaps/deceptions, the three named regular anchors, pedir's one
+  merged e→i lesson, no collapsed evidence, top-100 output, singleton omission, r2 fallback,
+  v1→v2 opening, five-store swaps and cleanup, interrupted install, same-version repair, notice
+  and family disclosures, familiar/alias ordering, cross-notice deduplication, and App navigation.
+
+Two required deliberate failures were demonstrated and restored:
+
+1. Disabling the c→qu classifier made the verifier reject entry assignments, the reverse family,
+   and top-100 teaching for *buscar*, *sacar*, *significar*, and *tocar*.
+2. Reversing the familiar/unfamiliar partition made the named family-ordering test show ordinary
+   members before both the direct and aliased cuaderno members.
+
+The first complete suite then exposed that the richer Phase 21 `sacar` fixture had widened two
+older Gym prompt pools. The added subjunctive row was isolated into a Phase 21-specific fixture;
+the formerly failing Gym file passed 20/20, the affected Phase 21/App/database batch passed 52/52,
+and the complete final suite then passed 1,306/1,306.
+
+## 375×812 browser closeout
+
+A verified-empty disposable origin installed the real r3 package and exercised dictionary details
+through visible controls at 375×812. No owner browser data was available or inspected.
+
+| Check | Numerical/result evidence |
+|---|---|
+| Teaching depth | *tener* showed four lessons; the first two were initially visible, then all four expanded locally |
+| Family cap | Its yo-go family expanded from 4 to exactly 20 visible siblings and reported 28 more |
+| Phone targets | All 25 visible sibling buttons measured 44 px high; both visible disclosure controls measured 44 px |
+| Evidence | 11 changed spans were both bold and underlined; no teaching strip contained `vosotros` |
+| Layout | `innerWidth` was 375 and the scrolling document measured `scrollWidth === clientWidth === 360`; zero measured notice, evidence, family, or disclosure elements overflowed |
+| Familiar ordering | After saving *bendecir* through the ordinary flow, it moved to the first yo-go sibling and displayed **In your cuaderno** |
+| Navigation | *tener* → *hacer* opened at `scrollY === 0`; Atrás returned to *tener* at `scrollY === 0` |
+| Boundaries | *hablar* showed only its regular -ar anchor; *jugar* showed the u→ue lesson with zero siblings |
+| Console | No warnings or errors were captured |
+
+The disposable personal word and dictionary were removed through visible controls, the viewport was
+reset, the browser tab was closed, and all isolated local servers were stopped. This was a
+DOM/computed-geometry closeout rather than a screenshot claim.
+
+## Deliberately deferred
+
+Personal-entry notices, a standalone family browser, derivational word families, Gym integration,
+stored pattern mastery, learning scheduling, and deployment remain outside Phase 21. Pushing or
+deploying requires a separate owner request.

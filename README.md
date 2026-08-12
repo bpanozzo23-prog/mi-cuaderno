@@ -240,6 +240,17 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   closeout passed without horizontal overflow or console warnings/errors. See the approved
   [direction](docs/PHASE-20-DIRECTION.md) and
   [implementation report](docs/PHASE-20-REPORT.md).
+- **Phase 21 — implemented and verified locally; not pushed or deployed.** Dictionary verb
+  details now lead their Conjugation card with **What to notice**: actual-paradigm lessons,
+  contrastive emphasized forms, and pipeline-verified sibling families. Regular verbs keep one
+  quiet hablar/comer/vivir anchor; singleton behavior such as *jugar*'s u→ue teaches without a
+  false family. The same-source r3 dictionary remains format v1 and adds a fifth replaceable
+  primary-key store under reference declaration v2; personal schema stays v8. The final serial
+  suite passes 1,306/1,306 across 107 files, package verification passes 33/33, the production
+  build and diff check pass, and a disposable real-r3 375×812 flow passed 44px, wrapping,
+  navigation, overflow and console checks. See the approved
+  [direction](docs/PHASE-21-DIRECTION.md) and
+  [implementation report](docs/PHASE-21-REPORT.md).
 - **Collection bulk capture — deployed.** A Vocabulary page's existing
   Add vocabulary panel can now narrow saved entries to Words, Phrases, and an exact existing tag,
   then select every available match together. Existing members remain excluded and the final Add
