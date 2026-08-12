@@ -316,6 +316,14 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   failed load degrades to the plain term front so no graded card is ever stranded. Scheduled
   grades log `face: "image"` as additive metadata nothing reads. No schema, preference, backup
   or event-type change. See the picture-front entries in [DECISIONS.md](DECISIONS.md).
+- **Editor writing comfort — deployed.** The shared Markdown editor continues bullets, numbered
+  items and quotes when Enter is pressed (numbers increment, an empty item ends the list, and
+  predictive-text keystrokes are left to the native newline), gains a toolbar Preview toggle that
+  swaps the box for the read-mode render of the draft, and grows every editor textarea with its
+  content from each screen's existing minimum height. Manual drag-resize is off because a dragged
+  height pins the box. Presentation and interaction only — no stored string, schema, backup or
+  event change, and Diario's autosave timing and single-`edit` contract are untouched. See the
+  editor-upgrade entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **8**. Before Dexie opens v8, schema-v1 through schema-v7 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
