@@ -10,9 +10,9 @@ import { removeDictionary } from "./db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "./db/ref/refdb.js";
 import {
   FIXTURE_ENGLISH_SHARDS,
-  FIXTURE_CONJUGATIONS,
   FIXTURE_ENTRIES,
   FIXTURE_FORM_SHARDS,
+  FIXTURE_PATTERN_CONJUGATIONS,
 } from "./test/dictFixture.js";
 import { newMeaning } from "./lib/meanings.js";
 import { localDate } from "./lib/dates.js";
@@ -87,7 +87,7 @@ async function seedConjugationFamily() {
   };
 
   await reference.entries.bulkPut([sacar, buscar]);
-  await reference.conjugations.bulkPut([...FIXTURE_CONJUGATIONS, buscarTable]);
+  await reference.conjugations.bulkPut([...FIXTURE_PATTERN_CONJUGATIONS, buscarTable]);
   await reference.patternFamilies.put({ id: "spelling:c-qu", memberIds: [SACAR, buscar.id] });
   await reference.meta.put({
     key: META_KEYS.dataset,

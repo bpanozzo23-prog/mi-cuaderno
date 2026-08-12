@@ -60,10 +60,6 @@ export const FIXTURE_CONJUGATIONS = [
         yo: "saqué", "tú": "sacaste", "él/ella/usted": "sacó",
         nosotros: "sacamos", "ustedes/ellos": "sacaron", vosotros: "sacasteis",
       },
-      "Subjunctive/Present": {
-        yo: "saque", "tú": "saques", "él/ella/usted": "saque",
-        nosotros: "saquemos", "ustedes/ellos": "saquen", vosotros: "saquéis",
-      },
     },
   },
   { id: "conj:jehle:ir", source: "jehle", pastParticiple: "ido", tenses: {} },
@@ -84,6 +80,24 @@ export const FIXTURE_CONJUGATIONS = [
     },
   },
 ];
+
+/**
+ * The shared Gym fixture intentionally has only two sacar tenses. Phase 21's spelling lesson
+ * also requires the present subjunctive, so its focused UI tests opt into this richer variant
+ * without silently changing older prompt pools.
+ */
+export const FIXTURE_PATTERN_CONJUGATIONS = FIXTURE_CONJUGATIONS.map((table) =>
+  table.id !== "conj:jehle:sacar" ? table : {
+    ...table,
+    tenses: {
+      ...table.tenses,
+      "Subjunctive/Present": {
+        yo: "saque", "tú": "saques", "él/ella/usted": "saque",
+        nosotros: "saquemos", "ustedes/ellos": "saquen", vosotros: "saquéis",
+      },
+    },
+  }
+);
 
 export const FIXTURE_FORM_SHARDS = [
   { id: "sa", terms: { sacar: ["dict:wiktionary-es:sacar:verb"], saco: ["dict:wiktionary-es:sacar:verb"], saque: ["dict:wiktionary-es:sacar:verb"] } },

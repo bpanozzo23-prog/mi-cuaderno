@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import DictDetail from "./DictDetail.jsx";
 import { removeDictionary } from "../db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "../db/ref/refdb.js";
-import { FIXTURE_CONJUGATIONS, FIXTURE_ENTRIES } from "../test/dictFixture.js";
+import { FIXTURE_ENTRIES, FIXTURE_PATTERN_CONJUGATIONS } from "../test/dictFixture.js";
 import { clearAllPersonalData, db } from "../db/db.js";
 import { createItem, getItem, newLexical, newPage } from "../db/items.js";
 
@@ -230,7 +230,7 @@ describe("Phase 5a dictionary detail continuity", () => {
 describe("Phase 21 conjugation teaching", () => {
   it("derives an r2 teaching notice from the table without showing an error or siblings", async () => {
     const sacar = FIXTURE_ENTRIES.find((entry) => entry.id === SACAR);
-    await seedDictionary([sacar], {}, FIXTURE_CONJUGATIONS);
+    await seedDictionary([sacar], {}, FIXTURE_PATTERN_CONJUGATIONS);
 
     render(
       <DictDetail
@@ -263,7 +263,7 @@ describe("Phase 21 conjugation teaching", () => {
     await seedDictionary(
       [sacar, buscar],
       {},
-      FIXTURE_CONJUGATIONS,
+      FIXTURE_PATTERN_CONJUGATIONS,
       [{ id: "spelling:c-qu", memberIds: [SACAR, buscar.id] }]
     );
 
