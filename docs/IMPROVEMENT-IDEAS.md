@@ -58,7 +58,7 @@ Useful information to retain for each idea:
 | PWA app shortcuts | 2026-08-12 | Captured | Any time; manifest-only, recorded so it is not forgotten |
 | "Did you mean" search suggestions | 2026-08-12 | Captured | Any time; a suggestion layer that leaves `normalize.js` untouched |
 | English→Spanish lookup | 2026-08-12 | Captured | Needs a reference-layer index decision (pipeline and §5 seam) |
-| "Conjugates like" verb families | 2026-08-12 | Captured | Owner expects to pursue this; derived from shipped paradigms |
+| "Conjugates like" verb families | 2026-08-12 | Planned | Approved as Phase 21; corpus gate precedes r3 packaging and dictionary UI |
 | Tag hubs | 2026-08-12 | Captured | Revisit when the owner has more tags and uses them more |
 | Review→writing bridge | 2026-08-12 | Captured | Worth considering once Diario AI feedback and review volume coexist |
 | Time-boxed mixed session | 2026-08-12 | Captured | After enough real data exists for "weakest" selections to mean something |
@@ -373,10 +373,12 @@ mid-sentence.
 ### "Conjugates like" verb families
 
 - **Date added:** 2026-08-12
-- **Status:** Captured
+- **Last reviewed:** 2026-08-12
+- **Status:** Planned as Phase 21 — see `PHASE-21-DIRECTION.md`
 - **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
 - **Owner interest:** Likely to be done — the owner expects to pursue this.
-- **Potential data impact:** None; derived from the shipped conjugation paradigms
+- **Potential data impact:** None to personal data; requires an r3 replaceable dictionary package
+  and a v2 reference-store declaration for precomputed family membership
 
 #### Description and current context
 

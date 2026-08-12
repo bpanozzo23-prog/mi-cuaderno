@@ -1,0 +1,1668 @@
+{
+  "generatedAt": "2026-08-12T20:19:12.877Z",
+  "datasetVersion": "kaikki-es-2026-07-25",
+  "corpus": {
+    "conjugableEntryRows": 1795,
+    "distinctLemmas": 1771,
+    "duplicateEntryRows": 24,
+    "conflictingDuplicateLemmas": 0
+  },
+  "teaching": {
+    "regularByClass": {
+      "ar": 1023,
+      "er": 43,
+      "ir": 82
+    },
+    "regularTotal": 1148,
+    "withNotices": 591,
+    "unclassifiedCount": 32,
+    "unclassified": [
+      {
+        "lemma": "reír",
+        "entryId": "dict:wiktionary-es:reír:verb",
+        "freqRank": 744,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "oler",
+        "entryId": "dict:wiktionary-es:oler:verb",
+        "freqRank": 888,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "personarse",
+        "entryId": "dict:wiktionary-es:personarse:verb",
+        "freqRank": 971,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "convencer",
+        "entryId": "dict:wiktionary-es:convencer:verb",
+        "freqRank": 1150,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "sonreír",
+        "entryId": "dict:wiktionary-es:sonreír:verb",
+        "freqRank": 1405,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "avergonzar",
+        "entryId": "dict:wiktionary-es:avergonzar:verb",
+        "freqRank": 1855,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "vencer",
+        "entryId": "dict:wiktionary-es:vencer:verb",
+        "freqRank": 1929,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "quejarse",
+        "entryId": "dict:wiktionary-es:quejarse:verb",
+        "freqRank": 2177,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "freír",
+        "entryId": "dict:wiktionary-es:freír:verb",
+        "freqRank": 2362,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "pudrir",
+        "entryId": "dict:wiktionary-es:pudrir:verb",
+        "freqRank": 2774,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "miar",
+        "entryId": "dict:wiktionary-es:miar:verb",
+        "freqRank": 2965,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "arrepentirse",
+        "entryId": "dict:wiktionary-es:arrepentirse:verb",
+        "freqRank": 4142,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "esparcir",
+        "entryId": "dict:wiktionary-es:esparcir:verb",
+        "freqRank": 4622,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "ejercer",
+        "entryId": "dict:wiktionary-es:ejercer:verb",
+        "freqRank": 4679,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "adquirir",
+        "entryId": "dict:wiktionary-es:adquirir:verb",
+        "freqRank": 4684,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "concernir",
+        "entryId": "dict:wiktionary-es:concernir:verb",
+        "freqRank": 4701,
+        "reason": "missing_required_cells",
+        "missing": [
+          "Indicative/Present/yo",
+          "Indicative/Present/nosotros",
+          "Indicative/Preterite/yo",
+          "Indicative/Preterite/nosotros",
+          "Indicative/Future/yo"
+        ]
+      },
+      {
+        "lemma": "entrometerse",
+        "entryId": "dict:wiktionary-es:entrometerse:verb",
+        "freqRank": 4941,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "retorcer",
+        "entryId": "dict:wiktionary-es:retorcer:verb",
+        "freqRank": 5047,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "gruñir",
+        "entryId": "dict:wiktionary-es:gruñir:verb",
+        "freqRank": 5476,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "torcer",
+        "entryId": "dict:wiktionary-es:torcer:verb",
+        "freqRank": 5577,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "escabullirse",
+        "entryId": "dict:wiktionary-es:escabullirse:verb",
+        "freqRank": 5959,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "pasarlo",
+        "entryId": "dict:wiktionary-es:pasarlo:verb",
+        "freqRank": 6139,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "teñir",
+        "entryId": "dict:wiktionary-es:teñir:verb",
+        "freqRank": 6413,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "arreglárselas",
+        "entryId": "dict:wiktionary-es:arreglárselas:verb",
+        "freqRank": 6611,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "dársela",
+        "entryId": "dict:wiktionary-es:dársela:verb",
+        "freqRank": 6656,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "cocer",
+        "entryId": "dict:wiktionary-es:cocer:verb",
+        "freqRank": 6759,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "errar",
+        "entryId": "dict:wiktionary-es:errar:verb",
+        "freqRank": 6955,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "reñir",
+        "entryId": "dict:wiktionary-es:reñir:verb",
+        "freqRank": 8733,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "mecer",
+        "entryId": "dict:wiktionary-es:mecer:verb",
+        "freqRank": 8768,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "degollar",
+        "entryId": "dict:wiktionary-es:degollar:verb",
+        "freqRank": 8846,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "creérselo",
+        "entryId": "dict:wiktionary-es:creérselo:verb",
+        "freqRank": 9809,
+        "reason": "no_supported_pattern",
+        "missing": []
+      },
+      {
+        "lemma": "ceñir",
+        "entryId": "dict:wiktionary-es:ceñir:verb",
+        "freqRank": 9849,
+        "reason": "no_supported_pattern",
+        "missing": []
+      }
+    ],
+    "noticesPerLemma": {
+      "0": 1180,
+      "1": 509,
+      "2": 36,
+      "3": 21,
+      "4": 21,
+      "5": 3,
+      "6": 1
+    }
+  },
+  "catalog": [
+    {
+      "id": "stem:e-ie_then_e-i",
+      "distinctLemmas": 22,
+      "status": "discoverable",
+      "examples": [
+        "sentir",
+        "convertir",
+        "mentir",
+        "referir",
+        "preferir",
+        "divertir",
+        "sugerir",
+        "advertir",
+        "herir",
+        "requerir",
+        "transferir",
+        "invertir"
+      ]
+    },
+    {
+      "id": "stem:o-ue_then_o-u",
+      "distinctLemmas": 3,
+      "status": "discoverable",
+      "examples": [
+        "poder",
+        "morir",
+        "dormir"
+      ]
+    },
+    {
+      "id": "stem:e-i",
+      "distinctLemmas": 17,
+      "status": "discoverable",
+      "examples": [
+        "seguir",
+        "pedir",
+        "conseguir",
+        "servir",
+        "despedir",
+        "vestir",
+        "repetir",
+        "perseguir",
+        "rendir",
+        "impedir",
+        "medir",
+        "competir"
+      ]
+    },
+    {
+      "id": "stem:e-ie",
+      "distinctLemmas": 53,
+      "status": "discoverable",
+      "examples": [
+        "querer",
+        "pensar",
+        "sentar",
+        "entender",
+        "perder",
+        "empezar",
+        "comenzar",
+        "cerrar",
+        "despertar",
+        "negar",
+        "encender",
+        "defender"
+      ]
+    },
+    {
+      "id": "stem:o-ue",
+      "distinctLemmas": 59,
+      "status": "discoverable",
+      "examples": [
+        "volver",
+        "encontrar",
+        "recordar",
+        "contar",
+        "mover",
+        "mostrar",
+        "sonar",
+        "probar",
+        "soler",
+        "devolver",
+        "soltar",
+        "volar"
+      ]
+    },
+    {
+      "id": "stem:u-ue",
+      "distinctLemmas": 1,
+      "status": "teaching-only",
+      "examples": [
+        "jugar"
+      ]
+    },
+    {
+      "id": "stem:i-accent",
+      "distinctLemmas": 26,
+      "status": "discoverable",
+      "examples": [
+        "enviar",
+        "confiar",
+        "vaciar",
+        "criar",
+        "guiar",
+        "ciar",
+        "espiar",
+        "prohibir",
+        "fiar",
+        "desafiar",
+        "aliar",
+        "liar"
+      ]
+    },
+    {
+      "id": "stem:u-accent",
+      "distinctLemmas": 13,
+      "status": "discoverable",
+      "examples": [
+        "continuar",
+        "actuar",
+        "reunir",
+        "graduar",
+        "insinuar",
+        "evaluar",
+        "rehusar",
+        "situar",
+        "habituar",
+        "interactuar",
+        "efectuar",
+        "aullar"
+      ]
+    },
+    {
+      "id": "present:haber",
+      "distinctLemmas": 1,
+      "status": "teaching-only",
+      "examples": [
+        "haber"
+      ]
+    },
+    {
+      "id": "present:yo-go",
+      "distinctLemmas": 49,
+      "status": "discoverable",
+      "examples": [
+        "tener",
+        "hacer",
+        "decir",
+        "venir",
+        "poner",
+        "salir",
+        "suponer",
+        "traer",
+        "oír",
+        "mantener",
+        "caer",
+        "detener"
+      ]
+    },
+    {
+      "id": "present:yo-zco",
+      "distinctLemmas": 58,
+      "status": "discoverable",
+      "examples": [
+        "parecer",
+        "conocer",
+        "desaparecer",
+        "aparecer",
+        "conducir",
+        "ofrecer",
+        "agradecer",
+        "merecer",
+        "crecer",
+        "reconocer",
+        "nacer",
+        "pertenecer"
+      ]
+    },
+    {
+      "id": "present:yo-y",
+      "distinctLemmas": 4,
+      "status": "discoverable",
+      "examples": [
+        "ser",
+        "estar",
+        "ir",
+        "dar"
+      ]
+    },
+    {
+      "id": "spelling:c-qu",
+      "distinctLemmas": 99,
+      "status": "discoverable",
+      "examples": [
+        "buscar",
+        "sacar",
+        "significar",
+        "tocar",
+        "explicar",
+        "acercar",
+        "atacar",
+        "equivocar",
+        "colocar",
+        "dedicar",
+        "identificar",
+        "arrancar"
+      ]
+    },
+    {
+      "id": "spelling:g-gu",
+      "distinctLemmas": 52,
+      "status": "discoverable",
+      "examples": [
+        "llegar",
+        "pagar",
+        "largar",
+        "entregar",
+        "encargar",
+        "pegar",
+        "apagar",
+        "investigar",
+        "obligar",
+        "cargar",
+        "arriesgar",
+        "juzgar"
+      ]
+    },
+    {
+      "id": "spelling:z-c",
+      "distinctLemmas": 71,
+      "status": "discoverable",
+      "examples": [
+        "utilizar",
+        "cruzar",
+        "lanzar",
+        "alcanzar",
+        "rechazar",
+        "embarazar",
+        "realizar",
+        "amenazar",
+        "rezar",
+        "avanzar",
+        "organizar",
+        "abrazar"
+      ]
+    },
+    {
+      "id": "spelling:g-j",
+      "distinctLemmas": 16,
+      "status": "discoverable",
+      "examples": [
+        "coger",
+        "proteger",
+        "recoger",
+        "dirigir",
+        "fingir",
+        "escoger",
+        "surgir",
+        "exigir",
+        "sumergir",
+        "acoger",
+        "emerger",
+        "encoger"
+      ]
+    },
+    {
+      "id": "spelling:gu-g",
+      "distinctLemmas": 6,
+      "status": "discoverable",
+      "examples": [
+        "seguir",
+        "conseguir",
+        "perseguir",
+        "distinguir",
+        "extinguir",
+        "proseguir"
+      ]
+    },
+    {
+      "id": "spelling:gu-diaeresis",
+      "distinctLemmas": 2,
+      "status": "discoverable",
+      "examples": [
+        "averiguar",
+        "atestiguar"
+      ]
+    },
+    {
+      "id": "spelling:i-y",
+      "distinctLemmas": 27,
+      "status": "discoverable",
+      "examples": [
+        "creer",
+        "oír",
+        "leer",
+        "caer",
+        "destruir",
+        "construir",
+        "incluir",
+        "poseer",
+        "reconstruir",
+        "sustituir",
+        "proveer",
+        "concluir"
+      ]
+    },
+    {
+      "id": "preterite:ser-ir",
+      "distinctLemmas": 2,
+      "status": "discoverable",
+      "examples": [
+        "ser",
+        "ir"
+      ]
+    },
+    {
+      "id": "preterite:short-unaccented",
+      "distinctLemmas": 2,
+      "status": "discoverable",
+      "examples": [
+        "ver",
+        "dar"
+      ]
+    },
+    {
+      "id": "preterite:uv-stem",
+      "distinctLemmas": 11,
+      "status": "discoverable",
+      "examples": [
+        "estar",
+        "tener",
+        "mantener",
+        "detener",
+        "obtener",
+        "andar",
+        "sostener",
+        "contener",
+        "retener",
+        "entretener",
+        "atener"
+      ]
+    },
+    {
+      "id": "preterite:u-stem",
+      "distinctLemmas": 17,
+      "status": "discoverable",
+      "examples": [
+        "haber",
+        "poder",
+        "querer",
+        "saber",
+        "poner",
+        "suponer",
+        "proponer",
+        "imponer",
+        "exponer",
+        "oponer",
+        "disponer",
+        "interponer"
+      ]
+    },
+    {
+      "id": "preterite:i-stem",
+      "distinctLemmas": 8,
+      "status": "discoverable",
+      "examples": [
+        "hacer",
+        "venir",
+        "deshacer",
+        "satisfacer",
+        "convenir",
+        "provenir",
+        "intervenir",
+        "prevenir"
+      ]
+    },
+    {
+      "id": "preterite:j-stem",
+      "distinctLemmas": 19,
+      "status": "discoverable",
+      "examples": [
+        "decir",
+        "traer",
+        "maldecir",
+        "conducir",
+        "atraer",
+        "bendecir",
+        "producir",
+        "reducir",
+        "distraer",
+        "introducir",
+        "extraer",
+        "seducir"
+      ]
+    },
+    {
+      "id": "preterite:strong-other",
+      "distinctLemmas": 0,
+      "status": "unused",
+      "examples": []
+    },
+    {
+      "id": "future:dr-stem",
+      "distinctLemmas": 31,
+      "status": "discoverable",
+      "examples": [
+        "tener",
+        "poder",
+        "venir",
+        "poner",
+        "salir",
+        "suponer",
+        "mantener",
+        "detener",
+        "obtener",
+        "sostener",
+        "valer",
+        "proponer"
+      ]
+    },
+    {
+      "id": "future:shortened-stem",
+      "distinctLemmas": 7,
+      "status": "discoverable",
+      "examples": [
+        "haber",
+        "querer",
+        "saber",
+        "deshacer",
+        "satisfacer",
+        "caber",
+        "rehacer"
+      ]
+    },
+    {
+      "id": "future:har-stem",
+      "distinctLemmas": 1,
+      "status": "teaching-only",
+      "examples": [
+        "hacer"
+      ]
+    },
+    {
+      "id": "future:dir-stem",
+      "distinctLemmas": 1,
+      "status": "teaching-only",
+      "examples": [
+        "decir"
+      ]
+    },
+    {
+      "id": "gerund:e-i",
+      "distinctLemmas": 13,
+      "status": "discoverable",
+      "examples": [
+        "decir",
+        "venir",
+        "maldecir",
+        "elegir",
+        "bendecir",
+        "convenir",
+        "corregir",
+        "provenir",
+        "intervenir",
+        "predecir",
+        "prevenir",
+        "contradecir"
+      ]
+    },
+    {
+      "id": "gerund:o-u",
+      "distinctLemmas": 0,
+      "status": "unused",
+      "examples": []
+    },
+    {
+      "id": "gerund:yendo",
+      "distinctLemmas": 8,
+      "status": "discoverable",
+      "examples": [
+        "ir",
+        "traer",
+        "huir",
+        "atraer",
+        "distraer",
+        "fluir",
+        "extraer",
+        "contraer"
+      ]
+    },
+    {
+      "id": "participle:to",
+      "distinctLemmas": 35,
+      "status": "discoverable",
+      "examples": [
+        "ver",
+        "volver",
+        "poner",
+        "morir",
+        "suponer",
+        "abrir",
+        "escribir",
+        "romper",
+        "descubrir",
+        "devolver",
+        "cubrir",
+        "resolver"
+      ]
+    },
+    {
+      "id": "participle:cho",
+      "distinctLemmas": 7,
+      "status": "discoverable",
+      "examples": [
+        "hacer",
+        "decir",
+        "deshacer",
+        "satisfacer",
+        "predecir",
+        "contradecir",
+        "rehacer"
+      ]
+    },
+    {
+      "id": "command:affirmative-tu-irregular",
+      "distinctLemmas": 8,
+      "status": "discoverable",
+      "examples": [
+        "ser",
+        "tener",
+        "ir",
+        "hacer",
+        "decir",
+        "venir",
+        "poner",
+        "salir"
+      ]
+    }
+  ],
+  "top100": {
+    "gate": "Every top-100 unique conjugated lemma has a concrete notice or regular summary.",
+    "passes": true,
+    "withoutTeaching": [],
+    "rows": [
+      {
+        "lemma": "ser",
+        "entryId": "dict:wiktionary-es:ser:verb",
+        "freqRank": 1,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-y",
+          "preterite:ser-ir",
+          "command:affirmative-tu-irregular"
+        ]
+      },
+      {
+        "lemma": "estar",
+        "entryId": "dict:wiktionary-es:estar:verb",
+        "freqRank": 4,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-y",
+          "preterite:uv-stem"
+        ]
+      },
+      {
+        "lemma": "tener",
+        "entryId": "dict:wiktionary-es:tener:verb",
+        "freqRank": 14,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-go",
+          "preterite:uv-stem",
+          "future:dr-stem",
+          "command:affirmative-tu-irregular"
+        ]
+      },
+      {
+        "lemma": "haber",
+        "entryId": "dict:wiktionary-es:haber:verb",
+        "freqRank": 19,
+        "output": "patterns",
+        "patternIds": [
+          "present:haber",
+          "preterite:u-stem",
+          "future:shortened-stem"
+        ]
+      },
+      {
+        "lemma": "poder",
+        "entryId": "dict:wiktionary-es:poder:verb",
+        "freqRank": 26,
+        "output": "patterns",
+        "patternIds": [
+          "stem:o-ue_then_o-u",
+          "preterite:u-stem",
+          "future:dr-stem"
+        ]
+      },
+      {
+        "lemma": "ir",
+        "entryId": "dict:wiktionary-es:ir:verb",
+        "freqRank": 27,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-y",
+          "preterite:ser-ir",
+          "gerund:yendo",
+          "command:affirmative-tu-irregular"
+        ]
+      },
+      {
+        "lemma": "hacer",
+        "entryId": "dict:wiktionary-es:hacer:verb",
+        "freqRank": 29,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-go",
+          "preterite:i-stem",
+          "future:har-stem",
+          "participle:cho",
+          "command:affirmative-tu-irregular"
+        ]
+      },
+      {
+        "lemma": "querer",
+        "entryId": "dict:wiktionary-es:querer:verb",
+        "freqRank": 30,
+        "output": "patterns",
+        "patternIds": [
+          "stem:e-ie",
+          "preterite:u-stem",
+          "future:shortened-stem"
+        ]
+      },
+      {
+        "lemma": "decir",
+        "entryId": "dict:wiktionary-es:decir:verb",
+        "freqRank": 35,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-go",
+          "preterite:j-stem",
+          "future:dir-stem",
+          "gerund:e-i",
+          "participle:cho",
+          "command:affirmative-tu-irregular"
+        ]
+      },
+      {
+        "lemma": "ver",
+        "entryId": "dict:wiktionary-es:ver:verb",
+        "freqRank": 42,
+        "output": "patterns",
+        "patternIds": [
+          "preterite:short-unaccented",
+          "participle:to"
+        ]
+      },
+      {
+        "lemma": "creer",
+        "entryId": "dict:wiktionary-es:creer:verb",
+        "freqRank": 52,
+        "output": "patterns",
+        "patternIds": [
+          "spelling:i-y"
+        ]
+      },
+      {
+        "lemma": "deber",
+        "entryId": "dict:wiktionary-es:deber:verb",
+        "freqRank": 55,
+        "output": "regular:er",
+        "patternIds": []
+      },
+      {
+        "lemma": "saber",
+        "entryId": "dict:wiktionary-es:saber:verb",
+        "freqRank": 67,
+        "output": "patterns",
+        "patternIds": [
+          "preterite:u-stem",
+          "future:shortened-stem"
+        ]
+      },
+      {
+        "lemma": "dar",
+        "entryId": "dict:wiktionary-es:dar:verb",
+        "freqRank": 70,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-y",
+          "preterite:short-unaccented"
+        ]
+      },
+      {
+        "lemma": "hablar",
+        "entryId": "dict:wiktionary-es:hablar:verb",
+        "freqRank": 74,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "dejar",
+        "entryId": "dict:wiktionary-es:dejar:verb",
+        "freqRank": 75,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "pensar",
+        "entryId": "dict:wiktionary-es:pensar:verb",
+        "freqRank": 78,
+        "output": "patterns",
+        "patternIds": [
+          "stem:e-ie"
+        ]
+      },
+      {
+        "lemma": "venir",
+        "entryId": "dict:wiktionary-es:venir:verb",
+        "freqRank": 79,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-go",
+          "preterite:i-stem",
+          "future:dr-stem",
+          "gerund:e-i",
+          "command:affirmative-tu-irregular"
+        ]
+      },
+      {
+        "lemma": "necesitar",
+        "entryId": "dict:wiktionary-es:necesitar:verb",
+        "freqRank": 82,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "llevar",
+        "entryId": "dict:wiktionary-es:llevar:verb",
+        "freqRank": 100,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "pasar",
+        "entryId": "dict:wiktionary-es:pasar:verb",
+        "freqRank": 102,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "volver",
+        "entryId": "dict:wiktionary-es:volver:verb",
+        "freqRank": 112,
+        "output": "patterns",
+        "patternIds": [
+          "stem:o-ue",
+          "participle:to"
+        ]
+      },
+      {
+        "lemma": "parecer",
+        "entryId": "dict:wiktionary-es:parecer:verb",
+        "freqRank": 113,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-zco"
+        ]
+      },
+      {
+        "lemma": "gustar",
+        "entryId": "dict:wiktionary-es:gustar:verb",
+        "freqRank": 117,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "esperar",
+        "entryId": "dict:wiktionary-es:esperar:verb",
+        "freqRank": 118,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "encontrar",
+        "entryId": "dict:wiktionary-es:encontrar:verb",
+        "freqRank": 125,
+        "output": "patterns",
+        "patternIds": [
+          "stem:o-ue"
+        ]
+      },
+      {
+        "lemma": "llamar",
+        "entryId": "dict:wiktionary-es:llamar:verb",
+        "freqRank": 129,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "sentir",
+        "entryId": "dict:wiktionary-es:sentir:verb",
+        "freqRank": 133,
+        "output": "patterns",
+        "patternIds": [
+          "stem:e-ie_then_e-i"
+        ]
+      },
+      {
+        "lemma": "poner",
+        "entryId": "dict:wiktionary-es:poner:verb",
+        "freqRank": 137,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-go",
+          "preterite:u-stem",
+          "future:dr-stem",
+          "participle:to",
+          "command:affirmative-tu-irregular"
+        ]
+      },
+      {
+        "lemma": "sentar",
+        "entryId": "dict:wiktionary-es:sentar:verb",
+        "freqRank": 139,
+        "output": "patterns",
+        "patternIds": [
+          "stem:e-ie"
+        ]
+      },
+      {
+        "lemma": "conocer",
+        "entryId": "dict:wiktionary-es:conocer:verb",
+        "freqRank": 140,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-zco"
+        ]
+      },
+      {
+        "lemma": "seguir",
+        "entryId": "dict:wiktionary-es:seguir:verb",
+        "freqRank": 141,
+        "output": "patterns",
+        "patternIds": [
+          "stem:e-i",
+          "spelling:gu-g"
+        ]
+      },
+      {
+        "lemma": "salir",
+        "entryId": "dict:wiktionary-es:salir:verb",
+        "freqRank": 148,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-go",
+          "future:dr-stem",
+          "command:affirmative-tu-irregular"
+        ]
+      },
+      {
+        "lemma": "quedar",
+        "entryId": "dict:wiktionary-es:quedar:verb",
+        "freqRank": 149,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "tomar",
+        "entryId": "dict:wiktionary-es:tomar:verb",
+        "freqRank": 154,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "llegar",
+        "entryId": "dict:wiktionary-es:llegar:verb",
+        "freqRank": 157,
+        "output": "patterns",
+        "patternIds": [
+          "spelling:g-gu"
+        ]
+      },
+      {
+        "lemma": "morir",
+        "entryId": "dict:wiktionary-es:morir:verb",
+        "freqRank": 158,
+        "output": "patterns",
+        "patternIds": [
+          "stem:o-ue_then_o-u",
+          "participle:to"
+        ]
+      },
+      {
+        "lemma": "ayudar",
+        "entryId": "dict:wiktionary-es:ayudar:verb",
+        "freqRank": 163,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "matar",
+        "entryId": "dict:wiktionary-es:matar:verb",
+        "freqRank": 167,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "mirar",
+        "entryId": "dict:wiktionary-es:mirar:verb",
+        "freqRank": 171,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "entender",
+        "entryId": "dict:wiktionary-es:entender:verb",
+        "freqRank": 178,
+        "output": "patterns",
+        "patternIds": [
+          "stem:e-ie"
+        ]
+      },
+      {
+        "lemma": "trabajar",
+        "entryId": "dict:wiktionary-es:trabajar:verb",
+        "freqRank": 191,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "buscar",
+        "entryId": "dict:wiktionary-es:buscar:verb",
+        "freqRank": 194,
+        "output": "patterns",
+        "patternIds": [
+          "spelling:c-qu"
+        ]
+      },
+      {
+        "lemma": "escuchar",
+        "entryId": "dict:wiktionary-es:escuchar:verb",
+        "freqRank": 214,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "preguntar",
+        "entryId": "dict:wiktionary-es:preguntar:verb",
+        "freqRank": 217,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "perder",
+        "entryId": "dict:wiktionary-es:perder:verb",
+        "freqRank": 219,
+        "output": "patterns",
+        "patternIds": [
+          "stem:e-ie"
+        ]
+      },
+      {
+        "lemma": "importar",
+        "entryId": "dict:wiktionary-es:importar:verb",
+        "freqRank": 220,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "intentar",
+        "entryId": "dict:wiktionary-es:intentar:verb",
+        "freqRank": 228,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "entrar",
+        "entryId": "dict:wiktionary-es:entrar:verb",
+        "freqRank": 230,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "pedir",
+        "entryId": "dict:wiktionary-es:pedir:verb",
+        "freqRank": 237,
+        "output": "patterns",
+        "patternIds": [
+          "stem:e-i"
+        ]
+      },
+      {
+        "lemma": "acabar",
+        "entryId": "dict:wiktionary-es:acabar:verb",
+        "freqRank": 239,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "empezar",
+        "entryId": "dict:wiktionary-es:empezar:verb",
+        "freqRank": 240,
+        "output": "patterns",
+        "patternIds": [
+          "stem:e-ie"
+        ]
+      },
+      {
+        "lemma": "suponer",
+        "entryId": "dict:wiktionary-es:suponer:verb",
+        "freqRank": 246,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-go",
+          "preterite:u-stem",
+          "future:dr-stem",
+          "participle:to"
+        ]
+      },
+      {
+        "lemma": "traer",
+        "entryId": "dict:wiktionary-es:traer:verb",
+        "freqRank": 247,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-go",
+          "preterite:j-stem",
+          "gerund:yendo"
+        ]
+      },
+      {
+        "lemma": "usar",
+        "entryId": "dict:wiktionary-es:usar:verb",
+        "freqRank": 250,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "vivir",
+        "entryId": "dict:wiktionary-es:vivir:verb",
+        "freqRank": 252,
+        "output": "regular:ir",
+        "patternIds": []
+      },
+      {
+        "lemma": "conseguir",
+        "entryId": "dict:wiktionary-es:conseguir:verb",
+        "freqRank": 254,
+        "output": "patterns",
+        "patternIds": [
+          "stem:e-i",
+          "spelling:gu-g"
+        ]
+      },
+      {
+        "lemma": "preocupar",
+        "entryId": "dict:wiktionary-es:preocupar:verb",
+        "freqRank": 257,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "recordar",
+        "entryId": "dict:wiktionary-es:recordar:verb",
+        "freqRank": 269,
+        "output": "patterns",
+        "patternIds": [
+          "stem:o-ue"
+        ]
+      },
+      {
+        "lemma": "tratar",
+        "entryId": "dict:wiktionary-es:tratar:verb",
+        "freqRank": 284,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "terminar",
+        "entryId": "dict:wiktionary-es:terminar:verb",
+        "freqRank": 292,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "olvidar",
+        "entryId": "dict:wiktionary-es:olvidar:verb",
+        "freqRank": 293,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "sacar",
+        "entryId": "dict:wiktionary-es:sacar:verb",
+        "freqRank": 299,
+        "output": "patterns",
+        "patternIds": [
+          "spelling:c-qu"
+        ]
+      },
+      {
+        "lemma": "cambiar",
+        "entryId": "dict:wiktionary-es:cambiar:verb",
+        "freqRank": 303,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "crear",
+        "entryId": "dict:wiktionary-es:crear:verb",
+        "freqRank": 304,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "oír",
+        "entryId": "dict:wiktionary-es:oír:verb",
+        "freqRank": 306,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-go",
+          "spelling:i-y"
+        ]
+      },
+      {
+        "lemma": "mantener",
+        "entryId": "dict:wiktionary-es:mantener:verb",
+        "freqRank": 310,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-go",
+          "preterite:uv-stem",
+          "future:dr-stem"
+        ]
+      },
+      {
+        "lemma": "contar",
+        "entryId": "dict:wiktionary-es:contar:verb",
+        "freqRank": 312,
+        "output": "patterns",
+        "patternIds": [
+          "stem:o-ue"
+        ]
+      },
+      {
+        "lemma": "dormir",
+        "entryId": "dict:wiktionary-es:dormir:verb",
+        "freqRank": 321,
+        "output": "patterns",
+        "patternIds": [
+          "stem:o-ue_then_o-u"
+        ]
+      },
+      {
+        "lemma": "comer",
+        "entryId": "dict:wiktionary-es:comer:verb",
+        "freqRank": 326,
+        "output": "regular:er",
+        "patternIds": []
+      },
+      {
+        "lemma": "significar",
+        "entryId": "dict:wiktionary-es:significar:verb",
+        "freqRank": 329,
+        "output": "patterns",
+        "patternIds": [
+          "spelling:c-qu"
+        ]
+      },
+      {
+        "lemma": "jugar",
+        "entryId": "dict:wiktionary-es:jugar:verb",
+        "freqRank": 333,
+        "output": "patterns",
+        "patternIds": [
+          "stem:u-ue"
+        ]
+      },
+      {
+        "lemma": "suceder",
+        "entryId": "dict:wiktionary-es:suceder:verb",
+        "freqRank": 335,
+        "output": "regular:er",
+        "patternIds": []
+      },
+      {
+        "lemma": "comprar",
+        "entryId": "dict:wiktionary-es:comprar:verb",
+        "freqRank": 337,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "mover",
+        "entryId": "dict:wiktionary-es:mover:verb",
+        "freqRank": 350,
+        "output": "patterns",
+        "patternIds": [
+          "stem:o-ue"
+        ]
+      },
+      {
+        "lemma": "regresar",
+        "entryId": "dict:wiktionary-es:regresar:verb",
+        "freqRank": 351,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "pagar",
+        "entryId": "dict:wiktionary-es:pagar:verb",
+        "freqRank": 353,
+        "output": "patterns",
+        "patternIds": [
+          "spelling:g-gu"
+        ]
+      },
+      {
+        "lemma": "casar",
+        "entryId": "dict:wiktionary-es:casar:verb",
+        "freqRank": 355,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "ganar",
+        "entryId": "dict:wiktionary-es:ganar:verb",
+        "freqRank": 358,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "abrir",
+        "entryId": "dict:wiktionary-es:abrir:verb",
+        "freqRank": 366,
+        "output": "patterns",
+        "patternIds": [
+          "participle:to"
+        ]
+      },
+      {
+        "lemma": "funcionar",
+        "entryId": "dict:wiktionary-es:funcionar:verb",
+        "freqRank": 370,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "leer",
+        "entryId": "dict:wiktionary-es:leer:verb",
+        "freqRank": 379,
+        "output": "patterns",
+        "patternIds": [
+          "spelling:i-y"
+        ]
+      },
+      {
+        "lemma": "enviar",
+        "entryId": "dict:wiktionary-es:enviar:verb",
+        "freqRank": 380,
+        "output": "patterns",
+        "patternIds": [
+          "stem:i-accent"
+        ]
+      },
+      {
+        "lemma": "ocurrir",
+        "entryId": "dict:wiktionary-es:ocurrir:verb",
+        "freqRank": 383,
+        "output": "regular:ir",
+        "patternIds": []
+      },
+      {
+        "lemma": "echar",
+        "entryId": "dict:wiktionary-es:echar:verb",
+        "freqRank": 394,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "meter",
+        "entryId": "dict:wiktionary-es:meter:verb",
+        "freqRank": 398,
+        "output": "regular:er",
+        "patternIds": []
+      },
+      {
+        "lemma": "disparar",
+        "entryId": "dict:wiktionary-es:disparar:verb",
+        "freqRank": 401,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "recibir",
+        "entryId": "dict:wiktionary-es:recibir:verb",
+        "freqRank": 405,
+        "output": "regular:ir",
+        "patternIds": []
+      },
+      {
+        "lemma": "escribir",
+        "entryId": "dict:wiktionary-es:escribir:verb",
+        "freqRank": 408,
+        "output": "patterns",
+        "patternIds": [
+          "participle:to"
+        ]
+      },
+      {
+        "lemma": "encantar",
+        "entryId": "dict:wiktionary-es:encantar:verb",
+        "freqRank": 410,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "caer",
+        "entryId": "dict:wiktionary-es:caer:verb",
+        "freqRank": 416,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-go",
+          "spelling:i-y"
+        ]
+      },
+      {
+        "lemma": "perdonar",
+        "entryId": "dict:wiktionary-es:perdonar:verb",
+        "freqRank": 424,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "detener",
+        "entryId": "dict:wiktionary-es:detener:verb",
+        "freqRank": 427,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-go",
+          "preterite:uv-stem",
+          "future:dr-stem"
+        ]
+      },
+      {
+        "lemma": "permitir",
+        "entryId": "dict:wiktionary-es:permitir:verb",
+        "freqRank": 429,
+        "output": "regular:ir",
+        "patternIds": []
+      },
+      {
+        "lemma": "comenzar",
+        "entryId": "dict:wiktionary-es:comenzar:verb",
+        "freqRank": 432,
+        "output": "patterns",
+        "patternIds": [
+          "stem:e-ie"
+        ]
+      },
+      {
+        "lemma": "preparar",
+        "entryId": "dict:wiktionary-es:preparar:verb",
+        "freqRank": 441,
+        "output": "regular:ar",
+        "patternIds": []
+      },
+      {
+        "lemma": "subir",
+        "entryId": "dict:wiktionary-es:subir:verb",
+        "freqRank": 443,
+        "output": "regular:ir",
+        "patternIds": []
+      },
+      {
+        "lemma": "tocar",
+        "entryId": "dict:wiktionary-es:tocar:verb:1",
+        "freqRank": 448,
+        "output": "patterns",
+        "patternIds": [
+          "spelling:c-qu"
+        ]
+      },
+      {
+        "lemma": "maldecir",
+        "entryId": "dict:wiktionary-es:maldecir:verb",
+        "freqRank": 452,
+        "output": "patterns",
+        "patternIds": [
+          "present:yo-go",
+          "preterite:j-stem",
+          "gerund:e-i"
+        ]
+      },
+      {
+        "lemma": "correr",
+        "entryId": "dict:wiktionary-es:correr:verb",
+        "freqRank": 453,
+        "output": "regular:er",
+        "patternIds": []
+      }
+    ]
+  }
+}
