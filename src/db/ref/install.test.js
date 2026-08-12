@@ -1,11 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import Dexie from "dexie";
 import {
   installDictionary, fetchManifest, installedDataset, pendingInstall,
-  removeDictionary, discardPendingInstall, checkForUpdate,
+  removeDictionary, discardPendingInstall, checkForUpdate, repairDictionary,
 } from "./install.js";
-import { activeSlot, refDb, setActiveSlot } from "./refdb.js";
+import { activeSlot, refDb, setActiveSlot, dbNameFor, SCHEMA_V1 } from "./refdb.js";
 import {
   getEntry,
+  getConjugationPatternFamilies,
   getConjugation,
   getVerbTablesByLemma,
   resolveVerbEntriesByLemma,
@@ -46,6 +48,29 @@ describe("installing a dictionary", () => {
     const meta = await installedMeta();
     expect(meta.datasetVersion).toBe("fixture-v1");
     expect(meta.counts.entries).toBe(7);
+    expect(await refDb(activeSlot()).patternFamilies.count()).toBe(1);
+    expect((await installedDataset()).familyIndexStatus).toBe("complete");
+  });
+
+  it("bulk-loads only requested family rows and preserves their packaged member order", async () => {
+    const patternFamilies = [
+      {
+        id: "spelling:c-qu",
+        memberIds: ["dict:wiktionary-es:ser:verb", "dict:wiktionary-es:sacar:verb"],
+      },
+      { id: "shared:second", memberIds: ["dict:wiktionary-es:ir:verb"] },
+    ];
+    installFetchStub(await buildFixtureDictionary({ patternFamilies }));
+    await installDictionary(await fetchManifest());
+
+    const families = await getConjugationPatternFamilies([
+      "spelling:c-qu", "missing", "shared:second", "spelling:c-qu",
+    ]);
+
+    expect(families.map(({ id }) => id)).toEqual(["spelling:c-qu", "missing", "shared:second"]);
+    expect(families[0].members.map(({ lemma }) => lemma)).toEqual(["ser", "sacar"]);
+    expect(families[1].members).toEqual([]);
+    expect(families[2].members.map(({ lemma }) => lemma)).toEqual(["ir"]);
   });
 
   it("reports progress in bytes, ending at the total", async () => {
@@ -102,6 +127,25 @@ describe("installing a dictionary", () => {
   });
 });
 
+describe("reference declaration v2", () => {
+  it("opens an existing v1/r2 database without rewriting its rows", async () => {
+    const legacy = new Dexie(dbNameFor("a"));
+    legacy.version(1).stores(SCHEMA_V1);
+    await legacy.open();
+    await legacy.entries.put({ id: "dict:legacy:sacar", lemma: "sacar", pos: "verb" });
+    await legacy.meta.put({
+      key: "dataset",
+      value: { datasetVersion: "fixture-r2", counts: { entries: 1 } },
+    });
+    legacy.close();
+    setActiveSlot("a");
+
+    expect((await refDb("a").entries.get("dict:legacy:sacar")).lemma).toBe("sacar");
+    expect(await refDb("a").patternFamilies.count()).toBe(0);
+    expect((await installedDataset()).familyIndexStatus).toBe("legacy");
+  });
+});
+
 describe("integrity and interruption (§11)", () => {
   it("refuses a chunk whose hash does not match", async () => {
     const fixture = await buildFixtureDictionary();
@@ -125,6 +169,25 @@ describe("integrity and interruption (§11)", () => {
     expect(activeSlot()).toBe(slotBefore);
     expect((await installedDataset()).datasetVersion).toBe("fixture-v1");
     expect((await getEntry("dict:wiktionary-es:sacar:verb")).lemma).toBe("sacar");
+  });
+
+  it("rejects an r3 package whose declared family rows were not physically installed", async () => {
+    installFetchStub(await buildFixtureDictionary("fixture-v1"));
+    await installDictionary(await fetchManifest());
+    const slotBefore = activeSlot();
+
+    const broken = await buildFixtureDictionary({
+      datasetVersion: "fixture-v2",
+      omitPatternFamilyRows: true,
+    });
+    installFetchStub(broken);
+
+    await expect(installDictionary(broken.manifest)).rejects.toThrow(
+      /patternFamilies is incomplete.*expected 1, installed 0/i
+    );
+    expect(activeSlot()).toBe(slotBefore);
+    expect((await installedDataset()).datasetVersion).toBe("fixture-v1");
+    expect(await refDb(slotBefore).patternFamilies.count()).toBe(1);
   });
 
   it("resumes an interrupted install instead of starting over", async () => {
@@ -186,7 +249,9 @@ describe("version swap (§11)", () => {
     const second = activeSlot();
     expect(second).not.toBe(first);
     expect((await installedDataset()).datasetVersion).toBe("fixture-v2");
-    expect(await refDb(first).entries.count()).toBe(0);
+    for (const store of ["entries", "conjugations", "formShards", "englishShards", "patternFamilies"]) {
+      expect(await refDb(first)[store].count(), store).toBe(0);
+    }
   });
 
   it("reports whether an update is available", async () => {
@@ -199,6 +264,49 @@ describe("version swap (§11)", () => {
     const check = await checkForUpdate();
     expect(check.updateAvailable).toBe(true);
     expect(check.manifest.datasetVersion).toBe("fixture-v2");
+  });
+
+  it("keeps an r2 install quiet because it never declared a family store count", async () => {
+    const legacy = await buildFixtureDictionary({
+      datasetVersion: "fixture-r2",
+      includePatternFamilies: false,
+    });
+    installFetchStub(legacy);
+    await installDictionary(legacy.manifest);
+
+    const health = await installedDataset();
+    expect(health.familyIndexStatus).toBe("legacy");
+    expect(await refDb(activeSlot()).patternFamilies.count()).toBe(0);
+
+    installFetchStub(legacy);
+    const check = await checkForUpdate();
+    expect(check.updateAvailable).toBe(false);
+    expect(check.repairAvailable).toBe(false);
+  });
+
+  it("detects and repairs an r3 install whose family store is missing", async () => {
+    const fixture = await buildFixtureDictionary({ datasetVersion: "fixture-r3" });
+    installFetchStub(fixture);
+    await installDictionary(fixture.manifest);
+    const damaged = activeSlot();
+    await refDb(damaged).patternFamilies.clear();
+
+    expect(await installedDataset()).toMatchObject({
+      datasetVersion: "fixture-r3",
+      familyIndexStatus: "incomplete",
+      actualPatternFamilies: 0,
+    });
+
+    installFetchStub(fixture);
+    const check = await checkForUpdate();
+    expect(check.updateAvailable).toBe(false);
+    expect(check.repairAvailable).toBe(true);
+
+    await repairDictionary(check.manifest);
+    expect(activeSlot()).not.toBe(damaged);
+    expect((await installedDataset()).familyIndexStatus).toBe("complete");
+    expect(await refDb(activeSlot()).patternFamilies.count()).toBe(1);
+    expect(await refDb(damaged).entries.count()).toBe(0);
   });
 });
 

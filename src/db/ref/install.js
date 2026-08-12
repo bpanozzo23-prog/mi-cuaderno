@@ -27,7 +27,7 @@ const base = () => `${import.meta.env.BASE_URL}dict/`;
 export const manifestUrl = () => `${base()}manifest.json`;
 const chunkUrl = (manifest, file) => `${base()}${manifest.path}/${file}`;
 
-const STORES = ["entries", "conjugations", "formShards", "englishShards"];
+const STORES = ["entries", "conjugations", "formShards", "englishShards", "patternFamilies"];
 
 export async function fetchManifest({ signal } = {}) {
   // cache: no-store so "check for updates" asks the network, not the service worker.
@@ -47,8 +47,15 @@ async function sha256Hex(buffer) {
 export async function installedDataset() {
   const slot = activeSlot();
   if (!slot) return null;
-  const dataset = await getMeta(refDb(slot), META_KEYS.dataset, null);
-  return dataset ? { ...dataset, slot } : null;
+  const db = refDb(slot);
+  const dataset = await getMeta(db, META_KEYS.dataset, null);
+  if (!dataset) return null;
+  const expectedFamilies = dataset.counts?.patternFamilies;
+  const actualFamilies = Number.isInteger(expectedFamilies) ? await db.patternFamilies.count() : null;
+  const familyIndexStatus = !Number.isInteger(expectedFamilies)
+    ? "legacy"
+    : actualFamilies === expectedFamilies ? "complete" : "incomplete";
+  return { ...dataset, slot, familyIndexStatus, actualPatternFamilies: actualFamilies };
 }
 
 /** A half-finished install waiting to be resumed, or null. */
@@ -103,7 +110,7 @@ export async function installDictionary(manifest, { onProgress, signal } = {}) {
 
     // One transaction per chunk: a chunk is either fully in or fully out, so a crash
     // mid-write cannot leave a half-applied chunk that `completed` then claims is done.
-    await db.transaction("rw", db.entries, db.conjugations, db.formShards, db.englishShards, db.meta, async () => {
+    await db.transaction("rw", db.entries, db.conjugations, db.formShards, db.englishShards, db.patternFamilies, db.meta, async () => {
       for (const store of STORES) {
         const rows = parsed.stores?.[store];
         if (rows?.length) await db[store].bulkPut(rows);
@@ -117,6 +124,18 @@ export async function installDictionary(manifest, { onProgress, signal } = {}) {
 
     receivedBytes += chunk.bytes;
     report("downloading", index + 1);
+  }
+
+  // Hashes prove that each downloaded file is intact; store counts prove the files formed
+  // the complete database the manifest promised. This also prevents an empty Phase-21
+  // family store from becoming live under r3 metadata.
+  for (const store of STORES) {
+    const expected = manifest.counts?.[store];
+    if (!Number.isInteger(expected)) continue; // additive stores are absent from legacy manifests
+    const actual = await db[store].count();
+    if (actual !== expected) {
+      throw new Error(`Dictionary ${store} is incomplete — expected ${expected}, installed ${actual}.`);
+    }
   }
 
   // Everything is present and verified. Record the dataset, then flip the pointer — the
@@ -148,6 +167,12 @@ export async function discardPendingInstall() {
   await wipeSlot(inactiveSlot());
 }
 
+/** A same-version repair always starts from an empty inactive slot. */
+export async function repairDictionary(manifest, options = {}) {
+  await discardPendingInstall();
+  return installDictionary(manifest, options);
+}
+
 /** Removes the dictionary entirely. Personal data is in another database and is untouched. */
 export async function removeDictionary() {
   clearActiveSlot();
@@ -160,9 +185,11 @@ export async function removeDictionary() {
  */
 export async function checkForUpdate({ signal } = {}) {
   const [manifest, installed] = await Promise.all([fetchManifest({ signal }), installedDataset()]);
+  const updateAvailable = Boolean(installed) && installed.datasetVersion !== manifest.datasetVersion;
   return {
     manifest,
     installed,
-    updateAvailable: Boolean(installed) && installed.datasetVersion !== manifest.datasetVersion,
+    updateAvailable,
+    repairAvailable: Boolean(installed) && !updateAvailable && installed.familyIndexStatus === "incomplete",
   };
 }

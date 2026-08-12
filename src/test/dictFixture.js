@@ -15,6 +15,7 @@ const entry = (id, lemma, pos, glosses, extra = {}) => ({
 export const FIXTURE_ENTRIES = [
   entry("sacar:verb", "sacar", "verb", ["to take out (e.g. the trash)", "to remove"], {
     conjugationId: "conj:jehle:sacar",
+    conjugationPatternIds: ["spelling:c-qu"],
     freqRank: 299,
   }),
   entry("año:noun", "año", "noun", ["year"], { gender: "m", freqRank: 100 }),
@@ -59,6 +60,10 @@ export const FIXTURE_CONJUGATIONS = [
         yo: "saqué", "tú": "sacaste", "él/ella/usted": "sacó",
         nosotros: "sacamos", "ustedes/ellos": "sacaron", vosotros: "sacasteis",
       },
+      "Subjunctive/Present": {
+        yo: "saque", "tú": "saques", "él/ella/usted": "saque",
+        nosotros: "saquemos", "ustedes/ellos": "saquen", vosotros: "saquéis",
+      },
     },
   },
   { id: "conj:jehle:ir", source: "jehle", pastParticiple: "ido", tenses: {} },
@@ -99,13 +104,24 @@ export const FIXTURE_ENGLISH_SHARDS = [
   { id: "go", terms: { go: ["dict:wiktionary-es:ir:verb"] } },
 ];
 
+export const FIXTURE_PATTERN_FAMILIES = [
+  { id: "spelling:c-qu", memberIds: ["dict:wiktionary-es:sacar:verb"] },
+];
+
 /** Splits the stores across chunks the way 07-package.mjs does. */
-export function buildFixtureChunks(entries = FIXTURE_ENTRIES) {
+export function buildFixtureChunks(entries = FIXTURE_ENTRIES, {
+  includePatternFamilies = true,
+  patternFamilies = FIXTURE_PATTERN_FAMILIES,
+} = {}) {
   const half = Math.ceil(entries.length / 2);
   return [
     { stores: { entries: entries.slice(0, half) } },
     { stores: { entries: entries.slice(half), conjugations: FIXTURE_CONJUGATIONS } },
-    { stores: { formShards: FIXTURE_FORM_SHARDS, englishShards: FIXTURE_ENGLISH_SHARDS } },
+    { stores: {
+      formShards: FIXTURE_FORM_SHARDS,
+      englishShards: FIXTURE_ENGLISH_SHARDS,
+      ...(includePatternFamilies ? { patternFamilies } : {}),
+    } },
   ];
 }
 
@@ -127,6 +143,9 @@ export async function buildFixtureDictionary(options = {}) {
     datasetVersion = "fixture-v1",
     dropEntries = [],
     previousIds = {},
+    includePatternFamilies = true,
+    patternFamilies = FIXTURE_PATTERN_FAMILIES,
+    omitPatternFamilyRows = false,
   } = typeof options === "string" ? { datasetVersion: options } : options;
 
   const dropped = new Set(dropEntries);
@@ -134,7 +153,8 @@ export async function buildFixtureDictionary(options = {}) {
   const bodies = new Map();
   const chunks = [];
 
-  for (const [index, chunk] of buildFixtureChunks(entries).entries()) {
+  const packagedFamilies = omitPatternFamilyRows ? [] : patternFamilies;
+  for (const [index, chunk] of buildFixtureChunks(entries, { includePatternFamilies, patternFamilies: packagedFamilies }).entries()) {
     const file = `chunk-${String(index).padStart(3, "0")}.json`;
     const buffer = new TextEncoder().encode(JSON.stringify({ datasetVersion, chunk: index, ...chunk }));
     bodies.set(file, buffer);
@@ -156,6 +176,7 @@ export async function buildFixtureDictionary(options = {}) {
       conjugations: FIXTURE_CONJUGATIONS.length,
       formShards: FIXTURE_FORM_SHARDS.length,
       englishShards: FIXTURE_ENGLISH_SHARDS.length,
+      ...(includePatternFamilies ? { patternFamilies: patternFamilies.length } : {}),
       examples: 1,
     },
     bytes: { total: chunks.reduce((n, c) => n + c.bytes, 0), gzipped: 0 },

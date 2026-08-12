@@ -28,7 +28,7 @@ const dbNameFor = (slot) => `mi-cuaderno-ref-${slot}`;
  * No compound or multi-entry indexes: every read is either a primary-key get or a bulkGet,
  * because the pipeline pre-computed the indexes that would otherwise need them.
  */
-const SCHEMA = {
+const SCHEMA_V1 = {
   entries: "id, freqRank",
   conjugations: "id",
   formShards: "id",
@@ -36,9 +36,18 @@ const SCHEMA = {
   meta: "key",
 };
 
+// Reference declaration v2 is additive. Existing r2 databases are not migrated or
+// rewritten: Dexie creates the empty primary-key store, and the next explicit dictionary
+// install fills it in the inactive A/B slot before the pointer flips.
+const SCHEMA_V2 = {
+  ...SCHEMA_V1,
+  patternFamilies: "id",
+};
+
 const open = (slot) => {
   const db = new Dexie(dbNameFor(slot));
-  db.version(1).stores(SCHEMA);
+  db.version(1).stores(SCHEMA_V1);
+  db.version(2).stores(SCHEMA_V2);
   return db;
 };
 
@@ -100,10 +109,10 @@ export async function setMeta(db, key, value) {
 /** Empties a slot. Used before a fresh install and by "remove dictionary". */
 export async function wipeSlot(slot) {
   const db = refDb(slot);
-  await db.transaction("rw", db.entries, db.conjugations, db.formShards, db.englishShards, db.meta, async () => {
+  await db.transaction("rw", db.entries, db.conjugations, db.formShards, db.englishShards, db.patternFamilies, db.meta, async () => {
     await Promise.all([
       db.entries.clear(), db.conjugations.clear(),
-      db.formShards.clear(), db.englishShards.clear(), db.meta.clear(),
+      db.formShards.clear(), db.englishShards.clear(), db.patternFamilies.clear(), db.meta.clear(),
     ]);
   });
 }
@@ -118,4 +127,4 @@ export async function deleteSlot(slot) {
   await Dexie.delete(dbNameFor(slot));
 }
 
-export { SLOTS, ACTIVE_SLOT_KEY, dbNameFor };
+export { SLOTS, ACTIVE_SLOT_KEY, dbNameFor, SCHEMA_V1, SCHEMA_V2 };

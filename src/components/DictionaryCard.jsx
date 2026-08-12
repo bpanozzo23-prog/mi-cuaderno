@@ -3,7 +3,7 @@ import { BookMarked, Download, RefreshCw, Trash2, AlertTriangle, Check, X, WifiO
 import { C, MONO, SectionTitle, Card, Button } from "../theme.jsx";
 import {
   fetchManifest, installDictionary, installedDataset, pendingInstall,
-  discardPendingInstall, removeDictionary,
+  discardPendingInstall, removeDictionary, repairDictionary,
 } from "../db/ref/install.js";
 import { forgetCaches } from "../db/ref/entries.js";
 import { runSearchSpeedTest, startupTiming } from "../lib/speedtest.js";
@@ -60,15 +60,21 @@ export default function DictionaryCard({ onInstalled }) {
     })();
   }, [refresh]);
 
-  async function download(target) {
+  async function download(target, { repair = false } = {}) {
     setError("");
     setNote("");
     abort.current = new AbortController();
-    setProgress({ phase: "downloading", receivedBytes: 0, totalBytes: target.bytes.total, chunk: 0, chunks: target.chunks.length });
+    setProgress({ phase: "downloading", repair, receivedBytes: 0, totalBytes: target.bytes.total, chunk: 0, chunks: target.chunks.length });
     try {
-      await installDictionary(target, { onProgress: setProgress, signal: abort.current.signal });
+      const onProgress = (next) => setProgress({ ...next, repair });
+      const operation = repair ? repairDictionary : installDictionary;
+      await operation(target, { onProgress, signal: abort.current.signal });
       forgetCaches();
-      setNote(`Dictionary ${target.datasetVersion} is installed and works offline.`);
+      setNote(
+        repair
+          ? `Dictionary ${target.datasetVersion} was repaired and works offline.`
+          : `Dictionary ${target.datasetVersion} is installed and works offline.`
+      );
       await refresh();
       onInstalled?.();
     } catch (err) {
@@ -93,7 +99,9 @@ export default function DictionaryCard({ onInstalled }) {
       setManifest(latest);
       setNote(
         latest.datasetVersion === installed?.datasetVersion
-          ? "You have the current dictionary."
+          ? installed?.familyIndexStatus === "incomplete"
+            ? "This dictionary version needs a repair download."
+            : "You have the current dictionary."
           : `Dictionary ${latest.datasetVersion} is available.`
       );
     } catch {
@@ -114,6 +122,8 @@ export default function DictionaryCard({ onInstalled }) {
 
   const downloading = Boolean(progress);
   const updateAvailable = installed && manifest && manifest.datasetVersion !== installed.datasetVersion;
+  const repairAvailable = installed?.familyIndexStatus === "incomplete"
+    && manifest?.datasetVersion === installed.datasetVersion;
   const pct = progress?.totalBytes ? Math.round((progress.receivedBytes / progress.totalBytes) * 100) : 0;
   const installedCountSummary = [
     countText(installed?.counts?.entries, "word"),
@@ -128,7 +138,7 @@ export default function DictionaryCard({ onInstalled }) {
         {downloading ? (
           <>
             <div className="text-sm" style={{ color: C.ink }}>
-              Downloading the dictionary…
+              {progress.repair ? "Repairing the dictionary…" : "Downloading the dictionary…"}
             </div>
             <div className="mt-2 h-2 rounded-full overflow-hidden" style={{ background: C.penPale }}>
               <div className="h-full rounded-full" style={{ width: `${pct}%`, background: C.pen, transition: "width 120ms linear" }} />
@@ -159,10 +169,24 @@ export default function DictionaryCard({ onInstalled }) {
                 Version {manifest.datasetVersion} is available.
               </div>
             )}
+            {installed.familyIndexStatus === "incomplete" && (
+              <div className="mt-3 text-xs rounded-lg p-2.5 flex items-start gap-1.5" style={{ background: C.amberPale, color: C.amber }}>
+                <AlertTriangle size={13} className="shrink-0 mt-0.5" />
+                <span>
+                  The conjugation-family files are incomplete. Re-download this dictionary version to repair them;
+                  your notebook is untouched.
+                </span>
+              </div>
+            )}
             <div className="mt-3 flex flex-wrap gap-2">
               {updateAvailable && (
                 <Button onClick={() => download(manifest)}>
                   <Download size={15} /> Update
+                </Button>
+              )}
+              {repairAvailable && !updateAvailable && (
+                <Button onClick={() => download(manifest, { repair: true })}>
+                  <Download size={15} /> Repair dictionary
                 </Button>
               )}
               <Button tone="quiet" onClick={checkForUpdates} disabled={checking}>

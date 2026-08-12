@@ -35,6 +35,25 @@ export async function getEntries(ids) {
 }
 
 /**
+ * Loads precomputed family postings and their entries through primary-key bulk reads.
+ * Results stay aligned with the unique requested ids, and each row preserves the pipeline's
+ * member order. Missing rows are normal for an r2 install and return an empty member list.
+ */
+export async function getConjugationPatternFamilies(patternIds) {
+  const db = activeDb();
+  const ids = [...new Set((patternIds || []).filter(Boolean))];
+  if (!db || !ids.length) return [];
+  const rows = await db.patternFamilies.bulkGet(ids);
+  const memberIds = [...new Set(rows.flatMap((row) => row?.memberIds || []))];
+  const loaded = memberIds.length ? await db.entries.bulkGet(memberIds) : [];
+  const byId = new Map(loaded.filter(Boolean).map((entry) => [entry.id, entry]));
+  return ids.map((id, index) => ({
+    id,
+    members: (rows[index]?.memberIds || []).map((memberId) => byId.get(memberId)).filter(Boolean),
+  }));
+}
+
+/**
  * Resolves a dict: key through the alias map when the entry itself is gone (§6).
  *
  * A dataset rebuild can change an entry's canonical id. §5 says a personal item whose
