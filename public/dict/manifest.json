@@ -2,7 +2,7 @@
   "format": "mi-cuaderno-dictionary",
   "formatVersion": 1,
   "datasetVersion": "kaikki-es-2026-07-25-r3",
-  "generatedAt": "2026-08-12T20:24:30.987Z",
+  "generatedAt": "2026-08-12T22:23:25.163Z",
   "path": "kaikki-es-2026-07-25-r3",
   "counts": {
     "entries": 10278,
@@ -16,8 +16,8 @@
     "patternFamilies": 30
   },
   "bytes": {
-    "total": 23898641,
-    "gzipped": 3450514
+    "total": 23898727,
+    "gzipped": 3450527
   },
   "chunks": [
     {
@@ -31,9 +31,9 @@
     },
     {
       "file": "chunk-001.json",
-      "bytes": 1809467,
-      "gzipBytes": 547421,
-      "sha256": "dc02859cfba757050106e6bcccc725581a3da23602f6528229bf5be6b5c1acab",
+      "bytes": 1809514,
+      "gzipBytes": 547428,
+      "sha256": "84700c26a1c59b4879613b423ed7829cdafca4d43a34b1f98923b3b0b43a48ce",
       "rows": {
         "entries": 2573
       }
@@ -150,9 +150,9 @@
     },
     {
       "file": "chunk-014.json",
-      "bytes": 214735,
-      "gzipBytes": 33391,
-      "sha256": "94378e509ddaf8dfdfc2a9915fe135aa33f89ae29af895f6642c8c15417827f9",
+      "bytes": 214774,
+      "gzipBytes": 33397,
+      "sha256": "f2522d85e498a98dd01a2fab6ee2e7587d605beb7dfa71b0446fc63727a48246",
       "rows": {
         "englishShards": 196,
         "patternFamilies": 30

@@ -39,11 +39,18 @@ summary; none may receive an empty teaching result.
 - Related observations merge into one lesson. In particular, pedir's present, preterite, and
   gerund evidence becomes one e→i notice: *pido · pedimos · pidieron*.
 
-The first full sweep covers 1,795 conjugable entry rows / 1,771 distinct lemmas. It finds 1,148
-fully regular paradigms, 591 lemmas with at least one concrete notice, and 32 lower-frequency
+The corrected full sweep covers 1,795 conjugable entry rows / 1,771 distinct lemmas. It finds 1,151
+fully regular paradigms, 592 lemmas with at least one concrete notice, and 28 lower-frequency
 unclassified paradigms. The top-100 gate passes with 47 regular summaries and 53 noticed verbs.
 The shipped corpus contains only one u→ue lemma, *jugar*, so that lesson is deliberately not
 presented as a family.
+
+Pronominal paradigms are compared through a structural form with the slot-appropriate clitic
+removed while their original pronoun-bearing forms remain visible. This lets regular pronominal
+verbs receive their quiet anchor and lets changes such as *me arrepiento · nos arrepentimos · se
+arrepintieron* join the same verified family as non-pronominal verbs. Stem and gerund emphasis is
+positioned from the analyzer's replacement index and then mapped back to the displayed form; it is
+never recovered by searching for a repeated vowel in the rendered word.
 
 ## 2 — Replaceable reference package
 
@@ -83,8 +90,10 @@ normalized lemma and duplicate lemmas are excluded.
 
 Personal items affect display order only. Direct `dictKey` matches and old keys resolving through
 `previousIds` stable-partition ahead of the pipeline order and receive **In your cuaderno**; no
-personal row is rewritten. Sibling buttons use ordinary dictionary navigation, open at the top,
-record the existing session-deduplicated view, and leave the original verb one Atrás action away.
+personal row is rewritten. When a sibling qualifies under more than one displayed notice, the
+highest-priority notice claims it so the lesson does not repeat the same verb. Sibling buttons use
+ordinary dictionary navigation, open at the top, record the existing session-deduplicated view,
+and leave the original verb one Atrás action away.
 
 ## Delivery and acceptance
 
@@ -94,7 +103,8 @@ phone closeout. Named tests protect the three regular anchors, pedir's merged le
 no-vosotros evidence rule, complete top-100 teaching output, and singleton no-sibling behavior.
 
 Package verification recomputes every entry assignment, proves exact reverse family equality,
-ordering, resolvable members, known IDs, manifest counts, and evidence ranges. Reference tests
+ordering, resolvable members, known IDs, manifest counts, valid evidence ranges, and the semantic
+replacement position of every stem/gerund emphasis span. Reference tests
 cover v1 opening under v2, interrupted/successful replacement, all-five-store cleanup, r2 fallback,
 and same-version repair. UI and App tests cover disclosure limits, familiar/alias ordering,
 regular/singleton omission, sibling navigation, Atrás, and view deduplication.
@@ -102,4 +112,5 @@ regular/singleton omission, sibling navigation, Atrás, and view deduplication.
 Closeout requires focused tests, one deliberately broken classifier/package proof, one deliberately
 broken navigation/ordering proof, the complete serial suite, production build, package verifier,
 `git diff --check`, and a disposable seeded 375×812 numerical browser pass. Repository r3 artifacts
-are prepared locally; pushing and deployment require a separate owner request.
+are prepared locally, and only the manifest-reachable r3 package remains in `public/dict`; pushing
+and deployment require a separate owner request.

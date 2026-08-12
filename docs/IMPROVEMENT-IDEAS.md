@@ -52,6 +52,7 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
+| Conjugation catalog extensions | 2026-08-12 | Captured | When Phase 21's classifier next reopens; required-cell coverage must be swept before accepting either family |
 | Dictionary word-family explorer | 2026-08-12 | Captured | When the pipeline next reopens (the English→Spanish index is the natural moment); a coverage pass over the raw dump comes first |
 | Select text to look up | 2026-08-12 | Captured | Any time; read-only navigation glue over existing search |
 | Paste a vocabulary list | 2026-08-12 | Captured | Needs a design discussion first: parsing, per-row meanings, event honesty |
@@ -97,6 +98,22 @@ Useful information to retain for each idea:
 ---
 
 ## Active ideas
+
+### Conjugation catalog extensions
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Phase 21 post-implementation corpus review
+- **Owner interest:** Recorded so the measured observation is not lost; not approved for implementation
+- **Potential data impact:** None to personal data; classifier/report changes would require a new
+  replaceable dictionary package if later approved
+
+The 28 paradigms still outside Phase 21's bounded catalog include two candidate groups worth a
+future required-cell sweep: c→z before o/a behavior among verbs such as *vencer, convencer,
+ejercer,* and *torcer*; and i-absorbing behavior among -ñir/-llir verbs such as *teñir, reñir,
+ceñir,* and *gruñir*. These are evidence-backed candidates, not accepted families: duplicate
+lemma consistency, contrast selection, overlap behavior, member counts, and top-frequency value
+must be measured before changing the catalog.
 
 ### Dictionary word-family explorer
 

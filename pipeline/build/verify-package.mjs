@@ -142,6 +142,38 @@ for (const entry of conjugableEntries) {
 check("every teaching notice has resolvable non-vosotros evidence and emphasis", invalidEvidence.length === 0,
   invalidEvidence.slice(0, 5).join(", "));
 
+const structuralChanges = {
+  "stem:e-ie_then_e-i": { from: "e", shown: ["ie", "e", "i"] },
+  "stem:o-ue_then_o-u": { from: "o", shown: ["ue", "o", "u"] },
+  "stem:e-i": { from: "e", shown: ["i", "e", "i"] },
+  "stem:e-ie": { from: "e", shown: ["ie", "e", "ie"] },
+  "stem:o-ue": { from: "o", shown: ["ue", "o", "ue"] },
+  "stem:u-ue": { from: "u", shown: ["ue", "u", "ue"] },
+  "stem:i-accent": { from: "i", shown: ["í", "i", "í"] },
+  "stem:u-accent": { from: "u", shown: ["ú", "u", "ú"] },
+  "gerund:e-i": { from: "e", shown: ["i", "e"] },
+  "gerund:o-u": { from: "o", shown: ["u", "o"] },
+};
+const misplacedStructuralEvidence = [];
+for (const entry of conjugableEntries) {
+  const bare = canonicalConjugationLemma(entry.lemma).replace(/se$/, "");
+  const stem = bare.slice(0, -2);
+  for (const notice of analyses.get(entry.id).notices) {
+    const change = structuralChanges[notice.id];
+    if (!change) continue;
+    const stemIndex = stem.lastIndexOf(change.from);
+    for (const [index, row] of notice.evidence.entries()) {
+      const prefixLength = /^(?:me|te|se|nos|os) /.exec(row.form)?.[0].length || 0;
+      const expected = [[prefixLength + stemIndex, prefixLength + stemIndex + change.shown[index].length]];
+      if (JSON.stringify(row.emphasis) !== JSON.stringify(expected)) {
+        misplacedStructuralEvidence.push(`${entry.lemma}:${notice.id}:${row.form}`);
+      }
+    }
+  }
+}
+check("every stem and gerund emphasis marks the analyzed replacement position",
+  misplacedStructuralEvidence.length === 0, misplacedStructuralEvidence.slice(0, 5).join(", "));
+
 const spanish = new Intl.Collator("es", { sensitivity: "base", usage: "sort" });
 const entryOrder = (a, b) =>
   (a.freqRank ?? Number.MAX_SAFE_INTEGER) - (b.freqRank ?? Number.MAX_SAFE_INTEGER) ||

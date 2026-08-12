@@ -67,6 +67,17 @@ describe("conjugation observation merging", () => {
     expect(result.notices).toHaveLength(1);
     expect(result.notices[0].evidence.map((row) => row.form)).toEqual(["pido", "pedimos", "pidieron"]);
     expect(result.notices[0].evidence.map((row) => row.role)).toEqual(["changed", "contrast", "changed"]);
+    expect(result.notices[0].evidence.map((row) => row.emphasis)).toEqual([[[1, 2]], [[1, 2]], [[1, 2]]]);
+  });
+
+  it("keeps stem and gerund emphasis on the structural change", () => {
+    const volver = analyze("volver").notices.find((notice) => notice.id === "stem:o-ue");
+    const contar = analyze("contar").notices.find((notice) => notice.id === "stem:o-ue");
+    const decir = analyze("decir").notices.find((notice) => notice.id === "gerund:e-i");
+
+    expect(volver.evidence.find((row) => row.form === "volvemos")?.emphasis).toEqual([[1, 2]]);
+    expect(contar.evidence.find((row) => row.form === "contamos")?.emphasis).toEqual([[1, 2]]);
+    expect(decir.evidence.find((row) => row.form === "diciendo")?.emphasis).toEqual([[1, 2]]);
   });
 
   it("keeps useful overlaps while suppressing a spelling-derived yo-go duplicate", () => {
@@ -115,6 +126,38 @@ describe("corpus teaching gates", () => {
     }
   });
 
+  it("Stem and gerund evidence emphasizes the analyzed replacement position", () => {
+    const changes = {
+      "stem:e-ie_then_e-i": { from: "e", shown: ["ie", "e", "i"] },
+      "stem:o-ue_then_o-u": { from: "o", shown: ["ue", "o", "u"] },
+      "stem:e-i": { from: "e", shown: ["i", "e", "i"] },
+      "stem:e-ie": { from: "e", shown: ["ie", "e", "ie"] },
+      "stem:o-ue": { from: "o", shown: ["ue", "o", "ue"] },
+      "stem:u-ue": { from: "u", shown: ["ue", "u", "ue"] },
+      "stem:i-accent": { from: "i", shown: ["í", "i", "í"] },
+      "stem:u-accent": { from: "u", shown: ["ú", "u", "ú"] },
+      "gerund:e-i": { from: "e", shown: ["i", "e"] },
+      "gerund:o-u": { from: "o", shown: ["u", "o"] },
+    };
+
+    for (const entry of uniqueConjugated()) {
+      const result = analyzeConjugationPatterns({ lemma: entry.lemma, conjugation: SHIPPED.tables.get(entry.conjugationId) });
+      const bare = canonicalConjugationLemma(entry.lemma).replace(/se$/, "");
+      const stem = bare.slice(0, -2);
+      for (const notice of result.notices) {
+        const change = changes[notice.id];
+        if (!change) continue;
+        const stemIndex = stem.lastIndexOf(change.from);
+        for (const [index, row] of notice.evidence.entries()) {
+          const prefixLength = /^(?:me|te|se|nos|os) /.exec(row.form)?.[0].length || 0;
+          expect(row.emphasis, `${entry.lemma} ${notice.id} ${row.form}`).toEqual([
+            [prefixLength + stemIndex, prefixLength + stemIndex + change.shown[index].length],
+          ]);
+        }
+      }
+    }
+  });
+
   it("Top-100 verbs always receive teaching output", () => {
     const missing = uniqueConjugated().slice(0, 100).filter((entry) => {
       const result = analyzeConjugationPatterns({ lemma: entry.lemma, conjugation: SHIPPED.tables.get(entry.conjugationId) });
@@ -130,6 +173,27 @@ describe("corpus teaching gates", () => {
     });
     expect(members.map((entry) => entry.lemma)).toEqual(["jugar"]);
     expect(analyze("jugar").notices[0].evidence.map((row) => row.form)).toEqual(["juego", "jugamos", "juegan"]);
+    expect(analyze("jugar").notices[0].explanation).toBe("The change appears in stressed forms but not in nosotros.");
   });
 });
 
+describe("pronominal conjugation teaching", () => {
+  it("recognizes regular pronominal paradigms", () => {
+    for (const lemma of ["personarse", "quejarse", "entrometerse"]) {
+      expect(analyze(lemma), lemma).toEqual({
+        regular: { class: lemma.slice(-4, -2), anchor: lemma.endsWith("arse") ? "hablar" : "comer" },
+        notices: [],
+        patternIds: [],
+      });
+    }
+  });
+
+  it("recognizes arrepentirse while preserving visible pronouns and exact emphasis", () => {
+    const result = analyze("arrepentirse");
+    expect(result.patternIds).toEqual(["stem:e-ie_then_e-i"]);
+    expect(result.notices[0].evidence.map((row) => row.form)).toEqual([
+      "me arrepiento", "nos arrepentimos", "se arrepintieron",
+    ]);
+    expect(result.notices[0].evidence.map((row) => row.emphasis)).toEqual([[[8, 10]], [[9, 10]], [[8, 9]]]);
+  });
+});

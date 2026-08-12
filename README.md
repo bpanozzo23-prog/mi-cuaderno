@@ -246,9 +246,11 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   quiet hablar/comer/vivir anchor; singleton behavior such as *jugar*'s u→ue teaches without a
   false family. The same-source r3 dictionary remains format v1 and adds a fifth replaceable
   primary-key store under reference declaration v2; personal schema stays v8. The final serial
-  suite passes 1,306/1,306 across 107 files, package verification passes 33/33, the production
-  build and diff check pass, and a disposable real-r3 375×812 flow passed 44px, wrapping,
-  navigation, overflow and console checks. See the approved
+  corrected suite passes 1,310/1,310 across 107 files, package verification passes 34/34, the
+  production build and diff check pass, and a disposable real-r3 375×812 flow proves exact
+  structural emphasis—including pronoun-bearing *arrepentirse*—plus 44px targets, wrapping,
+  navigation, overflow and console checks. Only manifest-selected r3 artifacts remain in the
+  public package tree. See the approved
   [direction](docs/PHASE-21-DIRECTION.md) and
   [implementation report](docs/PHASE-21-REPORT.md).
 - **Collection bulk capture — deployed.** A Vocabulary page's existing

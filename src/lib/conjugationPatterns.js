@@ -49,7 +49,7 @@ export const PATTERN_DEFINITIONS = Object.freeze({
   },
   "stem:u-ue": {
     title: "The stem changes u → ue when stressed",
-    explanation: "Jugar has this useful change, but the current dictionary has no sibling family for it.",
+    explanation: "The change appears in stressed forms but not in nosotros.",
     priority: 15,
   },
   "stem:i-accent": {
@@ -244,6 +244,14 @@ const ENDINGS = Object.freeze({
 
 const FUTURE_ENDINGS = { yo: "é", "tú": "ás", "él/ella/usted": "á", nosotros: "emos", "ustedes/ellos": "án", vosotros: "éis" };
 const CONDITIONAL_ENDINGS = { yo: "ía", "tú": "ías", "él/ella/usted": "ía", nosotros: "íamos", "ustedes/ellos": "ían", vosotros: "íais" };
+const PRONOMINAL_CLITICS = Object.freeze({
+  yo: "me",
+  "tú": "te",
+  "él/ella/usted": "se",
+  nosotros: "nos",
+  vosotros: "os",
+  "ustedes/ellos": "se",
+});
 
 export const canonicalConjugationLemma = (lemma) => String(lemma || "").trim().normalize("NFC").toLowerCase();
 
@@ -259,6 +267,82 @@ function infinitiveInfo(lemma) {
 }
 
 const cell = (table, tense, slot) => String(table?.tenses?.[tense]?.[slot] || "").normalize("NFC");
+
+const withoutWrittenAccents = (form) => form.normalize("NFD").replace(/\p{M}/gu, "").normalize("NFC");
+
+function normalizePronominalFinite(form, tense, slot) {
+  const clitic = PRONOMINAL_CLITICS[slot];
+  if (!form || !clitic) return { form, lexicalOffset: 0 };
+
+  if (tense === AFFIRMATIVE_COMMAND) {
+    if (!form.endsWith(clitic)) return { form, lexicalOffset: 0 };
+    let bare = form.slice(0, -clitic.length);
+    if (slot === "nosotros") bare += "s";
+    if (slot === "vosotros") bare += "d";
+    return { form: withoutWrittenAccents(bare), lexicalOffset: 0 };
+  }
+
+  if (tense === "Imperative Negative/Present") {
+    const prefix = `no ${clitic} `;
+    return form.startsWith(prefix)
+      ? { form: `no ${form.slice(prefix.length)}`, lexicalOffset: prefix.length - 3 }
+      : { form, lexicalOffset: 0 };
+  }
+
+  const prefix = `${clitic} `;
+  return form.startsWith(prefix)
+    ? { form: form.slice(prefix.length), lexicalOffset: prefix.length }
+    : { form, lexicalOffset: 0 };
+}
+
+function normalizePronominalPrincipal(form, kind) {
+  if (kind !== "gerund" || !form.endsWith("se")) return form;
+  return withoutWrittenAccents(form.slice(0, -2));
+}
+
+function analysisTable(info, table) {
+  if (!info?.pronominal) return table;
+
+  const offsets = {};
+  const tenses = {};
+  for (const [tense, sourceRow] of Object.entries(table?.tenses || {})) {
+    const row = {};
+    const rowOffsets = {};
+    for (const [slot, sourceForm] of Object.entries(sourceRow || {})) {
+      const normalized = normalizePronominalFinite(String(sourceForm || "").normalize("NFC"), tense, slot);
+      row[slot] = normalized.form;
+      rowOffsets[slot] = normalized.lexicalOffset;
+    }
+    tenses[tense] = row;
+    offsets[tense] = rowOffsets;
+  }
+
+  return {
+    ...table,
+    gerund: normalizePronominalPrincipal(String(table?.gerund || "").normalize("NFC"), "gerund"),
+    tenses,
+    __surfaceTable: table,
+    __lexicalOffsets: offsets,
+  };
+}
+
+const surfaceCell = (table, tense, slot) => String(
+  table?.__surfaceTable?.tenses?.[tense]?.[slot] ?? table?.tenses?.[tense]?.[slot] ?? ""
+).normalize("NFC");
+
+const surfacePrincipal = (table, kind) => String(
+  kind === "gerund"
+    ? table?.__surfaceTable?.gerund ?? table?.gerund ?? ""
+    : table?.__surfaceTable?.pastParticiple ?? table?.pastParticiple ?? ""
+).normalize("NFC");
+
+function surfaceRange(table, source, start, length) {
+  if (!Number.isInteger(start) || start < 0 || !length) return [];
+  const offset = source?.tense && source?.slot
+    ? table?.__lexicalOffsets?.[source.tense]?.[source.slot] || 0
+    : 0;
+  return [[start + offset, start + offset + length]];
+}
 
 function regularFinite(info, tense, slot) {
   const futureEnding = tense === FUTURE ? FUTURE_ENDINGS[slot] : tense === CONDITIONAL ? CONDITIONAL_ENDINGS[slot] : null;
@@ -294,7 +378,7 @@ export function regularConjugationModel(lemma) {
 }
 
 function exactRegular(info, table) {
-  if (!info || info.pronominal) return false;
+  if (!info) return false;
   const model = regularConjugationModel(info.infinitive);
   if (!model || String(table?.gerund || "").normalize("NFC") !== model.gerund ||
       String(table?.pastParticiple || "").normalize("NFC") !== model.pastParticiple) return false;
@@ -340,19 +424,26 @@ function evidence(label, form, token = null, extra = {}) {
   return {
     label,
     form,
-    emphasis: token ? rangeFor(form, token, extra) : wholeRange(form),
+    emphasis: extra.emphasis || (token ? rangeFor(form, token, extra) : wholeRange(form)),
     ...extra.meta,
   };
 }
 
-function cellEvidence(table, tense, slot, token = null, meta = {}) {
-  const form = cell(table, tense, slot);
-  return evidence(slot, form, token, { meta: { source: "cell", tense, slot, ...meta } });
+function cellEvidence(table, tense, slot, token = null, meta = {}, structuralEmphasis = null) {
+  const form = surfaceCell(table, tense, slot);
+  const emphasis = structuralEmphasis
+    ? surfaceRange(table, { tense, slot }, structuralEmphasis.start, structuralEmphasis.length)
+    : null;
+  return evidence(slot, form, token, { emphasis, meta: { source: "cell", tense, slot, ...meta } });
 }
 
-function principalEvidence(table, kind, token = null, meta = {}) {
-  const form = String(kind === "gerund" ? table?.gerund || "" : table?.pastParticiple || "").normalize("NFC");
+function principalEvidence(table, kind, token = null, meta = {}, structuralEmphasis = null) {
+  const form = surfacePrincipal(table, kind);
+  const emphasis = structuralEmphasis
+    ? surfaceRange(table, { kind }, structuralEmphasis.start, structuralEmphasis.length)
+    : null;
   return evidence(kind === "gerund" ? "gerundio" : "participio", form, token, {
+    emphasis,
     meta: { source: kind, ...meta },
   });
 }
@@ -369,19 +460,24 @@ function notice(id, evidenceRows, overrides = {}) {
   };
 }
 
-function stemNotice(id, table, changedToken, unchangedToken, thirdToken = changedToken) {
+function replacementEmphasis(info, from, shown) {
+  const replacement = lastReplacement(info.stem, from, shown);
+  return replacement ? { start: replacement.index, length: shown.length } : null;
+}
+
+function stemNotice(id, info, table, from, changedToken, thirdToken = changedToken) {
   return notice(id, [
-    cellEvidence(table, PRESENT, "yo", changedToken, { role: "changed" }),
-    cellEvidence(table, PRESENT, "nosotros", unchangedToken, { role: "contrast" }),
-    cellEvidence(table, PRETERITE, "ustedes/ellos", thirdToken, { role: "changed" }),
+    cellEvidence(table, PRESENT, "yo", null, { role: "changed" }, replacementEmphasis(info, from, changedToken)),
+    cellEvidence(table, PRESENT, "nosotros", null, { role: "contrast" }, replacementEmphasis(info, from, from)),
+    cellEvidence(table, PRETERITE, "ustedes/ellos", null, { role: "changed" }, replacementEmphasis(info, from, thirdToken)),
   ]);
 }
 
-function presentStemNotice(id, table, changedToken, unchangedToken) {
+function presentStemNotice(id, info, table, from, changedToken) {
   return notice(id, [
-    cellEvidence(table, PRESENT, "yo", changedToken, { role: "changed" }),
-    cellEvidence(table, PRESENT, "nosotros", unchangedToken, { role: "contrast" }),
-    cellEvidence(table, PRESENT, "ustedes/ellos", changedToken, { role: "changed" }),
+    cellEvidence(table, PRESENT, "yo", null, { role: "changed" }, replacementEmphasis(info, from, changedToken)),
+    cellEvidence(table, PRESENT, "nosotros", null, { role: "contrast" }, replacementEmphasis(info, from, from)),
+    cellEvidence(table, PRESENT, "ustedes/ellos", null, { role: "changed" }, replacementEmphasis(info, from, changedToken)),
   ]);
 }
 
@@ -428,7 +524,7 @@ function hasCompleteEvidence(item) {
 
 export function analyzeConjugationPatterns({ lemma, conjugation } = {}) {
   const info = infinitiveInfo(lemma);
-  const table = conjugation;
+  const table = analysisTable(info, conjugation);
   if (!info || !table?.tenses) return { regular: null, notices: [], patternIds: [] };
 
   if (exactRegular(info, table)) {
@@ -452,16 +548,16 @@ export function analyzeConjugationPatterns({ lemma, conjugation } = {}) {
   const ePastI = matchesChangedPast(info, table, "e", "i");
   const oPastU = matchesChangedPast(info, table, "o", "u");
 
-  if (eIe && ePastI) add(stemNotice("stem:e-ie_then_e-i", table, "ie", "e", "i"));
-  else if (eIe) add(presentStemNotice("stem:e-ie", table, "ie", "e"));
+  if (eIe && ePastI) add(stemNotice("stem:e-ie_then_e-i", info, table, "e", "ie", "i"));
+  else if (eIe) add(presentStemNotice("stem:e-ie", info, table, "e", "ie"));
 
-  if (oUe && oPastU) add(stemNotice("stem:o-ue_then_o-u", table, "ue", "o", "u"));
-  else if (oUe) add(presentStemNotice("stem:o-ue", table, "ue", "o"));
+  if (oUe && oPastU) add(stemNotice("stem:o-ue_then_o-u", info, table, "o", "ue", "u"));
+  else if (oUe) add(presentStemNotice("stem:o-ue", info, table, "o", "ue"));
 
-  if (eI && ePastI) add(stemNotice("stem:e-i", table, "i", "e", "i"));
-  if (uUe) add(presentStemNotice("stem:u-ue", table, "ue", "u"));
-  if (matchesStemPresent(info, table, "i", "í")) add(presentStemNotice("stem:i-accent", table, "í", "i"));
-  if (matchesStemPresent(info, table, "u", "ú")) add(presentStemNotice("stem:u-accent", table, "ú", "u"));
+  if (eI && ePastI) add(stemNotice("stem:e-i", info, table, "e", "i"));
+  if (uUe) add(presentStemNotice("stem:u-ue", info, table, "u", "ue"));
+  if (matchesStemPresent(info, table, "i", "í")) add(presentStemNotice("stem:i-accent", info, table, "i", "í"));
+  if (matchesStemPresent(info, table, "u", "ú")) add(presentStemNotice("stem:u-accent", info, table, "u", "ú"));
 
   if (info.lemma === "haber" && cell(table, PRESENT, "yo") === "he" &&
       cell(table, PRESENT, "nosotros") === "hemos" && cell(table, PRESENT, "ustedes/ellos") === "han") {
@@ -629,14 +725,14 @@ export function analyzeConjugationPatterns({ lemma, conjugation } = {}) {
 
   if (!found.has("stem:e-i") && !found.has("stem:e-ie_then_e-i") && actualGerund === changedGerund(info, "e", "i")) {
     add(notice("gerund:e-i", [
-      principalEvidence(table, "gerund", "i", { role: "changed" }),
-      cellEvidence(table, PRESENT, "nosotros", "e", { role: "contrast" }),
+      principalEvidence(table, "gerund", null, { role: "changed" }, replacementEmphasis(info, "e", "i")),
+      cellEvidence(table, PRESENT, "nosotros", null, { role: "contrast" }, replacementEmphasis(info, "e", "e")),
     ]));
   }
   if (!found.has("stem:o-ue_then_o-u") && actualGerund === changedGerund(info, "o", "u")) {
     add(notice("gerund:o-u", [
-      principalEvidence(table, "gerund", "u", { role: "changed" }),
-      cellEvidence(table, PRESENT, "nosotros", "o", { role: "contrast" }),
+      principalEvidence(table, "gerund", null, { role: "changed" }, replacementEmphasis(info, "o", "u")),
+      cellEvidence(table, PRESENT, "nosotros", null, { role: "contrast" }, replacementEmphasis(info, "o", "o")),
     ]));
   }
   if (!iY && actualGerund === regularGerund.replace(/iendo$/, "yendo") && regularGerund.endsWith("iendo")) {
