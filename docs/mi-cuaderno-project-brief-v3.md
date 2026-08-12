@@ -481,6 +481,10 @@ Backup envelope:
   exports round-trip exactly and newer versions remain blocked.
 - On first meaningful use, request persistent storage (`navigator.storage.persist()`), surface whether it was granted, and tell the owner plainly that clearing browser data, uninstalling, or losing the device destroys local data — which is why export is one tap away and the settings screen shows "last backup: N days ago".
 
+## Secrets
+
+API keys and other secrets must never be written into exported/backup payloads, logs, or fixtures. When adding fields to the backup envelope, add an explicit test asserting no secret keys are present.
+
 ## 11. Reference-data delivery and caching
 
 - The app shell and the full notebook work immediately after install; the dictionary is an explicit, versioned, chunked **"Download dictionary for offline use"** action with visible progress.
