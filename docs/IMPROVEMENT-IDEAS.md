@@ -55,6 +55,327 @@ Useful information to retain for each idea:
 | Dictation cards | 2026-08-11 | Captured | After real use of the picture face settles the face-priority pattern |
 | Non-verb grammar drills | 2026-08-11 | Captured | After Diario AI feedback accumulates evidence of which confusions recur |
 | Frequency coverage | 2026-08-11 | Captured | Any time; a derived Estadísticas view over existing `freqRank` data |
+| Accent bar for typed inputs | 2026-08-12 | Deferred | Only if the owner's keyboard situation changes; declined for now |
+| PWA app shortcuts | 2026-08-12 | Captured | Any time; manifest-only, recorded so it is not forgotten |
+| "Did you mean" search suggestions | 2026-08-12 | Captured | Any time; a suggestion layer that leaves `normalize.js` untouched |
+| English→Spanish lookup | 2026-08-12 | Captured | Needs a reference-layer index decision (pipeline and §5 seam) |
+| "Conjugates like" verb families | 2026-08-12 | Captured | Owner expects to pursue this; derived from shipped paradigms |
+| Tag hubs | 2026-08-12 | Captured | Revisit when the owner has more tags and uses them more |
+| Review→writing bridge | 2026-08-12 | Captured | Worth considering once Diario AI feedback and review volume coexist |
+| Time-boxed mixed session | 2026-08-12 | Captured | After enough real data exists for "weakest" selections to mean something |
+| Review forecast | 2026-08-12 | Captured | Low priority per owner; a small derived Estadísticas addition |
+
+---
+
+## Accent bar for typed inputs
+
+- **Date added:** 2026-08-12
+- **Status:** Deferred — owner-declined for now
+- **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
+- **Owner interest:** The owner thinks this could be a good feature but is not interested in
+  pursuing it unless something changes: their current keyboard makes adding accents low-friction,
+  so the problem this solves does not exist for them today. Revisit only if the keyboard situation
+  changes or typed-input friction is actually observed.
+- **Potential data impact:** None; a reusable input-adornment component
+
+### Description and current context
+
+A row of `á é í ó ú ñ ü` buttons above every typed input (conjugation drills, typed review modes,
+any future dictation face) for phones whose keyboards make accents slow. The app deliberately
+grades accents (exact-first, named near miss), so keyboard friction would otherwise grade the
+keyboard rather than the owner's knowledge. One small component reused everywhere Type mode
+exists.
+
+### Why it is deferred rather than captured
+
+The value depends entirely on a friction the owner does not have. Recording it keeps the option
+visible without implying work; the evidence that would reopen it is the owner noticing accent
+entry slowing them down in a typed session.
+
+---
+
+## PWA app shortcuts
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
+- **Owner interest:** Recorded so it is not forgotten; the owner may or may not do it.
+- **Potential data impact:** None; a manifest-only change
+
+### Description and current context
+
+The web app manifest's `shortcuts` array puts entries like "New Diario moment", "Repaso" and
+"Search" on the installed app icon's long-press menu on Android. No application code changes —
+each shortcut is a URL into an existing screen, and the app is already installable. The one
+implementation detail is that shortcut URLs must respect the `/mi-cuaderno/` base path.
+
+### Expected owner value
+
+Shortens the path to the actions done daily. The share-target idea (above) covers content coming
+*into* the app; this covers reaching a chosen screen faster.
+
+### Evidence needed
+
+None beyond trying it — the cost is low enough that a real-device check of how Chrome on Android
+presents the shortcuts is the whole evaluation.
+
+---
+
+## "Did you mean" search suggestions
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
+- **Owner interest:** A good potential idea.
+- **Potential data impact:** None; a derived suggestion layer over existing search
+
+### Description and current context
+
+When Cuaderno search returns nothing, offer near matches — a one-letter typo, a transposition, a
+missing accent beyond what normalization already forgives. The Cuaderno root already records
+misses, so this answers some of them at the moment they happen instead of leaving them in the log.
+
+The critical boundary: `normalize.js` must not change, and suggestions must never widen *matching*.
+"año" must never silently match "ano" — but a miss screen may *offer* "did you mean año?" as a
+tap-through, because an offer the owner confirms is not a match. The suggestion layer sits
+strictly above the search pipeline.
+
+### Potential options
+
+1. **Personal layer only** — suggest near matches from the owner's own vocabulary, the smallest
+   and most personally relevant candidate set.
+2. **Both layers** — include dictionary lemmas, which is where a misspelled new word actually
+   lives; requires the distance computation to stay fast over 10,278 entries or be indexed.
+
+### Risks and tradeoffs
+
+- Edit-distance suggestions can surface embarrassing or absurd neighbors; a conservative distance
+  threshold matters more than recall.
+- The miss log currently records honest misses; if a suggestion is taken, deciding whether the
+  original miss still logs affects the meaning of the recorded signal.
+
+### Evidence needed
+
+- The recorded misses themselves: what fraction of real misses are near-misses of known content
+  versus genuinely absent words. That decides whether option 1 suffices.
+
+---
+
+## English→Spanish lookup
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
+- **Owner interest:** Wants it on the list.
+- **Potential data impact:** None to personal data; likely a new derived index in the reference
+  layer, which is rebuildable by design behind the §5 seam
+
+### Description and current context
+
+Search is Spanish-first: an inflected Spanish form finds its lemma, but "how do I say
+*stubborn*?" has no offline answer. The dictionary's English glosses are already shipped
+on-device; indexing them for reverse lookup would let the bundled dictionary answer the question
+learners ask most while writing — and it feeds naturally into Diario, where the need arises
+mid-sentence.
+
+### Potential options
+
+1. **Runtime gloss search** over existing entries, if fast enough on-device.
+2. **A pipeline-built reverse index** shipped with the dataset, keeping runtime cost near zero at
+   the price of a dataset rebuild (which the §5 seam and alias map already accommodate).
+
+### Expected owner value
+
+- Answers the writing-direction question offline, which currently forces a trip to another app —
+  precisely the exit the notebook exists to avoid.
+
+### Risks and tradeoffs
+
+- Gloss text is not a bilingual dictionary: one English word maps to many Spanish entries with
+  different registers and regions, so results need enough context (gloss, region labels) to
+  choose between candidates rather than presenting a bare list.
+- If built in the pipeline, it adds a dataset version consideration; the reference layer's
+  replaceability makes this routine but not free.
+
+### Questions for a future discussion
+
+- Where does reverse lookup live: the existing search field detecting an English query, or an
+  explicit direction toggle?
+- Do multiword glosses ("to be stubborn") match on the phrase, the head word, or both?
+
+---
+
+## "Conjugates like" verb families
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
+- **Owner interest:** Likely to be done — the owner expects to pursue this.
+- **Potential data impact:** None; derived from the shipped conjugation paradigms
+
+### Description and current context
+
+The paradigm data behind ~1,250 conjugated verbs already encodes that *pedir* and *servir* share
+a pattern. A line on a verb's detail — "conjugates like *pedir* (e→i)" with the family's other
+members — turns memorizing one verb into recognizing a class. The Gym already ships curated
+stem-changer and irregular-preterite pools, so the concept of pattern families exists in the
+app's vocabulary; this surfaces it on the reference side where a verb is actually looked up.
+
+### Potential options
+
+1. **A family line on the dictionary entry's conjugation view**, linking to sibling verbs.
+2. **The same line on personal lexical entries** whose `dictKey` resolves to a conjugated verb.
+3. **A browsable family view** (all e→i verbs the dictionary ships), which would also make a
+   natural Gym pool source later.
+
+### Expected owner value
+
+- Converts one verb's memorized table into a transferable rule, at the exact moment of lookup.
+- Sibling verbs are a built-in "you also know…" discovery path.
+
+### Risks and tradeoffs
+
+- Family derivation must come from the actual paradigm data, not from spelling heuristics —
+  a verb that looks regular but ships an irregular table must land in the right family.
+- Naming families needs care: "e→i" is compact but jargon; the label should teach, not gatekeep.
+
+### Evidence needed
+
+- A pass over the shipped paradigms to confirm families can be derived cleanly and to count how
+  many verbs land in each — if most families have one member, the feature collapses.
+
+---
+
+## Tag hubs
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
+- **Owner interest:** An idea to revisit later, when the owner has more tags and uses tags more.
+- **Potential data impact:** None; fully derived, no storage
+
+### Description and current context
+
+Tags currently filter lists. A tag detail view would aggregate everything carrying an exact tag —
+words, phrases, pages, and journal entries via the deliberate-search path — making tags a
+browsable dimension rather than only a filter. Phase 20's global tag management keeps the tag
+vocabulary tidy enough for hubs to stay trustworthy.
+
+### Evidence needed
+
+- Real tag volume and usage: hubs earn their place when the owner reaches for a tag expecting a
+  place, not a filter. The owner has explicitly gated this on their own future tag use — check
+  back when tags have grown, not on a date.
+
+### Questions for a future discussion
+
+- Is a hub a screen of its own or an enriched filter state?
+- Do Diario entries appear by default in a tag hub, or only behind the deliberate-search rule?
+
+---
+
+## Review→writing bridge
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
+- **Owner interest:** Worth considering.
+- **Potential data impact:** None; a transient prompt, nothing stored
+
+### Description and current context
+
+After a review session with misses, offer a transient Diario prompt: "write a sentence using
+*tozudo*." One line of glue between the app's two halves — the words missed in review are
+precisely the ones the owner's writing never exercises, and Diario's prompt machinery is already
+transient by design (prompts are visit-local and store no ID). This also serves the
+active-vocabulary theme recorded in the document history on 2026-08-11.
+
+### Potential options
+
+1. **A post-session action** ("write with these words") that opens a new Diario moment with the
+   missed words available as a visible, unstored prompt.
+2. **A Diario-side prompt source** — the existing prompt list occasionally offers "use a word you
+   missed recently", derived from review events at render.
+
+### Risks and tradeoffs
+
+- Must remain an offer, never an obligation: Diario's settled purpose is calm reflection, and a
+  homework-shaped prompt could poison that. The existing prompt system's take-it-or-leave-it
+  posture is the model.
+- Selecting "recent misses" reads the event log at render — cheap and consistent with how
+  everything else derives.
+
+### Evidence needed
+
+- Whether the owner actually wants to write immediately after reviewing, or whether the two
+  activities happen at different times of day — which decides between options 1 and 2.
+
+---
+
+## Time-boxed mixed session
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
+- **Owner interest:** Should be on the list.
+- **Potential data impact:** None expected; composes existing engines and writes only the events
+  each engine already writes
+
+### Description and current context
+
+"Give me five minutes": one owner-started sitting composing due Repaso cards with the Gym's
+current weakest forms, sequenced rather than chosen one surface at a time. All the engines,
+grading rules and event contracts exist; this is a front door, not new machinery. It stays on
+the right side of §14 because nothing is scheduled, reminded or mandatory — the owner starts it,
+exactly like every existing session.
+
+### Potential options
+
+1. **Time-boxed** — fill roughly N minutes using known per-card pacing, ending at the box even
+   mid-queue.
+2. **Count-boxed** — "10 cards + 5 forms", simpler and more predictable than minutes.
+3. **Due-first composition** — always drain due reviews before Gym content, so the scheduled
+   queue never loses priority to practice.
+
+### Risks and tradeoffs
+
+- Mixing surfaces mixes event contracts; the composition must keep each engine writing exactly
+  what it writes today (review events from the scheduled pass, drill events from Gym answers)
+  with no new session-level record.
+- A "weakest forms" selection reuses Adaptive's existing definition rather than inventing a
+  second notion of weakness.
+
+### Evidence needed
+
+- Real data volume: with a small due queue and sparse drill history, a mixed session degenerates
+  into whatever exists. The feature makes sense once both queues are routinely nonempty.
+
+---
+
+## Review forecast
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
+- **Owner interest:** Can be added, but likely a low priority.
+- **Potential data impact:** None; derived at render from the existing Leitner schedule
+
+### Description and current context
+
+"12 due tomorrow, 40 this week" — the due dates already derive from the event log, so a forecast
+is a small aggregation over the same computation Repaso runs today, displayed in Estadísticas'
+derived-at-render pattern. It is display, not scheduling: no reminder, no badge, no obligation,
+which keeps it clear of §14's deferral of automatic scheduling and reminders.
+
+### Expected owner value
+
+- Answers "what is coming?" so a heavy day is visible before it arrives — useful when deciding
+  whether to review tonight or tomorrow.
+
+### Risks and tradeoffs
+
+- Forecast displays can create quiet pressure; keeping it inside Estadísticas (sought out, not
+  pushed) preserves the no-pressure temperament.
 
 ---
 
@@ -1290,6 +1611,16 @@ cheapest — all derivable from existing data — were approved together as Phas
 ---
 
 ## Document history
+
+- **2026-08-12 — Nine ideas recorded from the second brainstorming pass, each with the owner's
+  stated interest level.** Eight are Captured: PWA app shortcuts (so it is not forgotten),
+  "did you mean" search suggestions, English→Spanish lookup, "conjugates like" verb families
+  (owner expects to pursue), tag hubs (revisit when tags are used more), the review→writing
+  bridge (worth considering), the time-boxed mixed session, and the review forecast (low
+  priority). One is Deferred at the owner's direction: the accent bar for typed inputs, a
+  feature the owner considers good but declines while their keyboard keeps accent entry
+  low-friction. Owner-interest lines distinguish these dispositions from ordinary captures;
+  none is approved work.
 
 - **2026-08-11 — Four ideas captured from a brainstorming session: Android share target,
   dictation cards, non-verb grammar drills, and frequency coverage.** All four are Captured, not
