@@ -3,13 +3,20 @@ import { ChevronLeft, BookMarked, Plus, ExternalLink, ChevronDown, ChevronRight 
 import { C, SERIF, MONO, dotGrid, SectionTitle, Card, Button } from "../theme.jsx";
 import { grammarAbbreviations } from "../lib/partOfSpeech.js";
 import { ItemLinkCard } from "./LinkCard.jsx";
-import { getEntryWithConjugation, installedMeta, exampleAttribution } from "../db/ref/entries.js";
+import ConjugationNotices from "./ConjugationNotices.jsx";
+import {
+  getEntryWithConjugation,
+  getConjugationPatternFamilies,
+  installedMeta,
+  exampleAttribution,
+} from "../db/ref/entries.js";
 import { resolveLinkedKeys } from "../db/linkedEntries.js";
 import { createItem, newLexicalFromEntry, displayTitle } from "../db/items.js";
 import { logView } from "../db/events.js";
 import { groupConnections, normalizeRelationship, relationshipLabel } from "../lib/relationships.js";
 import { connectionsFromResolvedEntryLinks } from "../lib/resolvedConnections.js";
 import { SLOTS, COLLAPSED_SLOTS, SIMPLE_TENSES, PERFECT_TENSES, tenseHeading } from "../lib/conjugation.js";
+import { analyzeConjugationPatterns } from "../lib/conjugationPatterns.js";
 
 /**
  * A dictionary entry. Read-only by definition (§5) — the one action is "add to my
@@ -97,7 +104,7 @@ function TenseTable({ label, tense, showVosotros }) {
   );
 }
 
-function Conjugation({ conjugation }) {
+function Conjugation({ entry, conjugation, analysis, familyRows, items, previousIds, onOpen }) {
   const [showVosotros, setShowVosotros] = useState(false);
   const [showPerfect, setShowPerfect] = useState(false);
 
@@ -113,6 +120,15 @@ function Conjugation({ conjugation }) {
     <>
       <SectionTitle>Conjugation</SectionTitle>
       <Card>
+        <ConjugationNotices
+          key={entry.id}
+          entry={entry}
+          analysis={analysis}
+          familyRows={familyRows}
+          items={items}
+          previousIds={previousIds}
+          onOpen={onOpen}
+        />
         <div className="text-xs mb-1" style={{ fontFamily: MONO, color: C.mut }}>
           {conjugation.gerund && `gerundio ${conjugation.gerund}`}
           {conjugation.gerund && conjugation.pastParticiple && " · "}
@@ -155,6 +171,8 @@ export default function DictDetail({
 }) {
   const [entry, setEntry] = useState(null);
   const [meta, setMeta] = useState(null);
+  const [patternAnalysis, setPatternAnalysis] = useState(null);
+  const [patternFamilies, setPatternFamilies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [resolvedPersonalLinks, setResolvedPersonalLinks] = useState([]);
 
@@ -163,9 +181,17 @@ export default function DictDetail({
     setLoading(true);
     (async () => {
       const [found, installed] = await Promise.all([getEntryWithConjugation(entryId), installedMeta()]);
+      const analysis = found?.conjugation
+        ? analyzeConjugationPatterns({ lemma: found.lemma, conjugation: found.conjugation })
+        : null;
+      const familyRows = analysis?.patternIds.length
+        ? await getConjugationPatternFamilies(analysis.patternIds)
+        : [];
       if (!alive) return;
       setEntry(found);
       setMeta(installed);
+      setPatternAnalysis(analysis);
+      setPatternFamilies(familyRows);
       setLoading(false);
     })();
     return () => {
@@ -356,7 +382,17 @@ export default function DictDetail({
         </ol>
       </Card>
 
-      {entry.conjugation && <Conjugation conjugation={entry.conjugation} />}
+      {entry.conjugation && (
+        <Conjugation
+          entry={entry}
+          conjugation={entry.conjugation}
+          analysis={patternAnalysis}
+          familyRows={patternFamilies}
+          items={items}
+          previousIds={meta?.previousIds || {}}
+          onOpen={onOpen}
+        />
+      )}
 
       {entry.examples?.length > 0 && (
         <>

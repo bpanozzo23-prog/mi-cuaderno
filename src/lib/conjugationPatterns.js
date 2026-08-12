@@ -675,3 +675,70 @@ export function analyzeConjugationPatterns({ lemma, conjugation } = {}) {
 export function isValidConjugationEvidence(item) {
   return Boolean(item && hasCompleteEvidence(item));
 }
+
+/**
+ * Personal familiarity is a read-only presentation hint. A package rebuild may have moved
+ * a dictionary id, so the manifest's old-id alias is treated exactly like a direct dictKey;
+ * no personal row is rewritten merely to sort or badge a family suggestion.
+ */
+export function isConjugationFamilyMemberFamiliar(entryId, items = [], previousIds = {}) {
+  return items.some((item) =>
+    item?.dictKey === entryId || previousIds?.[item?.dictKey] === entryId
+  );
+}
+
+/**
+ * Joins analyzer output to the small set of precomputed family rows loaded by the reference
+ * reader. Packaged order is retained inside the familiar/unfamiliar partitions; the browser
+ * never repeats the pipeline's frequency sort.
+ */
+export function buildConjugationTeachingView({
+  analysis,
+  familyRows = [],
+  currentEntry,
+  items = [],
+  previousIds = {},
+  familyLimit = 20,
+} = {}) {
+  if (!analysis) return { regular: null, notices: [] };
+
+  const currentLemma = canonicalConjugationLemma(currentEntry?.lemma);
+  const rowsById = new Map(familyRows.map((row) => [row.id, row.members || []]));
+  const claimedLemmas = new Set();
+  const prioritizedNotices = [...analysis.notices].sort(
+    (a, b) => a.priority - b.priority || a.id.localeCompare(b.id)
+  );
+  const notices = prioritizedNotices.map((item) => {
+    const withinFamily = new Set();
+    const candidates = [];
+
+    for (const member of rowsById.get(item.id) || []) {
+      const lemma = canonicalConjugationLemma(member?.lemma);
+      if (!member?.id || !lemma || lemma === currentLemma || withinFamily.has(lemma) || claimedLemmas.has(lemma)) {
+        continue;
+      }
+      withinFamily.add(lemma);
+      candidates.push({
+        entry: member,
+        familiar: isConjugationFamilyMemberFamiliar(member.id, items, previousIds),
+      });
+    }
+
+    // Claim every matching sibling before applying the display cap. Otherwise a member just
+    // below 20 could reappear under a lower-priority notice.
+    for (const lemma of withinFamily) claimedLemmas.add(lemma);
+    const ordered = [
+      ...candidates.filter((member) => member.familiar),
+      ...candidates.filter((member) => !member.familiar),
+    ];
+
+    return {
+      ...item,
+      members: ordered.slice(0, familyLimit),
+      totalMembers: ordered.length,
+      remainderCount: Math.max(0, ordered.length - familyLimit),
+    };
+  });
+
+  return { regular: analysis.regular, notices };
+}

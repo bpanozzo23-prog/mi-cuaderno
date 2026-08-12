@@ -5,11 +5,12 @@ import userEvent from "@testing-library/user-event";
 import DictDetail from "./DictDetail.jsx";
 import { removeDictionary } from "../db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "../db/ref/refdb.js";
-import { FIXTURE_ENTRIES } from "../test/dictFixture.js";
+import { FIXTURE_CONJUGATIONS, FIXTURE_ENTRIES } from "../test/dictFixture.js";
 import { clearAllPersonalData, db } from "../db/db.js";
 import { createItem, getItem, newLexical, newPage } from "../db/items.js";
 
 const CASA = "dict:wiktionary-es:casa:noun";
+const SACAR = "dict:wiktionary-es:sacar:verb";
 
 beforeEach(async () => {
   await removeDictionary();
@@ -24,10 +25,12 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 
-async function seedDictionary(entries = [], previousIds = {}) {
+async function seedDictionary(entries = [], previousIds = {}, conjugations = [], patternFamilies = []) {
   const slot = "a";
   const reference = refDb(slot);
   if (entries.length) await reference.entries.bulkPut(entries);
+  if (conjugations.length) await reference.conjugations.bulkPut(conjugations);
+  if (patternFamilies.length) await reference.patternFamilies.bulkPut(patternFamilies);
   await reference.meta.put({
     key: META_KEYS.dataset,
     value: {
@@ -221,5 +224,61 @@ describe("Phase 5a dictionary detail continuity", () => {
     expect(stored.linkedKeys).toEqual([oldCasa, CASA]);
     expect(stored.linkAnnotations).toEqual(originalAnnotations);
     expect(stored.updatedAt).toBe("2026-06-07T08:09:10.000Z");
+  });
+});
+
+describe("Phase 21 conjugation teaching", () => {
+  it("derives an r2 teaching notice from the table without showing an error or siblings", async () => {
+    const sacar = FIXTURE_ENTRIES.find((entry) => entry.id === SACAR);
+    await seedDictionary([sacar], {}, FIXTURE_CONJUGATIONS);
+
+    render(
+      <DictDetail
+        entryId={SACAR}
+        items={[]}
+        onBack={vi.fn()}
+        onOpen={vi.fn()}
+        onChanged={vi.fn()}
+      />
+    );
+
+    expect(await screen.findByText("What to notice")).toBeTruthy();
+    expect(screen.getByText("c becomes qu before e")).toBeTruthy();
+    expect(screen.queryByText("Shares this pattern")).toBeNull();
+    expect(screen.queryByText(/orphan|error|incomplete/i)).toBeNull();
+  });
+
+  it("opens a packaged family sibling through the existing onOpen callback", async () => {
+    const user = userEvent.setup();
+    const onOpen = vi.fn();
+    const sacar = FIXTURE_ENTRIES.find((entry) => entry.id === SACAR);
+    const buscar = {
+      id: "dict:fixture:buscar:verb",
+      lemma: "buscar",
+      pos: "verb",
+      senses: [{ gloss: "to look for" }],
+      conjugationId: "conj:fixture:buscar",
+      freqRank: 50,
+    };
+    await seedDictionary(
+      [sacar, buscar],
+      {},
+      FIXTURE_CONJUGATIONS,
+      [{ id: "spelling:c-qu", memberIds: [SACAR, buscar.id] }]
+    );
+
+    render(
+      <DictDetail
+        entryId={SACAR}
+        items={[]}
+        onBack={vi.fn()}
+        onOpen={onOpen}
+        onChanged={vi.fn()}
+      />
+    );
+
+    expect(await screen.findByText("Shares this pattern")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "buscar" }));
+    expect(onOpen).toHaveBeenCalledWith(buscar.id);
   });
 });

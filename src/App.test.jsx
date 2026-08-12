@@ -4,12 +4,13 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import userEvent from "@testing-library/user-event";
 import App from "./App.jsx";
 import { db, clearAllPersonalData, getPref, setPref } from "./db/db.js";
-import { EVENT_TYPES, logEvent } from "./db/events.js";
+import { EVENT_TYPES, allEvents, logEvent } from "./db/events.js";
 import { allItems, createItem, getItem, linkItems, newLexical, newPage } from "./db/items.js";
 import { removeDictionary } from "./db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "./db/ref/refdb.js";
 import {
   FIXTURE_ENGLISH_SHARDS,
+  FIXTURE_CONJUGATIONS,
   FIXTURE_ENTRIES,
   FIXTURE_FORM_SHARDS,
 } from "./test/dictFixture.js";
@@ -19,6 +20,7 @@ import { TAG_COLORS_PREF } from "./lib/tagColors.js";
 import { newNoteSection } from "./lib/pageKinds.js";
 
 const CASA = "dict:wiktionary-es:casa:noun";
+const SACAR = "dict:wiktionary-es:sacar:verb";
 
 beforeEach(async () => {
   await removeDictionary();
@@ -48,6 +50,55 @@ async function seedDictionary(entryIds = [CASA]) {
     },
   });
   setActiveSlot(slot);
+}
+
+async function seedConjugationFamily() {
+  const slot = "a";
+  const reference = refDb(slot);
+  const sacar = FIXTURE_ENTRIES.find((entry) => entry.id === SACAR);
+  const buscar = {
+    id: "dict:fixture:buscar:verb",
+    lemma: "buscar",
+    pos: "verb",
+    senses: [{ gloss: "to look for" }],
+    conjugationId: "conj:fixture:buscar",
+    conjugationPatternIds: ["spelling:c-qu"],
+    freqRank: 100,
+  };
+  const buscarTable = {
+    id: buscar.conjugationId,
+    source: "fixture",
+    gerund: "buscando",
+    pastParticiple: "buscado",
+    tenses: {
+      "Indicative/Present": {
+        yo: "busco", "tú": "buscas", "él/ella/usted": "busca",
+        nosotros: "buscamos", "ustedes/ellos": "buscan", vosotros: "buscáis",
+      },
+      "Indicative/Preterite": {
+        yo: "busqué", "tú": "buscaste", "él/ella/usted": "buscó",
+        nosotros: "buscamos", "ustedes/ellos": "buscaron", vosotros: "buscasteis",
+      },
+      "Subjunctive/Present": {
+        yo: "busque", "tú": "busques", "él/ella/usted": "busque",
+        nosotros: "busquemos", "ustedes/ellos": "busquen", vosotros: "busquéis",
+      },
+    },
+  };
+
+  await reference.entries.bulkPut([sacar, buscar]);
+  await reference.conjugations.bulkPut([...FIXTURE_CONJUGATIONS, buscarTable]);
+  await reference.patternFamilies.put({ id: "spelling:c-qu", memberIds: [SACAR, buscar.id] });
+  await reference.meta.put({
+    key: META_KEYS.dataset,
+    value: {
+      datasetVersion: "phase-21-fixture",
+      counts: { entries: 2, patternFamilies: 1 },
+      previousIds: {},
+    },
+  });
+  setActiveSlot(slot);
+  return { sacar, buscar };
 }
 
 async function linkedTrail() {
@@ -142,6 +193,32 @@ describe("Phase 5a navigation continuity", () => {
 
     await user.click(screen.getByRole("button", { name: "Atrás" }));
     expect(await screen.findByText("casa", { selector: ".text-2xl" })).toBeTruthy();
+  });
+
+  it("navigates dictionary verb → family sibling → Atrás with one view per verb", async () => {
+    const user = userEvent.setup();
+    const { buscar } = await seedConjugationFamily();
+    await createItem(newLexical({ term: "verb source", linkedKeys: [SACAR] }));
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: /^verb source$/ }));
+    await user.click(await screen.findByRole("button", { name: /^sacar/ }));
+    expect(await screen.findByText("Shares this pattern")).toBeTruthy();
+
+    window.scrollTo.mockClear();
+    await user.click(screen.getByRole("button", { name: "buscar" }));
+    expect(await screen.findByText("buscar", { selector: ".text-2xl" })).toBeTruthy();
+    await waitFor(() => expect(window.scrollTo).toHaveBeenLastCalledWith(0, 0));
+
+    await user.click(screen.getByRole("button", { name: "Atrás" }));
+    expect(await screen.findByText("sacar", { selector: ".text-2xl" })).toBeTruthy();
+
+    await waitFor(async () => {
+      const views = (await allEvents()).filter((event) =>
+        event.type === EVENT_TYPES.view && [SACAR, buscar.id].includes(event.itemKey)
+      );
+      expect(views.map((event) => event.itemKey).sort()).toEqual([SACAR, buscar.id].sort());
+    });
   });
 });
 
