@@ -52,6 +52,8 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
+| Select text to look up | 2026-08-12 | Captured | Any time; read-only navigation glue over existing search |
+| Paste a vocabulary list | 2026-08-12 | Captured | Needs a design discussion first: parsing, per-row meanings, event honesty |
 | PWA app shortcuts | 2026-08-12 | Captured | Any time; manifest-only, recorded so it is not forgotten |
 | "Did you mean" search suggestions | 2026-08-12 | Captured | Any time; a suggestion layer that leaves `normalize.js` untouched |
 | English→Spanish lookup | 2026-08-12 | Captured | Needs a reference-layer index decision (pipeline and §5 seam) |
@@ -94,6 +96,112 @@ Useful information to retain for each idea:
 ---
 
 ## Active ideas
+
+### Select text to look up
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Owner suggestion, assessed and requested for the list 2026-08-12
+- **Owner interest:** Requested after review of the assessment.
+- **Potential data impact:** None; read-only navigation glue, no storage, no events beyond what
+  the destination screens already log
+
+#### Description and current context
+
+Select a Spanish word or phrase inside a rendered Page or Diario entry and send it directly to
+the existing dictionary/notebook search. The machinery mostly exists: two-layer search already
+resolves inflected forms to their lemmas, and cross-tab Back navigation already retains the route
+and search context that led to an entry, so returning to the paragraph after a lookup is solved
+behavior. This is the lightweight sibling of the uncaptured assisted-reading idea — one word at
+the moment of curiosity rather than annotating a whole text — and shipping it would generate
+evidence for or against building assisted reading later. The Android share target (below) is the
+same capture instinct pointed at text *outside* the app; this handles text already inside it.
+
+#### Risks and tradeoffs
+
+- The real design question is phone selection UX: Android's own text-selection toolbar competes
+  for the same gesture, so the app needs its own quiet lookup affordance when a selection exists
+  inside read-mode text, without fighting the system menu.
+- Selection over rendered Markdown must yield clean text (selection APIs largely do this), and
+  multi-paragraph or very long selections should degrade to something sensible rather than a
+  garbage query.
+
+#### Evidence needed
+
+- None beyond real use; the friction (retyping a word you are already looking at) is
+  self-evident, and the cost is small.
+
+---
+
+### Paste a vocabulary list
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Owner suggestion, assessed and requested for the list 2026-08-12; absorbs the
+  earlier uncaptured "bulk vocabulary import from a wordlist" brainstorm as its file-based
+  variant
+- **Owner interest:** Requested after review of the assessment; needs a design discussion before
+  any plan.
+- **Potential data impact:** New ordinary lexical entries only, created explicitly; no schema,
+  backup or event-type change expected
+
+#### Description and current context
+
+Paste several lines copied from a lesson, subtitle list, or notes; preview each line's dictionary
+match and duplicate status; then explicitly create only the selected entries as ordinary personal
+words and phrases. Today vocabulary enters one entry at a time, which makes a lesson's worth of
+words a chore. The project already holds every precedent this needs: the Collection picker's
+staged quick-create, Phase 5f's duplicate guardrails, and Phase 12's import sheet — preview rows,
+nothing selected by default, explicit confirm — is practically the template.
+
+**Non-goal boundary, stated deliberately:** §13's merge-mode-import non-goal is about merging two
+notebook *states* (backup files). This is explicit, previewed creation of new content and sits on
+the safe side of that line — but it is near enough that the boundary should be restated in any
+approved plan rather than assumed.
+
+#### Potential options
+
+1. **Paste-based (primary).** A textarea accepting one term per line; the simplest and safest
+   parse.
+2. **Pair parsing.** Split "term — meaning" lines into a prefilled meaning, which is what lesson
+   notes actually look like; more useful and more ways to misparse.
+3. **File-based variant (the earlier bulk-import brainstorm).** Accept a CSV or an exported list
+   from another app through the same preview/confirm core. Same feature, different mouth; only
+   worth its extra handling if a real file source exists in the owner's life.
+
+#### Expected owner value
+
+- Turns a lesson, episode, or article's vocabulary into notebook entries in one sitting instead
+  of many.
+- The preview step doubles as triage: duplicates surface before creation, and dictionary matches
+  offer attachment at creation time.
+
+#### Risks and tradeoffs
+
+- **Hollow entries are the real hazard.** A bulk-created entry with no meanings is dead weight —
+  card surfaces already exclude and explain meaningless entries. The preview should lean on each
+  row's dictionary match to offer Phase 12-style sense import, or the feature manufactures a pile
+  of entries the learning surfaces skip.
+- **Event honesty.** N creations write N ordinary events into Recent activity and the streak —
+  the same deliberate trade-off Phase 20 made for tag batches; its watch-item reasoning applies
+  verbatim here.
+- Parsing is where scope creeps: separators, duplicate lines within the paste, phrases versus
+  words, and leading articles ("la mochila") all need unglamorous decisions.
+
+#### Evidence needed
+
+- Where the owner's lists actually come from (lesson notes, subtitles, another app's export),
+  which decides between paste-only and the file variant, and whether pair parsing is worth its
+  misparse risk.
+
+#### Questions for a future discussion
+
+- Does this live in the Words & phrases hub, the Cuaderno add flow, or both?
+- Should a row with a dictionary match default to attaching the entry (`dictKey`), matching how
+  the Collection picker treats dictionary selections?
+- Is there any appetite for the file-based variant now, or does paste cover the real cases?
+
+---
 
 ### PWA app shortcuts
 
@@ -1133,6 +1241,15 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-12 — Two owner-suggested ideas captured: Select text to look up and Paste a
+  vocabulary list.** Both were owner suggestions assessed in discussion and requested for the
+  list. The paste entry absorbs the earlier uncaptured "bulk vocabulary import from a wordlist"
+  brainstorm as its file-based variant, and deliberately restates the §13 merge-mode-import
+  boundary it sits beside: merging notebook states remains a non-goal, while explicit previewed
+  creation of new entries is on the safe side of that line. A third suggestion from the same
+  discussion, reading the owner's writing aloud through the existing on-device voice, was
+  assessed favorably but not requested for capture. Neither captured idea is approved work.
 
 - **2026-08-12 — Owner-approved restructure: three bands, compressed history, and convention
   updates.** The document reorganized into Active / Deferred / Implemented (history) bands with a
