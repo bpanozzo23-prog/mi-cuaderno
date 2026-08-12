@@ -54,10 +54,10 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   with one narrow feature rather than an app-wide assistant: a user-initiated review of a single
   Diario entry, judging whether it is understandable and where it is correct but unnatural. Off by
   default, enabled in Ajustes behind an acknowledged Anthropic spend cap, using the owner's own key
-  stored on-device and never exported. The review is session-only — nothing is stored, no event is
-  logged, and it disappears when you leave the entry. §9's assistant Q&A over the notebook and its
-  approved proposed entries remain unbuilt. See the Phase 6 entries in
-  [DECISIONS.md](DECISIONS.md).
+  stored on-device and never exported. The review was originally session-only; the second slice
+  (2026-08-11, below) now persists the latest review on its entry. No event is logged either way.
+  §9's assistant Q&A over the notebook and its approved proposed entries remain unbuilt. See the
+  Phase 6 entries in [DECISIONS.md](DECISIONS.md).
 - **Phase 7 — shipped.** Schema v5 replaces the
   exclusive General/Collection profile with composable Notes, Vocabulary, Source, and Grammar
   behavior while retaining only lexical items and pages. The implementation includes sequential
@@ -202,7 +202,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   failure proofs reddened as intended, and a disposable 375×812 closeout passed without overflow
   or console warnings/errors. See the approved [direction](docs/PHASE-17-DIRECTION.md) and
   [implementation report](docs/PHASE-17-REPORT.md).
-- **Phase 18 — implemented and verified locally; not deployed.** Tense usage now supports
+- **Phase 18 — deployed.** Tense usage now supports
   self-graded recall from a tense to all of its curated uses, while Endings adds five-field typed
   production with exact-first accent grading, locked passing fields, one retry and one optional
   de-duplicated missed round. A centralized grouped pool picker adds balanced 18-verb Regular and
@@ -221,16 +221,16 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   The final serial suite passes 1,204/1,204 across 103 files, the production build and
   `git diff --check` pass, and a disposable 375×812 integrated flow passed without horizontal
   overflow or console warnings/errors. `main` deployed at `4f73a45`, and the owner confirmed the
-  production smoke screen passed. A follow-up explicit Notes-callout increment is implemented and
-  verified locally but not deployed: Page Notes editors keep Block quote and add Note callout,
+  production smoke screen passed. Two follow-up increments are also deployed: Page Notes editors
+  keep Block quote and add Note callout,
   `[!NOTE]` markers render as accessible Notes-blue panels and stay out of visible-text consumers,
-  and a second local follow-up adds non-destructive Blank line controls to Page Notes, Grammar
+  and the second adds non-destructive Blank line controls to Page Notes, Grammar
   Overviews and Diario while leaving lexical notes unchanged. Exact standalone `<br>` markers
   render as spacing and stay out of visible-text consumers; the combined suite passes 1,214/1,214.
   Phase 19 may group later related owner-approved Page organization/formatting increments, but does
   not pre-approve unknown scope. See the approved [direction](docs/PHASE-19-DIRECTION.md) and
   [implementation report](docs/PHASE-19-REPORT.md).
-- **Phase 20 — implemented and verified locally; not deployed.** Ajustes now manages every exact
+- **Phase 20 — deployed.** Ajustes now manages every exact
   personal tag globally: rename to an unused spelling, explicitly merge into an existing tag, or
   remove it without deleting entries. One atomic transaction preserves item timestamps, records
   one ordinary `edit` per changed item and applies the approved colour rule; lossy confirmations
@@ -288,12 +288,40 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   files, the production build passes, and a disposable 375×812 browser flow passed without
   overflow or console warnings/errors. See the Optional Grammar key idea entries in
   [DECISIONS.md](DECISIONS.md).
+- **Persisted Diario feedback (Phase 6, second slice) — deployed.** The latest AI review of a
+  Diario entry is now stored on the entry it judged, reversing the original session-only design:
+  acting on feedback meant opening the editor, which destroyed it. Schema v8 adds a `feedback`
+  field to every page (`null` when absent); Ask again replaces it back through the §9 disclosure,
+  Remove clears it, and saving a review moves no `updatedAt` and logs no event, so recency,
+  lookup counts and Repaso evidence never move. Staleness is a content hash of the reviewed text,
+  never a timestamp. The editor shows the stored review read-only below the body, and the reader
+  keeps a stored review readable even when the AI feature is off. Backups validate the field at
+  v8, reject it below, and upgrade v1–v7 envelopes; the export-first gate covers v7 databases,
+  and a hotfix strips the AI key from the pre-upgrade export exactly as ordinary backups do. See
+  the Phase 6 second-slice entries in [DECISIONS.md](DECISIONS.md).
+- **Inline media rendering — deployed.** The safe notebook Markdown dialect now renders
+  `![alt](url)` images and `[label](url)` hyperlinks when the URL is https: block-level always,
+  height-capped for the phone viewport, lazy and no-referrer, tap opens the source in a new tab,
+  and a failed load or non-https URL degrades to readable text. Media-link rows on lexical
+  entries, pages and Diario preview image-extension URLs below the unchanged link row, and the
+  editor toolbar gains an Image action with the placeholder URL pre-selected. Rendering only —
+  stored strings, schema, backups and the plain-text projection are untouched, so search,
+  previews, the AI request path and review staleness never see an image. See the inline-media
+  entries in [DECISIONS.md](DECISIONS.md).
+- **Picture-front flashcards — deployed.** A forward card whose item has a direct-image media
+  link shows that picture as the question, in both scheduled Repaso and free practice. The face
+  rides the same session-start snapshot as cloze (which it outranks; reverse stays excluded),
+  the reveal adds the word beside the picture, and Type mode marks the term through the existing
+  checker. Only the URL reaches the card — the link label would usually leak the answer — and a
+  failed load degrades to the plain term front so no graded card is ever stranded. Scheduled
+  grades log `face: "image"` as additive metadata nothing reads. No schema, preference, backup
+  or event-type change. See the picture-front entries in [DECISIONS.md](DECISIONS.md).
 
-`SCHEMA_VERSION` is **7**. Before Dexie opens v7, schema-v1 through schema-v6 owners must save and
+`SCHEMA_VERSION` is **8**. Before Dexie opens v8, schema-v1 through schema-v7 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
-relationship, composable-page, Grammar-hierarchy and Structured-Notes migrations in order. Backup
-schemas 1 through 7 are accepted, upgraded sequentially in memory, deeply validated as v7, and
-only then offered for replace-and-restore; newer versions remain blocked.
+relationship, composable-page, Grammar-hierarchy, Structured-Notes and entry-feedback migrations
+in order. Backup schemas 1 through 8 are accepted, upgraded sequentially in memory, deeply
+validated as v8, and only then offered for replace-and-restore; newer versions remain blocked.
 
 ## Testing
 

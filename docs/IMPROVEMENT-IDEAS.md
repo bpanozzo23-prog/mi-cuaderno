@@ -39,16 +39,17 @@ Useful information to retain for each idea:
 |---|---|---|---|
 | Source-oriented page templates | 2026-08-02 | Implemented and deployed | Phase 7 deployed; browser closeout unverified |
 | Meaning-block presentation | 2026-08-02 | Implemented and shipped | Phase 4i |
-| Typed or explained relationships | 2026-08-02 | Implemented locally | Phase 4t–4x browser closeout pending |
+| Typed or explained relationships | 2026-08-02 | Implemented and deployed | Phase 4t–4x deployed 2026-08-04; browser closeout was never claimed |
 | Saved views | 2026-08-02 | Captured | After observing repeated retrieval/filter patterns — Phase 8 adds lenses that can supply that evidence |
 | Persistent page profiles | 2026-08-02 | Implemented and deployed | Phase 7 deployed; browser closeout unverified |
 | Personal-content provenance | 2026-08-02 | Captured | Before or alongside Phase 6 AI design; source needs can be studied earlier |
-| Learning depth (cloze, reverse, drill, audio) | 2026-08-06 | Implemented locally | Phase 10a–10d; deferred members need real-use evidence |
-| Owner-centric stats (streak, calendar, growth, ladder, per-item strip) | 2026-08-06 | Implemented locally | Phase 11; retention, coverage and per-direction breakdowns need real data volume |
+| Learning depth (cloze, reverse, drill, audio) | 2026-08-06 | Implemented and deployed | Phase 10a–10d deployed; deferred members need real-use evidence |
+| Owner-centric stats (streak, calendar, growth, ladder, per-item strip) | 2026-08-06 | Implemented and deployed | Phase 11 deployed; retention, coverage and per-direction breakdowns need real data volume |
 | Grammar guide depth and callouts | 2026-08-10 | Implemented and deployed | Phase 19 first release |
 | Structured Notes outlines | 2026-08-10 | Implemented and deployed | Phase 19 schema-v7 increment; production smoke passed |
-| Explicit Notes callouts | 2026-08-10 | Implemented locally | Phase 19 rendering/editor increment verified; not deployed; schema stays v7 |
-| Global tag management | 2026-08-10 | Implemented locally | Phase 20 verified; not deployed |
+| Explicit Notes callouts | 2026-08-10 | Implemented and deployed | Phase 19 rendering/editor increment; schema stayed v7 |
+| Markdown blank-line spacing | 2026-08-10 | Implemented and deployed | Phase 19 spacing increment; schema stayed v7 |
+| Global tag management | 2026-08-10 | Implemented and deployed | Phase 20 |
 | Phase 19/20 review nits (edge polish) | 2026-08-10 | Captured | Whenever a related area is next touched; none is urgent |
 
 ---
@@ -89,7 +90,7 @@ made obsolete by later phases.
 ## Global tag management
 
 - **Date added:** 2026-08-10
-- **Status:** Implemented and verified locally as Phase 20; not deployed
+- **Status:** Implemented as Phase 20 and deployed
 - **Origin:** Existing spelling variants and obsolete tags required one edit per affected entry
 - **Potential data impact:** None beyond existing item tags, ordinary edit events and the backed-up
   `tagColors` preference; schema remains v6
@@ -131,7 +132,7 @@ follow-up product decision.
 ## Explicit Notes callouts
 
 - **Date added:** 2026-08-10
-- **Status:** Implemented and verified locally as a Phase 19 increment; not deployed
+- **Status:** Implemented as a Phase 19 increment and deployed
 - **Origin:** Follow-up real-use request after Structured Notes deployed
 - **Potential data impact:** None; explicit `[!NOTE]` syntax remains inside existing Markdown strings
 
@@ -151,7 +152,7 @@ returned to zero items without overflow or console warnings/errors.
 ## Markdown blank-line spacing
 
 - **Date added:** 2026-08-10
-- **Status:** Implemented and verified locally as a Phase 19 increment; not deployed
+- **Status:** Implemented as a Phase 19 increment and deployed
 - **Origin:** Real-use need for deliberate visual spacing that repeated empty Markdown lines cannot preserve
 - **Potential data impact:** None; exact standalone `<br>` markers remain inside existing Markdown strings
 
@@ -231,7 +232,7 @@ owner confirmed the production smoke screen passed after the Structured Notes in
 
 - **Date added:** 2026-08-02
 - **Last reviewed:** 2026-08-04
-- **Status:** Implemented locally
+- **Status:** Implemented and deployed as Phase 7
 - **Origin:** Preliminary information-architecture review and follow-up discussion
 - **Potential data impact:** Implemented schema-v5 Source and Grammar structures; no new stores or
   indexes and no stored starter/template identity
@@ -465,7 +466,7 @@ backup, import, search, Repaso and verification decisions are recorded under Pha
 
 - **Date added:** 2026-08-02
 - **Last reviewed:** 2026-08-04
-- **Status:** Implemented locally — Phase 4t–4x browser closeout pending
+- **Status:** Implemented and deployed — the Phase 4t–4x disposable browser closeout was never claimed
 - **Origin:** Preliminary information-architecture review and follow-up discussion
 - **Potential data impact:** ~~Low for clearer direction labels; high for persisted relationship
   types or explanations~~ **High and approved: schema v4 persists sparse relationship annotations**
@@ -659,7 +660,7 @@ one control set. That is an argument for waiting on real use, not for building i
 
 - **Date added:** 2026-08-02
 - **Last reviewed:** 2026-08-04
-- **Status:** Implemented locally
+- **Status:** Implemented and deployed as Phase 7
 - **Origin:** Preliminary information-architecture review and follow-up discussion
 - **Potential data impact:** General and Vocabulary Collection shipped in schema v3; Phase 7
   implements schema-v5 composable focus/capabilities without new stores or indexes
@@ -1004,7 +1005,7 @@ backup plan.
 
 - **Date added:** 2026-08-06
 - **Last reviewed:** 2026-08-06
-- **Status:** Implemented locally — Phase 10a–10d, not deployed
+- **Status:** Implemented and deployed — Phase 10a–10d
 - **Origin:** Owner asked what additional learning features the app could support
 - **Potential data impact:** None. No schema change, no new event types, no stored counters;
   `SCHEMA_VERSION` stays 4 and backups are untouched
@@ -1065,6 +1066,16 @@ cheapest — all derivable from existing data — were approved together as Phas
 ---
 
 ## Document history
+
+- **2026-08-11 — Status sweep: stale "implemented locally; not deployed" claims synced to
+  deployed reality.** Local `main` and `origin/main` both sit at `9503f96`, and the GitHub Pages
+  runs for the recent pushes (through the picture-front commit) completed successfully, so
+  Phases 10, 11, 4t–4x, 7, the Phase 19 callout/blank-line increments and Phase 20 are all live.
+  Index rows and section Status lines were updated, and a missing index row was added for
+  Markdown blank-line spacing. `README.md` was synced in the same pass: `SCHEMA_VERSION` corrected
+  to 8, and bullets added for the three deployed 2026-08-11 increments (persisted Diario feedback,
+  inline media rendering, picture-front flashcards). Document-history entries below keep their
+  original wording as history. No idea changed approval state.
 
 - **2026-08-06 — Phase 10a–10d implemented locally.** Recorded the learning-depth batch: session
   direction, cloze cards, the ungraded conjugation drill and browser pronunciation, all without a
