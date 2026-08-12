@@ -227,6 +227,56 @@ describe("MarkdownTextarea", () => {
     expect(field.value).toBe("hola\n");
   });
 
+  it("previews the rendered draft and returns to editing with the value untouched", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="**hola**" />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+
+    expect(field.hidden).toBe(true);
+    const rendered = screen.getByText("hola");
+    expect(rendered.tagName).toBe("STRONG");
+    expect(screen.getByRole("button", { name: "Bold" }).disabled).toBe(true);
+
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+
+    expect(field.hidden).toBe(false);
+    expect(field.value).toBe("**hola**");
+    expect(screen.getByRole("button", { name: "Bold" }).disabled).toBe(false);
+    field.focus();
+    field.setSelectionRange(2, 6);
+    await user.click(screen.getByRole("button", { name: "Bold" }));
+    expect(field.value).toBe("hola");
+  });
+
+  it("previews Grammar blockquotes as Note callouts when calloutBlockquotes is set", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="> nota" calloutBlockquotes quoteLabel="Note callout" />);
+
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+
+    expect(screen.getByRole("note")).toBeTruthy();
+  });
+
+  it("previews explicit [!NOTE] callouts for Page Notes", async () => {
+    const user = userEvent.setup();
+    render(<Field initial={"> [!NOTE]\n> hola"} noteCallouts />);
+
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+
+    expect(screen.getByRole("note")).toBeTruthy();
+  });
+
+  it("previews an empty draft as a placeholder instead of a bare box", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="" />);
+
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+
+    expect(screen.getByText("Nothing to preview yet")).toBeTruthy();
+  });
+
   it("keeps selected paragraphs inside one callout", async () => {
     const user = userEvent.setup();
     render(<Field initial={"First paragraph\n\nSecond paragraph"} quoteLabel="Note callout" />);

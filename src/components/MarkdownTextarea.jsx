@@ -1,9 +1,10 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
-  BetweenHorizontalStart, Bold, Heading2, Highlighter, Image as ImageIcon, Italic, List,
+  BetweenHorizontalStart, Bold, Eye, Heading2, Highlighter, Image as ImageIcon, Italic, List,
   ListOrdered, Minus, Quote, StickyNote,
 } from "lucide-react";
 import { C } from "../theme.jsx";
+import MarkdownText from "./MarkdownText.jsx";
 
 const INLINE_ACTIONS = [
   { label: "Bold", icon: Bold, before: "**", after: "**" },
@@ -40,15 +41,17 @@ function lineRange(value, start, end) {
   return [rangeStart, nextBreak === -1 ? value.length : nextBreak];
 }
 
-function ToolbarButton({ label, icon: Icon, onAction }) {
+function ToolbarButton({ label, icon: Icon, onAction, disabled = false, pressed = null }) {
   return (
     <button
       type="button"
       aria-label={label}
       title={label}
+      disabled={disabled}
+      aria-pressed={pressed === null ? undefined : pressed}
       onPointerDown={(event) => event.preventDefault()}
       onClick={onAction}
-      className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border"
+      className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border disabled:opacity-40"
       style={{ background: C.card, borderColor: C.line, color: C.ink }}
     >
       <Icon size={16} aria-hidden="true" />
@@ -56,7 +59,9 @@ function ToolbarButton({ label, icon: Icon, onAction }) {
   );
 }
 
-function MarkdownToolbar({ textareaRef, value, onChange, quoteLabel, noteCallouts, blankLines }) {
+function MarkdownToolbar({
+  textareaRef, value, onChange, quoteLabel, noteCallouts, blankLines, previewing, onTogglePreview,
+}) {
   function inline(before, after) {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -183,17 +188,19 @@ function MarkdownToolbar({ textareaRef, value, onChange, quoteLabel, noteCallout
         <ToolbarButton
           key={action.label}
           {...action}
+          disabled={previewing}
           onAction={() => inline(action.before, action.after)}
         />
       ))}
-      <ToolbarButton label="Heading" icon={Heading2} onAction={() => prefixLines("heading")} />
-      <ToolbarButton label="Bulleted list" icon={List} onAction={() => prefixLines("bullet")} />
-      <ToolbarButton label="Numbered list" icon={ListOrdered} onAction={() => prefixLines("ordered")} />
-      <ToolbarButton label={quoteLabel} icon={Quote} onAction={() => prefixLines("quote")} />
-      {noteCallouts && <ToolbarButton label="Note callout" icon={StickyNote} onAction={noteCallout} />}
-      {blankLines && <ToolbarButton label="Blank line" icon={BetweenHorizontalStart} onAction={blankLine} />}
-      <ToolbarButton label="Image link" icon={ImageIcon} onAction={imageLink} />
-      <ToolbarButton label="Divider" icon={Minus} onAction={divider} />
+      <ToolbarButton label="Heading" icon={Heading2} disabled={previewing} onAction={() => prefixLines("heading")} />
+      <ToolbarButton label="Bulleted list" icon={List} disabled={previewing} onAction={() => prefixLines("bullet")} />
+      <ToolbarButton label="Numbered list" icon={ListOrdered} disabled={previewing} onAction={() => prefixLines("ordered")} />
+      <ToolbarButton label={quoteLabel} icon={Quote} disabled={previewing} onAction={() => prefixLines("quote")} />
+      {noteCallouts && <ToolbarButton label="Note callout" icon={StickyNote} disabled={previewing} onAction={noteCallout} />}
+      {blankLines && <ToolbarButton label="Blank line" icon={BetweenHorizontalStart} disabled={previewing} onAction={blankLine} />}
+      <ToolbarButton label="Image link" icon={ImageIcon} disabled={previewing} onAction={imageLink} />
+      <ToolbarButton label="Divider" icon={Minus} disabled={previewing} onAction={divider} />
+      <ToolbarButton label="Preview" icon={Eye} pressed={previewing} onAction={onTogglePreview} />
     </div>
   );
 }
@@ -206,11 +213,26 @@ export default function MarkdownTextarea({
   quoteLabel = "Block quote",
   noteCallouts = false,
   blankLines = false,
+  calloutBlockquotes = false,
   onKeyDown = null,
   ...props
 }) {
   const localRef = useRef(null);
   const ref = textareaRef || localRef;
+  const [previewing, setPreviewing] = useState(false);
+  const [previewMinHeight, setPreviewMinHeight] = useState(0);
+
+  function togglePreview() {
+    if (!previewing) {
+      // Freeze the editor's current height under the preview so the layout doesn't jump.
+      setPreviewMinHeight(ref.current?.offsetHeight || 0);
+      setPreviewing(true);
+      return;
+    }
+    setPreviewing(false);
+    const textarea = ref.current;
+    if (textarea) focusSelection(textarea, textarea.selectionStart, textarea.selectionEnd);
+  }
 
   function continueListOnEnter(event) {
     onKeyDown?.(event);
@@ -252,10 +274,32 @@ export default function MarkdownTextarea({
         quoteLabel={quoteLabel}
         noteCallouts={noteCallouts}
         blankLines={blankLines}
+        previewing={previewing}
+        onTogglePreview={togglePreview}
       />
+      {previewing && (
+        <div
+          className="rounded-lg border px-3 py-2"
+          style={{ background: C.card, borderColor: C.line, minHeight: previewMinHeight || undefined }}
+        >
+          {value.trim() ? (
+            <MarkdownText
+              explicitNoteCallouts={noteCallouts}
+              blankLines={blankLines}
+              calloutBlockquotes={calloutBlockquotes}
+            >
+              {value}
+            </MarkdownText>
+          ) : (
+            <p className="text-sm" style={{ color: C.mut }}>Nothing to preview yet</p>
+          )}
+        </div>
+      )}
+      {/* Hidden, not unmounted: keeps the selection for caret restore and never re-fires autoFocus. */}
       <textarea
         {...props}
         ref={ref}
+        hidden={previewing}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={continueListOnEnter}

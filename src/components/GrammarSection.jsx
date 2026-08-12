@@ -352,6 +352,7 @@ function SectionEditor({ section, childCount = 0, onCancel, onSaved, onDelete })
             <MarkdownTextarea
               aria-label="Grammar section overview"
               blankLines
+              calloutBlockquotes
               quoteLabel="Note callout"
               value={draft.explanation}
               onChange={(explanation) => setDraft((current) => ({ ...current, explanation }))}
