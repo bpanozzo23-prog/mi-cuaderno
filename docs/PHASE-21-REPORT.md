@@ -1,7 +1,7 @@
 # Phase 21 — What to notice and conjugation families (report)
 
-Implemented and verified locally 2026-08-12 on
-`codex/phase-21-conjugation-patterns`; **not pushed or deployed**. The approved behavior and
+Implemented and verified on `codex/phase-21-conjugation-patterns`, then fast-forwarded to `main`
+and deployed 2026-08-12. The approved behavior and
 boundaries remain in [PHASE-21-DIRECTION.md](PHASE-21-DIRECTION.md), and durable choices are in
 `DECISIONS.md` under Phase 21.
 
@@ -108,5 +108,4 @@ This was a DOM/computed-geometry closeout rather than a screenshot claim.
 ## Deliberately deferred
 
 Personal-entry notices, a standalone family browser, derivational word families, Gym integration,
-stored pattern mastery, learning scheduling, and deployment remain outside Phase 21. Pushing or
-deploying requires a separate owner request.
+stored pattern mastery, and learning scheduling remain outside Phase 21.

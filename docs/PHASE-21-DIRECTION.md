@@ -1,6 +1,6 @@
 # Phase 21 — What to notice and conjugation families
 
-**Status:** Implemented and verified locally 2026-08-12; not pushed or deployed.
+**Status:** Implemented, verified, and deployed 2026-08-12.
 **Origin:** The owner approved the active improvement idea after a teaching-first product
 discussion and an architecture review against the replaceable reference-data seam.
 
@@ -112,5 +112,4 @@ regular/singleton omission, sibling navigation, Atrás, and view deduplication.
 Closeout requires focused tests, one deliberately broken classifier/package proof, one deliberately
 broken navigation/ordering proof, the complete serial suite, production build, package verifier,
 `git diff --check`, and a disposable seeded 375×812 numerical browser pass. Repository r3 artifacts
-are prepared locally, and only the manifest-reachable r3 package remains in `public/dict`; pushing
-and deployment require a separate owner request.
+were deployed with only the manifest-reachable r3 package remaining in `public/dict`.

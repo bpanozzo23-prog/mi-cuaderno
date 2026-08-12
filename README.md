@@ -240,7 +240,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   closeout passed without horizontal overflow or console warnings/errors. See the approved
   [direction](docs/PHASE-20-DIRECTION.md) and
   [implementation report](docs/PHASE-20-REPORT.md).
-- **Phase 21 — implemented and verified locally; not pushed or deployed.** Dictionary verb
+- **Phase 21 — deployed.** Dictionary verb
   details now lead their Conjugation card with **What to notice**: actual-paradigm lessons,
   contrastive emphasized forms, and pipeline-verified sibling families. Regular verbs keep one
   quiet hablar/comer/vivir anchor; singleton behavior such as *jugar*'s u→ue teaches without a
