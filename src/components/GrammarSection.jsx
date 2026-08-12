@@ -357,7 +357,7 @@ function SectionEditor({ section, childCount = 0, onCancel, onSaved, onDelete })
               value={draft.explanation}
               onChange={(explanation) => setDraft((current) => ({ ...current, explanation }))}
               placeholder="Explain the rule or contrast in your own words."
-              className="mt-1 min-h-24 w-full resize-y rounded-lg border px-3 py-2 text-sm leading-relaxed outline-none"
+              className="mt-1 min-h-24 w-full rounded-lg border px-3 py-2 text-sm leading-relaxed outline-none"
               style={fieldStyle}
             />
           </label>

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BetweenHorizontalStart, Bold, Eye, Heading2, Highlighter, Image as ImageIcon, Italic, List,
   ListOrdered, Minus, Quote, StickyNote,
@@ -215,6 +215,7 @@ export default function MarkdownTextarea({
   blankLines = false,
   calloutBlockquotes = false,
   onKeyDown = null,
+  className = "",
   ...props
 }) {
   const localRef = useRef(null);
@@ -223,16 +224,24 @@ export default function MarkdownTextarea({
   const [previewMinHeight, setPreviewMinHeight] = useState(0);
 
   function togglePreview() {
-    if (!previewing) {
-      // Freeze the editor's current height under the preview so the layout doesn't jump.
-      setPreviewMinHeight(ref.current?.offsetHeight || 0);
-      setPreviewing(true);
+    // Freeze the editor's current height under the preview so the layout doesn't jump.
+    if (!previewing) setPreviewMinHeight(ref.current?.offsetHeight || 0);
+    setPreviewing((current) => !current);
+  }
+
+  // Restoring the caret has to wait for the commit that unhides the textarea: a hidden element
+  // cannot take focus, so doing this in the click handler silently loses the caret.
+  const wasPreviewing = useRef(false);
+  useEffect(() => {
+    if (previewing) {
+      wasPreviewing.current = true;
       return;
     }
-    setPreviewing(false);
+    if (!wasPreviewing.current) return;
+    wasPreviewing.current = false;
     const textarea = ref.current;
     if (textarea) focusSelection(textarea, textarea.selectionStart, textarea.selectionEnd);
-  }
+  }, [previewing, ref]);
 
   function continueListOnEnter(event) {
     onKeyDown?.(event);
@@ -298,6 +307,9 @@ export default function MarkdownTextarea({
       {/* Hidden, not unmounted: keeps the selection for caret restore and never re-fires autoFocus. */}
       <textarea
         {...props}
+        // Caller sizing classes stay in force: field-sizing grows from their min-height floor.
+        // resize-none because a dragged height would pin the box and defeat that growth.
+        className={`field-sizing-content resize-none ${className}`.trim()}
         ref={ref}
         hidden={previewing}
         value={value}

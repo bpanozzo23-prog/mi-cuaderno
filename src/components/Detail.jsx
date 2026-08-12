@@ -717,7 +717,7 @@ function StandardDetail({
                   ? "Write the page — grammar rules, a source, what happened today…"
                   : "Your notes — mnemonics, gotchas, where you heard it…"
               }
-              className="w-full bg-transparent outline-none text-sm resize-y"
+              className="w-full bg-transparent outline-none text-sm"
               style={{ color: C.ink, minHeight: isPage ? 160 : 96 }}
             />
             <div className="mt-2 flex gap-2">

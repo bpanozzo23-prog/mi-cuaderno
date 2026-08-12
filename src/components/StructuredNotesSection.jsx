@@ -121,7 +121,7 @@ function NotesOverview({ page, onChanged }) {
               value={draft}
               onChange={setDraft}
               placeholder="What is this page or collection about?"
-              className="min-h-32 w-full resize-y rounded-lg border px-3 py-2 text-sm leading-relaxed outline-none"
+              className="min-h-32 w-full rounded-lg border px-3 py-2 text-sm leading-relaxed outline-none"
               style={fieldStyle}
             />
             <div className="mt-3 flex flex-wrap gap-2">
@@ -210,7 +210,7 @@ function NoteSectionEditor({ section, childCount, movesToJournal, onCancel, onSa
               value={draft.body}
               onChange={(body) => setDraft((current) => ({ ...current, body }))}
               placeholder="Explain this part of the page in your own words."
-              className="mt-1 min-h-32 w-full resize-y rounded-lg border px-3 py-2 text-sm leading-relaxed outline-none"
+              className="mt-1 min-h-32 w-full rounded-lg border px-3 py-2 text-sm leading-relaxed outline-none"
               style={fieldStyle}
             />
           </label>

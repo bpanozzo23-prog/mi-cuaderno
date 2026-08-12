@@ -124,7 +124,7 @@ function CollectionDetailsEditor({ item, items, onCancel, onSaved }) {
           aria-label="Page notes"
           value={draft.body}
           onChange={(body) => setDraft((current) => ({ ...current, body }))}
-          className="mt-1 min-h-32 w-full resize-y rounded-lg border px-3 py-2 text-sm outline-none"
+          className="mt-1 min-h-32 w-full rounded-lg border px-3 py-2 text-sm outline-none"
           style={inputStyle}
         />
       </label>

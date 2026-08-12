@@ -274,7 +274,7 @@ export default function JournalEditor({
           value={body}
           onChange={setBody}
           placeholder="What do you want to remember? Write in Spanish, English, or both."
-          className="w-full min-h-80 resize-y rounded-xl border p-3 text-base leading-relaxed outline-none"
+          className="w-full min-h-80 rounded-xl border p-3 text-base leading-relaxed outline-none"
           style={{ background: C.card, borderColor: C.line, color: C.ink, fontFamily: SERIF }}
         />
 

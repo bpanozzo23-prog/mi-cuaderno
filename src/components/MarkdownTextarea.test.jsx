@@ -244,10 +244,27 @@ describe("MarkdownTextarea", () => {
     expect(field.hidden).toBe(false);
     expect(field.value).toBe("**hola**");
     expect(screen.getByRole("button", { name: "Bold" }).disabled).toBe(false);
-    field.focus();
+    // The toggle restores the caret on a frame; let it land before choosing a new selection.
+    await waitFor(() => expect(document.activeElement).toBe(field));
     field.setSelectionRange(2, 6);
     await user.click(screen.getByRole("button", { name: "Bold" }));
     expect(field.value).toBe("hola");
+  });
+
+  it("returns the caret to where it was before previewing", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="uno dos tres" />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(4, 7);
+
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+    // A real browser drops focus when the textarea is hidden; jsdom does not, so do it here.
+    field.blur();
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+
+    await waitFor(() => expect(document.activeElement).toBe(field));
+    expect([field.selectionStart, field.selectionEnd]).toEqual([4, 7]);
   });
 
   it("previews Grammar blockquotes as Note callouts when calloutBlockquotes is set", async () => {
@@ -275,6 +292,15 @@ describe("MarkdownTextarea", () => {
     await user.click(screen.getByRole("button", { name: "Preview" }));
 
     expect(screen.getByText("Nothing to preview yet")).toBeTruthy();
+  });
+
+  it("adds content sizing without dropping the caller's own sizing classes", () => {
+    render(<Field initial="" className="min-h-32 w-full rounded-lg" />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+
+    for (const name of ["field-sizing-content", "min-h-32", "w-full", "rounded-lg"]) {
+      expect(field.classList.contains(name)).toBe(true);
+    }
   });
 
   it("keeps selected paragraphs inside one callout", async () => {
