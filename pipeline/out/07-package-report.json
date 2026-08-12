@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-07-31T21:24:51.798Z",
-  "datasetVersion": "kaikki-es-2026-07-25-r2",
-  "outputDir": "public/dict/kaikki-es-2026-07-25-r2",
+  "generatedAt": "2026-08-12T20:24:30.991Z",
+  "datasetVersion": "kaikki-es-2026-07-25-r3",
+  "outputDir": "public/dict/kaikki-es-2026-07-25-r3",
   "chunkBudgetRawBytes": 1800000,
   "chunks": 15,
   "counts": {
@@ -12,15 +12,20 @@
     "forms": 223500,
     "englishWords": 16063,
     "formShards": 326,
-    "englishShards": 330
+    "englishShards": 330,
+    "patternFamilies": 30
   },
   "bytes": {
-    "rawTotal": 23844073,
-    "gzipTotal": 3440856,
+    "rawTotal": 23898641,
+    "gzipTotal": 3450514,
     "gzipHuman": "3.3 MB",
-    "perEntryGzip": 335,
-    "largestChunkGzip": 548330
+    "perEntryGzip": 336,
+    "largestChunkGzip": 547745
   },
   "budgetNote": "Phase 2 plan budgeted ≤ ~3.5 MB gzipped; the spike measured 2.8 MB before the English index.",
-  "englishIndexCappedTokens": 1
+  "englishIndexCappedTokens": 1,
+  "conjugationPatterns": {
+    "assignedEntries": 599,
+    "discoverableFamilies": 30
+  }
 }

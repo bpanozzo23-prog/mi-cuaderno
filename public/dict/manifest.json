@@ -1,9 +1,9 @@
 {
   "format": "mi-cuaderno-dictionary",
   "formatVersion": 1,
-  "datasetVersion": "kaikki-es-2026-07-25-r2",
-  "generatedAt": "2026-07-31T21:24:51.794Z",
-  "path": "kaikki-es-2026-07-25-r2",
+  "datasetVersion": "kaikki-es-2026-07-25-r3",
+  "generatedAt": "2026-08-12T20:24:30.987Z",
+  "path": "kaikki-es-2026-07-25-r3",
   "counts": {
     "entries": 10278,
     "senses": 21680,
@@ -12,66 +12,67 @@
     "forms": 223500,
     "englishWords": 16063,
     "formShards": 326,
-    "englishShards": 330
+    "englishShards": 330,
+    "patternFamilies": 30
   },
   "bytes": {
-    "total": 23844073,
-    "gzipped": 3440856
+    "total": 23898641,
+    "gzipped": 3450514
   },
   "chunks": [
     {
       "file": "chunk-000.json",
-      "bytes": 1809496,
-      "gzipBytes": 528876,
-      "sha256": "531b3722f4f7f5696751199bcca9ab200664a40bc70e1d0df9962982a9cb51c9",
+      "bytes": 1809148,
+      "gzipBytes": 527956,
+      "sha256": "16d9bedb161c98eb0328058e63901c6ff9cdce9c86bee7ed5ce68e4df0c1e033",
       "rows": {
-        "entries": 2422
+        "entries": 2408
       }
     },
     {
       "file": "chunk-001.json",
-      "bytes": 1809521,
-      "gzipBytes": 546863,
-      "sha256": "86f2e7a110d20b80389457503ec002d6396737730f1cb8a93e09d652d8843eeb",
+      "bytes": 1809467,
+      "gzipBytes": 547421,
+      "sha256": "dc02859cfba757050106e6bcccc725581a3da23602f6528229bf5be6b5c1acab",
       "rows": {
-        "entries": 2582
+        "entries": 2573
       }
     },
     {
       "file": "chunk-002.json",
-      "bytes": 1809899,
-      "gzipBytes": 548330,
-      "sha256": "2ad1c7aab32b96725723e8241ccf4afeb34912d821dedc0339f8be8f4c348995",
+      "bytes": 1809604,
+      "gzipBytes": 547745,
+      "sha256": "4d650a863677b5a8c8b560321daeb5c6e4d2a0a9915a83f971b507ac8d076823",
       "rows": {
-        "entries": 2736
+        "entries": 2724
       }
     },
     {
       "file": "chunk-003.json",
-      "bytes": 1813727,
-      "gzipBytes": 489550,
-      "sha256": "735241a0bd391d080c6268bd68c313da747e7e50a433b6f64ae448f11f69b213",
+      "bytes": 1813142,
+      "gzipBytes": 494103,
+      "sha256": "a9cac9dfe150759075757ef1ce59a1866e237b24c82da177a72a72c09a4b0fec",
       "rows": {
-        "entries": 2538,
-        "conjugations": 157
+        "entries": 2573,
+        "conjugations": 142
       }
     },
     {
       "file": "chunk-004.json",
-      "bytes": 1841149,
-      "gzipBytes": 212537,
-      "sha256": "f522f43f3696b0fece6d242421f04f669c2b1b4c519c541b5df3f4f477b4d5f5",
+      "bytes": 1840701,
+      "gzipBytes": 212643,
+      "sha256": "ba5ae9203541f3174bf1734b54a0664258e2be498116351f9c3aa7713d5a50e6",
       "rows": {
         "conjugations": 951
       }
     },
     {
       "file": "chunk-005.json",
-      "bytes": 1672536,
-      "gzipBytes": 170002,
-      "sha256": "ff5c85c5c1be84edf0b6fd09daa0e9bc9f49e9d2f091c269c2d88bc2288a7d8d",
+      "bytes": 1701891,
+      "gzipBytes": 173000,
+      "sha256": "0c029979bf3300a9fd9bf250616a7ea5cea2e19edd77c05da7e0f0b3328ba08c",
       "rows": {
-        "conjugations": 663,
+        "conjugations": 678,
         "formShards": 3
       }
     },
@@ -79,7 +80,7 @@
       "file": "chunk-006.json",
       "bytes": 996756,
       "gzipBytes": 62374,
-      "sha256": "85f9b320651fc9d75e2c6b3b5cf8488c1f61d4698550e8578016cf24253a3826",
+      "sha256": "2d6711a0901a5b76dec5f13228d18de10d9c42ec299426e2530e07257ad07ba7",
       "rows": {
         "formShards": 14
       }
@@ -87,8 +88,8 @@
     {
       "file": "chunk-007.json",
       "bytes": 1643108,
-      "gzipBytes": 88613,
-      "sha256": "cf4806787f24a9c62d5bbe505131cb6250f15a50522fccbb46b0e82dcf5baaa7",
+      "gzipBytes": 88615,
+      "sha256": "b7ae7e9a43df7cc7199f40de18c3235955baecd5daa2dffac6f8f469b9c937d8",
       "rows": {
         "formShards": 25
       }
@@ -97,7 +98,7 @@
       "file": "chunk-008.json",
       "bytes": 1562865,
       "gzipBytes": 91002,
-      "sha256": "62a9c86a303a4c0bace37e6288132e16e79280b14a7204916bfb7e8f0ca918a6",
+      "sha256": "cd55c734972b3e05244d97c02af972cbd508f7b2624ed58323829627f62dd604",
       "rows": {
         "formShards": 22
       }
@@ -106,7 +107,7 @@
       "file": "chunk-009.json",
       "bytes": 1774112,
       "gzipBytes": 102759,
-      "sha256": "65add3831510beccb329653ebbcfb9507e875ac6eaf7c6d93de4a629d0c4c8a2",
+      "sha256": "313bf160028e4a516b2b28e57710495065e1c5ffadde34d66fe773f62e67a251",
       "rows": {
         "formShards": 22
       }
@@ -115,7 +116,7 @@
       "file": "chunk-010.json",
       "bytes": 1544183,
       "gzipBytes": 93975,
-      "sha256": "7922e4949f522d7f97b5d985f07e5a14fb2dfc3ec025cd72865dd082413bb0ca",
+      "sha256": "0d47c54476d3839df6b5c305bec2e943381819886abcf4f7ba93b14d09abc3f7",
       "rows": {
         "formShards": 48
       }
@@ -123,8 +124,8 @@
     {
       "file": "chunk-011.json",
       "bytes": 1787648,
-      "gzipBytes": 98047,
-      "sha256": "32573a1cc845c6b3c285b9a9efa2c8525a2136af7124f98274daeb570f776c9c",
+      "gzipBytes": 98048,
+      "sha256": "bb09daa7ea946ef78b93b0b371a98b1bd05c3c27d4e69393dd7890cf7d44015d",
       "rows": {
         "formShards": 28
       }
@@ -132,8 +133,8 @@
     {
       "file": "chunk-012.json",
       "bytes": 1786064,
-      "gzipBytes": 105440,
-      "sha256": "08d582ceee8533edd0c6addd3a2b755b26ae093718fb0c0b8b79022ab61e2b5c",
+      "gzipBytes": 105441,
+      "sha256": "dded031ee1b7fe168987097ae76daf49f52ba5366cd63e0f50f31e0aee0cc6ff",
       "rows": {
         "formShards": 164
       }
@@ -142,18 +143,19 @@
       "file": "chunk-013.json",
       "bytes": 1805217,
       "gzipBytes": 272041,
-      "sha256": "7c0ea4a06866eb26b903be525df345057db84da8fe2d49e03d3ccd11fe61fc0d",
+      "sha256": "90181d18a458506b124efab4694c5df1d4aaae7a7e9f1ae67d2cca391c2fd0a2",
       "rows": {
         "englishShards": 134
       }
     },
     {
       "file": "chunk-014.json",
-      "bytes": 187792,
-      "gzipBytes": 30447,
-      "sha256": "8c6b19cb71b8f5da2ef632fc48057bf9b977bb13d79c384a1e1efec7019007d3",
+      "bytes": 214735,
+      "gzipBytes": 33391,
+      "sha256": "94378e509ddaf8dfdfc2a9915fe135aa33f89ae29af895f6642c8c15417827f9",
       "rows": {
-        "englishShards": 196
+        "englishShards": 196,
+        "patternFamilies": 30
       }
     }
   ],

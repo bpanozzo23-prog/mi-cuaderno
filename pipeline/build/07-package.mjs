@@ -6,11 +6,12 @@
  * chunk's sha256, unpacks them into IndexedDB, and searches there. That is what makes the
  * dictionary work offline and what makes a version swap atomic.
  *
- * Four shipped stores:
+ * Five shipped stores:
  *   entries        one row per dictionary entry
  *   conjugations   one row per verb table
  *   formShards     form → entry ids, sharded by first two letters (brief §8 tier 3)
  *   englishShards  english gloss word → entry ids (brief §8 tier 4, "take out" → sacar)
+ *   patternFamilies pattern id → preordered distinct entry ids (Phase 21)
  *
  * The indexes are SHARDED rather than stored one row per form because IndexedDB writes
  * dominate install time: ~700 shard rows land in seconds where 223,000 individual rows
@@ -38,7 +39,14 @@ const EXAMPLE_LICENSE = "CC BY 2.0 FR";
 const { sources, datasetVersion } = readJson(path.join(PIPELINE_DIR, "sources.json"));
 const data = readJson(raw("_entries-final.json"));
 const conjugations = readJson(raw("_conjugations.json"));
+const conjugationPatterns = readJson(raw("_conjugation-pattern-families.json"));
 const entries = data.entries;
+
+if (conjugationPatterns.datasetVersion !== datasetVersion) {
+  throw new Error(
+    `conjugation-pattern sweep is for ${conjugationPatterns.datasetVersion}; run 06b for ${datasetVersion} before packaging`
+  );
+}
 
 const outDir = repo("public", "dict", datasetVersion);
 fs.mkdirSync(outDir, { recursive: true });
@@ -66,6 +74,8 @@ const shipEntry = (e) => {
   const row = { id: e.id, lemma: e.lemma, pos: e.pos };
   if (e.gender) row.gender = e.gender;
   if (e.conjugationId) row.conjugationId = e.conjugationId;
+  const patternIds = conjugationPatterns.assignments[e.id] || [];
+  if (patternIds.length) row.conjugationPatternIds = patternIds;
   if (e.freqRank) row.freqRank = e.freqRank;
   if (e.sourceId) row.sourceId = e.sourceId;
   row.senses = e.senses.map((s) => {
@@ -79,6 +89,7 @@ const shipEntry = (e) => {
 };
 
 const shippedEntries = entries.map(shipEntry);
+const patternFamilies = conjugationPatterns.families;
 
 // The Gym's curated curricula resolve by lemma, so packaging proves every promised
 // verb has one and only one conjugable verb entry. A source refresh may change ids; it may
@@ -184,6 +195,7 @@ const plan = [
   ["conjugations", conjugationRows],
   ["formShards", formShards],
   ["englishShards", englishShards],
+  ["patternFamilies", patternFamilies],
 ];
 
 const chunks = [];
@@ -251,6 +263,7 @@ const manifest = {
     englishWords: englishToIds.size,
     formShards: formShards.length,
     englishShards: englishShards.length,
+    patternFamilies: patternFamilies.length,
   },
   bytes: { total: totalBytes, gzipped: totalGzip },
   chunks,
@@ -300,6 +313,10 @@ const report = {
   },
   budgetNote: "Phase 2 plan budgeted ≤ ~3.5 MB gzipped; the spike measured 2.8 MB before the English index.",
   englishIndexCappedTokens: cappedTokens,
+  conjugationPatterns: {
+    assignedEntries: shippedEntries.filter((entry) => entry.conjugationPatternIds?.length).length,
+    discoverableFamilies: patternFamilies.length,
+  },
 };
 writeJson(out("07-package-report.json"), report);
 
@@ -313,6 +330,7 @@ console.log(`  examples             ${manifest.counts.examples.toLocaleString()}
 console.log(`  conjugation tables   ${manifest.counts.conjugations.toLocaleString()}`);
 console.log(`  searchable forms     ${manifest.counts.forms.toLocaleString()} in ${manifest.counts.formShards} shards`);
 console.log(`  english words        ${manifest.counts.englishWords.toLocaleString()} in ${manifest.counts.englishShards} shards`);
+console.log(`  pattern families     ${manifest.counts.patternFamilies.toLocaleString()} precomputed rows`);
 console.log(`\n  TOTAL DOWNLOAD       ${mb(totalGzip)} gzipped  (${mb(totalBytes)} raw)`);
 console.log(`  per entry            ${report.bytes.perEntryGzip} B gzipped`);
 done(started);

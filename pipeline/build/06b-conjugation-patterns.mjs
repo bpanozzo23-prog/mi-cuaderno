@@ -10,7 +10,8 @@
  * Writes: raw/_conjugation-pattern-families.json,
  *         out/06b-conjugation-pattern-report.json
  */
-import { raw, out, readJson, writeJson, step, done } from "../lib/io.mjs";
+import path from "node:path";
+import { raw, out, readJson, writeJson, step, done, PIPELINE_DIR } from "../lib/io.mjs";
 import {
   analyzeConjugationPatterns,
   canonicalConjugationLemma,
@@ -20,6 +21,7 @@ import {
 const started = step("06b · conjugation teaching patterns");
 const data = readJson(raw("_entries-final.json"));
 const conjugations = readJson(raw("_conjugations.json"));
+const { datasetVersion } = readJson(path.join(PIPELINE_DIR, "sources.json"));
 
 const conjugable = data.entries.filter((entry) => entry.conjugationId && conjugations[entry.conjugationId]);
 const byLemma = new Map();
@@ -133,7 +135,7 @@ const catalog = KNOWN_CONJUGATION_PATTERN_IDS.map((id) => {
 });
 
 const output = {
-  datasetVersion: data.datasetVersion,
+  datasetVersion,
   assignments,
   families,
 };
@@ -141,7 +143,7 @@ writeJson(raw("_conjugation-pattern-families.json"), output);
 
 const report = {
   generatedAt: new Date().toISOString(),
-  datasetVersion: data.datasetVersion,
+  datasetVersion,
   corpus: {
     conjugableEntryRows: conjugable.length,
     distinctLemmas: representatives.length,
@@ -178,4 +180,3 @@ if (!report.top100.passes) {
 }
 
 done(started);
-

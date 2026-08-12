@@ -1,6 +1,6 @@
 /**
  * Round-trips the packaged dictionary: reads the manifest, verifies every chunk's sha256,
- * reassembles the four stores exactly as the app's installer will, and then answers the
+ * reassembles the five stores exactly as the app's installer will, and then answers the
  * brief §12 searches from the reassembled data.
  *
  * This is the check that matters most, because everything before it tests the pipeline's
@@ -14,6 +14,13 @@ import crypto from "node:crypto";
 import { repo, readJson, mb, step, PIPELINE_DIR } from "../lib/io.mjs";
 import { normalize } from "../lib/ids.mjs";
 import { allTenses, HABER_CONJUGATION_ID } from "../../src/lib/conjugation.js";
+import {
+  analyzeConjugationPatterns,
+  canonicalConjugationLemma,
+  isValidConjugationEvidence,
+  KNOWN_CONJUGATION_PATTERN_IDS,
+  regularConjugationModel,
+} from "../../src/lib/conjugationPatterns.js";
 
 step("verify · unpack the shipped chunks and search them");
 
@@ -27,7 +34,7 @@ const manifest = readJson(repo("public", "dict", "manifest.json"));
 const dir = repo("public", "dict", manifest.path);
 
 // ---- integrity ------------------------------------------------------------
-const stores = { entries: [], conjugations: [], formShards: [], englishShards: [] };
+const stores = { entries: [], conjugations: [], formShards: [], englishShards: [], patternFamilies: [] };
 let badHash = 0;
 for (const c of manifest.chunks) {
   const buffer = fs.readFileSync(path.join(dir, c.file));
@@ -100,6 +107,101 @@ check("perfect tenses compose correctly from the shipped data",
 const danglingConj = stores.entries.filter((e) => e.conjugationId && !conjById.has(e.conjugationId));
 check("every conjugationId on an entry resolves to a shipped table", danglingConj.length === 0,
   danglingConj.length ? danglingConj.slice(0, 3).map((e) => e.lemma).join(", ") : "");
+
+// ---- Phase 21 teaching assignments and reverse family store --------------
+const knownPatternIds = new Set(KNOWN_CONJUGATION_PATTERN_IDS);
+const conjugableEntries = stores.entries.filter((entry) => entry.conjugationId && conjById.has(entry.conjugationId));
+const analyses = new Map(conjugableEntries.map((entry) => [
+  entry.id,
+  analyzeConjugationPatterns({ lemma: entry.lemma, conjugation: conjById.get(entry.conjugationId) }),
+]));
+
+const unknownPatternIds = stores.entries.flatMap((entry) => entry.conjugationPatternIds || [])
+  .filter((id) => !knownPatternIds.has(id));
+check("every stored conjugation pattern id is known", unknownPatternIds.length === 0,
+  unknownPatternIds.length ? [...new Set(unknownPatternIds)].join(", ") : `${knownPatternIds.size} catalog ids`);
+
+const assignmentMismatches = conjugableEntries.filter((entry) => {
+  const stored = entry.conjugationPatternIds || [];
+  const recomputed = analyses.get(entry.id).patternIds;
+  return JSON.stringify(stored) !== JSON.stringify(recomputed);
+});
+check("every entry's stored pattern ids exactly equal analyzer recomputation", assignmentMismatches.length === 0,
+  assignmentMismatches.length
+    ? assignmentMismatches.slice(0, 5).map((entry) => entry.lemma).join(", ")
+    : `${conjugableEntries.length.toLocaleString()} conjugable entry rows`);
+
+const invalidEvidence = [];
+for (const entry of conjugableEntries) {
+  for (const notice of analyses.get(entry.id).notices) {
+    if (!isValidConjugationEvidence(notice) || notice.evidence.some((row) => row.slot === "vosotros")) {
+      invalidEvidence.push(`${entry.lemma}:${notice.id}`);
+    }
+  }
+}
+check("every teaching notice has resolvable non-vosotros evidence and emphasis", invalidEvidence.length === 0,
+  invalidEvidence.slice(0, 5).join(", "));
+
+const spanish = new Intl.Collator("es", { sensitivity: "base", usage: "sort" });
+const entryOrder = (a, b) =>
+  (a.freqRank ?? Number.MAX_SAFE_INTEGER) - (b.freqRank ?? Number.MAX_SAFE_INTEGER) ||
+  spanish.compare(a.lemma, b.lemma) || a.id.localeCompare(b.id);
+const entriesByLemma = new Map();
+for (const entry of conjugableEntries) {
+  const key = canonicalConjugationLemma(entry.lemma);
+  if (!entriesByLemma.has(key)) entriesByLemma.set(key, []);
+  entriesByLemma.get(key).push(entry);
+}
+const representatives = [...entriesByLemma.values()].map((rows) => [...rows].sort(entryOrder)[0]).sort(entryOrder);
+const expectedMembers = new Map(KNOWN_CONJUGATION_PATTERN_IDS.map((id) => [id, []]));
+for (const entry of representatives) {
+  for (const id of analyses.get(entry.id).patternIds) expectedMembers.get(id).push(entry.id);
+}
+const expectedFamilies = new Map([...expectedMembers].filter(([, ids]) => ids.length >= 2));
+const familyById = new Map(stores.patternFamilies.map((row) => [row.id, row]));
+
+check("pattern family ids are unique and known",
+  familyById.size === stores.patternFamilies.length && stores.patternFamilies.every((row) => knownPatternIds.has(row.id)),
+  `${stores.patternFamilies.length} rows`);
+
+const familyMismatches = [];
+for (const [id, memberIds] of expectedFamilies) {
+  if (JSON.stringify(familyById.get(id)?.memberIds || null) !== JSON.stringify(memberIds)) familyMismatches.push(id);
+}
+for (const id of familyById.keys()) if (!expectedFamilies.has(id)) familyMismatches.push(id);
+check("family rows exactly equal the analyzer's discoverable reverse mapping", familyMismatches.length === 0,
+  familyMismatches.length ? [...new Set(familyMismatches)].join(", ") : `${expectedFamilies.size} discoverable families`);
+
+const badFamilyMembers = [];
+for (const family of stores.patternFamilies) {
+  for (const memberId of family.memberIds || []) {
+    const entry = entryById.get(memberId);
+    if (!entry?.conjugationId || !(entry.conjugationPatternIds || []).includes(family.id)) {
+      badFamilyMembers.push(`${family.id}:${memberId}`);
+    }
+  }
+}
+check("every family member resolves to a conjugable entry carrying that pattern", badFamilyMembers.length === 0,
+  badFamilyMembers.slice(0, 4).join(", "));
+
+const top100WithoutTeaching = representatives.slice(0, 100).filter((entry) => {
+  const result = analyses.get(entry.id);
+  return !result.regular && result.notices.length === 0;
+});
+check("every top-100 conjugated lemma has a notice or regular summary", top100WithoutTeaching.length === 0,
+  top100WithoutTeaching.map((entry) => entry.lemma).join(", "));
+
+const regularAnchorMismatches = ["hablar", "comer", "vivir"].filter((lemma) => {
+  const entry = representatives.find((candidate) => canonicalConjugationLemma(candidate.lemma) === lemma);
+  const table = entry ? conjById.get(entry.conjugationId) : null;
+  const model = regularConjugationModel(lemma);
+  return !table || table.gerund !== model?.gerund || table.pastParticiple !== model?.pastParticiple ||
+    Object.entries(model?.tenses || {}).some(([tense, row]) =>
+      Object.entries(row).some(([slot, form]) => table.tenses?.[tense]?.[slot] !== form)
+    );
+});
+check("shipped hablar/comer/vivir tables equal the regular teaching models", regularAnchorMismatches.length === 0,
+  regularAnchorMismatches.join(", "));
 
 // ---- referential integrity ------------------------------------------------
 let danglingForms = 0;
