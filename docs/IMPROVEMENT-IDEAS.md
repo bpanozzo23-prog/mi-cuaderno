@@ -52,6 +52,7 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
+| Dictionary word-family explorer | 2026-08-12 | Captured | When the pipeline next reopens (the English→Spanish index is the natural moment); a coverage pass over the raw dump comes first |
 | Select text to look up | 2026-08-12 | Captured | Any time; read-only navigation glue over existing search |
 | Paste a vocabulary list | 2026-08-12 | Captured | Needs a design discussion first: parsing, per-row meanings, event honesty |
 | PWA app shortcuts | 2026-08-12 | Captured | Any time; manifest-only, recorded so it is not forgotten |
@@ -96,6 +97,61 @@ Useful information to retain for each idea:
 ---
 
 ## Active ideas
+
+### Dictionary word-family explorer
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Owner suggestion, assessed and requested for the list 2026-08-12
+- **Owner interest:** Requested after review of the assessment, including the verified data facts
+  below.
+- **Potential data impact:** None to personal data; a new dataset version of the replaceable
+  dictionary package (`mi-cuaderno-ref-a`/`-b`), with the §5 alias/orphan rules carrying the
+  rebuild as usual
+
+#### Description and current context
+
+From *decidir*, explore related shipped lemmas such as *decisión* and *decisivo*, then open or
+save them through existing flows. This is a **derivational**-family feature — words sharing a
+root across parts of speech — and a vocabulary *growth* feature: it teaches "you almost know
+three more words," and pairs naturally with Frequency coverage's "what next?" question.
+
+**Sibling idea, deliberately separate:** "Conjugates like" verb families (below) is the
+**inflectional** counterpart — verbs sharing a paradigm — and a *consolidation* feature. It is
+derivable today from shipped paradigm tables, while this idea needs new shipped data; keeping
+them separate stops the cheap, likely-to-happen idea from inheriting this one's pipeline
+prerequisite.
+
+#### Verified data facts — 2026-08-12
+
+Checked against the repository, not assumed:
+
+- The raw Kaikki dump (`pipeline/raw/kaikki-Spanish.jsonl.gz`) carries the needed fields, per the
+  spike's structure inspection (`pipeline/spike/out/02-kaikki-structure.json`, 807,155 records):
+  `derived` on 6,189 records at word level and 9,183 at sense level; `related` on 5,241 and
+  12,341.
+- The build step that shapes shipped entries (`pipeline/build/04-entries.mjs`) never reads either
+  field — the pipeline currently discards them.
+
+#### Risks and tradeoffs
+
+- **Coverage among kept lemmas is unknown.** The raw counts span mostly inflected-form records,
+  and the pipeline filters lemmas by frequency; what fraction of the shipped 10,278 have a useful
+  family needs a targeted pass over the raw dump before this is worth planning — the analogue of
+  the paradigm-count gate on "Conjugates like".
+- **Family members may not be shipped.** Kaikki's `derived`/`related` lists can point at lemmas
+  the frequency cut excluded, so the explorer must render "not installed" gracefully — and the
+  agent-guide tripwire applies directly: "not installed" is **not** "orphaned".
+- Family derivation must come from this data, never from string-stem heuristics — spelling
+  similarity produces false relatives, and a wrong family member teaches a false connection.
+
+#### Potential timing
+
+The natural build moment is whenever the pipeline reopens for another reason — the
+English→Spanish lookup index (above) is the obvious candidate — so one dataset rebuild carries
+both. The coverage pass needs no rebuild and can run any time.
+
+---
 
 ### Select text to look up
 
@@ -329,6 +385,11 @@ a pattern. A line on a verb's detail — "conjugates like *pedir* (e→i)" with 
 members — turns memorizing one verb into recognizing a class. The Gym already ships curated
 stem-changer and irregular-preterite pools, so the concept of pattern families exists in the
 app's vocabulary; this surfaces it on the reference side where a verb is actually looked up.
+
+**Sibling idea, deliberately separate:** the Dictionary word-family explorer (above) is the
+**derivational** counterpart — *decidir* → *decisión* — and needs new shipped data, while this
+idea derives from paradigm tables already on-device. Same "family at lookup" pattern, very
+different cost.
 
 #### Potential options
 
@@ -1241,6 +1302,16 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-12 — Dictionary word-family explorer captured as its own entry, deliberately
+  separate from "Conjugates like" verb families.** The two share the family-at-lookup pattern
+  but differ in kind (derivational vs. inflectional) and in cost: conjugation families derive
+  from shipped paradigm tables today, while derivational families need a dataset rebuild. The
+  entry records repository-verified facts — the raw Kaikki dump carries `derived`/`related`
+  fields that `pipeline/build/04-entries.mjs` currently discards — plus the two honest caveats
+  (coverage among the shipped 10,278 lemmas is unmeasured; family members may not be shipped,
+  invoking the "not installed" ≠ "orphaned" tripwire) and the timing note that the
+  English→Spanish index rebuild is the natural moment to carry both.
 
 - **2026-08-12 — Two owner-suggested ideas captured: Select text to look up and Paste a
   vocabulary list.** Both were owner suggestions assessed in discussion and requested for the
