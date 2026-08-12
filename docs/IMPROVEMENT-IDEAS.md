@@ -53,6 +53,11 @@ Useful information to retain for each idea:
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
 | Conjugation catalog extensions | 2026-08-12 | Captured | When Phase 21's classifier next reopens; required-cell coverage must be swept before accepting either family |
+| Phrase↔word containment links | 2026-08-12 | Captured | Any time; pure derivation reusing cloze's conjugation-aware matching |
+| Same-meaning clustering | 2026-08-12 | Captured | Any time as a suggestion surface; never automatic linking |
+| Monolingual recall (Spanish usage cues) | 2026-08-12 | Captured | After checking how many real meanings carry a usage cue |
+| Retired-word spot checks | 2026-08-12 | Captured | Once a meaningful number of words are Retired; the demotion question needs an owner decision |
+| Near-duplicate consolidation view | 2026-08-12 | Captured | Any time; view only — entry merging is a separate, larger decision |
 | Dictionary word-family explorer | 2026-08-12 | Captured | When the pipeline next reopens (the English→Spanish index is the natural moment); a coverage pass over the raw dump comes first |
 | Select text to look up | 2026-08-12 | Captured | Any time; read-only navigation glue over existing search |
 | Paste a vocabulary list | 2026-08-12 | Captured | Needs a design discussion first: parsing, per-row meanings, event honesty |
@@ -115,6 +120,171 @@ ceñir,* and *gruñir*. These are evidence-backed candidates, not accepted famil
 lemma consistency, contrast selection, overlap behavior, member counts, and top-frequency value
 must be measured before changing the catalog.
 
+---
+
+### Phrase↔word containment links
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Consolidation-themed brainstorm, requested for the list by the owner 2026-08-12
+- **Owner interest:** Requested with the rest of the consolidation batch; assessed as the
+  cheapest and most visible of the five.
+- **Potential data impact:** None; pure derivation at render, no storage, no events
+
+#### Description and current context
+
+A saved word (*dar*) and a saved phrase (*me da igual*) are related, and the app never notices.
+The machinery to notice exists: cloze already matches a lemma's conjugated forms through the
+dictionary's tables, so the same matching applied across the owner's own phrases derives
+"appears in 3 of your phrases" on the word's detail and "built on *dar*" on the phrase. Isolated
+entries become a visible network with zero new storage.
+
+#### Risks and tradeoffs
+
+- Derived containment is a display relationship, not a stored link; it must stay visually
+  distinct from the owner's deliberate typed Connections rather than blending into them.
+- Short function words (*de*, *se*, *a*) would "appear" in nearly every phrase; a stop-list or a
+  length/lemma threshold keeps the row meaningful.
+- Non-verb matching is plain normalized containment (only verbs have tables); word-boundary
+  matching through `normalize.js` must keep ñ intact as always.
+
+#### Evidence needed
+
+- None substantial — the feature is only as good as the owner's phrase count, and it degrades to
+  absence gracefully.
+
+---
+
+### Same-meaning clustering
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Consolidation-themed brainstorm, requested for the list by the owner 2026-08-12
+- **Owner interest:** Requested with the rest of the consolidation batch.
+- **Potential data impact:** None for the suggestion surface; accepted suggestions become
+  ordinary `similar_meaning` connections through the existing typed-relationship flow
+
+#### Description and current context
+
+Entries whose meanings share English gloss words — four saved words that all mean "angry" —
+surface as a derived "you also know…" row, or as *suggested* `Similar meaning` connections
+feeding the existing typed-relationship system. Suggestions only, owner-confirmed: link
+authority rules (`linkedKeys[]` stored once, no reciprocal copies, link changes event-free)
+stay untouched because a suggestion creates nothing until accepted through the normal flow.
+
+The active-recall extension is the stronger consolidation exercise: "name another word meaning
+*enojado*" — a self-graded prompt no current surface offers.
+
+#### Risks and tradeoffs
+
+- Gloss-text matching is crude — a shared word is not a synonym ("bank"). This is why the idea
+  is suggestion-only, never automatic linking; a conservative overlap threshold beats recall.
+- Meanings are the owner's own free text; matching should reuse the same visible-text/normalize
+  conventions as search rather than inventing a new comparison.
+
+#### Evidence needed
+
+- Whether real gloss overlap in the notebook produces sensible clusters or noise — checkable
+  with a disposable pass over a backup export before any UI work.
+
+---
+
+### Monolingual recall (Spanish usage cues)
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Consolidation-themed brainstorm, requested for the list by the owner 2026-08-12
+- **Owner interest:** Requested with the rest of the consolidation batch; assessed as the
+  deepest learning payoff of the five.
+- **Potential data impact:** None expected; a card mode over existing structured-meaning data,
+  following the established face/mode precedents
+
+#### Description and current context
+
+Structured meanings already store an optional short **Spanish usage cue**. A card mode asking
+term → Spanish cue (or cue → term), skipping English entirely, is the first step toward thinking
+in Spanish rather than through translation — the textbook definition of consolidation. Entries
+without cues are excluded and explained, the pattern every card surface already uses. A welcome
+side effect: it creates a reason to write cues, which are optional today and likely sparse.
+
+#### Risks and tradeoffs
+
+- Cue-recall is self-graded almost by necessity (a cue is free text; exact matching would grade
+  phrasing, not understanding) — the reveal/self-grade machinery already exists.
+- If cues are sparse, the mode starves; the coverage check below comes first.
+- Whether this is a free-practice mode only or may join scheduled review needs the same
+  face/grading-fairness discussion recorded under Dictation cards.
+
+#### Evidence needed
+
+- How many real meanings carry a usage cue — a disposable count over a backup export. Sparse
+  cues make this a "write cues first" story, which may itself be the feature's first increment
+  (a completeness view for missing cues).
+
+---
+
+### Retired-word spot checks
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Consolidation-themed brainstorm, requested for the list by the owner 2026-08-12
+- **Owner interest:** Requested with the rest of the consolidation batch.
+- **Potential data impact:** None for a history-free version; a demoting version writes ordinary
+  review events and needs its own approved decision
+
+#### Description and current context
+
+Retirement is currently a one-way door: a Retired word never resurfaces, so decay is invisible.
+An **owner-started** "spot-check retired words" deck — a handful, sampled oldest-retirement-first
+— keeps consolidated knowledge verifiably consolidated. Owner-started with no automatic
+re-enrollment keeps it on the right side of §14's scheduling deferral.
+
+#### The one real product decision
+
+What a failed spot check *does* is the whole design: a history-free version (like hub practice)
+merely informs the owner, while a demoting version writes a review event that puts the word back
+on the Leitner ladder. Demotion is honest but turns a casual check into something with stakes;
+history-free is gentle but leaves the decay it found unfixed. This mirrors, in miniature, the
+Phase 13 decision that reversed the ungraded drill — worth deciding deliberately, not
+defaulting.
+
+#### Evidence needed
+
+- Enough Retired words for sampling to mean anything, and the owner's own sense of whether
+  retired words are actually slipping.
+
+---
+
+### Near-duplicate consolidation view
+
+- **Date added:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Consolidation-themed brainstorm, requested for the list by the owner 2026-08-12
+- **Owner interest:** Requested with the rest of the consolidation batch.
+- **Potential data impact:** None; a derived maintenance view offering only existing tools.
+  Actual entry merging would be a separate, much larger decision
+
+#### Description and current context
+
+Phase 5f's duplicate guardrails act at creation time; nothing finds near-duplicates that
+accumulated before them or slipped past — the same normalized term saved twice, or two entries
+with heavily overlapping glosses. A derived maintenance view surfacing candidate pairs, offering
+the existing tools (link them as `Variant`/`Similar meaning`, or edit one away by hand), fits
+the completeness-view pattern the hub already has.
+
+**Deliberately excluded from this idea:** automatic or assisted entry *merging*. Merging two
+lexical entries means reconciling meanings, examples, links, Collection memberships and event
+history — the same class of stored-inverse-data problem that kept persistent undo out of
+Phase 20 (see Global tag management's watch items). The view is the safe first step; merging
+would be its own proposal.
+
+#### Evidence needed
+
+- Whether real near-duplicates exist in the notebook at all — pre-guardrail entries are the
+  likely population, and a disposable pass over a backup export answers it.
+
+---
+
 ### Dictionary word-family explorer
 
 - **Date added:** 2026-08-12
@@ -132,6 +302,11 @@ From *decidir*, explore related shipped lemmas such as *decisión* and *decisivo
 save them through existing flows. This is a **derivational**-family feature — words sharing a
 root across parts of speech — and a vocabulary *growth* feature: it teaches "you almost know
 three more words," and pairs naturally with Frequency coverage's "what next?" question.
+
+Once family data ships, a **personal-layer shadow** comes nearly free and is the consolidation
+reading of this growth feature: grouping the owner's own saved words by shared family ("you know
+3 words from the *decidir* family"). Recorded here as a dependent extension rather than its own
+entry — it has no life without the shipped data.
 
 **Sibling idea, deliberately separate:** "Conjugates like" verb families, implemented as Phase
 21 (history index above), is the **inflectional** counterpart — verbs sharing a paradigm — and a
@@ -1273,6 +1448,19 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-12 — Five consolidation-themed ideas captured: phrase↔word containment links,
+  same-meaning clustering, monolingual recall over Spanish usage cues, retired-word spot checks,
+  and the near-duplicate consolidation view.** All five came from a brainstorm on consolidation —
+  strengthening the network between things the owner already knows, as distinct from acquisition
+  and maintenance — and were requested for the list together. Each stays inside existing
+  boundaries: containment and clustering are derived display/suggestion layers that touch no link
+  authority, monolingual recall reuses the excluded-and-explained card pattern, spot checks are
+  owner-started per §14 with the demotion question named as the one real product decision, and
+  the duplicate view deliberately excludes entry merging (the Phase 20 stored-inverse-data
+  reasoning). The word-family explorer entry also gained its dependent personal-layer extension.
+  Captured concurrently with Phase 21's own doc updates, which this pass merged around rather
+  than disturbing. None is approved work.
 
 - **2026-08-12 — Dictionary word-family explorer captured as its own entry, deliberately
   separate from "Conjugates like" verb families.** The two share the family-at-lookup pattern
