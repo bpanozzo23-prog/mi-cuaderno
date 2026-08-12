@@ -9,18 +9,31 @@ decision-log entries. The application's design may have changed since an idea wa
 
 ## How to use this document
 
+- The document is organized into three bands: **Active ideas** (open captures worth future
+  discussion), **Deferred ideas** (owner-declined until a stated condition changes), and
+  **Implemented ideas (history)** (compressed summaries of shipped work). Keep entries in their
+  band and move them when their status changes.
 - Add the date when an idea is first recorded and update **Last reviewed** when new evidence or a
   decision materially changes it.
 - Keep **Status** explicit. Suggested values are `Captured`, `Exploring`, `Ready to plan`, `Planned`,
   `Deferred`, `Implemented`, and `Closed`.
+- Record the owner's stated disposition in an **Owner interest** line whenever the owner has
+  reviewed the idea. It is the difference between "recorded so it is not forgotten", "expects to
+  pursue", and "declined unless something changes" — distinctions that would otherwise flatten
+  into identical statuses.
 - Distinguish an observed problem from a possible future benefit. An idea can be valuable without
   being a current problem.
 - Record lightweight and structured options separately. They can have very different storage,
   migration, backup, and interface costs.
 - Add real-use evidence before promoting a data-dependent idea into a phase. Synthetic data can
   test capability, but it cannot establish the owner's habits.
-- When an idea becomes approved work, link its phase or implementation document here. Keep the idea
-  entry as history rather than silently rewriting the original reasoning.
+- When an idea becomes approved work, link its phase or implementation document here and move the
+  entry to the Implemented band. ~~Keep the idea entry as history rather than silently rewriting
+  the original reasoning.~~ **Amended 2026-08-12 (owner-approved):** an implemented entry is
+  compressed to a summary plus links to its authoritative records (`DECISIONS.md`, the phase
+  direction/report), keeping any still-open evidence or questions intact. The original full
+  reasoning stays available in this file's git history; the Document history entries below are
+  never rewritten.
 
 Useful information to retain for each idea:
 
@@ -35,27 +48,10 @@ Useful information to retain for each idea:
 
 ## Idea index
 
+### Active
+
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
-| Source-oriented page templates | 2026-08-02 | Implemented and deployed | Phase 7 deployed; browser closeout unverified |
-| Meaning-block presentation | 2026-08-02 | Implemented and shipped | Phase 4i |
-| Typed or explained relationships | 2026-08-02 | Implemented and deployed | Phase 4t–4x deployed 2026-08-04; browser closeout was never claimed |
-| Saved views | 2026-08-02 | Captured | After observing repeated retrieval/filter patterns — Phase 8 adds lenses that can supply that evidence |
-| Persistent page profiles | 2026-08-02 | Implemented and deployed | Phase 7 deployed; browser closeout unverified |
-| Personal-content provenance | 2026-08-02 | Captured | Before or alongside Phase 6 AI design; source needs can be studied earlier |
-| Learning depth (cloze, reverse, drill, audio) | 2026-08-06 | Implemented and deployed | Phase 10a–10d deployed; deferred members need real-use evidence |
-| Owner-centric stats (streak, calendar, growth, ladder, per-item strip) | 2026-08-06 | Implemented and deployed | Phase 11 deployed; retention, coverage and per-direction breakdowns need real data volume |
-| Grammar guide depth and callouts | 2026-08-10 | Implemented and deployed | Phase 19 first release |
-| Structured Notes outlines | 2026-08-10 | Implemented and deployed | Phase 19 schema-v7 increment; production smoke passed |
-| Explicit Notes callouts | 2026-08-10 | Implemented and deployed | Phase 19 rendering/editor increment; schema stayed v7 |
-| Markdown blank-line spacing | 2026-08-10 | Implemented and deployed | Phase 19 spacing increment; schema stayed v7 |
-| Global tag management | 2026-08-10 | Implemented and deployed | Phase 20 |
-| Phase 19/20 review nits (edge polish) | 2026-08-10 | Captured | Whenever a related area is next touched; none is urgent |
-| Android share target | 2026-08-11 | Captured | Any time; independent of other work and needs no schema change |
-| Dictation cards | 2026-08-11 | Captured | After real use of the picture face settles the face-priority pattern |
-| Non-verb grammar drills | 2026-08-11 | Captured | After Diario AI feedback accumulates evidence of which confusions recur |
-| Frequency coverage | 2026-08-11 | Captured | Any time; a derived Estadísticas view over existing `freqRank` data |
-| Accent bar for typed inputs | 2026-08-12 | Deferred | Only if the owner's keyboard situation changes; declined for now |
 | PWA app shortcuts | 2026-08-12 | Captured | Any time; manifest-only, recorded so it is not forgotten |
 | "Did you mean" search suggestions | 2026-08-12 | Captured | Any time; a suggestion layer that leaves `normalize.js` untouched |
 | English→Spanish lookup | 2026-08-12 | Captured | Needs a reference-layer index decision (pipeline and §5 seam) |
@@ -64,37 +60,42 @@ Useful information to retain for each idea:
 | Review→writing bridge | 2026-08-12 | Captured | Worth considering once Diario AI feedback and review volume coexist |
 | Time-boxed mixed session | 2026-08-12 | Captured | After enough real data exists for "weakest" selections to mean something |
 | Review forecast | 2026-08-12 | Captured | Low priority per owner; a small derived Estadísticas addition |
+| Confusion-pair drills | 2026-08-12 | Captured | Any time; the annotations are already curated (promoted out of Learning depth history) |
+| Android share target | 2026-08-11 | Captured | Any time; independent of other work and needs no schema change |
+| Dictation cards | 2026-08-11 | Captured | After real use of the picture face settles the face-priority pattern |
+| Non-verb grammar drills | 2026-08-11 | Captured | After Diario AI feedback accumulates evidence of which confusions recur |
+| Frequency coverage | 2026-08-11 | Captured | Any time; a derived Estadísticas view over existing `freqRank` data |
+| Phase 19/20 review nits (edge polish) | 2026-08-10 | Captured | Whenever a related area is next touched; none is urgent |
+| Saved views | 2026-08-02 | Captured | Now discussable: Phase 8's lenses have been in daily use, so the owner can name repeated combinations |
+| Personal-content provenance | 2026-08-02 | Captured | Before AI-proposed content is designed; the Phase 6 feedback field set a first precedent |
+
+### Deferred
+
+| Idea | Date added | Reopen when |
+|---|---|---|
+| Accent bar for typed inputs | 2026-08-12 | The owner's keyboard situation changes, or accent entry is observed slowing a typed session |
+
+### Implemented (history)
+
+| Idea | Date added | Implemented as | Full records |
+|---|---|---|---|
+| Global tag management | 2026-08-10 | Phase 20, deployed | `PHASE-20-DIRECTION.md`, `PHASE-20-REPORT.md` |
+| Markdown blank-line spacing | 2026-08-10 | Phase 19 increment, deployed | Phase 19 entries in `DECISIONS.md` |
+| Explicit Notes callouts | 2026-08-10 | Phase 19 increment, deployed | Phase 19 entries in `DECISIONS.md` |
+| Structured Notes outlines | 2026-08-10 | Phase 19 schema-v7 increment, deployed | `PHASE-19-DIRECTION.md`, `PHASE-19-REPORT.md` |
+| Grammar guide depth and callouts | 2026-08-10 | Phase 19 first release, deployed | `PHASE-19-DIRECTION.md`, `PHASE-19-REPORT.md` |
+| Owner-centric stats | 2026-08-06 | Phase 11, deployed | `PHASE-11-DIRECTION.md`, Phase 11 entries in `DECISIONS.md` |
+| Learning depth (cloze, reverse, drill, audio) | 2026-08-06 | Phase 10a–10d, deployed | Phase 10 entries in `DECISIONS.md` |
+| Typed or explained relationships | 2026-08-02 | Phase 4t–4x, deployed | Phase 4t–4x entries in `DECISIONS.md` |
+| Persistent page profiles | 2026-08-02 | Phase 4j–4o, then composable Phase 7, deployed | `PHASE-7-DIRECTION.md`, `PHASE-7-REPORT.md`, `PHASE-4-JOURNAL-DIRECTION.md` |
+| Source-oriented page templates | 2026-08-02 | Phase 7, deployed | `PHASE-7-DIRECTION.md`, `PHASE-7-REPORT.md` |
+| Meaning-block presentation | 2026-08-02 | Phase 4i, deployed | Phase 4i entries in `DECISIONS.md` |
 
 ---
 
-## Accent bar for typed inputs
+## Active ideas
 
-- **Date added:** 2026-08-12
-- **Status:** Deferred — owner-declined for now
-- **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
-- **Owner interest:** The owner thinks this could be a good feature but is not interested in
-  pursuing it unless something changes: their current keyboard makes adding accents low-friction,
-  so the problem this solves does not exist for them today. Revisit only if the keyboard situation
-  changes or typed-input friction is actually observed.
-- **Potential data impact:** None; a reusable input-adornment component
-
-### Description and current context
-
-A row of `á é í ó ú ñ ü` buttons above every typed input (conjugation drills, typed review modes,
-any future dictation face) for phones whose keyboards make accents slow. The app deliberately
-grades accents (exact-first, named near miss), so keyboard friction would otherwise grade the
-keyboard rather than the owner's knowledge. One small component reused everywhere Type mode
-exists.
-
-### Why it is deferred rather than captured
-
-The value depends entirely on a friction the owner does not have. Recording it keeps the option
-visible without implying work; the evidence that would reopen it is the owner noticing accent
-entry slowing them down in a typed session.
-
----
-
-## PWA app shortcuts
+### PWA app shortcuts
 
 - **Date added:** 2026-08-12
 - **Status:** Captured
@@ -102,26 +103,26 @@ entry slowing them down in a typed session.
 - **Owner interest:** Recorded so it is not forgotten; the owner may or may not do it.
 - **Potential data impact:** None; a manifest-only change
 
-### Description and current context
+#### Description and current context
 
 The web app manifest's `shortcuts` array puts entries like "New Diario moment", "Repaso" and
 "Search" on the installed app icon's long-press menu on Android. No application code changes —
 each shortcut is a URL into an existing screen, and the app is already installable. The one
 implementation detail is that shortcut URLs must respect the `/mi-cuaderno/` base path.
 
-### Expected owner value
+#### Expected owner value
 
-Shortens the path to the actions done daily. The share-target idea (above) covers content coming
-*into* the app; this covers reaching a chosen screen faster.
+Shortens the path to the actions done daily. The Android share target idea (below) covers content
+coming *into* the app; this covers reaching a chosen screen faster.
 
-### Evidence needed
+#### Evidence needed
 
 None beyond trying it — the cost is low enough that a real-device check of how Chrome on Android
 presents the shortcuts is the whole evaluation.
 
 ---
 
-## "Did you mean" search suggestions
+### "Did you mean" search suggestions
 
 - **Date added:** 2026-08-12
 - **Status:** Captured
@@ -129,7 +130,7 @@ presents the shortcuts is the whole evaluation.
 - **Owner interest:** A good potential idea.
 - **Potential data impact:** None; a derived suggestion layer over existing search
 
-### Description and current context
+#### Description and current context
 
 When Cuaderno search returns nothing, offer near matches — a one-letter typo, a transposition, a
 missing accent beyond what normalization already forgives. The Cuaderno root already records
@@ -140,28 +141,28 @@ The critical boundary: `normalize.js` must not change, and suggestions must neve
 tap-through, because an offer the owner confirms is not a match. The suggestion layer sits
 strictly above the search pipeline.
 
-### Potential options
+#### Potential options
 
 1. **Personal layer only** — suggest near matches from the owner's own vocabulary, the smallest
    and most personally relevant candidate set.
 2. **Both layers** — include dictionary lemmas, which is where a misspelled new word actually
    lives; requires the distance computation to stay fast over 10,278 entries or be indexed.
 
-### Risks and tradeoffs
+#### Risks and tradeoffs
 
 - Edit-distance suggestions can surface embarrassing or absurd neighbors; a conservative distance
   threshold matters more than recall.
 - The miss log currently records honest misses; if a suggestion is taken, deciding whether the
   original miss still logs affects the meaning of the recorded signal.
 
-### Evidence needed
+#### Evidence needed
 
 - The recorded misses themselves: what fraction of real misses are near-misses of known content
   versus genuinely absent words. That decides whether option 1 suffices.
 
 ---
 
-## English→Spanish lookup
+### English→Spanish lookup
 
 - **Date added:** 2026-08-12
 - **Status:** Captured
@@ -170,7 +171,7 @@ strictly above the search pipeline.
 - **Potential data impact:** None to personal data; likely a new derived index in the reference
   layer, which is rebuildable by design behind the §5 seam
 
-### Description and current context
+#### Description and current context
 
 Search is Spanish-first: an inflected Spanish form finds its lemma, but "how do I say
 *stubborn*?" has no offline answer. The dictionary's English glosses are already shipped
@@ -178,18 +179,18 @@ on-device; indexing them for reverse lookup would let the bundled dictionary ans
 learners ask most while writing — and it feeds naturally into Diario, where the need arises
 mid-sentence.
 
-### Potential options
+#### Potential options
 
 1. **Runtime gloss search** over existing entries, if fast enough on-device.
 2. **A pipeline-built reverse index** shipped with the dataset, keeping runtime cost near zero at
    the price of a dataset rebuild (which the §5 seam and alias map already accommodate).
 
-### Expected owner value
+#### Expected owner value
 
 - Answers the writing-direction question offline, which currently forces a trip to another app —
   precisely the exit the notebook exists to avoid.
 
-### Risks and tradeoffs
+#### Risks and tradeoffs
 
 - Gloss text is not a bilingual dictionary: one English word maps to many Spanish entries with
   different registers and regions, so results need enough context (gloss, region labels) to
@@ -197,7 +198,7 @@ mid-sentence.
 - If built in the pipeline, it adds a dataset version consideration; the reference layer's
   replaceability makes this routine but not free.
 
-### Questions for a future discussion
+#### Questions for a future discussion
 
 - Where does reverse lookup live: the existing search field detecting an English query, or an
   explicit direction toggle?
@@ -205,7 +206,7 @@ mid-sentence.
 
 ---
 
-## "Conjugates like" verb families
+### "Conjugates like" verb families
 
 - **Date added:** 2026-08-12
 - **Status:** Captured
@@ -213,7 +214,7 @@ mid-sentence.
 - **Owner interest:** Likely to be done — the owner expects to pursue this.
 - **Potential data impact:** None; derived from the shipped conjugation paradigms
 
-### Description and current context
+#### Description and current context
 
 The paradigm data behind ~1,250 conjugated verbs already encodes that *pedir* and *servir* share
 a pattern. A line on a verb's detail — "conjugates like *pedir* (e→i)" with the family's other
@@ -221,32 +222,32 @@ members — turns memorizing one verb into recognizing a class. The Gym already 
 stem-changer and irregular-preterite pools, so the concept of pattern families exists in the
 app's vocabulary; this surfaces it on the reference side where a verb is actually looked up.
 
-### Potential options
+#### Potential options
 
 1. **A family line on the dictionary entry's conjugation view**, linking to sibling verbs.
 2. **The same line on personal lexical entries** whose `dictKey` resolves to a conjugated verb.
 3. **A browsable family view** (all e→i verbs the dictionary ships), which would also make a
    natural Gym pool source later.
 
-### Expected owner value
+#### Expected owner value
 
 - Converts one verb's memorized table into a transferable rule, at the exact moment of lookup.
 - Sibling verbs are a built-in "you also know…" discovery path.
 
-### Risks and tradeoffs
+#### Risks and tradeoffs
 
 - Family derivation must come from the actual paradigm data, not from spelling heuristics —
   a verb that looks regular but ships an irregular table must land in the right family.
 - Naming families needs care: "e→i" is compact but jargon; the label should teach, not gatekeep.
 
-### Evidence needed
+#### Evidence needed
 
 - A pass over the shipped paradigms to confirm families can be derived cleanly and to count how
   many verbs land in each — if most families have one member, the feature collapses.
 
 ---
 
-## Tag hubs
+### Tag hubs
 
 - **Date added:** 2026-08-12
 - **Status:** Captured
@@ -254,27 +255,32 @@ app's vocabulary; this surfaces it on the reference side where a verb is actuall
 - **Owner interest:** An idea to revisit later, when the owner has more tags and uses tags more.
 - **Potential data impact:** None; fully derived, no storage
 
-### Description and current context
+#### Description and current context
 
 Tags currently filter lists. A tag detail view would aggregate everything carrying an exact tag —
 words, phrases, pages, and journal entries via the deliberate-search path — making tags a
 browsable dimension rather than only a filter. Phase 20's global tag management keeps the tag
 vocabulary tidy enough for hubs to stay trustworthy.
 
-### Evidence needed
+**Overlap to resolve with Saved views (below):** a tag hub is close to a persistent single-tag
+view. Whichever idea is planned first should consciously answer whether it subsumes the other —
+a hub is tag-only but zero-configuration, while a saved view is broader but needs naming and
+maintenance.
+
+#### Evidence needed
 
 - Real tag volume and usage: hubs earn their place when the owner reaches for a tag expecting a
   place, not a filter. The owner has explicitly gated this on their own future tag use — check
   back when tags have grown, not on a date.
 
-### Questions for a future discussion
+#### Questions for a future discussion
 
 - Is a hub a screen of its own or an enriched filter state?
 - Do Diario entries appear by default in a tag hub, or only behind the deliberate-search rule?
 
 ---
 
-## Review→writing bridge
+### Review→writing bridge
 
 - **Date added:** 2026-08-12
 - **Status:** Captured
@@ -282,7 +288,7 @@ vocabulary tidy enough for hubs to stay trustworthy.
 - **Owner interest:** Worth considering.
 - **Potential data impact:** None; a transient prompt, nothing stored
 
-### Description and current context
+#### Description and current context
 
 After a review session with misses, offer a transient Diario prompt: "write a sentence using
 *tozudo*." One line of glue between the app's two halves — the words missed in review are
@@ -290,14 +296,14 @@ precisely the ones the owner's writing never exercises, and Diario's prompt mach
 transient by design (prompts are visit-local and store no ID). This also serves the
 active-vocabulary theme recorded in the document history on 2026-08-11.
 
-### Potential options
+#### Potential options
 
 1. **A post-session action** ("write with these words") that opens a new Diario moment with the
    missed words available as a visible, unstored prompt.
 2. **A Diario-side prompt source** — the existing prompt list occasionally offers "use a word you
    missed recently", derived from review events at render.
 
-### Risks and tradeoffs
+#### Risks and tradeoffs
 
 - Must remain an offer, never an obligation: Diario's settled purpose is calm reflection, and a
   homework-shaped prompt could poison that. The existing prompt system's take-it-or-leave-it
@@ -305,14 +311,14 @@ active-vocabulary theme recorded in the document history on 2026-08-11.
 - Selecting "recent misses" reads the event log at render — cheap and consistent with how
   everything else derives.
 
-### Evidence needed
+#### Evidence needed
 
 - Whether the owner actually wants to write immediately after reviewing, or whether the two
   activities happen at different times of day — which decides between options 1 and 2.
 
 ---
 
-## Time-boxed mixed session
+### Time-boxed mixed session
 
 - **Date added:** 2026-08-12
 - **Status:** Captured
@@ -321,7 +327,7 @@ active-vocabulary theme recorded in the document history on 2026-08-11.
 - **Potential data impact:** None expected; composes existing engines and writes only the events
   each engine already writes
 
-### Description and current context
+#### Description and current context
 
 "Give me five minutes": one owner-started sitting composing due Repaso cards with the Gym's
 current weakest forms, sequenced rather than chosen one surface at a time. All the engines,
@@ -329,7 +335,7 @@ grading rules and event contracts exist; this is a front door, not new machinery
 the right side of §14 because nothing is scheduled, reminded or mandatory — the owner starts it,
 exactly like every existing session.
 
-### Potential options
+#### Potential options
 
 1. **Time-boxed** — fill roughly N minutes using known per-card pacing, ending at the box even
    mid-queue.
@@ -337,7 +343,7 @@ exactly like every existing session.
 3. **Due-first composition** — always drain due reviews before Gym content, so the scheduled
    queue never loses priority to practice.
 
-### Risks and tradeoffs
+#### Risks and tradeoffs
 
 - Mixing surfaces mixes event contracts; the composition must keep each engine writing exactly
   what it writes today (review events from the scheduled pass, drill events from Gym answers)
@@ -345,14 +351,14 @@ exactly like every existing session.
 - A "weakest forms" selection reuses Adaptive's existing definition rather than inventing a
   second notion of weakness.
 
-### Evidence needed
+#### Evidence needed
 
 - Real data volume: with a small due queue and sparse drill history, a mixed session degenerates
   into whatever exists. The feature makes sense once both queues are routinely nonempty.
 
 ---
 
-## Review forecast
+### Review forecast
 
 - **Date added:** 2026-08-12
 - **Status:** Captured
@@ -360,33 +366,77 @@ exactly like every existing session.
 - **Owner interest:** Can be added, but likely a low priority.
 - **Potential data impact:** None; derived at render from the existing Leitner schedule
 
-### Description and current context
+#### Description and current context
 
 "12 due tomorrow, 40 this week" — the due dates already derive from the event log, so a forecast
 is a small aggregation over the same computation Repaso runs today, displayed in Estadísticas'
 derived-at-render pattern. It is display, not scheduling: no reminder, no badge, no obligation,
-which keeps it clear of §14's deferral of automatic scheduling and reminders.
+which keeps it clear of §14's deferral of automatic scheduling and reminders. It belongs to the
+same family as the Phase 11 stats and their still-open retention/coverage/per-direction
+breakdowns (see Owner-centric stats in the Implemented band).
 
-### Expected owner value
+#### Expected owner value
 
 - Answers "what is coming?" so a heavy day is visible before it arrives — useful when deciding
   whether to review tonight or tomorrow.
 
-### Risks and tradeoffs
+#### Risks and tradeoffs
 
 - Forecast displays can create quiet pressure; keeping it inside Estadísticas (sought out, not
   pushed) preserves the no-pressure temperament.
 
 ---
 
-## Android share target
+### Confusion-pair drills
+
+- **Date added:** 2026-08-12 (promoted out of the Learning depth entry's "deliberately not built"
+  list, where it had been recorded since 2026-08-06 and was invisible to anyone browsing open
+  ideas)
+- **Status:** Captured
+- **Origin:** Phase 10 planning; dropped from that batch for scope only, and described there as
+  attractive
+- **Potential data impact:** None expected; the source data already exists as owner-curated
+  `often_confused` and `contrast` relationship annotations
+
+#### Description and current context
+
+A drill built from the owner's own `often_confused` and `contrast` connection annotations: the
+pairs the owner has personally marked as confusable are exactly the ones worth deliberate
+practice. Since Phase 10 dropped it for scope, the machinery has matured — Phase 17's four-choice
+recognition engine with curated confusables is close to what this drill needs, with the decks
+drawn from personal annotations instead of shipped reference data.
+
+**Sibling idea:** Non-verb grammar drills (below) practices *grammar* confusions from curated
+reference data; this practices *vocabulary* confusions from the owner's own annotations. They
+could share an engine but differ in data source and in what "curation" means.
+
+#### Expected owner value
+
+- Deliberate practice for precisely the confusions the owner has already caught themselves
+  making — the highest-signal practice data in the notebook.
+
+#### Risks and tradeoffs
+
+- Needs enough annotated pairs to fill a session; with few pairs, the drill repeats itself
+  immediately.
+- A pair is two personal items; the drill must handle one side lacking meanings the same way
+  existing card surfaces exclude and explain such entries.
+
+#### Evidence needed
+
+- How many `often_confused`/`contrast` annotations actually exist in the real notebook — the
+  feature starts mattering at perhaps a dozen pairs.
+
+---
+
+### Android share target
 
 - **Date added:** 2026-08-11
 - **Status:** Captured
 - **Origin:** Brainstorming session on unconsidered possibilities; not yet requested from real friction
 - **Potential data impact:** None; a manifest and routing change only, no schema, storage or backup change
 
-### Description and current context
+#### Description and current context
 
 An installed PWA can register as an Android share target (`share_target` in the web app manifest).
 Text or a URL highlighted in any other app — a browser article, a subtitle, a chat message — could
@@ -394,7 +444,7 @@ be shared straight into Mi Cuaderno instead of retyped. Today every encounter ma
 app must be remembered and re-entered by hand, which is exactly where capture is most likely to be
 lost. This moves capture to where encounters actually happen.
 
-### Potential options
+#### Potential options
 
 1. **Shared text → lookup.** A shared word or phrase lands in the existing two-layer search
    (dictionary plus personal), from which the normal save/attach flows already exist.
@@ -403,13 +453,13 @@ lost. This moves capture to where encounters actually happen.
 3. **Both, dispatched by content.** A URL routes to Source creation, anything else to lookup, with
    a small chooser when ambiguous.
 
-### Expected owner value
+#### Expected owner value
 
 - Removes the retype-it-later step for vocabulary met outside the app, where most new Spanish is
   actually encountered.
 - Makes Source pages cheaper to start at the moment of consumption rather than after.
 
-### Risks and tradeoffs
+#### Risks and tradeoffs
 
 - Android/Chrome-specific behavior; the share sheet entry exists only while the PWA is installed.
 - The app is served under `/mi-cuaderno/`, so the share-target action URL and service-worker
@@ -419,14 +469,14 @@ lost. This moves capture to where encounters actually happen.
 - Nothing may be saved implicitly: a share opens a screen, and every write stays behind the
   existing explicit save actions.
 
-### Evidence needed
+#### Evidence needed
 
 - How often encounters currently die between another app and the notebook — the owner's sense of
   lost captures is sufficient; this does not need instrumentation.
 - Whether shared content is mostly single words, phrases, or article URLs, which decides how much
   dispatch logic option 3 needs.
 
-### Questions for a future discussion
+#### Questions for a future discussion
 
 - Should a shared URL ever land anywhere other than Source creation (e.g., a Media link on an
   existing page)?
@@ -434,7 +484,7 @@ lost. This moves capture to where encounters actually happen.
 
 ---
 
-## Dictation cards
+### Dictation cards
 
 - **Date added:** 2026-08-11
 - **Status:** Captured
@@ -442,7 +492,7 @@ lost. This moves capture to where encounters actually happen.
 - **Potential data impact:** None expected; additive `face` metadata on existing review events,
   following the cloze and image precedents
 
-### Description and current context
+#### Description and current context
 
 The browser's Spanish TTS voice (Phase 10d) speaks the term; the owner types what they heard. This
 trains listening and spelling together — including accents, which the Phase 13 exact-first checker
@@ -452,7 +502,7 @@ dictation face would follow the same pattern. Everything runs on-device; TTS sen
 anywhere, and the existing rule that TTS-dependent surfaces hide entirely where the device has no
 Spanish voice would govern availability.
 
-### Potential options
+#### Potential options
 
 1. **A fifth question face** in the shared card engine, available in scheduled Repaso and free
    practice wherever Type mode is active, with a position in the face-priority order.
@@ -461,13 +511,13 @@ Spanish voice would govern availability.
 3. **A Gym lane** instead, treating dictation as a drill over a chosen pool rather than a face on
    vocabulary cards.
 
-### Expected owner value
+#### Expected owner value
 
 - Trains the one skill pairing (listening + spelling) no current surface touches.
 - Reuses the accent-aware checker, so a missing accent is a named near miss rather than a silent
   pass — the same reason the conjugation drill grades exactly first.
 
-### Risks and tradeoffs
+#### Risks and tradeoffs
 
 - TTS quality varies by device; a mispronounced word grades the owner on the voice's error, not
   their listening. A per-card way to fall back to the plain face may be necessary.
@@ -477,14 +527,14 @@ Spanish voice would govern availability.
 - Scheduled grades from a new face affect the one Leitner ladder; the cloze/image precedent
   (additive metadata nothing reads) covers this, but the grading-fairness question is real.
 
-### Evidence needed
+#### Evidence needed
 
 - Real use of the picture face: whether always-when-available face substitution feels right or
   needs owner control, before adding a fifth face to the same rule.
 - Whether the device's Spanish voice is good enough to grade against — the existing pronunciation
   button provides this evidence passively.
 
-### Questions for a future discussion
+#### Questions for a future discussion
 
 - Where does dictation sit in the face-priority order relative to image and cloze?
 - Should homophone-risk words be excluded automatically, accept either spelling, or be graded
@@ -492,7 +542,7 @@ Spanish voice would govern availability.
 
 ---
 
-## Non-verb grammar drills
+### Non-verb grammar drills
 
 - **Date added:** 2026-08-11
 - **Status:** Captured
@@ -500,7 +550,7 @@ Spanish voice would govern availability.
 - **Potential data impact:** None expected; curated reference data plus existing
   `drill_pass`/`drill_fail` events with additive metadata, following the Usage/Endings precedent
 
-### Description and current context
+#### Description and current context
 
 The Gym's lane structure and engines generalize past conjugation: the four-choice recognition
 engine (Phase 17) and typed production with exact-first grading (Phase 18) could drive drills for
@@ -508,7 +558,11 @@ engine (Phase 17) and typed production with exact-first grading (Phase 18) could
 Usage needed: a curated item set with confusables and explanations. This is content work more than
 engineering — the machinery is built.
 
-### Potential options
+**Sibling idea:** Confusion-pair drills (above) is the vocabulary-side counterpart, drawing decks
+from the owner's own `often_confused`/`contrast` annotations rather than curated reference data.
+A shared engine serving both is plausible; the data sources and curation burden differ.
+
+#### Potential options
 
 1. **One lane first.** Ship the single highest-value confusion (likely *ser/estar* or *por/para*)
    as one new lane with a curated deck, and let real use decide whether more follow.
@@ -517,13 +571,13 @@ engineering — the machinery is built.
 3. **Gender/article drills** driven by the dictionary's own entry data rather than hand curation,
    if the shipped entries carry reliable gender.
 
-### Expected owner value
+#### Expected owner value
 
 - Extends deliberate practice to the errors that most persist for English speakers, which
   conjugation drills cannot touch.
 - Reuses the Gym's session anatomy, missed rounds and performance reporting without new concepts.
 
-### Risks and tradeoffs
+#### Risks and tradeoffs
 
 - Curation is the real cost: each item needs a correct answer, plausible distractors and an
   explanation, and a wrong or ambiguous curated item teaches the error it exists to prevent.
@@ -532,21 +586,21 @@ engineering — the machinery is built.
 - Every existing consumer of `drill_pass`/`drill_fail` (form statistics, Adaptive, Leitner replay)
   must explicitly ignore the new metadata kinds, as they already do for recognition answers.
 
-### Evidence needed
+#### Evidence needed
 
 - Which confusions actually recur in the owner's own Spanish — Diario AI feedback is accumulating
   exactly this evidence, and it should pick the first lane rather than guessing from a textbook's
   priorities.
 - Whether the dictionary's entry data carries gender reliably enough for option 3.
 
-### Questions for a future discussion
+#### Questions for a future discussion
 
 - First lane: *ser/estar*, *por/para*, or whatever the Diario feedback names most often?
 - Do these belong inside the Conjugation Gym (renaming it), or as a sibling practice home?
 
 ---
 
-## Frequency coverage
+### Frequency coverage
 
 - **Date added:** 2026-08-11
 - **Status:** Captured
@@ -554,7 +608,7 @@ engineering — the machinery is built.
 - **Potential data impact:** None; derived at render from existing `freqRank` reference data and
   the personal layer, in the Phase 11 pattern
 
-### Description and current context
+#### Description and current context
 
 The dictionary carries `freqRank`, and no stat uses it. Joining it against the personal layer
 yields "you know N of the 1,000 most common Spanish words" — an absolute progress measure that
@@ -563,7 +617,12 @@ computation inverted gives a browse view of high-frequency dictionary words not 
 notebook, a principled answer to "what should I learn next?" that the miss log cannot provide
 (a search miss has no entry and therefore no rank).
 
-### Potential options
+**Not the same idea as the rejected "frequency weighting".** Phase 10 planning considered and
+rejected weighting dictionary *suggestions* by `freqRank` (see Learning depth in the Implemented
+band) — that rejection was about suggestion ranking and does not cover this, which is a display
+statistic and a deliberate browse view. Neither re-litigates the other.
+
+#### Potential options
 
 1. **A single Estadísticas tile**: coverage of the top 1,000, perhaps with a small band breakdown
    (top 100 / 500 / 1,000 / 5,000).
@@ -572,13 +631,13 @@ notebook, a principled answer to "what should I learn next?" that the miss log c
 3. **A "known" threshold choice**: saved at all, versus reviewed to some Leitner box, versus
    retired — each tells a different story.
 
-### Expected owner value
+#### Expected owner value
 
 - An honest, motivating absolute measure of progress against the language rather than against
   the owner's own past activity.
 - A ranked next-words list grounded in corpus frequency rather than whim.
 
-### Risks and tradeoffs
+#### Risks and tradeoffs
 
 - Corpus frequency is not personal relevance; the words the owner needs for their life may rank
   low. The view must inform, not nag — no goal-setting, no pressure mechanics, per the project's
@@ -587,19 +646,19 @@ notebook, a principled answer to "what should I learn next?" that the miss log c
   stated on the surface.
 - Multiword phrases have no rank; coverage is a words-only statistic and should say so.
 
-### Evidence needed
+#### Evidence needed
 
 - Whether `freqRank` coverage across the 10,278 shipped lemmas is dense enough for stable band
   percentages (what fraction of shipped entries carry a rank at all).
 
-### Questions for a future discussion
+#### Questions for a future discussion
 
 - Which "known" definition matches what the owner wants the number to mean?
 - Does the browse view belong in Estadísticas, the dictionary surface, or the Words & phrases hub?
 
 ---
 
-## Phase 19/20 review nits (edge polish)
+### Phase 19/20 review nits (edge polish)
 
 - **Date added:** 2026-08-10
 - **Status:** Captured
@@ -632,24 +691,239 @@ made obsolete by later phases.
 
 ---
 
-## Global tag management
+### Saved views
 
-- **Date added:** 2026-08-10
-- **Status:** Implemented as Phase 20 and deployed
-- **Origin:** Existing spelling variants and obsolete tags required one edit per affected entry
-- **Potential data impact:** None beyond existing item tags, ordinary edit events and the backed-up
-  `tagColors` preference; schema remains v6
+- **Date added:** 2026-08-02
+- **Last reviewed:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Preliminary information-architecture review and follow-up discussion
+- **Potential data impact:** None for additional built-in presets; persistent preference/backup
+  contract for owner-created views
 
-Ajustes is now the single exact-tag maintenance home. One source can be renamed to a new spelling,
-merged into one existing exact destination or removed globally. The timestamp-neutral atomic
-transaction, explicit merge/removal confirmations, optional backup and colour-ownership rules are
-recorded in `docs/PHASE-20-DIRECTION.md`.
+#### Description and current context
 
-The complete 1,168-test suite, production build, rollback/backup proofs and a disposable 375×812
-rename→merge→remove browser flow pass. See `docs/PHASE-20-REPORT.md` for the implementation and
-numerical closeout.
+Cuaderno currently offers type, maintenance, tag, and order controls. Those choices are intentionally
+component-local and reset after leaving Cuaderno. A saved view would preserve a useful combination
+such as "phrases missing examples," "recently added Mexico vocabulary," or "unlinked source pages."
 
-### Evidence to watch in real use — 2026-08-10
+A saved view is a temporary lens over canonical items, not a new category or a copy of the content.
+
+**Overlap to resolve with Tag hubs (above):** a tag hub is close to a persistent single-tag view.
+Whichever idea is planned first should consciously answer whether it subsumes the other.
+
+#### Potential options
+
+1. **Additional built-in presets.** Add a few fixed, broadly useful combinations without saving
+   owner configuration.
+2. **Remember last-used controls.** Restore the most recent state without introducing named views.
+3. **Named saved views.** Save type, maintenance view, tag, order, and possibly search text under an
+   owner-chosen name.
+4. **Pinned views.** Give selected views a compact shortcut without making them top-level content.
+5. **Rule-based collections.** Combine several criteria and possibly relationship or provenance
+   rules.
+
+#### Expected owner value
+
+- Turns repeated retrieval and maintenance workflows into one action.
+- Lets one item appear in several useful contexts without duplication.
+- Makes a larger notebook easier to revisit without remembering filing choices.
+- Could support recurring study, enrichment, source, or topic workflows.
+
+#### Risks and tradeoffs
+
+- A miniature query builder could be more complex than the notebook warrants.
+- Views can become stale when tags disappear or their spelling changes.
+- Restoring an active view can make items appear missing unless the UI clearly shows the filter.
+- Saved searches may remain useful for less time than saved structural filters.
+- Shortcuts can crowd navigation if they are treated like permanent content types.
+
+#### Evidence needed
+
+- Which filter combinations the owner repeatedly reconstructs.
+- Whether recurring retrieval is based on tags, sources, dates, completeness, or links.
+- Whether remembering the last state would solve the problem without named views.
+- How many named views would remain useful after several weeks.
+
+#### Potential timing
+
+Observe real use of the Phase 5c controls first. A persistent view may fit the existing preferences
+store without a new Dexie table, but it still needs a documented preference shape, backup/import
+behavior, stale-reference handling, and a separately approved plan.
+
+#### Questions for a future discussion
+
+- Is the desired behavior "resume where I left off" or "maintain several named lenses"?
+- Should query text ever be saved?
+- Where would saved views live without crowding the three primary tabs?
+
+#### Phase 8 overlap — 2026-08-04
+
+The Words & phrases hub does **not** implement saved views, and the distinction is worth keeping
+clear. Nothing it offers is saved or named: its five controls (where it lives, learning, view,
+order, tag) are visit-local and reset on leaving, exactly like Cuaderno's. What changed is the
+*vocabulary* of available lenses, not their persistence.
+
+That makes the hub a source of the evidence this idea has been waiting for. Two questions it can now
+answer that could not be asked before:
+
+- Which of the five controls the owner reconstructs repeatedly, and in which combinations. A
+  recurring pair such as "phrases, not in any page yet" or "words missing examples, tagged Mexico"
+  is the concrete case for naming a view; a control that is set once and forgotten is not.
+- Whether the pull is really "resume where I left off". The hub deliberately preserves its
+  controls while the session trail is elsewhere but discards them on leaving, so the owner will
+  feel both behaviours and can say which one they missed.
+
+If named views are eventually wanted, the hub raises the cost slightly: a saved view would now have
+to describe which surface it belongs to, since Cuaderno, Pages and Words & phrases no longer share
+one control set. That is an argument for waiting on real use, not for building it sooner.
+
+#### Evidence window open — 2026-08-12
+
+Phase 8 deployed on 2026-08-04 and its lenses have been in daily use since. The evidence this
+idea was parked on is now collectable: the next step is simply asking the owner which control
+combinations they repeatedly reconstruct, and whether they miss "resume where I left off" when
+returning to a hub. No instrumentation is needed or wanted.
+
+---
+
+### Personal-content provenance
+
+- **Date added:** 2026-08-02
+- **Last reviewed:** 2026-08-12
+- **Status:** Captured
+- **Origin:** Preliminary information-architecture review and follow-up discussion
+- **Potential data impact:** Medium at entry level; high at meaning/field level; intersects links,
+  events, backup, dictionary boundaries, and Phase 6 AI policy
+
+#### Description and current context
+
+Provenance answers where information came from or how it was produced. The replaceable reference
+dictionary already records source IDs, dataset versions, licensing, and stock-example attribution.
+Personal items do not have a comparable structured provenance model. A personal item may link to a
+source page, retain a dictionary attachment, or describe its origin in notes, but those mechanisms
+do not state exactly which content came from which source.
+
+Several questions are currently grouped under "provenance": where an expression was encountered,
+which source supports a meaning, whether content was personal/imported/AI-assisted, and whether
+generated content was later edited. They may require different solutions.
+
+#### Phase 6 second-slice precedent — 2026-08-12
+
+The persisted Diario feedback field (schema v8, 2026-08-11) is the first live AI-provenance
+decision, made by architecture rather than by a provenance model: AI-produced content is stored
+in its own dedicated field on the entry it judged, never mingled with the owner's prose, one per
+entry with replace/remove semantics, excluded from events and recency, and staleness-checked by a
+content hash of what was reviewed. That answers "how is AI *commentary* kept distinguishable" —
+by structural separation.
+
+What it deliberately does not answer is the harder half of option 5 below: provenance for AI
+content that becomes *owner content* — an AI-proposed word, meaning or example the owner approves
+into the notebook, where structural separation is no longer possible because the content joins
+the owner's own records. That decision is still needed **before** any AI-proposes-content design
+(brief §9's approved proposed entries), and this precedent suggests the shape of the question:
+either approved content carries an origin marker, or approval is defined as adoption and the
+provenance is deliberately dropped. Phase 12's dictionary-import precedent is relevant too:
+imported meanings deliberately carry no link back to their source senses.
+
+#### Potential options
+
+1. **Informal provenance.** Continue using linked source pages, media URLs, and notes.
+2. **Entry-level origin.** Record an origin type, linked source item or URL, and capture date for the
+   whole entry.
+3. **Multiple source references.** Allow an entry to cite several encounters or supporting sources.
+4. **Field- or meaning-level provenance.** Attach origin information to a particular meaning,
+   example, or note.
+5. **AI-specific provenance.** Record which content was proposed by AI, what was approved, and
+   whether it was later edited.
+6. **Content-history model.** Preserve a fuller record of imported, generated, and personal changes.
+
+#### Expected owner value
+
+- Makes it easy to return to the original learning context.
+- Helps assess the trust and personal relevance of a meaning or example.
+- Keeps personal writing, open-reference content, source-derived notes, and future AI drafts
+  distinguishable.
+- Supports source-based vocabulary browsing and review.
+- Prevents AI-assisted content from becoming indistinguishable from verified personal observations.
+
+#### Risks and tradeoffs
+
+- One entry may combine information from several sources, making one origin misleading.
+- Field-level provenance can make editing visually and conceptually heavy.
+- "Heard in a podcast" could be stored both as a relationship and provenance, creating duplication.
+- AI model metadata may age quickly and is not itself proof of correctness.
+- A content-history system would be a major expansion; current edit events do not store field values
+  or act as version history.
+- Personal source context may contain private information and must remain on-device under current
+  policy unless deliberately included in a future AI request.
+
+#### Evidence needed
+
+- How often the owner currently records sources in notes, media links, or linked pages.
+- Whether provenance is needed mainly for rediscovery, trust, citation, or AI transparency.
+- Whether entries commonly combine multiple sources.
+- Which content units need provenance: whole entry, meaning, example, note, or individual edit.
+
+#### Potential timing
+
+Source-encounter needs can be studied during a real-data audit. AI provenance must be decided
+before AI-proposed content is designed, so generated content does not establish an implicit
+provenance model by accident — the feedback-field precedent above covers commentary only. A
+durable implementation requires its own storage and backup plan.
+
+#### Questions for a future discussion
+
+- Is the primary question "where did I hear this?" or "who produced this content?"
+- Is a typed link to a source page sufficient for common cases?
+- Must AI provenance survive later manual edits, and at what level of detail?
+
+---
+
+## Deferred ideas
+
+### Accent bar for typed inputs
+
+- **Date added:** 2026-08-12
+- **Status:** Deferred — owner-declined for now
+- **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
+- **Owner interest:** The owner thinks this could be a good feature but is not interested in
+  pursuing it unless something changes: their current keyboard makes adding accents low-friction,
+  so the problem this solves does not exist for them today. Revisit only if the keyboard situation
+  changes or typed-input friction is actually observed.
+- **Potential data impact:** None; a reusable input-adornment component
+
+#### Description and current context
+
+A row of `á é í ó ú ñ ü` buttons above every typed input (conjugation drills, typed review modes,
+any future dictation face) for phones whose keyboards make accents slow. The app deliberately
+grades accents (exact-first, named near miss), so keyboard friction would otherwise grade the
+keyboard rather than the owner's knowledge. One small component reused everywhere Type mode
+exists.
+
+#### Why it is deferred rather than captured
+
+The value depends entirely on a friction the owner does not have. Recording it keeps the option
+visible without implying work; the evidence that would reopen it is the owner noticing accent
+entry slowing them down in a typed session.
+
+---
+
+## Implemented ideas (history)
+
+Compressed summaries. The authoritative records are `DECISIONS.md` and each phase's
+direction/report documents; each entry's original full reasoning is preserved in this file's git
+history. Still-open evidence and questions are kept here in full.
+
+### Global tag management
+
+- **Date added:** 2026-08-10 — **Status:** Implemented — Phase 20, deployed
+- **Records:** `PHASE-20-DIRECTION.md`, `PHASE-20-REPORT.md`, Phase 20 entries in `DECISIONS.md`
+
+Ajustes is the single exact-tag maintenance home: rename to an unused spelling, explicit merge
+into one existing tag, or global removal, in one timestamp-neutral atomic transaction with one
+ordinary `edit` per changed item and an optional non-gating pre-change backup. Schema stayed v6.
+
+#### Evidence to watch in real use — 2026-08-10
 
 Recorded at review time so the deliberate Phase 20 trade-offs are re-examined against real usage
 rather than rediscovered. None of these is a defect; each names the evidence that would justify a
@@ -674,645 +948,136 @@ follow-up product decision.
 
 ---
 
-## Explicit Notes callouts
+### Markdown blank-line spacing
 
-- **Date added:** 2026-08-10
-- **Status:** Implemented as a Phase 19 increment and deployed
-- **Origin:** Follow-up real-use request after Structured Notes deployed
-- **Potential data impact:** None; explicit `[!NOTE]` syntax remains inside existing Markdown strings
+- **Date added:** 2026-08-10 — **Status:** Implemented — Phase 19 increment, deployed
+- **Records:** Phase 19 blank-line entries in `DECISIONS.md`
 
-The bounded increment adds a Note callout action beside the ordinary Block quote action in Page
-Notes editors. Only a blockquote beginning with `[!NOTE]` becomes a labeled accessible callout;
-existing and newly written unmarked blockquotes remain quotations. The marker is excluded from
-search, previews and AI-visible text, and the visual treatment reuses the Notes family. Lexical
-notes, Diario, storage, backups and schema v7 remain unchanged.
-
-The complete 1,208-test suite, production build, `git diff --check`, deliberate five-test red proof
-and disposable 375×812 Page-creation/section/search flow pass. Both stored marker strings round-trip,
-ordinary quotes remain blockquotes, all formatting actions measure 44×44 px, and the fixture origin
-returned to zero items without overflow or console warnings/errors.
+A non-destructive Blank line action in Page Notes, Grammar Overview and Diario writes one exact
+top-level standalone `<br>` per press, rendered as an unlabeled spacer and omitted from
+visible-text consumers. Lexical notes unchanged; no schema, storage or backup change.
 
 ---
 
-## Markdown blank-line spacing
+### Explicit Notes callouts
 
-- **Date added:** 2026-08-10
-- **Status:** Implemented as a Phase 19 increment and deployed
-- **Origin:** Real-use need for deliberate visual spacing that repeated empty Markdown lines cannot preserve
-- **Potential data impact:** None; exact standalone `<br>` markers remain inside existing Markdown strings
+- **Date added:** 2026-08-10 — **Status:** Implemented — Phase 19 increment, deployed
+- **Records:** Phase 19 callout entries in `DECISIONS.md`
 
-The bounded increment adds a non-destructive Blank line action to Page Notes, Grammar Overview and
-Diario while leaving lexical notes unchanged. One exact top-level standalone `<br>` renders as one
-unlabeled hidden spacer; repeated actions create repeated spacing. Inline `<br>` and all other raw
-HTML remain unsupported, and visible-text consumers omit the marker without losing surrounding
-prose. Storage, backup, events and schema v7 remain unchanged.
-
-Four deliberate tests reddened before implementation. Nine focused files pass 111/111 tests, the
-complete suite passes 1,214/1,214 across 103 files, the 2,088-module build and `git diff --check`
-pass, and a disposable 375×812 Notes/Grammar/Diario flow confirmed exact marker round-trips,
-44×44 px actions, repeated hidden spacers, marker-free read/previews, zero overflow, clean logs and
-zero retained records.
+Page Notes editors offer a Note callout beside Block quote; only a blockquote beginning with
+`[!NOTE]` becomes a labeled accessible Notes-blue callout, and the marker stays out of search,
+previews and AI-visible text. Ordinary blockquotes remain quotations; schema stayed v7.
 
 ---
 
-## Structured Notes outlines
+### Structured Notes outlines
 
-- **Date added:** 2026-08-10
-- **Status:** Implemented, verified and deployed as a Phase 19 increment
-- **Origin:** Real-use need to explain a Vocabulary collection and organize a general Notes Page
-  beyond one undifferentiated body
-- **Potential data impact:** schema v7 adds mandatory `noteSections[]` to every Page
+- **Date added:** 2026-08-10 — **Status:** Implemented — Phase 19 schema-v7 increment, deployed
+- **Records:** `PHASE-19-DIRECTION.md`, `PHASE-19-REPORT.md`, Phase 19 entries in `DECISIONS.md`
 
-The approved design retains the existing Page body as Notes Overview and adds named top-level
-sections plus exactly one subsection level. Notes remain permanently available without an enable
-switch, use ordinary safe Markdown, and share hierarchy mechanics with Grammar without introducing
-a general block editor. Structure copy preserves names/hierarchy with fresh IDs but clears prose.
-
-A nonempty Notes outline deliberately counts as durable Page organization: a dated outlined record
-stays in Pages, while a dated body-only record remains Diario regardless of length. The brief and
-`DECISIONS.md` record the asymmetry, the real classification routes and the deliberate leaf-body
-deletion rule. The schema-v7 release requires version fencing, pure export-first migration and a
-complete sweep of Page/Diario consumers.
-
-The delivered increment passes the complete 1,204-test suite, production build, `git diff --check`
-and a disposable 375×812 integrated browser flow. It deployed from `main` at `4f73a45`, and the
-owner confirmed the production smoke screen passed.
+Schema v7 keeps every Page body as Notes Overview and adds named top-level Notes sections plus
+exactly one subsection level, sharing hierarchy mechanics with Grammar without a general block
+editor. A nonempty outline deliberately counts as durable Page organization for the Pages/Diario
+boundary; the brief records the asymmetry and the leaf-body deletion rule.
 
 ---
 
-## Grammar guide depth and callouts
+### Grammar guide depth and callouts
 
-- **Date added:** 2026-08-10
-- **Status:** Implemented, verified and deployed as the first Phase 19 release
-- **Origin:** Real-use friction while creating an Indicative-versus-Subjunctive comparison guide
-- **Potential data impact:** schema v6 adds one-level Grammar section ownership; formatted
-  Overviews remain strings
+- **Date added:** 2026-08-10 — **Status:** Implemented — Phase 19 first release, deployed
+- **Records:** `PHASE-19-DIRECTION.md`, `PHASE-19-REPORT.md`
 
-The current `Page → Grammar section → examples` hierarchy cannot comfortably represent a concept
-such as Indicative, a highlighted caution about speaker belief, the SPOCK trigger family, each
-SPOCK component's related phrases and examples, followed by a parallel Subjunctive concept. The
-workaround is a long flat run of prefixed section names or splitting related content between Notes
-and Grammar.
-
-The approved direction keeps the feature bounded: safe Markdown and accessible Note callouts in
-the existing section Overview, plus exactly one subsection level represented by a same-page
-`parentId`. It does not introduce arbitrary blocks or recursive page trees. Existing sections
-migrate to top level and retain their complete content and identity.
-
-Phase 19 is also the grouping home for later owner-approved Page organization/formatting
-increments. That is a bookkeeping choice, not advance scope approval; each later increment still
-needs its own concrete decision, tests and any required migration. See
-`docs/PHASE-19-DIRECTION.md` for the decision-complete first release.
-
-The complete 1,145-test suite, production build, four deliberate failure proofs and disposable
-375×812 creation/copy plus schema-v5 upgrade→restore browser flows pass. See
-`docs/PHASE-19-REPORT.md` for the implementation and numerical closeout.
-
-This first release is deployed as part of the current schema-v7 Phase 19 build at `4f73a45`; the
-owner confirmed the production smoke screen passed after the Structured Notes increment landed.
+Grammar sections gained safe formatted Overviews, accessible Note callouts and schema-v6 one-level
+subsections, bounded deliberately short of arbitrary blocks or recursive page trees. Phase 19
+remains the grouping home for later owner-approved Page organization/formatting increments — a
+bookkeeping choice, not advance scope approval.
 
 ---
 
-## Source-oriented page templates
+### Owner-centric stats
 
-- **Date added:** 2026-08-02
-- **Last reviewed:** 2026-08-04
-- **Status:** Implemented and deployed as Phase 7
-- **Origin:** Preliminary information-architecture review and follow-up discussion
-- **Potential data impact:** Implemented schema-v5 Source and Grammar structures; no new stores or
-  indexes and no stored starter/template identity
+- **Date added:** 2026-08-06 — **Status:** Implemented — Phase 11, deployed
+- **Records:** `PHASE-11-DIRECTION.md`, Phase 11 entries in `DECISIONS.md`
 
-### Description and current context
+Study streak, 16-week activity calendar, cumulative growth line, Leitner ladder and per-item
+learning strip, every number derived at render with no stored counters. Two owner decisions are
+recorded in the direction doc: the streak amends the journal-streak deferral (journal-side streaks
+stay deferred), and day-level activity counts events of since-deleted items. This entry previously
+existed only as an index row; the section was added 2026-08-12 for completeness.
 
-Pages are deliberately general-purpose. A film, podcast, book, article, grammar note, topic page,
-or journal entry currently uses the same basic page shape: title, optional date, body, tags, media
-links, and links to other items. This preserves flexible capture, but a source page begins as a
-blank page and may not consistently prompt for useful context.
-
-A source-oriented template would help initialize a page used to capture a source and the vocabulary
-encountered there. A template affects how a page starts; it does not necessarily define what that
-page permanently is.
-
-**Phase 4j–4o update (2026-08-03):** the creation gallery now offers Blank page plus four
-vocabulary-Collection starting points. Those starters seed editable Collection groups and store no
-template identity. They are not Source or Grammar templates. A Source profile, structured source
-fields, Grammar profile, richer Journal profile, and user-authored templates remain explicitly
-deferred until real use establishes their recurring structure.
-
-### What Phase 4j–4o addressed
-
-- The starting-point gallery established a safe creation-only template pattern: a starter can seed
-  editable content without permanently classifying the page or storing a template ID.
-- Vocabulary Collection addressed the part of the original source-page idea concerned with making
-  linked vocabulary prominent. A Collection leads with ordered vocabulary groups instead of
-  presenting lexical links as secondary generic relationships.
-- The persistent-profile foundation, General-page compatibility, and reversible conversion provide
-  a safe base on which a later Source design could build.
-
-These are enabling pieces, not an implementation of Source-oriented pages themselves.
-
-### Source-specific needs still open
-
-These remain exploratory needs from the page examples, not repeated-use friction established by a
-real-source-page audit.
-
-- A book, film, podcast, article, or lesson page still begins as a General page without
-  source-specific prompts or structured source identity.
-- Passages, notable vocabulary, and personal reflections still share the general body-and-links
-  layout; there is no dedicated repeatable structure for those different kinds of material.
-- A page link can show that vocabulary is related to a source, but not where it was encountered or
-  whether the source supports a particular meaning, example, or reflection.
-- A future source page may also need Collection behavior. The current one-profile model does not
-  yet answer whether Source should be an exclusive profile, optional metadata layered onto another
-  profile, or a composable capability.
-- Owners cannot yet create, save, or reuse their own starters.
-
-### Potential options
-
-1. **Text-only starter template.** At page creation, offer optional starters such as Blank, Source,
-   Grammar note, or Journal. A Source starter could insert editable labels such as Source,
-   Episode/chapter, URL, Summary, Useful expressions, and Questions into the existing body.
-2. **Source-specific creation form.** Show optional inputs such as creator, episode, date consumed,
-   URL, or Spanish variety, then render them consistently.
-3. **Source-focused display.** Give linked words and phrases a prominent “Vocabulary from this
-   source” section while retaining an ordinary page record.
-4. **Structured source page.** Persist source-specific fields and possibly a page kind. This is a
-   larger content-model decision, not merely a template.
-
-### Expected owner value
-
-- Reduces blank-page friction while preserving quick capture.
-- Encourages useful source context without requiring the owner to remember a personal format.
-- Makes a source page a clearer vocabulary hub.
-- Makes it easier to return to where an expression was encountered.
-- Could give future AI-assisted drafts a predictable, reviewable starting structure.
-
-### Risks and tradeoffs
-
-- Too many prompts could make quick capture slower.
-- A rigid template could imply that every source needs the same metadata.
-- Pre-filled labels may create visual clutter when most remain empty.
-- Structured fields would require decisions about storage, editing, backup, search, and existing
-  pages.
-- A template should not silently become a permanent taxonomy.
-
-### Evidence needed
-
-- How many real pages represent films, podcasts, books, articles, lessons, or other sources?
-- Which headings or details recur naturally in page bodies?
-- How often are source pages linked to several lexical entries?
-- Which source details help later retrieval rather than merely feeling thorough during capture?
-
-### Potential timing
-
-~~A text-only template could be prototyped without a schema change once the owner wants to evaluate
-the workflow.~~ **Deferred 2026-08-03:** Phase 4j–4o used built-in, creation-only vocabulary
-starters and deliberately did not generalize them into Source/Grammar or user-authored templates.
-Persistent source fields or a Source profile still require a real-page audit and their own approved
-migration/storage plan.
-
-### Questions for a future discussion
-
-- Which source categories and details actually recur in real use?
-- Is a creation-only starter sufficient, or does Source need lasting display, capture, validation,
-  or retrieval behavior?
-- Should source structure be editable headings in `body`, a source-specific form, repeated
-  passage/reflection blocks, or a structured submodel?
-- How should Source and Vocabulary Collection behavior combine on one page?
-- Which details matter after capture: creator, episode/chapter, URL, encounter date, Spanish
-  variety, or something else?
-- Is a linked source page sufficient provenance, or is source information needed on a lexical
-  entry, meaning, example, or individual encounter?
-- Should owners eventually create reusable starters, and if so, does template identity or
-  configuration need to survive backup and later editing?
-- How should existing General source pages opt into future behavior without forced classification?
-
-### Approved Phase 7 direction — 2026-08-04
-
-The owner approved the persistent Source workflow and creation approach after reviewing
-representative Source, Grammar and Pages-library experiences. The questions above remain as the
-history that led to this decision; they are no longer prerequisites for the first release.
-
-- Source becomes an independently enabled page capability, not an exclusive page kind. One page
-  may combine Source, Grammar and Vocabulary while retaining exactly one leading display focus.
-- The persistent Source structure holds a small optional identity (format, creator, scope, URL and
-  context) plus one flat ordered capture stream of passages, reflections, language notes and
-  questions. Text and URLs are enough for v1; attachments, source hierarchies, deep provenance and
-  reading progress remain outside scope.
-- Source starters are built-in, family-first creation recipes for book/written work, podcast/audio,
-  film/video and article/lesson. They enable Vocabulary by default but store no recipe or template
-  identity.
-- **Copy page structure** is the only reuse mechanism: it copies focus, enabled capabilities,
-  Collection group names and Grammar section names with fresh IDs, never personal content or Source
-  identity. A stored/user-authored template manager remains deferred.
-- Vocabulary attached to captures rolls up through the page's existing authoritative outgoing
-  personal lexical links. Grammar examples may point to one exact Source capture without expanding
-  this into a general provenance model.
-- Existing pages opt in manually. Disabling Source hides and preserves its data; hidden Source
-  content stays outside role filters, search and contextual summaries until re-enabled.
-
-The decision-complete scope and sequence are recorded in
-[PHASE-7-DIRECTION.md](PHASE-7-DIRECTION.md).
-
-### Phase 7 implementation outcome — 2026-08-04
-
-The approved Source capability and built-in Source recipes are deployed as Phase 7. The delivered
-workflow includes optional Source identity, four ordered capture types,
-capture-level vocabulary enrichment, visit-local filtering and ñ-preserving search, reordering,
-and contextual retrieval. Source remains composable with Vocabulary and Grammar, disabling it
-preserves but hides its contents, and no starter/template identity is stored. The full 593-test
-serial suite, production build, and diff check pass. GitHub Pages deployment completed
-successfully; the disposable browser closeout remains unverified. See
-[PHASE-7-REPORT.md](PHASE-7-REPORT.md).
+**Still open:** retention, coverage and per-direction breakdowns were deliberately excluded until
+real data volume exists. The recorded `direction` metadata on review events is what a
+per-direction answer would be built from, and the Review forecast idea (Active band) belongs to
+this family.
 
 ---
 
-## Meaning-block presentation
+### Learning depth (cloze, reverse, drill, audio)
 
-- **Date added:** 2026-08-02
-- **Last reviewed:** 2026-08-02
-- **Status:** Implemented and shipped
-- **Origin:** Preliminary information-architecture review and follow-up discussion
-- **Potential data impact:** Low for visual treatment of the existing string; high for structured
-  meanings or sense-level examples, notes, and provenance
+- **Date added:** 2026-08-06 — **Status:** Implemented — Phase 10a–10d, deployed
+- **Records:** Phase 10 entries in `DECISIONS.md`
 
-### Description and current context
+Session direction (es→en / en→es / mixed), cloze cards from the entry's own examples with
+conjugation-aware matching, an ungraded conjugation drill, and browser-TTS pronunciation — all
+derived from existing data with no schema change. Several of its recorded open questions have
+since been answered by later phases: the drill's ungraded/recordless design was reversed by
+Phase 13 at the owner's request and expanded into the Conjugation Gym (Phases 14–18), and the
+drilled-tense set grew accordingly.
 
-A personal lexical item currently stores its English meaning in one `translation` string. The UI
-supports one meaning per line and displays those lines in full, but they are not separate records.
-Personal examples and notes belong to the whole entry rather than to an individual meaning.
+**Deliberately not built then, and where those threads live now:**
 
-Meaning blocks could make entries with several readings easier to scan without immediately
-creating a formal sense model. This differs from dictionary senses: imported sense identifiers are
-not stable enough to serve as permanent personal-data identities.
+- **Confusion-pair drills** — dropped for scope only; now promoted to its own Active entry
+  (2026-08-12).
+- **Frequency weighting** of dictionary suggestions — rejected as the weakest candidate, partly
+  because a search miss has no entry and therefore no rank. The Active **Frequency coverage**
+  idea is a different proposal (a display statistic, not suggestion ranking) and is not covered
+  by this rejection.
+- **Per-direction scheduling** — still deferred by §14; the `direction` metadata recorded since
+  Phase 10 is what a future answer would be built from.
 
-### Potential options
-
-1. **Presentation only.** Render each nonblank translation line as a visually separate row, bullet,
-   or numbered block while storing the same string.
-2. **Authoring guidance.** Keep the string but provide clearer one-meaning-per-line guidance and
-   perhaps simple line reordering.
-3. **Lightweight labels in text.** Let the owner manually include labels such as Mexico, informal,
-   or figurative without interpreting them as structured data.
-4. **Structured meanings.** Replace or supplement the string with `meanings[]`, potentially giving
-   each meaning its own gloss, usage note, examples, region, register, and source.
-
-### Expected owner value
-
-- Makes polysemous entries easier to understand at a glance.
-- Reduces the chance that several meanings look like one run-on translation.
-- Could eventually place examples beside the meanings they illustrate.
-- Helps compare closely related readings and review AI-generated proposals one meaning at a time.
-
-### Risks and tradeoffs
-
-- Treating every newline as a semantic boundary may misread formatting the owner intended as prose.
-- Structured meanings make entry creation and editing more demanding.
-- Existing examples and notes would need rules for assignment or migration.
-- Dictionary attachments cannot safely depend on unstable imported sense IDs.
-- A structured model would affect storage, backups, import validation, search, review presentation,
-  and future AI behavior.
-
-### Evidence needed
-
-- How many real entries use multiline meanings?
-- Do personal examples clearly correspond to particular meanings?
-- Are region, register, or usage labels repeatedly written beside individual meanings?
-- Do notes already contain manual headings that approximate meaning blocks?
-
-### Potential timing
-
-Visual treatment of existing lines can be discussed independently. Structured meanings should wait
-for real-entry evidence and may be best coordinated with Phase 6 so AI drafts do not establish a
-content shape before the owner has validated it.
-
-### Questions for a future discussion
-
-- Is the goal mainly faster scanning, or attaching notes and examples to individual meanings?
-- Should blank lines or numbered text retain special meaning?
-- How should personal meanings relate to a replaceable dictionary entry?
-
-### Approved direction — 2026-08-02
-
-The owner approved structured personal meaning blocks after workshopping the polysemous verb
-*sacar*. The lexical entry remains the review and scheduling unit. Each ordered meaning has a
-stable personal ID independent of dictionary senses, an English gloss, optional short Spanish
-usage cue, compact region/usage/grammar labels, and optional note and assigned examples. Entry-wide
-notes and general examples remain; example assignment is optional. Reading shows every gloss and
-cue with context collapsed, routine editing expands one meaning, and a draft-based organizer owns
-add/reorder/neighbor-merge/delete behavior. Schema-v1 multiline translations migrate one nonblank
-line at a time without automatically assigning existing notes or examples. The complete storage,
-backup, import, search, Repaso and verification decisions are recorded under Phase 4i in
-`DECISIONS.md`.
+**Still-open evidence:** whether cloze fires often enough to be worth it; whether reverse/mixed
+stay used once the novelty passes; whether one Leitner ladder across both directions stays
+believable; and whether cloze should ever draw on Diario writing — the owner's own Spanish in
+context (see also the active-vocabulary theme, document history 2026-08-11).
 
 ---
 
-## Typed or explained relationships
+### Typed or explained relationships
 
-- **Date added:** 2026-08-02
-- **Last reviewed:** 2026-08-04
-- **Status:** Implemented and deployed — the Phase 4t–4x disposable browser closeout was never claimed
-- **Origin:** Preliminary information-architecture review and follow-up discussion
-- **Potential data impact:** ~~Low for clearer direction labels; high for persisted relationship
-  types or explanations~~ **High and approved: schema v4 persists sparse relationship annotations**
+- **Date added:** 2026-08-02 — **Status:** Implemented — Phase 4t–4x, deployed 2026-08-04
+- **Records:** Phase 4t–4x entries in `DECISIONS.md`; approval and outcome entries in this file's
+  document history
 
-### Description and current context
-
-Current links say that two items are connected but do not record why. A link is stored once in the
-originating item's `linkedKeys[]`; the reverse direction is derived as a backlink. The detail UI
-groups related items by content type, but a dense hub could still become an unexplained list.
-
-Relationship information belongs to the connection between two items, not naturally to either item
-alone. Durable annotations therefore do not fit inside the current array of key strings without a
-new representation.
-
-### Potential options
-
-1. **Direction-only presentation.** Distinguish “this item links to” from “linked from” without
-   storing new data.
-2. **Optional explanation.** Attach free text such as “often confused with” or “heard in episode 4.”
-3. **Small fixed type list.** Examples might include synonym, contrast, variant, example of,
-   grammar pattern, heard in, or source for.
-4. **Hybrid relationship.** Store an optional type plus an optional explanation.
-5. **Full relationship records.** Model source key, destination key, direction, type, explanation,
-   and timestamps separately from item records.
-
-### Expected owner value
-
-- Makes browsing related knowledge understandable rather than merely connected.
-- Helps explain contrasts, variants, common confusions, and source context.
-- Makes highly connected entries easier to scan.
-- Could support focused views such as “commonly confused expressions” or “heard in this source.”
-
-### Risks and tradeoffs
-
-- Free text is flexible but difficult to group or filter.
-- Fixed types enable retrieval but create an extra classification decision for every link.
-- Symmetric relationships such as synonym differ from directional relationships such as example of.
-- Existing links would need a safe default and migration path.
-- Deletion cleanup, one-sided storage, dictionary aliases, and orphan handling must remain correct.
-- A rich graph system would be disproportionate if only a few links need explanation.
-
-### Evidence needed
-
-- Whether real dense entries are confusing in practice.
-- Which relationship explanations recur naturally in notes or page text.
-- Whether two or three types cover most useful relationships.
-- Whether the owner cares more about explanation while reading or filtering by relationship later.
-
-### Potential timing
-
-Clearer direction labels can be evaluated without stored data. ~~Persistent relationship types or
-explanations should follow a real-link audit and require a dedicated schema and migration plan.~~
-**Owner-approved direction, 2026-08-04:** the owner expressly waived the real-link audit after
-reviewing and approving the hypothetical examples, and approved Phase 4t–4x with a dedicated
-schema-v4 migration and backup plan.
-
-### Questions for a future discussion
-
-- Is free explanation sufficient, or must relationships be filterable?
-- Which relationships are directional, and which should read the same from both sides?
-- Should “heard in source” be a relationship, provenance, or both?
-
-### Approved direction — 2026-08-04
-
-- Use the hybrid option: one fixed type plus one optional shared plain-text note on every ordinary
-  connection. Ship all seven types together in this order: Similar meaning, Contrast, Often
-  confused, Variant, Explained by/Explains, Found in/Contains, and Related.
-- Keep `linkedKeys[]` as the sole authority for whether a connection and Collection membership
-  exist. Add mandatory sparse `linkAnnotations[]` to schema-v4 items; an absent annotation derives
-  Related with a blank note, and that default is never stored densely.
-- Use `subject: owner | target` so directional labels remain correct from either endpoint and are
-  independent of which item physically stores the edge. Store no separate relationship records and
-  create no reciprocal edge.
-- Treat link, unlink, type, and note changes as event-free connection bookkeeping. A relationship
-  note explains the connection rather than becoming either item's prose; metadata-only saves also
-  leave both items' recency unchanged.
-- Preserve legacy self, duplicate, and reciprocal topology during migration. Runtime presentation
-  derives one visible connection, mutations prevent new redundancy, and explicit removal cleans all
-  redundant physical copies of that conceptual connection.
-- Preserve Collection membership and dictionary attachment as separate concepts. Collection
-  promotion/restoration carries dormant relationship metadata; dictionary alias rewrites carry the
-  annotation, while conflicting explicit old/canonical annotations remain untouched until the owner
-  resolves them.
-- Keep relationship notes out of search, filters, Repaso, and activity. No relationship hub,
-  provenance model, custom/multiple types, or Example of/Part of types belongs to this release.
-
-### Implementation outcome — 2026-08-04
-
-- Schema v4, relationship mutations, lossless dictionary-alias conflict handling, the shared
-  phone-first Connections interface, and the Collection, Diario, and dictionary-detail seams are
-  implemented.
-- A post-implementation review confirmed that relationship-first mixed grouping is intentional on
-  standard Detail and Collection screens. The unreachable kind-grouping helpers were retired, and
-  legacy self-link editing, disappearing-dictionary conflict resolution, and relationship-only
-  dictionary-row refreshes were hardened with regressions.
-- The complete serial suite passes 493/493 tests across 49 files, the production build passes, and
-  the planned deliberate red/green proofs fail before restoration and pass afterward.
-- The disposable schema-v3 375×812 closeout remains unclaimed because Codex's in-app
-  browser-control kernel fails before fixture setup with a missing local asset path. No owner data
-  was inspected. The GitHub Pages build and deploy jobs subsequently passed for `eb93c90`, and the
-  live site served the verified production asset.
+The approved hybrid shipped on schema v4: one fixed type (seven types, Similar meaning through
+Related) plus one optional shared note per ordinary connection, stored as mandatory sparse
+`linkAnnotations[]` with `subject: owner | target` for direction, while `linkedKeys[]` remained
+the sole authority for existence. Link/unlink/type/note changes stay event-free bookkeeping;
+relationship notes stay out of search, filters, Repaso and activity. The owner expressly waived
+the real-link audit before approval. The disposable 375×812 browser closeout was never claimed
+(the browser-control kernel could not initialize); the deployment itself was verified.
 
 ---
 
-## Saved views
+### Persistent page profiles
 
-- **Date added:** 2026-08-02
-- **Last reviewed:** 2026-08-02
-- **Status:** Captured
-- **Origin:** Preliminary information-architecture review and follow-up discussion
-- **Potential data impact:** None for additional built-in presets; persistent preference/backup
-  contract for owner-created views
+- **Date added:** 2026-08-02 — **Status:** Implemented — Phase 4j–4o (schema v3), evolved into
+  composable pages as Phase 7 (schema v5), deployed
+- **Records:** `PHASE-7-DIRECTION.md`, `PHASE-7-REPORT.md`, `PHASE-4-JOURNAL-DIRECTION.md`,
+  Phase 4j–4o/4p–4s/4y and Phase 7 entries in `DECISIONS.md`
 
-### Description and current context
+Phase 4j–4o stored two exclusive profiles (General, Vocabulary Collection) with durable ordered
+groups, the Collection picker, reversible conversion and pins. Phase 7 replaced the exclusive
+model: one `pageFocus` plus independently enabled Vocabulary, Source and Grammar structures,
+Notes as the permanent foundation, and Diario derived from a date plus no enabled structure.
+Phase 4p–4s built the separate Diario workspace over dated General pages without a stored Journal
+profile; Phase 4y added lexical-side Add to Collection; Phase 9 added hub free practice without
+expanding in-place Collection Practice. The richer-profile question stays evidence-gated: an
+explicit Journal schema, custom page kinds and user-authored templates remain deferred (§14).
 
-Cuaderno currently offers type, maintenance, tag, and order controls. Those choices are intentionally
-component-local and reset after leaving Cuaderno. A saved view would preserve a useful combination
-such as “phrases missing examples,” “recently added Mexico vocabulary,” or “unlinked source pages.”
+#### Diario: possible future directions and feasibility (still open)
 
-A saved view is a temporary lens over canonical items, not a new category or a copy of the content.
-
-### Potential options
-
-1. **Additional built-in presets.** Add a few fixed, broadly useful combinations without saving
-   owner configuration.
-2. **Remember last-used controls.** Restore the most recent state without introducing named views.
-3. **Named saved views.** Save type, maintenance view, tag, order, and possibly search text under an
-   owner-chosen name.
-4. **Pinned views.** Give selected views a compact shortcut without making them top-level content.
-5. **Rule-based collections.** Combine several criteria and possibly relationship or provenance
-   rules.
-
-### Expected owner value
-
-- Turns repeated retrieval and maintenance workflows into one action.
-- Lets one item appear in several useful contexts without duplication.
-- Makes a larger notebook easier to revisit without remembering filing choices.
-- Could support recurring study, enrichment, source, or topic workflows.
-
-### Risks and tradeoffs
-
-- A miniature query builder could be more complex than the notebook warrants.
-- Views can become stale when tags disappear or their spelling changes.
-- Restoring an active view can make items appear missing unless the UI clearly shows the filter.
-- Saved searches may remain useful for less time than saved structural filters.
-- Shortcuts can crowd navigation if they are treated like permanent content types.
-
-### Evidence needed
-
-- Which filter combinations the owner repeatedly reconstructs.
-- Whether recurring retrieval is based on tags, sources, dates, completeness, or links.
-- Whether remembering the last state would solve the problem without named views.
-- How many named views would remain useful after several weeks.
-
-### Potential timing
-
-Observe real use of the Phase 5c controls first. A persistent view may fit the existing preferences
-store without a new Dexie table, but it still needs a documented preference shape, backup/import
-behavior, stale-reference handling, and a separately approved plan.
-
-### Questions for a future discussion
-
-- Is the desired behavior “resume where I left off” or “maintain several named lenses”?
-- Should query text ever be saved?
-- Where would saved views live without crowding the three primary tabs?
-
-### Phase 8 overlap — 2026-08-04
-
-The Words & phrases hub does **not** implement saved views, and the distinction is worth keeping
-clear. Nothing it offers is saved or named: its five controls (where it lives, learning, view,
-order, tag) are visit-local and reset on leaving, exactly like Cuaderno's. What changed is the
-*vocabulary* of available lenses, not their persistence.
-
-That makes the hub a source of the evidence this idea has been waiting for. Two questions it can now
-answer that could not be asked before:
-
-- Which of the five controls the owner reconstructs repeatedly, and in which combinations. A
-  recurring pair such as “phrases, not in any page yet” or “words missing examples, tagged Mexico”
-  is the concrete case for naming a view; a control that is set once and forgotten is not.
-- Whether the pull is really “resume where I left off”. The hub deliberately preserves its
-  controls while the session trail is elsewhere but discards them on leaving, so the owner will
-  feel both behaviours and can say which one they missed.
-
-If named views are eventually wanted, the hub raises the cost slightly: a saved view would now have
-to describe which surface it belongs to, since Cuaderno, Pages and Words & phrases no longer share
-one control set. That is an argument for waiting on real use, not for building it sooner.
-
----
-
-## Persistent page profiles
-
-- **Date added:** 2026-08-02
-- **Last reviewed:** 2026-08-04
-- **Status:** Implemented and deployed as Phase 7
-- **Origin:** Preliminary information-architecture review and follow-up discussion
-- **Potential data impact:** General and Vocabulary Collection shipped in schema v3; Phase 7
-  implements schema-v5 composable focus/capabilities without new stores or indexes
-
-### Description and current context
-
-The personal layer still has exactly two top-level content types: lexical items and pages. Words and
-phrases are lexical forms. ~~A dated page acts as a journal entry, while sources and grammar notes
-are ordinary pages. There is no persistent source, grammar, comparison, or topic-hub subtype.~~
-**Phase 4j–4o implemented two stored page profiles: General and Vocabulary Collection.** A dated
-General page remains a derived Journal entry, while sources and grammar notes remain General pages.
-There is still no stored Source, Grammar, explicit/richer Journal, comparison, or topic-hub profile.
-
-**Phase 7 implementation update (2026-08-04):** schema v5 replaces those exclusive profiles with
-one persistent focus plus independently enabled Vocabulary, Source, and Grammar structures. Notes
-remain the body-based foundation, and Diario now derives from a date plus no enabled structured
-capability. The preceding paragraph is retained as the historical state that motivated the change.
-
-A persistent page kind differs from a creation template because it continues to affect how a page
-is labeled, filtered, displayed, or validated after creation.
-
-### Potential options
-
-1. **No persistent kind.** Continue using flexible pages, optional templates, dates, tags, and links.
-2. **Conventional tags.** Encourage `source` or `grammar` without changing the item shape.
-3. **Optional built-in `pageKind`.** Possible values might include general, source, grammar, journal,
-   comparison, or topic hub.
-4. **Custom kinds.** Let the owner define names or behavior.
-5. **Behavior-specific submodels.** Give source or journal pages their own structured fields while
-   retaining `type: page` at the top level.
-6. **Selected first release — narrow built-ins.** Store only `general | collection`; keep Journal
-   derived from a date and defer every richer profile and custom profile/template mechanism.
-
-### Implementation decision (2026-08-03)
-
-- General preserves the existing page editor and dated-Journal behavior.
-- Vocabulary Collection adds durable ordered groups, vocabulary-first Read/Organize/Practice modes,
-  Collection placements on lexical entries, page-profile retrieval, and preference-backed pins.
-- Every page carries empty or dormant Collection structure so profile switching is reversible.
-- No template ID is stored; the built-in starter gallery only seeds editable groups during creation.
-- Source, Grammar, richer Journal, custom profiles, and user-authored templates remain Deferred.
-
-### Phase 4y reverse-capture outcome (2026-08-04)
-
-The owner observed that vocabulary could be added while viewing its target Collection, but not
-while viewing the word or phrase itself. Phase 4y closes that asymmetry without changing schema v4:
-
-- Lexical details offer one active Collection at a time, default to Not grouped yet, preserve saved
-  group order, stay on the entry after Save, and keep move/remove inside Collection Organize.
-- Existing incoming typed links remain visible until assignment; the established transaction then
-  promotes the edge, reorients its annotation, and preserves that metadata dormantly.
-- Active Collections are no longer offered as ordinary Connection targets from a lexical entry;
-  General and Diario pages remain available there.
-- The complete serial suite passes 501/501 tests across 49 files and the production build passes.
-  The disposable phone check remains unclaimed because browser control still fails before fixture
-  setup with the recorded missing local asset path.
-
-### Follow-up Diario decision (2026-08-03)
-
-The owner approved, implemented and shipped a separate Diario workspace over the existing derived
-dated-General behavior; see
-[PHASE-4-JOURNAL-DIRECTION.md](PHASE-4-JOURNAL-DIRECTION.md). Phase 4p–4s improves creation,
-retrieval, writing and rereading without storing an explicit Journal profile or adding journal-only
-fields. The richer-profile question remains deferred until real use demonstrates a need for durable
-structured metadata beyond the existing page shape.
-
-The purpose settled during brainstorming is **regular reflection in Spanish**, not task tracking or
-another system to maintain. Diario should make a short moment fast to begin, calm to write, pleasant
-to reread, and naturally connected to vocabulary and earlier thoughts. Cuaderno remains the place
-for durable notes and Vocabulary Collections.
-
-#### Implemented Diario outcome
-
-- Diario is a separate primary tab while each entry remains a dated General page underneath. The
-  workspace distinction therefore required no schema migration or third personal-content type.
-- Today opens the earliest-created entry for the local day, New moment permits several entries on
-  the same day, and Continue returns to the most recently touched non-Today entry.
-- The home screen provides journal-only title/body/tag search, a newest-first current-year timeline,
-  an earlier-year archive, and a nearby memory from the most recent prior year with a candidate.
-- The focused editor requires a date, treats title as optional and body as primary, visibly
-  autosaves, and does not create a blank record when the owner merely opens or titles a fresh draft.
-- Twenty-four optional Spanish prompts help the owner begin without storing a prompt ID or copying
-  prompt text into the entry automatically.
-- The clean reader supports personal-vocabulary links, related journal moments and separate linked
-  reflections. Más retains the useful page tools: tags, media URLs, nonjournal page relations,
-  activity, tricky state, two-step deletion, and Move to Pages.
-- Ordinary Cuaderno browsing and page totals exclude journal entries, but deliberate global search
-  can still find them. Cross-tab Back navigation retains the route and search context that led to an
-  entry.
-
-#### Boundaries intentionally retained
-
-- A journal is still derived from `pageDate`; there is no stored Journal profile, journal-only
-  field, count, completion flag, streak, mood, weather, prompt ID or new relationship type.
-- Prompts and the selected reflection prompt are visit-local. Opening, selecting a prompt, linking,
-  and navigating do not create edit history.
-- Vocabulary capture selects existing personal words and phrases. It does not silently turn a
-  dictionary result into personal content.
-- Reflection creates another current-day journal entry linked to its source; it never overwrites or
-  nests content inside the earlier entry.
-- Diario has no pin, direct Collection conversion or scheduled review flow. Media remains URL-based;
-  file attachments, sync and analytics are still project non-goals.
-
-#### Potential future work and feasibility
-
-Future changes should answer observed journal friction rather than add structure because a diary app
-could have it.
+Future changes should answer observed journal friction rather than add structure because a diary
+app could have it.
 
 | Possible direction | Feasibility in the current architecture | Evidence or decision needed first |
 |---|---|---|
@@ -1325,292 +1090,62 @@ could have it.
 | Add streaks, completion, trends or scheduled journal review | Medium-to-high product risk even if some results are event-derived | A clear learning/reflection outcome; avoid stored counters, analytics pressure and overlap with Repaso. **Amended 2026-08-06:** a study streak and activity heatmap are approved as Phase 11 (owner decision) — derived at render with no stored counters, and placed *in* Repaso rather than overlapping it. Journal-specific streaks, completion and trends in Diario remain deferred on this row's original terms |
 | Introduce an explicit/richer Journal profile | High architectural cost and migration risk | Durable behavior that cannot be expressed by the separate workspace over a dated General page, including how it composes with Collection or future Source behavior |
 
-#### Evidence to collect from real use
+#### Evidence still worth collecting from real use
 
-- Whether the separate tab actually increases writing and rereading without making Diario feel like
-  another obligation.
-- Whether entries are usually short moments, longer essays, or several moments per day, and whether
-  the date/title/body defaults suit those patterns.
-- Which retrieval path is used in practice: Today, Continue, scrolling, archive, search or memory.
-- Whether prompts help the owner write in Spanish, which categories recur, and whether an unselected
-  prompt should remain entirely ephemeral.
-- How often vocabulary, page links, reflections, tags and media add value versus becoming
-  maintenance work.
-- Whether moving entries back to Pages is rare cleanup or evidence that the Journal boundary is
-  unclear.
-- Which desired behavior, if any, truly requires durable journal-only fields rather than text, tags,
-  links, events or derived presentation.
-
-### Problems addressed by Phase 4j–4o
-
-The first row is the owner's reported friction. The remaining rows are product limitations and
-durability needs that had to be solved to make that workflow dependable.
-
-| Problem | Implemented response |
-|---|---|
-| A “thinking and opinions” page still looked like a generic note, leaving its linked phrases as secondary content. | Vocabulary Collection makes outgoing personal lexical links the primary content, organized into groups with expandable vocabulary cards; other links are separated as Related. |
-| Pages had no durable identity that could change their display or retrieval. | Schema v3 stores `general | collection`; General retains existing behavior, dated General remains Journal, and Collections receive their own display, summaries, and filter. |
-| A vocabulary hub could not preserve meaningful sections or manual order. | Durable ordered groups, ordered members, a derived Not grouped yet bucket, visible empty groups, and the draft Organizer preserve the owner's structure. |
-| Adding several related words or phrases through the generic single-select linker was cumbersome. | A dedicated Collection picker keeps multi-selection across searches, supports personal and dictionary results plus staged quick-create, and commits the final selection atomically. |
-| A word or phrase could show its Collection placements but could not add itself to another Collection. | Phase 4y adds a lexical-side assignment form using the same atomic membership transaction, including group choice and lossless reverse-link promotion. |
-| Dictionary results could be linked but were not editable personal Collection members. | Adding a dictionary selection creates or reuses an independent personal lexical entry before adding membership. |
-| Experimenting with a specialized format risked losing organization or disrupting existing pages. | Every page retains dormant Collection metadata, conversion is reversible, and migrated pages safely default to General without changing their existing content. |
-| Topic vocabulary had no lightweight, in-context review path. | Collection Practice preserves group and item order, reveals answers independently, excludes Related, and prompts for missing meanings without creating review history. |
-| Important vocabulary hubs and their item placements were difficult to rediscover. | Page pins, profile filters, Collection card counts, and Collection placements on lexical details expose both the hubs and where each item belongs. |
-| A persistent page schema could endanger existing notebooks and backups. | Export-first v1/v2 startup gating, sequential v1→v2→v3 migration, deep schema-1/2/3 backup validation, transactional writes, and layout cleanup protect existing data. |
-
-### Expected owner value from the implemented release
-
-- Makes a page useful as an organized vocabulary hub rather than just a note with links attached.
-- Speeds up capture of several related entries while keeping dictionary material independent and
-  editable.
-- Makes Collections easier to scan, practice, filter, pin, add to, and revisit from either the page
-  or a lexical entry.
-- Adds specialized behavior without changing the two top-level item types or taking flexibility
-  away from General pages.
-- Preserves the owner's ability to experiment by making profile conversion nondestructive.
-
-### Remaining risks and tradeoffs
-
-- One exclusive profile may not compose well when a page is simultaneously a source, grammar topic,
-  journal reflection, and vocabulary collection.
-- Collection groups add maintenance; real use may show that some pages need less structure or that
-  large Collections need different organization controls.
-- Additional fixed profiles can become restrictive, while custom profiles can recreate tag
-  inconsistency and configuration work under another name.
-- Any future stored fields still require migration, export-first safety, backup validation, and
-  compatibility with the two-item-type architecture.
-- Lightweight Collection Practice is intentionally separate from Repaso; expanding it could blur
-  the distinction between browsing a topic and scheduled study.
-
-### Evidence to collect from real use
-
-- Whether Collections solve the thinking/opinions, situation, register, slang, and similar
-  vocabulary-hub use cases without creating too much organizing work.
-- Which group structures recur, how often Not grouped yet remains populated, and whether manual
-  ordering stays useful as Collections grow.
-- Whether reveal-only Practice is sufficient or produces real demand for shuffle, grading, history,
-  scheduling, or Repaso integration.
-- Which General pages repeatedly need source or grammar behavior, and which journal needs cannot be
-  met by the separate date-derived Diario workspace.
-- How often one page genuinely needs several specialized behaviors at once.
-
-### Potential timing
-
-~~Defer persistence until a real-page audit demonstrates stable categories and benefits beyond
-initial prompts.~~ **Partially superseded 2026-08-03:** the owner approved General plus Vocabulary
-Collection because Collection has distinct lasting organization, capture, retrieval, and Practice
-behavior. The evidence requirement still applies to Source, Grammar, richer Journal, custom
-profiles, and user-authored templates; creation-only distinctions should remain starters.
-
-### Questions for a future discussion
-
-- Which future candidates have enough lasting behavior to justify persistence: Source, Grammar,
-  comparison, or a richer Journal only if the workspace evidence above supports it?
-- What exact creation, display, validation, and retrieval behavior would distinguish each from a
-  General page with a starter or tag?
-- Should specialized behaviors remain mutually exclusive profiles, or should capabilities such as
-  source metadata and vocabulary grouping compose on the same page?
-- Journal now remains a date-derived General page behind its own workspace. What repeated unmet need,
-  if any, would justify revisiting that boundary with explicit fields or profile behavior?
-- Should existing General pages always convert only by owner choice when a future profile is added?
-- Would user-authored starters or custom profiles support recurring workflows, or mostly recreate
-  inconsistent tags and extra setup?
-- Does real Collection use justify any of the deliberately deferred Practice features: shuffle,
-  grading, history, scheduling, or Repaso integration?
-
-### Approved Phase 7 evolution — 2026-08-04
-
-General and Vocabulary Collection remain shipped history, but the owner approved replacing their
-exclusive `pageProfile` model with composable pages in schema v5:
-
-- Every page has one leading `pageFocus: notes | vocabulary | source | grammar`. Notes remain the
-  permanent body-based foundation; Vocabulary, Source and Grammar enable independently and may
-  coexist. Focus changes ordering and presentation rather than identity.
-- `pageProfile` is removed. Existing Collections migrate to Vocabulary focus with Vocabulary
-  enabled; every other page migrates to Notes focus with Vocabulary disabled, while dormant groups,
-  links, IDs, timestamps and content remain intact. Empty disabled Source and Grammar structures
-  are added without changing Dexie stores or indexes.
-- Disabling a populated structure hides rather than deletes it. Hidden content does not participate
-  in filters, search or contextual summaries, and existing pages gain new capabilities only by an
-  explicit owner action.
-- Diario stays separate and derived: only a dated page with no enabled structured capability is a
-  journal entry. A dated Source, Grammar or Vocabulary page remains in Pages.
-- The Pages library uses overlapping role filters (Sources, Grammar, Collections and Notes), while
-  one saved focus keeps reading order predictable. Notes filtering means Notes-led pages.
-- Built-in creation recipes and Copy page structure remain creation-only; there is no stored
-  template identity, custom page-kind builder or template manager.
-- Source and Grammar receive the durable behavior validated during brainstorming. Thinking and
-  opinions, situations, register, slang and profanity remain Vocabulary starter recipes rather
-  than new persistent subtypes.
-
-Phase 7 is staged from contract/schema durability through shared page foundations, creation,
-Source, Grammar, contextual retrieval and integration. See
-[PHASE-7-DIRECTION.md](PHASE-7-DIRECTION.md). The earlier questions and Phase 4j–4o outcomes above
-remain the historical rationale for this evolution.
-
-### Phase 7 implementation outcome — 2026-08-04
-
-The composable page model, schema-v5 migration and backup validation, shared page workspace,
-overlapping library roles, family-first creation, structure copying, Source notebooks, Grammar
-guides with exact Source-capture references, and active contextual retrieval are deployed from
-`main`. The retained legacy profile APIs are compatibility adapters only; current identity
-comes from `pageFocus` and enabled structures. The full 593-test serial suite, production build,
-and diff check pass. GitHub Pages deployment completed successfully; the disposable browser
-closeout remains unverified. See
-[PHASE-7-REPORT.md](PHASE-7-REPORT.md).
-
-### Phase 9 free-practice outcome — 2026-08-05
-
-The owner approved a separate filtered free-practice flow in the Words & phrases hub. It uses the
-hub's current result set, a transient 10/20/All and shuffle/current-order preflight, entry-level
-Spanish-first cards, and session-only Again/Got it feedback with optional missed-only rounds. This
-does **not** expand Vocabulary-page Practice: Collection order, reveal-only behavior and lack of
-history remain unchanged. It also does not integrate with scheduled Repaso or persist a grade,
-score, deck, history or schedule. See [PHASE-9-DIRECTION.md](PHASE-9-DIRECTION.md).
+- Whether the separate Diario tab increases writing and rereading without feeling like an
+  obligation; which retrieval path (Today, Continue, scrolling, archive, search, memory) is
+  actually used; whether prompts help and which categories recur.
+- Whether Collections solve the vocabulary-hub use cases without excessive organizing work; which
+  group structures recur; whether manual ordering stays useful as Collections grow.
+- How often one page genuinely needs several specialized behaviors at once, and which desired
+  behavior, if any, truly requires durable journal-only fields rather than text, tags, links,
+  events or derived presentation.
 
 ---
 
-## Personal-content provenance
+### Source-oriented page templates
 
-- **Date added:** 2026-08-02
-- **Last reviewed:** 2026-08-02
-- **Status:** Captured
-- **Origin:** Preliminary information-architecture review and follow-up discussion
-- **Potential data impact:** Medium at entry level; high at meaning/field level; intersects links,
-  events, backup, dictionary boundaries, and Phase 6 AI policy
+- **Date added:** 2026-08-02 — **Status:** Implemented — Phase 7, deployed
+- **Records:** `PHASE-7-DIRECTION.md`, `PHASE-7-REPORT.md`, Phase 7 entries in `DECISIONS.md`
 
-### Description and current context
-
-Provenance answers where information came from or how it was produced. The replaceable reference
-dictionary already records source IDs, dataset versions, licensing, and stock-example attribution.
-Personal items do not have a comparable structured provenance model. A personal item may link to a
-source page, retain a dictionary attachment, or describe its origin in notes, but those mechanisms
-do not state exactly which content came from which source.
-
-Several questions are currently grouped under “provenance”: where an expression was encountered,
-which source supports a meaning, whether content was personal/imported/AI-assisted, and whether
-generated content was later edited. They may require different solutions.
-
-### Potential options
-
-1. **Informal provenance.** Continue using linked source pages, media URLs, and notes.
-2. **Entry-level origin.** Record an origin type, linked source item or URL, and capture date for the
-   whole entry.
-3. **Multiple source references.** Allow an entry to cite several encounters or supporting sources.
-4. **Field- or meaning-level provenance.** Attach origin information to a particular meaning,
-   example, or note.
-5. **AI-specific provenance.** Record which content was proposed by AI, what was approved, and
-   whether it was later edited.
-6. **Content-history model.** Preserve a fuller record of imported, generated, and personal changes.
-
-### Expected owner value
-
-- Makes it easy to return to the original learning context.
-- Helps assess the trust and personal relevance of a meaning or example.
-- Keeps personal writing, open-reference content, source-derived notes, and future AI drafts
-  distinguishable.
-- Supports source-based vocabulary browsing and review.
-- Prevents AI-assisted content from becoming indistinguishable from verified personal observations.
-
-### Risks and tradeoffs
-
-- One entry may combine information from several sources, making one origin misleading.
-- Field-level provenance can make editing visually and conceptually heavy.
-- “Heard in a podcast” could be stored both as a relationship and provenance, creating duplication.
-- AI model metadata may age quickly and is not itself proof of correctness.
-- A content-history system would be a major expansion; current edit events do not store field values
-  or act as version history.
-- Personal source context may contain private information and must remain on-device under current
-  policy unless deliberately included in a future AI request.
-
-### Evidence needed
-
-- How often the owner currently records sources in notes, media links, or linked pages.
-- Whether provenance is needed mainly for rediscovery, trust, citation, or AI transparency.
-- Whether entries commonly combine multiple sources.
-- Which content units need provenance: whole entry, meaning, example, note, or individual edit.
-
-### Potential timing
-
-Source-encounter needs can be studied during a real-data audit. AI provenance should be decided
-before or alongside Phase 6 entry-generation design so generated content does not establish an
-implicit provenance model by accident. A durable implementation requires its own storage and
-backup plan.
-
-### Questions for a future discussion
-
-- Is the primary question “where did I hear this?” or “who produced this content?”
-- Is a typed link to a source page sufficient for common cases?
-- Must AI provenance survive later manual edits, and at what level of detail?
+The original idea (reduce blank-page friction when capturing a film, podcast, book or article)
+resolved into Phase 7's Source capability: optional source identity (format, creator, scope, URL,
+context) plus one flat ordered capture stream, enabled independently rather than as an exclusive
+page kind, with built-in family-first creation recipes that store no template identity. **Copy
+page structure** is the only reuse mechanism. User-authored/stored template management, source
+hierarchies, deep provenance and reading tracking remain deferred (§14). The Phase 4j–4o starter
+gallery was the enabling precedent: creation-only seeding without permanent classification.
 
 ---
 
-## Learning depth (cloze, reverse, drill, audio)
+### Meaning-block presentation
 
-- **Date added:** 2026-08-06
-- **Last reviewed:** 2026-08-06
-- **Status:** Implemented and deployed — Phase 10a–10d
-- **Origin:** Owner asked what additional learning features the app could support
-- **Potential data impact:** None. No schema change, no new event types, no stored counters;
-  `SCHEMA_VERSION` stays 4 and backups are untouched
+- **Date added:** 2026-08-02 — **Status:** Implemented — Phase 4i, deployed
+- **Records:** Phase 4i entries in `DECISIONS.md`
 
-### Description and current context
-
-Repaso trained exactly one task: see the Spanish term, recall the English meaning. Meanwhile the
-notebook already stored material no learning surface used — per-meaning and entry examples,
-dictionary stock examples, and full paradigms for around 1,250 verbs.
-
-An audit of that gap produced a longer candidate list, sorted by architectural cost. The four
-cheapest — all derivable from existing data — were approved together as Phase 7.
-
-### What shipped locally
-
-- **10a — session direction.** es→en, en→es or mixed, chosen at session start and fixed per card
-  at snapshot. Reverse withholds the term, its suffix and every Spanish usage cue until reveal.
-  A card with no gloss always faces forward. Review events now record `direction` and `face`
-  beside the grade.
-- **10b — cloze cards.** The word blanked out of one of its own example sentences. The owner's
-  sentences are preferred over the dictionary's; verbs match through their conjugation table, so
-  a personal example in the preterite still works for the lemma. The gap is a real empty span,
-  not the answer hidden by colour.
-- **10c — conjugation drill.** An ungraded pass over six everyday tenses, launched from Repaso.
-  Writes no events at all — not even a `view`.
-- **10d — pronunciation.** A speaker button using the browser's own voices. Zero storage, nothing
-  sent anywhere; renders nothing where the device has no Spanish voice.
-
-### Deliberately not built
-
-- **Confusion-pair drills** from `often_confused` / `contrast` annotations. The data is already
-  curated and the idea remains attractive; it was dropped from this batch for scope.
-- **Frequency weighting** of dictionary suggestions using `freqRank`. Judged the weakest of the
-  candidates: it cannot apply to "searched for, not found" at all, because a miss means the
-  dictionary had no entry and therefore no rank.
-- **Per-direction scheduling**, drill grading or history, TTS on dictionary pages, and persisting
-  the direction choice. The first two are §14 territory; the others lacked a reason.
-
-### Evidence to collect from real use
-
-- Whether cloze fires often enough to be worth it, or whether too few entries carry examples.
-- Whether reverse cards feel productive or merely harder, and whether mixed is the one that gets
-  used once the novelty passes.
-- Whether one Leitner ladder across both directions stays believable, or whether a word known one
-  way and not the other starts to feel mis-scheduled. The recorded `direction` metadata is what a
-  future answer would be built from.
-- Whether the ungraded drill gets used at all, and whether its lack of history becomes a real
-  frustration rather than a principled boundary.
-- Whether the six drilled tenses are the right six.
-- Whether the device's Spanish voice is good enough to be worth tapping.
-
-### Questions for a future discussion
-
-- Does real use justify revisiting §14 on per-direction scheduling, and what evidence would settle it?
-- Should the confusion-pair drill be built next, given the annotations already exist?
-- Should cloze ever draw on Diario writing, which is the owner's own Spanish in context?
+The one `translation` string became structured `meanings[]`: each ordered meaning has a stable
+personal `meaning:<uuid>` independent of dictionary senses, an English gloss, optional Spanish
+usage cue, compact region/usage/grammar labels, and optional note and assigned examples. The
+entry remains the review and scheduling unit; schema-v1 multiline translations migrated one
+nonblank line at a time. Approved after workshopping the polysemous verb *sacar*. Phase 12 later
+added optional import of dictionary senses as ordinary meaning records with no link back.
 
 ---
 
 ## Document history
+
+- **2026-08-12 — Owner-approved restructure: three bands, compressed history, and convention
+  updates.** The document reorganized into Active / Deferred / Implemented (history) bands with a
+  banded index, and the eleven implemented entries compressed to summary-plus-links per an
+  owner-approved amendment to the keep-as-history rule (full original reasoning remains in git
+  history; still-open evidence and questions were kept in place). In the same pass: an
+  Owner-centric stats section was added for the index row that previously pointed nowhere;
+  Personal-content provenance was re-reviewed to record the Phase 6 feedback-field precedent;
+  Saved views was re-reviewed to note its Phase 8 evidence window is open; Confusion-pair drills
+  was promoted out of Learning depth's "deliberately not built" list into its own Active entry;
+  cross-references were added between Frequency coverage and the rejected frequency weighting,
+  between the two drill siblings, and between Tag hubs and Saved views; and the how-to now
+  documents the Owner interest convention and the banding. No idea changed approval state.
 
 - **2026-08-12 — Nine ideas recorded from the second brainstorming pass, each with the owner's
   stated interest level.** Eight are Captured: PWA app shortcuts (so it is not forgotten),
