@@ -1,7 +1,9 @@
 # Phase 25 — Word families in the biography
 
-**Status:** Planned 2026-08-13; implementation has not started and still requires its own §2
-plan-first approval. A push to `main` is a further separate approval.
+**Status:** Phase 25a approved for implementation 2026-08-13. Phase 25b stopped at its mandatory
+quality gate before UI work: shipped r4 `relatedWords` does not distinguish derivations from broad
+related terms and does not preserve target-entry identity, so the approved matcher would expose
+false family claims. A push to `main` remains a further separate approval.
 **Origin:** The owner selected two Historia enrichments — the conjugation family and the
 derivational family — from the 2026-08-13 Historia-strengthening discussion, then answered seven
 scope-shaping questions in a structured workshop the same day. This document records those
@@ -9,13 +11,16 @@ decisions and is written to be self-contained for the implementing agent.
 
 ## Outcome
 
-The lexical Biography (**Historia**, Phase 23a) gains two habitat sections for words:
+The original workshop proposed two habitat sections for lexical Biography (**Historia**, Phase
+23a). After the mandatory gate, Phase 25 implements one and records why the other stopped:
 
 1. **25a — Conjugation family.** The subject word's Phase 21 paradigm family, with the same
    content the wander card's family group already shows: the saved sibling verbs plus the one
    **What to notice** row deep-linking to the dictionary's teaching view.
-2. **25b — Derivational family.** The first reader of the dormant r4 `relatedWords` data: the
-   subject word's **saved** derivational relatives (*decidir* → *decisión*), and only saved ones.
+2. **25b — Derivational family (stopped at gate).** The proposed first reader of dormant r4
+   `relatedWords` would have shown the subject word's saved derivational relatives. The required
+   pre-UI audit found that the shipped field cannot support that claim safely, so no reader is
+   authorized and the field remains dormant.
 
 Everything derives at render from existing personal data and the installed replaceable
 dictionary. Personal `SCHEMA_VERSION` stays 8. The phase adds no personal field, preference,
@@ -47,12 +52,11 @@ story and every existing habitat section are untouched.
    25b UI work; a bad verdict reshapes or stops the derivational slice. 25a is independent of
    the gate.
 
-**Dormancy supersession, stated plainly:** Phase 24 recorded that dormant `relatedWords` never
-renders, pending a display decision. This workshop is that decision, narrowly: 25b's
-saved-relative biography rows become its only sanctioned reader. Everything else about the
-dormancy rule stands — `DictDetail` still never renders it (the `CASA_FAMILY_SENTINEL` tests in
-`src/components/DictDetail.test.jsx` and `src/db/ref/install.test.js` must stay green), and no
-explorer UI exists.
+**Dormancy result, stated plainly:** The workshop initially proposed 25b as the only sanctioned
+reader of Phase 24's dormant field. The required audit rejected that proposal before code, so the
+original dormancy rule remains fully in force: `relatedWords` renders nowhere, the
+`CASA_FAMILY_SENTINEL` tests in `src/components/DictDetail.test.jsx` and
+`src/db/ref/install.test.js` stay green, and no explorer UI exists.
 
 ## 25a — Conjugation family
 
@@ -70,23 +74,20 @@ through existing routes with the ordinary Back context. The What-to-notice row i
 into the dictionary teaching view, exactly as on the wander card. Family load failure stays
 quiet — the section is simply absent — matching wander's existing behavior.
 
-## 25b — Derivational family
+## 25b — Derivational family (stopped at quality gate)
 
 `relatedWords` on an installed r4 entry is a deduped array of plain lemma strings (entry-level
 terms first, sense-level after, the entry's own headword excluded; 7,312 shipped entries carry
-it). It has no reader in the app today; this slice adds the first.
+it). It has no reader in the app today. The audit below determined that Phase 25 must not add one.
 
-A saved word B is a derivational relative of subject word A when both attachments resolve
-(alias-aware, read-only) and **either** resolved entry's `relatedWords` contains the **other**
-resolved entry's lemma, compared as exact normalized whole terms through `normalize.js` (ñ
-preserved, accents folded per the existing rules). The union is bidirectional because the source
-data is asymmetric. No stemming, no substring or prefix matching, no string-similarity
-heuristic — the recorded guardrail applies: spelling similarity produces false relatives, and a
-wrong family member teaches a false connection.
+The proposed rule was: a saved word B is a derivational relative of subject word A when both
+attachments resolve and either resolved entry's `relatedWords` contains the other lemma under
+`normalize.js`. That rule is retained here as historical planning context, not as an authorized
+runtime contract. The audit proved that exact matching cannot restore relationship kind, sense,
+part of speech, or target-entry identity after r4 flattened them to lemma strings.
 
-Rows show the relative's term and first gloss and navigate to its ordinary Detail. The section
-is absent when the subject is unattached, the dictionary is not installed ("not installed" is
-**not** "orphaned"), the resolved entry carries no `relatedWords`, or no saved relative matches.
+No derivational rows or section are implemented in Phase 25. Any future revival requires a new
+reference-data proposal and its own plan; it cannot silently reuse the rejected flattened field.
 
 ### The quality gate
 
@@ -99,8 +100,25 @@ Before 25b UI work, a disposable repo-side audit runs over the shipped package
 - **real-notebook preview** — if the owner supplies a backup export, run the saved-relative
   intersection against it and show the actual rows the feature would render.
 
-The audit's numbers and verdict are recorded in the phase report and `DECISIONS.md`. A bad
-verdict stops or reshapes 25b before it is built; it does not gate 25a.
+The disposable shipped-package audit completed 2026-08-13:
+
+- 45,955 listed relation terms produced 8,125 exact normalized shipped-lemma hits: **17.68%**
+  mention resolution; 4,187 of 7,312 carrying entries had at least one hit;
+- 1,386 resolved mentions (**17.06%**) landed on a normalized lemma represented by more than one
+  dictionary entry, while the stored string carries no target part of speech, sense, or id;
+- a deterministic 40-pair sample exposed broad relations and false entry claims including
+  *caldo* ↔ *cálido*, *ello* ↔ *te*, *jersey* ↔ *traje*, *sí* ↔ *vosotros*, and *salvar* ↔ the
+  noun *salvado* (“bran”); and
+- requiring reciprocal evidence reduced 7,615 potential undirected pairs to 2,269 but still
+  retained pronoun paradigms, homographs, and sense/POS mismatches.
+
+Verdict: **bad for a derivational-family UI.** R4 deliberately merged Kaikki `derived` and broad
+`related` rows and retained only their words. Exact, whole-term and bidirectional matching prevent
+substring invention but cannot recover provenance already discarded. Phase 25b therefore stops
+before UI work, exactly as this gate required; 25a remains independent and approved.
+
+No real-notebook preview ran because no owner backup was supplied. No owner browser data was
+available or inspected.
 
 ## Exclusions
 
@@ -112,30 +130,24 @@ Spanish section labels go through the ordinary build-time visual variant loop.
 
 ## Delivery and acceptance
 
-Delivery order: the 25b quality audit first, then 25a, then 25b — each implementation slice one
-reviewable commit leaving the app usable. The direction/decision records travel with the first
-commit; the report and status synchronization close the phase.
+Delivery order after the gate verdict: record the audit and stopped slice, then implement 25a as
+one reviewable feature leaving the app usable. The direction/decision records travel first; the
+report and status synchronization close the implemented slice.
 
-Acceptance requires:
+Phase 25a acceptance requires:
 
-- pure derivation tests: the shared family-sibling extraction proven by untouched wander tests;
-  `relatedWords` matching (exact whole-term, ñ, accent folding, bidirectional union, attachment
-  gating on both endpoints, alias resolution, and every absent-data silence);
-- component tests proving both sections render inside Historia without touching the milestone
-  story or existing habitat sections; rows navigate and offer no write action; phrase
-  biographies show neither section; an unattached word shows neither section; a relative also
-  present in Connections appears in both; the What-to-notice exit is marked; quiet failure
-  leaves sections absent; and the Phase 24 `DictDetail` sentinel still never renders;
-- deliberate red/green proofs: (1) weakening the relative matcher to substring matching leaks a
-  false relative from a *casa*/*casada*-style fixture, and the restored matcher stays silent;
-  (2) removing attachment gating gives an unattached word a family section, reddening its test;
-  (3) an event-log assertion over a Historia open showing both sections proves zero writes, and
-  goes red when a logging call is inserted;
+- pure derivation tests for the shared family preparation, with the existing wander sibling tests
+  retained unchanged as refactor proof;
+- component tests proving the conjugation section renders inside Historia without touching the
+  milestone story or existing habitat sections; sibling rows navigate and offer no write action;
+  phrase and unattached-word biographies show no section; a family with no saved sibling still
+  shows the marked What-to-notice exit; and quiet failure leaves the section absent;
+- a deliberate red/green proof that an event-log assertion over a Historia open showing the
+  section detects a forbidden write;
 - the complete serial suite, production build, and `git diff --check`; and
 - a disposable seeded 375×812 browser flow covering an attached verb with saved siblings and the
-  teaching row, a word with saved derivational relatives in both directions of the union, the
-  Connections-overlap case, an unattached word showing neither section, and a phrase biography,
-  with 44px actions, no horizontal overflow, and no console warnings/errors.
+  teaching row, an unattached word, and a phrase biography, with 44px actions, no horizontal
+  overflow, and no console warnings/errors.
 
 A push to `main` is not part of implementation approval. If deployment is later approved, README
 Status, this direction, the report, and the affected Improvement Ideas records must describe

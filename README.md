@@ -291,6 +291,13 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   pass. GitHub Pages deployment run 31723115634 succeeded, and the live site serves the r4
   manifest and all 16 chunks. See the approved [direction](docs/PHASE-24-DIRECTION.md) and
   [implementation report](docs/PHASE-24-REPORT.md).
+- **Phase 25 — implementation approved for its safe slice.** Historia will gain the existing
+  saved conjugation-family siblings plus its marked What-to-notice dictionary exit through one
+  derivation shared with Wander. The proposed derivational-family slice stopped at its mandatory
+  pre-UI quality gate: r4's flattened `relatedWords` field mixes broad related terms with genuine
+  derivations and cannot identify the intended target entry safely, so it remains dormant. No
+  schema, event, preference, backup or dictionary-package change is approved. See the
+  [direction](docs/PHASE-25-DIRECTION.md).
 - **Collection bulk capture — deployed.** A Vocabulary page's existing
   Add vocabulary panel can now narrow saved entries to Words, Phrases, and an exact existing tag,
   then select every available match together. Existing members remain excluded and the final Add

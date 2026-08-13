@@ -118,7 +118,8 @@ Useful information to retain for each idea:
 ### Historia word families
 
 - **Date added:** 2026-08-13
-- **Status:** Planned — Phase 25a/25b; implementation has not started
+- **Status:** Split 2026-08-13 — Phase 25a approved for implementation; Phase 25b stopped at its
+  mandatory r4 quality gate before UI work
 - **Origin:** Owner selection from the 2026-08-13 Historia-strengthening discussion, scoped the
   same day in a seven-question workshop
 - **Records:** `PHASE-25-DIRECTION.md`, Phase 25 entries in `DECISIONS.md`
@@ -127,15 +128,14 @@ Useful information to retain for each idea:
 
 #### Description and current context
 
-Historia's habitat gains two family sections for words. **25a — conjugation family** mirrors the
-wander card's family group (saved Phase 21 paradigm siblings plus the What-to-notice teaching
-exit), sharing its derivation. **25b — derivational family** is the first reader of the dormant
-r4 `relatedWords` data, showing only *saved* relatives (*decidir* → *decisión*) through
-attachment-resolved, exact whole-term, bidirectional matching. Headline workshop decisions:
-saved relatives only, Historia only (no wander changes), no suppression against Connections,
-words only, attachment required on both endpoints, and a repo-side `relatedWords` quality audit
-gating 25b before any UI work. The unsaved-relative growth reading stays with the separate
-Dictionary word-family explorer idea (below).
+Historia's habitat gains **25a — conjugation family**, mirroring the wander card's family group
+(saved Phase 21 paradigm siblings plus the What-to-notice teaching exit) through one shared
+derivation. The proposed **25b — derivational family** stopped at its required pre-UI audit:
+only 17.68% of r4's listed relation terms resolve to shipped lemmas, and the flattened field mixes
+genuine derivations with broad relations while discarding target entry identity. Exact matching
+therefore cannot prevent false family claims. `relatedWords` remains dormant; any revival needs a
+separately approved reference-data redesign. The unsaved-relative growth reading remains with the
+separate Dictionary word-family explorer idea below.
 
 ---
 
