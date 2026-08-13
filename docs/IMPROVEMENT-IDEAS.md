@@ -52,16 +52,17 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
+| Unused dictionary fields (shipped-lemma census) | 2026-08-13 | Ready to plan | Field selection decided 2026-08-13 (~+660 KB); next step is an implementation plan for the rebuild and display |
+| Candidate future data sources (survey) | 2026-08-13 | Captured | When a need each serves becomes real (monolingual mode, audio, drill content); every license re-verified at adoption |
 | Conjugation catalog extensions | 2026-08-12 | Captured | When Phase 21's classifier next reopens; required-cell coverage must be swept before accepting either family |
 | Monolingual recall (Spanish usage cues) | 2026-08-12 | Captured | After checking how many real meanings carry a usage cue |
 | Retired-word spot checks | 2026-08-12 | Captured | Once a meaningful number of words are Retired; the demotion question needs an owner decision |
 | Near-duplicate consolidation view | 2026-08-12 | Captured | Any time; view only — entry merging is a separate, larger decision |
-| Dictionary word-family explorer | 2026-08-12 | Captured | When the pipeline next reopens (the English→Spanish index is the natural moment); a coverage pass over the raw dump comes first |
+| Dictionary word-family explorer | 2026-08-12 | Captured | Data ships dormant with the decided rebuild (2026-08-13); the remaining questions are per-family quality and display design |
 | Select text to look up | 2026-08-12 | Captured | Any time; read-only navigation glue over existing search |
 | Paste a vocabulary list | 2026-08-12 | Captured | Needs a design discussion first: parsing, per-row meanings, event honesty |
 | PWA app shortcuts | 2026-08-12 | Captured | Any time; manifest-only, recorded so it is not forgotten |
 | "Did you mean" search suggestions | 2026-08-12 | Captured | Any time; a suggestion layer that leaves `normalize.js` untouched |
-| English→Spanish lookup | 2026-08-12 | Captured | Needs a reference-layer index decision (pipeline and §5 seam) |
 | Tag hubs | 2026-08-12 | Captured | Revisit when the owner has more tags and uses them more |
 | Review→writing bridge | 2026-08-12 | Captured | Worth considering once Diario AI feedback and review volume coexist |
 | Time-boxed mixed session | 2026-08-12 | Captured | After enough real data exists for "weakest" selections to mean something |
@@ -90,6 +91,7 @@ Useful information to retain for each idea:
 | Phrase↔word containment links | 2026-08-12 | Phase 22a, deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
 | Same-meaning clustering | 2026-08-12 | Phase 22b–22c, deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
 | "Conjugates like" verb families | 2026-08-12 | Phase 21, deployed | `PHASE-21-DIRECTION.md`, `PHASE-21-REPORT.md` |
+| English→Spanish lookup | 2026-08-12 | Phase 2e, deployed (predated the capture) | `PHASE-2-REPORT.md`, 2026-07-31 entries in `DECISIONS.md` |
 | Global tag management | 2026-08-10 | Phase 20, deployed | `PHASE-20-DIRECTION.md`, `PHASE-20-REPORT.md` |
 | Markdown blank-line spacing | 2026-08-10 | Phase 19 increment, deployed | Phase 19 entries in `DECISIONS.md` |
 | Explicit Notes callouts | 2026-08-10 | Phase 19 increment, deployed | Phase 19 entries in `DECISIONS.md` |
@@ -105,6 +107,221 @@ Useful information to retain for each idea:
 ---
 
 ## Active ideas
+
+### Unused dictionary fields (shipped-lemma census)
+
+- **Date added:** 2026-08-13
+- **Status:** Ready to plan — field selection decided in a 2026-08-13 owner workshop (see Workshop
+  decisions below); the rebuild and display work still require a plan under the working agreement
+- **Origin:** Owner question ("is there dictionary information available that we are not using?"),
+  answered 2026-08-12 with a measured census over the raw Kaikki dump restricted to the shipped
+  lemma set, with real gzip costs per field
+- **Owner interest:** Requested for the list after reviewing the assessment.
+- **Potential data impact:** None to personal data; adopting any field is a new dataset version of
+  the replaceable dictionary package (`mi-cuaderno-ref-a`/`-b`), carried by the §5 alias/orphan
+  seam as usual
+
+#### Description and current context
+
+`pipeline/build/04-entries.mjs` reads a narrow slice of each Kaikki record: the first gloss per
+sense, a filtered label set, gender, and forms for the search index. The census streamed the full
+85.5 MB dump, kept the 10,466 records that map to the 10,278 shipped entries (same POS and
+inflection-only filters as the build), and measured every dropped field. Costs are level-9 gzip of
+the extracted values alone; real packaged cost would differ modestly.
+
+| Field | Coverage of shipped entries | Cost (gzip) |
+|---|---|---|
+| IPA pronunciation | 10,128 (~99%) | ~41 KB |
+| Syllable breaks (`gra‧tis`) | 10,058 (~98%) | ~41 KB |
+| Etymology text | 9,164 (~89%) | ~321 KB |
+| Sense-level synonyms | 6,734 senses on 4,569 entries (~44%) | ~48 KB |
+| Derived/related words | ~70% of records (word or sense level) | ~230 KB |
+| Wiktionary sense-attached examples | 2,514 entries (~24%), capped at 2 per sense | ~232 KB |
+| Sense topic labels (medicine, sports, …) | 1,668 senses | ~6 KB |
+| Sense-level antonyms | 665 senses | ~4 KB |
+
+Measured dead ends, recorded so they are not re-searched: audio exists on only 5 shipped records
+(the TTS button already covers pronunciation audio), `translations` is empty for every shipped
+record, and `wikipedia` links (116 records) and `descendants` (1,362) offer little learner value.
+
+#### Assessment, ranked
+
+1. **Sense-level synonyms are the standout.** Region-rich Spanish near-equivalents attached to a
+   specific meaning (*trabajar* → *chambear, currar, faenar, jalar*; *palomita* → *cabrita,
+   canchita, canguil*), feeding the Phase 22 similar-meaning machinery and, later, possible
+   dictionary-side neighbors for wandering. Nearly free at ~48 KB. Synonyms can name lemmas the
+   frequency cut excluded, so display needs the existing "not installed" handling — never
+   "orphaned".
+2. **IPA plus syllables are the cheapest wins** (~82 KB combined, ~99% coverage). They complement
+   the TTS button by showing *why* a word sounds as it does, including stress, independently of
+   device voice quality (the concern recorded under Dictation cards).
+3. **Wiktionary sense-attached examples** do what Tatoeba structurally cannot: they belong to one
+   specific sense rather than to the entry, 80% of example-bearing senses include an English
+   translation, and they could patch some of the 424 shipped entries that have zero Tatoeba
+   examples. Quality varies — some are long literary quotations — so a length cap and filtering
+   are required.
+4. **Etymology is the big discretionary field.** "From Latin *grātīs*. Compare English *grace*"
+   is a real memory hook, but it is the largest cost, some records embed noisy "Etymology tree"
+   expansions that need cleaning, and trimming to the first sentence would cut the cost
+   substantially.
+5. **Topic labels** render exactly like the existing label chips and cost ~6 KB.
+6. **Derived/related** belongs to the Dictionary word-family explorer entry, whose open coverage
+   question this census answered at survey level (see that entry's verified facts).
+
+#### Size arithmetic
+
+The bundle is 3.3 MB gzipped against the Phase 2 plan-era guideline of ~3.5 MB. The cheap
+high-value set (synonyms + IPA + syllables + topics + antonyms) is ~140 KB and stays at the line;
+taking everything adds ~920 KB (≈4.2 MB total) — a deliberate owner decision, not a default.
+
+#### A data-quality fix independent of any adoption
+
+For 175 nested senses, `shapeSense` in `04-entries.mjs` takes `glosses[0]`, which is the *generic
+parent* gloss — *teléfono*'s "rotary dial telephone" and "mobile phone" subsenses both ship as
+identical "telephone (…)" glosses. Taking the most specific gloss instead is a small fix at the
+next rebuild, worth doing whether or not any new field is adopted.
+
+#### Licensing
+
+Every field comes from the same already-attributed CC BY-SA dump — no new source, license, or
+attribution work.
+
+#### Evidence needed
+
+The data facts are measured; what remains are owner-value questions — which fields earn space on
+the dictionary entry screen, and whether the three large fields (etymology, sense examples,
+derived/related) justify the download growth.
+
+#### Potential timing
+
+Batch whichever fields are wanted into the pipeline's next reopening, so one dataset rebuild
+carries several; the word-family explorer entry names the same moment.
+
+#### Workshop decisions — 2026-08-13
+
+The owner answered four scope questions over the measured numbers; also recorded in
+`DECISIONS.md`.
+
+- **In:** sense-level synonyms and antonyms (~52 KB); sense topic labels (~6 KB); etymology
+  trimmed to its first sentence (~144 KB, measured — 9,025 entries keep a clean sentence once
+  "Etymology tree" blocks are stripped); Wiktionary sense-attached examples filtered to ≤2 per
+  sense with a length cap (~230 KB); and derived/related family data **without any UI**
+  (~230 KB), so the word-family explorer phase finds its data already installed.
+- **Out:** IPA and syllable breaks — either may rejoin a later rebuild if pronunciation display
+  ever earns a place.
+- **Size stance:** the selections total ~+660 KB gzipped (bundle ~3.96 MB), knowingly past the
+  plan-era ~3.5 MB guideline, which the brief never fixed.
+- **Gap-fill finding folded in:** examples ship for their sense-alignment value; patching the
+  415 zero-Tatoeba-example entries turned out marginal (~35 entries, ~3 KB).
+- **Still open for the implementation plan:** where each field renders on the dictionary entry
+  screen, the exact example filters, the etymology trim rule's edge cases, and the new
+  `check.mjs` acceptance assertions. Dataset scope is decided; nothing here approves
+  implementation.
+
+---
+
+### Candidate future data sources (survey)
+
+- **Date added:** 2026-08-13
+- **Status:** Captured
+- **Origin:** Owner question ("are there new data sources that might be helpful later?"),
+  answered 2026-08-12 with a survey against the project's constraints (offline PWA, size budget,
+  licensing discipline, Mexico preference)
+- **Owner interest:** Requested for the list.
+- **Potential data impact:** None to personal data; each adoption is a `sources.json` entry, a
+  `DATA_SOURCES.md` record, and a dataset rebuild behind the §5 seam
+
+#### Standing rules this survey applied
+
+- **License quotes are recorded at download, never assumed.** Every license below must be
+  re-verified by `01-download` before a byte enters the bundle; only the Wikimedia-family
+  CC BY-SA sources and Common Voice's CC0 are near-certain from the survey alone.
+- **Noncommercial sources can only ever be build-time validators** (the Jehle precedent): the
+  public repository plus GitHub Pages redistribute everything shipped.
+- **Extract more before adding more.** The existing dump still holds unshipped value (see Unused
+  dictionary fields, above) and serves several needs at build time with no new download: the full
+  ~114k-lemma inventory could back "Did you mean" real-word checks, etymology text could yield
+  cognate hooks, and the Tatoeba sentences could yield collocation n-grams.
+
+#### Top candidate: Kaikki's Spanish-Wiktionary extract (es.wiktionary)
+
+The same wiktextract family, built from the Spanish Wiktionary. As an **addition** — never a
+replacement; `DATA_SOURCES.md` already records why the two files are not interchangeable — it
+offers the two things the English Wiktionary structurally cannot: **monolingual Spanish
+definitions** (real coverage for Monolingual recall without the owner writing thousands of cues)
+and **deeper regional and Mexican coverage** (native speakers document their own regionalisms
+best). The license is the same CC BY-SA family. The real cost is alignment: es.wiktionary entries
+will not map one-to-one onto existing canonical IDs (word + POS + etymology splits differ),
+senses can disagree between wiktionaries, and Spanish definition text costs bytes. A
+data-engineering project, not a bolt-on.
+
+#### Audio — the capability gap, and why it fights the architecture
+
+Kaikki had audio for only 5 shipped records, so audio means a new source — and every option
+fights the size budget. The base bundle can never carry it; any adoption would be an optional
+second download or a curated top-N subset.
+
+1. **Lingua Libre / Wikimedia Commons word recordings** (CC BY-SA): human per-word recordings
+   with clean metadata. Needs a Phase-21-style gate pass first: coverage against the shipped
+   lemmas, and speaker origin — contributors skew European Spanish, which matters for a
+   Mexico-preferred notebook.
+2. **Tatoeba sentence audio** (the `sentences_with_audio` export): native recordings of sentences
+   already shipped as examples. Audio licenses are **per contributor** and some are
+   noncommercial, so adoption means per-file license filtering with NC excluded from
+   distribution.
+3. **Mozilla Common Voice Spanish** (CC0): the cleanest license and the weakest fit — sentence
+   recordings of Common Voice's own prompts, not this app's content, in an enormous corpus.
+
+Evidence first, before any of the three: whether device-TTS quality actually bothers the owner in
+practice — the Dictation cards idea will surface this passively.
+
+#### Probably unnecessary: relations and thesaurus datasets
+
+The Open Multilingual Wordnet's Spanish wordnet (from the Multilingual Central Repository) and
+ConceptNet (CC BY-SA) provide synonym sets, antonyms and hierarchies, but they overlap heavily
+with the Wiktionary sense-level synonyms already sitting unshipped in the raw dump. Reopen only
+if those prove too sparse in real use; the MCR license in particular must be verified, not
+remembered.
+
+#### Curated-content seeds (editorial work more than pipeline work)
+
+- **Wikibooks/Wikiversity Spanish grammar** (CC BY-SA): raw material for Grammar guide depth and
+  for the curated item sets Non-verb grammar drills needs — every drill item still needs vetting,
+  so this is content work with a licensed quarry.
+- **Wikipedia's Spanish–English false-friends list** (CC BY-SA): a small, high-value seed for
+  confusable drills (*embarazada*, *actualmente*, *asistir*), curated by hand.
+- **Vikidia Spanish** (the children's encyclopedia, CC BY-SA): graded reading material if
+  assisted reading ever grows out of Select text to look up; until then, reading happens outside
+  the app.
+
+#### Gaps where nothing cleanly licensed exists
+
+Recorded so future sessions do not re-search them: **CEFR-graded word lists** (the Instituto
+Cervantes Plan Curricular is copyrighted; community lists have murky provenance), **collocation
+databases** (the good ones are commercial; the open path is deriving n-grams from the Tatoeba
+sentences at build time), and **Mexican slang dictionaries** (DEM and similar are proprietary —
+§13 closes that door; es.wiktionary is the licensed partial substitute).
+
+#### Contingency, not a feature
+
+The main Kaikki file carries a standing "DEPRECATED" flag that `01-download` re-checks on every
+run. If it ever stops being served, the fallback is running wiktextract directly against the raw
+enwiktionary dump — the same data, extracted locally. Same drawer as the alias map.
+
+#### Priority, if forced
+
+es.wiktionary first (it serves an already-captured idea and the Mexico preference), then the
+Lingua Libre coverage gate pass (cheap to measure, and it decides audio's fate), then the
+false-friends seed when drills next come up. Everything else waits for its need to become real.
+
+#### Questions for a future discussion
+
+- Where would an optional audio download live — a second Ajustes install alongside the
+  dictionary, or a per-entry fetch that compromises offline?
+- Does a monolingual Spanish definition belong on the dictionary entry screen alongside the
+  English gloss, or behind a display mode?
+
+---
 
 ### Conjugation catalog extensions
 
@@ -223,6 +440,8 @@ would be its own proposal.
 ### Dictionary word-family explorer
 
 - **Date added:** 2026-08-12
+- **Last reviewed:** 2026-08-13 — census evidence added to the verified facts; data-only
+  shipping decided the same day (see Potential timing)
 - **Status:** Captured
 - **Origin:** Owner suggestion, assessed and requested for the list 2026-08-12
 - **Owner interest:** Requested after review of the assessment, including the verified data facts
@@ -259,13 +478,19 @@ Checked against the repository, not assumed:
   12,341.
 - The build step that shapes shipped entries (`pipeline/build/04-entries.mjs`) never reads either
   field — the pipeline currently discards them.
+- **2026-08-12 shipped-lemma census** (recorded 2026-08-13): of the 10,466 raw records that map
+  to the 10,278 shipped entries, 7,334 (~70%) carry at least one `derived`/`related` term at word
+  or sense level; the words-only payload measures ~719 KB raw / ~230 KB gzipped. This answers the
+  coverage risk below at survey level; what still needs the targeted pass is per-family quality —
+  how many named terms resolve to shipped entries and form families worth showing.
 
 #### Risks and tradeoffs
 
 - **Coverage among kept lemmas is unknown.** The raw counts span mostly inflected-form records,
   and the pipeline filters lemmas by frequency; what fraction of the shipped 10,278 have a useful
   family needs a targeted pass over the raw dump before this is worth planning — the analogue of
-  Phase 21's completed paradigm-count gate.
+  Phase 21's completed paradigm-count gate. **Update 2026-08-13:** raw coverage is now measured
+  at ~70% (verified facts above); the open question is family quality, not presence.
 - **Family members may not be shipped.** Kaikki's `derived`/`related` lists can point at lemmas
   the frequency cut excluded, so the explorer must render "not installed" gracefully — and the
   agent-guide tripwire applies directly: "not installed" is **not** "orphaned".
@@ -276,7 +501,10 @@ Checked against the repository, not assumed:
 
 The natural build moment is whenever the pipeline reopens for another reason — the
 English→Spanish lookup index (above) is the obvious candidate — so one dataset rebuild carries
-both. The coverage pass needs no rebuild and can run any time.
+both. The coverage pass needs no rebuild and can run any time. **Update 2026-08-13:** decided —
+the derived/related data ships (data only, no display) with the rebuild scoped in the Unused
+dictionary fields entry's workshop decisions; the explorer phase itself remains unapproved and
+will find its data already installed.
 
 ---
 
@@ -450,50 +678,6 @@ strictly above the search pipeline.
 
 - The recorded misses themselves: what fraction of real misses are near-misses of known content
   versus genuinely absent words. That decides whether option 1 suffices.
-
----
-
-### English→Spanish lookup
-
-- **Date added:** 2026-08-12
-- **Status:** Captured
-- **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
-- **Owner interest:** Wants it on the list.
-- **Potential data impact:** None to personal data; likely a new derived index in the reference
-  layer, which is rebuildable by design behind the §5 seam
-
-#### Description and current context
-
-Search is Spanish-first: an inflected Spanish form finds its lemma, but "how do I say
-*stubborn*?" has no offline answer. The dictionary's English glosses are already shipped
-on-device; indexing them for reverse lookup would let the bundled dictionary answer the question
-learners ask most while writing — and it feeds naturally into Diario, where the need arises
-mid-sentence.
-
-#### Potential options
-
-1. **Runtime gloss search** over existing entries, if fast enough on-device.
-2. **A pipeline-built reverse index** shipped with the dataset, keeping runtime cost near zero at
-   the price of a dataset rebuild (which the §5 seam and alias map already accommodate).
-
-#### Expected owner value
-
-- Answers the writing-direction question offline, which currently forces a trip to another app —
-  precisely the exit the notebook exists to avoid.
-
-#### Risks and tradeoffs
-
-- Gloss text is not a bilingual dictionary: one English word maps to many Spanish entries with
-  different registers and regions, so results need enough context (gloss, region labels) to
-  choose between candidates rather than presenting a bare list.
-- If built in the pipeline, it adds a dataset version consideration; the reference layer's
-  replaceability makes this routine but not free.
-
-#### Questions for a future discussion
-
-- Where does reverse lookup live: the existing search field detecting an English query, or an
-  explicit direction toggle?
-- Do multiword glosses ("to be stubborn") match on the phrase, the head word, or both?
 
 ---
 
@@ -1227,6 +1411,22 @@ proposal is not permission to add hidden dismissal storage or loosen whole-token
 
 ---
 
+### English→Spanish lookup
+
+- **Date added:** 2026-08-12 — **Status:** Implemented — Phase 2e, deployed (predated the capture)
+- **Records:** `PHASE-2-REPORT.md`, the 2026-07-31 english-index entries in `DECISIONS.md`,
+  brief §8's amended tier list
+
+Captured 2026-08-12 without noticing the capability already existed: Phase 2e shipped a
+pipeline-built english index (`englishShards`, gloss word → entry ids, sharded like the form
+index), and search tier 4 answers "take out" → *sacar* by intersecting per-word postings,
+labeled as an English-meaning match. The capture's two open questions were already settled in
+shipped code — the one search field serves the English path (no direction toggle), and multiword
+queries intersect their words with whole-phrase glosses sorting first. Moved to history
+2026-08-13 as a correction, not an implementation.
+
+---
+
 ### Global tag management
 
 - **Date added:** 2026-08-10 — **Status:** Implemented — Phase 20, deployed
@@ -1446,6 +1646,36 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-13 — Correction: English→Spanish lookup moves from Active to Implemented history.**
+  The 2026-08-12 capture recorded a capability Phase 2e had already shipped: the bundled
+  `englishShards` index and search tier 4 ("take out" → *sacar*) have been live since the
+  Phase 2 deployment, per the 2026-07-31 `DECISIONS.md` entries and brief §8's amended tier
+  list. The entry is compressed per the implemented-band convention; no code changed.
+
+- **2026-08-13 — Unused dictionary fields moves to Ready to plan: the owner decided the
+  next-rebuild field selection in a four-question workshop.** In: sense-level synonyms and
+  antonyms, topic labels, first-sentence etymology (measured at ~144 KB), filtered sense-attached
+  examples, and dormant derived/related data for the word-family explorer. Out: IPA and syllable
+  breaks. The selections total ~+660 KB gzipped (~3.96 MB bundle), knowingly past the plan-era
+  ~3.5 MB guideline the brief never fixed. Recorded in `DECISIONS.md`; display design and the
+  rebuild itself still require a plan under the working agreement. The word-family explorer's
+  timing question closes with the same decision (its data ships dormant; the phase stays
+  unapproved).
+
+- **2026-08-13 — Two data-layer surveys captured: Unused dictionary fields (shipped-lemma census)
+  and Candidate future data sources.** Both came from owner questions about the reference layer
+  and were requested for the list after reviewing the assessments. The census entry records
+  measured coverage and real gzip cost for every Kaikki field the pipeline currently drops
+  (sense-level synonyms, IPA, syllables, etymology, sense-attached examples, topics, antonyms),
+  the measured dead ends (audio, translations), a 175-sense parent-gloss data-quality nit in
+  `04-entries.mjs`, and the size arithmetic against the ~3.5 MB guideline. The sources entry
+  surveys candidate additions (the es.wiktionary extract, word and sentence audio, relations
+  data, curated-content seeds), names the gaps with no cleanly licensed source, and records the
+  wiktextract contingency — under the standing rules that licenses are re-verified at adoption
+  and noncommercial sources stay build-time only. The same census supplied survey-level evidence
+  to the Dictionary word-family explorer entry (~70% raw coverage, ~230 KB gzipped), whose
+  coverage risk is updated in place. Neither new entry is approved work.
 
 - **2026-08-13 — Phase 23 deployed.** The owner approved the verified branch and current visual
   treatment; `main` fast-forwarded through the direction plus four Phase 23 commits to `bb292fe`.
