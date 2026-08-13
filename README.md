@@ -280,6 +280,13 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   same-id full-entry opening, 44px actions, zero overflow, and zero console warnings/errors. See
   the approved [direction](docs/PHASE-23-DIRECTION.md) and
   [implementation report](docs/PHASE-23-REPORT.md).
+- **Phase 24 — planned, not started.** Dictionary enrichment: one dataset rebuild (r3 → r4)
+  shipping sense-level synonyms and antonyms, topic labels, first-sentence etymology, filtered
+  Wiktionary sense-attached examples, dormant derived/related family data, and a subsense gloss
+  fix; IPA and syllable breaks stay out by owner decision. Dataset scope was owner-decided in the
+  2026-08-13 field-selection workshop (see [DECISIONS.md](DECISIONS.md)); display placement is
+  proposed in the [direction](docs/PHASE-24-DIRECTION.md). Personal schema stays v8; the
+  dictionary package remains replaceable per §5.
 - **Collection bulk capture — deployed.** A Vocabulary page's existing
   Add vocabulary panel can now narrow saved entries to Words, Phrases, and an exact existing tag,
   then select every available match together. Existing members remain excluded and the final Add
