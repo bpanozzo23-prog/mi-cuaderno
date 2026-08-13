@@ -52,6 +52,8 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
+| The word's biography | 2026-08-12 | Planned — Phase 23a | Direction approved 2026-08-12 (`PHASE-23-DIRECTION.md`); implementation not started |
+| Neighborhood browsing | 2026-08-12 | Planned — Phase 23b | Direction approved 2026-08-12 (`PHASE-23-DIRECTION.md`); implementation not started |
 | Conjugation catalog extensions | 2026-08-12 | Captured | When Phase 21's classifier next reopens; required-cell coverage must be swept before accepting either family |
 | Monolingual recall (Spanish usage cues) | 2026-08-12 | Captured | After checking how many real meanings carry a usage cue |
 | Retired-word spot checks | 2026-08-12 | Captured | Once a meaningful number of words are Retired; the demotion question needs an owner decision |
@@ -103,6 +105,60 @@ Useful information to retain for each idea:
 ---
 
 ## Active ideas
+
+### The word's biography
+
+- **Date added:** 2026-08-12
+- **Status:** Planned — approved as Phase 23a in a 2026-08-12 owner decision workshop; see
+  `PHASE-23-DIRECTION.md` for the decision-complete direction. Implementation has not started.
+- **Origin:** Consolidation brainstorm follow-up; the owner selected it for a detailed
+  breakdown, then answered the four scope-shaping questions.
+- **Owner interest:** Intends to work on this soon; chose it as the phase's first slice.
+- **Potential data impact:** None; derived at render, no schema, preference, backup or event
+  change
+
+One chronological view of a lexical item's history and habitat: milestone story (saved, first
+review, box climbs, tricky episodes, retirement) plus every context it lives in — collections,
+pages, captures, guides, phrases (Phase 22a), and prose the owner wrote, including a clearly
+labeled **En tu Diario** section. Workshop decisions: a sub-view off Detail's learning strip
+(scan-first Detail unchanged); milestones only, never a grade log; derived prose rows are
+display-only in v1 (no link promotion); Diario appears as its own disclosed section. Requires
+extending Phase 22's containment matcher to scan `plainTextFromMarkdown` prose, inheriting its
+ñ-safety, stop-list, and intentional ambiguity/clitic silences.
+
+Its diagnostic value is the quiet payoff: a word that keeps failing review shows a visibly thin
+biography — contexts, not just repetitions, are the fix. A later "thin biography" completeness
+view builds directly on this.
+
+---
+
+### Neighborhood browsing
+
+- **Date added:** 2026-08-12
+- **Status:** Planned — approved as Phase 23b in a 2026-08-12 owner decision workshop; see
+  `PHASE-23-DIRECTION.md` for the decision-complete direction. Implementation has not started.
+- **Origin:** Consolidation brainstorm follow-up; the owner selected it for a detailed
+  breakdown, then answered the five scope-shaping questions.
+- **Owner interest:** Intends to work on this soon, as the phase's second slice.
+- **Potential data impact:** None; derived at render, writes no events from its own surfaces
+
+A "show me something" card on the Cuaderno root lands on a uniformly random saved word or
+phrase and shows its immediate neighborhood — confirmed typed Connections with their notes as
+edge labels, saved Phase 21 conjugation-family siblings, and an unopenable **En tu Diario**
+count stub — each neighbor one tap from becoming the new center. Wandering is the retrieval
+mode directed search cannot provide, and it is the first surface where the owner's curated
+connection types and notes drive an experience rather than decorate a detail screen.
+
+Workshop decisions: typed links + families only in v1 (derived adjacency such as tags and
+containment may join later); hops write no events (browsing is not lookup — the Diario-prompt
+reasoning), while leaving into the ordinary Detail screen keeps Detail's existing behavior;
+pure random start with no weighting or lens; Diario present only as stubs, never expanding in
+the wander view; local neighborhoods deliberately instead of any global graph visualization.
+Future extensions recorded in the direction doc: contrast-view landing on Often-confused edges,
+a transient trail recap feeding the review→writing bridge, and reusing the neighborhood card as
+a general "related items" panel.
+
+---
 
 ### Conjugation catalog extensions
 
@@ -1410,6 +1466,17 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-12 — The word's biography and Neighborhood browsing enter as Planned: Phase 23a/23b,
+  direction approved through an owner decision workshop.** After a detailed two-idea breakdown
+  (use and value, implementation tiers, scope-shaping decisions, extension paths), the owner
+  answered nine workshop questions plus two scope questions; the decision-complete record is
+  `PHASE-23-DIRECTION.md`. Headline decisions: biography as a sub-view off Detail's learning
+  strip, milestones-only narrative, display-only derived rows, Diario as a disclosed section;
+  wandering over typed links + conjugation families with a pure-random start, no events from its
+  own surfaces, Diario as unopened stubs, entered from a Cuaderno root card; one phase, 23a then
+  23b, with Phase 22's containment matcher extended to prose inside 23a. Implementation has not
+  started and still follows the plan-first agreement.
 
 - **2026-08-12 — Phase 22 deployed.** The verified four-commit fast-forward reached `main` at
   `022e1b6`, and GitHub Pages run 31661654898 completed successfully. The two implemented idea
