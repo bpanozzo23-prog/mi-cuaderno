@@ -1477,8 +1477,12 @@ explicit create actions.
 Still-open evidence: the real-device check — how Chrome on Android presents the share-sheet entry
 — is now possible on the deployed site once the installed PWA updates. Whether
 shared content is mostly words, phrases, or URLs (the doc's original question) can now be answered
-by real use. A shared URL landing anywhere other than Source creation (e.g., a Media link on an
-existing page) remains a later owner decision.
+by real use. ~~A shared URL landing anywhere other than Source creation (e.g., a Media link on an
+existing page) remains a later owner decision.~~ **Answered 2026-08-13, same day:** real TikTok
+use (short learning videos, several a week) made always-new-Source-page too rigid; a URL share now
+opens a destination chooser — existing page or word/phrase (media link), new Grammar guide with
+the video attached, or new Source notebook. See the Share arrival destination chooser entries in
+`DECISIONS.md`.
 
 ---
 
@@ -1780,6 +1784,14 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-13 — Share arrival destination chooser implemented locally; the share target's open
+  destination question is answered.** The owner's real workflow (frequent short learning TikToks)
+  arrived the day the share target deployed and showed always-new-Source-page too rigid. A URL
+  share now opens a chooser: attach to an existing page or word/phrase as a media link, start a
+  Grammar guide with the video pre-attached, or keep the new Source notebook. Owner decisions:
+  three destinations, pages + lexical targets, long-prose handling unchanged. Implemented-entry
+  question struck through with the answer in place; not yet deployed.
 
 - **2026-08-13 — Phase 25a implemented and verified locally; Phase 25b remains stopped.** The
   conjugation-family habitat now shares one alias-aware, word-only preparation and row component

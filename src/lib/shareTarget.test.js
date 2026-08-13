@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseSharePayload, sourceShareStarter } from "./shareTarget.js";
+import { grammarShareStarter, parseSharePayload, sourceShareStarter } from "./shareTarget.js";
 import { PAGE_FOCUSES } from "./pageKinds.js";
 
 describe("parseSharePayload", () => {
@@ -80,5 +80,29 @@ describe("sourceShareStarter", () => {
 
   it("defaults the title to empty", () => {
     expect(sourceShareStarter({ url: "https://example.com/a" }).title).toBe("");
+  });
+});
+
+describe("grammarShareStarter", () => {
+  it("builds a Grammar-guide starter with no preselected sections and the video as a media link", () => {
+    const starter = grammarShareStarter({ url: "https://vm.tiktok.com/x", title: "Ser vs estar" });
+    expect(starter).toEqual({
+      pageFocus: PAGE_FOCUSES.grammar,
+      collectionEnabled: true,
+      sourceEnabled: false,
+      grammarEnabled: true,
+      noteSections: [],
+      groupNames: [],
+      sectionNames: [],
+      sourceFormat: "",
+      mediaLinks: [{ url: "https://vm.tiktok.com/x", label: "Ser vs estar" }],
+      title: "Ser vs estar",
+    });
+  });
+
+  it("defaults the title (and media label) to empty", () => {
+    const starter = grammarShareStarter({ url: "https://vm.tiktok.com/x" });
+    expect(starter.title).toBe("");
+    expect(starter.mediaLinks).toEqual([{ url: "https://vm.tiktok.com/x", label: "" }]);
   });
 });

@@ -46,3 +46,24 @@ export function sourceShareStarter({ url, title = "" }) {
     title,
   };
 }
+
+/**
+ * Creation seed for "this shared video IS a new grammar topic": the Grammar-guide starter
+ * shape (pageSeedFromRecipe's grammar branch) with no recipe's sections preselected — the
+ * owner shapes the guide after watching. The video rides along as a media link rather than a
+ * Source identity URL, because a Grammar guide has no source identity of its own.
+ */
+export function grammarShareStarter({ url, title = "" }) {
+  return {
+    pageFocus: PAGE_FOCUSES.grammar,
+    collectionEnabled: true,
+    sourceEnabled: false,
+    grammarEnabled: true,
+    noteSections: [],
+    groupNames: [],
+    sectionNames: [],
+    sourceFormat: "",
+    mediaLinks: [{ url, label: title }],
+    title,
+  };
+}

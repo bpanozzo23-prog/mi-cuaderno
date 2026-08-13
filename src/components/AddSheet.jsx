@@ -190,6 +190,8 @@ export default function AddSheet({
             tags,
             pageFocus: seed.pageFocus,
             noteSections: seed.noteSections,
+            // A shared-in video rides the starter (grammarShareStarter) onto the new page.
+            mediaLinks: seed.mediaLinks || [],
             collection: {
               enabled: collectionEnabled,
               groups: collectionDraft.groups,

@@ -732,9 +732,14 @@ describe("Android share target arrival", () => {
     await waitFor(() => expect(search.value).toBe(prose));
   });
 
-  it("opens New Source notebook with a shared URL and title prefilled, saving nothing", async () => {
+  it("offers the destination chooser for a shared URL, and Source creation stays prefilled", async () => {
+    const user = userEvent.setup();
     arriveAt("?share_url=https%3A%2F%2Fexample.com%2Farticle&share_title=Un%20art%C3%ADculo");
     render(<App />);
+
+    const chooser = await screen.findByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" });
+    expect(within(chooser).getByText("https://example.com/article")).toBeTruthy();
+    await user.click(within(chooser).getByRole("button", { name: /New Source notebook/ }));
 
     expect(await screen.findByText("New Source notebook")).toBeTruthy();
     expect(screen.getByRole("textbox", { name: "Primary URL" }).value).toBe("https://example.com/article");
@@ -748,9 +753,70 @@ describe("Android share target arrival", () => {
     arriveAt("?share_text=https%3A%2F%2Fexample.com%2Fnota&share_title=Nota");
     render(<App />);
 
-    expect(await screen.findByText("New Source notebook")).toBeTruthy();
-    expect(screen.getByRole("textbox", { name: "Primary URL" }).value).toBe("https://example.com/nota");
-    expect(screen.getByPlaceholderText("Title *").value).toBe("Nota");
+    expect(await screen.findByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" })).toBeTruthy();
+  });
+
+  it("dismissing the chooser writes nothing and lands on the plain Cuaderno", async () => {
+    const user = userEvent.setup();
+    arriveAt("?share_url=https%3A%2F%2Fvm.tiktok.com%2Ffake");
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Close share destinations" }));
+
+    expect(screen.queryByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" })).toBeNull();
+    expect(screen.getByRole("textbox", { name: "Search notebook" }).value).toBe("");
+    expect(await allItems()).toHaveLength(0);
+    expect(await allEvents()).toHaveLength(0);
+  });
+
+  it("starts a Grammar guide with the shared video attached as a media link", async () => {
+    const user = userEvent.setup();
+    arriveAt("?share_url=https%3A%2F%2Fvm.tiktok.com%2Fser-estar&share_title=Ser%20vs%20estar");
+    render(<App />);
+
+    const chooser = await screen.findByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" });
+    await user.click(within(chooser).getByRole("button", { name: /New Grammar guide/ }));
+
+    expect(await screen.findByText("New Grammar guide")).toBeTruthy();
+    expect(screen.getByPlaceholderText("Title *").value).toBe("Ser vs estar");
+    await user.click(screen.getByRole("button", { name: "Add Grammar guide" }));
+
+    await waitFor(async () => {
+      const pages = (await allItems()).filter((item) => item.type === "page");
+      expect(pages).toHaveLength(1);
+      expect(pages[0].mediaLinks).toEqual([
+        { url: "https://vm.tiktok.com/ser-estar", label: "Ser vs estar" },
+      ]);
+      expect(pages[0].grammar.enabled).toBe(true);
+    });
+  });
+
+  it("attaches the shared video to an existing page as one ordinary media-link edit", async () => {
+    const user = userEvent.setup();
+    const page = await createItem(newPage({ title: "Preterite vs imperfect" }));
+    const word = await createItem(newLexical({ term: "madrugar" }));
+    arriveAt("?share_url=https%3A%2F%2Fvm.tiktok.com%2Fpasado&share_title=El%20pasado");
+    render(<App />);
+
+    const chooser = await screen.findByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" });
+    await user.click(within(chooser).getByRole("button", { name: /Add to an existing page or word/ }));
+    // Empty query lists recent items — both seeded entries are one tap away.
+    expect(await within(chooser).findByRole("button", { name: /madrugar/ })).toBeTruthy();
+    await user.click(within(chooser).getByRole("button", { name: /Preterite vs imperfect/ }));
+
+    await waitFor(async () => {
+      const stored = await getItem(page.id);
+      expect(stored.mediaLinks).toEqual([
+        { url: "https://vm.tiktok.com/pasado", label: "El pasado" },
+      ]);
+    });
+    const edits = (await allEvents()).filter(
+      (event) => event.type === EVENT_TYPES.edit && event.itemKey === page.id
+    );
+    expect(edits).toHaveLength(1);
+    expect((await getItem(word.id)).mediaLinks).toEqual([]);
+    // Landed on the page, ready to keep working.
+    expect(await screen.findByText("Preterite vs imperfect", { selector: ".text-2xl *" })).toBeTruthy();
   });
 
   it("starts exactly as before when no share params arrive", async () => {
@@ -758,6 +824,6 @@ describe("Android share target arrival", () => {
 
     const search = await screen.findByRole("textbox", { name: "Search notebook" });
     expect(search.value).toBe("");
-    expect(screen.queryByText("New Source notebook")).toBeNull();
+    expect(screen.queryByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" })).toBeNull();
   });
 });
