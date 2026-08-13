@@ -39,6 +39,7 @@ import { isDirectImageUrl } from "../lib/mediaUrls.js";
 import { getAvailableCollectionDestinations, getCollectionPlacements } from "../lib/collections.js";
 import { activePageContextsForLexical } from "../lib/pageReferences.js";
 import { commitCollectionAdd } from "../db/collections.js";
+import KnowledgeConsolidation from "./KnowledgeConsolidation.jsx";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
@@ -968,6 +969,8 @@ function StandardDetail({
           </div>
         </>
       )}
+
+      {!isPage && <KnowledgeConsolidation item={item} items={items} onOpen={onOpen} />}
 
       <SectionTitle>Connections</SectionTitle>
 

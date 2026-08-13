@@ -53,8 +53,8 @@ Useful information to retain for each idea:
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
 | Conjugation catalog extensions | 2026-08-12 | Captured | When Phase 21's classifier next reopens; required-cell coverage must be swept before accepting either family |
-| Phrase↔word containment links | 2026-08-12 | Captured | Any time; pure derivation reusing cloze's conjugation-aware matching |
-| Same-meaning clustering | 2026-08-12 | Captured | Any time as a suggestion surface; never automatic linking |
+| Phrase↔word containment links | 2026-08-12 | Planned — Phase 22a | Approved; see `docs/PHASE-22-DIRECTION.md` |
+| Same-meaning clustering | 2026-08-12 | Planned — Phase 22b–22c | Approved; suggestions first, confirmed-link recall last |
 | Monolingual recall (Spanish usage cues) | 2026-08-12 | Captured | After checking how many real meanings carry a usage cue |
 | Retired-word spot checks | 2026-08-12 | Captured | Once a meaningful number of words are Retired; the demotion question needs an owner decision |
 | Near-duplicate consolidation view | 2026-08-12 | Captured | Any time; view only — entry merging is a separate, larger decision |
@@ -107,7 +107,7 @@ Useful information to retain for each idea:
 ### Conjugation catalog extensions
 
 - **Date added:** 2026-08-12
-- **Status:** Captured
+- **Status:** Planned — Phase 22a
 - **Origin:** Phase 21 post-implementation corpus review
 - **Owner interest:** Recorded so the measured observation is not lost; not approved for implementation
 - **Potential data impact:** None to personal data; classifier/report changes would require a new
@@ -127,8 +127,8 @@ must be measured before changing the catalog.
 - **Date added:** 2026-08-12
 - **Status:** Captured
 - **Origin:** Consolidation-themed brainstorm, requested for the list by the owner 2026-08-12
-- **Owner interest:** Requested with the rest of the consolidation batch; assessed as the
-  cheapest and most visible of the five.
+- **Owner interest:** Approved for implementation as Phase 22a on 2026-08-12; assessed as the
+  cheapest and most visible of the five. See `docs/PHASE-22-DIRECTION.md`.
 - **Potential data impact:** None; pure derivation at render, no storage, no events
 
 #### Description and current context
@@ -158,9 +158,10 @@ entries become a visible network with zero new storage.
 ### Same-meaning clustering
 
 - **Date added:** 2026-08-12
-- **Status:** Captured
+- **Status:** Planned — Phase 22b–22c
 - **Origin:** Consolidation-themed brainstorm, requested for the list by the owner 2026-08-12
-- **Owner interest:** Requested with the rest of the consolidation batch.
+- **Owner interest:** Approved for implementation as Phase 22b–22c on 2026-08-12. See
+  `docs/PHASE-22-DIRECTION.md`.
 - **Potential data impact:** None for the suggestion surface; accepted suggestions become
   ordinary `similar_meaning` connections through the existing typed-relationship flow
 
@@ -1448,6 +1449,14 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-12 — Phrase↔word containment, same-meaning proposals, and confirmed-link recall are
+  approved as Phase 22.** The three-slice direction deliberately accepts reappearing false-positive
+  suggestions instead of adding a backed-up dismissal preference, treats sparse POS as a
+  best-effort guard, records ambiguous and clitic-attached containment as silent v1 misses, keeps
+  derived rows visibly outside ordinary Connections, and sequences recall last because it has no
+  honest deck before the owner confirms at least one Similar meaning edge. Deployment closeout must
+  synchronize README Status under the 2026-08-11 rule.
 
 - **2026-08-12 — Five consolidation-themed ideas captured: phrase↔word containment links,
   same-meaning clustering, monolingual recall over Spanish usage cues, retired-word spot checks,

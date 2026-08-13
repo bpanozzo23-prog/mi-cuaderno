@@ -5,6 +5,7 @@ import { buildFixtureDictionary, installFetchStub } from "../../test/dictFixture
 import { searchItems, mergeResults, TIER } from "../../lib/search.js";
 import { newLexical, newPage } from "../items.js";
 import { newMeaning } from "../../lib/meanings.js";
+import { getEntriesForForms } from "./entries.js";
 
 const realFetch = globalThis.fetch;
 
@@ -24,6 +25,13 @@ const reasonFor = async (query, lemma) =>
   (await searchDictionary(query)).find((r) => r.entry.lemma === lemma)?.reason;
 
 describe("the brief §12 dictionary searches", () => {
+  it("returns exact form postings in request-aligned groups for ambiguity checks", async () => {
+    const postings = await getEntriesForForms(["fui", "casas", "fui"]);
+    expect(postings.get("fui").map((entry) => entry.lemma).sort()).toEqual(["ir", "ser"]);
+    expect(postings.get("casas").map((entry) => entry.lemma)).toEqual(["casa"]);
+    expect([...postings.keys()]).toEqual(["fui", "casas"]);
+  });
+
   it('resolves "fui" to both ir and ser, each labelled as a form of its lemma', async () => {
     const results = await searchDictionary("fui");
     expect(results.map((r) => r.entry.lemma).sort()).toEqual(["ir", "ser"]);

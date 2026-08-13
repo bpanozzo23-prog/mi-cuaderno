@@ -35,6 +35,35 @@ export async function getEntries(ids) {
 }
 
 /**
+ * Exact normalized form postings for a small set of already-observed surfaces.
+ *
+ * Phase 22 uses this as an ambiguity oracle after a personal phrase has tentatively matched an
+ * attached verb form. Reading only the relevant shards keeps the optional dictionary a bounded
+ * enrichment; no entry or form store is scanned.
+ */
+export async function getEntriesForForms(forms) {
+  const db = activeDb();
+  const normalized = [...new Set((forms || []).map((form) => normalize(form).trim()).filter(Boolean))];
+  if (!db || !normalized.length) return new Map();
+
+  const shardIds = [...new Set(normalized.map((form) => form.slice(0, 2) || "_"))];
+  const shards = await db.formShards.bulkGet(shardIds);
+  const termsByShard = new Map(shardIds.map((id, index) => [id, shards[index]?.terms || {}]));
+  const idsByForm = new Map(normalized.map((form) => [
+    form,
+    termsByShard.get(form.slice(0, 2) || "_")?.[form] || [],
+  ]));
+  const entryIds = [...new Set([...idsByForm.values()].flat())];
+  const entries = entryIds.length ? await db.entries.bulkGet(entryIds) : [];
+  const byId = new Map(entries.filter(Boolean).map((entry) => [entry.id, entry]));
+
+  return new Map([...idsByForm].map(([form, ids]) => [
+    form,
+    ids.map((id) => byId.get(id)).filter(Boolean),
+  ]));
+}
+
+/**
  * Loads precomputed family postings and their entries through primary-key bulk reads.
  * Results stay aligned with the unique requested ids, and each row preserves the pipeline's
  * member order. Missing rows are normal for an r2 install and return an empty member list.

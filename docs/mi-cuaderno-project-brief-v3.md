@@ -5,7 +5,7 @@
 **Owner:** The sole builder and only user of this app.
 **Companion file:** `mi-cuaderno.jsx` — a working single-file prototype of the notebook layer. It is the reference for features, interaction patterns, and visual design of **lexical entries**. Pages (§7) do not exist in the prototype and are new in v3. Where this brief contradicts the prototype's *implementation* (ID scheme, search normalization, the `struggling` field, event rules), **this brief wins** — the prototype shows what the app should feel like, not how it must be built.
 **Version:** v3 — revised after lock-in review. Product contract last amended
-~~August 3, 2026~~ ~~August 4, 2026~~ ~~August 5, 2026~~ ~~August 9, 2026~~ **August 10, 2026**; agent-facing framing refreshed August 2, 2026.
+~~August 3, 2026~~ ~~August 4, 2026~~ ~~August 5, 2026~~ ~~August 9, 2026~~ ~~August 10, 2026~~ **August 12, 2026**; agent-facing framing refreshed August 2, 2026.
 **Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. §§3, 9 and 12 — 2026-08-02: organizational improvements became Phase 5 and the AI assistant moved to Phase 6. §12 — 2026-08-02: independently scoped phases may proceed concurrently under explicit coordination rules. §§5, 7, 8, 10, 12 and 14 — 2026-08-02: personal lexical meanings became stable, structured annotations in schema v2 while review remains entry-level and dictionary senses remain replaceable reference data. **§§5, 7, 10, 12 and 14 — 2026-08-03: schema v3 adds durable `general | collection` page profiles and the first specialized profile, Vocabulary Collection, while dated General pages remain Journal entries and richer profiles stay deferred.** **§§5, 7, 10, 12 and 14 — 2026-08-04: schema v4 adds sparse typed and explained ordinary-connection annotations while `linkedKeys[]` remains authoritative for connection existence and Collection membership.** **§§5, 7, 8, 10, 12 and 14 — 2026-08-04: Phase 7 approves schema v5 composable pages with one leading focus, independently enabled Vocabulary, Source and Grammar structures, contextual retrieval, and sequential legacy backup upgrades.** **§§7, 12 and 14 — 2026-08-05: Phase 9 approves filtered, session-only free practice from the Words & phrases hub while Repaso remains the sole scheduled and event-backed review flow.** **§§7, 12 and 14 — 2026-08-07: Phase 14 approves an owner-started, event-backed Conjugation Gym with curated reference-only verb pools, richer derived performance, and optional history-ranked sessions that never create a due date or alter Leitner review.** **§§7, 12 and 14 — 2026-08-09: Phase 16 approves four-grade scheduled review, objective typed vocabulary recall, queue chunking, one event-free recovery pass, a shared vocabulary-card engine and history-free hub/Collection sessions.** **§§7, 12 and 14 — 2026-08-09: Phase 17 adds owner-started, event-backed Tense usage and Endings recognition lanes whose results remain isolated from form Adaptive, form statistics and Leitner review.** **§§7, 12 and 14 — 2026-08-10: Phase 18 adds the recall/production reverse of those lanes, balanced Regular and Spelling-change packs, exact Saved tag/page targeting and mode-separated depth reporting without changing schema, scheduling or choice evidence.** Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
 
 **Phase 19 amendment, 2026-08-10 — §§5, 7, 8, 10, 12 and 13:** schema v6 adds one-level
@@ -29,6 +29,12 @@ review on the Diario entry it judged (`feedback` on the page record, `null` when
 replacing the Phase 6 session-only decision. One review per entry, replaceable and removable,
 stale-flagged by a content hash, exported in backups, and written without a timestamp bump or
 event. A field on an existing type — the two-content-type rule stands.
+
+**Phase 22 amendment, 2026-08-12 — §§7, 8, 12 and 14:** lexical details derive whole-token
+word↔phrase containment and conservative same-meaning proposals without storing either. Only an
+explicit owner action creates an ordinary Similar meaning connection. A history-free hub recall
+session reads direct confirmed Similar meaning neighbors without transitive inference, events,
+scores, scheduling, preferences, or schema change.
 
 ---
 
@@ -324,6 +330,16 @@ confirmation. Deleting a Source capture clears exact Grammar references to it wi
 ordinary page connections. `pinnedPageIds` is a backed-up UI preference, not page content; pinning
 changes no page timestamp and writes no event.
 
+**Phase-22 derived-knowledge clarification, 2026-08-12:** phrase containment and same-meaning
+proposals are render-time evidence, not ordinary connections, and create no authority. Containment
+compares personal Words with personal Phrases through the shared ñ-preserving whole-token matcher;
+an attached verb may add unambiguous simple/gerund/participle forms from the optional dictionary.
+Ambiguous inflections and clitic-attached tokens are intentionally omitted rather than guessed or
+substring-matched. Gloss proposals compare individual personal meanings conservatively and are
+limited to three; sparse POS metadata rejects only a known mismatch. Proposals have no durable
+dismissal state and may reappear. Only an explicit owner action calls the existing stored-once
+writer with `similar_meaning`; an already connected pair is never proposed.
+
 ### Event rules
 
 - **Events are the single source of truth for state and statistics.** No running counters, and no stored `struggling` flag: current tricky state derives from the most recent `tricky_on` / `tricky_off` event.
@@ -366,6 +382,10 @@ changes no page timestamp and writes no event.
   `verbKey`, `slot` or response text. Form statistics and Adaptive ordering explicitly ignore
   them; every review derivation continues to ignore all drill types. Missed-round answers remain
   separately identifiable and never rewrite first-attempt evidence.
+- **Phase-22 recall clarification, 2026-08-12:** Similar-meaning recall is an owner-started,
+  history-free session over direct confirmed Similar meaning neighbors. Starting, revealing,
+  self-grading, repeating misses, finishing, or leaving writes no event or timestamp and changes no
+  Repaso, Gym, due date, preference, score, or schedule.
 
 ## 8. Search rules
 
@@ -798,8 +818,30 @@ change is introduced; `SCHEMA_VERSION` remains 6. The approved contract lives in
 failure rolls the whole batch back; timestamps remain byte-for-byte unchanged while edit events
 retain existing activity behavior; every derived search/filter/Gym consumer refreshes safely; a
 current schema-v6 backup round-trips the result; and the complete serial suite, production build,
-diff check, deliberate failure proofs and a disposable 375×812 flow pass without overflow,
-warnings or console errors.
+ diff check, deliberate failure proofs and a disposable 375×812 flow pass without overflow,
+ warnings or console errors.
+
+**Amended 2026-08-12 — Phase 22: knowledge consolidation.** Lexical detail derives two visibly
+non-authoritative signals from current notebook data. A personal Word shows saved Phrases containing
+its exact normalized term or one unambiguous cloze-safe attached-verb form; a Phrase shows the same
+relationship from the other side. Fixed high-noise function words are excluded, dictionary absence
+falls back to exact term matching, and ambiguous or clitic-attached forms stay silent. Personal
+meaning pairs whose normalized English content tokens overlap conservatively may appear as at most
+three **You also know…** proposals. A proposal stores nothing, has no remembered dismissal, and
+becomes a Similar meaning connection only after an explicit owner action through the existing
+ordinary-link writer.
+
+The Words & phrases hub separately offers history-free Similar-meaning recall once at least one
+confirmed edge exists. One prompt asks for a direct neighbor of its focal lexical item, reveals
+only direct confirmed neighbors and self-grades Again/Got it with one missed round. Raw proposals
+and transitive graph neighbors never become answers. `SCHEMA_VERSION` remains 8; no personal field,
+preference, backup shape, event type, reference package, score, schedule, or automatic queue is
+added. The approved contract lives in `docs/PHASE-22-DIRECTION.md`.
+*Done when:* containment, ambiguity, optional-dictionary fallback, gloss scoring, sparse-POS,
+existing-edge exclusion, explicit confirmation, direct-edge recall and no-event boundaries are
+pinned by pure/database/component tests; deliberate failure proofs redden; the complete serial
+suite, production build and diff check pass; and a disposable seeded 375×812 flow verifies all
+three slices without overflow, warnings, console errors, or owner data access.
 
 ## 13. Non-goals
 
@@ -834,7 +876,10 @@ Collection Practice history, grading, scoring or scheduling remain deferred. Pha
 approves transient Again/Got it feedback and missed-only rounds for hub free practice; Phase 16
 extends the same history-free boundary to direction/cloze/typed hub sessions and launchable
 whole-Collection or group sessions while preserving the in-place Collection skim. Those actions
-write no history or schedule.**
+write no history or schedule. Phase 22 extends the same history-free boundary to owner-started
+Similar-meaning recall over direct confirmed connections. Durable suggestion-dismissal memory,
+automatic synonym authority, transitive synonym clusters, persistent semantic-recall history,
+scores, grading, or scheduling remain deferred.**
 
 ## 15. How to use this brief now
 

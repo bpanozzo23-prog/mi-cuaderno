@@ -25,7 +25,7 @@ const WORD = /[\p{L}\p{M}]+/gu;
 const CLITICS = new Set(["me", "te", "se", "nos", "os"]);
 
 /** Every word of a sentence with the offsets it occupies in the original text. */
-function tokenize(text) {
+export function tokenizeWords(text) {
   const tokens = [];
   for (const match of String(text || "").matchAll(WORD)) {
     tokens.push({ start: match.index, end: match.index + match[0].length, norm: normalize(match[0]) });
@@ -67,20 +67,22 @@ export function verbForms(table) {
  * same place in the original. Matching whole tokens also means a term never gets blanked
  * out of the middle of a longer word.
  */
-export function clozeFromExample(example, { term, forms } = {}) {
-  const text = String(example?.es || "");
+export function matchTermInText(text, { term, forms } = {}) {
+  text = String(text || "");
   const wanted = normalize(term || "").split(/\s+/).filter(Boolean);
   if (!text || !wanted.length) return null;
 
-  const tokens = tokenize(text);
+  const tokens = tokenizeWords(text);
   const extra = forms instanceof Set ? forms : new Set(forms || []);
 
-  const splitAt = (start, length) => {
+  const matchAt = (start, length, kind) => {
     const run = tokens.slice(start, start + length);
     return {
-      before: text.slice(0, run[0].start),
-      answer: text.slice(run[0].start, run[run.length - 1].end),
-      after: text.slice(run[run.length - 1].end),
+      start: run[0].start,
+      end: run[run.length - 1].end,
+      surface: text.slice(run[0].start, run[run.length - 1].end),
+      normalizedSurface: run.map((token) => token.norm).join(" "),
+      kind,
     };
   };
 
@@ -89,16 +91,27 @@ export function clozeFromExample(example, { term, forms } = {}) {
   for (let start = 0; start + wanted.length <= tokens.length; start += 1) {
     const run = tokens.slice(start, start + wanted.length);
     const matches = run.every((token, offset) => token.norm === wanted[offset]);
-    if (matches) return splitAt(start, wanted.length);
+    if (matches) return matchAt(start, wanted.length, "exact");
   }
 
   // A single-word term also matches any inflection its caller knows about, which is how
   // "Saqué la basura" becomes a cloze for *sacar*.
   if (wanted.length === 1) {
     const inflectedAt = tokens.findIndex((token) => extra.has(token.norm));
-    if (inflectedAt >= 0) return splitAt(inflectedAt, 1);
+    if (inflectedAt >= 0) return matchAt(inflectedAt, 1, "inflected");
   }
   return null;
+}
+
+export function clozeFromExample(example, { term, forms } = {}) {
+  const text = String(example?.es || "");
+  const match = matchTermInText(text, { term, forms });
+  if (!match) return null;
+  return {
+    before: text.slice(0, match.start),
+    answer: match.surface,
+    after: text.slice(match.end),
+  };
 }
 
 /** Stock dictionary examples are positional arrays; personal ones are already objects. */
