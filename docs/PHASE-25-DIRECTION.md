@@ -41,8 +41,11 @@ story and every existing habitat section are untouched.
    section appears when the subject is an attached verb whose resolved entry's conjugation
    analysis lands in a loaded Phase 21 family; it lists the saved siblings (possibly zero) and
    always includes the What-to-notice teaching row as a marked dictionary exit.
-3. **Historia only.** The wander card's v1 edge set is untouched. A derivational wander edge
-   remains a later evidence-driven decision, per Phase 23's rule for new edge kinds.
+3. **Historia only.** ~~The wander card's v1 edge set is untouched.~~ **Amended 2026-08-13 after
+   implementation review:** the wander card gains no new *edge kind*, but sharing one derivation
+   with Historia did narrow its existing conjugation-family edge — see "Wander boundary
+   amendment" below. A derivational wander edge remains a later evidence-driven decision, per
+   Phase 23's rule for new edge kinds.
 4. **No suppression against Connections.** A relative that is also a typed Connection appears in
    both sections; each section states its own kind of fact and each stays complete.
 5. **Words only.** Phrase biographies are unchanged; family facts belong to lemma-attached words.
@@ -81,6 +84,23 @@ preparation sequence and the saved-word intersection. Wander and Historia render
 `ConjugationFamilyRows` component. The shared boundary enforces words on both endpoints, keeps
 notebook order, retains the teaching exit even with zero saved siblings, and returns quiet absence
 for incomplete or failed optional reference reads.
+
+### Wander boundary amendment (2026-08-13, post-implementation review)
+
+Enforcing words on both endpoints inside the *shared* preparer changed the deployed wander card
+in two ways, which decision 3's original wording did not anticipate:
+
+1. a saved **phrase** attached to a family member no longer appears as a sibling row (the report
+   already disclosed this one); and
+2. a saved **phrase** as the wander center no longer shows a conjugation-family section at all —
+   the shared preparer returns before touching the reference seam.
+
+Both are kept: a phrase is not a member of a verb's inflectional paradigm, so the narrower rule
+is the more truthful one on both surfaces, and `DictAttachment` renders for every non-page item,
+so an attached phrase is an ordinary thing to own. Neither wander test covered a phrase endpoint,
+which is why the untouched-tests refactor proof stayed green while behavior moved; the review
+added `keeps conjugation families word-only on both endpoints` to `Wander.test.jsx`, and each
+half was verified to fail independently against the pre-Phase-25 boundary before restoration.
 
 ## 25b — Derivational family (stopped at quality gate)
 

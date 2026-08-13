@@ -41,6 +41,16 @@ The seeded browser pass caught and closed one edge before completion: an attache
 qualified as a saved sibling through the old Wander helper. The shared boundary and its pure test
 now require `form === "word"` on both endpoints, matching the Phase 25 contract.
 
+**Post-implementation review correction (2026-08-13).** That word-only rule lives in the *shared*
+preparer, so it narrowed the deployed wander card too — both for a phrase sibling and, undisclosed
+until this review, for a phrase center, which now shows no family section at all. The behavior is
+kept as the more truthful rule on both surfaces, and the direction's decision 3 was amended to say
+so. The gap was in the proof, not the code: neither wander test exercised a phrase endpoint, so
+the untouched-tests refactor argument could not have gone red here. `Wander.test.jsx` gained
+`keeps conjugation families word-only on both endpoints`, whose two halves were each confirmed to
+fail alone against the pre-Phase-25 boundary — the sibling row reappeared, and the phrase center
+called the reference seam once — before the boundary was restored and the file returned to 3/3.
+
 ## Phase 25b quality gate
 
 The disposable audit examined all shipped r4 relation strings before any derivational UI work:
@@ -64,8 +74,11 @@ available or inspected.
 
 ## Automated and deliberate verification
 
-- Focused family/Wander/Biography/reference boundary: **45/45 tests across six files**.
-- Complete serial suite: **1,403/1,403 tests across 121 files** (`npm.cmd test`).
+- Focused family/Wander/Biography/reference boundary: **45/45 tests across six files**,
+  re-run unchanged during the post-implementation review.
+- Complete serial suite: **1,403/1,403 tests across 121 files** (`npm.cmd test`) at `b638948`,
+  then **1,404/1,404 across the same 121 files** (364.05 s) after the review added the wander
+  word-only test described above.
 - Production build: passed; Vite transformed **2,108 modules** and generated the PWA.
 - `git diff --check`: passed.
 

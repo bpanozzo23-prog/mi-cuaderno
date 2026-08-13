@@ -146,4 +146,76 @@ describe("Wander", () => {
     await user.click(screen.getByRole("button", { name: "Open full entry" }));
     expect(onOpen).toHaveBeenCalledWith(page.id);
   });
+
+  /**
+   * Phase 25 moved this surface's family derivation into the shared word-only boundary, so an
+   * attached phrase stopped qualifying as a sibling and stopped carrying a family of its own.
+   * Nothing here covered either endpoint before, which is why the refactor could not go red.
+   */
+  it("keeps conjugation families word-only on both endpoints", async () => {
+    const sacarEntry = FIXTURE_ENTRIES.find((entry) => entry.lemma === "sacar");
+    const sacarTable = FIXTURE_PATTERN_CONJUGATIONS.find((table) => table.id === sacarEntry.conjugationId);
+    const buscarEntry = {
+      id: "dict:fixture:buscar:verb",
+      lemma: "buscar",
+      pos: "verb",
+      conjugationId: "conj:fixture:buscar",
+    };
+    const familyDeps = () => ({
+      resolveReference: vi.fn(async (key) => ({
+        entry: key === sacarEntry.id ? sacarEntry : key === buscarEntry.id ? buscarEntry : null,
+        resolvedFrom: null,
+      })),
+      loadConjugations: vi.fn(async () => [sacarTable]),
+      loadFamilies: vi.fn(async () => [{
+        id: "spelling:c-qu",
+        members: [sacarEntry, buscarEntry],
+      }]),
+      loadMeta: vi.fn(async () => ({ previousIds: {} })),
+      prepareJournal: vi.fn(async () => [{ journal: true }]),
+    });
+
+    const word = await createItem(newLexical({ term: "sacar", dictKey: sacarEntry.id }));
+    const attachedPhrase = await createItem(newLexical({
+      term: "sacar la basura",
+      form: "phrase",
+      dictKey: buscarEntry.id,
+    }));
+    const items = await allItems();
+
+    const wordDeps = familyDeps();
+    const { unmount } = render(
+      <Wander
+        item={items.find((row) => row.id === word.id)}
+        items={items}
+        onHop={vi.fn()}
+        onOpen={vi.fn()}
+        onBack={vi.fn()}
+        {...wordDeps}
+      />
+    );
+
+    expect(await screen.findByText("Conjugation family")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /What to notice/ })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^sacar la basura/ })).toBeNull();
+    unmount();
+
+    const phraseDeps = familyDeps();
+    render(
+      <Wander
+        item={items.find((row) => row.id === attachedPhrase.id)}
+        items={items}
+        onHop={vi.fn()}
+        onOpen={vi.fn()}
+        onBack={vi.fn()}
+        {...phraseDeps}
+      />
+    );
+
+    expect(await screen.findByText("En tu Diario · 1")).toBeTruthy();
+    expect(screen.queryByText("Conjugation family")).toBeNull();
+    expect(screen.queryByRole("button", { name: /What to notice/ })).toBeNull();
+    expect(phraseDeps.resolveReference).not.toHaveBeenCalled();
+    expect(phraseDeps.loadFamilies).not.toHaveBeenCalled();
+  });
 });
