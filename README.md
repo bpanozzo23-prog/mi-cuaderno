@@ -253,7 +253,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   public package tree. See the approved
   [direction](docs/PHASE-21-DIRECTION.md) and
   [implementation report](docs/PHASE-21-REPORT.md).
-- **Phase 22 — implemented and verified locally; not deployed.** Lexical detail now derives
+- **Phase 22 — deployed.** Lexical detail now derives
   conjugation-aware whole-token links between saved Words and Phrases, suppressing ambiguous
   inflections and fixed high-noise function words. Conservative personal-gloss overlap can show
   at most three explained **You also know…** proposals; only the owner's explicit action creates

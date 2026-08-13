@@ -158,6 +158,6 @@ Acceptance requires:
 
 No owner browser data or backup is available to Codex. Matching quality is verified against
 deliberately adversarial fixtures; real-notebook usefulness remains an owner observation after
-release. A push to `main` is not part of implementation approval. If deployment is later approved,
-README Status, its schema paragraph, this direction/report, and the two Improvement Ideas statuses
-must describe deployed reality in the same session.
+release. A push to `main` was not part of implementation approval; the owner later approved it,
+and GitHub Pages deployed `022e1b6` successfully on 2026-08-12. README Status, this direction/report,
+and the two Improvement Ideas statuses were synchronized in the same session.

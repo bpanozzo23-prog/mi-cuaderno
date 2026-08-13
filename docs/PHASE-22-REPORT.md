@@ -90,3 +90,10 @@ transitive cluster answers, stored recall history/scores, automatic review inser
 notebook usefulness claims remain deliberately outside this release. Matching quality is moderate
 risk and should be judged in owner use; durability risk stays low because every unconfirmed signal
 is derived and disposable.
+
+## Deployment
+
+The owner approved the verified branch for release on 2026-08-12. `main` fast-forwarded through
+the three Phase 22 slices and the review-fix commit to `022e1b6`; GitHub Pages run 31661654898
+completed successfully. README Status and both affected Improvement Ideas statuses were then
+synchronized to deployed reality.

@@ -85,8 +85,8 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Implemented as | Full records |
 |---|---|---|---|
-| Phrase↔word containment links | 2026-08-12 | Phase 22a, implemented locally; not deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
-| Same-meaning clustering | 2026-08-12 | Phase 22b–22c, implemented locally; not deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
+| Phrase↔word containment links | 2026-08-12 | Phase 22a, deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
+| Same-meaning clustering | 2026-08-12 | Phase 22b–22c, deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
 | "Conjugates like" verb families | 2026-08-12 | Phase 21, deployed | `PHASE-21-DIRECTION.md`, `PHASE-21-REPORT.md` |
 | Global tag management | 2026-08-10 | Phase 20, deployed | `PHASE-20-DIRECTION.md`, `PHASE-20-REPORT.md` |
 | Markdown blank-line spacing | 2026-08-10 | Phase 19 increment, deployed | Phase 19 entries in `DECISIONS.md` |
@@ -1164,7 +1164,7 @@ history. Still-open evidence and questions are kept here in full.
 
 ### Phrase↔word containment links
 
-- **Date added:** 2026-08-12 — **Status:** Implemented — Phase 22a locally; not deployed
+- **Date added:** 2026-08-12 — **Status:** Implemented — Phase 22a, deployed
 - **Records:** `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md`, Phase 22 entries in `DECISIONS.md`
 
 Lexical detail derives a read-only, bidirectional Word↔Phrase network through exact whole-token
@@ -1177,7 +1177,7 @@ dictionary package is created.
 
 ### Same-meaning clustering
 
-- **Date added:** 2026-08-12 — **Status:** Implemented — Phase 22b–22c locally; not deployed
+- **Date added:** 2026-08-12 — **Status:** Implemented — Phase 22b–22c, deployed
 - **Records:** `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md`, Phase 22 entries in `DECISIONS.md`
 
 At most three explained pairwise gloss-overlap proposals may appear outside Connections; sparse
@@ -1411,6 +1411,10 @@ added optional import of dictionary senses as ordinary meaning records with no l
 
 ## Document history
 
+- **2026-08-12 — Phase 22 deployed.** The verified four-commit fast-forward reached `main` at
+  `022e1b6`, and GitHub Pages run 31661654898 completed successfully. The two implemented idea
+  statuses now describe deployed reality; the earlier local-only history remains as the state at
+  that time.
 - **2026-08-12 — Phase 22 implemented and verified locally; not deployed.** The three slices now
   pass 1,341/1,341 serial tests, the production build, diff check, deliberate red/green proofs and
   a disposable 375×812 flow covering containment, ambiguity suppression, explicit stored-once
