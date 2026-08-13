@@ -53,8 +53,6 @@ Useful information to retain for each idea:
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
 | Conjugation catalog extensions | 2026-08-12 | Captured | When Phase 21's classifier next reopens; required-cell coverage must be swept before accepting either family |
-| Phrase↔word containment links | 2026-08-12 | Planned — Phase 22a | Approved; see `docs/PHASE-22-DIRECTION.md` |
-| Same-meaning clustering | 2026-08-12 | Planned — Phase 22b–22c | Approved; suggestions first, confirmed-link recall last |
 | Monolingual recall (Spanish usage cues) | 2026-08-12 | Captured | After checking how many real meanings carry a usage cue |
 | Retired-word spot checks | 2026-08-12 | Captured | Once a meaningful number of words are Retired; the demotion question needs an owner decision |
 | Near-duplicate consolidation view | 2026-08-12 | Captured | Any time; view only — entry merging is a separate, larger decision |
@@ -87,6 +85,8 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Implemented as | Full records |
 |---|---|---|---|
+| Phrase↔word containment links | 2026-08-12 | Phase 22a, implemented locally; not deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
+| Same-meaning clustering | 2026-08-12 | Phase 22b–22c, implemented locally; not deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
 | "Conjugates like" verb families | 2026-08-12 | Phase 21, deployed | `PHASE-21-DIRECTION.md`, `PHASE-21-REPORT.md` |
 | Global tag management | 2026-08-10 | Phase 20, deployed | `PHASE-20-DIRECTION.md`, `PHASE-20-REPORT.md` |
 | Markdown blank-line spacing | 2026-08-10 | Phase 19 increment, deployed | Phase 19 entries in `DECISIONS.md` |
@@ -107,7 +107,7 @@ Useful information to retain for each idea:
 ### Conjugation catalog extensions
 
 - **Date added:** 2026-08-12
-- **Status:** Planned — Phase 22a
+- **Status:** Captured
 - **Origin:** Phase 21 post-implementation corpus review
 - **Owner interest:** Recorded so the measured observation is not lost; not approved for implementation
 - **Potential data impact:** None to personal data; classifier/report changes would require a new
@@ -119,74 +119,6 @@ ejercer,* and *torcer*; and i-absorbing behavior among -ñir/-llir verbs such as
 ceñir,* and *gruñir*. These are evidence-backed candidates, not accepted families: duplicate
 lemma consistency, contrast selection, overlap behavior, member counts, and top-frequency value
 must be measured before changing the catalog.
-
----
-
-### Phrase↔word containment links
-
-- **Date added:** 2026-08-12
-- **Status:** Captured
-- **Origin:** Consolidation-themed brainstorm, requested for the list by the owner 2026-08-12
-- **Owner interest:** Approved for implementation as Phase 22a on 2026-08-12; assessed as the
-  cheapest and most visible of the five. See `docs/PHASE-22-DIRECTION.md`.
-- **Potential data impact:** None; pure derivation at render, no storage, no events
-
-#### Description and current context
-
-A saved word (*dar*) and a saved phrase (*me da igual*) are related, and the app never notices.
-The machinery to notice exists: cloze already matches a lemma's conjugated forms through the
-dictionary's tables, so the same matching applied across the owner's own phrases derives
-"appears in 3 of your phrases" on the word's detail and "built on *dar*" on the phrase. Isolated
-entries become a visible network with zero new storage.
-
-#### Risks and tradeoffs
-
-- Derived containment is a display relationship, not a stored link; it must stay visually
-  distinct from the owner's deliberate typed Connections rather than blending into them.
-- Short function words (*de*, *se*, *a*) would "appear" in nearly every phrase; a stop-list or a
-  length/lemma threshold keeps the row meaningful.
-- Non-verb matching is plain normalized containment (only verbs have tables); word-boundary
-  matching through `normalize.js` must keep ñ intact as always.
-
-#### Evidence needed
-
-- None substantial — the feature is only as good as the owner's phrase count, and it degrades to
-  absence gracefully.
-
----
-
-### Same-meaning clustering
-
-- **Date added:** 2026-08-12
-- **Status:** Planned — Phase 22b–22c
-- **Origin:** Consolidation-themed brainstorm, requested for the list by the owner 2026-08-12
-- **Owner interest:** Approved for implementation as Phase 22b–22c on 2026-08-12. See
-  `docs/PHASE-22-DIRECTION.md`.
-- **Potential data impact:** None for the suggestion surface; accepted suggestions become
-  ordinary `similar_meaning` connections through the existing typed-relationship flow
-
-#### Description and current context
-
-Entries whose meanings share English gloss words — four saved words that all mean "angry" —
-surface as a derived "you also know…" row, or as *suggested* `Similar meaning` connections
-feeding the existing typed-relationship system. Suggestions only, owner-confirmed: link
-authority rules (`linkedKeys[]` stored once, no reciprocal copies, link changes event-free)
-stay untouched because a suggestion creates nothing until accepted through the normal flow.
-
-The active-recall extension is the stronger consolidation exercise: "name another word meaning
-*enojado*" — a self-graded prompt no current surface offers.
-
-#### Risks and tradeoffs
-
-- Gloss-text matching is crude — a shared word is not a synonym ("bank"). This is why the idea
-  is suggestion-only, never automatic linking; a conservative overlap threshold beats recall.
-- Meanings are the owner's own free text; matching should reuse the same visible-text/normalize
-  conventions as search rather than inventing a new comparison.
-
-#### Evidence needed
-
-- Whether real gloss overlap in the notebook produces sensible clusters or noise — checkable
-  with a disposable pass over a backup export before any UI work.
 
 ---
 
@@ -1230,6 +1162,35 @@ Compressed summaries. The authoritative records are `DECISIONS.md` and each phas
 direction/report documents; each entry's original full reasoning is preserved in this file's git
 history. Still-open evidence and questions are kept here in full.
 
+### Phrase↔word containment links
+
+- **Date added:** 2026-08-12 — **Status:** Implemented — Phase 22a locally; not deployed
+- **Records:** `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md`, Phase 22 entries in `DECISIONS.md`
+
+Lexical detail derives a read-only, bidirectional Word↔Phrase network through exact whole-token
+terms and unambiguous cloze-safe attached-verb forms. A fixed function-word stop list, reference-
+wide ambiguity suppression, exact-only reference failure fallback, preserved ñ, and explicit
+clitic/ambiguous silent misses keep it conservative. No link, event, preference, schema field, or
+dictionary package is created.
+
+---
+
+### Same-meaning clustering
+
+- **Date added:** 2026-08-12 — **Status:** Implemented — Phase 22b–22c locally; not deployed
+- **Records:** `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md`, Phase 22 entries in `DECISIONS.md`
+
+At most three explained pairwise gloss-overlap proposals may appear outside Connections; sparse
+POS only rejects known conflicts, and v1 deliberately stores no dismissal. Explicit confirmation
+alone creates an ordinary stored-once Similar meaning edge. Direct confirmed edges—not raw
+proposals or transitive neighbors—feed a shuffled, self-graded, event-free hub recall deck with
+one missed-only round and an intentional cold start.
+
+Real-notebook suggestion precision remains evidence to watch after deployment; a noisy recurring
+proposal is not permission to add hidden dismissal storage or loosen whole-token matching.
+
+---
+
 ### Global tag management
 
 - **Date added:** 2026-08-10 — **Status:** Implemented — Phase 20, deployed
@@ -1449,6 +1410,12 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-12 — Phase 22 implemented and verified locally; not deployed.** The three slices now
+  pass 1,341/1,341 serial tests, the production build, diff check, deliberate red/green proofs and
+  a disposable 375×812 flow covering containment, ambiguity suppression, explicit stored-once
+  confirmation and direct-link recall. The two idea entries move to Implemented history; their
+  only still-open evidence is real-notebook suggestion precision after a future deployment.
 
 - **2026-08-12 — Phrase↔word containment, same-meaning proposals, and confirmed-link recall are
   approved as Phase 22.** The three-slice direction deliberately accepts reappearing false-positive

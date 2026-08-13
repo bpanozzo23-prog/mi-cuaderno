@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, Play, Plus, Search } from "lucide-react";
+import { ChevronLeft, Link2, Play, Plus, Search } from "lucide-react";
 import { Button, C, Chip, MONO, SERIF } from "../theme.jsx";
 import AddSheet from "./AddSheet.jsx";
 import { RefineBar, RefinePanel, RefineSelect } from "./Refine.jsx";
@@ -7,6 +7,8 @@ import LexicalHubCard from "./LexicalHubCard.jsx";
 import PracticeSession from "./PracticeSession.jsx";
 import PracticeSetupSheet from "./PracticeSetupSheet.jsx";
 import SearchBar from "./SearchBar.jsx";
+import SimilarMeaningRecallSession from "./SimilarMeaningRecallSession.jsx";
+import SimilarMeaningRecallSetupSheet from "./SimilarMeaningRecallSetupSheet.jsx";
 import { searchItems } from "../lib/search.js";
 import { deriveReviewState, emptyReviewState } from "../lib/review.js";
 import { FILTERS, matchesTypeFilter } from "../lib/filters.js";
@@ -27,6 +29,10 @@ import {
 } from "../lib/lexicalViews.js";
 import { buildPracticeDeck, isPracticeEligible } from "../lib/practice.js";
 import { preparePracticeCards } from "../lib/practiceCards.js";
+import {
+  deriveSimilarMeaningPrompts,
+  selectSimilarMeaningRecallDeck,
+} from "../lib/similarMeaningRecall.js";
 
 /**
  * The Words & phrases hub (Phase 8) — the lexical twin of the Pages hub.
@@ -111,6 +117,8 @@ export default function LexicalHub({
   const [practiceSetupOpen, setPracticeSetupOpen] = useState(false);
   const [practiceSession, setPracticeSession] = useState(null);
   const [practiceStarting, setPracticeStarting] = useState(false);
+  const [similarRecallSetupOpen, setSimilarRecallSetupOpen] = useState(false);
+  const [similarRecallSession, setSimilarRecallSession] = useState(null);
 
   // The chip the owner tapped in Cuaderno arrives as a fresh request object each time, so tapping
   // "frases" twice still selects Phrases even after they changed the chip inside the hub.
@@ -121,13 +129,17 @@ export default function LexicalHub({
   const searching = query.trim() !== "";
   const lexical = useMemo(() => items.filter((item) => item.type === "lexical"), [items]);
 
-  // Both scan the whole notebook, so they run once per notebook change rather than once per
-  // filtered item. The hub stays mounted while the trail is elsewhere — that is what preserves
-  // its visit-local controls — so `active` keeps the cost off every unrelated notebook change.
+  // These derivations scan the whole notebook, so they run once per notebook change rather than
+  // once per filtered item. The hub stays mounted while the trail is elsewhere — that is what
+  // preserves its visit-local controls — so `active` keeps the cost off every unrelated change.
   const contextIndex = useMemo(() => active ? pageContextIndex(items) : new Map(), [active, items]);
   const review = useMemo(
     () => active ? deriveReviewState(items, events) : NO_REVIEW,
     [active, items, events]
+  );
+  const similarPrompts = useMemo(
+    () => active ? deriveSimilarMeaningPrompts(items) : [],
+    [active, items]
   );
 
   const reviewFor = (item) => review.states.get(item.id) || emptyReviewState;
@@ -231,6 +243,13 @@ export default function LexicalHub({
     setPracticeStarting(false);
   }
 
+  function startSimilarRecall({ limit }) {
+    const prompts = selectSimilarMeaningRecallDeck(similarPrompts, { limit });
+    if (prompts.length === 0) return;
+    setSimilarRecallSession(prompts);
+    setSimilarRecallSetupOpen(false);
+  }
+
   const renderCard = (item, reason = null) => (
     <LexicalHubCard
       key={item.id}
@@ -243,6 +262,15 @@ export default function LexicalHub({
       onPinnedChange={onLexicalPinnedChange}
     />
   );
+
+  if (similarRecallSession) {
+    return (
+      <SimilarMeaningRecallSession
+        prompts={similarRecallSession}
+        onFinish={() => setSimilarRecallSession(null)}
+      />
+    );
+  }
 
   if (practiceSession) {
     return (
@@ -332,6 +360,22 @@ export default function LexicalHub({
         </div>
 
         <span id="lexical-hub-practice-status" className="sr-only">{practiceStatus}</span>
+
+        {similarPrompts.length > 0 && (
+          <button
+            type="button"
+            aria-label="Start similar-meaning recall"
+            onClick={() => setSimilarRecallSetupOpen(true)}
+            className="mt-2 flex min-h-11 w-full items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium"
+            style={{ background: C.penPale, borderColor: C.chipBorder, color: C.penDark }}
+          >
+            <Link2 size={15} className="shrink-0" />
+            <span>Similar-meaning recall</span>
+            <span className="ml-auto shrink-0 text-xs" style={{ fontFamily: MONO, opacity: 0.75 }}>
+              {similarPrompts.length} {similarPrompts.length === 1 ? "prompt" : "prompts"}
+            </span>
+          </button>
+        )}
 
         {searchOpen && (
           <div className="mt-2">
@@ -501,6 +545,14 @@ export default function LexicalHub({
           starting={practiceStarting}
           onClose={() => setPracticeSetupOpen(false)}
           onStart={startPractice}
+        />
+      )}
+
+      {similarRecallSetupOpen && (
+        <SimilarMeaningRecallSetupSheet
+          eligibleCount={similarPrompts.length}
+          onClose={() => setSimilarRecallSetupOpen(false)}
+          onStart={startSimilarRecall}
         />
       )}
     </>

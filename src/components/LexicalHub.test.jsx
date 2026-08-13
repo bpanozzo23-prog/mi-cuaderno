@@ -65,6 +65,11 @@ function propsFor(items, over = {}) {
   };
 }
 
+function connect(owner, target, type = "similar_meaning") {
+  owner.linkedKeys.push(target.id);
+  owner.linkAnnotations.push({ targetKey: target.id, type, subject: "owner", note: "" });
+}
+
 const card = (term) => screen.getByRole("button", { name: term });
 const cardOrNull = (term) => screen.queryByRole("button", { name: term });
 // The card body is one button, but the page-context rows are buttons of their own beside it, so
@@ -84,7 +89,10 @@ async function search(user, text) {
   await user.type(screen.getByLabelText("Search words and phrases"), text);
 }
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 describe("the Words & phrases hub", () => {
   it("lists only lexical items, never pages", () => {
@@ -540,6 +548,64 @@ describe("the Words & phrases hub", () => {
       rerender(<LexicalHub {...propsFor(items, { active: true })} />);
 
       expect(screen.getByText("meaning of dormir")).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Got it" })).toBeTruthy();
+    });
+  });
+
+  describe("confirmed similar-meaning recall", () => {
+    it("has a deliberate cold start even when two raw glosses overlap", () => {
+      const first = lexical("enojado", {
+        meanings: [{ ...lexical("x").meanings[0], id: "meaning:enojado", gloss: "angry" }],
+      });
+      const second = lexical("molesto", {
+        meanings: [{ ...lexical("x").meanings[0], id: "meaning:molesto", gloss: "angry" }],
+      });
+
+      render(<LexicalHub {...propsFor([first, second])} />);
+
+      expect(screen.queryByRole("button", { name: "Start similar-meaning recall" })).toBeNull();
+    });
+
+    it("launches from confirmed edges and reveals only the focal item's direct neighbors", async () => {
+      const user = userEvent.setup();
+      vi.spyOn(Math, "random").mockReturnValue(0.9999);
+      const angry = lexical("enojado");
+      const annoyed = lexical("molesto");
+      const irritated = lexical("irritado");
+      connect(angry, annoyed);
+      connect(annoyed, irritated);
+      render(<LexicalHub {...propsFor([angry, annoyed, irritated])} />);
+
+      expect(screen.getByText("3 prompts")).toBeTruthy();
+      await user.click(screen.getByRole("button", { name: "Start similar-meaning recall" }));
+      expect(screen.getByRole("dialog", { name: "Set up similar-meaning recall" })).toBeTruthy();
+      await user.click(screen.getByRole("button", { name: "Start 3-prompt recall" }));
+
+      expect(screen.getByText("enojado")).toBeTruthy();
+      expect(screen.queryByText("molesto")).toBeNull();
+      expect(screen.queryByText("irritado")).toBeNull();
+      await user.click(screen.getByRole("button", { name: "Reveal connected words" }));
+      expect(screen.getByText("molesto")).toBeTruthy();
+      expect(screen.queryByText("irritado")).toBeNull();
+    });
+
+    it("keeps the launched prompt snapshot while the mounted hub becomes inactive", async () => {
+      const user = userEvent.setup();
+      const first = lexical("rápido");
+      const second = lexical("veloz");
+      connect(first, second);
+      const items = [first, second];
+      const { rerender } = render(<LexicalHub {...propsFor(items)} />);
+
+      await user.click(screen.getByRole("button", { name: "Start similar-meaning recall" }));
+      await user.click(screen.getByRole("button", { name: "Start 2-prompt recall" }));
+      await user.click(screen.getByRole("button", { name: "Reveal connected words" }));
+      expect(screen.getAllByText(/^(rápido|veloz)$/)).toHaveLength(2);
+
+      rerender(<LexicalHub {...propsFor(items, { active: false })} />);
+      rerender(<LexicalHub {...propsFor(items, { active: true })} />);
+
+      expect(screen.getAllByText(/^(rápido|veloz)$/)).toHaveLength(2);
       expect(screen.getByRole("button", { name: "Got it" })).toBeTruthy();
     });
   });

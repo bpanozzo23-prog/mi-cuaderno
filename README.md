@@ -253,6 +253,20 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   public package tree. See the approved
   [direction](docs/PHASE-21-DIRECTION.md) and
   [implementation report](docs/PHASE-21-REPORT.md).
+- **Phase 22 — implemented and verified locally; not deployed.** Lexical detail now derives
+  conjugation-aware whole-token links between saved Words and Phrases, suppressing ambiguous
+  inflections and fixed high-noise function words. Conservative personal-gloss overlap can show
+  at most three explained **You also know…** proposals; only the owner's explicit action creates
+  one ordinary stored-once Similar meaning connection, and v1 deliberately remembers no
+  dismissal. Confirmed direct edges feed a separate self-graded Similar-meaning recall deck with
+  one missed-only recovery round and an intentional cold start. Personal schema remains v8 and no
+  preference, backup field, event type, score, schedule, or dictionary package is added. The final
+  serial suite passes 1,341/1,341 across 113 files, the 2,100-module production build and diff
+  check pass, and a disposable 375×812 seeded flow verifies `dar` ↔ `me da igual`, ambiguous
+  `fui` suppression, explicit confirmation, event-free recall, 44px actions, zero overflow, and
+  zero console warnings/errors. See the approved
+  [direction](docs/PHASE-22-DIRECTION.md) and
+  [implementation report](docs/PHASE-22-REPORT.md).
 - **Collection bulk capture — deployed.** A Vocabulary page's existing
   Add vocabulary panel can now narrow saved entries to Words, Phrases, and an exact existing tag,
   then select every available match together. Existing members remain excluded and the final Add
