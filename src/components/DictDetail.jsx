@@ -161,6 +161,27 @@ function Conjugation({ entry, conjugation, analysis, familyRows, items, previous
   );
 }
 
+function DictionaryRelationLine({ label, words }) {
+  if (!words?.length) return null;
+  return (
+    <div className="break-words text-xs leading-relaxed" style={{ color: C.mut }}>
+      <span className="font-semibold" style={{ color: C.ink }}>{label}:</span>{" "}
+      {words.join(" · ")}
+    </div>
+  );
+}
+
+function WiktionarySenseExample({ example }) {
+  const [es, en] = example;
+  return (
+    <div data-dict-sense-example className="min-w-0 break-words border-l pl-2" style={{ borderColor: C.line }}>
+      <div className="text-sm" style={{ fontFamily: SERIF, color: C.ink }}>{es}</div>
+      {en && <div className="mt-0.5 text-xs" style={{ color: C.mut }}>{en}</div>}
+      <div className="mt-0.5 text-[10px]" style={{ color: C.mut }}>Wiktionary</div>
+    </div>
+  );
+}
+
 export default function DictDetail({
   entryId,
   items,
@@ -360,26 +381,66 @@ export default function DictDetail({
               <span className="shrink-0" style={{ fontFamily: MONO, color: C.mut }}>
                 {i + 1}.
               </span>
-              <span style={{ color: C.ink }}>
-                {sense.regionLabels?.map((label) => (
-                  <span
-                    key={label}
-                    className="text-xs px-1.5 py-0.5 rounded mr-1.5 align-middle"
-                    style={{ background: C.penPale, color: C.penDark }}
-                  >
-                    {label}
-                  </span>
-                ))}
-                {sense.labels?.map((label) => (
-                  <span key={label} className="text-xs italic mr-1.5" style={{ color: C.mut }}>
-                    {label}
-                  </span>
-                ))}
-                {sense.gloss}
-              </span>
+              <div data-dict-sense className="min-w-0 flex-1 break-words" style={{ color: C.ink }}>
+                <div>
+                  {sense.regionLabels?.map((label) => (
+                    <span
+                      key={label}
+                      className="text-xs px-1.5 py-0.5 rounded mr-1.5 align-middle"
+                      style={{ background: C.penPale, color: C.penDark }}
+                    >
+                      {label}
+                    </span>
+                  ))}
+                  {sense.topics?.map((topic) => (
+                    <span
+                      key={topic}
+                      className="mr-1.5 inline-block rounded border px-1.5 py-0.5 text-xs align-middle"
+                      style={{ background: C.sectionNeutralBand, borderColor: C.line, color: C.mut }}
+                    >
+                      {topic}
+                    </span>
+                  ))}
+                  {sense.labels?.map((label) => (
+                    <span key={label} className="text-xs italic mr-1.5" style={{ color: C.mut }}>
+                      {label}
+                    </span>
+                  ))}
+                  {sense.gloss}
+                </div>
+                {(sense.synonyms?.length || sense.antonyms?.length) && (
+                  <div className="mt-1 space-y-0.5">
+                    <DictionaryRelationLine label="Sinónimos" words={sense.synonyms} />
+                    <DictionaryRelationLine label="Antónimos" words={sense.antonyms} />
+                  </div>
+                )}
+                {sense.examples?.length > 0 && (
+                  <div className="mt-2 space-y-2">
+                    {sense.examples.map((example, exampleIndex) => (
+                      <WiktionarySenseExample key={exampleIndex} example={example} />
+                    ))}
+                  </div>
+                )}
+              </div>
             </li>
           ))}
         </ol>
+        {(entry.synonyms?.length || entry.antonyms?.length) && (
+          <div data-dict-entry-relations className="mt-3 space-y-0.5 border-t pt-3" style={{ borderColor: C.line }}>
+            <DictionaryRelationLine label="Sinónimos" words={entry.synonyms} />
+            <DictionaryRelationLine label="Antónimos" words={entry.antonyms} />
+          </div>
+        )}
+        {entry.etymology && (
+          <div
+            data-dict-origin
+            className="mt-3 min-w-0 break-words text-sm leading-relaxed"
+            style={{ color: C.mut, fontFamily: SERIF }}
+          >
+            <span className="font-semibold" style={{ color: C.ink }}>Origen:</span>{" "}
+            {entry.etymology}
+          </div>
+        )}
       </Card>
 
       {entry.conjugation && (

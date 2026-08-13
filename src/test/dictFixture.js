@@ -26,9 +26,22 @@ export const FIXTURE_ENTRIES = [
     conjugationId: "conj:fixture:quejarse",
     freqRank: 1200,
   }),
-  entry("casa:noun", "casa", "noun", ["house", { gloss: "home", regionLabels: ["Mexico"] }], {
+  entry("casa:noun", "casa", "noun", [{
+    gloss: "house",
+    topics: ["architecture", "housing"],
+    synonyms: ["hogar", "vivienda familiar de uso cotidiano y residencia permanente"],
+    antonyms: ["intemperie"],
+    examples: [
+      ["Esta es mi casa.", "This is my house."],
+      ["Casa con jardín."],
+    ],
+  }, { gloss: "home", regionLabels: ["Mexico"] }], {
     gender: "f",
     freqRank: 90,
+    synonyms: ["hogar", "vivienda"],
+    antonyms: ["calle"],
+    etymology: "Inherited from Latin casa, a long history that still wraps naturally on a narrow phone without forcing the dictionary card wider than its viewport.",
+    relatedWords: ["CASA_FAMILY_SENTINEL"],
     examples: [["Mi casa es tu casa.", "My house is your house.", "tatoeba:1", "alice", "tatoeba:2", "bob"]],
   }),
 ];

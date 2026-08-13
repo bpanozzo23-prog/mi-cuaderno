@@ -45,6 +45,23 @@ describe("installing a dictionary", () => {
     expect(sacar.lemma).toBe("sacar");
     expect(sacar.senses[0].gloss).toContain("take out");
 
+    const casa = await getEntry("dict:wiktionary-es:casa:noun");
+    expect(casa).toMatchObject({
+      synonyms: ["hogar", "vivienda"],
+      antonyms: ["calle"],
+      relatedWords: ["CASA_FAMILY_SENTINEL"],
+    });
+    expect(casa.etymology).toContain("Inherited from Latin casa");
+    expect(casa.senses[0]).toMatchObject({
+      topics: ["architecture", "housing"],
+      synonyms: ["hogar", "vivienda familiar de uso cotidiano y residencia permanente"],
+      antonyms: ["intemperie"],
+      examples: [
+        ["Esta es mi casa.", "This is my house."],
+        ["Casa con jardín."],
+      ],
+    });
+
     const meta = await installedMeta();
     expect(meta.datasetVersion).toBe("fixture-v1");
     expect(meta.counts.entries).toBe(7);

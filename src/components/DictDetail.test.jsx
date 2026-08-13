@@ -227,6 +227,73 @@ describe("Phase 5a dictionary detail continuity", () => {
   });
 });
 
+describe("Phase 24 dictionary enrichment", () => {
+  it("renders rich sense and entry context in source order without making it authoritative", async () => {
+    const casa = FIXTURE_ENTRIES.find((entry) => entry.id === CASA);
+    await seedDictionary([casa]);
+
+    const { container } = render(
+      <DictDetail
+        entryId={CASA}
+        items={[]}
+        onBack={vi.fn()}
+        onOpen={vi.fn()}
+        onChanged={vi.fn()}
+      />
+    );
+
+    expect(await screen.findByText("casa", { selector: ".text-2xl" })).toBeTruthy();
+    expect(screen.getByText("architecture")).toBeTruthy();
+    expect(screen.getByText("housing")).toBeTruthy();
+    expect(screen.getAllByText("Sinónimos:").length).toBe(2);
+    expect(screen.getAllByText("Antónimos:").length).toBe(2);
+    expect(screen.getByText("Esta es mi casa.")).toBeTruthy();
+    expect(screen.getByText("This is my house.")).toBeTruthy();
+    expect(screen.getByText("Casa con jardín.")).toBeTruthy();
+    expect(screen.getAllByText("Wiktionary").length).toBe(2);
+    expect(screen.getByText("Origen:")).toBeTruthy();
+
+    const firstSense = container.querySelector("[data-dict-sense]");
+    const entryRelations = container.querySelector("[data-dict-entry-relations]");
+    const origin = container.querySelector("[data-dict-origin]");
+    const examplesHeading = screen.getByText("Examples");
+    expect(firstSense.textContent).toContain("hogar · vivienda familiar de uso cotidiano");
+    expect(entryRelations.textContent).toContain("hogar · vivienda");
+    expect(firstSense.compareDocumentPosition(entryRelations) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(entryRelations.compareDocumentPosition(origin) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(origin.compareDocumentPosition(examplesHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    expect(firstSense.querySelector("button, a")).toBeNull();
+    expect(entryRelations.querySelector("button, a")).toBeNull();
+    for (const source of screen.getAllByText("Wiktionary")) expect(source.closest("button, a")).toBeNull();
+    expect(screen.queryByText("CASA_FAMILY_SENTINEL")).toBeNull();
+    expect(firstSense.classList.contains("break-words")).toBe(true);
+    expect(origin.classList.contains("break-words")).toBe(true);
+  });
+
+  it("keeps an unenriched r3-shaped entry free of empty enrichment labels", async () => {
+    const sacar = FIXTURE_ENTRIES.find((entry) => entry.id === SACAR);
+    await seedDictionary([sacar], {}, FIXTURE_PATTERN_CONJUGATIONS);
+
+    render(
+      <DictDetail
+        entryId={SACAR}
+        items={[]}
+        onBack={vi.fn()}
+        onOpen={vi.fn()}
+        onChanged={vi.fn()}
+      />
+    );
+
+    expect(await screen.findByText("What to notice")).toBeTruthy();
+    expect(screen.getByText(/to take out \(e\.g\. the trash\)/)).toBeTruthy();
+    expect(screen.queryByText("Sinónimos:")).toBeNull();
+    expect(screen.queryByText("Antónimos:")).toBeNull();
+    expect(screen.queryByText("Origen:")).toBeNull();
+    expect(screen.queryByText("Wiktionary")).toBeNull();
+  });
+});
+
 describe("Phase 21 conjugation teaching", () => {
   it("derives an r2 teaching notice from the table without showing an error or siblings", async () => {
     const sacar = FIXTURE_ENTRIES.find((entry) => entry.id === SACAR);

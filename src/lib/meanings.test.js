@@ -106,9 +106,16 @@ describe("personal meaning model", () => {
     });
 
     it("leaves the owner's own fields empty rather than inventing them", () => {
-      const [row] = meaningsFromSenses([{ gloss: "year" }], [], ids());
+      const [row] = meaningsFromSenses([{
+        gloss: "year",
+        topics: ["time"],
+        synonyms: ["calendar year"],
+        antonyms: ["instant"],
+        examples: [["Este año.", "This year."]],
+      }], [], ids());
 
       expect(row.meaning).toMatchObject({ usageCue: "", posOverride: "", note: "", examples: [] });
+      expect(JSON.stringify(row.meaning)).not.toContain("Este año");
     });
 
     it("reports a label with no personal equivalent instead of approximating it", () => {
