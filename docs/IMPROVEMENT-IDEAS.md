@@ -85,8 +85,8 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Implemented as | Full records |
 |---|---|---|---|
-| The word's biography | 2026-08-12 | Phase 23a, implemented and verified locally | `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md` |
-| Neighborhood browsing | 2026-08-12 | Phase 23b, implemented and verified locally | `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md` |
+| The word's biography | 2026-08-12 | Phase 23a, deployed | `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md` |
+| Neighborhood browsing | 2026-08-12 | Phase 23b, deployed | `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md` |
 | Phrase↔word containment links | 2026-08-12 | Phase 22a, deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
 | Same-meaning clustering | 2026-08-12 | Phase 22b–22c, deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
 | "Conjugates like" verb families | 2026-08-12 | Phase 21, deployed | `PHASE-21-DIRECTION.md`, `PHASE-21-REPORT.md` |
@@ -1166,7 +1166,7 @@ history. Still-open evidence and questions are kept here in full.
 
 ### The word's biography
 
-- **Date added:** 2026-08-12 — **Status:** Implemented — Phase 23a, verified locally; not deployed
+- **Date added:** 2026-08-12 — **Status:** Implemented — Phase 23a, deployed
 - **Records:** `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md`, Phase 23 entries in `DECISIONS.md`
 
 Lexical Detail's display-only **Historia** derives milestone history and current state from the
@@ -1184,7 +1184,7 @@ separate product decision.
 
 ### Neighborhood browsing
 
-- **Date added:** 2026-08-12 — **Status:** Implemented — Phase 23b, verified locally; not deployed
+- **Date added:** 2026-08-12 — **Status:** Implemented — Phase 23b, deployed
 - **Records:** `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md`, Phase 23 entries in `DECISIONS.md`
 
 The idle Cuaderno root now starts an unweighted walk from any personal Word or Phrase. Each
@@ -1446,6 +1446,13 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-13 — Phase 23 deployed.** The owner approved the verified branch and current visual
+  treatment; `main` fast-forwarded through the direction plus four Phase 23 commits to `bb292fe`.
+  GitHub Pages run 31668643593 completed successfully, and the live HTTP-200 application bundle
+  contains the Historia, Cuaderno wander, Diario-stub, and full-entry surfaces. README Status,
+  both implemented-idea summaries, the direction/report, and the durable decision record move to
+  deployed reality; personal schema remains v8.
 
 - **2026-08-12 — Phase 23 implemented and verified locally; not deployed.** Historia, shared
   owner-prose containment, milestone replay, unweighted neighborhood starts, alias-safe typed

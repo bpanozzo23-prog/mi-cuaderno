@@ -267,7 +267,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   zero console warnings/errors. See the approved
   [direction](docs/PHASE-22-DIRECTION.md) and
   [implementation report](docs/PHASE-22-REPORT.md).
-- **Phase 23 — implemented and verified locally; not pushed or deployed.** Lexical Detail now
+- **Phase 23 — deployed.** Lexical Detail now
   offers a display-only **Historia** of saved/review/box/tricky/retirement milestones and every
   current habitat, including marker-free owner prose and a disclosed **En tu Diario** section.
   The idle Cuaderno root offers an unweighted **Pasear por mi cuaderno** walk over typed

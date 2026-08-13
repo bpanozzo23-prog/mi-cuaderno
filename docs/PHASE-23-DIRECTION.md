@@ -1,9 +1,8 @@
 # Phase 23 — Contexts and wandering
 
-**Status:** Implemented and verified locally on `codex/phase-23-contexts-wandering` on
-2026-08-12; not pushed or deployed. The complete serial suite, production build, deliberate
-failure proofs, diff check, and disposable 375×812 browser closeout pass; see
-`PHASE-23-REPORT.md`.
+**Status:** Deployed from `main` at `bb292fe` on 2026-08-13. The complete serial suite,
+production build, deliberate failure proofs, diff check, disposable 375×812 browser closeout,
+GitHub Pages run 31668643593, and live-bundle check pass; see `PHASE-23-REPORT.md`.
 **Origin:** The owner selected two consolidation ideas — the word's biography and neighborhood
 browsing — from the post-Phase-22 brainstorm, then answered nine scope-shaping questions in a
 structured workshop. This document records those decisions; implementation followed the ordinary

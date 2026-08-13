@@ -1,7 +1,7 @@
 # Phase 23 — Contexts and wandering (report)
 
-Implemented and verified locally on `codex/phase-23-contexts-wandering` on 2026-08-12. It has
-not been pushed or deployed. The approved contract remains in
+Implemented and verified locally on `codex/phase-23-contexts-wandering` on 2026-08-12, then
+owner-approved and deployed from `main` at `bb292fe` on 2026-08-13. The approved contract remains in
 [PHASE-23-DIRECTION.md](PHASE-23-DIRECTION.md); durable choices are under Phase 23 in
 `DECISIONS.md`.
 
@@ -100,7 +100,11 @@ the tab was closed, and the isolated server stopped.
 
 ## Deployment
 
-Implementation approval did not include a push. The four local commits remain on
-`codex/phase-23-contexts-wandering`; deployment requires a separate owner approval. If that
-happens, README Status, the direction/report, both Improvement Ideas entries, and the Phase 23
-decision record must be synchronized to deployed reality in that session.
+The owner approved the verified branch and its current **Historia** / **Pasear por mi cuaderno ·
+al azar** presentation for release on 2026-08-13. `main` fast-forwarded through the direction and
+four Phase 23 implementation, closeout, and review-fix commits to `bb292fe`; GitHub Pages run
+31668643593 completed successfully. The live site returned HTTP 200 from
+`assets/index-Co28F1Il.js`, which loaded `assets/App-BUFmyMtH.js`; that application chunk contains
+**Historia**, **Pasear por mi cuaderno**, **En tu Diario**, and **Open full entry**. README Status,
+the direction/report, both affected Improvement Ideas statuses, and the Phase 23 decision record
+are synchronized to deployed reality by this closeout. Personal schema remains v8.
