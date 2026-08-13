@@ -25,7 +25,7 @@ const WORD = /[\p{L}\p{M}]+/gu;
 const CLITICS = new Set(["me", "te", "se", "nos", "os"]);
 
 /** Every word of a sentence with the offsets it occupies in the original text. */
-export function tokenizeWords(text) {
+function tokenizeWords(text) {
   const tokens = [];
   for (const match of String(text || "").matchAll(WORD)) {
     tokens.push({ start: match.index, end: match.index + match[0].length, norm: normalize(match[0]) });

@@ -261,7 +261,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   dismissal. Confirmed direct edges feed a separate self-graded Similar-meaning recall deck with
   one missed-only recovery round and an intentional cold start. Personal schema remains v8 and no
   preference, backup field, event type, score, schedule, or dictionary package is added. The final
-  serial suite passes 1,341/1,341 across 113 files, the 2,100-module production build and diff
+  serial suite passes 1,343/1,343 across 113 files, the 2,100-module production build and diff
   check pass, and a disposable 375×812 seeded flow verifies `dar` ↔ `me da igual`, ambiguous
   `fui` suppression, explicit confirmation, event-free recall, 44px actions, zero overflow, and
   zero console warnings/errors. See the approved

@@ -104,6 +104,23 @@ describe("phrase↔word containment derivation", () => {
     expect(getFormEntries).toHaveBeenCalledTimes(1);
   });
 
+  it.each([
+    ["an empty posting", []],
+    ["a different sole lemma", [{ id: "dict:decir", lemma: "decir" }]],
+  ])("requires the form posting to confirm the attached lemma for %s", async (_case, posting) => {
+    const dar = lexical({ term: "dar", pos: "verb", dictKey: "dict:dar" });
+    const source = phrase("Dar las gracias cuando me da igual.");
+    const entry = { id: "dict:dar", lemma: "dar", pos: "verb", conjugationId: "conj:dar" };
+
+    const rows = await preparePhraseContainment(dar, [source, dar], {
+      resolveEntries: vi.fn(async () => [{ entry, resolvedFrom: null }]),
+      getConjugations: vi.fn(async () => [table("dar", { "él/ella/usted": "da" })]),
+      getFormEntries: vi.fn(async () => new Map([["da", posting]])),
+    });
+
+    expect(rows).toMatchObject([{ surface: "Dar", matchKind: "exact" }]);
+  });
+
   it("falls back to exact personal terms when reference enrichment fails", async () => {
     const dar = lexical({ term: "dar", pos: "verb", dictKey: "dict:dar" });
     const exact = phrase("Dar las gracias.");

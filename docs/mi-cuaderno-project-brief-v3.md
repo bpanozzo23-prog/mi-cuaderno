@@ -818,8 +818,8 @@ change is introduced; `SCHEMA_VERSION` remains 6. The approved contract lives in
 failure rolls the whole batch back; timestamps remain byte-for-byte unchanged while edit events
 retain existing activity behavior; every derived search/filter/Gym consumer refreshes safely; a
 current schema-v6 backup round-trips the result; and the complete serial suite, production build,
- diff check, deliberate failure proofs and a disposable 375×812 flow pass without overflow,
- warnings or console errors.
+diff check, deliberate failure proofs and a disposable 375×812 flow pass without overflow,
+warnings or console errors.
 
 **Amended 2026-08-12 — Phase 22: knowledge consolidation.** Lexical detail derives two visibly
 non-authoritative signals from current notebook data. A personal Word shows saved Phrases containing

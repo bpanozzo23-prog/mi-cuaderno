@@ -44,9 +44,10 @@ word terms from containment; length alone never decides, so *ir* remains eligibl
 
 A declarative containment row must not turn a form collision into two claims. Before admitting an
 inflected surface, the runtime checks the installed dictionary's exact normalized form postings.
-When more than one distinct dictionary lemma can account for it — *fui* for *ir* and *ser*, or a
-verb form colliding with a non-verb lemma — the inferred row is omitted. The ambiguity check is
-reference-wide, not limited to which lemmas happen to be saved.
+The inferred row appears only when that posting names exactly one distinct lemma and it is the
+attached entry's lemma. A posting with no lemma, a different sole lemma, or more than one lemma
+— *fui* for *ir* and *ser*, or a verb form colliding with a non-verb lemma — stays silent. This
+confirmation check is reference-wide, not limited to which lemmas happen to be saved.
 Literal term matches remain stronger than inferred conjugation matches.
 
 Two true relationships are intentionally silent in v1:

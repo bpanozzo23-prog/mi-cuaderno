@@ -37,7 +37,8 @@ schedule, automatic queue, or background job was added. `SCHEMA_VERSION` remains
 
 ## Automated and failure-path verification
 
-- Complete final serial suite: **1,341/1,341 tests across 113 files** (`npm.cmd test`, 296.27 s).
+- Complete review-corrected serial suite: **1,343/1,343 tests across 113 files** (`npm.cmd test`,
+  355.56 s).
 - Production build: passed; Vite transformed **2,100 modules** and generated the PWA.
 - `git diff --check`: passed.
 - Focused 22a containment/cloze/reference/detail boundary: 98 tests across six files passed before
@@ -49,12 +50,13 @@ schedule, automatic queue, or background job was added. `SCHEMA_VERSION` remains
 
 The first complete run reached 1,340 passes and one failure in an untouched AiCard async UI
 assertion after its preference write had already succeeded. AiCard passed 8/8 immediately in
-isolation, and the unchanged complete suite then passed 1,341/1,341. No unrelated timing change was
-smuggled into this phase.
+isolation, and the review-corrected complete suite then passed 1,343/1,343. No unrelated timing
+change was smuggled into this phase.
 
 Tests pin exact/case/accent/punctuation matching, ñ, multiword runs, whole-token rejection,
-conjugation forms, helpers/clitics/perfect auxiliaries, vosotros, stop words, ambiguous postings,
-optional-reference fallback, both containment directions and async cancellation; gloss
+conjugation forms, helpers/clitics/perfect auxiliaries, vosotros, stop words, ambiguous, empty, and
+mismatched postings, optional-reference fallback, both containment directions and async
+cancellation; gloss
 tokenization, per-meaning isolation, the *bank* trap, sparse POS, ranking, caps, immutability, every
 exclusion and explicit stored-once confirmation; and direct-only graph symmetry, cold start,
 session snapshot, setup sizes, reveal, early finish, one missed round, and event-free completion.
