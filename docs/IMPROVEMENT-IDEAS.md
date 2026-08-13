@@ -52,7 +52,7 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
-| Historia word families | 2026-08-13 | Planned — Phase 25a/25b | Workshop complete; the seven scope decisions are recorded in `PHASE-25-DIRECTION.md` |
+| Historia word families | 2026-08-13 | Phase 25a implemented locally; Phase 25b rejected at gate | Deployment awaits approval; any derivational revival needs redesigned reference data |
 | Edge-kind visual vocabulary | 2026-08-13 | Captured | Any time; mostly the lighter visual loop — side-by-side variants, colours through theme tokens |
 | Wander constellation (one-hop map) | 2026-08-13 | Captured | After the edge-kind vocabulary settles; lives or dies on a 375px variant pass with worst-case terms |
 | Connection cluster browsing | 2026-08-13 | Captured | Once the confirmed graph has real clusters (Graph texture can show this); resolve the Tag hubs / Saved views overlap first |
@@ -64,7 +64,7 @@ Useful information to retain for each idea:
 | Monolingual recall (Spanish usage cues) | 2026-08-12 | Captured | After checking how many real meanings carry a usage cue |
 | Retired-word spot checks | 2026-08-12 | Captured | Once a meaningful number of words are Retired; the demotion question needs an owner decision |
 | Near-duplicate consolidation view | 2026-08-12 | Captured | Any time; view only — entry merging is a separate, larger decision |
-| Dictionary word-family explorer | 2026-08-12 | Captured | Its dormant source data is deployed in r4 and its personal-layer shadow is planned as Phase 25b; the explorer's remaining questions are per-family quality and display design |
+| Dictionary word-family explorer | 2026-08-12 | Captured | R4 is deployed but Phase 25's audit rejected it for family claims; reopen only with relation provenance and target-entry identity |
 | Select text to look up | 2026-08-12 | Captured | Any time; read-only navigation glue over existing search |
 | Paste a vocabulary list | 2026-08-12 | Captured | Needs a design discussion first: parsing, per-row meanings, event honesty |
 | PWA app shortcuts | 2026-08-12 | Captured | Any time; manifest-only, recorded so it is not forgotten |
@@ -118,19 +118,20 @@ Useful information to retain for each idea:
 ### Historia word families
 
 - **Date added:** 2026-08-13
-- **Status:** Split 2026-08-13 — Phase 25a approved for implementation; Phase 25b stopped at its
-  mandatory r4 quality gate before UI work
+- **Status:** Split 2026-08-13 — Phase 25a implemented and verified locally, awaiting deployment
+  approval; Phase 25b stopped at its mandatory r4 quality gate before UI work
 - **Origin:** Owner selection from the 2026-08-13 Historia-strengthening discussion, scoped the
   same day in a seven-question workshop
-- **Records:** `PHASE-25-DIRECTION.md`, Phase 25 entries in `DECISIONS.md`
+- **Records:** `PHASE-25-DIRECTION.md`, `PHASE-25-REPORT.md`, Phase 25 entries in `DECISIONS.md`
 - **Potential data impact:** None; render-time derivation over existing personal data and the
   installed r4 dictionary. Schema stays 8; no event, preference, or package change
 
 #### Description and current context
 
-Historia's habitat gains **25a — conjugation family**, mirroring the wander card's family group
-(saved Phase 21 paradigm siblings plus the What-to-notice teaching exit) through one shared
-derivation. The proposed **25b — derivational family** stopped at its required pre-UI audit:
+Historia's habitat now gains **25a — conjugation family** on the verified local branch, mirroring
+the wander card's family group (saved Phase 21 paradigm siblings plus the What-to-notice teaching
+exit) through one shared, word-only derivation. The proposed **25b — derivational family** stopped
+at its required pre-UI audit:
 only 17.68% of r4's listed relation terms resolve to shipped lemmas, and the flattened field mixes
 genuine derivations with broad relations while discarding target entry identity. Exact matching
 therefore cannot prevent false family claims. `relatedWords` remains dormant; any revival needs a
@@ -600,10 +601,9 @@ would be its own proposal.
 ### Dictionary word-family explorer
 
 - **Date added:** 2026-08-12
-- **Last reviewed:** 2026-08-13 — census evidence added to the verified facts; data-only
-  shipping decided the same day (see Potential timing); the personal-layer shadow below was
-  planned as Phase 25b later the same day (`PHASE-25-DIRECTION.md`), whose quality audit will
-  also answer this entry's per-family-quality question
+- **Last reviewed:** 2026-08-13 — Phase 25's shipped-package audit answered the quality question
+  negatively: r4's flattened strings cannot support either the explorer or its personal-layer
+  shadow without a reference-data redesign preserving relation provenance and target identity
 - **Status:** Captured
 - **Origin:** Owner suggestion, assessed and requested for the list 2026-08-12
 - **Owner interest:** Requested after review of the assessment, including the verified data facts
@@ -619,12 +619,13 @@ save them through existing flows. This is a **derivational**-family feature — 
 root across parts of speech — and a vocabulary *growth* feature: it teaches "you almost know
 three more words," and pairs naturally with Frequency coverage's "what next?" question.
 
-Once family data ships, a **personal-layer shadow** comes nearly free and is the consolidation
-reading of this growth feature: grouping the owner's own saved words by shared family ("you know
-3 words from the *decidir* family"). Recorded here as a dependent extension rather than its own
-entry — it has no life without the shipped data. **Update 2026-08-13:** the data shipped in r4,
-and the shadow is now planned as Phase 25b (Historia word families, above); this entry keeps
-only the unsaved-relative growth reading — the explorer proper — which remains unapproved.
+The proposed **personal-layer shadow** was the consolidation reading of this growth feature:
+grouping the owner's saved words by shared family ("you know 3 words from the *decidir* family").
+**Update 2026-08-13:** r4 shipped the source strings, but Phase 25's mandatory audit rejected both
+the shadow and explorer as unsafe. The field merged genuine derivations with broad relations and
+discarded target-entry identity; reciprocal matching did not repair the false claims. Neither UI
+may proceed from r4. Any revival starts with a separately approved reference-data redesign rather
+than another string matcher.
 
 **Sibling idea, deliberately separate:** "Conjugates like" verb families, implemented as Phase
 21 (history index above), is the **inflectional** counterpart — verbs sharing a paradigm — and a
@@ -632,7 +633,7 @@ only the unsaved-relative growth reading — the explorer proper — which remai
 fields; keeping them separate stops this coverage question from inheriting Phase 21's product
 semantics merely because both appear at lookup time.
 
-#### Verified data facts — 2026-08-12
+#### Verified data facts — 2026-08-12 to 2026-08-13
 
 Checked against the repository, not assumed:
 
@@ -640,35 +641,31 @@ Checked against the repository, not assumed:
   spike's structure inspection (`pipeline/spike/out/02-kaikki-structure.json`, 807,155 records):
   `derived` on 6,189 records at word level and 9,183 at sense level; `related` on 5,241 and
   12,341.
-- The build step that shapes shipped entries (`pipeline/build/04-entries.mjs`) never reads either
-  field — the pipeline currently discards them.
-- **2026-08-12 shipped-lemma census** (recorded 2026-08-13): of the 10,466 raw records that map
-  to the 10,278 shipped entries, 7,334 (~70%) carry at least one `derived`/`related` term at word
-  or sense level; the words-only payload measures ~719 KB raw / ~230 KB gzipped. This answers the
-  coverage risk below at survey level; what still needs the targeted pass is per-family quality —
-  how many named terms resolve to shipped entries and form families worth showing.
+- Phase 24's r4 build now merges both fields into dormant, de-duplicated plain lemma strings;
+  7,312 shipped entries carry 45,955 relation mentions. It deliberately preserved neither the
+  source relationship kind nor the intended target entry id, sense, or part of speech.
+- **Phase 25 quality audit:** 8,125 mentions resolve to a normalized shipped lemma (17.68%);
+  1,386 of those hits (17.06%) target a lemma represented by multiple entries. Deterministic
+  samples exposed broad relations and false entry claims, while a reciprocal filter still kept
+  pronoun paradigms, homographs, and sense/POS mismatches. See `PHASE-25-DIRECTION.md` and
+  `PHASE-25-REPORT.md` for the full verdict.
 
 #### Risks and tradeoffs
 
-- **Coverage among kept lemmas is unknown.** The raw counts span mostly inflected-form records,
-  and the pipeline filters lemmas by frequency; what fraction of the shipped 10,278 have a useful
-  family needs a targeted pass over the raw dump before this is worth planning — the analogue of
-  Phase 21's completed paradigm-count gate. **Update 2026-08-13:** raw coverage is now measured
-  at ~70% (verified facts above); the open question is family quality, not presence.
-- **Family members may not be shipped.** Kaikki's `derived`/`related` lists can point at lemmas
-  the frequency cut excluded, so the explorer must render "not installed" gracefully — and the
-  agent-guide tripwire applies directly: "not installed" is **not** "orphaned".
+- **R4 is not a safe relationship source.** The audit closed the earlier coverage question but
+  failed the more important claim-quality gate: most mentions do not resolve, and a resolved
+  lemma still does not identify the intended entry or relationship kind.
+- A redesigned package must preserve derivational provenance and target-entry identity while
+  still treating a genuinely excluded target as "not installed", never "orphaned".
 - Family derivation must come from this data, never from string-stem heuristics — spelling
   similarity produces false relatives, and a wrong family member teaches a false connection.
 
 #### Potential timing
 
-The natural build moment is whenever the pipeline reopens for another reason — the
-English→Spanish lookup index (above) is the obvious candidate — so one dataset rebuild carries
-both. The coverage pass needs no rebuild and can run any time. **Update 2026-08-13:** decided —
-the derived/related data ships (data only, no display) with the rebuild scoped in the Unused
-dictionary fields entry's workshop decisions; the explorer phase itself remains unapproved and
-will find its data already installed.
+R4 already ships the flattened strings, but Phase 25 proved they cannot authorize a display.
+Reopen only with a separately approved reference-data redesign that retains derivational source
+kind and unambiguous target identity; another UI-side string matcher is not an implementation
+path. The explorer itself remains unapproved.
 
 ---
 
@@ -1781,6 +1778,15 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-13 — Phase 25a implemented and verified locally; Phase 25b remains stopped.** The
+  conjugation-family habitat now shares one alias-aware, word-only preparation and row component
+  with Wander, preserves notebook order, navigates personal siblings and the marked teaching
+  exit, stays quiet on optional-reference failure, and writes no event. The 1,403-test serial
+  suite, build, deliberate no-event failure/recovery, and disposable 375×812 flow pass. The r4
+  audit verdict is also carried into the Dictionary word-family explorer: flattened strings are
+  not a sanctioned source for either an explorer or saved-family shadow. Deployment remains a
+  separate approval; full evidence is in `PHASE-25-REPORT.md`.
 
 - **2026-08-13 — Historia word families planned as Phase 25a/25b after a seven-question
   workshop.** The owner picked the conjugation-family and derivational-family enrichments from

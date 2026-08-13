@@ -1,9 +1,11 @@
 # Phase 25 — Word families in the biography
 
-**Status:** Phase 25a approved for implementation 2026-08-13. Phase 25b stopped at its mandatory
-quality gate before UI work: shipped r4 `relatedWords` does not distinguish derivations from broad
-related terms and does not preserve target-entry identity, so the approved matcher would expose
-false family claims. A push to `main` remains a further separate approval.
+**Status:** Phase 25a implemented and verified locally on
+`codex/phase-25-conjugation-family` at `8b3c85b`; it is not pushed or deployed. Phase 25b stopped
+at its mandatory quality gate before UI work: shipped r4 `relatedWords` does not distinguish
+derivations from broad related terms and does not preserve target-entry identity, so the proposed
+matcher would expose false family claims. See [PHASE-25-REPORT.md](PHASE-25-REPORT.md). A push to
+`main` remains a further separate approval.
 **Origin:** The owner selected two Historia enrichments — the conjugation family and the
 derivational family — from the 2026-08-13 Historia-strengthening discussion, then answered seven
 scope-shaping questions in a structured workshop the same day. This document records those
@@ -73,6 +75,12 @@ Presentation: one new habitat section. Sibling rows navigate to the sibling's or
 through existing routes with the ordinary Back context. The What-to-notice row is a marked exit
 into the dictionary teaching view, exactly as on the wander card. Family load failure stays
 quiet — the section is simply absent — matching wander's existing behavior.
+
+Implementation result: `src/lib/wordFamilies.js` now owns the complete alias-aware, read-only
+preparation sequence and the saved-word intersection. Wander and Historia render the same shared
+`ConjugationFamilyRows` component. The shared boundary enforces words on both endpoints, keeps
+notebook order, retains the teaching exit even with zero saved siblings, and returns quiet absence
+for incomplete or failed optional reference reads.
 
 ## 25b — Derivational family (stopped at quality gate)
 
@@ -148,6 +156,13 @@ Phase 25a acceptance requires:
 - a disposable seeded 375×812 browser flow covering an attached verb with saved siblings and the
   teaching row, an unattached word, and a phrase biography, with 44px actions, no horizontal
   overflow, and no console warnings/errors.
+
+All Phase 25a acceptance checks passed on 2026-08-13. The final tree passes 1,403/1,403 serial
+tests across 121 files, the 2,108-module production build and `git diff --check`; the deliberate
+event-write probe failed at the intended assertion and returned green after removal. The seeded
+375×812 closeout proved the attached-verb family, personal sibling and dictionary teaching routes,
+zero family sections for an unattached word and an attached phrase, 44–56px actions, zero
+horizontal overflow, and zero console warnings/errors. The disposable fixture was then cleared.
 
 A push to `main` is not part of implementation approval. If deployment is later approved, README
 Status, this direction, the report, and the affected Improvement Ideas records must describe
