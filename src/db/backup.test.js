@@ -769,6 +769,17 @@ describe("validation happens before anything is written", () => {
     return { ...baseline(), userItems: [word, sourcePage, grammarPage] };
   };
 
+  it("accepts interjection as a meaning override without widening entry-level parts of speech", () => {
+    const meaningOverride = makeLexical();
+    meaningOverride.meanings[0].posOverride = "interjection";
+    expect(validateBackup({ ...baseline(), userItems: [meaningOverride] }).ok).toBe(true);
+
+    const entryWide = makeLexical({ pos: "interjection" });
+    const checked = validateBackup({ ...baseline(), userItems: [entryWide] });
+    expect(checked.ok).toBe(false);
+    expect(checked.errors.join(" ")).toMatch(/\.pos is not supported/);
+  });
+
   it.each([
     ["not JSON at all", "{ this is not json"],
     ["a different file's JSON", JSON.stringify({ hello: "world" })],

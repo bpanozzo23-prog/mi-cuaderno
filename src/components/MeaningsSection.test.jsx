@@ -60,6 +60,25 @@ describe("structured meaning presentation and editing", () => {
     });
   });
 
+  it("saves interjection as a meaning-level part-of-speech override", async () => {
+    const user = userEvent.setup();
+    const onPatch = vi.fn().mockResolvedValue(undefined);
+    render(<MeaningsSection item={item()} onPatch={onPatch} />);
+
+    await user.click(screen.getAllByRole("button", { name: "Expand meaning" })[0]);
+    await user.click(screen.getByRole("button", { name: "Edit meaning take out" }));
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Meaning part of speech override" }),
+      "interjection"
+    );
+    await user.click(screen.getByRole("button", { name: "Save meaning" }));
+
+    expect(onPatch.mock.calls[0][0].meanings[0]).toMatchObject({
+      id: "meaning:take-out",
+      posOverride: "interjection",
+    });
+  });
+
   it("keeps organizer changes local until one explicit save", async () => {
     const user = userEvent.setup();
     const onPatch = vi.fn().mockResolvedValue(undefined);

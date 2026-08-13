@@ -12,6 +12,7 @@ import {
 import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
 import { nowIso } from "../lib/dates.js";
 import {
+  LEXICAL_POS_OPTIONS,
   MEANING_POS_OPTIONS,
   USAGE_LABELS,
   VERB_BEHAVIORS,
@@ -255,8 +256,8 @@ function validateItem(
       errors.push(`${where}.dictKey must be a string or null`);
     }
     if (schemaVersion === 1) {
-      if (item.pos !== undefined && !MEANING_POS_OPTIONS.includes(item.pos)) errors.push(`${where}.pos is not supported`);
-    } else if (!MEANING_POS_OPTIONS.includes(item.pos)) errors.push(`${where}.pos is not supported`);
+      if (item.pos !== undefined && !LEXICAL_POS_OPTIONS.includes(item.pos)) errors.push(`${where}.pos is not supported`);
+    } else if (!LEXICAL_POS_OPTIONS.includes(item.pos)) errors.push(`${where}.pos is not supported`);
     if (!isString(item.notes)) errors.push(`${where}.notes must be a string`);
     validateExamples(item.myExamples, `${where}.myExamples`, errors);
     if (schemaVersion === 1) {

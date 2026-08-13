@@ -15,7 +15,16 @@ export const USAGE_LABELS = [
   "literal",
 ];
 
-export const MEANING_POS_OPTIONS = ["", "noun", "verb", "adjective", "adverb", "other"];
+export const LEXICAL_POS_OPTIONS = ["", "noun", "verb", "adjective", "adverb", "other"];
+export const MEANING_POS_OPTIONS = [
+  "",
+  "noun",
+  "verb",
+  "adjective",
+  "adverb",
+  "interjection",
+  "other",
+];
 export const VERB_BEHAVIORS = ["transitive", "intransitive", "reflexive", "pronominal", "impersonal"];
 export const COMMON_REGIONS = ["Mexico", "Latin America", "Spain"];
 

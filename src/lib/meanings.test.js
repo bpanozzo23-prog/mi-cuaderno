@@ -26,6 +26,7 @@ describe("personal meaning model", () => {
       usageCue: " sacar dinero ",
       regions: ["Mexico", "mexico", " "],
       usageLabels: ["figurative", "not-a-label"],
+      posOverride: "interjection",
       examples: [{ es: " Saco dinero. ", en: " I withdraw money. " }],
     });
 
@@ -36,6 +37,7 @@ describe("personal meaning model", () => {
       usageCue: "sacar dinero",
       regions: ["Mexico"],
       usageLabels: ["figurative"],
+      posOverride: "interjection",
       examples: [{ es: "Saco dinero.", en: "I withdraw money." }],
     });
   });

@@ -5,8 +5,11 @@
 **Owner:** The sole builder and only user of this app.
 **Companion file:** `mi-cuaderno.jsx` — a working single-file prototype of the notebook layer. It is the reference for features, interaction patterns, and visual design of **lexical entries**. Pages (§7) do not exist in the prototype and are new in v3. Where this brief contradicts the prototype's *implementation* (ID scheme, search normalization, the `struggling` field, event rules), **this brief wins** — the prototype shows what the app should feel like, not how it must be built.
 **Version:** v3 — revised after lock-in review. Product contract last amended
-~~August 3, 2026~~ ~~August 4, 2026~~ ~~August 5, 2026~~ ~~August 9, 2026~~ ~~August 10, 2026~~ **August 12, 2026**; agent-facing framing refreshed August 2, 2026.
+~~August 3, 2026~~ ~~August 4, 2026~~ ~~August 5, 2026~~ ~~August 9, 2026~~ ~~August 10, 2026~~ ~~August 12, 2026~~ **August 13, 2026**; agent-facing framing refreshed August 2, 2026.
 **Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. §§3, 9 and 12 — 2026-08-02: organizational improvements became Phase 5 and the AI assistant moved to Phase 6. §12 — 2026-08-02: independently scoped phases may proceed concurrently under explicit coordination rules. §§5, 7, 8, 10, 12 and 14 — 2026-08-02: personal lexical meanings became stable, structured annotations in schema v2 while review remains entry-level and dictionary senses remain replaceable reference data. **§§5, 7, 10, 12 and 14 — 2026-08-03: schema v3 adds durable `general | collection` page profiles and the first specialized profile, Vocabulary Collection, while dated General pages remain Journal entries and richer profiles stay deferred.** **§§5, 7, 10, 12 and 14 — 2026-08-04: schema v4 adds sparse typed and explained ordinary-connection annotations while `linkedKeys[]` remains authoritative for connection existence and Collection membership.** **§§5, 7, 8, 10, 12 and 14 — 2026-08-04: Phase 7 approves schema v5 composable pages with one leading focus, independently enabled Vocabulary, Source and Grammar structures, contextual retrieval, and sequential legacy backup upgrades.** **§§7, 12 and 14 — 2026-08-05: Phase 9 approves filtered, session-only free practice from the Words & phrases hub while Repaso remains the sole scheduled and event-backed review flow.** **§§7, 12 and 14 — 2026-08-07: Phase 14 approves an owner-started, event-backed Conjugation Gym with curated reference-only verb pools, richer derived performance, and optional history-ranked sessions that never create a due date or alter Leitner review.** **§§7, 12 and 14 — 2026-08-09: Phase 16 approves four-grade scheduled review, objective typed vocabulary recall, queue chunking, one event-free recovery pass, a shared vocabulary-card engine and history-free hub/Collection sessions.** **§§7, 12 and 14 — 2026-08-09: Phase 17 adds owner-started, event-backed Tense usage and Endings recognition lanes whose results remain isolated from form Adaptive, form statistics and Leitner review.** **§§7, 12 and 14 — 2026-08-10: Phase 18 adds the recall/production reverse of those lanes, balanced Regular and Spelling-change packs, exact Saved tag/page targeting and mode-separated depth reporting without changing schema, scheduling or choice evidence.** Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
+
+**Meaning-block amendment, 2026-08-13 — §7:** meaning-level part-of-speech overrides add
+interjection without widening entry-wide parts of speech or changing schema.
 
 **Phase 19 amendment, 2026-08-10 — §§5, 7, 8, 10, 12 and 13:** schema v6 adds one-level
 Grammar subsections, formatted Grammar overviews and accessible Note callouts while retaining the
@@ -278,8 +281,10 @@ learning model.
 not a copy of the dictionary's taxonomy. `gloss` is the English meaning and `usageCue` is an
 optional short Spanish cue. Regions are owner-written labels; usage labels are limited to formal,
 informal, colloquial, slang, vulgar, offensive, dated, archaic, rare, humorous, figurative and
-literal. A meaning may override the entry's part of speech with noun, verb, adjective, adverb or
-other, and may record transitive, intransitive, reflexive, pronominal or impersonal verb behavior.
+literal. ~~A meaning may override the entry's part of speech with noun, verb, adjective, adverb or
+other.~~ **Amended 2026-08-13:** a meaning may override it with noun, verb, adjective, adverb,
+interjection or other. A meaning may record transitive, intransitive, reflexive, pronominal or
+impersonal verb behavior.
 Entry-wide notes and unassigned examples remain valid. An entry may have no meanings; a saved
 meaning must have a nonblank gloss. Meaning IDs survive editing and reordering, while merging two
 neighboring meanings keeps the upper meaning's ID.
