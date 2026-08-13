@@ -252,7 +252,7 @@ export default function Biography({
             rows={phrases}
             onOpen={onOpen}
             renderHeading={(row) => row.item.type === "lexical" ? row.item.term : ""}
-            renderMeta={(row) => normalize(row.surface).trim() !== normalize(row.item.term).trim()
+            renderMeta={(row) => normalize(row.surface).trim() !== normalize(row.word?.term).trim()
               ? `Matched as ${row.surface}`
               : ""}
           />

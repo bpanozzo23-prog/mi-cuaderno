@@ -38,12 +38,25 @@ Neither new surface imports a database writer. `SCHEMA_VERSION` remains 8.
 
 ## Automated and failure-path verification
 
-- Complete serial suite: **1,372/1,372 tests across 118 files** (`npm.cmd test`, 316.10 s).
+- Post-review corrected complete serial suite: **1,372/1,372 tests across 118 files**
+  (`npm.cmd test`, 327.85 s).
 - Production build: passed; Vite transformed **2,105 modules** and generated the PWA.
 - `git diff --check`: passed.
 - Focused 23a boundary: **112/112 across eight files**, including the untouched
   `phraseContainment.test.js` refactor proof.
 - Focused 23b boundary: **43/43 across four files**.
+
+An independent review then exposed that the App-level wander test's mocked random draw depended
+on two link writes receiving distinct millisecond `updatedAt` values. The app's uniform sampling
+was correct; only the fixture order could fall through to UUID tie-breaking. The fixture now
+writes explicit spaced timestamps after its links, the formerly flaky case passes **10/10 in
+fresh Vitest processes**, and the combined App/Biography focus passes **23/23**. The same review
+also corrected Biography's phrase evidence label to compare the matched surface with the subject
+word, so an exact `casa` row no longer says **Matched as casa**; a component assertion pins it.
+A focused disposable 375×812 recheck then rendered the exact *mi casa es tu casa* Phrase row once
+and the redundant label zero times; both actions measured 44px, document and body widths stayed
+375px, and the console had zero warnings/errors. Cleanup returned that origin to zero rows and
+reset the viewport, tab, and server.
 
 All three required broken-on-purpose proofs failed at the intended assertion and returned green
 after the source was restored:
@@ -87,7 +100,7 @@ the tab was closed, and the isolated server stopped.
 
 ## Deployment
 
-Implementation approval did not include a push. The three local commits remain on
+Implementation approval did not include a push. The four local commits remain on
 `codex/phase-23-contexts-wandering`; deployment requires a separate owner approval. If that
 happens, README Status, the direction/report, both Improvement Ideas entries, and the Phase 23
 decision record must be synchronized to deployed reality in that session.

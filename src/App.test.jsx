@@ -235,13 +235,16 @@ describe("Phase 23b wander navigation", () => {
 
   it("hops through the real trail, opens the same center's full Detail, and backs through every center", async () => {
     const user = userEvent.setup();
-    // Notebook rows are newest-first; the final eligible row is the first fixture we created.
     vi.spyOn(Math, "random").mockReturnValue(0.99);
     const first = await createItem(newLexical({ term: "casa" }));
     const second = await createItem(newLexical({ term: "hogar" }));
     const page = await createItem(newPage({ title: "Architecture notes" }));
     await linkItems(first.id, second.id, { type: "similar_meaning", note: "First hop" });
     await linkItems(second.id, page.id, { type: "found_in", note: "Second hop" });
+    // Link writes can share one millisecond, so make the newest-first lexical order explicit.
+    // The 0.99 draw then deterministically selects the final eligible row: casa.
+    await db.items.update(first.id, { updatedAt: "2026-08-12T12:00:00.000Z" });
+    await db.items.update(second.id, { updatedAt: "2026-08-12T12:00:01.000Z" });
     const before = JSON.stringify(await allEvents());
     render(<App />);
 

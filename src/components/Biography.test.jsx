@@ -62,6 +62,7 @@ describe("Biography", () => {
     expect(screen.getByText(/Ayer volví temprano a casa después del paseo/)).toBeTruthy();
     expect(screen.getByText("In your pages")).toBeTruthy();
     expect(screen.getByText("Phrases")).toBeTruthy();
+    expect(screen.queryByText("Matched as casa")).toBeNull();
     expect(screen.getByText("Connections")).toBeTruthy();
     expect(screen.getByText("A home can be more personal.")).toBeTruthy();
 
