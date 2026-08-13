@@ -76,21 +76,155 @@ describe("Biography", () => {
     expect(screen.queryByRole("button", { name: /remove|unlink|edit|save relationship/i })).toBeNull();
   });
 
+  it("shows the saved conjugation family and marked teaching exit without changing the story", async () => {
+    const user = userEvent.setup();
+    const onOpen = vi.fn();
+    const entry = {
+      id: "dict:fixture:sacar:verb",
+      lemma: "sacar",
+      conjugationId: "conj:fixture:sacar",
+    };
+    const subject = newLexical({
+      id: "user:sacar",
+      term: "sacar",
+      dictKey: entry.id,
+      meanings: [newMeaning({ gloss: "to take out" })],
+    });
+    const sibling = newLexical({
+      id: "user:buscar",
+      term: "buscar",
+      dictKey: "dict:fixture:buscar:verb",
+      meanings: [newMeaning({ gloss: "to look for" })],
+    });
+    const prepareFamily = vi.fn(async () => ({ entry, siblings: [sibling] }));
+
+    render(
+      <Biography
+        item={subject}
+        items={[subject, sibling]}
+        events={[]}
+        state={emptyItemState}
+        reviewState={emptyReviewState}
+        onOpen={onOpen}
+        onClose={vi.fn()}
+        prepareFamily={prepareFamily}
+        preparePhrases={vi.fn(async () => [])}
+        prepareProse={vi.fn(async () => [])}
+      />
+    );
+
+    expect(await screen.findByText("Familia de conjugación")).toBeTruthy();
+    expect(screen.getByText("Learning story")).toBeTruthy();
+    expect(screen.queryByText("No other contexts found yet.")).toBeNull();
+    expect(screen.getByRole("button", { name: /^buscar/ }).className).toContain("min-h-11");
+    const teaching = screen.getByRole("button", { name: /What to notice/ });
+    expect(teaching.querySelector('[aria-label="Dictionary exit"]')).toBeTruthy();
+    expect(screen.queryByRole("button", {
+      name: /remove|unlink|edit|save relationship|save changes/i,
+    })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: /^buscar/ }));
+    expect(onOpen).toHaveBeenLastCalledWith(sibling.id);
+    await user.click(teaching);
+    expect(onOpen).toHaveBeenLastCalledWith(entry.id);
+  });
+
+  it("keeps the teaching exit with zero siblings and never prepares phrases or unattached words", async () => {
+    const entry = {
+      id: "dict:fixture:sacar:verb",
+      lemma: "sacar",
+      conjugationId: "conj:fixture:sacar",
+    };
+    const subject = newLexical({ term: "sacar", dictKey: entry.id });
+    const prepareFamily = vi.fn(async () => ({ entry, siblings: [] }));
+    const view = render(
+      <Biography
+        item={subject}
+        items={[subject]}
+        state={emptyItemState}
+        reviewState={emptyReviewState}
+        onOpen={vi.fn()}
+        onClose={vi.fn()}
+        prepareFamily={prepareFamily}
+        preparePhrases={vi.fn(async () => [])}
+        prepareProse={vi.fn(async () => [])}
+      />
+    );
+    expect(await screen.findByRole("button", { name: /What to notice/ })).toBeTruthy();
+
+    const ineligiblePrepare = vi.fn(async () => ({ entry, siblings: [] }));
+    view.rerender(
+      <Biography
+        item={newLexical({ form: "phrase", term: "a veces", dictKey: entry.id })}
+        items={[]}
+        state={emptyItemState}
+        reviewState={emptyReviewState}
+        onOpen={vi.fn()}
+        onClose={vi.fn()}
+        prepareFamily={ineligiblePrepare}
+        preparePhrases={vi.fn(async () => [])}
+        prepareProse={vi.fn(async () => [])}
+      />
+    );
+    await waitFor(() => expect(screen.queryByText("Familia de conjugación")).toBeNull());
+    expect(ineligiblePrepare).not.toHaveBeenCalled();
+
+    view.rerender(
+      <Biography
+        item={newLexical({ term: "casa", dictKey: null })}
+        items={[]}
+        state={emptyItemState}
+        reviewState={emptyReviewState}
+        onOpen={vi.fn()}
+        onClose={vi.fn()}
+        prepareFamily={ineligiblePrepare}
+        preparePhrases={vi.fn(async () => [])}
+        prepareProse={vi.fn(async () => [])}
+      />
+    );
+    await waitFor(() => expect(screen.queryByText("Familia de conjugación")).toBeNull());
+    expect(ineligiblePrepare).not.toHaveBeenCalled();
+
+    const failedPrepare = vi.fn(async () => {
+      throw new Error("optional dictionary unavailable");
+    });
+    view.rerender(
+      <Biography
+        item={newLexical({ term: "sacar", dictKey: entry.id })}
+        items={[]}
+        state={emptyItemState}
+        reviewState={emptyReviewState}
+        onOpen={vi.fn()}
+        onClose={vi.fn()}
+        prepareFamily={failedPrepare}
+        preparePhrases={vi.fn(async () => [])}
+        prepareProse={vi.fn(async () => [])}
+      />
+    );
+    await waitFor(() => expect(failedPrepare).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText("Familia de conjugación")).toBeNull();
+  });
+
   it("opens and closes inside Detail without changing the log or scan-first notes layout", async () => {
     const user = userEvent.setup();
     const subject = await createItem(newLexical({
-      term: "casa",
-      notes: "A place to return to.",
-      meanings: [newMeaning({ gloss: "house" })],
+      term: "sacar",
+      dictKey: "dict:fixture:sacar:verb",
+      notes: "A verb I use around the house.",
+      meanings: [newMeaning({ gloss: "to take out" })],
     }));
-    const phrase = await createItem(newLexical({ term: "mi casa es tu casa", form: "phrase" }));
+    const phrase = await createItem(newLexical({ term: "sacar la basura", form: "phrase" }));
+    const sibling = await createItem(newLexical({
+      term: "buscar",
+      dictKey: "dict:fixture:buscar:verb",
+    }));
     const journal = await createItem(newPage({
-      title: "At home",
+      title: "Housework",
       pageDate: "2026-08-12",
-      body: "Hoy descansé en casa.",
+      body: "Hoy tengo que sacar la basura.",
     }));
     await linkItems(subject.id, phrase.id, { type: "related" });
-    const items = [subject, phrase, journal];
+    const items = [subject, phrase, sibling, journal];
     const events = await allEvents();
     const onOpen = vi.fn();
 
@@ -104,10 +238,18 @@ describe("Biography", () => {
         onBack={vi.fn()}
         onOpen={onOpen}
         onChanged={vi.fn()}
+        prepareBiographyFamily={vi.fn(async () => ({
+          entry: {
+            id: "dict:fixture:sacar:verb",
+            lemma: "sacar",
+            conjugationId: "conj:fixture:sacar",
+          },
+          siblings: [sibling],
+        }))}
       />
     );
 
-    expect(screen.getByText("A place to return to.")).toBeTruthy();
+    expect(screen.getByText("A verb I use around the house.")).toBeTruthy();
     await waitFor(async () => {
       expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.view && event.itemKey === subject.id)).toHaveLength(1);
     });
@@ -116,12 +258,14 @@ describe("Biography", () => {
     const history = screen.getByRole("button", { name: "Historia" });
     expect(history.className).toContain("min-h-11");
     await user.click(history);
+    expect(await screen.findByText("Familia de conjugación")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^buscar/ })).toBeTruthy();
     expect(await screen.findByText("En tu Diario")).toBeTruthy();
-    expect(screen.getByText(/Hoy descansé en casa/)).toBeTruthy();
+    expect(screen.getByText(/Hoy tengo que sacar la basura/)).toBeTruthy();
     expect(JSON.stringify(await allEvents())).toBe(before);
 
-    await user.click(screen.getByRole("button", { name: "casa" }));
-    expect(screen.getByText("A place to return to.")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "sacar" }));
+    expect(screen.getByText("A verb I use around the house.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Edit note" })).toBeTruthy();
     expect(JSON.stringify(await allEvents())).toBe(before);
     expect(onOpen).not.toHaveBeenCalled();

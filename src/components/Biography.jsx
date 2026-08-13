@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
   BookMarked,
+  BookOpen,
   ChevronLeft,
   FileText,
   Link2,
@@ -16,6 +17,8 @@ import { activePageContextsForLexical } from "../lib/pageReferences.js";
 import { preparePhraseContainment } from "../lib/phraseContainment.js";
 import { prepareProseContainment } from "../lib/proseContainment.js";
 import { groupConnections } from "../lib/relationships.js";
+import { prepareSavedConjugationFamily } from "../lib/wordFamilies.js";
+import ConjugationFamilyRows from "./ConjugationFamilyRows.jsx";
 
 const datePart = (at) => String(at || "").slice(0, 10);
 const headingForConnection = (row) => row.item?.type === "page"
@@ -137,9 +140,11 @@ export default function Biography({
   connections = [],
   onOpen,
   onClose,
+  prepareFamily = prepareSavedConjugationFamily,
   preparePhrases = preparePhraseContainment,
   prepareProse = prepareProseContainment,
 }) {
+  const [family, setFamily] = useState(null);
   const [phrases, setPhrases] = useState([]);
   const [prose, setProse] = useState([]);
 
@@ -163,6 +168,26 @@ export default function Biography({
     () => groupConnections(connections),
     [connections]
   );
+
+  useEffect(() => {
+    let alive = true;
+    setFamily(null);
+    if (item?.type !== "lexical" || item.form !== "word" || !item.dictKey) {
+      return () => {
+        alive = false;
+      };
+    }
+    prepareFamily(item, items)
+      .then((result) => {
+        if (alive) setFamily(result);
+      })
+      .catch(() => {
+        if (alive) setFamily(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [item, items, prepareFamily]);
 
   useEffect(() => {
     let alive = true;
@@ -197,7 +222,7 @@ export default function Biography({
   const prosePages = prose.filter((row) => !row.journal);
   const journal = prose.filter((row) => row.journal);
   const habitatCount = collections.length + pageContexts.length + phrases.length
-    + connections.length + prose.length;
+    + connections.length + prose.length + Number(Boolean(family));
 
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
@@ -276,6 +301,16 @@ export default function Biography({
               </div>
             ))}
           </div>
+        </HabitatSection>
+      )}
+
+      {family && (
+        <HabitatSection title="Familia de conjugación" icon={BookOpen}>
+          <ConjugationFamilyRows
+            family={family}
+            onOpenSibling={onOpen}
+            onOpenDictionary={onOpen}
+          />
         </HabitatSection>
       )}
 

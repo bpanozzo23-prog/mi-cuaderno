@@ -173,6 +173,7 @@ function StandardDetail({
   backLabel = "Todo el cuaderno",
   onOpen,
   onChanged,
+  prepareBiographyFamily,
   pagePinned = false,
   onPagePinnedChange,
 }) {
@@ -350,6 +351,7 @@ function StandardDetail({
         connections={connections}
         onOpen={onOpen}
         onClose={() => setView("detail")}
+        prepareFamily={prepareBiographyFamily}
       />
     );
   }

@@ -6,6 +6,10 @@ import {
 } from "./relationships.js";
 import { connectionsFromResolvedEntryLinks } from "./resolvedConnections.js";
 
+// Compatibility export: Phase 23's pure tests and callers keep their established import while
+// the implementation now lives beside the shared Phase 25 family preparer.
+export { deriveSavedFamilySiblings } from "./wordFamilies.js";
+
 export function eligibleWanderItems(items = []) {
   return items.filter((item) => item?.type === "lexical");
 }
@@ -68,17 +72,4 @@ export function deriveWanderConnections(item, items = [], entries = []) {
       relationship,
     }));
   return [...personal, ...connectionsFromResolvedEntryLinks(item, entryLinks)];
-}
-
-/** Saved personal items attached to any loaded Phase 21 member, preserving notebook order. */
-export function deriveSavedFamilySiblings(item, items = [], familyRows = [], previousIds = {}) {
-  const memberIds = new Set(
-    (familyRows || []).flatMap((row) => (row?.members || []).map((entry) => entry?.id).filter(Boolean))
-  );
-  if (!memberIds.size) return [];
-  return items.filter((candidate) => {
-    if (candidate?.type !== "lexical" || candidate.id === item?.id || !candidate.dictKey) return false;
-    const canonical = previousIds?.[candidate.dictKey] || candidate.dictKey;
-    return memberIds.has(canonical);
-  });
 }

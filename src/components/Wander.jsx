@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
-  BookOpen,
   ChevronLeft,
   ExternalLink,
   Link2,
@@ -15,13 +14,11 @@ import {
   isDictKey,
   resolveEntry,
 } from "../db/ref/entries.js";
-import { analyzeConjugationPatterns } from "../lib/conjugationPatterns.js";
 import { firstMeaningGloss } from "../lib/meanings.js";
 import { prepareProseContainment } from "../lib/proseContainment.js";
-import {
-  deriveSavedFamilySiblings,
-  deriveWanderConnections,
-} from "../lib/wander.js";
+import { deriveWanderConnections } from "../lib/wander.js";
+import { prepareSavedConjugationFamily } from "../lib/wordFamilies.js";
+import ConjugationFamilyRows from "./ConjugationFamilyRows.jsx";
 
 const headingFor = (item) => item?.type === "page"
   ? item.title || "Untitled page"
@@ -101,36 +98,16 @@ export default function Wander({
       alive = false;
     };
 
-    (async () => {
-      try {
-        const resolved = await resolveReference(item.dictKey);
-        const entry = resolved?.entry;
-        if (!entry?.conjugationId) return;
-        const [conjugation] = await loadConjugations([entry.conjugationId]);
-        if (!conjugation) return;
-        const analysis = analyzeConjugationPatterns({ lemma: entry.lemma, conjugation });
-        if (!analysis.patternIds.length) return;
-        const [familyRows, meta] = await Promise.all([
-          loadFamilies(analysis.patternIds),
-          loadMeta(),
-        ]);
-        const loadedCurrentFamily = familyRows.some((row) =>
-          (row?.members || []).some((member) => member?.id === entry.id)
-        );
-        if (!loadedCurrentFamily || !alive) return;
-        setFamily({
-          entry,
-          siblings: deriveSavedFamilySiblings(
-            item,
-            items,
-            familyRows,
-            meta?.previousIds || {}
-          ),
-        });
-      } catch {
-        if (alive) setFamily(null);
-      }
-    })();
+    prepareSavedConjugationFamily(item, items, {
+      resolveReference,
+      loadConjugations,
+      loadFamilies,
+      loadMeta,
+    }).then((result) => {
+      if (alive) setFamily(result);
+    }).catch(() => {
+      if (alive) setFamily(null);
+    });
     return () => {
       alive = false;
     };
@@ -204,40 +181,11 @@ export default function Wander({
       {isLexical && family && (
         <section aria-label="Conjugation family">
           <SectionTitle>Conjugation family</SectionTitle>
-          <div className="space-y-1.5">
-            {family.siblings.map((sibling) => (
-              <button
-                type="button"
-                key={sibling.id}
-                onClick={() => onHop(sibling.id)}
-                className="min-h-11 w-full rounded-xl border px-3 py-2 text-left"
-                style={{ background: C.card, borderColor: C.line }}
-              >
-                <div className="flex items-center gap-2">
-                  <BookOpen size={15} className="shrink-0" style={{ color: C.pen }} />
-                  <span className="min-w-0 flex-1 break-words text-sm font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>
-                    {sibling.term}
-                  </span>
-                  <ArrowRight size={15} className="shrink-0" style={{ color: C.mut }} />
-                </div>
-                <div className="mt-0.5 pl-[23px] text-xs" style={{ color: C.mut }}>Saved in your cuaderno</div>
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => onOpen(family.entry.id)}
-              className="min-h-11 w-full rounded-xl border px-3 py-2 text-left"
-              style={{ background: C.penPale, borderColor: C.chipBorder }}
-            >
-              <div className="flex items-center gap-2">
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-semibold" style={{ color: C.penDark }}>What to notice</div>
-                  <div className="mt-0.5 text-xs" style={{ color: C.mut }}>Open the dictionary teaching view</div>
-                </div>
-                <ExternalLink size={15} className="shrink-0" style={{ color: C.pen }} aria-label="Dictionary exit" />
-              </div>
-            </button>
-          </div>
+          <ConjugationFamilyRows
+            family={family}
+            onOpenSibling={onHop}
+            onOpenDictionary={onOpen}
+          />
         </section>
       )}
 
