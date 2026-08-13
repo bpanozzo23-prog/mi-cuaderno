@@ -396,14 +396,24 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   classification entries in [DECISIONS.md](DECISIONS.md).
 - **Android share target — deployed.** The installed PWA registers in Android's share sheet
   (`share_target` in the manifest, GET). A shared URL — including Chrome's bare-URL-in-text
-  shape — opens New Source notebook creation with the link and shared title prefilled and no
-  format preselected; any other shared text lands whole in the two-layer search box for the owner
+  shape — takes the URL path (now the destination chooser below); any other shared text lands
+  whole in the two-layer search box for the owner
   to trim. Startup consumes the `share_*` params into the ordinary in-memory trail and strips
   them, so no URL router was added and refresh replays nothing; nothing is ever saved implicitly.
   No schema, storage, backup or event change. The complete serial suite passes 1,397/1,397 across
   120 files, the live manifest serves the `share_target` block, and a disposable 375×812 flow
   verified both arrival paths. The share-sheet entry appears once the PWA is (re)installed from
   the deployed site. See the Android share target entries in [DECISIONS.md](DECISIONS.md).
+- **Share arrival destination chooser — deployed.** Real TikTok use answered the share target's
+  open destination question the day it deployed: always-new-Source-page is too rigid for frequent
+  short learning videos. A shared URL now opens a chooser — attach to an existing page or
+  word/phrase as a Media link (one ordinary `edit`, then land on the item), start a New Grammar
+  guide with the video pre-attached and no sections preselected, or keep the New Source notebook.
+  Dismissing writes nothing; the picker lists recent items first, excludes journal entries, and
+  searches personal content only. No schema, storage, backup or event-type change. The complete
+  serial suite passes 1,409/1,409 across 121 files, the manifest is unchanged, and a disposable
+  375×812 flow walked all three destinations with exactly one edit event on attach. See the Share
+  arrival destination chooser entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **8**. Before Dexie opens v8, schema-v1 through schema-v7 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,

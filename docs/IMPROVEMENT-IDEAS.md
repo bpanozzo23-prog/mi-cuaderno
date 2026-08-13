@@ -1785,6 +1785,11 @@ added optional import of dictionary senses as ordinary meaning records with no l
 
 ## Document history
 
+- **2026-08-13 — Share arrival destination chooser deployed.** The owner-approved push
+  (`f94c79a`) went out through a successful Pages run and the live site serves the new bundle.
+  The three-destination chooser is live; the owner's real-device TikTok walk-through of each
+  destination is the remaining evidence.
+
 - **2026-08-13 — Share arrival destination chooser implemented locally; the share target's open
   destination question is answered.** The owner's real workflow (frequent short learning TikToks)
   arrived the day the share target deployed and showed always-new-Source-page too rigid. A URL
