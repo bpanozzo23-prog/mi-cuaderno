@@ -52,6 +52,12 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
+| Edge-kind visual vocabulary | 2026-08-13 | Captured | Any time; mostly the lighter visual loop — side-by-side variants, colours through theme tokens |
+| Wander constellation (one-hop map) | 2026-08-13 | Captured | After the edge-kind vocabulary settles; lives or dies on a 375px variant pass with worst-case terms |
+| Connection cluster browsing | 2026-08-13 | Captured | Once the confirmed graph has real clusters (Graph texture can show this); resolve the Tag hubs / Saved views overlap first |
+| Graph texture in Estadísticas | 2026-08-13 | Captured | Any time; a small derived Estadísticas addition that doubles as evidence for the other visualization ideas |
+| Moment-of-learning micro-visuals | 2026-08-13 | Captured | Whenever the Similar-meaning recall or Historia surfaces are next touched |
+| Global graph visualization | 2026-08-13 | Captured | Only after the smaller connection visuals prove value in real use; excluded from Phase 23 by name |
 | Candidate future data sources (survey) | 2026-08-13 | Captured | When a need each serves becomes real (monolingual mode, audio, drill content); every license re-verified at adoption |
 | Conjugation catalog extensions | 2026-08-12 | Captured | When Phase 21's classifier next reopens; required-cell coverage must be swept before accepting either family |
 | Monolingual recall (Spanish usage cues) | 2026-08-12 | Captured | After checking how many real meanings carry a usage cue |
@@ -107,6 +113,247 @@ Useful information to retain for each idea:
 ---
 
 ## Active ideas
+
+### Edge-kind visual vocabulary
+
+- **Date added:** 2026-08-13
+- **Status:** Captured
+- **Origin:** Connection-visualization brainstorm with the owner, 2026-08-13; captured as a
+  six-entry batch (see Document history), no settled aim yet
+- **Owner interest:** Requested for the list while brainstorming.
+- **Potential data impact:** None; presentation only, every colour through existing theme tokens
+
+#### Description and current context
+
+The notebook now derives several distinct kinds of connective knowledge — typed Connections,
+phrase/word containment, Phase 21 family siblings, prose occurrences, Diario presence — but every
+surface that shows them (Detail, Historia, the wander card) distinguishes the kinds only by
+section headings over identical-looking rows. A consistent per-edge-kind visual treatment (icon
+and/or colour token, used identically everywhere an edge renders) would let the owner read a
+relationship's kind at a glance and would teach the type system itself through repetition.
+
+This is also the foundation the other visualization captures from the same batch would reuse:
+settling the vocabulary first keeps a later constellation, cluster view, or map consistent with
+the lists instead of inventing a second language.
+
+#### Expected owner value
+
+- Every existing connection surface becomes faster to scan, with no new screen to learn.
+- The edge kinds stop being implicit section trivia and become something the owner recognizes.
+
+#### Risks and tradeoffs
+
+- Five-plus kinds is at the edge of what colour alone can carry at 375px; icons or labels plus
+  colour may beat pure colour coding. Side-by-side variants decide, not argument.
+- Mostly a purely-visual change under the lighter loop, but markup restructuring that component
+  tests can see crosses back into plan-first territory — the agent-guide line applies: when
+  unsure, it is structural.
+
+#### Evidence needed
+
+- None beyond the variant pass itself, built with real worst-case content (longest terms, an
+  entry carrying every edge kind at once).
+
+---
+
+### Wander constellation (one-hop map)
+
+- **Date added:** 2026-08-13
+- **Status:** Captured
+- **Origin:** Connection-visualization brainstorm with the owner, 2026-08-13; captured as a
+  six-entry batch (see Document history)
+- **Owner interest:** Requested for the list while brainstorming.
+- **Potential data impact:** None; renders exactly the neighborhood data the wander card already
+  derives, stores no layout or position
+
+#### Description and current context
+
+Phase 23 excluded a **global** graph visualization; it said nothing against a bounded one. The
+wander card already derives an ego-neighborhood — one center plus neighbors grouped by edge kind
+— and currently renders it as grouped rows. Drawing the same data as a small SVG (center term in
+the middle, neighbors arrayed around it, edge kind carried by the settled visual vocabulary, tap
+to hop) would turn wandering from scanning a list into moving through a space, closer to the
+accidental-re-encounter feeling 23b was built for. All Phase 23 rules carry over unchanged:
+derived at render, event-free, no stored trail, Diario stays an inert count.
+
+#### Expected owner value
+
+- Hops gain a sense of place and direction; the trail Back already walks becomes something the
+  owner can picture.
+
+#### Risks and tradeoffs
+
+- Long Spanish terms and phrases on a 375px canvas are the hard problem; a constellation that
+  truncates *me da igual* to fit may read worse than the two list rows it replaced.
+- Layout must be deterministic enough at render to not jiggle between hops, without persisting
+  positions — persistence would be new stored state and a separate decision.
+- Accessibility: rows are inherently readable and tappable at 44px; an SVG must earn the same.
+
+#### Evidence needed
+
+- The shape of real neighborhoods. Sparse two-neighbor constellations may dominate and look
+  emptier than rows; Graph texture in Estadísticas (below) can answer this before any pixel is
+  drawn.
+
+---
+
+### Connection cluster browsing
+
+- **Date added:** 2026-08-13
+- **Status:** Captured
+- **Origin:** Connection-visualization brainstorm with the owner, 2026-08-13; captured as a
+  six-entry batch (see Document history)
+- **Owner interest:** Requested for the list while brainstorming.
+- **Potential data impact:** None; connected components derived at render, nothing stored
+
+#### Description and current context
+
+The confirmed typed-connection graph has connected components: a similar-meaning cluster around
+one feeling, a linked family neighborhood, and a long tail of items with no connections at all.
+Every current surface shows one item's edges; nothing shows a **group as an object**. A derived
+view listing the notebook's clusters — and, gently, its isolates — would be the first surface
+where the owner experiences the graph they have built rather than one keyhole of it. Isolates
+double as a quiet consolidation prompt (an unconnected word is an invitation), with 22b's
+proposals as the natural supply line for acting on it.
+
+**Overlap to resolve with Tag hubs and Saved views (below):** all three aggregate items into
+browsable groups from different dimensions (graph edges, tags, lens combinations). Whichever is
+planned first should consciously answer whether it subsumes the others or they coexist as
+parallel dimensions.
+
+#### Expected owner value
+
+- "What does my notebook know as a whole?" gets its first honest answer — groups, sizes, and the
+  frontier of unconnected words.
+
+#### Risks and tradeoffs
+
+- The no-pressure temperament governs the isolate list: it must read as an invitation, never a
+  to-do count. Framing and placement matter as much as derivation.
+- With few confirmed edges the view is mostly isolates; shipping it too early would show a
+  desert and teach the owner to ignore the surface.
+- Cluster membership shifts as links change; the view derives at render and claims no history.
+
+#### Evidence needed
+
+- Real cluster count and size distribution in the owner's notebook — Graph texture in
+  Estadísticas (below) supplies exactly this, far more cheaply, first.
+
+---
+
+### Graph texture in Estadísticas
+
+- **Date added:** 2026-08-13
+- **Status:** Captured
+- **Origin:** Connection-visualization brainstorm with the owner, 2026-08-13; captured as a
+  six-entry batch (see Document history)
+- **Owner interest:** Requested for the list while brainstorming.
+- **Potential data impact:** None; derived counts over existing links, stored nowhere
+
+#### Description and current context
+
+A small connectivity section inside Estadísticas: how many items carry at least one connection,
+counts per edge kind, the largest cluster's size, and the number of isolates. Sought out rather
+than pushed — the same temperament rule the Review forecast entry records. Beyond its own value,
+this is the evidence base the rest of the visualization batch is gated on: it answers whether
+real neighborhoods are rich enough for a constellation and whether real clusters are numerous
+enough for cluster browsing, before either is designed.
+
+#### Expected owner value
+
+- Answers "how connected is what I know?" at a glance, in the place the owner already visits for
+  self-knowledge.
+
+#### Risks and tradeoffs
+
+- Numbers can pressure exactly like forecasts can; keeping them descriptive (texture, not
+  targets) preserves the no-pressure temperament.
+- Component derivation over all links is cheap at personal scale but should reuse the existing
+  derived-graph helpers rather than growing a second traversal.
+
+#### Evidence needed
+
+- None; this entry *is* the evidence gatherer for its siblings.
+
+---
+
+### Moment-of-learning micro-visuals
+
+- **Date added:** 2026-08-13
+- **Status:** Captured
+- **Origin:** Connection-visualization brainstorm with the owner, 2026-08-13; captured as a
+  six-entry batch (see Document history)
+- **Owner interest:** Requested for the list while brainstorming.
+- **Potential data impact:** None; presentation over data the surfaces already derive
+
+#### Description and current context
+
+Rather than a new screen, small visuals placed where connection knowledge is already being
+actively used: the Similar-meaning recall reveal could show the confirmed mini-cluster being
+recalled as a compact glyph; Historia's milestone list could carry a small timeline strip above
+its rows. The bet is that visualization helps memory most when attached to a retrieval or
+reading moment the owner is already in, not when it lives on a destination page they must visit.
+
+#### Expected owner value
+
+- The connection work becomes visible precisely when it is being exercised, reinforcing the
+  group structure at the moment of recall.
+
+#### Risks and tradeoffs
+
+- Additive clutter is the failure mode: recall reveal and Historia are deliberately calm
+  surfaces, and each glyph must justify its pixels at 375px.
+- Each micro-visual is its own subjective choice — separate variant passes, separate visual
+  commits, per the visual-changes process rules.
+
+#### Evidence needed
+
+- Which moments actually recur in real use (recall sessions vs Historia reads) — worth adding
+  visuals where the owner already spends time, not everywhere at once.
+
+---
+
+### Global graph visualization
+
+- **Date added:** 2026-08-13
+- **Status:** Captured
+- **Origin:** Connection-visualization brainstorm with the owner, 2026-08-13; captured as a
+  six-entry batch (see Document history). Phase 23 excluded this by name; this entry gives that
+  exclusion a place to point rather than reversing it
+- **Owner interest:** Requested for the list while brainstorming; explicitly last in the batch's
+  suggested order.
+- **Potential data impact:** None as scoped (derived, read-only); any stored layout, zoom state,
+  or pinned positions would be new personal state and a separate decision
+
+#### Description and current context
+
+The whole notebook as one navigable map. Deliberately held last: it is the hardest visualization
+to keep legible on a phone, the most expensive to build, and the one whose learning value is
+least proven — the classic risk is a screenshot feature that is admired once and never opened
+again. If the constellation and cluster views earn their keep in real use, a global map becomes
+a zoom-out of machinery that already exists; if they do not, that is strong evidence this entry
+should be closed rather than built.
+
+#### Expected owner value
+
+- Seeing the entire personal knowledge graph at once — the one perspective no bounded view can
+  give.
+
+#### Risks and tradeoffs
+
+- 375px legibility at hundreds of nodes has no obvious good answer; pan/zoom interaction depth
+  is a big cost for a single-owner app.
+- Force layouts jiggle and re-arrange between visits unless positions persist, and persistence
+  is exactly the stored state this idea must not smuggle in.
+- The no-pressure and no-analytics temperament forbids the map from becoming a score.
+
+#### Evidence needed
+
+- Real use of the smaller visuals first: constellation hop counts felt (not logged — the
+  event-free rule stands), cluster browsing reached for, Estadísticas texture consulted. This
+  idea only graduates on their evidence.
+
+---
 
 ### Candidate future data sources (survey)
 
@@ -573,6 +820,7 @@ strictly above the search pipeline.
 ### Tag hubs
 
 - **Date added:** 2026-08-12
+- **Last reviewed:** 2026-08-13 — Connection cluster browsing (above) joined the overlap question
 - **Status:** Captured
 - **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
 - **Owner interest:** An idea to revisit later, when the owner has more tags and uses tags more.
@@ -588,7 +836,9 @@ vocabulary tidy enough for hubs to stay trustworthy.
 **Overlap to resolve with Saved views (below):** a tag hub is close to a persistent single-tag
 view. Whichever idea is planned first should consciously answer whether it subsumes the other —
 a hub is tag-only but zero-configuration, while a saved view is broader but needs naming and
-maintenance.
+maintenance. **Since 2026-08-13** Connection cluster browsing (above) is a third member of the
+same question: graph edges, tags, and lens combinations are three grouping dimensions, and the
+first one planned should decide whether they coexist or converge.
 
 #### Evidence needed
 
@@ -1502,6 +1752,18 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-13 — Six connection-visualization ideas captured from an owner brainstorm.** With
+  Phases 22–23 deployed, every connection surface shows derived edges as labeled list rows; the
+  owner asked what showing connections and groups *better* could look like, explicitly without a
+  settled aim, and requested the whole batch for the list. Captured as separate entries so each
+  can be judged alone: Edge-kind visual vocabulary, Wander constellation (one-hop map),
+  Connection cluster browsing, Graph texture in Estadísticas, Moment-of-learning micro-visuals,
+  and Global graph visualization. The sequencing recorded in the entries — vocabulary first,
+  Estadísticas texture as the evidence gatherer, constellation as the first spatial step, the
+  global graph gated on all of it — is a starting position, not a decision. Cluster browsing
+  joins the existing Tag hubs / Saved views overlap question, updated in place. None of the six
+  is approved work.
 
 - **2026-08-13 — Android share target deployed.** The owner-approved push (`d0ceb27`, carrying
   the interjection-override increment too) deployed through a successful Pages run, and the live
