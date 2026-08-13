@@ -375,6 +375,24 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   height pins the box. Presentation and interaction only — no stored string, schema, backup or
   event change, and Diario's autosave timing and single-`edit` contract are untouched. See the
   editor-upgrade entries in [DECISIONS.md](DECISIONS.md).
+- **Meaning-level interjection override — deployed.** A personal meaning may use `interjection`
+  as its part-of-speech override; it describes how that individual meaning functions, so it lives
+  in the existing meaning-level selector rather than among Usage labels, and entry-wide parts of
+  speech are unchanged. The existing `posOverride` string already stores the value; backup
+  validation only widened its closed allowlist, so schema stays v8 with no migration, event or
+  preference change. The complete serial suite passed 1,381/1,381 across 119 files with a
+  deliberate pre-change failure proof and a disposable 375×812 flow. See the interjection
+  classification entries in [DECISIONS.md](DECISIONS.md).
+- **Android share target — deployed.** The installed PWA registers in Android's share sheet
+  (`share_target` in the manifest, GET). A shared URL — including Chrome's bare-URL-in-text
+  shape — opens New Source notebook creation with the link and shared title prefilled and no
+  format preselected; any other shared text lands whole in the two-layer search box for the owner
+  to trim. Startup consumes the `share_*` params into the ordinary in-memory trail and strips
+  them, so no URL router was added and refresh replays nothing; nothing is ever saved implicitly.
+  No schema, storage, backup or event change. The complete serial suite passes 1,397/1,397 across
+  120 files, the live manifest serves the `share_target` block, and a disposable 375×812 flow
+  verified both arrival paths. The share-sheet entry appears once the PWA is (re)installed from
+  the deployed site. See the Android share target entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **8**. Before Dexie opens v8, schema-v1 through schema-v7 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,

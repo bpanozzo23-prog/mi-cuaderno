@@ -90,7 +90,7 @@ Useful information to retain for each idea:
 | Phrase↔word containment links | 2026-08-12 | Phase 22a, deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
 | Same-meaning clustering | 2026-08-12 | Phase 22b–22c, deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
 | "Conjugates like" verb families | 2026-08-12 | Phase 21, deployed | `PHASE-21-DIRECTION.md`, `PHASE-21-REPORT.md` |
-| Android share target | 2026-08-11 | 2026-08-13 increment, awaiting deploy | 2026-08-13 entries in `DECISIONS.md` |
+| Android share target | 2026-08-11 | 2026-08-13 increment, deployed | 2026-08-13 entries in `DECISIONS.md` |
 | English→Spanish lookup | 2026-08-12 | Phase 2e, deployed (predated the capture) | `PHASE-2-REPORT.md`, 2026-07-31 entries in `DECISIONS.md` |
 | Global tag management | 2026-08-10 | Phase 20, deployed | `PHASE-20-DIRECTION.md`, `PHASE-20-REPORT.md` |
 | Markdown blank-line spacing | 2026-08-10 | Phase 19 increment, deployed | Phase 19 entries in `DECISIONS.md` |
@@ -1184,7 +1184,7 @@ history. Still-open evidence and questions are kept here in full.
 
 ### Android share target
 
-- **Date added:** 2026-08-11 — **Status:** Implemented — 2026-08-13 increment, awaiting deploy
+- **Date added:** 2026-08-11 — **Status:** Implemented — 2026-08-13 increment, deployed
 - **Records:** 2026-08-13 entries in `DECISIONS.md`
 
 The installed PWA registers as an Android share target (`share_target` in the manifest, GET).
@@ -1197,7 +1197,7 @@ refresh replays nothing. Nothing is saved implicitly; every write stays behind t
 explicit create actions.
 
 Still-open evidence: the real-device check — how Chrome on Android presents the share-sheet entry
-— is possible only after a deploy, since the entry exists only while the PWA is installed. Whether
+— is now possible on the deployed site once the installed PWA updates. Whether
 shared content is mostly words, phrases, or URLs (the doc's original question) can now be answered
 by real use. A shared URL landing anywhere other than Source creation (e.g., a Media link on an
 existing page) remains a later owner decision.
@@ -1502,6 +1502,11 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-13 — Android share target deployed.** The owner-approved push (`d0ceb27`, carrying
+  the interjection-override increment too) deployed through a successful Pages run, and the live
+  manifest serves the `share_target` block. The index row and entry now read "deployed"; the
+  real-device share-sheet check is open to the owner once the installed PWA updates.
 
 - **2026-08-13 — Android share target implemented and verified locally; moves to Implemented
   history.** The owner approved dispatch-by-content (option 3) with long prose landing whole in
