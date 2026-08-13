@@ -52,7 +52,7 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
-| Unused dictionary fields (shipped-lemma census) | 2026-08-13 | Ready to plan | Field selection decided 2026-08-13 (~+660 KB); next step is an implementation plan for the rebuild and display |
+| Unused dictionary fields (shipped-lemma census) | 2026-08-13 | Implemented locally | Phase 24 r4 and display are verified locally; move to Implemented history with the eventual push |
 | Candidate future data sources (survey) | 2026-08-13 | Captured | When a need each serves becomes real (monolingual mode, audio, drill content); every license re-verified at adoption |
 | Conjugation catalog extensions | 2026-08-12 | Captured | When Phase 21's classifier next reopens; required-cell coverage must be swept before accepting either family |
 | Monolingual recall (Spanish usage cues) | 2026-08-12 | Captured | After checking how many real meanings carry a usage cue |
@@ -111,8 +111,9 @@ Useful information to retain for each idea:
 ### Unused dictionary fields (shipped-lemma census)
 
 - **Date added:** 2026-08-13
-- **Status:** Ready to plan — field selection decided in a 2026-08-13 owner workshop (see Workshop
-  decisions below); the rebuild and display work still require a plan under the working agreement
+- **Status:** Implemented locally as Phase 24 — the r4 rebuild and display are verified on the
+  feature branch; this entry remains Active until the separate owner-approved push moves it to
+  Implemented history, as the phase direction requires
 - **Origin:** Owner question ("is there dictionary information available that we are not using?"),
   answered 2026-08-12 with a measured census over the raw Kaikki dump restricted to the shipped
   lemma set, with real gzip costs per field
@@ -213,10 +214,9 @@ The owner answered four scope questions over the measured numbers; also recorded
   plan-era ~3.5 MB guideline, which the brief never fixed.
 - **Gap-fill finding folded in:** examples ship for their sense-alignment value; patching the
   415 zero-Tatoeba-example entries turned out marginal (~35 entries, ~3 KB).
-- **Still open for the implementation plan:** where each field renders on the dictionary entry
-  screen, the exact example filters, the etymology trim rule's edge cases, and the new
-  `check.mjs` acceptance assertions. Dataset scope is decided; nothing here approves
-  implementation.
+- **Resolved by Phase 24:** the approved direction fixed placement, filtering, etymology edge
+  handling, and acceptance assertions. The local implementation and evidence are recorded in
+  `PHASE-24-REPORT.md`; push and deployment still require separate owner approval.
 
 ---
 
@@ -1646,6 +1646,13 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-13 — Phase 24 implemented and verified locally.** The r4 rebuild and dictionary
+  display close the census implementation questions with exact r3 identity preservation, 45/45
+  shipment checks, a 4.06 MiB bundle, the complete serial suite/build, and a disposable 375×812
+  rich/plain-entry flow. Per the phase contract, the census entry stays Active until an
+  owner-approved push moves it to Implemented history; the word-family explorer itself remains
+  unapproved even though its source data now ships dormant in r4.
 
 - **2026-08-13 — Correction: English→Spanish lookup moves from Active to Implemented history.**
   The 2026-08-12 capture recorded a capability Phase 2e had already shipped: the bundled

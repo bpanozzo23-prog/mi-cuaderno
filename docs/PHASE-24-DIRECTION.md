@@ -1,9 +1,10 @@
 # Phase 24 — Dictionary enrichment (dataset r4)
 
-**Status:** Direction drafted 2026-08-13. The dataset scope is owner-decided (field-selection
-workshop recorded in `DECISIONS.md` under "Dictionary dataset — next-rebuild field selection");
-sections marked **(proposed)** are this plan's recommendations within that scope and are approved
-when the owner hands this document to the implementing agent. Implementation has not started.
+**Status:** Approved, implemented, and verified locally on
+`codex/phase-24-dictionary-enrichment` on 2026-08-13; not pushed or deployed. The dataset scope
+was owner-decided in the field-selection workshop recorded in `DECISIONS.md`, and handing this
+document to the implementing agent approved its proposed implementation details. Results are in
+[PHASE-24-REPORT.md](PHASE-24-REPORT.md).
 **Origin:** A measured census over the raw Kaikki dump, restricted to the shipped lemma set,
 priced every field the pipeline currently drops (Improvement Ideas: "Unused dictionary fields
 (shipped-lemma census)"). The owner then answered four scope questions choosing what ships.
