@@ -52,6 +52,7 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
+| Historia word families | 2026-08-13 | Planned — Phase 25a/25b | Workshop complete; the seven scope decisions are recorded in `PHASE-25-DIRECTION.md` |
 | Edge-kind visual vocabulary | 2026-08-13 | Captured | Any time; mostly the lighter visual loop — side-by-side variants, colours through theme tokens |
 | Wander constellation (one-hop map) | 2026-08-13 | Captured | After the edge-kind vocabulary settles; lives or dies on a 375px variant pass with worst-case terms |
 | Connection cluster browsing | 2026-08-13 | Captured | Once the confirmed graph has real clusters (Graph texture can show this); resolve the Tag hubs / Saved views overlap first |
@@ -63,7 +64,7 @@ Useful information to retain for each idea:
 | Monolingual recall (Spanish usage cues) | 2026-08-12 | Captured | After checking how many real meanings carry a usage cue |
 | Retired-word spot checks | 2026-08-12 | Captured | Once a meaningful number of words are Retired; the demotion question needs an owner decision |
 | Near-duplicate consolidation view | 2026-08-12 | Captured | Any time; view only — entry merging is a separate, larger decision |
-| Dictionary word-family explorer | 2026-08-12 | Captured | Its dormant source data is deployed in r4; the remaining questions are per-family quality and display design |
+| Dictionary word-family explorer | 2026-08-12 | Captured | Its dormant source data is deployed in r4 and its personal-layer shadow is planned as Phase 25b; the explorer's remaining questions are per-family quality and display design |
 | Select text to look up | 2026-08-12 | Captured | Any time; read-only navigation glue over existing search |
 | Paste a vocabulary list | 2026-08-12 | Captured | Needs a design discussion first: parsing, per-row meanings, event honesty |
 | PWA app shortcuts | 2026-08-12 | Captured | Any time; manifest-only, recorded so it is not forgotten |
@@ -113,6 +114,30 @@ Useful information to retain for each idea:
 ---
 
 ## Active ideas
+
+### Historia word families
+
+- **Date added:** 2026-08-13
+- **Status:** Planned — Phase 25a/25b; implementation has not started
+- **Origin:** Owner selection from the 2026-08-13 Historia-strengthening discussion, scoped the
+  same day in a seven-question workshop
+- **Records:** `PHASE-25-DIRECTION.md`, Phase 25 entries in `DECISIONS.md`
+- **Potential data impact:** None; render-time derivation over existing personal data and the
+  installed r4 dictionary. Schema stays 8; no event, preference, or package change
+
+#### Description and current context
+
+Historia's habitat gains two family sections for words. **25a — conjugation family** mirrors the
+wander card's family group (saved Phase 21 paradigm siblings plus the What-to-notice teaching
+exit), sharing its derivation. **25b — derivational family** is the first reader of the dormant
+r4 `relatedWords` data, showing only *saved* relatives (*decidir* → *decisión*) through
+attachment-resolved, exact whole-term, bidirectional matching. Headline workshop decisions:
+saved relatives only, Historia only (no wander changes), no suppression against Connections,
+words only, attachment required on both endpoints, and a repo-side `relatedWords` quality audit
+gating 25b before any UI work. The unsaved-relative growth reading stays with the separate
+Dictionary word-family explorer idea (below).
+
+---
 
 ### Edge-kind visual vocabulary
 
@@ -576,7 +601,9 @@ would be its own proposal.
 
 - **Date added:** 2026-08-12
 - **Last reviewed:** 2026-08-13 — census evidence added to the verified facts; data-only
-  shipping decided the same day (see Potential timing)
+  shipping decided the same day (see Potential timing); the personal-layer shadow below was
+  planned as Phase 25b later the same day (`PHASE-25-DIRECTION.md`), whose quality audit will
+  also answer this entry's per-family-quality question
 - **Status:** Captured
 - **Origin:** Owner suggestion, assessed and requested for the list 2026-08-12
 - **Owner interest:** Requested after review of the assessment, including the verified data facts
@@ -595,7 +622,9 @@ three more words," and pairs naturally with Frequency coverage's "what next?" qu
 Once family data ships, a **personal-layer shadow** comes nearly free and is the consolidation
 reading of this growth feature: grouping the owner's own saved words by shared family ("you know
 3 words from the *decidir* family"). Recorded here as a dependent extension rather than its own
-entry — it has no life without the shipped data.
+entry — it has no life without the shipped data. **Update 2026-08-13:** the data shipped in r4,
+and the shadow is now planned as Phase 25b (Historia word families, above); this entry keeps
+only the unsaved-relative growth reading — the explorer proper — which remains unapproved.
 
 **Sibling idea, deliberately separate:** "Conjugates like" verb families, implemented as Phase
 21 (history index above), is the **inflectional** counterpart — verbs sharing a paradigm — and a
@@ -1753,6 +1782,16 @@ added optional import of dictionary senses as ordinary meaning records with no l
 
 ## Document history
 
+- **2026-08-13 — Historia word families planned as Phase 25a/25b after a seven-question
+  workshop.** The owner picked the conjugation-family and derivational-family enrichments from
+  the Historia-strengthening discussion and answered seven scope questions: saved derivational
+  relatives only; the conjugation section mirrors the wander card (siblings plus the
+  What-to-notice exit); Historia only, no wander-edge changes; no suppression of rows already in
+  Connections; words only; attachment required on both endpoints; and a `relatedWords` quality
+  audit gates 25b before UI work. The full contract is `PHASE-25-DIRECTION.md`; the Dictionary
+  word-family explorer entry was updated in place to hand its personal-layer shadow to Phase 25b
+  while keeping the unsaved-relative explorer unapproved. Planning is not implementation
+  approval; the §2 plan-first agreement still applies.
 - **2026-08-13 — Six connection-visualization ideas captured from an owner brainstorm.** With
   Phases 22–23 deployed, every connection surface shows derived edges as labeled list rows; the
   owner asked what showing connections and groups *better* could look like, explicitly without a
