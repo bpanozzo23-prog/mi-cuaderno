@@ -36,6 +36,11 @@ explicit owner action creates an ordinary Similar meaning connection. A history-
 session reads direct confirmed Similar meaning neighbors without transitive inference, events,
 scores, scheduling, preferences, or schema change.
 
+**Phase 23 amendment, 2026-08-12 — §12:** lexical Detail gains a derived biography of learning
+milestones and current contexts, including disclosed matches in owner prose, while the idle
+Cuaderno root gains event-free neighborhood wandering over ordinary connections and conjugation
+families. Both features are render-time views over existing data; schema remains v8.
+
 ---
 
 ## 1. What this is
@@ -842,6 +847,24 @@ existing-edge exclusion, explicit confirmation, direct-edge recall and no-event 
 pinned by pure/database/component tests; deliberate failure proofs redden; the complete serial
 suite, production build and diff check pass; and a disposable seeded 375×812 flow verifies all
 three slices without overflow, warnings, console errors, or owner data access.
+
+**Amended 2026-08-12 — Phase 23: contexts and wandering.** A lexical item's **Historia** sub-view
+replays saved, first-review, first-box, tricky-episode and retirement milestones and gathers its
+current Collections, active page placements, phrase containment, ordinary Connections and
+whole-token prose contexts. Diario matches stay in their own disclosed section with snippets.
+The idle Cuaderno root separately starts an unweighted random walk on any personal Word or Phrase.
+Each transient neighborhood shows typed links in both physical directions, saved conjugation-
+family siblings, one dictionary teaching exit and an unopened Diario count; personal and
+non-journal Page neighbors hop, while full-entry exits use ordinary Detail behavior. Both surfaces
+are read-only derivations: no field, preference, backup shape, event type, stored trail, score,
+schedule, queue, reference package or background job is added, and `SCHEMA_VERSION` remains 8.
+*Done when:* prose scans retain the shared ñ-safe whole-token, stop-list, ambiguity, clitic,
+Markdown-projection and optional-reference rules; milestone replay cannot drift from Leitner;
+uniform sampling, family aliases and journal filtering are pure and pinned; component tests prove
+the biography swap, disclosed Diario snippets, inert wander stub, silent hops and real route-trail
+Back behavior; the required deliberate failures redden; the complete serial suite, production
+build and diff check pass; and a disposable seeded 375×812 flow proves a rich biography plus a
+three-hop family walk without overflow, console warnings/errors, or owner-data access.
 
 ## 13. Non-goals
 

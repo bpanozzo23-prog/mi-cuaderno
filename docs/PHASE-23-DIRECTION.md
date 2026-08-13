@@ -1,6 +1,7 @@
 # Phase 23 — Contexts and wandering
 
-**Status:** Direction approved 2026-08-12 through an owner decision workshop; not implemented.
+**Status:** Direction approved 2026-08-12 through an owner decision workshop. Slice 23a is
+implemented and focused-verified locally; Slice 23b and phase closeout remain in progress.
 **Origin:** The owner selected two consolidation ideas — the word's biography and neighborhood
 browsing — from the post-Phase-22 brainstorm, then answered nine scope-shaping questions in a
 structured workshop. This document records those decisions; implementation still follows the

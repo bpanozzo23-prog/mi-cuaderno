@@ -61,6 +61,28 @@ describe("labels shared by lexical items and pages", () => {
 });
 
 describe("scan-first notes and page bodies", () => {
+  it("offers a 44px Historia swap only for lexical detail and restores the unchanged notes view", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(window, "scrollTo", { value: vi.fn(), configurable: true });
+    const word = await createItem(newLexical({ term: "madrugar", notes: "Wake up early." }));
+
+    renderDetail(word);
+    const history = screen.getByRole("button", { name: "Historia" });
+    expect(history.className).toContain("min-h-11");
+    await user.click(history);
+    expect(screen.getByText("Learning story")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Edit note" })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "madrugar" }));
+    expect(screen.getByText("Wake up early.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Edit note" })).toBeTruthy();
+
+    cleanup();
+    const page = await createItem(newPage({ title: "Study source" }));
+    renderDetail(page);
+    expect(screen.queryByRole("button", { name: "Historia" })).toBeNull();
+  });
+
   it("reads a multiline note first, then cancels or explicitly saves without changing event rules", async () => {
     const user = userEvent.setup();
     const original = "Primera línea\nSegunda línea";

@@ -9,6 +9,7 @@ import {
   MAX_BOX,
   GRADES,
   cardDirection,
+  replayReviewLadder,
 } from "./review.js";
 import { addDaysToLocalDate } from "./dates.js";
 import { makeLexical, makePage, makeEvent } from "../test/factories.js";
@@ -145,6 +146,26 @@ describe("enrollment: what gets into the queue at all", () => {
 });
 
 describe("the Leitner ladder", () => {
+  it("exposes per-review ladder steps that agree with the final public state", () => {
+    const word = makeLexical({ term: "madrugar" });
+    const reviews = [
+      graded(word.id, "2026-07-12", GRADES.easy),
+      graded(word.id, "2026-07-10", GRADES.hard),
+      graded(word.id, "2026-07-20", GRADES.good),
+      graded(word.id, "2026-07-31", GRADES.good),
+    ];
+
+    const steps = replayReviewLadder(reviews);
+    const final = stateOf([word], reviews).states.get(word.id);
+    expect(steps).toEqual([
+      { at: at("2026-07-10"), box: 1, graduated: false },
+      { at: at("2026-07-12"), box: 3, graduated: false },
+      { at: at("2026-07-20"), box: 4, graduated: false },
+      { at: at("2026-07-31"), box: 5, graduated: false },
+    ]);
+    expect(steps.at(-1)).toMatchObject({ box: final.box, graduated: final.graduated });
+  });
+
   it("moves up a box on a pass and waits longer each time", () => {
     const word = makeLexical({ term: "madrugar" });
     const events = [trickyOn(word.id, "2026-07-01")];

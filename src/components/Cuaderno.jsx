@@ -263,6 +263,7 @@ export default function Cuaderno({
         state={itemState.get(selected.id) || emptyItemState}
         reviewState={review?.states.get(selected.id) || emptyReviewState}
         items={items}
+        events={events || []}
         onBack={onBack}
         backLabel={backLabel}
         onOpen={onSelect}

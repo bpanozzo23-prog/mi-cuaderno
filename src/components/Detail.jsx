@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft, Trash2, X, ExternalLink, Pencil, CalendarDays, FileText, Check,
   Highlighter, Eye, Clock, Plus, Bookmark, BookmarkCheck, Layers, RotateCcw,
-  BarChart3, ChevronDown,
+  BarChart3, ChevronDown, History,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button, IconButton } from "../theme.jsx";
 import { POS_OPTIONS, personalHeadingSuffix, personalLexicalForm } from "./ItemCard.jsx";
@@ -40,6 +40,7 @@ import { getAvailableCollectionDestinations, getCollectionPlacements } from "../
 import { activePageContextsForLexical } from "../lib/pageReferences.js";
 import { commitCollectionAdd } from "../db/collections.js";
 import KnowledgeConsolidation from "./KnowledgeConsolidation.jsx";
+import Biography from "./Biography.jsx";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
@@ -167,6 +168,7 @@ function StandardDetail({
   state = emptyItemState,
   reviewState = emptyReviewState,
   items = [],
+  events = [],
   onBack,
   backLabel = "Todo el cuaderno",
   onOpen,
@@ -195,6 +197,7 @@ function StandardDetail({
   const [orphanKeys, setOrphanKeys] = useState([]);
   const [linkConflicts, setLinkConflicts] = useState([]);
   const [statsExpanded, setStatsExpanded] = useState(false);
+  const [view, setView] = useState("detail");
   const [resolvedAttachment, setResolvedAttachment] = useState({ itemId: null, entry: null });
   const attachedEntry = resolvedAttachment.itemId === item.id ? resolvedAttachment.entry : null;
   const headingSuffix = isPage ? "" : personalHeadingSuffix(item, attachedEntry);
@@ -317,6 +320,7 @@ function StandardDetail({
     setPicking(false);
     setAssigningCollection(false);
     setStatsExpanded(false);
+    setView("detail");
     setHead(
       isPage
         ? { title: item.title, pageDate: item.pageDate || "" }
@@ -334,6 +338,21 @@ function StandardDetail({
       if (logged) onChanged();
     });
   }, [item.id]);
+
+  if (view === "biography") {
+    return (
+      <Biography
+        item={item}
+        items={items}
+        events={events}
+        state={state}
+        reviewState={reviewState}
+        connections={connections}
+        onOpen={onOpen}
+        onClose={() => setView("detail")}
+      />
+    );
+  }
 
   async function patch(fields, options) {
     await updateItem(item.id, fields, options);
@@ -636,6 +655,16 @@ function StandardDetail({
               >
                 <Highlighter size={15} /> {state.tricky ? "Marked tricky" : "Highlight as tricky"}
               </button>
+              {!isPage && (
+                <button
+                  type="button"
+                  onClick={() => setView("biography")}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium"
+                  style={{ background: C.card, borderColor: C.line, color: C.mut }}
+                >
+                  <History size={15} /> Historia
+                </button>
+              )}
             </div>
 
             {statsExpanded && (

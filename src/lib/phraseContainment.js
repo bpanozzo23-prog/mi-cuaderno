@@ -53,25 +53,25 @@ export function derivePhraseContainment(subject, items = [], profiles = new Map(
 const defaultResolveEntries = (keys) => Promise.all(keys.map((key) => resolveEntry(key)));
 
 /**
- * Optional reference enrichment around the pure derivation. Every failure returns exact-only
- * personal matches; detail navigation must never depend on an installed dictionary.
+ * Optional reference enrichment shared by lexical containment and prose containment.
+ *
+ * `derive` receives the current per-word form profiles and must return rows carrying
+ * `matchKind` plus `normalizedSurface` for inferred matches. That small generic boundary keeps
+ * reference resolution, conjugation loading, and the conservative ambiguity oracle in one
+ * sequence. Every failure reruns the derivation without profiles, so personal exact matches
+ * never depend on an installed dictionary.
  */
-export async function preparePhraseContainment(
-  subject,
-  items = [],
+export async function prepareWithFormProfiles(
+  words = [],
+  derive,
   {
     resolveEntries = defaultResolveEntries,
     getConjugations: loadConjugations = getConjugations,
     getFormEntries = getEntriesForForms,
   } = {}
 ) {
-  const words = isWord(subject)
-    ? (eligibleWord(subject) ? [subject] : [])
-    : isPhrase(subject)
-      ? items.filter(eligibleWord)
-      : [];
   const attached = words.filter((word) => word.dictKey);
-  if (!attached.length) return derivePhraseContainment(subject, items);
+  if (!attached.length) return derive(new Map());
 
   try {
     const resolved = await resolveEntries(attached.map((word) => word.dictKey));
@@ -90,8 +90,8 @@ export async function preparePhraseContainment(
       });
     }
 
-    if (!profiles.size) return derivePhraseContainment(subject, items);
-    const tentative = derivePhraseContainment(subject, items, profiles);
+    if (!profiles.size) return derive(new Map());
+    const tentative = derive(profiles);
     const inferredSurfaces = [...new Set(
       tentative.filter((row) => row.matchKind === "inflected").map((row) => row.normalizedSurface)
     )];
@@ -108,8 +108,25 @@ export async function preparePhraseContainment(
         }
       }
     }
-    return derivePhraseContainment(subject, items, profiles);
+    return derive(profiles);
   } catch {
-    return derivePhraseContainment(subject, items);
+    return derive(new Map());
   }
+}
+
+/**
+ * Optional reference enrichment around the pure phrase derivation. Its public signature and
+ * exact-only fallback remain unchanged; prepareWithFormProfiles merely owns the shared reads.
+ */
+export async function preparePhraseContainment(subject, items = [], deps = {}) {
+  const words = isWord(subject)
+    ? (eligibleWord(subject) ? [subject] : [])
+    : isPhrase(subject)
+      ? items.filter(eligibleWord)
+      : [];
+  return prepareWithFormProfiles(
+    words,
+    (profiles) => derivePhraseContainment(subject, items, profiles),
+    deps
+  );
 }

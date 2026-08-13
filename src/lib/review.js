@@ -104,10 +104,14 @@ function readableGrade(event) {
   return event?.type === REVIEW_PASS ? GRADES.good : GRADES.again;
 }
 
-function replayReviews(reviews) {
+function replayReviews(reviews, onStep = null) {
   let box = 1;
   let graduated = false;
   let graduatedAt = null;
+
+  const reportStep = (event) => {
+    onStep?.({ at: event.at, box, graduated });
+  };
 
   for (const event of reviews) {
     const grade = readableGrade(event);
@@ -115,6 +119,7 @@ function replayReviews(reviews) {
       box = 1;
       graduated = false;
       graduatedAt = null;
+      reportStep(event);
       continue;
     }
 
@@ -123,6 +128,7 @@ function replayReviews(reviews) {
     if (grade === GRADES.hard) {
       graduated = false;
       graduatedAt = null;
+      reportStep(event);
       continue;
     }
 
@@ -131,6 +137,7 @@ function replayReviews(reviews) {
     if (box >= MAX_BOX) {
       graduated = true;
       graduatedAt = event.at;
+      reportStep(event);
       continue;
     }
 
@@ -138,10 +145,19 @@ function replayReviews(reviews) {
     if (grade === GRADES.easy) box = Math.min(MAX_BOX, box + 2);
     graduated = false;
     graduatedAt = null;
+    reportStep(event);
   }
 
   const last = reviews[reviews.length - 1] || null;
   return { box, graduated, graduatedAt, reviews: reviews.length, lastReview: last };
+}
+
+/** Per-review ladder snapshots, replayed through the scheduler's single box implementation. */
+export function replayReviewLadder(reviews = []) {
+  const ordered = [...reviews].sort((a, b) => String(a?.at || "").localeCompare(String(b?.at || "")));
+  const steps = [];
+  replayReviews(ordered, (step) => steps.push(step));
+  return steps;
 }
 
 export const emptyReviewState = {

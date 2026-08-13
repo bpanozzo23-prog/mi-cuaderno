@@ -451,3 +451,42 @@ describe("Phase 11: review state reaching the detail strip", () => {
     await waitFor(() => expect(screen.getByText(/not in review/)).toBeTruthy());
   });
 });
+
+describe("Phase 23a: event history reaching Biography", () => {
+  it("threads the selected item's events without replaying them at the Cuaderno root", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(window, "scrollTo", { value: vi.fn(), configurable: true });
+    const madrugar = word("madrugar");
+    const events = [
+      {
+        id: "evt:create",
+        type: "create",
+        itemKey: madrugar.id,
+        at: at(10),
+        localDate: "2026-07-10",
+        metadata: null,
+      },
+      {
+        id: "evt:review",
+        type: "review_pass",
+        itemKey: madrugar.id,
+        at: at(20),
+        localDate: "2026-07-20",
+        metadata: { grade: 2 },
+      },
+    ];
+
+    render(
+      <Cuaderno
+        {...propsFor([madrugar], {
+          notebook: { items: [madrugar], events, itemState: new Map(), reload: vi.fn() },
+          selectedId: madrugar.id,
+        })}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: "Historia" }));
+    expect(screen.getByText("First review")).toBeTruthy();
+    expect(screen.getByText("Reached box 2")).toBeTruthy();
+  });
+});
