@@ -71,7 +71,7 @@ L.push("|---|---|---|");
 L.push("| Download + provenance | `pipeline/build/01-download.mjs` | Fetches each source; records size, sha256 and download date; runs the standing source re-checks |");
 L.push("| Index build | `pipeline/build/02-build-index.mjs` | Builds the form→lemma index from `forms[]` and `form_of` records; assigns canonical IDs; merges records sharing word+pos+etymology |");
 L.push("| Frequency ranking | `pipeline/build/03-frequency.mjs` | Aggregates OpenSubtitles token counts into lemma ranks: citation-form-first, with ambiguous inflected tokens allocated in proportion to each candidate's unambiguous evidence |");
-L.push("| Entry build | `pipeline/build/04-entries.mjs` | Builds DictEntry records for the top ~10k lemmas; sorts Mexico-labeled senses first |");
+L.push("| Entry build | `pipeline/build/04-entries.mjs` | Builds DictEntry records for the top ~10k lemmas; sorts Mexico-labeled senses first; keeps the most-specific gloss; shapes sense relations, topics and examples; trims etymologies; and collects dormant related words |");
 L.push("| Examples | `pipeline/build/05-examples.mjs` | Attaches ≤3 Tatoeba es↔en pairs, each with sentence ID and contributor for both sides |");
 L.push("| Conjugations | `pipeline/build/06-conjugate.mjs` | Extracts every table from kaikki's tagged forms; validates them against Jehle cell by cell without shipping any Jehle content |");
 L.push("| Conjugation patterns | `pipeline/build/06b-conjugation-patterns.mjs` | Compares actual paradigms with regular baselines; gates top-100 teaching coverage; precomputes discoverable family membership |");

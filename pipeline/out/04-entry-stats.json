@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-07-31T15:43:44.422Z",
-  "datasetVersion": "kaikki-es-2026-07-25",
+  "generatedAt": "2026-08-13T15:55:00.175Z",
+  "datasetVersion": "kaikki-es-2026-07-25-r4",
   "topN": 10000,
   "curatedWords": [
     "sacar",
@@ -39,6 +39,12 @@
   "sensesPerEntry": 2.11,
   "maxSensesOnOneEntry": 32,
   "entriesWithMexicoSense": 242,
+  "entriesWithEtymology": 9144,
+  "entriesWithEntryRelations": 118,
+  "entriesWithRelatedWords": 7312,
+  "sensesWithRelations": 7123,
+  "sensesWithTopics": 1668,
+  "senseExamples": 4100,
   "posCounts": {
     "verb": 1807,
     "prep": 37,
@@ -220,5 +226,5 @@
       "freqRank": 1031
     }
   ],
-  "entriesFileBytes": 12583901
+  "entriesFileBytes": 16295215
 }

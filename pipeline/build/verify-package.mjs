@@ -279,6 +279,82 @@ check("no shipped conjugation table is attributed to Jehle",
   stores.conjugations.every((t) => t.source !== "jehle" && !/jehle/i.test(t.id || "")),
   `${stores.conjugations.length.toLocaleString()} tables, all kaikki-derived`);
 
+// ---- Phase 24 enrichment -------------------------------------------------
+const stableR3Ids = [
+  "dict:wiktionary-es:sacar:verb",
+  "dict:wiktionary-es:trabajar:verb",
+  "dict:wiktionary-es:gratis:adj",
+  "dict:wiktionary-es:gratis:adv",
+  "dict:wiktionary-es:teléfono:noun",
+];
+check("r4 keeps the exact 10,278-entry identity surface",
+  stores.entries.length === 10278 && stableR3Ids.every((id) => entryById.has(id)),
+  `${stores.entries.length.toLocaleString()} entries`);
+check("r4's additive manifest has an empty alias map",
+  Object.keys(manifest.previousIds || {}).length === 0);
+check("r4 stays below 4.3 MiB gzipped",
+  manifest.bytes.gzipped < 4.3 * 1024 * 1024,
+  mb(manifest.bytes.gzipped));
+
+const trabajar = entryById.get("dict:wiktionary-es:trabajar:verb");
+const gratis = [
+  entryById.get("dict:wiktionary-es:gratis:adj"),
+  entryById.get("dict:wiktionary-es:gratis:adv"),
+].filter(Boolean);
+check("packaged trabajar carries entry-level synonym chambear",
+  trabajar?.synonyms?.includes("chambear"));
+check("packaged gratis carries sense synonym gratuito",
+  gratis.some((entry) => entry.senses.some((sense) => sense.synonyms?.includes("gratuito"))));
+check("packaged gratis etymology is the exact trimmed sentence",
+  gratis.length === 2 && gratis.every((entry) => entry.etymology === "From Latin grātīs."));
+check("no packaged etymology contains an Etymology tree block",
+  stores.entries.every((entry) => !entry.etymology?.includes("Etymology tree")),
+  `${stores.entries.filter((entry) => entry.etymology).length.toLocaleString()} etymologies`);
+
+const telefonoGlosses = entryById.get("dict:wiktionary-es:teléfono:noun")?.senses.map((sense) => sense.gloss) || [];
+check("packaged teléfono subsenses are distinct",
+  telefonoGlosses.some((gloss) => /rotary dial telephone/i.test(gloss)) &&
+    telefonoGlosses.some((gloss) => /mobile phone/i.test(gloss)) &&
+    new Set(telefonoGlosses).size === telefonoGlosses.length);
+
+const invalidSenseExamples = [];
+for (const entry of stores.entries) {
+  const lemma = entry.lemma.trim().normalize("NFC").toLocaleLowerCase("es");
+  for (const sense of entry.senses) {
+    const examples = sense.examples || [];
+    const firstUntranslated = examples.findIndex((example) => example.length === 1);
+    if (examples.length > 2 || examples.some((example) =>
+      !Array.isArray(example) || (example.length !== 1 && example.length !== 2) ||
+      !example[0]?.trim() || example[0].length > 200 ||
+      example[0].trim().normalize("NFC").toLocaleLowerCase("es") === lemma
+    ) || (firstUntranslated !== -1 && examples.slice(firstUntranslated).some((example) => example.length === 2))) {
+      invalidSenseExamples.push(entry.id);
+    }
+  }
+}
+check("packaged sense examples obey the compact filter",
+  invalidSenseExamples.length === 0,
+  invalidSenseExamples.slice(0, 5).join(", "));
+
+const badRelatedWords = stores.entries.filter((entry) => entry.relatedWords && (
+  !Array.isArray(entry.relatedWords) || !entry.relatedWords.length ||
+  entry.relatedWords.some((word) => typeof word !== "string" || !word.trim() ||
+    word.trim().normalize("NFC").toLocaleLowerCase("es") === entry.lemma.trim().normalize("NFC").toLocaleLowerCase("es"))
+));
+check("dormant related-word rows contain only non-self plain strings",
+  badRelatedWords.length === 0,
+  badRelatedWords.slice(0, 5).map((entry) => entry.lemma).join(", "));
+
+const selfRelations = stores.entries.filter((entry) => {
+  const lemma = entry.lemma.trim().normalize("NFC").toLocaleLowerCase("es");
+  return [...(entry.synonyms || []), ...(entry.antonyms || []),
+    ...entry.senses.flatMap((sense) => [...(sense.synonyms || []), ...(sense.antonyms || [])])]
+    .some((word) => word.trim().normalize("NFC").toLocaleLowerCase("es") === lemma);
+});
+check("visible relation lists exclude their own headword",
+  selfRelations.length === 0,
+  selfRelations.slice(0, 5).map((entry) => entry.lemma).join(", "));
+
 console.log(`\n  dataset ${manifest.datasetVersion} · ${mb(manifest.bytes.gzipped)} gzipped over ${manifest.chunks.length} chunks`);
 console.log(`  ${stores.entries.length.toLocaleString()} entries · ${stores.conjugations.length.toLocaleString()} tables · ` +
   `${forms.size.toLocaleString()} forms · ${english.size.toLocaleString()} English words`);

@@ -1,160 +1,172 @@
 {
   "format": "mi-cuaderno-dictionary",
   "formatVersion": 1,
-  "datasetVersion": "kaikki-es-2026-07-25-r3",
-  "generatedAt": "2026-08-12T22:23:25.163Z",
-  "path": "kaikki-es-2026-07-25-r3",
+  "datasetVersion": "kaikki-es-2026-07-25-r4",
+  "generatedAt": "2026-08-13T15:56:03.895Z",
+  "path": "kaikki-es-2026-07-25-r4",
   "counts": {
     "entries": 10278,
     "senses": 21680,
     "examples": 28210,
+    "senseExamples": 4100,
+    "etymologies": 9144,
+    "entriesWithRelatedWords": 7312,
     "conjugations": 1771,
     "forms": 223500,
-    "englishWords": 16063,
+    "englishWords": 16138,
     "formShards": 326,
-    "englishShards": 330,
+    "englishShards": 331,
     "patternFamilies": 30
   },
   "bytes": {
-    "total": 23898727,
-    "gzipped": 3450527
+    "total": 26216439,
+    "gzipped": 4262074
   },
   "chunks": [
     {
       "file": "chunk-000.json",
-      "bytes": 1809148,
-      "gzipBytes": 527956,
-      "sha256": "16d9bedb161c98eb0328058e63901c6ff9cdce9c86bee7ed5ce68e4df0c1e033",
+      "bytes": 1817237,
+      "gzipBytes": 570499,
+      "sha256": "804b2ea841a0ac102908a6ccbf0c21f4896ec7dcb3fc18d9dcc809b33303ca01",
       "rows": {
-        "entries": 2408
+        "entries": 1448
       }
     },
     {
       "file": "chunk-001.json",
-      "bytes": 1809514,
-      "gzipBytes": 547428,
-      "sha256": "84700c26a1c59b4879613b423ed7829cdafca4d43a34b1f98923b3b0b43a48ce",
+      "bytes": 1816794,
+      "gzipBytes": 572241,
+      "sha256": "e59a6d8d63f325db5342a0e5b745f11227df7ef33968f0a7bd5a9971e85b4761",
       "rows": {
-        "entries": 2573
+        "entries": 1840
       }
     },
     {
       "file": "chunk-002.json",
-      "bytes": 1809604,
-      "gzipBytes": 547745,
-      "sha256": "4d650a863677b5a8c8b560321daeb5c6e4d2a0a9915a83f971b507ac8d076823",
+      "bytes": 1817234,
+      "gzipBytes": 569956,
+      "sha256": "807ff33d8378c5f59c6778858f48849fef26a1876327f79f9e0fc365174a5af9",
       "rows": {
-        "entries": 2724
+        "entries": 2052
       }
     },
     {
       "file": "chunk-003.json",
-      "bytes": 1813142,
-      "gzipBytes": 494103,
-      "sha256": "a9cac9dfe150759075757ef1ce59a1866e237b24c82da177a72a72c09a4b0fec",
+      "bytes": 1816179,
+      "gzipBytes": 563770,
+      "sha256": "43cec4b4ede00684bc11630019f7a1eb5e8238644247d5861583eb88cb935863",
       "rows": {
-        "entries": 2573,
-        "conjugations": 142
+        "entries": 2225
       }
     },
     {
       "file": "chunk-004.json",
-      "bytes": 1840701,
-      "gzipBytes": 212643,
-      "sha256": "ba5ae9203541f3174bf1734b54a0664258e2be498116351f9c3aa7713d5a50e6",
+      "bytes": 1816567,
+      "gzipBytes": 560390,
+      "sha256": "2ebe952e151bc1e2814897a824d6591e67cd314b1e545031a29f9c33c9cbe850",
       "rows": {
-        "conjugations": 951
+        "entries": 2434
       }
     },
     {
       "file": "chunk-005.json",
-      "bytes": 1701891,
-      "gzipBytes": 173000,
-      "sha256": "0c029979bf3300a9fd9bf250616a7ea5cea2e19edd77c05da7e0f0b3328ba08c",
+      "bytes": 1838637,
+      "gzipBytes": 250066,
+      "sha256": "bcd7ddc24e3e7cf130e4bcb378a1f3f92aaf486b5b9f200a1866bef6dc687cbf",
       "rows": {
-        "conjugations": 678,
-        "formShards": 3
+        "entries": 279,
+        "conjugations": 857
       }
     },
     {
       "file": "chunk-006.json",
-      "bytes": 996756,
-      "gzipBytes": 62374,
-      "sha256": "2d6711a0901a5b76dec5f13228d18de10d9c42ec299426e2530e07257ad07ba7",
+      "bytes": 1804771,
+      "gzipBytes": 205327,
+      "sha256": "afc370c097a8f3e8db50bd73fa2eb752eb11c9a33b14449c3bf335ec2d888066",
       "rows": {
-        "formShards": 14
+        "conjugations": 914,
+        "formShards": 1
       }
     },
     {
       "file": "chunk-007.json",
+      "bytes": 1355183,
+      "gzipBytes": 82630,
+      "sha256": "be105ffc2eea2dd69f81f811957f95187d084be59c686a438d682272cf41c13d",
+      "rows": {
+        "formShards": 16
+      }
+    },
+    {
+      "file": "chunk-008.json",
       "bytes": 1643108,
-      "gzipBytes": 88615,
-      "sha256": "b7ae7e9a43df7cc7199f40de18c3235955baecd5daa2dffac6f8f469b9c937d8",
+      "gzipBytes": 88614,
+      "sha256": "28445fc9ab7c31e32b8dda7b4e9e00db6aa9b94b38ab1970ea5848f2ddd130d2",
       "rows": {
         "formShards": 25
       }
     },
     {
-      "file": "chunk-008.json",
-      "bytes": 1562865,
-      "gzipBytes": 91002,
-      "sha256": "cd55c734972b3e05244d97c02af972cbd508f7b2624ed58323829627f62dd604",
-      "rows": {
-        "formShards": 22
-      }
-    },
-    {
       "file": "chunk-009.json",
-      "bytes": 1774112,
-      "gzipBytes": 102759,
-      "sha256": "313bf160028e4a516b2b28e57710495065e1c5ffadde34d66fe773f62e67a251",
+      "bytes": 1562865,
+      "gzipBytes": 91003,
+      "sha256": "28863ef0fb32ee1a7e41119aee83685810b503b034201a84f2d001a9f5051066",
       "rows": {
         "formShards": 22
       }
     },
     {
       "file": "chunk-010.json",
+      "bytes": 1774113,
+      "gzipBytes": 102761,
+      "sha256": "177d5ce005327e9606a8b2f25dfcf7f70181ea40f9b84f430505b670f9d227f7",
+      "rows": {
+        "formShards": 22
+      }
+    },
+    {
+      "file": "chunk-011.json",
       "bytes": 1544183,
-      "gzipBytes": 93975,
-      "sha256": "0d47c54476d3839df6b5c305bec2e943381819886abcf4f7ba93b14d09abc3f7",
+      "gzipBytes": 93974,
+      "sha256": "2dcb82d64ae6e717d849c7ae5ea3c790654a569925e96e67816a02feb744b7e9",
       "rows": {
         "formShards": 48
       }
     },
     {
-      "file": "chunk-011.json",
+      "file": "chunk-012.json",
       "bytes": 1787648,
-      "gzipBytes": 98048,
-      "sha256": "bb09daa7ea946ef78b93b0b371a98b1bd05c3c27d4e69393dd7890cf7d44015d",
+      "gzipBytes": 98047,
+      "sha256": "89e36e185702a88942148aec4f7ddfeeef873b3d88f38a86688e4216b92d7cd3",
       "rows": {
         "formShards": 28
       }
     },
     {
-      "file": "chunk-012.json",
+      "file": "chunk-013.json",
       "bytes": 1786064,
-      "gzipBytes": 105441,
-      "sha256": "dded031ee1b7fe168987097ae76daf49f52ba5366cd63e0f50f31e0aee0cc6ff",
+      "gzipBytes": 105442,
+      "sha256": "c75d7522aa0700c992e809c3c554bff5d45b876f54ef02a54892f44b81e07f83",
       "rows": {
         "formShards": 164
       }
     },
     {
-      "file": "chunk-013.json",
-      "bytes": 1805217,
-      "gzipBytes": 272041,
-      "sha256": "90181d18a458506b124efab4694c5df1d4aaae7a7e9f1ae67d2cca391c2fd0a2",
+      "file": "chunk-014.json",
+      "bytes": 1803236,
+      "gzipBytes": 271474,
+      "sha256": "fd9edf87add15c7592f7ebbd4281bb8bf5a1f93faa0c7205abd314b63dc392f1",
       "rows": {
-        "englishShards": 134
+        "englishShards": 131
       }
     },
     {
-      "file": "chunk-014.json",
-      "bytes": 214774,
-      "gzipBytes": 33397,
-      "sha256": "f2522d85e498a98dd01a2fab6ee2e7587d605beb7dfa71b0446fc63727a48246",
+      "file": "chunk-015.json",
+      "bytes": 232620,
+      "gzipBytes": 35880,
+      "sha256": "f9472815d89e5fe54f4dc4560696b3d9c2f9b9c522aeb7759a0535fe2b0ddb78",
       "rows": {
-        "englishShards": 196,
+        "englishShards": 200,
         "patternFamilies": 30
       }
     }
@@ -170,7 +182,11 @@
         "url": "https://kaikki.org/dictionary/Spanish/",
         "provides": [
           "entries",
-          "conjugations"
+          "conjugations",
+          "sense relations and topics",
+          "sense-attached examples",
+          "etymologies",
+          "related words"
         ]
       },
       {

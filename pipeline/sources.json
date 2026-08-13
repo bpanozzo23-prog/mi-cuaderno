@@ -1,7 +1,7 @@
 {
   "_comment": "Source registry for the Phase 2 build pipeline. License text is quoted verbatim from the URL in licenseVerifiedAt, checked on the date given. 01-download.mjs adds download date, byte size and sha256 to raw/_manifest.json; 08-report.mjs merges both into DATA_SOURCES.md (brief section 4).",
-  "datasetVersion": "kaikki-es-2026-07-25-r3",
-  "datasetVersionNote": "kaikki extraction date; upstream enwiktionary dump 2026-07-06. Bump this whenever the kaikki file is re-downloaded — it is the version the app shows in About and the directory name under public/dict/. A trailing -rN marks a rebuild from the SAME sources with different build logic; r2 made every conjugation table kaikki-derived, and r3 adds package-verified conjugation teaching patterns plus precomputed discovery families.",
+  "datasetVersion": "kaikki-es-2026-07-25-r4",
+  "datasetVersionNote": "kaikki extraction date; upstream enwiktionary dump 2026-07-06. Bump this whenever the kaikki file is re-downloaded — it is the version the app shows in About and the directory name under public/dict/. A trailing -rN marks a rebuild from the SAME sources with different build logic; r2 made every conjugation table kaikki-derived, r3 added package-verified conjugation teaching patterns plus precomputed discovery families, and r4 enriches senses with relations, topics and Wiktionary examples while adding first-sentence etymology and dormant related-word data.",
   "sources": [
     {
       "key": "kaikki-es",
@@ -20,7 +20,7 @@
         "expectPattern": "DEPRECATED",
         "why": "Standing re-check (spike report, decision 2): confirm at each refresh whether kaikki still serves this file and still marks it deprecated."
       },
-      "provides": ["entries", "conjugations"]
+      "provides": ["entries", "conjugations", "sense relations and topics", "sense-attached examples", "etymologies", "related words"]
     },
     {
       "key": "freq-es",

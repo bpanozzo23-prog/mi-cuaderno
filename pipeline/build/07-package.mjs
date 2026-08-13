@@ -41,11 +41,27 @@ const data = readJson(raw("_entries-final.json"));
 const conjugations = readJson(raw("_conjugations.json"));
 const conjugationPatterns = readJson(raw("_conjugation-pattern-families.json"));
 const entries = data.entries;
+const manifestPath = repo("public", "dict", "manifest.json");
+const previous = fs.existsSync(manifestPath) ? readJson(manifestPath) : null;
 
 if (conjugationPatterns.datasetVersion !== datasetVersion) {
   throw new Error(
     `conjugation-pattern sweep is for ${conjugationPatterns.datasetVersion}; run 06b for ${datasetVersion} before packaging`
   );
+}
+
+if (previous?.datasetVersion === "kaikki-es-2026-07-25-r3" && datasetVersion === "kaikki-es-2026-07-25-r4") {
+  const previousEntryIds = [];
+  for (const chunk of previous.chunks || []) {
+    const parsed = readJson(repo("public", "dict", previous.path, chunk.file));
+    previousEntryIds.push(...(parsed.stores?.entries || []).map((entry) => entry.id));
+  }
+  const before = [...new Set(previousEntryIds)].sort();
+  const after = [...new Set(entries.map((entry) => entry.id))].sort();
+  if (JSON.stringify(before) !== JSON.stringify(after)) {
+    throw new Error(`r4 is additive but its ${after.length} ids do not exactly match the ${before.length} manifest-selected r3 ids`);
+  }
+  console.log(`  identity gate: all ${after.length.toLocaleString()} r4 ids exactly match manifest-selected r3`);
 }
 
 const outDir = repo("public", "dict", datasetVersion);
@@ -82,9 +98,17 @@ const shipEntry = (e) => {
     const sense = { gloss: s.gloss };
     if (s.regionLabels.length) sense.regionLabels = s.regionLabels;
     if (s.labels.length) sense.labels = s.labels;
+    if (s.synonyms?.length) sense.synonyms = s.synonyms;
+    if (s.antonyms?.length) sense.antonyms = s.antonyms;
+    if (s.topics?.length) sense.topics = s.topics;
+    if (s.examples?.length) sense.examples = s.examples;
     return sense;
   });
   if (e.examples.length) row.examples = e.examples.map(shipExample);
+  if (e.synonyms?.length) row.synonyms = e.synonyms;
+  if (e.antonyms?.length) row.antonyms = e.antonyms;
+  if (e.etymology) row.etymology = e.etymology;
+  if (e.relatedWords?.length) row.relatedWords = e.relatedWords;
   return row;
 };
 
@@ -237,16 +261,18 @@ flush();
  * diffing entry ids against the previous manifest, so personal items attached to an entry
  * that changed id can be migrated instead of orphaned.
  */
-const manifestPath = repo("public", "dict", "manifest.json");
-const previous = fs.existsSync(manifestPath) ? readJson(manifestPath) : null;
 const previousIds = {};
 if (previous && previous.datasetVersion !== datasetVersion) {
-  console.log(`  previous dataset ${previous.datasetVersion} found — alias map left empty (id diffing lands with the first real refresh)`);
+  console.log(`  previous dataset ${previous.datasetVersion} found — alias map stays empty after the additive identity gate`);
 }
 
 const totalBytes = chunks.reduce((n, c) => n + c.bytes, 0);
 const totalGzip = chunks.reduce((n, c) => n + c.gzipBytes, 0);
 const exampleCount = entries.reduce((n, e) => n + e.examples.length, 0);
+const senseExampleCount = entries.reduce(
+  (n, e) => n + e.senses.reduce((total, sense) => total + (sense.examples?.length || 0), 0),
+  0
+);
 
 const manifest = {
   format: "mi-cuaderno-dictionary",
@@ -258,6 +284,9 @@ const manifest = {
     entries: shippedEntries.length,
     senses: entries.reduce((n, e) => n + e.senses.length, 0),
     examples: exampleCount,
+    senseExamples: senseExampleCount,
+    etymologies: shippedEntries.filter((entry) => entry.etymology).length,
+    entriesWithRelatedWords: shippedEntries.filter((entry) => entry.relatedWords?.length).length,
     conjugations: conjugationRows.length,
     forms: formToIds.size,
     englishWords: englishToIds.size,
@@ -317,6 +346,11 @@ const report = {
     assignedEntries: shippedEntries.filter((entry) => entry.conjugationPatternIds?.length).length,
     discoverableFamilies: patternFamilies.length,
   },
+  enrichment: {
+    etymologies: manifest.counts.etymologies,
+    senseExamples: manifest.counts.senseExamples,
+    entriesWithRelatedWords: manifest.counts.entriesWithRelatedWords,
+  },
 };
 writeJson(out("07-package-report.json"), report);
 
@@ -327,6 +361,9 @@ for (const c of chunks) {
 console.log(`\n  entries              ${manifest.counts.entries.toLocaleString()}`);
 console.log(`  senses               ${manifest.counts.senses.toLocaleString()}`);
 console.log(`  examples             ${manifest.counts.examples.toLocaleString()}`);
+console.log(`  sense examples       ${manifest.counts.senseExamples.toLocaleString()}`);
+console.log(`  etymologies          ${manifest.counts.etymologies.toLocaleString()}`);
+console.log(`  related-word rows    ${manifest.counts.entriesWithRelatedWords.toLocaleString()}`);
 console.log(`  conjugation tables   ${manifest.counts.conjugations.toLocaleString()}`);
 console.log(`  searchable forms     ${manifest.counts.forms.toLocaleString()} in ${manifest.counts.formShards} shards`);
 console.log(`  english words        ${manifest.counts.englishWords.toLocaleString()} in ${manifest.counts.englishShards} shards`);

@@ -19,6 +19,14 @@ import { eachRecord, eachJsonl, raw, out, writeJson, readJson, mb, step, done, P
 import { normalize, canonicalId, lemmaKey, conjugationId } from "../lib/ids.mjs";
 import { isUsablePos } from "../lib/pos.mjs";
 import { parseCsvObjects } from "../lib/csv.mjs";
+import {
+  mostSpecificGloss,
+  relatedWordsForRecord,
+  relationWords,
+  relationWordsExceptLemma,
+  shapeSenseExamples,
+  trimEtymology,
+} from "../lib/dictionaryEnrichment.mjs";
 
 const started = step("04 · build dictionary entries");
 
@@ -102,17 +110,32 @@ const regionRank = (labels) => {
   return 4; // Spain-only and further afield
 };
 
-const shapeSense = (s) => {
+const shapeSense = (s, lemma) => {
   const all = [...(s.tags || []), ...(s.raw_tags || [])];
   const regionLabels = all.filter(
     (t) => MEXICO.test(t) || INCLUDES_MEXICO.test(t) || OTHER_LATAM.test(t) || SPAIN.test(t)
   );
   const labels = all.filter((t) => KEPT_LABELS.has(t));
-  return {
-    gloss: (s.glosses || [])[0] || "",
+  const shaped = {
+    gloss: mostSpecificGloss(s.glosses),
     regionLabels: [...new Set(regionLabels)],
     labels: [...new Set(labels)],
   };
+  const synonyms = relationWordsExceptLemma(s.synonyms, lemma);
+  const antonyms = relationWordsExceptLemma(s.antonyms, lemma);
+  const topics = relationWords(s.topics);
+  const examples = shapeSenseExamples(s.examples, lemma);
+  if (synonyms.length) shaped.synonyms = synonyms;
+  if (antonyms.length) shaped.antonyms = antonyms;
+  if (topics.length) shaped.topics = topics;
+  if (examples.length) shaped.examples = examples;
+  return shaped;
+};
+
+const mergeOptionalWords = (target, field, incoming) => {
+  const merged = relationWords([...(target[field] || []), ...incoming]);
+  if (merged.length) target[field] = merged;
+  else delete target[field];
 };
 
 const genderOf = (rec) => {
@@ -144,8 +167,14 @@ await eachRecord(
     const key = lemmaKey(word, pos);
     if (!wanted.has(key) && !curatedSet.has(word)) return;
 
-    const senses = (rec.senses || []).filter((s) => !isInflectionSense(s)).map(shapeSense).filter((s) => s.gloss);
+    const sourceSenses = (rec.senses || []).filter((s) => !isInflectionSense(s));
+    const senses = sourceSenses.map((sense) => shapeSense(sense, word)).filter((sense) => sense.gloss);
     if (!senses.length) return;
+
+    const etymology = trimEtymology(rec.etymology_text);
+    const synonyms = relationWordsExceptLemma(rec.synonyms, word);
+    const antonyms = relationWordsExceptLemma(rec.antonyms, word);
+    const relatedWords = relatedWordsForRecord(rec, sourceSenses);
 
     const id = canonicalId(word, pos, rec.etymology_number ?? null);
     const existing = entries.get(id);
@@ -153,6 +182,10 @@ await eachRecord(
       existing.senses.push(...senses);
       existing.mergedFromRecords++;
       if (!existing.gender) existing.gender = genderOf(rec);
+      if (!existing.etymology && etymology) existing.etymology = etymology;
+      mergeOptionalWords(existing, "synonyms", synonyms);
+      mergeOptionalWords(existing, "antonyms", antonyms);
+      mergeOptionalWords(existing, "relatedWords", relatedWords);
       return;
     }
 
@@ -171,6 +204,10 @@ await eachRecord(
       etymologyNumber: rec.etymology_number ?? null,
       mergedFromRecords: 1,
       searchForms: [...(formsFor.get(key) || new Set([normalize(word)]))].sort(),
+      ...(etymology ? { etymology } : {}),
+      ...(synonyms.length ? { synonyms } : {}),
+      ...(antonyms.length ? { antonyms } : {}),
+      ...(relatedWords.length ? { relatedWords } : {}),
     });
   },
   { progressEvery: 100000, label: "kaikki " }
@@ -251,6 +288,12 @@ const stats = {
   sensesPerEntry: +(senseTotal / list.length).toFixed(2),
   maxSensesOnOneEntry: Math.max(...list.map((e) => e.senses.length)),
   entriesWithMexicoSense: list.filter((e) => e.senses.some((s) => s.regionLabels.some((l) => MEXICO.test(l)))).length,
+  entriesWithEtymology: list.filter((e) => e.etymology).length,
+  entriesWithEntryRelations: list.filter((e) => e.synonyms?.length || e.antonyms?.length).length,
+  entriesWithRelatedWords: list.filter((e) => e.relatedWords?.length).length,
+  sensesWithRelations: list.reduce((n, e) => n + e.senses.filter((s) => s.synonyms?.length || s.antonyms?.length).length, 0),
+  sensesWithTopics: list.reduce((n, e) => n + e.senses.filter((s) => s.topics?.length).length, 0),
+  senseExamples: list.reduce((n, e) => n + e.senses.reduce((total, s) => total + (s.examples?.length || 0), 0), 0),
   posCounts,
   verbs,
   verbsWithJehleConjugation: verbsWithJehle,
@@ -264,6 +307,11 @@ console.log(`\n  entries built          ${list.length.toLocaleString()}  (${stat
 console.log(`    senses               ${senseTotal.toLocaleString()}  (${stats.sensesPerEntry} per entry, max ${stats.maxSensesOnOneEntry})`);
 console.log(`    with gender          ${stats.entriesWithGender.toLocaleString()}`);
 console.log(`    with a Mexico sense  ${stats.entriesWithMexicoSense.toLocaleString()}`);
+console.log(`    with etymology       ${stats.entriesWithEtymology.toLocaleString()}`);
+console.log(`    with sense relations ${stats.sensesWithRelations.toLocaleString()}`);
+console.log(`    with topics          ${stats.sensesWithTopics.toLocaleString()}`);
+console.log(`    sense examples       ${stats.senseExamples.toLocaleString()}`);
+console.log(`    with related words   ${stats.entriesWithRelatedWords.toLocaleString()}`);
 console.log(`  conjugations`);
 console.log(`    verbs in dictionary  ${verbs.toLocaleString()}`);
 console.log(`    matched to Jehle     ${verbsWithJehle.toLocaleString()}`);

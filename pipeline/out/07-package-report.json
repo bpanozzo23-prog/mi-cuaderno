@@ -1,31 +1,39 @@
 {
-  "generatedAt": "2026-08-12T22:23:25.166Z",
-  "datasetVersion": "kaikki-es-2026-07-25-r3",
-  "outputDir": "public/dict/kaikki-es-2026-07-25-r3",
+  "generatedAt": "2026-08-13T15:56:03.902Z",
+  "datasetVersion": "kaikki-es-2026-07-25-r4",
+  "outputDir": "public/dict/kaikki-es-2026-07-25-r4",
   "chunkBudgetRawBytes": 1800000,
-  "chunks": 15,
+  "chunks": 16,
   "counts": {
     "entries": 10278,
     "senses": 21680,
     "examples": 28210,
+    "senseExamples": 4100,
+    "etymologies": 9144,
+    "entriesWithRelatedWords": 7312,
     "conjugations": 1771,
     "forms": 223500,
-    "englishWords": 16063,
+    "englishWords": 16138,
     "formShards": 326,
-    "englishShards": 330,
+    "englishShards": 331,
     "patternFamilies": 30
   },
   "bytes": {
-    "rawTotal": 23898727,
-    "gzipTotal": 3450527,
-    "gzipHuman": "3.3 MB",
-    "perEntryGzip": 336,
-    "largestChunkGzip": 547745
+    "rawTotal": 26216439,
+    "gzipTotal": 4262074,
+    "gzipHuman": "4.1 MB",
+    "perEntryGzip": 415,
+    "largestChunkGzip": 572241
   },
   "budgetNote": "Phase 2 plan budgeted ≤ ~3.5 MB gzipped; the spike measured 2.8 MB before the English index.",
   "englishIndexCappedTokens": 1,
   "conjugationPatterns": {
     "assignedEntries": 600,
     "discoverableFamilies": 30
+  },
+  "enrichment": {
+    "etymologies": 9144,
+    "senseExamples": 4100,
+    "entriesWithRelatedWords": 7312
   }
 }
