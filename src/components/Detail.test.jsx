@@ -584,6 +584,57 @@ describe("linking an existing item", () => {
   });
 });
 
+describe("same-meaning proposals", () => {
+  it("creates no authority until explicit confirmation, then becomes one ordinary Similar meaning edge", async () => {
+    const user = userEvent.setup();
+    const focal = await createItem(newLexical({
+      term: "enojado",
+      meanings: [newMeaning({ gloss: "to be angry" })],
+    }));
+    const candidate = await createItem(newLexical({
+      term: "molesto",
+      meanings: [newMeaning({ gloss: "angry" })],
+    }));
+    const open = vi.fn();
+    renderDetail(focal, open, undefined, [focal, candidate]);
+
+    const proposalHeading = await screen.findByText("You also know…");
+    expect(screen.getByText("Shared meaning: angry")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /dismiss/i })).toBeNull();
+    expect(
+      proposalHeading.compareDocumentPosition(screen.getByText("Connections"))
+      & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect((await getItem(focal.id)).linkedKeys).toEqual([]);
+    expect((await getItem(candidate.id)).linkedKeys).toEqual([]);
+    await waitFor(async () => {
+      expect((await allEvents()).some((event) => event.type === EVENT_TYPES.view)).toBe(true);
+    });
+    const detailEvents = await allEvents();
+
+    await user.click(screen.getByRole("button", { name: "Open molesto" }));
+    expect(open).toHaveBeenCalledWith(candidate.id);
+
+    await user.click(screen.getByRole("button", { name: "Link molesto as Similar meaning" }));
+
+    await waitFor(async () => {
+      expect((await getItem(focal.id)).linkedKeys).toEqual([candidate.id]);
+    });
+    expect((await getItem(focal.id)).linkAnnotations).toEqual([{
+      targetKey: candidate.id,
+      type: "similar_meaning",
+      subject: "owner",
+      note: "",
+    }]);
+    expect((await getItem(candidate.id)).linkedKeys).toEqual([]);
+    expect(await allEvents()).toEqual(detailEvents);
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: "Link molesto as Similar meaning" })).toBeNull();
+    });
+    expect(screen.getByText("Similar meaning")).toBeTruthy();
+  });
+});
+
 describe("Phase 11: the per-item stats strip", () => {
   async function openStats() {
     const user = userEvent.setup();

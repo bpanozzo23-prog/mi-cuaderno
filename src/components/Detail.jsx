@@ -970,7 +970,17 @@ function StandardDetail({
         </>
       )}
 
-      {!isPage && <KnowledgeConsolidation item={item} items={items} onOpen={onOpen} />}
+      {!isPage && (
+        <KnowledgeConsolidation
+          item={item}
+          items={items}
+          onOpen={onOpen}
+          onAcceptSimilar={async (targetId) => {
+            await linkItems(item.id, targetId, { type: "similar_meaning" });
+            await onChanged();
+          }}
+        />
+      )}
 
       <SectionTitle>Connections</SectionTitle>
 
