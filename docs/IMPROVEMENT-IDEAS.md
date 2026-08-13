@@ -67,7 +67,6 @@ Useful information to retain for each idea:
 | Time-boxed mixed session | 2026-08-12 | Captured | After enough real data exists for "weakest" selections to mean something |
 | Review forecast | 2026-08-12 | Captured | Low priority per owner; a small derived Estadísticas addition |
 | Confusion-pair drills | 2026-08-12 | Captured | Any time; the annotations are already curated (promoted out of Learning depth history) |
-| Android share target | 2026-08-11 | Captured | Any time; independent of other work and needs no schema change |
 | Dictation cards | 2026-08-11 | Captured | After real use of the picture face settles the face-priority pattern |
 | Non-verb grammar drills | 2026-08-11 | Captured | After Diario AI feedback accumulates evidence of which confusions recur |
 | Frequency coverage | 2026-08-11 | Captured | Any time; a derived Estadísticas view over existing `freqRank` data |
@@ -91,6 +90,7 @@ Useful information to retain for each idea:
 | Phrase↔word containment links | 2026-08-12 | Phase 22a, deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
 | Same-meaning clustering | 2026-08-12 | Phase 22b–22c, deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
 | "Conjugates like" verb families | 2026-08-12 | Phase 21, deployed | `PHASE-21-DIRECTION.md`, `PHASE-21-REPORT.md` |
+| Android share target | 2026-08-11 | 2026-08-13 increment, awaiting deploy | 2026-08-13 entries in `DECISIONS.md` |
 | English→Spanish lookup | 2026-08-12 | Phase 2e, deployed (predated the capture) | `PHASE-2-REPORT.md`, 2026-07-31 entries in `DECISIONS.md` |
 | Global tag management | 2026-08-10 | Phase 20, deployed | `PHASE-20-DIRECTION.md`, `PHASE-20-REPORT.md` |
 | Markdown blank-line spacing | 2026-08-10 | Phase 19 increment, deployed | Phase 19 entries in `DECISIONS.md` |
@@ -413,8 +413,9 @@ resolves inflected forms to their lemmas, and cross-tab Back navigation already 
 and search context that led to an entry, so returning to the paragraph after a lookup is solved
 behavior. This is the lightweight sibling of the uncaptured assisted-reading idea — one word at
 the moment of curiosity rather than annotating a whole text — and shipping it would generate
-evidence for or against building assisted reading later. The Android share target (below) is the
-same capture instinct pointed at text *outside* the app; this handles text already inside it.
+evidence for or against building assisted reading later. The Android share target (implemented
+2026-08-13) is the same capture instinct pointed at text *outside* the app; this handles text
+already inside it.
 
 #### Risks and tradeoffs
 
@@ -519,8 +520,8 @@ implementation detail is that shortcut URLs must respect the `/mi-cuaderno/` bas
 
 #### Expected owner value
 
-Shortens the path to the actions done daily. The Android share target idea (below) covers content
-coming *into* the app; this covers reaching a chosen screen faster.
+Shortens the path to the actions done daily. The Android share target (implemented 2026-08-13)
+covers content coming *into* the app; this covers reaching a chosen screen faster.
 
 #### Evidence needed
 
@@ -748,61 +749,6 @@ could share an engine but differ in data source and in what "curation" means.
 
 - How many `often_confused`/`contrast` annotations actually exist in the real notebook — the
   feature starts mattering at perhaps a dozen pairs.
-
----
-
-### Android share target
-
-- **Date added:** 2026-08-11
-- **Status:** Captured
-- **Origin:** Brainstorming session on unconsidered possibilities; not yet requested from real friction
-- **Potential data impact:** None; a manifest and routing change only, no schema, storage or backup change
-
-#### Description and current context
-
-An installed PWA can register as an Android share target (`share_target` in the web app manifest).
-Text or a URL highlighted in any other app — a browser article, a subtitle, a chat message — could
-be shared straight into Mi Cuaderno instead of retyped. Today every encounter made away from the
-app must be remembered and re-entered by hand, which is exactly where capture is most likely to be
-lost. This moves capture to where encounters actually happen.
-
-#### Potential options
-
-1. **Shared text → lookup.** A shared word or phrase lands in the existing two-layer search
-   (dictionary plus personal), from which the normal save/attach flows already exist.
-2. **Shared URL → Source page.** A shared link prefills Source-page creation (URL into the existing
-   Source identity field), using the established family-first creation flow.
-3. **Both, dispatched by content.** A URL routes to Source creation, anything else to lookup, with
-   a small chooser when ambiguous.
-
-#### Expected owner value
-
-- Removes the retype-it-later step for vocabulary met outside the app, where most new Spanish is
-  actually encountered.
-- Makes Source pages cheaper to start at the moment of consumption rather than after.
-
-#### Risks and tradeoffs
-
-- Android/Chrome-specific behavior; the share sheet entry exists only while the PWA is installed.
-- The app is served under `/mi-cuaderno/`, so the share-target action URL and service-worker
-  routing must respect the base path.
-- A share arrives with no context; the receiving screen must degrade gracefully when the shared
-  text is long prose rather than a word or phrase.
-- Nothing may be saved implicitly: a share opens a screen, and every write stays behind the
-  existing explicit save actions.
-
-#### Evidence needed
-
-- How often encounters currently die between another app and the notebook — the owner's sense of
-  lost captures is sufficient; this does not need instrumentation.
-- Whether shared content is mostly single words, phrases, or article URLs, which decides how much
-  dispatch logic option 3 needs.
-
-#### Questions for a future discussion
-
-- Should a shared URL ever land anywhere other than Source creation (e.g., a Media link on an
-  existing page)?
-- What should long shared prose do — open lookup with the first word, or offer a picker?
 
 ---
 
@@ -1236,6 +1182,28 @@ Compressed summaries. The authoritative records are `DECISIONS.md` and each phas
 direction/report documents; each entry's original full reasoning is preserved in this file's git
 history. Still-open evidence and questions are kept here in full.
 
+### Android share target
+
+- **Date added:** 2026-08-11 — **Status:** Implemented — 2026-08-13 increment, awaiting deploy
+- **Records:** 2026-08-13 entries in `DECISIONS.md`
+
+The installed PWA registers as an Android share target (`share_target` in the manifest, GET).
+Dispatch is by content (owner-chosen option 3): a shared URL — including text that is exactly one
+URL, Chrome's sharing shape — opens New Source notebook creation with the link and shared title
+prefilled and no format preselected; any other shared text, long prose included, lands whole in
+the two-layer search box for the owner to trim. The app still has no URL router: startup consumes
+the `share_*` params into the ordinary in-memory trail, then strips them from the address bar so
+refresh replays nothing. Nothing is saved implicitly; every write stays behind the existing
+explicit create actions.
+
+Still-open evidence: the real-device check — how Chrome on Android presents the share-sheet entry
+— is possible only after a deploy, since the entry exists only while the PWA is installed. Whether
+shared content is mostly words, phrases, or URLs (the doc's original question) can now be answered
+by real use. A shared URL landing anywhere other than Source creation (e.g., a Media link on an
+existing page) remains a later owner decision.
+
+---
+
 ### The word's biography
 
 - **Date added:** 2026-08-12 — **Status:** Implemented — Phase 23a, deployed
@@ -1534,6 +1502,14 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-13 — Android share target implemented and verified locally; moves to Implemented
+  history.** The owner approved dispatch-by-content (option 3) with long prose landing whole in
+  the search box. Manifest `share_target` (GET), a pure dispatch lib, and startup consumption of
+  the params into the in-memory trail; the entry is compressed here with `DECISIONS.md` as the
+  authoritative record. Deploy and the real-device share-sheet check remain open, so the index row
+  reads "awaiting deploy". Both cross-references (Select text to look up, PWA app shortcuts) now
+  point at the implementation instead of "below".
 
 - **2026-08-13 — Phase 24 deployed; the unused-field census moves to Implemented history.** The
   owner-approved push deployed r4 at `da547fd` through successful Pages run 31723115634. The live

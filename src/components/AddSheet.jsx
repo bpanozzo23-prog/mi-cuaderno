@@ -102,7 +102,9 @@ export default function AddSheet({
   const [formChoice, setFormChoice] = useState(initialForm === "phrase" || initialForm === "word" ? initialForm : null);
   const form = formChoice ?? (term.trim().includes(" ") ? "phrase" : "word");
   const [pos, setPos] = useState("");
-  const [title, setTitle] = useState("");
+  // A shared-in URL (src/lib/shareTarget.js) arrives with the page title and link already
+  // known; prefilling is all the share does — creating stays behind the button below.
+  const [title, setTitle] = useState(seed.title || "");
   const [body, setBody] = useState("");
   const [pageDate, setPageDate] = useState("");
   const [groupNames, setGroupNames] = useState(() =>
@@ -114,7 +116,7 @@ export default function AddSheet({
   const [sourceFormat, setSourceFormat] = useState(seed.sourceFormat || "");
   const [sourceCreator, setSourceCreator] = useState("");
   const [sourceScope, setSourceScope] = useState("");
-  const [sourceUrl, setSourceUrl] = useState("");
+  const [sourceUrl, setSourceUrl] = useState(seed.sourceUrl || "");
   const [sourceContext, setSourceContext] = useState("");
   const [grammarKeyIdea, setGrammarKeyIdea] = useState("");
   const [tags, setTags] = useState([]);

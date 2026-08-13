@@ -10,6 +10,7 @@ import Ajustes from "./components/Ajustes.jsx";
 import Wander from "./components/Wander.jsx";
 import { useNotebook } from "./useNotebook.js";
 import { isJournalEntry } from "./lib/journal.js";
+import { parseSharePayload } from "./lib/shareTarget.js";
 import { isDictKey } from "./db/ref/entries.js";
 import { getPinnedPageIds, setPagePinned } from "./db/collections.js";
 import { getPinnedLexicalIds, setLexicalPinned } from "./db/items.js";
@@ -42,15 +43,47 @@ export const sameRouteDestination = (current, next) => current?.id === next?.id
   && current?.tab === next?.tab
   && current?.screen === next?.screen;
 
+/**
+ * An Android share (manifest `share_target`, vite.config.js) arrives as a plain GET on the
+ * start URL with `share_*` query params. Consuming it here — once, while building the initial
+ * trail — keeps the no-router rule intact: the params become an ordinary in-memory route and
+ * nothing is stored. Nothing is saved implicitly either; a share only opens a screen with
+ * fields prefilled (§ share-target decision, DECISIONS.md 2026-08-13).
+ */
+function initialRouteTrail(search) {
+  const payload = parseSharePayload(search);
+  if (payload?.kind === "text") {
+    return [{ tab: "cuaderno", screen: "list", id: null, seedQuery: { text: payload.text, key: Date.now() } }];
+  }
+  if (payload?.kind === "url") {
+    return [{
+      tab: "cuaderno",
+      screen: "list",
+      id: null,
+      shareSource: { url: payload.url, title: payload.title, key: Date.now() },
+    }];
+  }
+  return [baseRoute("cuaderno")];
+}
+
 export default function App() {
   // Every destination, including a list, is part of one session-only trail. This preserves
   // Cuaderno → Diario → word → Back without a URL router or any stored navigation state.
-  const [routeTrail, setRouteTrail] = useState([baseRoute("cuaderno")]);
+  const [routeTrail, setRouteTrail] = useState(() => initialRouteTrail(window.location.search));
   const [pinnedPageIds, setPinnedPageIds] = useState([]);
   const [pinnedLexicalIds, setPinnedLexicalIds] = useState([]);
   const [tagColors, setTagColors] = useState({});
   const [studySessionActive, setStudySessionActive] = useState(false);
   const notebook = useNotebook();
+
+  // The consumed share params must not survive into the address bar or history: a refresh or
+  // Back would otherwise replay the share and reopen a sheet the owner already dismissed.
+  useEffect(() => {
+    if (window.location.search.includes("share_")) {
+      window.history.replaceState(null, "", import.meta.env.BASE_URL);
+    }
+  }, []);
+
   const route = routeTrail[routeTrail.length - 1];
   const tab = route.tab;
   const selectedId = route.id;
@@ -328,6 +361,7 @@ export default function App() {
                   onOpenLexical={openLexical}
                   onWander={openWander}
                   seedQuery={cuadernoRoute.seedQuery || null}
+                  shareSource={cuadernoRoute.shareSource || null}
                   pinnedPageIds={pinnedPageIds}
                   onPagePinnedChange={changePagePinned}
                 />

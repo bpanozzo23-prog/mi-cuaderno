@@ -702,3 +702,62 @@ describe("Phase 20 global tag management", () => {
     expect(screen.getByText("Tags you add to words, phrases and pages appear here, ready to colour or manage.")).toBeTruthy();
   });
 });
+
+describe("Android share target arrival", () => {
+  // Chrome opens the installed PWA at "./?share_*=…" (manifest share_target, vite.config.js);
+  // the app consumes the params while building its initial in-memory trail. Simulated here by
+  // setting the URL before render, exactly what the browser hands the booting app.
+  const arriveAt = (query) => window.history.replaceState(null, "", `/${query}`);
+
+  afterEach(() => {
+    window.history.replaceState(null, "", "/");
+  });
+
+  it("lands shared text in the two-layer search box and strips the params", async () => {
+    arriveAt("?share_text=madrugar");
+    render(<App />);
+
+    // The seed and the URL strip are passive effects — await the observable result.
+    const search = await screen.findByRole("textbox", { name: "Search notebook" });
+    await waitFor(() => expect(search.value).toBe("madrugar"));
+    await waitFor(() => expect(window.location.search).toBe(""));
+  });
+
+  it("lands long shared prose whole in the search box for the owner to trim", async () => {
+    const prose = "Cuando despertó, el dinosaurio todavía estaba allí.";
+    arriveAt(`?share_text=${encodeURIComponent(prose)}`);
+    render(<App />);
+
+    const search = await screen.findByRole("textbox", { name: "Search notebook" });
+    await waitFor(() => expect(search.value).toBe(prose));
+  });
+
+  it("opens New Source notebook with a shared URL and title prefilled, saving nothing", async () => {
+    arriveAt("?share_url=https%3A%2F%2Fexample.com%2Farticle&share_title=Un%20art%C3%ADculo");
+    render(<App />);
+
+    expect(await screen.findByText("New Source notebook")).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Primary URL" }).value).toBe("https://example.com/article");
+    expect(screen.getByPlaceholderText("Title *").value).toBe("Un artículo");
+    expect(screen.getByRole("combobox", { name: "Format" }).value).toBe("");
+    expect(await allItems()).toHaveLength(0);
+    await waitFor(() => expect(window.location.search).toBe(""));
+  });
+
+  it("treats text that is exactly a URL as a URL share (how Chrome shares a page)", async () => {
+    arriveAt("?share_text=https%3A%2F%2Fexample.com%2Fnota&share_title=Nota");
+    render(<App />);
+
+    expect(await screen.findByText("New Source notebook")).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Primary URL" }).value).toBe("https://example.com/nota");
+    expect(screen.getByPlaceholderText("Title *").value).toBe("Nota");
+  });
+
+  it("starts exactly as before when no share params arrive", async () => {
+    render(<App />);
+
+    const search = await screen.findByRole("textbox", { name: "Search notebook" });
+    expect(search.value).toBe("");
+    expect(screen.queryByText("New Source notebook")).toBeNull();
+  });
+});

@@ -35,7 +35,15 @@ export default defineConfig({
           { src: "icons/icon-192.png", sizes: "192x192", type: "image/png" },
           { src: "icons/icon-512.png", sizes: "512x512", type: "image/png" },
           { src: "icons/icon-512-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" }
-        ]
+        ],
+        // Android share sheet entry (installed PWA only). GET: Chrome opens the app at
+        // "./?share_*=…" and src/lib/shareTarget.js decides URL-share vs text-share at
+        // startup. The relative action resolves under /mi-cuaderno/ like the icons do.
+        share_target: {
+          action: "./",
+          method: "GET",
+          params: { title: "share_title", text: "share_text", url: "share_url" }
+        }
       }
     })
   ]

@@ -25,6 +25,7 @@ import { isJournalEntry } from "../lib/journal.js";
 import { emptyItemState } from "../useNotebook.js";
 import { deriveReviewState, emptyReviewState } from "../lib/review.js";
 import { eligibleWanderItems, sampleWanderStart } from "../lib/wander.js";
+import { sourceShareStarter } from "../lib/shareTarget.js";
 
 /** Long enough that a fast typist does not fire a query per keystroke, short enough to feel instant. */
 const SEARCH_DEBOUNCE_MS = 140;
@@ -61,6 +62,7 @@ export default function Cuaderno({
   onWander,
   random = Math.random,
   seedQuery = null,
+  shareSource = null,
   pinnedPageIds = [],
   onPagePinnedChange,
 }) {
@@ -113,6 +115,16 @@ export default function Cuaderno({
     setQuery(seedQuery.text || "");
     setTypeFilter(FILTERS.all);
   }, [seedQuery]);
+
+  // A URL shared in from another Android app (share_target → App's startup dispatch). It opens
+  // the New Source notebook sheet directly with the link prefilled — the starter gallery is for
+  // choosing a shape, and this share already chose one. Keyed like seedQuery; creation stays
+  // behind the sheet's own Create button.
+  useEffect(() => {
+    if (!shareSource?.key) return;
+    setPageStarter(sourceShareStarter(shareSource));
+    setAddKind("page");
+  }, [shareSource]);
 
   // Maintenance must see the COMPLETE personal notebook. A page filtered out by the type
   // controls may still be the only item linking back to a word.
