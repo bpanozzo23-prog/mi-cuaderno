@@ -1,11 +1,11 @@
 # Phase 25 — Word families in the biography
 
-**Status:** Phase 25a implemented and verified locally on
-`codex/phase-25-conjugation-family` at `8b3c85b`; it is not pushed or deployed. Phase 25b stopped
-at its mandatory quality gate before UI work: shipped r4 `relatedWords` does not distinguish
-derivations from broad related terms and does not preserve target-entry identity, so the proposed
-matcher would expose false family claims. See [PHASE-25-REPORT.md](PHASE-25-REPORT.md). A push to
-`main` remains a further separate approval.
+**Status:** Phase 25a deployed from `main` at `1432dd1` on 2026-08-13, after a post-implementation
+review added the wander word-only proof. The complete serial suite, production build, diff check,
+Pages run 31749800168, and the live-bundle check pass; see
+[PHASE-25-REPORT.md](PHASE-25-REPORT.md). Phase 25b stopped at its mandatory quality gate before
+UI work: shipped r4 `relatedWords` does not distinguish derivations from broad related terms and
+does not preserve target-entry identity, so the proposed matcher would expose false family claims.
 **Origin:** The owner selected two Historia enrichments — the conjugation family and the
 derivational family — from the 2026-08-13 Historia-strengthening discussion, then answered seven
 scope-shaping questions in a structured workshop the same day. This document records those
@@ -184,6 +184,9 @@ event-write probe failed at the intended assertion and returned green after remo
 zero family sections for an unattached word and an attached phrase, 44–56px actions, zero
 horizontal overflow, and zero console warnings/errors. The disposable fixture was then cleared.
 
-A push to `main` is not part of implementation approval. If deployment is later approved, README
-Status, this direction, the report, and the affected Improvement Ideas records must describe
-deployed reality in the same session.
+The owner approved deployment on 2026-08-13 after the review fix. `main` fast-forwarded through
+the planning commit, the three implementation/closeout commits, and the review-fix commit to
+`1432dd1`; Pages run 31749800168 succeeded and the live `App-Cnng_LDn.js` chunk — the same chunk
+name the local production build emitted — contains **Familia de conjugación**, **What to
+notice**, and **Saved in your cuaderno**. README Status, this direction, the report, the
+Improvement Ideas records, and `DECISIONS.md` were synchronized in the same session.

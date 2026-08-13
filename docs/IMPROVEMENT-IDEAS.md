@@ -52,7 +52,7 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
-| Historia word families | 2026-08-13 | Phase 25a implemented locally; Phase 25b rejected at gate | Deployment awaits approval; any derivational revival needs redesigned reference data |
+| Historia word families | 2026-08-13 | Phase 25a deployed; Phase 25b rejected at gate | Closed for now; any derivational revival needs redesigned reference data |
 | Edge-kind visual vocabulary | 2026-08-13 | Captured | Any time; mostly the lighter visual loop — side-by-side variants, colours through theme tokens |
 | Wander constellation (one-hop map) | 2026-08-13 | Captured | After the edge-kind vocabulary settles; lives or dies on a 375px variant pass with worst-case terms |
 | Connection cluster browsing | 2026-08-13 | Captured | Once the confirmed graph has real clusters (Graph texture can show this); resolve the Tag hubs / Saved views overlap first |
@@ -118,8 +118,8 @@ Useful information to retain for each idea:
 ### Historia word families
 
 - **Date added:** 2026-08-13
-- **Status:** Split 2026-08-13 — Phase 25a implemented and verified locally, awaiting deployment
-  approval; Phase 25b stopped at its mandatory r4 quality gate before UI work
+- **Status:** Split 2026-08-13 — Phase 25a implemented and deployed at `1432dd1`; Phase 25b
+  stopped at its mandatory r4 quality gate before UI work
 - **Origin:** Owner selection from the 2026-08-13 Historia-strengthening discussion, scoped the
   same day in a seven-question workshop
 - **Records:** `PHASE-25-DIRECTION.md`, `PHASE-25-REPORT.md`, Phase 25 entries in `DECISIONS.md`
@@ -128,9 +128,11 @@ Useful information to retain for each idea:
 
 #### Description and current context
 
-Historia's habitat now gains **25a — conjugation family** on the verified local branch, mirroring
-the wander card's family group (saved Phase 21 paradigm siblings plus the What-to-notice teaching
-exit) through one shared, word-only derivation. The proposed **25b — derivational family** stopped
+Historia's habitat now shows **25a — conjugation family** on the live site, mirroring the wander
+card's family group (saved Phase 21 paradigm siblings plus the What-to-notice teaching exit)
+through one shared, word-only derivation — a rule that also narrowed the wander card's own family
+edge for attached phrases, recorded in the direction's Wander boundary amendment. The proposed
+**25b — derivational family** stopped
 at its required pre-UI audit:
 only 17.68% of r4's listed relation terms resolve to shipped lemmas, and the flattened field mixes
 genuine derivations with broad relations while discarding target entry identity. Exact matching

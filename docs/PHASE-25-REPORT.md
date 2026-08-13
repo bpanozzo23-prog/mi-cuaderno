@@ -1,7 +1,8 @@
 # Phase 25 — Historia word families (report)
 
-Phase 25a is implemented and verified locally on `codex/phase-25-conjugation-family`; the feature
-commit is `8b3c85b`. It is not pushed or deployed. Phase 25b stopped at its mandatory data-quality
+Phase 25a was implemented and verified locally on `codex/phase-25-conjugation-family` (feature
+commit `8b3c85b`), corrected by a post-implementation review (`1432dd1`), then owner-approved and
+deployed from `main` at `1432dd1` on 2026-08-13. Phase 25b stopped at its mandatory data-quality
 gate before UI work. The approved contract and gate details remain in
 [PHASE-25-DIRECTION.md](PHASE-25-DIRECTION.md).
 
@@ -116,6 +117,18 @@ finalized, and the local server was stopped.
 
 ## Deployment
 
-No push, merge to `main`, GitHub Pages run, or production verification is claimed. Deployment
-remains a separate owner approval. If approved later, the direction, this report, README Status,
-Improvement Ideas, and the durable decision record must move to deployed reality together.
+The owner approved release on 2026-08-13, after confirming the `OWNER-APPROVED` gate-stop record
+was accurate and after the review fix landed. Local `main` fast-forwarded through the Phase 25
+planning commit, the three implementation and closeout commits, and the review-fix commit to
+`1432dd1`; `git rev-parse HEAD origin/main` returned the same SHA twice, so the remote genuinely
+moved. GitHub Pages run 31749800168 completed successfully on that exact SHA.
+
+Live verification: the site root returned HTTP 200 serving `assets/index-BhE5ZYUE.js`, which
+loads `assets/App-Cnng_LDn.js` — the same chunk name this session's local production build
+emitted, so the deployed bundle is the verified one. That chunk contains **Familia de
+conjugación**, **Saved in your cuaderno**, and **What to notice** alongside the existing
+**Historia**, **Pasear por mi cuaderno**, and **En tu Diario** surfaces.
+
+README Status, the direction, this report, both Improvement Ideas records, and `DECISIONS.md`
+were synchronized to deployed reality in the same session. Personal schema remains v8, and no
+reference package changed — r4 stays installed with `relatedWords` still dormant.
