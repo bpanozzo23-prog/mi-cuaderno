@@ -1,9 +1,9 @@
 # Phase 24 — Dictionary enrichment (dataset r4)
 
-**Status:** Approved, implemented, and verified locally on
-`codex/phase-24-dictionary-enrichment` on 2026-08-13; not pushed or deployed. The dataset scope
-was owner-decided in the field-selection workshop recorded in `DECISIONS.md`, and handing this
-document to the implementing agent approved its proposed implementation details. Results are in
+**Status:** Approved, implemented, verified, and deployed from `main` at `da547fd` on 2026-08-13.
+GitHub Pages run 31723115634 completed successfully. The dataset scope was owner-decided in the
+field-selection workshop recorded in `DECISIONS.md`, and handing this document to the implementing
+agent approved its proposed implementation details. Results are in
 [PHASE-24-REPORT.md](PHASE-24-REPORT.md).
 **Origin:** A measured census over the raw Kaikki dump, restricted to the shipped lemma set,
 priced every field the pipeline currently drops (Improvement Ideas: "Unused dictionary fields

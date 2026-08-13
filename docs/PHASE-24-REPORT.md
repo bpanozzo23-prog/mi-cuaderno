@@ -1,7 +1,7 @@
 # Phase 24 — Dictionary enrichment (report)
 
-Implemented and verified locally on `codex/phase-24-dictionary-enrichment` on 2026-08-13. It has
-not been pushed or deployed. The approved contract remains in
+Implemented and verified locally on `codex/phase-24-dictionary-enrichment`, then owner-approved
+and deployed from `main` at `da547fd` on 2026-08-13. The approved contract remains in
 [PHASE-24-DIRECTION.md](PHASE-24-DIRECTION.md); durable choices are recorded under Phase 24 in
 `DECISIONS.md`.
 
@@ -83,5 +83,11 @@ automated shipment checks were regenerated afterward.
 
 ## Deployment
 
-Deployment requires a separate owner instruction. This branch is ready for review and remains
-local; no push, merge to `main`, workflow run, or production smoke check is claimed.
+The owner approved the verified Phase 24 branch for release on 2026-08-13. Local `main`
+fast-forwarded through the two planning commits and three implementation/closeout commits to
+`da547fd`; GitHub Pages run 31723115634 completed successfully. The live root returned HTTP 200
+from `assets/index-DlvuwdWz.js`; `/dict/manifest.json` returned HTTP 200 with dataset
+`kaikki-es-2026-07-25-r4`, 10,278 entries, 16 chunks, and 4,262,074 compressed bytes. Its first
+chunk returned HTTP 200 with the exact 1,817,237-byte manifest length. README Status, the direction,
+this report, the Phase 24 decision record, and the field-census idea history were synchronized in
+the same release session. Personal schema remains v8.

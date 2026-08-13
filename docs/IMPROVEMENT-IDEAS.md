@@ -52,13 +52,12 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
-| Unused dictionary fields (shipped-lemma census) | 2026-08-13 | Implemented locally | Phase 24 r4 and display are verified locally; move to Implemented history with the eventual push |
 | Candidate future data sources (survey) | 2026-08-13 | Captured | When a need each serves becomes real (monolingual mode, audio, drill content); every license re-verified at adoption |
 | Conjugation catalog extensions | 2026-08-12 | Captured | When Phase 21's classifier next reopens; required-cell coverage must be swept before accepting either family |
 | Monolingual recall (Spanish usage cues) | 2026-08-12 | Captured | After checking how many real meanings carry a usage cue |
 | Retired-word spot checks | 2026-08-12 | Captured | Once a meaningful number of words are Retired; the demotion question needs an owner decision |
 | Near-duplicate consolidation view | 2026-08-12 | Captured | Any time; view only — entry merging is a separate, larger decision |
-| Dictionary word-family explorer | 2026-08-12 | Captured | Data ships dormant with the decided rebuild (2026-08-13); the remaining questions are per-family quality and display design |
+| Dictionary word-family explorer | 2026-08-12 | Captured | Its dormant source data is deployed in r4; the remaining questions are per-family quality and display design |
 | Select text to look up | 2026-08-12 | Captured | Any time; read-only navigation glue over existing search |
 | Paste a vocabulary list | 2026-08-12 | Captured | Needs a design discussion first: parsing, per-row meanings, event honesty |
 | PWA app shortcuts | 2026-08-12 | Captured | Any time; manifest-only, recorded so it is not forgotten |
@@ -86,6 +85,7 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Implemented as | Full records |
 |---|---|---|---|
+| Unused dictionary fields (shipped-lemma census) | 2026-08-13 | Phase 24 r4 enrichment, deployed | `PHASE-24-DIRECTION.md`, `PHASE-24-REPORT.md` |
 | The word's biography | 2026-08-12 | Phase 23a, deployed | `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md` |
 | Neighborhood browsing | 2026-08-12 | Phase 23b, deployed | `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md` |
 | Phrase↔word containment links | 2026-08-12 | Phase 22a, deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
@@ -107,118 +107,6 @@ Useful information to retain for each idea:
 ---
 
 ## Active ideas
-
-### Unused dictionary fields (shipped-lemma census)
-
-- **Date added:** 2026-08-13
-- **Status:** Implemented locally as Phase 24 — the r4 rebuild and display are verified on the
-  feature branch; this entry remains Active until the separate owner-approved push moves it to
-  Implemented history, as the phase direction requires
-- **Origin:** Owner question ("is there dictionary information available that we are not using?"),
-  answered 2026-08-12 with a measured census over the raw Kaikki dump restricted to the shipped
-  lemma set, with real gzip costs per field
-- **Owner interest:** Requested for the list after reviewing the assessment.
-- **Potential data impact:** None to personal data; adopting any field is a new dataset version of
-  the replaceable dictionary package (`mi-cuaderno-ref-a`/`-b`), carried by the §5 alias/orphan
-  seam as usual
-
-#### Description and current context
-
-`pipeline/build/04-entries.mjs` reads a narrow slice of each Kaikki record: the first gloss per
-sense, a filtered label set, gender, and forms for the search index. The census streamed the full
-85.5 MB dump, kept the 10,466 records that map to the 10,278 shipped entries (same POS and
-inflection-only filters as the build), and measured every dropped field. Costs are level-9 gzip of
-the extracted values alone; real packaged cost would differ modestly.
-
-| Field | Coverage of shipped entries | Cost (gzip) |
-|---|---|---|
-| IPA pronunciation | 10,128 (~99%) | ~41 KB |
-| Syllable breaks (`gra‧tis`) | 10,058 (~98%) | ~41 KB |
-| Etymology text | 9,164 (~89%) | ~321 KB |
-| Sense-level synonyms | 6,734 senses on 4,569 entries (~44%) | ~48 KB |
-| Derived/related words | ~70% of records (word or sense level) | ~230 KB |
-| Wiktionary sense-attached examples | 2,514 entries (~24%), capped at 2 per sense | ~232 KB |
-| Sense topic labels (medicine, sports, …) | 1,668 senses | ~6 KB |
-| Sense-level antonyms | 665 senses | ~4 KB |
-
-Measured dead ends, recorded so they are not re-searched: audio exists on only 5 shipped records
-(the TTS button already covers pronunciation audio), `translations` is empty for every shipped
-record, and `wikipedia` links (116 records) and `descendants` (1,362) offer little learner value.
-
-#### Assessment, ranked
-
-1. **Sense-level synonyms are the standout.** Region-rich Spanish near-equivalents attached to a
-   specific meaning (*trabajar* → *chambear, currar, faenar, jalar*; *palomita* → *cabrita,
-   canchita, canguil*), feeding the Phase 22 similar-meaning machinery and, later, possible
-   dictionary-side neighbors for wandering. Nearly free at ~48 KB. Synonyms can name lemmas the
-   frequency cut excluded, so display needs the existing "not installed" handling — never
-   "orphaned".
-2. **IPA plus syllables are the cheapest wins** (~82 KB combined, ~99% coverage). They complement
-   the TTS button by showing *why* a word sounds as it does, including stress, independently of
-   device voice quality (the concern recorded under Dictation cards).
-3. **Wiktionary sense-attached examples** do what Tatoeba structurally cannot: they belong to one
-   specific sense rather than to the entry, 80% of example-bearing senses include an English
-   translation, and they could patch some of the 424 shipped entries that have zero Tatoeba
-   examples. Quality varies — some are long literary quotations — so a length cap and filtering
-   are required.
-4. **Etymology is the big discretionary field.** "From Latin *grātīs*. Compare English *grace*"
-   is a real memory hook, but it is the largest cost, some records embed noisy "Etymology tree"
-   expansions that need cleaning, and trimming to the first sentence would cut the cost
-   substantially.
-5. **Topic labels** render exactly like the existing label chips and cost ~6 KB.
-6. **Derived/related** belongs to the Dictionary word-family explorer entry, whose open coverage
-   question this census answered at survey level (see that entry's verified facts).
-
-#### Size arithmetic
-
-The bundle is 3.3 MB gzipped against the Phase 2 plan-era guideline of ~3.5 MB. The cheap
-high-value set (synonyms + IPA + syllables + topics + antonyms) is ~140 KB and stays at the line;
-taking everything adds ~920 KB (≈4.2 MB total) — a deliberate owner decision, not a default.
-
-#### A data-quality fix independent of any adoption
-
-For 175 nested senses, `shapeSense` in `04-entries.mjs` takes `glosses[0]`, which is the *generic
-parent* gloss — *teléfono*'s "rotary dial telephone" and "mobile phone" subsenses both ship as
-identical "telephone (…)" glosses. Taking the most specific gloss instead is a small fix at the
-next rebuild, worth doing whether or not any new field is adopted.
-
-#### Licensing
-
-Every field comes from the same already-attributed CC BY-SA dump — no new source, license, or
-attribution work.
-
-#### Evidence needed
-
-The data facts are measured; what remains are owner-value questions — which fields earn space on
-the dictionary entry screen, and whether the three large fields (etymology, sense examples,
-derived/related) justify the download growth.
-
-#### Potential timing
-
-Batch whichever fields are wanted into the pipeline's next reopening, so one dataset rebuild
-carries several; the word-family explorer entry names the same moment.
-
-#### Workshop decisions — 2026-08-13
-
-The owner answered four scope questions over the measured numbers; also recorded in
-`DECISIONS.md`.
-
-- **In:** sense-level synonyms and antonyms (~52 KB); sense topic labels (~6 KB); etymology
-  trimmed to its first sentence (~144 KB, measured — 9,025 entries keep a clean sentence once
-  "Etymology tree" blocks are stripped); Wiktionary sense-attached examples filtered to ≤2 per
-  sense with a length cap (~230 KB); and derived/related family data **without any UI**
-  (~230 KB), so the word-family explorer phase finds its data already installed.
-- **Out:** IPA and syllable breaks — either may rejoin a later rebuild if pronunciation display
-  ever earns a place.
-- **Size stance:** the selections total ~+660 KB gzipped (bundle ~3.96 MB), knowingly past the
-  plan-era ~3.5 MB guideline, which the brief never fixed.
-- **Gap-fill finding folded in:** examples ship for their sense-alignment value; patching the
-  415 zero-Tatoeba-example entries turned out marginal (~35 entries, ~3 KB).
-- **Resolved by Phase 24:** the approved direction fixed placement, filtering, etymology edge
-  handling, and acceptance assertions. The local implementation and evidence are recorded in
-  `PHASE-24-REPORT.md`; push and deployment still require separate owner approval.
-
----
 
 ### Candidate future data sources (survey)
 
@@ -1646,6 +1534,12 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-13 — Phase 24 deployed; the unused-field census moves to Implemented history.** The
+  owner-approved push deployed r4 at `da547fd` through successful Pages run 31723115634. The live
+  manifest and first chunk returned HTTP 200 with the expected r4 identity, counts, and byte length.
+  The census is compressed into the Implemented index with its direction/report as authoritative
+  records; the separate word-family explorer remains Captured, now with its dormant data deployed.
 
 - **2026-08-13 — Phase 24 implemented and verified locally.** The r4 rebuild and dictionary
   display close the census implementation questions with exact r3 identity preservation, 45/45

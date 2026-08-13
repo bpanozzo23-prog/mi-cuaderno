@@ -280,7 +280,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   same-id full-entry opening, 44px actions, zero overflow, and zero console warnings/errors. See
   the approved [direction](docs/PHASE-23-DIRECTION.md) and
   [implementation report](docs/PHASE-23-REPORT.md).
-- **Phase 24 — implemented and verified locally; not pushed or deployed.** The r4 dictionary
+- **Phase 24 — deployed.** The r4 dictionary
   preserves all 10,278 r3 entry IDs while adding sense- and entry-level synonyms/antonyms, topic
   labels, first-sentence etymology, filtered sense-attached examples, dormant derived/related
   family data, and more-specific subsense glosses; IPA and syllable breaks remain excluded. Rich
@@ -288,7 +288,8 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   entries remain unchanged. Personal schema stays v8, dictionary format stays v1, and aliases stay
   empty. The final package passes 45/45 shipment checks at 4.06 MiB gzipped; the serial suite,
   production build, deliberate display failure, and disposable 375×812 rich/plain-entry flow all
-  pass. See the approved [direction](docs/PHASE-24-DIRECTION.md) and
+  pass. GitHub Pages deployment run 31723115634 succeeded, and the live site serves the r4
+  manifest and all 16 chunks. See the approved [direction](docs/PHASE-24-DIRECTION.md) and
   [implementation report](docs/PHASE-24-REPORT.md).
 - **Collection bulk capture — deployed.** A Vocabulary page's existing
   Add vocabulary panel can now narrow saved entries to Words, Phrases, and an exact existing tag,
