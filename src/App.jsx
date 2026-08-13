@@ -7,6 +7,7 @@ import LexicalHub from "./components/LexicalHub.jsx";
 import Diario from "./components/Diario.jsx";
 import Repaso from "./components/Repaso.jsx";
 import Ajustes from "./components/Ajustes.jsx";
+import Wander from "./components/Wander.jsx";
 import { useNotebook } from "./useNotebook.js";
 import { isJournalEntry } from "./lib/journal.js";
 import { isDictKey } from "./db/ref/entries.js";
@@ -36,6 +37,10 @@ const TABS = [
 const baseRoute = (tab) => ({ tab, screen: "list", id: null });
 const isHubRoute = (route) => route?.tab === "cuaderno"
   && (route.screen === "pages" || route.screen === "lexical");
+
+export const sameRouteDestination = (current, next) => current?.id === next?.id
+  && current?.tab === next?.tab
+  && current?.screen === next?.screen;
 
 export default function App() {
   // Every destination, including a list, is part of one session-only trail. This preserves
@@ -143,11 +148,20 @@ export default function App() {
     const next = { tab: targetTab, screen: targetTab === "diario" ? "read" : "detail", id };
     setRouteTrail((trail) => {
       const current = trail[trail.length - 1];
-      if (current.id === id && current.tab === targetTab) return trail;
+      if (sameRouteDestination(current, next)) return trail;
       const origin = isHubRoute(current)
         ? { ...current, returnScrollY: originScrollY }
         : current;
       return [...trail.slice(0, -1), origin, next];
+    });
+  }
+
+  function openWander(id) {
+    if (!id) return;
+    const next = { tab: "cuaderno", screen: "wander", id };
+    setRouteTrail((trail) => {
+      const current = trail[trail.length - 1];
+      return sameRouteDestination(current, next) ? trail : [...trail, next];
     });
   }
 
@@ -241,6 +255,9 @@ export default function App() {
   // Their local search/filter state then survives Journal → Back without becoming stored data.
   const cuadernoRoute = [...routeTrail].reverse().find((candidate) => candidate.tab === "cuaderno") || baseRoute("cuaderno");
   const diarioRoute = [...routeTrail].reverse().find((candidate) => candidate.tab === "diario") || baseRoute("diario");
+  const wanderItem = cuadernoRoute.screen === "wander"
+    ? notebook.items.find((item) => item.id === cuadernoRoute.id) || null
+    : null;
   // Each hub brings its own focused header, so the app header steps aside for both of them.
   const hubOpen = tab === "cuaderno"
     && (cuadernoRoute.screen === "pages" || cuadernoRoute.screen === "lexical");
@@ -299,7 +316,7 @@ export default function App() {
         ) : (
           <>
             <section hidden={tab !== "cuaderno"} aria-label="Cuaderno surface">
-              <div hidden={cuadernoRoute.screen === "pages" || cuadernoRoute.screen === "lexical"}>
+              <div hidden={cuadernoRoute.screen === "pages" || cuadernoRoute.screen === "lexical" || cuadernoRoute.screen === "wander"}>
                 <Cuaderno
                   notebook={notebook}
                   selectedId={cuadernoRoute.screen === "detail" ? cuadernoRoute.id : null}
@@ -309,6 +326,7 @@ export default function App() {
                   onOpenSettings={() => switchTab("ajustes")}
                   onOpenPages={openPages}
                   onOpenLexical={openLexical}
+                  onWander={openWander}
                   seedQuery={cuadernoRoute.seedQuery || null}
                   pinnedPageIds={pinnedPageIds}
                   onPagePinnedChange={changePagePinned}
@@ -334,6 +352,19 @@ export default function App() {
                   onBack={backFromDetail}
                   onSearchDictionary={searchEverything}
                 />
+              </div>
+              <div hidden={cuadernoRoute.screen !== "wander"}>
+                {cuadernoRoute.screen === "wander" && wanderItem && (
+                  <Wander
+                    key={wanderItem.id}
+                    item={wanderItem}
+                    items={notebook.items}
+                    onHop={openWander}
+                    onOpen={openItem}
+                    onBack={backFromDetail}
+                    backLabel={backLabel}
+                  />
+                )}
               </div>
             </section>
             <section hidden={tab !== "diario"} aria-label="Diario surface">

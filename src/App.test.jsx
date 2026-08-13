@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import App from "./App.jsx";
+import App, { sameRouteDestination } from "./App.jsx";
 import { db, clearAllPersonalData, getPref, setPref } from "./db/db.js";
 import { EVENT_TYPES, allEvents, logEvent } from "./db/events.js";
 import { allItems, createItem, getItem, linkItems, newLexical, newPage } from "./db/items.js";
@@ -219,6 +219,62 @@ describe("Phase 5a navigation continuity", () => {
       );
       expect(views.map((event) => event.itemKey).sort()).toEqual([SACAR, buscar.id].sort());
     });
+  });
+});
+
+describe("Phase 23b wander navigation", () => {
+  it("deduplicates only the same id, tab, and screen", () => {
+    const detail = { tab: "cuaderno", screen: "detail", id: "user:a" };
+    expect(sameRouteDestination(detail, { ...detail })).toBe(true);
+    expect(sameRouteDestination(
+      { tab: "cuaderno", screen: "wander", id: "user:a" },
+      detail
+    )).toBe(false);
+    expect(sameRouteDestination(detail, { ...detail, tab: "diario" })).toBe(false);
+  });
+
+  it("hops through the real trail, opens the same center's full Detail, and backs through every center", async () => {
+    const user = userEvent.setup();
+    // Notebook rows are newest-first; the final eligible row is the first fixture we created.
+    vi.spyOn(Math, "random").mockReturnValue(0.99);
+    const first = await createItem(newLexical({ term: "casa" }));
+    const second = await createItem(newLexical({ term: "hogar" }));
+    const page = await createItem(newPage({ title: "Architecture notes" }));
+    await linkItems(first.id, second.id, { type: "similar_meaning", note: "First hop" });
+    await linkItems(second.id, page.id, { type: "found_in", note: "Second hop" });
+    const before = JSON.stringify(await allEvents());
+    render(<App />);
+
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(screen.getByRole("button", { name: /Pasear por mi cuaderno/ }));
+    expect(await screen.findByText("Paseo por tu cuaderno")).toBeTruthy();
+    expect(screen.getByText("casa", { selector: ".text-2xl" })).toBeTruthy();
+    expect(JSON.stringify(await allEvents())).toBe(before);
+
+    await user.click(screen.getByRole("button", { name: /^hogar/ }));
+    expect(screen.getByText("hogar", { selector: ".text-2xl" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: /^Architecture notes/ }));
+    expect(screen.getByText("Architecture notes", { selector: ".text-2xl" })).toBeTruthy();
+    expect(JSON.stringify(await allEvents())).toBe(before);
+
+    // This is the regression case: id + tab are unchanged, but wander → detail is not a no-op.
+    await user.click(screen.getByRole("button", { name: "Open full entry" }));
+    expect(await screen.findByRole("heading", { name: "Architecture notes" })).toBeTruthy();
+    await waitFor(async () => {
+      expect((await allEvents()).some((event) =>
+        event.type === EVENT_TYPES.view && event.itemKey === page.id
+      )).toBe(true);
+    });
+
+    await user.click(screen.getByRole("button", { name: "Atrás" }));
+    expect(screen.getByText("Paseo por tu cuaderno")).toBeTruthy();
+    expect(screen.getByText("Architecture notes", { selector: ".text-2xl" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Atrás" }));
+    expect(screen.getByText("hogar", { selector: ".text-2xl" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Atrás" }));
+    expect(screen.getByText("casa", { selector: ".text-2xl" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Todo el cuaderno" }));
+    expect(screen.getByRole("textbox", { name: "Search notebook" })).toBeTruthy();
   });
 });
 

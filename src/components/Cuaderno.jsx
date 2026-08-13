@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, BookOpen, FileText, X } from "lucide-react";
+import { Plus, BookOpen, FileText, Route, X } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Chip, Card } from "../theme.jsx";
 import ItemCard from "./ItemCard.jsx";
 import AddSheet from "./AddSheet.jsx";
@@ -24,6 +24,7 @@ import {
 import { isJournalEntry } from "../lib/journal.js";
 import { emptyItemState } from "../useNotebook.js";
 import { deriveReviewState, emptyReviewState } from "../lib/review.js";
+import { eligibleWanderItems, sampleWanderStart } from "../lib/wander.js";
 
 /** Long enough that a fast typist does not fire a query per keystroke, short enough to feel instant. */
 const SEARCH_DEBOUNCE_MS = 140;
@@ -57,6 +58,8 @@ export default function Cuaderno({
   onOpenSettings,
   onOpenPages,
   onOpenLexical,
+  onWander,
+  random = Math.random,
   seedQuery = null,
   pinnedPageIds = [],
   onPagePinnedChange,
@@ -75,6 +78,7 @@ export default function Cuaderno({
   const [dictionary, setDictionary] = useState(null);
 
   const searching = query.trim() !== "";
+  const wanderItems = useMemo(() => eligibleWanderItems(items), [items]);
 
   // Whether this device has the dictionary changes what an empty screen should say, and
   // what the search box should promise. It is per-device by design (§11).
@@ -350,6 +354,24 @@ export default function Cuaderno({
               ))}
             </RefineSelect>
           </RefinePanel>
+        )}
+
+        {!searching && wanderItems.length > 0 && onWander && (
+          <button
+            type="button"
+            onClick={() => {
+              const start = sampleWanderStart(wanderItems, random);
+              if (start) onWander(start.id);
+            }}
+            className="mt-2 flex min-h-11 w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-medium"
+            style={{ background: C.penPale, borderColor: C.chipBorder, color: C.penDark }}
+          >
+            <Route size={15} className="shrink-0" />
+            <span>Pasear por mi cuaderno</span>
+            <span className="ml-auto shrink-0 text-xs" style={{ fontFamily: MONO, opacity: 0.75 }}>
+              al azar
+            </span>
+          </button>
         )}
       </div>
 

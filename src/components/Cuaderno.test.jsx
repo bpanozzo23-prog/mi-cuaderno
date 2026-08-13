@@ -62,6 +62,7 @@ function propsFor(items, over = {}) {
     onOpenSettings: vi.fn(),
     onOpenPages: vi.fn(),
     onOpenLexical: vi.fn(),
+    onWander: vi.fn(),
     pinnedPageIds: [],
     onPagePinnedChange: vi.fn(),
     ...over,
@@ -488,5 +489,32 @@ describe("Phase 23a: event history reaching Biography", () => {
     await user.click(screen.getByRole("button", { name: "Historia" }));
     expect(screen.getByText("First review")).toBeTruthy();
     expect(screen.getByText("Reached box 2")).toBeTruthy();
+  });
+});
+
+describe("Phase 23b: idle wandering launcher", () => {
+  it("samples from all lexical items only while the root search is idle", async () => {
+    const user = userEvent.setup();
+    const onWander = vi.fn();
+    const first = word("casa");
+    const pageOnly = page("Notes");
+    const last = word("a veces", { form: "phrase" });
+    const random = vi.fn(() => 0.99);
+    render(<Cuaderno {...propsFor([first, pageOnly, last], { onWander, random })} />);
+
+    const launcher = screen.getByRole("button", { name: /Pasear por mi cuaderno/ });
+    expect(launcher.className).toContain("min-h-11");
+    await user.click(launcher);
+    expect(random).toHaveBeenCalledTimes(1);
+    expect(onWander).toHaveBeenCalledWith(last.id);
+
+    await user.type(screen.getByRole("textbox", { name: "Search notebook" }), "casa");
+    expect(screen.queryByRole("button", { name: /Pasear por mi cuaderno/ })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Clear search" }));
+    expect(screen.getByRole("button", { name: /Pasear por mi cuaderno/ })).toBeTruthy();
+
+    cleanup();
+    render(<Cuaderno {...propsFor([pageOnly], { onWander })} />);
+    expect(screen.queryByRole("button", { name: /Pasear por mi cuaderno/ })).toBeNull();
   });
 });
