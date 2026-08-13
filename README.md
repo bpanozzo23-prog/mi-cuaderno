@@ -267,6 +267,19 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   zero console warnings/errors. See the approved
   [direction](docs/PHASE-22-DIRECTION.md) and
   [implementation report](docs/PHASE-22-REPORT.md).
+- **Phase 23 — implemented and verified locally; not pushed or deployed.** Lexical Detail now
+  offers a display-only **Historia** of saved/review/box/tricky/retirement milestones and every
+  current habitat, including marker-free owner prose and a disclosed **En tu Diario** section.
+  The idle Cuaderno root offers an unweighted **Pasear por mi cuaderno** walk over typed
+  Connections and saved Phase 21 family siblings; non-journal Pages may become reduced centers,
+  Diario remains an inert count, and Back preserves the transient route trail. Both surfaces are
+  derived and add no writer, schema field, preference, backup shape, event type, score, schedule,
+  queue, or dictionary package; personal schema remains v8. The serial suite passes 1,372/1,372
+  across 118 files, the 2,105-module build and diff check pass, all three deliberate failures red,
+  and a disposable 375×812 flow verifies rich prose Biography, a three-hop family/Page walk,
+  same-id full-entry opening, 44px actions, zero overflow, and zero console warnings/errors. See
+  the approved [direction](docs/PHASE-23-DIRECTION.md) and
+  [implementation report](docs/PHASE-23-REPORT.md).
 - **Collection bulk capture — deployed.** A Vocabulary page's existing
   Add vocabulary panel can now narrow saved entries to Words, Phrases, and an exact existing tag,
   then select every available match together. Existing members remain excluded and the final Add

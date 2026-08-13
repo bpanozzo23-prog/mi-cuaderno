@@ -1,12 +1,13 @@
 # Phase 23 — Contexts and wandering
 
-**Status:** Direction approved 2026-08-12 through an owner decision workshop. Slices 23a and
-23b are implemented and focused-verified locally; whole-phase verification and closeout remain
-in progress.
+**Status:** Implemented and verified locally on `codex/phase-23-contexts-wandering` on
+2026-08-12; not pushed or deployed. The complete serial suite, production build, deliberate
+failure proofs, diff check, and disposable 375×812 browser closeout pass; see
+`PHASE-23-REPORT.md`.
 **Origin:** The owner selected two consolidation ideas — the word's biography and neighborhood
 browsing — from the post-Phase-22 brainstorm, then answered nine scope-shaping questions in a
-structured workshop. This document records those decisions; implementation still follows the
-ordinary plan-first agreement when work begins.
+structured workshop. This document records those decisions; implementation followed the ordinary
+plan-first agreement and its closeout is recorded separately.
 
 ## Outcome
 
