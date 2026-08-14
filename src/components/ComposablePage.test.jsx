@@ -73,6 +73,48 @@ function appearsBefore(first, second) {
   return Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
 }
 
+describe("page media links", () => {
+  it("edits a saved link in place, in read mode and in the details editor", async () => {
+    const user = userEvent.setup();
+    const page = await createItem(newPage({
+      title: "Ser vs estar",
+      mediaLinks: [{ url: "https://vm.tiktok.com/serestar", label: "" }],
+    }));
+    renderPage(page, await allItems());
+
+    // A populated Media links section starts expanded, so the row is already reachable.
+    await user.click(screen.getByRole("button", { name: "Edit media https://vm.tiktok.com/serestar" }));
+    expect(screen.getByRole("textbox", { name: "Media URL" }).value).toBe("https://vm.tiktok.com/serestar");
+
+    await user.type(screen.getByRole("textbox", { name: "Media label" }), "The 0:40 explanation");
+    await user.click(screen.getByRole("button", { name: "Save link" }));
+
+    await waitFor(async () => {
+      expect((await getItem(page.id)).mediaLinks).toEqual([
+        { url: "https://vm.tiktok.com/serestar", label: "The 0:40 explanation" },
+      ]);
+    });
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(1);
+
+    // The details editor's draft list edits in place too, writing only when the sheet is saved.
+    await user.click(screen.getByLabelText("Page actions"));
+    await user.click(screen.getByRole("button", { name: "Edit details" }));
+    await user.click(screen.getByRole("button", { name: "Edit media The 0:40 explanation" }));
+    const labelField = screen.getByRole("textbox", { name: "Media label" });
+    await user.clear(labelField);
+    await user.type(labelField, "Renamed in the editor");
+    await user.click(screen.getByRole("button", { name: "Save media link" }));
+
+    expect((await getItem(page.id)).mediaLinks[0].label).toBe("The 0:40 explanation");
+    await user.click(screen.getByRole("button", { name: "Save details" }));
+    await waitFor(async () => {
+      expect((await getItem(page.id)).mediaLinks).toEqual([
+        { url: "https://vm.tiktok.com/serestar", label: "Renamed in the editor" },
+      ]);
+    });
+  }, 15000);
+});
+
 describe("composable page workspace", () => {
   it("keeps empty page sections compact and gives every populated section a disclosure", async () => {
     const user = userEvent.setup();

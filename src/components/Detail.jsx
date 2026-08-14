@@ -197,6 +197,9 @@ function StandardDetail({
   const [addingMedia, setAddingMedia] = useState(false);
   const [mUrl, setMUrl] = useState("");
   const [mLabel, setMLabel] = useState("");
+  // Which saved link the media composer is editing; null means it is adding a new one. A saved
+  // link was previously open-or-delete only, so fixing a label meant retyping the URL.
+  const [editingMediaIndex, setEditingMediaIndex] = useState(null);
   const [deleteArm, setDeleteArm] = useState(false);
   const [picking, setPicking] = useState(false);
   const [assigningCollection, setAssigningCollection] = useState(false);
@@ -339,6 +342,7 @@ function StandardDetail({
     setAddingMedia(false);
     setMUrl("");
     setMLabel("");
+    setEditingMediaIndex(null);
     setDeleteArm(false);
     setPicking(false);
     setAssigningCollection(false);
@@ -417,7 +421,16 @@ function StandardDetail({
   function cancelMedia() {
     setMUrl("");
     setMLabel("");
+    setEditingMediaIndex(null);
     setAddingMedia(false);
+  }
+
+  function startMediaEdit(index) {
+    const media = item.mediaLinks[index];
+    setMUrl(media.url);
+    setMLabel(media.label || "");
+    setEditingMediaIndex(index);
+    setAddingMedia(true);
   }
 
   const savedBody = isPage ? item.body || "" : item.notes || "";
@@ -497,11 +510,16 @@ function StandardDetail({
               onClick={async () => {
                 const url = mUrl.trim();
                 if (!/^https?:\/\//.test(url)) return;
-                await patch({ mediaLinks: [...item.mediaLinks, { url, label: mLabel.trim() }] });
+                const media = { url, label: mLabel.trim() };
+                await patch({
+                  mediaLinks: editingMediaIndex === null
+                    ? [...item.mediaLinks, media]
+                    : item.mediaLinks.map((existing, i) => (i === editingMediaIndex ? media : existing)),
+                });
                 cancelMedia();
               }}
             >
-              Add link
+              {editingMediaIndex === null ? "Add link" : "Save link"}
             </Button>
             <Button tone="quiet" onClick={cancelMedia}>
               Cancel
@@ -907,12 +925,24 @@ function StandardDetail({
                     <ExternalLink size={14} className="shrink-0" />
                     <span className="truncate">{m.label || m.url}</span>
                   </a>
-                  <X
-                    size={14}
-                    className="shrink-0"
-                    style={{ color: C.mut }}
-                    onClick={() => patch({ mediaLinks: item.mediaLinks.filter((_, j) => j !== i) })}
-                  />
+                  <div className="flex shrink-0 items-center">
+                    <button
+                      type="button"
+                      aria-label={`Edit media ${m.label || m.url}`}
+                      className="min-h-11 min-w-11 inline-flex items-center justify-center"
+                      onClick={() => startMediaEdit(i)}
+                    >
+                      <Pencil size={14} style={{ color: C.mut }} />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Remove media ${m.label || m.url}`}
+                      className="min-h-11 min-w-11 inline-flex items-center justify-center"
+                      onClick={() => patch({ mediaLinks: item.mediaLinks.filter((_, j) => j !== i) })}
+                    >
+                      <X size={14} style={{ color: C.mut }} />
+                    </button>
+                  </div>
                 </div>
                 {isDirectImageUrl(m.url) && (
                   <MediaImage src={m.url} alt={m.label || ""} caption={false} />

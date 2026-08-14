@@ -5,6 +5,7 @@ import {
   ExternalLink,
   Eye,
   Highlighter,
+  Pencil,
   Plus,
   Trash2,
   X,
@@ -47,6 +48,8 @@ export default function JournalMore({
   onClose,
 }) {
   const [addingMedia, setAddingMedia] = useState(false);
+  // Which saved link the composer is editing; null means adding a new one.
+  const [editingMediaIndex, setEditingMediaIndex] = useState(null);
   const [mediaUrl, setMediaUrl] = useState("");
   const [mediaLabel, setMediaLabel] = useState("");
   const [mediaError, setMediaError] = useState("");
@@ -75,8 +78,18 @@ export default function JournalMore({
     await onChanged();
   }
 
+  function startMediaEdit(index) {
+    const media = entry.mediaLinks[index];
+    setMediaUrl(media.url);
+    setMediaLabel(media.label || "");
+    setMediaError("");
+    setEditingMediaIndex(index);
+    setAddingMedia(true);
+  }
+
   function closeMedia() {
     setAddingMedia(false);
+    setEditingMediaIndex(null);
     setMediaUrl("");
     setMediaLabel("");
     setMediaError("");
@@ -109,14 +122,24 @@ export default function JournalMore({
               <ExternalLink size={14} className="shrink-0" />
               <span className="truncate">{media.label || media.url}</span>
             </a>
-            <button
-              type="button"
-              onClick={() => patch({ mediaLinks: entry.mediaLinks.filter((_, itemIndex) => itemIndex !== index) })}
-              aria-label={`Remove media link ${media.label || media.url}`}
-              className="p-1"
-            >
-              <X size={14} style={{ color: C.mut }} />
-            </button>
+            <div className="flex shrink-0 items-center">
+              <button
+                type="button"
+                onClick={() => startMediaEdit(index)}
+                aria-label={`Edit media link ${media.label || media.url}`}
+                className="min-h-11 min-w-11 inline-flex items-center justify-center"
+              >
+                <Pencil size={14} style={{ color: C.mut }} />
+              </button>
+              <button
+                type="button"
+                onClick={() => patch({ mediaLinks: entry.mediaLinks.filter((_, itemIndex) => itemIndex !== index) })}
+                aria-label={`Remove media link ${media.label || media.url}`}
+                className="min-h-11 min-w-11 inline-flex items-center justify-center"
+              >
+                <X size={14} style={{ color: C.mut }} />
+              </button>
+            </div>
             </div>
             {isDirectImageUrl(media.url) && (
               <MediaImage src={media.url} alt={media.label || ""} caption={false} />
@@ -169,10 +192,15 @@ export default function JournalMore({
                   setMediaError("Use a complete http:// or https:// link.");
                   return;
                 }
-                await patch({ mediaLinks: [...entry.mediaLinks, { url, label: mediaLabel.trim() }] });
+                const media = { url, label: mediaLabel.trim() };
+                await patch({
+                  mediaLinks: editingMediaIndex === null
+                    ? [...entry.mediaLinks, media]
+                    : entry.mediaLinks.map((existing, i) => (i === editingMediaIndex ? media : existing)),
+                });
                 closeMedia();
               }}>
-                Add link
+                {editingMediaIndex === null ? "Add link" : "Save link"}
               </Button>
               <Button tone="quiet" onClick={closeMedia}>Cancel</Button>
             </div>

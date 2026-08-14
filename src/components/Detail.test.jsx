@@ -341,6 +341,40 @@ describe("collapsed optional-field composers", () => {
     expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(0);
   });
 
+  it("edits a saved media link in place instead of forcing delete-and-retype", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({
+      term: "quedar",
+      mediaLinks: [
+        { url: "https://vm.tiktok.com/one", label: "" },
+        { url: "https://example.com/keep", label: "Keep me" },
+      ],
+    }));
+
+    renderDetail(word);
+
+    // A shared-in video arrives with no label, so the row shows its raw URL.
+    await user.click(screen.getByRole("button", { name: "Edit media https://vm.tiktok.com/one" }));
+    expect(screen.getByRole("textbox", { name: "Media URL" }).value).toBe("https://vm.tiktok.com/one");
+    expect(screen.getByRole("textbox", { name: "Media label" }).value).toBe("");
+
+    await user.type(screen.getByRole("textbox", { name: "Media label" }), "Quedar explained");
+    await user.click(screen.getByRole("button", { name: "Save link" }));
+
+    await waitFor(() => expect(screen.getByText("Quedar explained")).toBeTruthy());
+    expect(screen.queryByRole("textbox", { name: "Media URL" })).toBeNull();
+    const saved = await getItem(word.id);
+    expect(saved.mediaLinks).toEqual([
+      { url: "https://vm.tiktok.com/one", label: "Quedar explained" },
+      { url: "https://example.com/keep", label: "Keep me" },
+    ]);
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(1);
+
+    // Reopening for a new link must not inherit the edited row's values.
+    await user.click(screen.getByRole("button", { name: "Add a media link" }));
+    expect(screen.getByRole("textbox", { name: "Media URL" }).value).toBe("");
+  });
+
   it("offers media but not personal examples on a page", async () => {
     const page = await createItem(
       newPage({ title: "Source", mediaLinks: [{ url: "https://example.com", label: "Article" }] })

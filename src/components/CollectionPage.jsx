@@ -92,6 +92,9 @@ function CollectionDetailsEditor({ item, items, onCancel, onSaved }) {
     mediaLinks: (item.mediaLinks || []).map((link) => ({ ...link })),
   }));
   const [media, setMedia] = useState({ url: "", label: "" });
+  // Draft-local counterpart of the read-mode editor: which existing row the fields below are
+  // editing, or null when they compose a new one. Nothing is written until the sheet is saved.
+  const [editingMediaIndex, setEditingMediaIndex] = useState(null);
   const allTags = useMemo(() => allTagsIn(items), [items]);
 
   return (
@@ -142,7 +145,19 @@ function CollectionDetailsEditor({ item, items, onCancel, onSaved }) {
           {draft.mediaLinks.map((link, index) => (
             <div key={`${link.url}:${index}`} className="flex items-center gap-2 rounded-lg border px-2 py-2" style={{ borderColor: C.line }}>
               <span className="min-w-0 flex-1 truncate text-xs" style={{ color: C.ink }}>{link.label || link.url}</span>
-              <button type="button" aria-label={`Remove media ${link.label || link.url}`} onClick={() => setDraft((current) => ({ ...current, mediaLinks: current.mediaLinks.filter((_, candidate) => candidate !== index) }))}>
+              <button type="button" aria-label={`Edit media ${link.label || link.url}`} onClick={() => {
+                setMedia({ url: link.url, label: link.label || "" });
+                setEditingMediaIndex(index);
+              }}>
+                <Pencil size={13} style={{ color: C.mut }} />
+              </button>
+              <button type="button" aria-label={`Remove media ${link.label || link.url}`} onClick={() => {
+                setDraft((current) => ({ ...current, mediaLinks: current.mediaLinks.filter((_, candidate) => candidate !== index) }));
+                if (editingMediaIndex === index) {
+                  setMedia({ url: "", label: "" });
+                  setEditingMediaIndex(null);
+                }
+              }}>
                 <X size={13} style={{ color: C.red }} />
               </button>
             </div>
@@ -169,17 +184,21 @@ function CollectionDetailsEditor({ item, items, onCancel, onSaved }) {
         <Button
           tone="quiet"
           className="mt-2"
-          aria-label="Add media link"
+          aria-label={editingMediaIndex === null ? "Add media link" : "Save media link"}
           disabled={!/^https?:\/\//.test(media.url.trim())}
           onClick={() => {
+            const next = { url: media.url.trim(), label: media.label.trim() };
             setDraft((current) => ({
               ...current,
-              mediaLinks: [...current.mediaLinks, { url: media.url.trim(), label: media.label.trim() }],
+              mediaLinks: editingMediaIndex === null
+                ? [...current.mediaLinks, next]
+                : current.mediaLinks.map((existing, candidate) => (candidate === editingMediaIndex ? next : existing)),
             }));
             setMedia({ url: "", label: "" });
+            setEditingMediaIndex(null);
           }}
         >
-          <Plus size={14} /> Media link
+          {editingMediaIndex === null ? <><Plus size={14} /> Media link</> : <><Check size={14} /> Save link</>}
         </Button>
       </div>
       <div className="flex gap-2 border-t pt-4" style={{ borderColor: C.line }}>
@@ -415,6 +434,9 @@ function PageMediaSection({ page, items, onOpen, onChanged }) {
   const [adding, setAdding] = useState(false);
   const [url, setUrl] = useState("");
   const [label, setLabel] = useState("");
+  // Which saved link the composer is editing; null means adding a new one. Without this a
+  // mislabelled link (or one shared in with no label at all) could only be deleted and retyped.
+  const [editingIndex, setEditingIndex] = useState(null);
   const empty = (page.mediaLinks || []).length === 0;
   const primarySourceUrl = page.source?.enabled
     ? canonicalSharedSourceUrl(page.source.url)
@@ -424,12 +446,22 @@ function PageMediaSection({ page, items, onOpen, onChanged }) {
     setAdding(false);
     setUrl("");
     setLabel("");
+    setEditingIndex(null);
   }, [page.id]);
 
   function cancel() {
     setAdding(false);
     setUrl("");
     setLabel("");
+    setEditingIndex(null);
+  }
+
+  function startEdit(index) {
+    const media = page.mediaLinks[index];
+    setUrl(media.url);
+    setLabel(media.label || "");
+    setEditingIndex(index);
+    setAdding(true);
   }
 
   return (
@@ -461,10 +493,13 @@ function PageMediaSection({ page, items, onOpen, onChanged }) {
               <a href={media.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-2 text-sm underline underline-offset-2" style={{ color: C.pen }}>
                 <ExternalLink size={14} className="shrink-0" /><span className="truncate">{media.label || media.url}</span>
               </a>
-              <button type="button" aria-label={`Remove media ${media.label || media.url}`} className="min-h-11 min-w-11 inline-flex items-center justify-center" onClick={async () => {
-                await updateItem(page.id, { mediaLinks: page.mediaLinks.filter((_, candidate) => candidate !== index) });
-                await onChanged();
-              }}><X size={14} style={{ color: C.mut }} /></button>
+              <div className="flex shrink-0 items-center">
+                <button type="button" aria-label={`Edit media ${media.label || media.url}`} className="min-h-11 min-w-11 inline-flex items-center justify-center" onClick={() => startEdit(index)}><Pencil size={14} style={{ color: C.mut }} /></button>
+                <button type="button" aria-label={`Remove media ${media.label || media.url}`} className="min-h-11 min-w-11 inline-flex items-center justify-center" onClick={async () => {
+                  await updateItem(page.id, { mediaLinks: page.mediaLinks.filter((_, candidate) => candidate !== index) });
+                  await onChanged();
+                }}><X size={14} style={{ color: C.mut }} /></button>
+              </div>
             </div>
             {isDirectImageUrl(media.url) && (
               <MediaImage src={media.url} alt={media.label || ""} caption={false} />
@@ -491,10 +526,15 @@ function PageMediaSection({ page, items, onOpen, onChanged }) {
               <Button onClick={async () => {
                 const savedUrl = url.trim();
                 if (!/^https?:\/\//.test(savedUrl)) return;
-                await updateItem(page.id, { mediaLinks: [...(page.mediaLinks || []), { url: savedUrl, label: label.trim() }] });
+                const media = { url: savedUrl, label: label.trim() };
+                await updateItem(page.id, {
+                  mediaLinks: editingIndex === null
+                    ? [...(page.mediaLinks || []), media]
+                    : page.mediaLinks.map((existing, candidate) => (candidate === editingIndex ? media : existing)),
+                });
                 cancel();
                 await onChanged();
-              }}>Add link</Button>
+              }}>{editingIndex === null ? "Add link" : "Save link"}</Button>
               <Button tone="quiet" onClick={cancel}>Cancel</Button>
             </div>
           </Card>
