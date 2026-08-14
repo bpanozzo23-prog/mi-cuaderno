@@ -765,6 +765,7 @@ describe("Android share target arrival", () => {
 
     expect(screen.queryByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" })).toBeNull();
     expect(screen.getByRole("textbox", { name: "Search notebook" }).value).toBe("");
+    expect(screen.queryByRole("region", { name: "Shared video" })).toBeNull();
     expect(await allItems()).toHaveLength(0);
     expect(await allEvents()).toHaveLength(0);
   });
@@ -789,6 +790,7 @@ describe("Android share target arrival", () => {
       ]);
       expect(pages[0].grammar.enabled).toBe(true);
     });
+    expect(await screen.findByRole("region", { name: "Shared video" })).toBeTruthy();
   });
 
   it("attaches the shared video to an existing page as one ordinary media-link edit", async () => {
@@ -817,6 +819,49 @@ describe("Android share target arrival", () => {
     expect((await getItem(word.id)).mediaLinks).toEqual([]);
     // Landed on the page, ready to keep working.
     expect(await screen.findByText("Preterite vs imperfect", { selector: ".text-2xl *" })).toBeTruthy();
+
+    // The continuation pill follows onto the detail screen and reopens the chooser there,
+    // so one video can reach several targets without resharing.
+    const pill = await screen.findByRole("region", { name: "Shared video" });
+    expect(within(pill).getByText("El pasado")).toBeTruthy();
+    await user.click(within(pill).getByRole("button", { name: "Add to another item" }));
+
+    const reopened = await screen.findByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" });
+    await user.click(within(reopened).getByRole("button", { name: /Add to an existing page or word/ }));
+    await user.click(await within(reopened).findByRole("button", { name: /madrugar/ }));
+
+    await waitFor(async () => {
+      expect((await getItem(word.id)).mediaLinks).toEqual([
+        { url: "https://vm.tiktok.com/pasado", label: "El pasado" },
+      ]);
+    });
+
+    await user.click(within(await screen.findByRole("region", { name: "Shared video" }))
+      .getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(screen.queryByRole("region", { name: "Shared video" })).toBeNull());
+  });
+
+  it("creates a new phrase from the picker with the video attached from birth", async () => {
+    const user = userEvent.setup();
+    arriveAt("?share_url=https%3A%2F%2Fvm.tiktok.com%2Fquedar&share_title=Quedar");
+    render(<App />);
+
+    const chooser = await screen.findByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" });
+    await user.click(within(chooser).getByRole("button", { name: /Add to an existing page or word/ }));
+    await user.type(within(chooser).getByRole("textbox", { name: "Search destinations" }), "quedarse con");
+    await user.click(within(chooser).getByRole("button", { name: /Create phrase “quedarse con”/ }));
+
+    // The normal creation sheet, term prefilled, phrase inferred by the space rule.
+    const termInput = await screen.findByPlaceholderText("Spanish word or phrase *");
+    expect(termInput.value).toBe("quedarse con");
+    await user.click(screen.getByRole("button", { name: "Add to cuaderno" }));
+
+    await waitFor(async () => {
+      const created = (await allItems()).find((item) => item.term === "quedarse con");
+      expect(created.form).toBe("phrase");
+      expect(created.mediaLinks).toEqual([{ url: "https://vm.tiktok.com/quedar", label: "Quedar" }]);
+    });
+    expect(await screen.findByRole("region", { name: "Shared video" })).toBeTruthy();
   });
 
   it("starts exactly as before when no share params arrive", async () => {

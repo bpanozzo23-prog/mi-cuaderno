@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { BookOpen, FileText, Link2, Search, Sigma, Type, X } from "lucide-react";
+import { BookOpen, FileText, Link2, Plus, Search, Sigma, Type, X } from "lucide-react";
 import { C, SERIF, Card } from "../theme.jsx";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
 import { pickerMatches } from "../lib/links.js";
@@ -37,7 +37,48 @@ function DestinationRow({ icon: Icon, title, description, onClick }) {
   );
 }
 
-export default function ShareArrivalSheet({ share, items = [], onAttach, onCreate, onClose }) {
+/**
+ * Ephemeral continuation for a processed share: one video often yields several outputs (a new
+ * meaning, examples, a Grammar attachment, a new phrase), and without this the owner reshares
+ * or copies the URL for each one. In-memory only by design — no preference, no schema field,
+ * no event: content writes deserve events, workflow state stays silent and dies with the
+ * session. "Add to another item" reopens the full chooser; "Done" forgets the video.
+ */
+export function ShareContinuationPill({ share, onReopen, onDone }) {
+  return (
+    <div role="region" aria-label="Shared video" className="fixed bottom-16 inset-x-0 z-20">
+      <div className="max-w-md mx-auto px-4">
+        <div
+          className="flex items-center gap-2 rounded-xl border px-3 py-2 shadow-sm"
+          style={{ background: C.card, borderColor: C.line }}
+        >
+          <Link2 size={13} className="shrink-0" style={{ color: C.pen }} />
+          <span className="min-w-0 flex-1 truncate text-xs" style={{ color: C.mut }}>
+            {share.title || share.url}
+          </span>
+          <button
+            type="button"
+            onClick={onReopen}
+            className="shrink-0 text-xs font-semibold px-2 py-1.5 rounded-lg"
+            style={{ color: C.penDark, background: C.penPale }}
+          >
+            Add to another item
+          </button>
+          <button
+            type="button"
+            onClick={onDone}
+            className="shrink-0 text-xs px-2 py-1.5"
+            style={{ color: C.mut }}
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ShareArrivalSheet({ share, items = [], onAttach, onCreate, onCreateLexical, onClose }) {
   const [picking, setPicking] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -166,6 +207,23 @@ export default function ShareArrivalSheet({ share, items = [], onAttach, onCreat
                   )}
                 </button>
               ))}
+            </div>
+            {/* A word met in the video may not exist yet — creation goes through the normal
+                AddSheet path (LinkPicker's quick-create instinct, but with the full form). */}
+            <div className="pt-2 border-t" style={{ borderColor: C.line }}>
+              <button
+                type="button"
+                onClick={() => onCreateLexical(query.trim())}
+                className="w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-lg"
+                style={{ background: C.penPale, color: C.penDark }}
+              >
+                <Plus size={13} className="shrink-0" />
+                <span className="text-sm truncate">
+                  {query.trim()
+                    ? `Create ${query.trim().includes(" ") ? "phrase" : "word"} “${query.trim()}”`
+                    : "Create a new word or phrase"}
+                </span>
+              </button>
             </div>
           </>
         )}

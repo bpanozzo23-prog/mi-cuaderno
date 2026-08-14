@@ -26,7 +26,7 @@ import { emptyItemState } from "../useNotebook.js";
 import { deriveReviewState, emptyReviewState } from "../lib/review.js";
 import { eligibleWanderItems, sampleWanderStart } from "../lib/wander.js";
 import { updateItem } from "../db/items.js";
-import ShareArrivalSheet from "./ShareArrivalSheet.jsx";
+import ShareArrivalSheet, { ShareContinuationPill } from "./ShareArrivalSheet.jsx";
 
 /** Long enough that a fast typist does not fire a query per keystroke, short enough to feel instant. */
 const SEARCH_DEBOUNCE_MS = 140;
@@ -79,6 +79,11 @@ export default function Cuaderno({
   const [askKind, setAskKind] = useState(false);
   const [askPageStarter, setAskPageStarter] = useState(false);
   const [shareArrival, setShareArrival] = useState(null);
+  // Ephemeral continuation: the video stays available for more targets after the first chooser
+  // action, until Done or reload. Set when a destination is CHOSEN (not when a write lands), so
+  // a cancelled creation can still be retried from the pill. In-memory only — never stored.
+  const [shareFollowUp, setShareFollowUp] = useState(null);
+  const [addSeed, setAddSeed] = useState(null);
   const [dictionary, setDictionary] = useState(null);
 
   const searching = query.trim() !== "";
@@ -255,39 +260,120 @@ export default function Cuaderno({
     [wantsReview, items, events]
   );
 
+  /**
+   * The share overlays exist on EVERY Cuaderno screen, because the flow deliberately lands the
+   * owner on a detail view after each action: the pill must follow them there, and "Add to
+   * another item" must be able to reopen the chooser (and its AddSheet) from that screen. The
+   * list-only add flow (FAB, kind chooser, starter gallery) stays in the list branch.
+   */
+  const shareLayer = (
+    <>
+      {shareFollowUp && (
+        <ShareContinuationPill
+          share={shareFollowUp}
+          onReopen={() => setShareArrival({ ...shareFollowUp, key: Date.now() })}
+          onDone={() => setShareFollowUp(null)}
+        />
+      )}
+      {shareArrival && (
+        <ShareArrivalSheet
+          share={shareArrival}
+          items={items}
+          onClose={() => setShareArrival(null)}
+          onCreate={(starter) => {
+            setShareArrival(null);
+            setShareFollowUp({ url: shareArrival.url, title: shareArrival.title });
+            setPageStarter(starter);
+            setAddKind("page");
+          }}
+          onCreateLexical={(term) => {
+            setShareArrival(null);
+            setShareFollowUp({ url: shareArrival.url, title: shareArrival.title });
+            setAddSeed({
+              initialTerm: term,
+              mediaLinks: [{ url: shareArrival.url, label: shareArrival.title || "" }],
+            });
+            setAddKind("lexical");
+          }}
+          onAttach={async (target) => {
+            // One ordinary content edit — the same write Detail's media composer makes —
+            // then land on the item so the real work (vocab, captures, notes) continues there.
+            await updateItem(target.id, {
+              mediaLinks: [
+                ...(target.mediaLinks || []),
+                { url: shareArrival.url, label: shareArrival.title || "" },
+              ],
+            });
+            setShareArrival(null);
+            setShareFollowUp({ url: shareArrival.url, title: shareArrival.title });
+            reload();
+            onSelect(target.id);
+          }}
+        />
+      )}
+      {addKind && (
+        <AddSheet
+          kind={addKind}
+          pageStarter={pageStarter}
+          initialTerm={addSeed?.initialTerm || ""}
+          seedMediaLinks={addSeed?.mediaLinks || []}
+          items={items}
+          onClose={() => {
+            setAddKind(null);
+            setPageStarter(null);
+            setAddSeed(null);
+          }}
+          onCreated={(id) => {
+            setAddKind(null);
+            setPageStarter(null);
+            setAddSeed(null);
+            reload();
+            onSelect(id);
+          }}
+        />
+      )}
+    </>
+  );
+
   if (selectedId && isDictKey(selectedId)) {
     return (
-      <DictDetail
-        // Each destination owns its drafts and async lookup state. Remounting on a trail
-        // hop prevents either from flashing or being saved against the next entry.
-        key={selectedId}
-        entryId={selectedId}
-        items={items}
-        onBack={onBack}
-        backLabel={backLabel}
-        onOpen={onSelect}
-        onChanged={reload}
-      />
+      <>
+        <DictDetail
+          // Each destination owns its drafts and async lookup state. Remounting on a trail
+          // hop prevents either from flashing or being saved against the next entry.
+          key={selectedId}
+          entryId={selectedId}
+          items={items}
+          onBack={onBack}
+          backLabel={backLabel}
+          onOpen={onSelect}
+          onChanged={reload}
+        />
+        {shareLayer}
+      </>
     );
   }
 
   if (selected) {
     return (
-      <Detail
-        // Optional example/media drafts are intentionally local to one detail screen.
-        key={selected.id}
-        item={selected}
-        state={itemState.get(selected.id) || emptyItemState}
-        reviewState={review?.states.get(selected.id) || emptyReviewState}
-        items={items}
-        events={events || []}
-        onBack={onBack}
-        backLabel={backLabel}
-        onOpen={onSelect}
-        onChanged={reload}
-        pagePinned={pinnedPageIds.includes(selected.id)}
-        onPagePinnedChange={(pinned) => onPagePinnedChange?.(selected.id, pinned)}
-      />
+      <>
+        <Detail
+          // Optional example/media drafts are intentionally local to one detail screen.
+          key={selected.id}
+          item={selected}
+          state={itemState.get(selected.id) || emptyItemState}
+          reviewState={review?.states.get(selected.id) || emptyReviewState}
+          items={items}
+          events={events || []}
+          onBack={onBack}
+          backLabel={backLabel}
+          onOpen={onSelect}
+          onChanged={reload}
+          pagePinned={pinnedPageIds.includes(selected.id)}
+          onPagePinnedChange={(pinned) => onPagePinnedChange?.(selected.id, pinned)}
+        />
+        {shareLayer}
+      </>
     );
   }
 
@@ -488,49 +574,7 @@ export default function Cuaderno({
         />
       )}
 
-      {shareArrival && (
-        <ShareArrivalSheet
-          share={shareArrival}
-          items={items}
-          onClose={() => setShareArrival(null)}
-          onCreate={(starter) => {
-            setShareArrival(null);
-            setPageStarter(starter);
-            setAddKind("page");
-          }}
-          onAttach={async (target) => {
-            // One ordinary content edit — the same write Detail's media composer makes —
-            // then land on the item so the real work (vocab, captures, notes) continues there.
-            await updateItem(target.id, {
-              mediaLinks: [
-                ...(target.mediaLinks || []),
-                { url: shareArrival.url, label: shareArrival.title || "" },
-              ],
-            });
-            setShareArrival(null);
-            reload();
-            onSelect(target.id);
-          }}
-        />
-      )}
-
-      {addKind && (
-        <AddSheet
-          kind={addKind}
-          pageStarter={pageStarter}
-          items={items}
-          onClose={() => {
-            setAddKind(null);
-            setPageStarter(null);
-          }}
-          onCreated={(id) => {
-            setAddKind(null);
-            setPageStarter(null);
-            reload();
-            onSelect(id);
-          }}
-        />
-      )}
+      {shareLayer}
     </>
   );
 }

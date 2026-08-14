@@ -73,6 +73,10 @@ export default function AddSheet({
   kind,
   pageStarter = null,
   initialForm = null,
+  // Share-continuation seeds: a term typed in the share picker's create row, and the shared
+  // video for the new LEXICAL item (page creations carry theirs on the starter seed instead).
+  initialTerm = "",
+  seedMediaLinks = [],
   items = [],
   onClose,
   onCreated,
@@ -86,7 +90,7 @@ export default function AddSheet({
   const isStructured = collectionEnabled || sourceEnabled || grammarEnabled;
   const allTags = useMemo(() => allTagsIn(items), [items]);
 
-  const [term, setTerm] = useState("");
+  const [term, setTerm] = useState(initialTerm);
   const [meanings, setMeanings] = useState([newMeaning()]);
   const [problem, setProblem] = useState("");
 
@@ -212,7 +216,7 @@ export default function AddSheet({
           });
         await createItem(item);
       } else {
-        item = newLexical({ term, meanings, form, pos, notes, tags });
+        item = newLexical({ term, meanings, form, pos, notes, tags, mediaLinks: seedMediaLinks });
         await createItem(item);
       }
       onCreated(item.id);

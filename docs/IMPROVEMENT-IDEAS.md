@@ -1482,6 +1482,11 @@ existing page) remains a later owner decision.~~ **Answered 2026-08-13, same day
 use (short learning videos, several a week) made always-new-Source-page too rigid; a URL share now
 opens a destination chooser — existing page or word/phrase (media link), new Grammar guide with
 the video attached, or new Source notebook. See the Share arrival destination chooser entries in
+`DECISIONS.md`. **Extended 2026-08-13:** an ephemeral continuation pill now keeps the video
+available after each action ("Add to another item" / "Done"), and the picker gained a create row
+for a new word or phrase carrying the video from birth — in-memory only, no schema or event
+change. Which targeted post-attach quick actions (add meaning, add capture…) deserve promotion
+onto the pill is the remaining real-use question. See the Continue-with-this-video entries in
 `DECISIONS.md`.
 
 ---
@@ -1784,6 +1789,13 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-13 — Continue-with-this-video flow implemented locally.** After any chooser action an
+  ephemeral pill keeps the shared video available ("Add to another item" reopens the full
+  chooser; "Done" forgets it), and the existing-item picker gained a create row that makes a new
+  word or phrase through the normal AddSheet with the video attached from birth. Owner chose the
+  minimal pill over targeted per-type quick actions — real use decides which shortcuts deserve
+  promotion. In-memory only: no schema, preference, event, or reload survival. Not yet deployed.
 
 - **2026-08-13 — Share arrival destination chooser deployed.** The owner-approved push
   (`f94c79a`) went out through a successful Pages run and the live site serves the new bundle.
