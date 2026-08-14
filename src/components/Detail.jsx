@@ -16,7 +16,9 @@ import {
   createItem, newLexical, newPage,
 } from "../db/items.js";
 import { logView, toggleTricky } from "../db/events.js";
-import { resolveLinkedKeys } from "../db/linkedEntries.js";
+import { mergeLinkedEntryIntoTwin, resolveLinkedKeys } from "../db/linkedEntries.js";
+import { installedMeta } from "../db/ref/entries.js";
+import { derivePersonalTwinMerges } from "../lib/personalTwins.js";
 import { emptyItemState } from "../useNotebook.js";
 import {
   connectionsFor,
@@ -270,6 +272,22 @@ function StandardDetail({
       alive = false;
     };
   }, [item.id, item.linkedKeys, item.linkAnnotations]);
+
+  // A dictionary connection whose entry the owner has since attached to an item of their own
+  // gets a prompted merge offer on its card. Alias awareness needs the installed previousIds
+  // map on the attachment side (the DictDetail rule); the LinkPicker precedent for loading it.
+  const [dictionaryMeta, setDictionaryMeta] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    installedMeta().then((meta) => {
+      if (alive) setDictionaryMeta(meta);
+    });
+    return () => { alive = false; };
+  }, [item.id]);
+  const twinMerges = useMemo(
+    () => derivePersonalTwinMerges(item, linkedEntryLinks, items, dictionaryMeta?.previousIds || {}),
+    [item, linkedEntryLinks, items, dictionaryMeta]
+  );
 
   /**
    * Ordinary connections group in the fixed relationship order, with words, pages, Diario
@@ -1066,6 +1084,12 @@ function StandardDetail({
                     await onChanged();
                   }}
                   onRemove={() => unlink(row.key)}
+                  twinMerge={twinMerges.get(row.key)}
+                  onMerge={async (twinId, relationship) => {
+                    const result = await mergeLinkedEntryIntoTwin(item.id, row.key, twinId, relationship);
+                    if (result?.merged) await onChanged();
+                    return result;
+                  }}
                 />
               ) : row.kind === "orphan" ? (
                 <OrphanLinkCard

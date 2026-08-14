@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ItemLinkCard } from "./LinkCard.jsx";
+import { EntryLinkCard, ItemLinkCard } from "./LinkCard.jsx";
 
 afterEach(cleanup);
 
@@ -110,5 +110,112 @@ describe("connection cards", () => {
     expect(screen.queryByText(/normally identifies this untitled journal moment/)).toBeNull();
     expect(screen.getByRole("button", { name: "Edit connection to August 1 moment" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Edit connection to Untitled page" })).toBeNull();
+  });
+});
+
+describe("the personal-twin offer on a dictionary connection", () => {
+  const entry = {
+    id: "dict:wiktionary-es:sacar:verb",
+    lemma: "sacar",
+    pos: "verb",
+    senses: [{ gloss: "to take out" }],
+  };
+  const twin = (id, overrides = {}) => ({
+    id: `user:${id}`,
+    type: "lexical",
+    form: "word",
+    term: "sacar",
+    dictKey: entry.id,
+    linkedKeys: [],
+    linkAnnotations: [],
+    ...overrides,
+  });
+  const merge = (twins) => ({ canonicalKey: entry.id, entry, twins });
+  const baseProps = () => ({
+    entry,
+    connection: { type: "related", subject: "owner", note: "" },
+    onOpen: vi.fn(),
+  });
+
+  it("renders exactly as before when no twin props are given", () => {
+    render(<EntryLinkCard {...baseProps()} />);
+    expect(screen.getByText("sacar")).toBeTruthy();
+    expect(screen.queryByText(/personal entr/)).toBeNull();
+  });
+
+  it("offers one tap per twin and reports the merge through the surface handler", async () => {
+    const user = userEvent.setup();
+    const onMerge = vi.fn().mockResolvedValue({ merged: true });
+    render(
+      <EntryLinkCard
+        {...baseProps()}
+        twinMerge={merge([
+          { twin: twin("first"), conflict: null },
+          { twin: twin("second", { term: "sacar (mío)" }), conflict: null },
+        ])}
+        onMerge={onMerge}
+      />
+    );
+
+    expect(screen.getByText("You now have personal entries for this word.")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: /Point this link at “sacar”/ }));
+    await waitFor(() => expect(onMerge).toHaveBeenCalledWith("user:first", undefined));
+    expect(screen.getByRole("button", { name: /sacar \(mío\)/ })).toBeTruthy();
+  });
+
+  it("expands the resolver for a conflicting twin instead of merging on the spot", async () => {
+    const user = userEvent.setup();
+    const onMerge = vi.fn().mockResolvedValue({ merged: true });
+    render(
+      <EntryLinkCard
+        {...baseProps()}
+        twinMerge={merge([{
+          twin: twin("twin"),
+          conflict: {
+            candidates: [
+              {
+                source: "dictionary",
+                explicit: true,
+                relationship: { type: "found_in", subject: "owner", note: "The interview." },
+              },
+              {
+                source: "personal",
+                explicit: true,
+                relationship: { type: "contrast", subject: "owner", note: "My note." },
+              },
+            ],
+          },
+        }])}
+        onMerge={onMerge}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /Point this link at “sacar”/ }));
+    expect(onMerge).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading", { name: "Point this link at “sacar”" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Merge into my entry" }));
+    await waitFor(() => expect(onMerge).toHaveBeenCalledWith(
+      "user:twin",
+      { type: "found_in", subject: "owner", note: "The interview." }
+    ));
+    // The resolver collapses after a successful merge; the surface refresh removes the card.
+    expect(screen.queryByRole("heading", { name: "Point this link at “sacar”" })).toBeNull();
+  });
+
+  it("surfaces a failed merge without hiding the offer", async () => {
+    const user = userEvent.setup();
+    const onMerge = vi.fn().mockRejectedValue(new Error("The connection changed."));
+    render(
+      <EntryLinkCard
+        {...baseProps()}
+        twinMerge={merge([{ twin: twin("twin"), conflict: null }])}
+        onMerge={onMerge}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /Point this link at “sacar”/ }));
+    expect((await screen.findByRole("alert")).textContent).toBe("The connection changed.");
+    expect(screen.getByRole("button", { name: /Point this link at “sacar”/ })).toBeTruthy();
   });
 });

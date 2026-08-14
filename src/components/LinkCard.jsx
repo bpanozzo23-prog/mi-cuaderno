@@ -7,6 +7,7 @@ import { timeAgo } from "../lib/dates.js";
 import { meaningGlossText } from "../lib/meanings.js";
 import { normalizeRelationship } from "../lib/relationships.js";
 import RelationshipSelect from "./RelationshipSelect.jsx";
+import TwinMergeResolver from "./TwinMergeResolver.jsx";
 import { markdownPreviewText } from "../lib/noteMarkdown.js";
 import { isJournalPage } from "../lib/pageKinds.js";
 
@@ -167,23 +168,103 @@ export function ItemLinkCard({
   );
 }
 
+/**
+ * The "personal twin" offer under a dictionary connection: the owner has since attached this
+ * entry to an item of their own, so the link probably wants to point at that item instead
+ * (the same judgement the LinkPicker's mergeResults already makes for new links). Prompted,
+ * never automatic; a conflict between explicit descriptions expands the resolver instead of
+ * picking a survivor. `onMerge(twinId, relationship?)` is the surface's handler and returns the
+ * database result, so both the one-tap path and the resolver share one write path.
+ */
+function TwinMergeOffer({ twinMerge, onMerge }) {
+  const [mergingId, setMergingId] = useState("");
+  const [resolvingId, setResolvingId] = useState("");
+  const [error, setError] = useState("");
+
+  const merge = async (twinId, relationship) => {
+    setMergingId(twinId);
+    setError("");
+    try {
+      const result = await onMerge(twinId, relationship);
+      if (result?.merged === false) {
+        if (result.reason === "conflict") setResolvingId(twinId);
+        else setError(result.reason === "not_installed"
+          ? "The dictionary is no longer installed. Reinstall it before merging this connection."
+          : "Could not merge this connection into your entry.");
+      }
+    } catch (caught) {
+      setError(caught?.message || "Could not merge this connection into your entry.");
+    } finally {
+      setMergingId("");
+    }
+  };
+
+  const several = twinMerge.twins.length > 1;
+  return (
+    <div className="mt-2 border-t pt-2" style={{ borderColor: C.line }}>
+      <div className="text-xs" style={{ color: C.mut }}>
+        You now have {several ? "personal entries" : "a personal entry"} for this word.
+      </div>
+      <div className="mt-1 grid gap-1">
+        {twinMerge.twins.map(({ twin, conflict }) =>
+          conflict && resolvingId === twin.id ? (
+            <TwinMergeResolver
+              key={twin.id}
+              itemId={null}
+              canonicalKey={twinMerge.canonicalKey}
+              twin={twin}
+              conflict={conflict}
+              mergeTwin={(_itemId, _canonicalKey, twinId, draft) => onMerge(twinId, draft)}
+              onMerged={() => setResolvingId("")}
+              onCancel={() => setResolvingId("")}
+            />
+          ) : (
+            <button
+              key={twin.id}
+              type="button"
+              disabled={Boolean(mergingId)}
+              onClick={() => (conflict ? setResolvingId(twin.id) : merge(twin.id))}
+              className="w-full min-h-11 rounded-lg px-2 py-1.5 text-left text-sm"
+              style={{ background: C.penPale, color: C.penDark, opacity: mergingId === twin.id ? 0.6 : 1 }}
+            >
+              {mergingId === twin.id ? "Merging…" : <>Point this link at “{twin.term}”</>}
+              {several && personalHeadingSuffix(twin) && (
+                <span className="italic text-xs ml-1.5">{personalHeadingSuffix(twin)}</span>
+              )}
+            </button>
+          )
+        )}
+      </div>
+      {error && <div role="alert" className="mt-1 text-xs" style={{ color: C.red }}>{error}</div>}
+    </div>
+  );
+}
+
 /** A link to a dictionary entry. Read-only by definition (§5); the owner never edits it. */
-export function EntryLinkCard({ entry, connection, onOpen, onSaveRelationship, onRemove }) {
+export function EntryLinkCard({ entry, connection, onOpen, onSaveRelationship, onRemove, twinMerge, onMerge }) {
   const relationship = normalizeRelationship(connection?.relationship || connection);
   const [editing, setEditing] = useState(false);
+  const offer = twinMerge?.twins?.length && onMerge ? (
+    <TwinMergeOffer twinMerge={twinMerge} onMerge={onMerge} />
+  ) : null;
   return (
     <Shell
       icon={BookMarked}
       onOpen={() => onOpen(entry.id)}
       onEdit={onSaveRelationship ? () => setEditing((open) => !open) : null}
       editLabel={`Edit connection to ${entry.lemma}`}
-      editor={editing ? (
-        <ConnectionEditor
-          connection={relationship}
-          onSave={onSaveRelationship}
-          onCancel={() => setEditing(false)}
-          onRemove={onRemove}
-        />
+      editor={(offer || editing) ? (
+        <>
+          {offer}
+          {editing && (
+            <ConnectionEditor
+              connection={relationship}
+              onSave={onSaveRelationship}
+              onCancel={() => setEditing(false)}
+              onRemove={onRemove}
+            />
+          )}
+        </>
       ) : null}
     >
       <div className="flex items-baseline justify-between gap-2">

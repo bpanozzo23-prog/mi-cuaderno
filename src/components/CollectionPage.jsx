@@ -14,7 +14,9 @@ import {
   relationshipLabel,
 } from "../lib/relationships.js";
 import { connectionsFromResolvedEntryLinks } from "../lib/resolvedConnections.js";
-import { resolveLinkedKeys } from "../db/linkedEntries.js";
+import { mergeLinkedEntryIntoTwin, resolveLinkedKeys } from "../db/linkedEntries.js";
+import { installedMeta } from "../db/ref/entries.js";
+import { derivePersonalTwinMerges } from "../lib/personalTwins.js";
 import {
   commitCollectionAdd, commitPageVocabularyAdd, saveCollectionOrganization,
 } from "../db/collections.js";
@@ -262,6 +264,24 @@ function ConnectionsSection({
     await onChanged();
   }
 
+  // The personal-twin merge offer is suppressed on a vocabulary-enabled page: there an outgoing
+  // lexical link IS membership, so merging would silently enroll the twin as ungrouped
+  // vocabulary — a membership change that deserves its own owner decision, not a link repair.
+  const [dictionaryMeta, setDictionaryMeta] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    installedMeta().then((meta) => {
+      if (alive) setDictionaryMeta(meta);
+    });
+    return () => { alive = false; };
+  }, [item.id]);
+  const twinMerges = useMemo(
+    () => vocabularyEnabled
+      ? new Map()
+      : derivePersonalTwinMerges(item, linkedEntryLinks, items, dictionaryMeta?.previousIds || {}),
+    [vocabularyEnabled, item, linkedEntryLinks, items, dictionaryMeta]
+  );
+
   return (
     <PageSectionDisclosure
       id="page-connections"
@@ -316,6 +336,12 @@ function ConnectionsSection({
                   await onChanged();
                 }}
                 onRemove={() => unlink(row.key)}
+                twinMerge={twinMerges.get(row.key)}
+                onMerge={async (twinId, relationship) => {
+                  const result = await mergeLinkedEntryIntoTwin(item.id, row.key, twinId, relationship);
+                  if (result?.merged) await onChanged();
+                  return result;
+                }}
               />
             ) : row.kind === "orphan" ? (
               <OrphanLinkCard

@@ -248,6 +248,30 @@ describe("JournalReader", () => {
     expect(await screen.findByText("No longer in the dictionary. Your notes are untouched.")).toBeTruthy();
   });
 
+  it("offers the personal-twin merge inside Más, never in the reader body", async () => {
+    const user = userEvent.setup();
+    await seedDictionary();
+    const twin = await createItem(newLexical({ term: "casa", dictKey: CASA }));
+    const entry = await createItem(newPage({
+      body: "Palabras de hoy.",
+      pageDate: "2026-08-03",
+      linkedKeys: [CASA],
+    }));
+    render(<JournalReader {...propsFor(entry, [entry, twin])} />);
+
+    // The reader body renders its vocabulary card without the offer.
+    expect(await screen.findByRole("button", { name: /^casa/ })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Point this link at/ })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "More journal tools" }));
+    const offer = await screen.findByRole("button", { name: /Point this link at “casa”/ });
+    await user.click(offer);
+
+    await waitFor(async () => {
+      expect((await getItem(entry.id)).linkedKeys).toEqual([twin.id]);
+    });
+  });
+
   it("renders preserved alias metadata immediately without waiting for refreshed entry props", async () => {
     const user = userEvent.setup();
     const oldCasa = "dict:wiktionary-es:casa:old";

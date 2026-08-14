@@ -1,10 +1,12 @@
-import { resolveEntry, isDictKey, dictionaryInstalled } from "./ref/entries.js";
+import { resolveEntry, isDictKey, dictionaryInstalled, installedMeta } from "./ref/entries.js";
 import { db } from "./db.js";
+import { isUserKey } from "../lib/ids.js";
 import {
   annotationForTarget,
   isImplicitRelationship,
   makeLinkAnnotation,
   normalizeRelationship,
+  reorientRelationship,
 } from "../lib/relationships.js";
 
 /**
@@ -259,4 +261,132 @@ export async function resolveLinkedEntryConflict(itemId, canonicalKey, relations
     forceRelationship: normalizeRelationship(relationship),
   }]);
   return { resolved: changed, canonicalKey, item: await db.items.get(itemId) };
+}
+
+/**
+ * Owner-triggered "personal twin" merge: re-points one ordinary dictionary connection at the
+ * personal item attached to the same entry. Nothing automatic calls this — resolveLinkedKeys
+ * still never treats a dictKey attachment as an ordinary link — and it keeps the same manners as
+ * resolveLinkedEntryConflict: only `linkedKeys`/`linkAnnotations` change, inside one personal
+ * transaction, with no `updatedAt` stamp and no event. The twin's attachment is untouched.
+ *
+ * Links are stored once, so the personal edge may already exist on either row. An outgoing edge
+ * (the item already links the twin) means the dictionary keys simply disappear; an incoming edge
+ * (the twin links the item) must NOT gain a reciprocal copy, so the surviving annotation lands
+ * on the twin's row, reoriented into its perspective. If the dictionary connection and the
+ * existing personal edge carry conflicting explicit annotations and no survivor was passed,
+ * nothing is written and the candidates come back for the owner to choose — the same
+ * owner-data rule the alias-conflict seam enforces.
+ */
+export async function mergeLinkedEntryIntoTwin(itemId, canonicalKey, twinId, relationship = undefined) {
+  if (!isDictKey(canonicalKey)) throw new Error("A canonical dictionary key is required.");
+  if (!isUserKey(twinId)) throw new Error("A personal twin key is required.");
+  if (twinId === itemId) throw new Error("A connection cannot merge into its own item.");
+  if (!(await dictionaryInstalled())) {
+    return { merged: false, reason: "not_installed", item: await db.items.get(itemId) };
+  }
+
+  const item = await db.items.get(itemId);
+  if (!item) throw new Error("The item containing this connection no longer exists.");
+  const [twin, meta] = await Promise.all([db.items.get(twinId), installedMeta()]);
+  const attached = twin?.type === "lexical" && twin.dictKey &&
+    (twin.dictKey === canonicalKey || meta?.previousIds?.[twin.dictKey] === canonicalKey);
+  if (!attached) throw new Error("That personal item is not attached to this dictionary entry.");
+
+  // Reference reads stay outside the personal write transaction (the linkItems pattern).
+  const resolved = await Promise.all(
+    (item.linkedKeys || []).filter(isDictKey).map(async (key) => ({
+      key,
+      ...(await resolveEntry(key)),
+    }))
+  );
+  const rawKeys = [...new Set(
+    resolved.filter((row) => row.entry?.id === canonicalKey).map((row) => row.key)
+  )];
+  if (!rawKeys.length) throw new Error("No matching dictionary connection remains to merge.");
+
+  let result;
+  await db.transaction("rw", db.items, async () => {
+    const current = await db.items.get(itemId);
+    const twinRow = await db.items.get(twinId);
+    if (!current || !twinRow) throw new Error("An endpoint of this merge no longer exists.");
+
+    const stillLinked = rawKeys.filter((key) => (current.linkedKeys || []).includes(key));
+    if (!stillLinked.length) throw new Error("No matching dictionary connection remains to merge.");
+
+    const outgoing = (current.linkedKeys || []).includes(twinId);
+    const incoming = (twinRow.linkedKeys || []).includes(itemId);
+
+    // Every stored description of the conceptual connection, in the ITEM's perspective: the
+    // dictionary raw keys plus the existing personal edge from whichever row physically owns it.
+    const candidates = stillLinked.map((key) => candidateFor(current, key));
+    if (outgoing || incoming) {
+      const outgoingAnnotation = outgoing ? annotationForTarget(current, twinId) : null;
+      const incomingAnnotation = incoming ? annotationForTarget(twinRow, itemId) : null;
+      const stored = outgoingAnnotation
+        || (incomingAnnotation && reorientRelationship(incomingAnnotation))
+        || null;
+      const implicit = !stored || isImplicitRelationship(stored);
+      candidates.push({
+        rawKey: twinId,
+        explicit: !implicit,
+        annotation: implicit ? null : { targetKey: twinId, ...normalizeRelationship(stored) },
+        relationship: normalizeRelationship(implicit ? {} : stored),
+      });
+    }
+
+    const explicit = distinctExplicitRelationships(candidates);
+    if (explicit.length > 1 && !relationship) {
+      result = { merged: false, reason: "conflict", candidates, item: current };
+      return;
+    }
+    const survivor = relationship
+      ? normalizeRelationship(relationship)
+      : explicit[0] || normalizeRelationship();
+
+    if (!outgoing && !incoming) {
+      await db.items.update(itemId, {
+        linkedKeys: replaceKeys(current.linkedKeys, stillLinked, twinId),
+        linkAnnotations: replaceAnnotations(
+          current.linkAnnotations, stillLinked, twinId, survivor
+        ),
+      });
+    } else if (outgoing) {
+      // The personal edge already exists on this row; the dictionary keys simply disappear and
+      // the survivor becomes the pair's one annotation. A legacy reciprocal copy on the twin's
+      // row keeps its physical key (mutation never repairs unrelated topology) but loses its
+      // annotation copy, since valid v4 data has one annotation per conceptual pair.
+      await db.items.update(itemId, {
+        linkedKeys: (current.linkedKeys || []).filter((key) => !stillLinked.includes(key)),
+        linkAnnotations: replaceAnnotations(
+          (current.linkAnnotations || []).filter((annotation) => annotation?.targetKey !== twinId),
+          stillLinked, twinId, survivor
+        ),
+      });
+      if (incoming && annotationForTarget(twinRow, itemId)) {
+        await db.items.update(twinId, {
+          linkAnnotations: (twinRow.linkAnnotations || [])
+            .filter((annotation) => annotation?.targetKey !== itemId),
+        });
+      }
+    } else {
+      // Incoming only: the twin owns the physical edge. The item just loses its dictionary
+      // keys; the surviving annotation is written where the edge lives, reoriented.
+      await db.items.update(itemId, {
+        linkedKeys: (current.linkedKeys || []).filter((key) => !stillLinked.includes(key)),
+        linkAnnotations: (current.linkAnnotations || [])
+          .filter((annotation) => !stillLinked.includes(annotation?.targetKey)),
+      });
+      const twinAnnotation = makeLinkAnnotation(itemId, reorientRelationship(survivor));
+      await db.items.update(twinId, {
+        linkAnnotations: [
+          ...(twinRow.linkAnnotations || []).filter((annotation) => annotation?.targetKey !== itemId),
+          ...(twinAnnotation ? [twinAnnotation] : []),
+        ],
+      });
+    }
+
+    result = { merged: true, canonicalKey, twinId, item: await db.items.get(itemId) };
+  });
+  return result;
 }

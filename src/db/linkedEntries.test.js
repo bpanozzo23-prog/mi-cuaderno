@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { resolveLinkedEntryConflict, resolveLinkedKeys } from "./linkedEntries.js";
+import {
+  mergeLinkedEntryIntoTwin,
+  resolveLinkedEntryConflict,
+  resolveLinkedKeys,
+} from "./linkedEntries.js";
 import { installDictionary, fetchManifest, removeDictionary } from "./ref/install.js";
 import { buildFixtureDictionary, installFetchStub } from "../test/dictFixture.js";
 import { db } from "./db.js";
@@ -389,5 +393,186 @@ describe("resolving the dictionary entries an item links to", () => {
 
     const edits = (await allEvents()).filter((e) => e.type === EVENT_TYPES.edit);
     expect(edits).toEqual([]);
+  });
+});
+
+describe("merging a dictionary connection into its attached personal twin", () => {
+  const editEvents = async () =>
+    (await allEvents()).filter((event) => event.type === EVENT_TYPES.edit);
+
+  it("re-points the key at the twin, carries the annotation, and moves neither recency nor events", async () => {
+    await install();
+    const twin = await createItem(newLexical({ term: "sacar", dictKey: SACAR }));
+    const relationship = { type: "found_in", subject: "target", note: "From an interview." };
+    const page = newPage({
+      title: "Verbs",
+      linkedKeys: [SACAR],
+      linkAnnotations: [{ targetKey: SACAR, ...relationship }],
+    });
+    page.updatedAt = "2026-01-02T03:04:05.000Z";
+    await createItem(page);
+
+    const result = await mergeLinkedEntryIntoTwin(page.id, SACAR, twin.id);
+    const saved = await getItem(page.id);
+
+    expect(result.merged).toBe(true);
+    expect(saved.linkedKeys).toEqual([twin.id]);
+    expect(saved.linkAnnotations).toEqual([{ targetKey: twin.id, ...relationship }]);
+    expect(saved.updatedAt).toBe("2026-01-02T03:04:05.000Z");
+    expect((await getItem(twin.id)).dictKey).toBe(SACAR);
+    expect(await editEvents()).toEqual([]);
+
+    // The merged row is ordinary v8 data: one key, one matching sparse annotation.
+    const roundTripped = JSON.parse(JSON.stringify(saved));
+    expect(roundTripped).toEqual(saved);
+  });
+
+  it("merges old alias raw keys on both sides of the seam", async () => {
+    // The link was made under one historical id and the attachment under another; the alias map
+    // says both now name SACAR. The merge must not depend on either side being canonical.
+    const linkedOldKey = "dict:wiktionary-es:sacar:verb:1";
+    const attachedOldKey = "dict:wiktionary-es:sacar:verb:2";
+    await install({ previousIds: { [linkedOldKey]: SACAR, [attachedOldKey]: SACAR } });
+    const twin = await createItem(newLexical({ term: "sacar", dictKey: attachedOldKey }));
+    const page = await createItem(newPage({ title: "Verbs", linkedKeys: [linkedOldKey] }));
+
+    const result = await mergeLinkedEntryIntoTwin(page.id, SACAR, twin.id);
+
+    expect(result.merged).toBe(true);
+    expect((await getItem(page.id)).linkedKeys).toEqual([twin.id]);
+  });
+
+  it("drops the dictionary key without duplicating an existing outgoing personal link", async () => {
+    await install();
+    const twin = await createItem(newLexical({ term: "sacar", dictKey: SACAR }));
+    const relationship = { type: "contrast", subject: "owner", note: "Not quitar." };
+    const page = await createItem(newPage({
+      title: "Verbs",
+      linkedKeys: [CASA, SACAR, twin.id],
+      linkAnnotations: [{ targetKey: SACAR, ...relationship }],
+    }));
+
+    const result = await mergeLinkedEntryIntoTwin(page.id, SACAR, twin.id);
+    const saved = await getItem(page.id);
+
+    expect(result.merged).toBe(true);
+    expect(saved.linkedKeys).toEqual([CASA, twin.id]);
+    // The dictionary side's explicit annotation survives over the implicit personal edge.
+    expect(saved.linkAnnotations).toEqual([{ targetKey: twin.id, ...relationship }]);
+  });
+
+  it("returns conflicting explicit descriptions untouched instead of picking one", async () => {
+    await install();
+    const twin = await createItem(newLexical({ term: "sacar", dictKey: SACAR }));
+    const page = newPage({
+      title: "Verbs",
+      linkedKeys: [SACAR, twin.id],
+      linkAnnotations: [
+        { targetKey: SACAR, type: "found_in", subject: "owner", note: "The interview." },
+        { targetKey: twin.id, type: "contrast", subject: "owner", note: "My note." },
+      ],
+    });
+    page.updatedAt = "2026-02-03T04:05:06.000Z";
+    await createItem(page);
+    const before = await getItem(page.id);
+
+    const result = await mergeLinkedEntryIntoTwin(page.id, SACAR, twin.id);
+
+    expect(result.merged).toBe(false);
+    expect(result.reason).toBe("conflict");
+    expect(result.candidates.filter((candidate) => candidate.explicit)).toHaveLength(2);
+    expect(await getItem(page.id)).toEqual(before);
+    expect(await editEvents()).toEqual([]);
+  });
+
+  it("canonicalizes the same conflict with the owner's edited survivor", async () => {
+    await install();
+    const twin = await createItem(newLexical({ term: "sacar", dictKey: SACAR }));
+    const page = newPage({
+      title: "Verbs",
+      linkedKeys: [SACAR, twin.id],
+      linkAnnotations: [
+        { targetKey: SACAR, type: "found_in", subject: "owner", note: "The interview." },
+        { targetKey: twin.id, type: "contrast", subject: "owner", note: "My note." },
+      ],
+    });
+    page.updatedAt = "2026-03-04T05:06:07.000Z";
+    await createItem(page);
+
+    const result = await mergeLinkedEntryIntoTwin(page.id, SACAR, twin.id, {
+      type: "explained_by",
+      subject: "target",
+      note: "  Final shared note.  ",
+    });
+    const saved = await getItem(page.id);
+
+    expect(result.merged).toBe(true);
+    expect(saved.linkedKeys).toEqual([twin.id]);
+    expect(saved.linkAnnotations).toEqual([{
+      targetKey: twin.id,
+      type: "explained_by",
+      subject: "target",
+      note: "Final shared note.",
+    }]);
+    expect(saved.updatedAt).toBe("2026-03-04T05:06:07.000Z");
+    expect(await editEvents()).toEqual([]);
+  });
+
+  it("writes the survivor reoriented on the twin's row when the twin owns the edge", async () => {
+    await install();
+    const page = newPage({ title: "Verbs", linkedKeys: [SACAR], linkAnnotations: [{
+      targetKey: SACAR, type: "explained_by", subject: "owner", note: "It explains me.",
+    }] });
+    page.updatedAt = "2026-04-05T06:07:08.000Z";
+    await createItem(page);
+    const twin = newLexical({ term: "sacar", dictKey: SACAR, linkedKeys: [page.id] });
+    twin.updatedAt = "2026-04-05T06:07:09.000Z";
+    await createItem(twin);
+
+    const result = await mergeLinkedEntryIntoTwin(page.id, SACAR, twin.id);
+    const savedPage = await getItem(page.id);
+    const savedTwin = await getItem(twin.id);
+
+    expect(result.merged).toBe(true);
+    // No reciprocal physical key appears on either row: the twin keeps the only edge.
+    expect(savedPage.linkedKeys).toEqual([]);
+    expect(savedPage.linkAnnotations).toEqual([]);
+    expect(savedTwin.linkedKeys).toEqual([page.id]);
+    expect(savedTwin.linkAnnotations).toEqual([{
+      targetKey: page.id,
+      type: "explained_by",
+      subject: "target",
+      note: "It explains me.",
+    }]);
+    expect(savedPage.updatedAt).toBe("2026-04-05T06:07:08.000Z");
+    expect(savedTwin.updatedAt).toBe("2026-04-05T06:07:09.000Z");
+    expect(await editEvents()).toEqual([]);
+  });
+
+  it("stays sparse when every description is implicit", async () => {
+    await install();
+    const twin = await createItem(newLexical({ term: "sacar", dictKey: SACAR }));
+    const page = await createItem(newPage({ title: "Verbs", linkedKeys: [SACAR] }));
+
+    await mergeLinkedEntryIntoTwin(page.id, SACAR, twin.id);
+
+    expect((await getItem(page.id)).linkAnnotations).toEqual([]);
+  });
+
+  it("guards its endpoints: installation, attachment, and self-merge", async () => {
+    const detachedPage = await createItem(newPage({ title: "Verbs", linkedKeys: [SACAR] }));
+    const missingDictionary = await mergeLinkedEntryIntoTwin(
+      detachedPage.id, SACAR, "user:0f0e0d0c-0b0a-4908-8706-050403020100"
+    );
+    expect(missingDictionary).toMatchObject({ merged: false, reason: "not_installed" });
+
+    await install();
+    const unattached = await createItem(newLexical({ term: "sacar" }));
+    await expect(mergeLinkedEntryIntoTwin(detachedPage.id, SACAR, unattached.id))
+      .rejects.toThrow(/not attached/);
+
+    const selfTwin = await createItem(newLexical({ term: "sacar", dictKey: SACAR, linkedKeys: [SACAR] }));
+    await expect(mergeLinkedEntryIntoTwin(selfTwin.id, SACAR, selfTwin.id))
+      .rejects.toThrow(/its own item/);
   });
 });

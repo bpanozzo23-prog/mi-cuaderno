@@ -37,6 +37,8 @@ export default function JournalMore({
   connections = [],
   dictionaryConnections = [],
   aliasConflicts = [],
+  twinMerges = new Map(),
+  onMergeTwin,
   onOpen,
   onChanged,
   onBack,
@@ -233,6 +235,10 @@ export default function JournalMore({
                     onOpen={onOpen}
                     onSaveRelationship={(relationship) => saveRelationship(connection.key, relationship)}
                     onRemove={() => removeLink(connection.key)}
+                    twinMerge={twinMerges.get(connection.key)}
+                    onMerge={onMergeTwin
+                      ? (twinId, relationship) => onMergeTwin(connection.key, twinId, relationship)
+                      : undefined}
                   />
                 ) : (
                   <OrphanLinkCard

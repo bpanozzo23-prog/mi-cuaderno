@@ -3,7 +3,9 @@ import { ChevronLeft, MoreHorizontal, Pencil, Plus, RotateCcw, Sparkles } from "
 import { C, MONO, SERIF, dotGrid } from "../theme.jsx";
 import { linkItems, setLinkRelationship, unlinkItems } from "../db/items.js";
 import { logView } from "../db/events.js";
-import { resolveLinkedKeys } from "../db/linkedEntries.js";
+import { mergeLinkedEntryIntoTwin, resolveLinkedKeys } from "../db/linkedEntries.js";
+import { installedMeta } from "../db/ref/entries.js";
+import { derivePersonalTwinMerges } from "../lib/personalTwins.js";
 import { localDate } from "../lib/dates.js";
 import TagChip from "./TagChip.jsx";
 import { isJournalEntry, sortJournalEntries } from "../lib/journal.js";
@@ -158,6 +160,25 @@ export default function JournalReader({
   async function saveRelationship(key, relationship) {
     await setLinkRelationship(entry.id, key, relationship);
     await onChanged();
+  }
+
+  // Personal-twin merge offers for Más's dictionary links; the reader body stays read-only.
+  const [dictionaryMeta, setDictionaryMeta] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    installedMeta().then((meta) => {
+      if (alive) setDictionaryMeta(meta);
+    });
+    return () => { alive = false; };
+  }, [entry.id]);
+  const twinMerges = useMemo(
+    () => derivePersonalTwinMerges(entry, dictionaryEntryLinks, items, dictionaryMeta?.previousIds || {}),
+    [entry, dictionaryEntryLinks, items, dictionaryMeta]
+  );
+  async function mergeTwin(canonicalKey, twinId, relationship) {
+    const result = await mergeLinkedEntryIntoTwin(entry.id, canonicalKey, twinId, relationship);
+    if (result?.merged) await onChanged();
+    return result;
   }
 
   return (
@@ -385,6 +406,8 @@ export default function JournalReader({
           connections={connections}
           dictionaryConnections={dictionaryConnections}
           aliasConflicts={aliasConflicts}
+          twinMerges={twinMerges}
+          onMergeTwin={mergeTwin}
           onOpen={onOpen}
           onChanged={onChanged}
           onBack={onBack}
