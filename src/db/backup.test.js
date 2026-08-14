@@ -21,6 +21,7 @@ const makeV4Page = (overrides = {}) => {
     grammar: _grammar,
     noteSections: _noteSections,
     feedback: _feedback,
+    apuntes: _apuntes,
     collection,
     ...legacy
   } = current;
@@ -34,6 +35,7 @@ const makeLegacyPage = (overrides = {}) => {
     grammar: _grammar,
     noteSections: _noteSections,
     feedback: _feedback,
+    apuntes: _apuntes,
     linkAnnotations: _linkAnnotations,
     ...page
   } = makePage(overrides);
@@ -51,12 +53,17 @@ const withoutFeedback = (page) => {
   const { feedback: _feedback, ...legacy } = page;
   return legacy;
 };
+const withoutApuntes = (page) => {
+  const { apuntes: _apuntes, ...legacy } = page;
+  return legacy;
+};
 const upgradedGeneralPage = (legacyPage, linkAnnotations = []) => ({
   ...legacyPage,
   linkAnnotations,
   pageFocus: "notes",
   noteSections: [],
   feedback: null,
+  apuntes: null,
   collection: { enabled: false, groups: [] },
   source: emptySource(),
   grammar: emptyGrammar(),
@@ -517,7 +524,7 @@ describe("import: replace and restore", () => {
       schemaVersion: 5,
       exportedAt: "2026-08-04T10:00:00.000Z",
       appVersion: "0.1.0",
-      userItems: [word, withoutFeedback(withoutNoteSections(sourcePage)), withoutFeedback(withoutNoteSections(legacyGrammarPage))],
+      userItems: [word, withoutApuntes(withoutFeedback(withoutNoteSections(sourcePage))), withoutApuntes(withoutFeedback(withoutNoteSections(legacyGrammarPage)))],
       events: [],
       preferences: {},
     };
@@ -565,7 +572,7 @@ describe("import: replace and restore", () => {
       schemaVersion: 6,
       exportedAt: "2026-08-10T10:00:00.000Z",
       appVersion: "0.1.0",
-      userItems: [withoutFeedback(withoutNoteSections(page))],
+      userItems: [withoutApuntes(withoutFeedback(withoutNoteSections(page)))],
       events: [],
       preferences: {},
     };
@@ -591,7 +598,7 @@ describe("import: replace and restore", () => {
       schemaVersion: 7,
       exportedAt: "2026-08-10T11:00:00.000Z",
       appVersion: "0.1.0",
-      userItems: [word, withoutFeedback(page)],
+      userItems: [word, withoutApuntes(withoutFeedback(page))],
       events: [],
       preferences: {},
     };
@@ -613,7 +620,48 @@ describe("import: replace and restore", () => {
     });
   });
 
-  it("round-trips exact schema-v8 Notes hierarchies and a stored entry review", () => {
+  it("upgrades a schema-v8 envelope by adding the absent Apuntes to every page", () => {
+    const page = makePage({
+      id: "user:pre-apuntes",
+      body: "Hoy fui al mercado.",
+      pageDate: "2026-08-12",
+      feedback: {
+        verdict: "clear",
+        summary: "Reads well.",
+        items: [],
+        reviewedAt: "2026-08-12T10:00:00.000Z",
+        reviewedHash: "abc123",
+      },
+    });
+    const word = makeLexical({ id: "user:word", term: "mercado" });
+    const v8 = {
+      format: BACKUP_FORMAT,
+      schemaVersion: 8,
+      exportedAt: "2026-08-12T11:00:00.000Z",
+      appVersion: "0.1.0",
+      userItems: [word, withoutApuntes(page)],
+      events: [],
+      preferences: {},
+    };
+
+    const snapshot = structuredClone(v8);
+    const checked = validateBackup(v8);
+
+    expect(checked.ok).toBe(true);
+    expect(v8).toEqual(snapshot);
+    expect(checked.envelope).toEqual({
+      ...v8,
+      schemaVersion: SCHEMA_VERSION,
+      userItems: [word, page],
+    });
+    expect(checked.summary).toMatchObject({
+      schemaVersion: 8,
+      targetSchemaVersion: SCHEMA_VERSION,
+      willUpgrade: true,
+    });
+  });
+
+  it("round-trips exact schema-v9 Notes hierarchies, a stored entry review and Apuntes", () => {
     const rootId = "note-section:66666666-6666-4666-8666-666666666666";
     const notesPage = makePage({
       id: "user:notes-hierarchy",
@@ -640,8 +688,9 @@ describe("import: replace and restore", () => {
         reviewedAt: "2026-08-11T10:00:00.000Z",
         reviewedHash: "abc123",
       },
+      apuntes: "## Google follow up\n\n- Use **recopilar** instead of juntar.",
     });
-    const v8 = {
+    const v9 = {
       format: BACKUP_FORMAT,
       schemaVersion: SCHEMA_VERSION,
       exportedAt: "2026-08-11T11:00:00.000Z",
@@ -651,10 +700,10 @@ describe("import: replace and restore", () => {
       preferences: {},
     };
 
-    const checked = validateBackup(JSON.stringify(v8));
+    const checked = validateBackup(JSON.stringify(v9));
 
     expect(checked.ok).toBe(true);
-    expect(checked.envelope).toEqual(v8);
+    expect(checked.envelope).toEqual(v9);
     expect(checked.summary.willUpgrade).toBe(false);
   });
 
@@ -867,6 +916,8 @@ describe("validation happens before anything is written", () => {
     ["a stored review missing its content hash", { ...baseline(), userItems: [makePage({ feedback: {
       verdict: "clear", summary: "", items: [], reviewedAt: "2026-08-11T10:00:00.000Z",
     } })] }],
+    ["a page without the Apuntes field", { ...baseline(), userItems: [withoutApuntes(makePage())] }],
+    ["Apuntes that are not text", { ...baseline(), userItems: [makePage({ apuntes: 42 })] }],
     ["a Notes subsection whose parent is on another page", (() => {
       const parentId = "note-section:11111111-1111-4111-8111-111111111111";
       const parentPage = makePage({
@@ -1075,6 +1126,19 @@ describe("validation happens before anything is written", () => {
 
     expect(checked.ok).toBe(false);
     expect(checked.errors.join(" ")).toMatch(/feedback is not part of schema v7/);
+  });
+
+  it("rejects a schema-v8 envelope that tries to smuggle in schema-v9 Apuntes", () => {
+    const input = {
+      ...baseline(),
+      schemaVersion: 8,
+      userItems: [makePage({ id: "user:sneaky-apuntes", apuntes: "Notas" })],
+    };
+
+    const checked = validateBackup(input);
+
+    expect(checked.ok).toBe(false);
+    expect(checked.errors.join(" ")).toMatch(/apuntes is not part of schema v8/);
   });
 
   it("rejects annotations stored on both sides of one reciprocal personal pair", () => {

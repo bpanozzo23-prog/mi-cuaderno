@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, Lightbulb, X } from "lucide-react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { ChevronDown, ChevronLeft, Lightbulb, X } from "lucide-react";
 import { Button, C, Card, SERIF, dotGrid } from "../theme.jsx";
 import { createItem, newPage, updateItem } from "../db/items.js";
 import { logView } from "../db/events.js";
@@ -11,14 +11,24 @@ import FeedbackReview from "./FeedbackReview.jsx";
 
 export const JOURNAL_AUTOSAVE_MS = 650;
 
-const cleanDraft = ({ title, body, pageDate }) => ({
+const cleanDraft = ({ title, body, pageDate, apuntes }) => ({
   title: String(title || "").trim(),
   body: String(body || ""),
   pageDate: String(pageDate || ""),
+  apuntes: String(apuntes || ""),
 });
 
 const sameDraft = (a, b) =>
-  a.title === b.title && a.body === b.body && a.pageDate === b.pageDate;
+  a.title === b.title && a.body === b.body && a.pageDate === b.pageDate && a.apuntes === b.apuntes;
+
+/**
+ * Body or Apuntes creates the entry — pasted outside feedback must never be silently lost to the
+ * body-only gate — while a title alone still creates nothing.
+ */
+const draftHasContent = (draft) => Boolean(draft.body.trim() || draft.apuntes.trim());
+
+/** Whitespace-only Apuntes persists as null, the schema-v9 "no notes" state. */
+const storedApuntes = (draft) => (draft.apuntes.trim() ? draft.apuntes : null);
 
 function initialPrompt(seed) {
   if (!seed?.prompt) return null;
@@ -39,10 +49,15 @@ export default function JournalEditor({
     title: entry?.title,
     body: entry?.body,
     pageDate: entry?.pageDate || seed?.date || localDate(),
+    apuntes: entry?.apuntes,
   });
   const [title, setTitle] = useState(initial.title);
   const [body, setBody] = useState(initial.body);
   const [date, setDate] = useState(initial.pageDate);
+  const [apuntes, setApuntes] = useState(initial.apuntes);
+  // Open when there is something to see, out of the way when there is not.
+  const [showApuntes, setShowApuntes] = useState(Boolean(initial.apuntes.trim()));
+  const apuntesPanelId = useId();
   const [status, setStatus] = useState(entry ? "Saved" : "Start writing to create this moment");
   const [prompt, setPrompt] = useState(() => initialPrompt(seed));
   const [choosingPrompt, setChoosingPrompt] = useState(false);
@@ -59,7 +74,7 @@ export default function JournalEditor({
   const saveChainRef = useRef(Promise.resolve());
   const versionRef = useRef(0);
 
-  const draft = cleanDraft({ title, body, pageDate: date });
+  const draft = cleanDraft({ title, body, pageDate: date, apuntes });
   latestDraftRef.current = draft;
 
   // Live against the draft, so the note appears the moment an edit outdates the stored review.
@@ -72,7 +87,7 @@ export default function JournalEditor({
   async function persistDraft(requestedDraft, version, { quiet = false } = {}) {
     const currentId = materializedIdRef.current;
     if (!requestedDraft.pageDate) return null;
-    if (!currentId && !requestedDraft.body.trim()) return null;
+    if (!currentId && !draftHasContent(requestedDraft)) return null;
     if (currentId && sameDraft(requestedDraft, lastSavedRef.current)) {
       if (!quiet && mountedRef.current && version === versionRef.current) setStatus("Saved");
       return currentId;
@@ -85,6 +100,7 @@ export default function JournalEditor({
           title: requestedDraft.title,
           body: requestedDraft.body,
           pageDate: requestedDraft.pageDate,
+          apuntes: storedApuntes(requestedDraft),
           linkedKeys: seed?.linkedEntryId ? [seed.linkedEntryId] : [],
         }));
         itemId = created.id;
@@ -100,6 +116,7 @@ export default function JournalEditor({
             title: requestedDraft.title,
             body: requestedDraft.body,
             pageDate: requestedDraft.pageDate,
+            apuntes: storedApuntes(requestedDraft),
           },
           { logEdit }
         );
@@ -148,7 +165,7 @@ export default function JournalEditor({
       setStatus("Choose a date to save");
       return undefined;
     }
-    if (!materializedIdRef.current && !requested.body.trim()) {
+    if (!materializedIdRef.current && !draftHasContent(requested)) {
       setStatus("Start writing to create this moment");
       return undefined;
     }
@@ -159,7 +176,7 @@ export default function JournalEditor({
       enqueueSave(requested, version);
     }, autosaveMs);
     return () => clearTimeout(timerRef.current);
-  }, [title, body, date, autosaveMs]);
+  }, [title, body, date, apuntes, autosaveMs]);
 
   useEffect(() => {
     // React StrictMode intentionally runs setup → cleanup → setup in development. Restore the
@@ -176,7 +193,7 @@ export default function JournalEditor({
         : { ...requested, pageDate: lastValidDateRef.current };
       if (
         flushDraft.pageDate &&
-        (materializedIdRef.current || flushDraft.body.trim()) &&
+        (materializedIdRef.current || draftHasContent(flushDraft)) &&
         !sameDraft(flushDraft, lastSavedRef.current)
       ) {
         const version = ++versionRef.current;
@@ -193,7 +210,7 @@ export default function JournalEditor({
     }
     clearTimeout(timerRef.current);
     if (
-      (materializedIdRef.current || requested.body.trim()) &&
+      (materializedIdRef.current || draftHasContent(requested)) &&
       !sameDraft(requested, lastSavedRef.current)
     ) {
       const version = ++versionRef.current;
@@ -277,6 +294,34 @@ export default function JournalEditor({
           className="w-full min-h-80 rounded-xl border p-3 text-base leading-relaxed outline-none"
           style={{ background: C.card, borderColor: C.line, color: C.ink, fontFamily: SERIF }}
         />
+
+        <section aria-label="Apuntes for this entry">
+          <button
+            type="button"
+            onClick={() => setShowApuntes((open) => !open)}
+            aria-expanded={showApuntes}
+            aria-controls={apuntesPanelId}
+            className="inline-flex min-h-11 items-center gap-1 text-xs"
+            style={{ color: C.pen }}
+          >
+            <ChevronDown size={13} /> Apuntes
+          </button>
+          {/* `hidden`, not unmount: collapsing must not discard the textarea's caret or scroll. */}
+          <div id={apuntesPanelId} hidden={!showApuntes}>
+            <MarkdownTextarea
+              blankLines
+              aria-label="Apuntes"
+              value={apuntes}
+              onChange={setApuntes}
+              placeholder="Outside feedback, notes to self…"
+              className="w-full min-h-28 rounded-xl border p-3 text-sm leading-relaxed outline-none"
+              style={{ background: C.card, borderColor: C.line, color: C.ink, fontFamily: SERIF }}
+            />
+            <div className="mt-1 text-xs" style={{ color: C.mut }}>
+              Kept beside this entry, never sent for review.
+            </div>
+          </div>
+        </section>
 
         {entry?.feedback && (
           <section aria-label="Feedback on this entry">

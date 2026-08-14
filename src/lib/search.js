@@ -48,6 +48,7 @@ const REASONS = {
   noteSection: "in a Notes section",
   source: "in source notes",
   grammar: "in the grammar guide",
+  apuntes: "in the Apuntes",
 };
 
 /** Newlines and runs of spaces read as one space when matching a free-text field. */
@@ -62,10 +63,10 @@ function containedVocabularyMatch(page, query, allItems) {
     if (lexical?.type !== "lexical") continue;
     const heading = String(lexical.term || "");
     if (normalize(heading).includes(q)) {
-      matches.push({ tier: TIER.text, reason: `contained vocabulary “${heading}”`, offset: 4 });
+      matches.push({ tier: TIER.text, reason: `contained vocabulary “${heading}”`, offset: 5 });
     }
     if (flattenSpace(normalize(meaningGlossText(lexical, " "))).includes(q)) {
-      matches.push({ tier: TIER.text, reason: `meaning of contained vocabulary “${heading}”`, offset: 5 });
+      matches.push({ tier: TIER.text, reason: `meaning of contained vocabulary “${heading}”`, offset: 6 });
     }
   }
   // One page produces one result. Prefer a matching Spanish heading over a personal meaning,
@@ -170,6 +171,11 @@ function bestMatch(item, query, { allItems = [], includeContainedVocabulary = fa
   }
   if (isPage && normalize(activeGrammarText(item)).includes(q)) {
     return { tier: TIER.text, reason: REASONS.grammar, offset: 3 };
+  }
+  // The entry's Apuntes (schema v9): the owner's own filed notes, so they sit below the entry's
+  // body and structures but above matches derived from contained vocabulary.
+  if (isPage && typeof item.apuntes === "string" && normalize(plainTextFromMarkdown(item.apuntes)).includes(q)) {
+    return { tier: TIER.text, reason: REASONS.apuntes, offset: 4 };
   }
   if (isPage && includeContainedVocabulary) {
     const contained = containedVocabularyMatch(item, query, allItems);

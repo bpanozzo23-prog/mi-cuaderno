@@ -101,6 +101,7 @@ export function newPage({
   collection = undefined,
   source = undefined,
   grammar = undefined,
+  apuntes = null,
   tags = [],
   mediaLinks = [],
   linkedKeys = [],
@@ -149,6 +150,8 @@ export function newPage({
     ...structures,
     // Not a page structure — the persisted latest AI review (schema v8), absent as null.
     feedback: null,
+    // Not a page structure either — the owner's Apuntes beside a Diario entry (schema v9).
+    apuntes: typeof apuntes === "string" && apuntes.trim() !== "" ? apuntes : null,
     tags: cleanTags(tags),
     linkedKeys,
     linkAnnotations: [...(linkAnnotations || [])],

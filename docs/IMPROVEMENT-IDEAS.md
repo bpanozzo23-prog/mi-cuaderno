@@ -53,6 +53,7 @@ Useful information to retain for each idea:
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
 | Historia word families | 2026-08-13 | Phase 25a deployed; Phase 25b rejected at gate | Closed for now; any derivational revival needs redesigned reference data |
+| Diario follow-up AI requests | 2026-08-14 | Captured | After the Apuntes box (schema v9) has real-use history showing the Gemini round-trip still chafes |
 | Edge-kind visual vocabulary | 2026-08-13 | Captured | Any time; mostly the lighter visual loop — side-by-side variants, colours through theme tokens |
 | Wander constellation (one-hop map) | 2026-08-13 | Captured | After the edge-kind vocabulary settles; lives or dies on a 375px variant pass with worst-case terms |
 | Connection cluster browsing | 2026-08-13 | Captured | Once the confirmed graph has real clusters (Graph texture can show this); resolve the Tag hubs / Saved views overlap first |
@@ -117,6 +118,36 @@ Useful information to retain for each idea:
 ---
 
 ## Active ideas
+
+### Diario follow-up AI requests
+
+- **Date added:** 2026-08-14
+- **Status:** Captured
+- **Origin:** Owner question during the Apuntes (schema v9) discussion, 2026-08-14
+- **Owner interest:** Unsure — "not sure if that's a better option than just going to Gemini for
+  additional feedback and bringing that feedback back."
+- **Potential data impact:** None decided; a follow-up answer's natural storage home is the
+  Apuntes field, so no new schema should be assumed.
+
+#### Description and current context
+
+A second in-app AI call on a Diario entry beyond the one workshopped review: either a small set
+of canned follow-up prompts ("explain this in more depth", "give alternative phrasings") or a
+free-typed prompt box. Raised while designing the Apuntes box; the current alternative is the
+owner's existing round-trip to another tool (Gemini) with the result pasted into Apuntes.
+
+#### Considerations recorded at capture
+
+- The external round-trip has a virtue an in-app button cannot replicate: a genuinely different
+  model's second opinion. The Apuntes box removes most of the round-trip's friction, so judge
+  the remaining annoyance only after living with it.
+- The existing review works because it is constrained — one workshopped prompt, schema-enforced
+  JSON, one storage slot with a replace/remove lifecycle and staleness hash. Free-form output
+  would need an equivalent home and lifecycle; without one it lands back in Apuntes anyway.
+- A free prompt box is the top of a slope toward a general chat client, against the project's
+  simplicity-over-features ethos; if evidence shows the same follow-up being asked repeatedly,
+  prefer one or two canned, workshopped follow-up actions inside the review panel whose dated
+  answers file into Apuntes. §9's disclosure-before-send posture governs any variant.
 
 ### Historia word families
 

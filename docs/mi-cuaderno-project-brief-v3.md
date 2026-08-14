@@ -50,6 +50,15 @@ and exact personal URLs may reveal other items from the same source. Suggestions
 remain render-time evidence; only explicit confirmation uses existing page-vocabulary or ordinary
 connection writers. Schema remains v8.
 
+**Apuntes amendment, 2026-08-14 — §§7, 8, 9 and 10:** schema v9 adds `apuntes` to the page record
+(`null` when absent): one optional free-markdown box of owner notes kept beside a Diario entry and
+out of its body — outside feedback (e.g. another AI tool's review) and notes to self. A field on
+an existing type — the two-content-type rule stands. Only Diario surfaces it, collapsible in
+editor and reader. Saving it is an ordinary owner edit (timestamp bump, one `edit` event per
+visit). It is searchable in global and Diario search, rides in backups like any other item field,
+and is never part of an AI request or the stored review's staleness hash, which cover only title
+and body.
+
 ---
 
 ## 1. What this is
@@ -448,6 +457,7 @@ authority.
 - The API key is entered once and stored on-device. A browser-stored key is readable by code running on the page — an accepted, documented risk for a single-user app, contingent on the spend cap in §3. Log the acceptance in `DECISIONS.md`.
 - Proposed entries follow the prototype's pattern: nothing saves without explicit approval.
 - **Amended 2026-08-11:** the latest Diario review is persisted on the entry it judged, as schema v8's `feedback` field on the page record — a field on an existing type, not a third content type, so §7 stands. One review per entry; asking again replaces it, and the owner can remove it. A stored content hash of the reviewed text marks the review stale after later edits. The review rides in backups like any other item field, but saving it moves no timestamp and logs no event: requesting feedback is neither opening nor editing the entry.
+- **Amended 2026-08-14:** an entry's `apuntes` (schema v9) is never included in an AI request and never enters the staleness hash — both cover exactly the title and body. Outside feedback filed there cannot be re-reviewed as if it were the owner's writing, and filing it never marks the stored review stale.
 
 ## 10. Backup and durability
 

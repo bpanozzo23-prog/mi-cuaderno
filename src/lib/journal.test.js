@@ -9,6 +9,7 @@ import {
   searchJournalEntries,
   sortJournalEntries,
   todayJournalEntry,
+  validateApuntes,
   withoutJournalEntries,
 } from "./journal.js";
 
@@ -61,7 +62,7 @@ describe("journal derivation", () => {
     ]);
   });
 
-  it("orders the timeline and searches only title, body, and tags with Spanish normalization", () => {
+  it("orders the timeline and searches only title, body, tags and Apuntes with Spanish normalization", () => {
     const olderMoment = page({
       id: "user:older",
       pageDate: "2026-08-02",
@@ -83,6 +84,30 @@ describe("journal derivation", () => {
       body: "Fue un día **muy importante** para mí.",
     });
     expect(searchJournalEntries([formatted], "muy importante")).toEqual([formatted]);
+  });
+
+  it("finds Apuntes text through Diario search, with markdown flattened", () => {
+    const annotated = page({
+      id: "user:annotated",
+      pageDate: "2026-08-14",
+      body: "Hoy encontré un buen método.",
+      apuntes: "## Gemini\n\n- Use **recopilar** instead of juntar.",
+    });
+    const plain = page({ id: "user:plain", pageDate: "2026-08-13", body: "Sin apuntes." });
+
+    expect(searchJournalEntries([annotated, plain], "recopilar")).toEqual([annotated]);
+    // A null field neither matches nor breaks the haystack.
+    expect(searchJournalEntries([annotated, plain], "sin apuntes")).toEqual([plain]);
+  });
+
+  it("validates Apuntes as null or text", () => {
+    expect(validateApuntes(null)).toEqual([]);
+    expect(validateApuntes("")).toEqual([]);
+    expect(validateApuntes("## Notas")).toEqual([]);
+    expect(validateApuntes(42)).toEqual(["apuntes must be null or a string."]);
+    expect(validateApuntes(undefined, "userItems[0].apuntes")).toEqual([
+      "userItems[0].apuntes must be null or a string.",
+    ]);
   });
 
   it("keeps the earliest-created same-day moment as Today and continues the latest other touch", () => {

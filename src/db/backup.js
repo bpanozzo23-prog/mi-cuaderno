@@ -8,6 +8,7 @@ import {
   upgradePageItemV5,
   upgradePageItemV6,
   upgradePageItemV7,
+  upgradePageItemV8,
 } from "./db.js";
 import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
 import { nowIso } from "../lib/dates.js";
@@ -32,6 +33,7 @@ import { PINNED_LEXICAL_IDS_PREF } from "../lib/lexicalViews.js";
 import { TAG_COLORS_PREF, TAG_SWATCHES } from "../lib/tagColors.js";
 import { AI_API_KEY_PREF, AI_ENABLED_PREF } from "../lib/aiPrefs.js";
 import { validateStoredFeedback } from "../lib/diarioReview.js";
+import { validateApuntes } from "../lib/journal.js";
 import {
   isDirectionalRelationshipType,
   RELATIONSHIP_SUBJECTS,
@@ -290,6 +292,17 @@ function validateItem(
       errors.push(`${where}.feedback is missing`);
     } else {
       errors.push(...validateStoredFeedback(item.feedback, `${where}.feedback`));
+    }
+    // The Apuntes field follows the feedback precedent exactly: not a page structure, version
+    // gate kept in this one place.
+    if (schemaVersion < 9) {
+      if (Object.prototype.hasOwnProperty.call(item, "apuntes")) {
+        errors.push(`${where}.apuntes is not part of schema v${schemaVersion}`);
+      }
+    } else if (!Object.prototype.hasOwnProperty.call(item, "apuntes")) {
+      errors.push(`${where}.apuntes is missing`);
+    } else {
+      errors.push(...validateApuntes(item.apuntes, `${where}.apuntes`));
     }
     if (schemaVersion === 3 || schemaVersion === 4) {
       if (!isPageProfile(item.pageProfile)) {
@@ -608,6 +621,7 @@ const upgradeItemsV4ToV5 = (userItems) => userItems.map((item) => upgradePageIte
 const upgradeItemsV5ToV6 = (userItems) => userItems.map((item) => upgradePageItemV5(item));
 const upgradeItemsV6ToV7 = (userItems) => userItems.map((item) => upgradePageItemV6(item));
 const upgradeItemsV7ToV8 = (userItems) => userItems.map((item) => upgradePageItemV7(item));
+const upgradeItemsV8ToV9 = (userItems) => userItems.map((item) => upgradePageItemV8(item));
 
 function validateEvent(event, index, errors) {
   const where = `events[${index}]`;
@@ -648,7 +662,7 @@ export function validateBackup(raw) {
     errors.push(
       `This backup is schema version ${parsed.schemaVersion}, newer than this app understands (${SCHEMA_VERSION}). Update the app first.`
     );
-  } else if (![1, 2, 3, 4, 5, 6, 7, 8].includes(parsed.schemaVersion)) {
+  } else if (![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(parsed.schemaVersion)) {
     errors.push(`Schema version ${parsed.schemaVersion} is not supported.`);
   }
   if (!Array.isArray(parsed.userItems)) errors.push("userItems must be an array.");
@@ -713,6 +727,13 @@ export function validateBackup(raw) {
   if (upgradedSchemaVersion === 7) {
     upgradedItems = upgradeItemsV7ToV8(upgradedItems);
     upgradedSchemaVersion = 8;
+    validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
+  }
+  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
+
+  if (upgradedSchemaVersion === 8) {
+    upgradedItems = upgradeItemsV8ToV9(upgradedItems);
+    upgradedSchemaVersion = 9;
     validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
   }
   if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };

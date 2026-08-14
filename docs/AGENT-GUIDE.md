@@ -62,16 +62,17 @@ this summary.
 - **The event log is the single source of truth** (§7). No stored counters, no state flags.
   Tricky state, lookup counts, review box and due date are all *derived at render*
   (`src/lib/review.js`, `src/db/events.js`).
-- **`SCHEMA_VERSION` is 8.** Phase 4i introduced v1→v2 structured meanings, Phase 4j–4o added
+- **`SCHEMA_VERSION` is 9.** Phase 4i introduced v1→v2 structured meanings, Phase 4j–4o added
   v2→v3 page profiles, Phase 4t added v3→v4 sparse link annotations, Phase 7 added v4→v5
   composable pages, Phase 19 added v5→v6 Grammar hierarchy followed by v6→v7 Structured Notes,
-  and the 2026-08-11 Diario amendment added v7→v8 persisted entry feedback (`feedback: null` on
-  every page). Startup requires an untouched validated schema-1 through schema-7 export before
-  Dexie opens; direct legacy upgrades run every migration in order. Backup schemas 1 through 8
-  upgrade sequentially in memory and are deeply validated as v8 before any write; versions newer
-  than 8 remain blocked. Any further personal schema change still triggers §5 in full: migration plan,
-  export-first safety, version bump and matching backup validation. **If you conclude another is
-  needed, stop and raise it.**
+  the 2026-08-11 Diario amendment added v7→v8 persisted entry feedback (`feedback: null` on
+  every page), and the 2026-08-14 Apuntes amendment added v8→v9 owner notes beside a Diario
+  entry (`apuntes: null` on every page). Startup requires an untouched validated schema-1
+  through schema-8 export before Dexie opens; direct legacy upgrades run every migration in
+  order. Backup schemas 1 through 9 upgrade sequentially in memory and are deeply validated as
+  v9 before any write; versions newer than 9 remain blocked. Any further personal schema change
+  still triggers §5 in full: migration plan, export-first safety, version bump and matching
+  backup validation. **If you conclude another is needed, stop and raise it.**
 - **`src/lib/normalize.js` preserves ñ** — "año" must never match "ano", anywhere new. All
   matching goes through it. **Do not change it:** the pipeline imports the same file, so it also
   decides what the 10,278 shipped dictionary entries match.

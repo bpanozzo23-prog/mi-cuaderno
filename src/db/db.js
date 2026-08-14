@@ -205,6 +205,32 @@ db.version(8)
   .stores(PERSONAL_STORES)
   .upgrade(migratePersonalDataToV8);
 
+/**
+ * Schema v9 adds the owner's Apuntes — outside feedback and notes-to-self kept beside a Diario
+ * entry, out of its body — to each page; no notes is `null`.
+ */
+export function upgradePageItemV8(item) {
+  if (!item || item.type !== "page") return { ...item };
+  return {
+    ...item,
+    apuntes: null,
+  };
+}
+
+export async function migratePersonalDataToV9(transaction) {
+  await transaction
+    .table("items")
+    .where("type")
+    .equals("page")
+    .modify((item) => {
+      Object.assign(item, upgradePageItemV8(item));
+    });
+}
+
+db.version(9)
+  .stores(PERSONAL_STORES)
+  .upgrade(migratePersonalDataToV9);
+
 export async function getPref(key, fallback = null) {
   const row = await db.prefs.get(key);
   return row === undefined ? fallback : row.value;

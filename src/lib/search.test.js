@@ -274,6 +274,30 @@ describe("composable page search", () => {
     expect(meaningResults[0]?.reason).toBe("meaning of contained vocabulary “ahorita”");
   });
 
+  it("searches an entry's Apuntes at tier 6, ranked below its body and preserving ñ", () => {
+    const annotated = newPage({
+      title: "Mi día",
+      pageDate: "2026-08-14",
+      body: "Hoy encontré un buen método.",
+      apuntes: "## Gemini\n\n- Use **recopilar** for organizing digital content, el año pasado.",
+    });
+    expect(searchItems([annotated], "recopilar")[0]).toMatchObject({
+      tier: TIER.text,
+      reason: "in the Apuntes",
+    });
+    // Markdown syntax never matches; only the visible text does.
+    expect(searchItems([annotated], "##")).toEqual([]);
+    // "año" in the Apuntes must never answer an "ano" search (normalize keeps ñ distinct).
+    expect(searchItems([annotated], "ano")).toEqual([]);
+    expect(searchItems([annotated], "año")[0]).toMatchObject({ reason: "in the Apuntes" });
+
+    // A body match outranks an Apuntes match when two pages tie on tier.
+    const bodyHit = newPage({ title: "Cuerpo", body: "método nuevo" });
+    const apuntesHit = newPage({ title: "Notas", apuntes: "método nuevo" });
+    const ordered = searchItems([apuntesHit, bodyHit], "método nuevo").map(({ item }) => item.title);
+    expect(ordered).toEqual(["Cuerpo", "Notas"]);
+  });
+
   it("returns a page once with its best contained-vocabulary context", () => {
     const meaningFirst = lexical({ term: "enseguida", translation: "right here" });
     const headingSecond = lexical({ term: "derecho", translation: "straight" });

@@ -484,6 +484,38 @@ describe("JournalReader", () => {
     expect(screen.getByRole("button", { name: /Send and review/i })).toBeTruthy();
   });
 
+  it("shows stored Apuntes behind a collapsed disclosure and renders their markdown", async () => {
+    const user = userEvent.setup();
+    const entry = await createItem(newPage({
+      body: "Hoy escribí un poco.",
+      pageDate: "2026-08-03",
+      apuntes: "## Google follow up\n\n- Use **recopilar** instead of juntar.",
+    }));
+    render(<JournalReader {...propsFor(entry, [entry])} />);
+
+    const trigger = await screen.findByRole("button", { name: "Apuntes" });
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    // Collapsed means the content is not on the page yet.
+    expect(screen.queryByText(/recopilar/)).toBeNull();
+
+    await user.click(trigger);
+
+    expect(screen.getByText("Google follow up")).toBeTruthy();
+    expect(screen.getByText("recopilar")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Close apuntes" }));
+    expect(screen.queryByText(/recopilar/)).toBeNull();
+    expect(screen.getByRole("button", { name: "Apuntes" })).toBeTruthy();
+  });
+
+  it("offers no Apuntes section when the entry has none", async () => {
+    const entry = await createItem(newPage({ body: "Sin apuntes.", pageDate: "2026-08-03" }));
+    render(<JournalReader {...propsFor(entry, [entry])} />);
+
+    await waitFor(() => expect(screen.getByText(/Sin apuntes/)).toBeTruthy());
+    expect(screen.queryByRole("button", { name: "Apuntes" })).toBeNull();
+  });
+
   it("requires a second tap before deleting the entry", async () => {
     const user = userEvent.setup();
     const entry = await createItem(newPage({ body: "Disposable fixture.", pageDate: "2026-08-03" }));

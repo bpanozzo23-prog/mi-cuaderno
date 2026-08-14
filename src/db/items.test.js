@@ -125,7 +125,20 @@ describe("pages", () => {
     expect(stored.source).toEqual(emptySource());
     expect(stored.grammar).toEqual(emptyGrammar());
     expect(stored.feedback).toBeNull();
+    expect(stored.apuntes).toBeNull();
     expect(displayTitle(stored)).toBe("Preterite vs imperfect");
+  });
+
+  it("stores Apuntes text on creation and nulls a whitespace-only value", async () => {
+    const withNotes = await createItem(
+      newPage({ title: "Con apuntes", pageDate: "2026-08-14", apuntes: "## Gemini\n\n- recopilar" })
+    );
+    expect((await getItem(withNotes.id)).apuntes).toBe("## Gemini\n\n- recopilar");
+
+    const blank = await createItem(
+      newPage({ title: "Sin apuntes", pageDate: "2026-08-14", apuntes: "   \n" })
+    );
+    expect((await getItem(blank.id)).apuntes).toBeNull();
   });
 
   it("stores an independently cloned and normalized Notes outline", () => {

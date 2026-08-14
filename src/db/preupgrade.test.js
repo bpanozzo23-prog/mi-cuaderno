@@ -51,11 +51,15 @@ async function seedLegacyDatabase(schemaVersion) {
   const relationshipShape = schemaVersion < 4
     ? (({ linkAnnotations: _linkAnnotations, ...legacyPage }) => legacyPage)(currentPage)
     : currentPage;
-  // Every seeded version predates schema v8, so the stored-review field never appears.
-  const { feedback: _feedback, ...pageBeforeFeedback } = relationshipShape;
+  // Every seeded version predates schema v9, so the Apuntes field never appears — and versions
+  // below v8 predate the stored-review field too.
+  const { apuntes: _apuntes, ...pageBeforeApuntes } = relationshipShape;
+  const { feedback: _feedback, ...pageBeforeFeedback } = pageBeforeApuntes;
   const { noteSections: _noteSections, ...pageBeforeNotesOutline } = pageBeforeFeedback;
   let page;
-  if (schemaVersion >= 7) {
+  if (schemaVersion >= 8) {
+    page = pageBeforeApuntes;
+  } else if (schemaVersion >= 7) {
     page = pageBeforeFeedback;
   } else if (schemaVersion >= 5) {
     page = {
@@ -109,7 +113,7 @@ describe("export-first schema gate", () => {
     });
   });
 
-  it.each([1, 2, 3, 4, 5, 6, 7])("exports the untouched schema-v%s envelope before v8 can open", async (schemaVersion) => {
+  it.each([1, 2, 3, 4, 5, 6, 7, 8])("exports the untouched schema-v%s envelope before v9 can open", async (schemaVersion) => {
     const { lexical, page } = await seedLegacyDatabase(schemaVersion);
 
     expect(await preupgradeStatus()).toMatchObject({
@@ -140,7 +144,12 @@ describe("export-first schema gate", () => {
     } else {
       expect(backup.userItems.find((item) => item.id === page.id).noteSections).toEqual([]);
     }
-    expect(backup.userItems.find((item) => item.id === page.id)).not.toHaveProperty("feedback");
+    if (schemaVersion < 8) {
+      expect(backup.userItems.find((item) => item.id === page.id)).not.toHaveProperty("feedback");
+    } else {
+      expect(backup.userItems.find((item) => item.id === page.id).feedback).toBeNull();
+    }
+    expect(backup.userItems.find((item) => item.id === page.id)).not.toHaveProperty("apuntes");
     if (schemaVersion === 1) {
       expect(backup.userItems.find((item) => item.id === lexical.id).translation).toBe("take out\nwithdraw");
       expect(backup.userItems.find((item) => item.id === lexical.id)).not.toHaveProperty("meanings");

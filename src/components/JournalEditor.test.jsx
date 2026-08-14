@@ -266,6 +266,64 @@ describe("JournalEditor autosave", () => {
     expect(screen.getByRole("status").textContent).toMatch(/choose a date/i);
   });
 
+  it("autosaves Apuntes typed in the collapsible box and trims a blanked box back to null", async () => {
+    const user = userEvent.setup();
+    const entry = await createItem(newPage({ title: "Con caja", body: "Cuerpo.", pageDate: "2026-08-03" }));
+    render(<JournalEditor {...baseProps({ entry, seed: null })} />);
+
+    // Empty Apuntes start collapsed; the box must be opened before typing.
+    const toggle = screen.getByRole("button", { name: "Apuntes" });
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    await user.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+
+    await user.type(screen.getByRole("textbox", { name: "Apuntes" }), "recopilar > juntar");
+    await waitFor(async () => expect((await allItems())[0].apuntes).toBe("recopilar > juntar"));
+    expect((await allItems())[0].body).toBe("Cuerpo.");
+
+    await user.clear(screen.getByRole("textbox", { name: "Apuntes" }));
+    await waitFor(async () => expect((await allItems())[0].apuntes).toBeNull());
+  });
+
+  it("keeps the Apuntes box mounted while collapsed so its draft survives", async () => {
+    const user = userEvent.setup();
+    const entry = await createItem(newPage({
+      title: "Guardado",
+      body: "Cuerpo.",
+      pageDate: "2026-08-03",
+      apuntes: "Nota externa",
+    }));
+    render(<JournalEditor {...baseProps({ entry, seed: null })} />);
+
+    // Non-empty Apuntes open expanded.
+    const toggle = screen.getByRole("button", { name: "Apuntes" });
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    const box = screen.getByRole("textbox", { name: "Apuntes" });
+    expect(box.value).toBe("Nota externa");
+
+    await user.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    // Hidden, not unmounted: the value is still there when reopened.
+    expect(box.isConnected).toBe(true);
+    await user.click(toggle);
+    expect(screen.getByRole("textbox", { name: "Apuntes" }).value).toBe("Nota externa");
+  });
+
+  it("materializes a fresh draft from Apuntes alone so pasted feedback is never lost", async () => {
+    const user = userEvent.setup();
+    const props = baseProps();
+    render(<JournalEditor {...props} />);
+
+    await user.click(screen.getByRole("button", { name: "Apuntes" }));
+    await user.type(screen.getByRole("textbox", { name: "Apuntes" }), "Feedback de Gemini.");
+
+    await waitFor(async () => expect(await allItems()).toHaveLength(1));
+    const [created] = await allItems();
+    expect(created.apuntes).toBe("Feedback de Gemini.");
+    expect(created.body).toBe("");
+    expect(created.pageDate).toBe("2026-08-03");
+  });
+
   it("uses a selected prompt only as ephemeral guidance", async () => {
     const user = userEvent.setup();
     render(<JournalEditor {...baseProps()} />);

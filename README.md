@@ -478,11 +478,20 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   a disposable 375×812 flow verified the offer and the re-pointed link by numbers. See the
   Personal twin merge entries in [DECISIONS.md](DECISIONS.md).
 
-`SCHEMA_VERSION` is **8**. Before Dexie opens v8, schema-v1 through schema-v7 owners must save and
+- **Apuntes — implemented, not yet deployed.** Each Diario entry gains one optional collapsible
+  free-markdown **Apuntes** box (schema v9's `apuntes` field, `null` when absent) for outside
+  feedback and notes to self, kept out of the entry body so AI review requests, the stored
+  review's staleness hash, and body-derived surfaces never see it. Editable in the journal
+  editor's collapsible box on the normal autosave path (ordinary `edit` event), readable behind a
+  collapsed disclosure in the reader, and searchable in global ("in the Apuntes") and Diario
+  search. See the Apuntes entries in [DECISIONS.md](DECISIONS.md).
+
+`SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
-relationship, composable-page, Grammar-hierarchy, Structured-Notes and entry-feedback migrations
-in order. Backup schemas 1 through 8 are accepted, upgraded sequentially in memory, deeply
-validated as v8, and only then offered for replace-and-restore; newer versions remain blocked.
+relationship, composable-page, Grammar-hierarchy, Structured-Notes, entry-feedback and Apuntes
+migrations in order. Backup schemas 1 through 9 are accepted, upgraded sequentially in memory,
+deeply validated as v9, and only then offered for replace-and-restore; newer versions remain
+blocked.
 
 ## Testing
 

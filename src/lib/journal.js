@@ -33,14 +33,37 @@ export function sortJournalEntries(items) {
   );
 }
 
-/** Diario deliberately searches only the fields that belong to a journal moment. */
+/**
+ * Diario deliberately searches only the fields that belong to a journal moment — title, body,
+ * tags, and the entry's Apuntes (schema v9): notes the owner chose to keep beside the entry are
+ * worth finding from the same box they were filed from.
+ */
 export function searchJournalEntries(items, query) {
   const needle = normalize(query);
   const entries = sortJournalEntries(items);
   if (!needle) return entries;
   return entries.filter((entry) =>
-    normalize([entry.title, plainTextFromMarkdown(entry.body), ...(entry.tags || [])].filter(Boolean).join("\n")).includes(needle)
+    normalize(
+      [
+        entry.title,
+        plainTextFromMarkdown(entry.body),
+        entry.apuntes ? plainTextFromMarkdown(entry.apuntes) : "",
+        ...(entry.tags || []),
+      ].filter(Boolean).join("\n")
+    ).includes(needle)
   );
+}
+
+/**
+ * Shape check for the persisted Apuntes field (schema v9). `null` is the valid "no notes" state —
+ * the field is always present on a v9 page. The owner types this markdown themselves, so unlike
+ * the AI review there is no structure to enforce beyond it being text. The `where`-prefixed
+ * array-of-errors signature matches `validateStoredFeedback` so backup validation composes it the
+ * same way.
+ */
+export function validateApuntes(value, where = "apuntes") {
+  if (value === null || typeof value === "string") return [];
+  return [`${where} must be null or a string.`];
 }
 
 /** The first-created same-day entry is the stable Today anchor. */

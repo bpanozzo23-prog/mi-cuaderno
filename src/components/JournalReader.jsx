@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronLeft, MoreHorizontal, Pencil, Plus, RotateCcw, Sparkles } from "lucide-react";
-import { C, MONO, SERIF, dotGrid } from "../theme.jsx";
+import { C, Card, MONO, SERIF, dotGrid } from "../theme.jsx";
 import { linkItems, setLinkRelationship, unlinkItems } from "../db/items.js";
 import { logView } from "../db/events.js";
 import { mergeLinkedEntryIntoTwin, resolveLinkedKeys } from "../db/linkedEntries.js";
@@ -49,6 +49,7 @@ export default function JournalReader({
   const [showMore, setShowMore] = useState(false);
   const [aiReady, setAiReady] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showApuntes, setShowApuntes] = useState(false);
   const [dictionaryEntryLinks, setDictionaryEntryLinks] = useState([]);
   const [orphanKeys, setOrphanKeys] = useState([]);
   const [aliasConflicts, setAliasConflicts] = useState([]);
@@ -128,9 +129,11 @@ export default function JournalReader({
   }, []);
 
   // A review belongs to the entry it was asked about; moving to another closes the panel rather
-  // than carrying one entry's feedback over the next one's text.
+  // than carrying one entry's feedback over the next one's text. Apuntes collapse for the same
+  // reason.
   useEffect(() => {
     setShowFeedback(false);
+    setShowApuntes(false);
   }, [entry.id]);
 
   useEffect(() => {
@@ -298,6 +301,37 @@ export default function JournalReader({
             />
           )}
         </div>
+      )}
+
+      {/* The owner's Apuntes — outside feedback and notes-to-self kept beside the entry, out of
+          its body. Same dated-disclosure idiom as Feedback above; whitespace-only never renders. */}
+      {typeof entry.apuntes === "string" && entry.apuntes.trim() !== "" && (
+        <section aria-label="Apuntes for this entry" className="mt-2">
+          {!showApuntes && (
+            <button
+              type="button"
+              onClick={() => setShowApuntes(true)}
+              aria-expanded={showApuntes}
+              className="inline-flex min-h-11 items-center gap-1 text-xs"
+              style={{ color: C.pen }}
+            >
+              <ChevronDown size={13} /> Apuntes
+            </button>
+          )}
+          {showApuntes && (
+            <Card className="mt-3 p-3" style={{ borderColor: C.chipBorder }}>
+              <div className="flex items-start justify-between gap-2">
+                <div className="font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>Apuntes</div>
+                <button type="button" onClick={() => setShowApuntes(false)} aria-label="Close apuntes" className="p-2 shrink-0 -mt-1">
+                  <ChevronDown size={16} className="rotate-180" style={{ color: C.mut }} />
+                </button>
+              </div>
+              <MarkdownText blankLines className="mt-2 text-sm leading-relaxed">
+                {entry.apuntes}
+              </MarkdownText>
+            </Card>
+          )}
+        </section>
       )}
 
       <section aria-label="Journal vocabulary" className="mt-8">
