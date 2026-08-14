@@ -414,6 +414,17 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   serial suite passes 1,409/1,409 across 121 files, the manifest is unchanged, and a disposable
   375×812 flow walked all three destinations with exactly one edit event on attach. See the Share
   arrival destination chooser entries in [DECISIONS.md](DECISIONS.md).
+- **Continue-with-this-video — deployed.** One shared video often yields several outputs, so after
+  any chooser action an ephemeral pill now keeps the video available above the nav on every
+  Cuaderno screen: "Add to another item" reopens the full chooser, "Done" forgets it. The picker
+  also gained a create row — the typed query becomes a new word or phrase through the normal
+  creation sheet, carrying the video as a Media link from birth (space rule infers phrase;
+  dictionary attachment stays the usual later step). The continuation is in-memory only — no
+  schema, preference, event, or reload survival; every content write keeps its normal path and
+  event. The complete serial suite passes 1,410/1,410 across 121 files, the manifest is unchanged,
+  and a disposable 375×812 flow verified the pill's geometry, chooser reopen from a detail screen,
+  create-from-picker, Done, and a clean reload. See the Continue-with-this-video entries in
+  [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **8**. Before Dexie opens v8, schema-v1 through schema-v7 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,

@@ -1790,6 +1790,11 @@ added optional import of dictionary senses as ordinary meaning records with no l
 
 ## Document history
 
+- **2026-08-14 — Continue-with-this-video flow deployed.** The owner-approved push (`31f344a`)
+  went out through a successful Pages run and the live site serves the new bundle. The remaining
+  real-use questions: one TikTok processed into several outputs without resharing on the real
+  device, and which targeted post-attach quick actions deserve promotion onto the pill.
+
 - **2026-08-13 — Continue-with-this-video flow implemented locally.** After any chooser action an
   ephemeral pill keeps the shared video available ("Add to another item" reopens the full
   chooser; "Done" forgets it), and the existing-item picker gained a create row that makes a new
