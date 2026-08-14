@@ -44,6 +44,8 @@ import { commitCollectionAdd } from "../db/collections.js";
 import KnowledgeConsolidation from "./KnowledgeConsolidation.jsx";
 import Biography from "./Biography.jsx";
 import ExamplePhraseAction from "./ExamplePhraseAction.jsx";
+import SharedSourceDisclosure from "./SharedSourceDisclosure.jsx";
+import { canonicalSharedSourceUrl } from "../lib/sharedSources.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
@@ -914,6 +916,17 @@ function StandardDetail({
                 </div>
                 {isDirectImageUrl(m.url) && (
                   <MediaImage src={m.url} alt={m.label || ""} caption={false} />
+                )}
+                {canonicalSharedSourceUrl(m.url)
+                  && item.mediaLinks.findIndex((candidate) =>
+                    canonicalSharedSourceUrl(candidate.url) === canonicalSharedSourceUrl(m.url)
+                  ) === i && (
+                  <SharedSourceDisclosure
+                    items={items}
+                    currentItemId={item.id}
+                    url={m.url}
+                    onOpen={onOpen}
+                  />
                 )}
               </Card>
             ))}

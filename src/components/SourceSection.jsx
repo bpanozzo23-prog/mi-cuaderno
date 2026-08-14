@@ -27,6 +27,7 @@ import {
 } from "../db/pageStructures.js";
 import CollectionAddVocabularySheet from "./CollectionAddVocabularySheet.jsx";
 import MentionedHere from "./MentionedHere.jsx";
+import SharedSourceDisclosure from "./SharedSourceDisclosure.jsx";
 import PageSectionDisclosure from "./PageSectionDisclosure.jsx";
 
 const CAPTURE_TYPES = [
@@ -86,7 +87,7 @@ function moveAt(rows, index, offset) {
   return next;
 }
 
-function SourceDetails({ source, onSaved }) {
+function SourceDetails({ page, source, items, onOpen, onSaved }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(() => sourceDetailsDraft(source));
   const [saving, setSaving] = useState(false);
@@ -219,16 +220,24 @@ function SourceDetails({ source, onSaved }) {
               {source.scope && <div><span className="text-xs" style={{ color: C.mut }}>Scope · </span>{source.scope}</div>}
               {source.context && <div className="whitespace-pre-wrap break-words" style={{ color: C.mut }}>{source.context}</div>}
               {source.url && (
-                <a
-                  href={source.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex max-w-full items-center gap-1 underline underline-offset-2"
-                  style={{ color: C.pen }}
-                >
-                  <ExternalLink size={13} className="shrink-0" />
-                  <span className="truncate">Open source</span>
-                </a>
+                <>
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex max-w-full items-center gap-1 underline underline-offset-2"
+                    style={{ color: C.pen }}
+                  >
+                    <ExternalLink size={13} className="shrink-0" />
+                    <span className="truncate">Open source</span>
+                  </a>
+                  <SharedSourceDisclosure
+                    items={items}
+                    currentItemId={page.id}
+                    url={source.url}
+                    onOpen={onOpen}
+                  />
+                </>
               )}
             </div>
           )}
@@ -765,8 +774,11 @@ export default function SourceSection({
     >
 
       <SourceDetails
+        page={page}
         key={`${page.id}:${source.format}:${source.creator}:${source.scope}:${source.url}:${source.context}`}
         source={source}
+        items={items}
+        onOpen={onOpen}
         onSaved={async (draft) => {
           await saveSourceDetails(page.id, draft);
           await changed();

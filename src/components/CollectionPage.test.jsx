@@ -485,6 +485,37 @@ describe("derived context confirmations", () => {
     });
   });
 
+  it("shows exact shared URLs once across Source and media, plus distinct media URLs", async () => {
+    const user = userEvent.setup();
+    const onOpen = vi.fn();
+    const primaryUrl = "https://example.com/lesson";
+    const mediaUrl = "https://example.com/interview";
+    const primaryPeer = await createItem(newLexical({ term: "lección", mediaLinks: [{ url: primaryUrl }] }));
+    const mediaPeer = await createItem(newPage({ title: "Interview diary", pageDate: "2026-08-12", mediaLinks: [{ url: mediaUrl }] }));
+    const page = await createItem(newPage({
+      title: "Listening notes",
+      pageFocus: "source",
+      source: { enabled: true, url: primaryUrl },
+      mediaLinks: [
+        { url: primaryUrl, label: "Duplicate primary" },
+        { url: mediaUrl, label: "Interview" },
+      ],
+    }));
+
+    renderDetail(page, await allItems(), onOpen);
+    const disclosures = screen.getAllByRole("button", { name: "Also from this source · 1" });
+    expect(disclosures).toHaveLength(2);
+    const sourceDetails = screen.getByText("Open source").closest(".rounded-xl");
+    await user.click(within(sourceDetails).getByRole("button", { name: "Also from this source · 1" }));
+    await user.click(within(sourceDetails).getByRole("button", { name: /lección/ }));
+    expect(onOpen).toHaveBeenLastCalledWith(primaryPeer.id);
+
+    const mediaCard = screen.getByText("Interview").closest(".rounded-xl");
+    await user.click(within(mediaCard).getByRole("button", { name: "Also from this source · 1" }));
+    await user.click(within(mediaCard).getByRole("button", { name: /Interview diary/ }));
+    expect(onOpen).toHaveBeenLastCalledWith(mediaPeer.id);
+  });
+
 });
 
 describe("lexical Collection placement", () => {

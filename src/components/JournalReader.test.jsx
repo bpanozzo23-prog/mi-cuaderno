@@ -110,6 +110,24 @@ describe("JournalReader", () => {
     expect(props.onChanged).toHaveBeenCalled();
   });
 
+  it("opens exact shared-source peers from Diario Más", async () => {
+    const user = userEvent.setup();
+    const url = "https://example.com/story";
+    const peer = await createItem(newLexical({ term: "cuento", mediaLinks: [{ url }] }));
+    const entry = await createItem(newPage({
+      body: "Leí un cuento.",
+      pageDate: "2026-08-03",
+      mediaLinks: [{ url, label: "Story" }],
+    }));
+    const props = propsFor(entry, await allItems());
+    render(<JournalReader {...props} />);
+
+    await user.click(screen.getByRole("button", { name: "More journal tools" }));
+    await user.click(screen.getByRole("button", { name: "Also from this source · 1" }));
+    await user.click(screen.getByRole("button", { name: /cuento/ }));
+    expect(props.onOpen).toHaveBeenCalledWith(peer.id);
+  });
+
   it("links only existing personal vocabulary without logging an edit", async () => {
     const user = userEvent.setup();
     const word = await createItem(newLexical({ term: "sobremesa", form: "word" }));

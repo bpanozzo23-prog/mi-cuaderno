@@ -47,6 +47,8 @@ import PracticeSession from "./PracticeSession.jsx";
 import PracticeSetupSheet from "./PracticeSetupSheet.jsx";
 import { buildPracticeDeck, isPracticeEligible } from "../lib/practice.js";
 import { preparePracticeCards } from "../lib/practiceCards.js";
+import SharedSourceDisclosure from "./SharedSourceDisclosure.jsx";
+import { canonicalSharedSourceUrl } from "../lib/sharedSources.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 const VOCABULARY_FAMILY = sectionFamily("vocabulary");
@@ -409,11 +411,14 @@ function ConnectionsSection({
   );
 }
 
-function PageMediaSection({ page, onChanged }) {
+function PageMediaSection({ page, items, onOpen, onChanged }) {
   const [adding, setAdding] = useState(false);
   const [url, setUrl] = useState("");
   const [label, setLabel] = useState("");
   const empty = (page.mediaLinks || []).length === 0;
+  const primarySourceUrl = page.source?.enabled
+    ? canonicalSharedSourceUrl(page.source.url)
+    : "";
 
   useEffect(() => {
     setAdding(false);
@@ -463,6 +468,18 @@ function PageMediaSection({ page, onChanged }) {
             </div>
             {isDirectImageUrl(media.url) && (
               <MediaImage src={media.url} alt={media.label || ""} caption={false} />
+            )}
+            {canonicalSharedSourceUrl(media.url)
+              && canonicalSharedSourceUrl(media.url) !== primarySourceUrl
+              && page.mediaLinks.findIndex((candidate) =>
+                canonicalSharedSourceUrl(candidate.url) === canonicalSharedSourceUrl(media.url)
+              ) === index && (
+              <SharedSourceDisclosure
+                items={items}
+                currentItemId={page.id}
+                url={media.url}
+                onOpen={onOpen}
+              />
             )}
           </Card>
         ))}
@@ -1156,7 +1173,7 @@ export default function CollectionPage({
           )}
 
           <div className="mt-4">
-            <PageMediaSection page={item} onChanged={onChanged} />
+            <PageMediaSection page={item} items={items} onOpen={onOpen} onChanged={onChanged} />
           </div>
         </>
       )}

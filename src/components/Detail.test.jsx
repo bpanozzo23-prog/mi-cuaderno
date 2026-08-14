@@ -411,6 +411,28 @@ describe("media link previews", () => {
       .toBe("https://upload.wikimedia.org/botijo.png");
   });
 
+  it("opens exact shared-source peers beneath a lexical media link", async () => {
+    const user = userEvent.setup();
+    const onOpen = vi.fn();
+    const url = "https://example.com/lesson";
+    const word = await createItem(newLexical({
+      term: "sacar",
+      mediaLinks: [{ url, label: "Lesson" }, { url, label: "Repeated lesson" }],
+    }));
+    const phrase = await createItem(newLexical({
+      term: "sacar la basura",
+      form: "phrase",
+      mediaLinks: [{ url }],
+    }));
+
+    renderDetail(word, onOpen, undefined, await allItems());
+    expect(screen.getAllByRole("button", { name: "Also from this source · 1" })).toHaveLength(1);
+    const mediaCard = screen.getByText("Lesson").closest(".rounded-xl");
+    await user.click(within(mediaCard).getByRole("button", { name: "Also from this source · 1" }));
+    await user.click(within(mediaCard).getByRole("button", { name: /sacar la basura/ }));
+    expect(onOpen).toHaveBeenCalledWith(phrase.id);
+  });
+
   it("drops the preview but keeps the link row when the image fails to load", async () => {
     const page = await createItem(
       newPage({

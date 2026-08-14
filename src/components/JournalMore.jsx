@@ -27,6 +27,8 @@ import TagInput from "./TagInput.jsx";
 import JournalLinkPicker from "./JournalLinkPicker.jsx";
 import { EntryLinkCard, ItemLinkCard, OrphanLinkCard } from "./LinkCard.jsx";
 import AliasConflictResolver from "./AliasConflictResolver.jsx";
+import SharedSourceDisclosure from "./SharedSourceDisclosure.jsx";
+import { canonicalSharedSourceUrl } from "../lib/sharedSources.js";
 
 export default function JournalMore({
   entry,
@@ -118,6 +120,17 @@ export default function JournalMore({
             </div>
             {isDirectImageUrl(media.url) && (
               <MediaImage src={media.url} alt={media.label || ""} caption={false} />
+            )}
+            {canonicalSharedSourceUrl(media.url)
+              && entry.mediaLinks.findIndex((candidate) =>
+                canonicalSharedSourceUrl(candidate.url) === canonicalSharedSourceUrl(media.url)
+              ) === index && (
+              <SharedSourceDisclosure
+                items={items}
+                currentItemId={entry.id}
+                url={media.url}
+                onOpen={onOpen}
+              />
             )}
           </Card>
         ))}
