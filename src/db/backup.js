@@ -13,7 +13,6 @@ import {
 import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
 import { nowIso } from "../lib/dates.js";
 import {
-  LEXICAL_POS_OPTIONS,
   MEANING_POS_OPTIONS,
   USAGE_LABELS,
   VERB_BEHAVIORS,
@@ -257,9 +256,15 @@ function validateItem(
     if (item.dictKey !== null && item.dictKey !== undefined && !isString(item.dictKey)) {
       errors.push(`${where}.dictKey must be a string or null`);
     }
+    // `pos` is any string, never an enum. The pos editor offers a fixed list, but
+    // `newLexicalFromEntry` has always copied the dictionary's own part-of-speech vocabulary
+    // (pron, prep, intj, …) straight onto the item, and the display layer renders all of it
+    // (`PART_OF_SPEECH_ABBR`). Validating against the editor's list rejected real owner data at
+    // the v8→v9 export-first gate — a validator narrower than the app's own writers is the bug,
+    // and any enum here recreates it the next time the dataset vocabulary grows.
     if (schemaVersion === 1) {
-      if (item.pos !== undefined && !LEXICAL_POS_OPTIONS.includes(item.pos)) errors.push(`${where}.pos is not supported`);
-    } else if (!LEXICAL_POS_OPTIONS.includes(item.pos)) errors.push(`${where}.pos is not supported`);
+      if (item.pos !== undefined && !isString(item.pos)) errors.push(`${where}.pos must be a string`);
+    } else if (!isString(item.pos)) errors.push(`${where}.pos must be a string`);
     if (!isString(item.notes)) errors.push(`${where}.notes must be a string`);
     validateExamples(item.myExamples, `${where}.myExamples`, errors);
     if (schemaVersion === 1) {

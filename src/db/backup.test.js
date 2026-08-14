@@ -818,15 +818,32 @@ describe("validation happens before anything is written", () => {
     return { ...baseline(), userItems: [word, sourcePage, grammarPage] };
   };
 
-  it("accepts interjection as a meaning override without widening entry-level parts of speech", () => {
+  it("accepts interjection as a meaning override while the override list stays closed", () => {
     const meaningOverride = makeLexical();
     meaningOverride.meanings[0].posOverride = "interjection";
     expect(validateBackup({ ...baseline(), userItems: [meaningOverride] }).ok).toBe(true);
 
-    const entryWide = makeLexical({ pos: "interjection" });
-    const checked = validateBackup({ ...baseline(), userItems: [entryWide] });
+    const unknownOverride = makeLexical();
+    unknownOverride.meanings[0].posOverride = "gerundio";
+    const checked = validateBackup({ ...baseline(), userItems: [unknownOverride] });
     expect(checked.ok).toBe(false);
-    expect(checked.errors.join(" ")).toMatch(/\.pos is not supported/);
+    expect(checked.errors.join(" ")).toMatch(/\.posOverride is not supported/);
+  });
+
+  it("accepts every entry-level pos string the app itself writes, rejecting only non-strings", () => {
+    // newLexicalFromEntry copies the dictionary's own part-of-speech vocabulary onto the item
+    // (pron, prep, intj, …) and the display layer renders it. The v8→v9 export-first gate once
+    // rejected four of the owner's real words over exactly these values — a validator narrower
+    // than the app's own writer. Entry-level pos is therefore any string, never an enum.
+    for (const pos of ["intj", "pron", "prep", "conj", "phrase", "interjection", ""]) {
+      const word = makeLexical({ pos });
+      expect(validateBackup({ ...baseline(), userItems: [word] }).ok).toBe(true);
+    }
+
+    const corrupted = makeLexical({ pos: 7 });
+    const checked = validateBackup({ ...baseline(), userItems: [corrupted] });
+    expect(checked.ok).toBe(false);
+    expect(checked.errors.join(" ")).toMatch(/\.pos must be a string/);
   });
 
   it.each([
