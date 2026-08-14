@@ -316,6 +316,8 @@ export default function Cuaderno({
           kind={addKind}
           pageStarter={pageStarter}
           initialTerm={addSeed?.initialTerm || ""}
+          initialForm={addSeed?.initialForm || null}
+          initialGloss={addSeed?.initialGloss || ""}
           seedMediaLinks={addSeed?.mediaLinks || []}
           items={items}
           onClose={() => {
@@ -369,6 +371,15 @@ export default function Cuaderno({
           backLabel={backLabel}
           onOpen={onSelect}
           onChanged={reload}
+          onAddPhraseFromExample={(example) => {
+            setPageStarter(null);
+            setAddSeed({
+              initialTerm: String(example?.es || ""),
+              initialForm: "phrase",
+              initialGloss: String(example?.en || ""),
+            });
+            setAddKind("lexical");
+          }}
           pagePinned={pinnedPageIds.includes(selected.id)}
           onPagePinnedChange={(pinned) => onPagePinnedChange?.(selected.id, pinned)}
         />

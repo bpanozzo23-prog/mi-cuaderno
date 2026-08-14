@@ -76,6 +76,7 @@ export default function AddSheet({
   // Share-continuation seeds: a term typed in the share picker's create row, and the shared
   // video for the new LEXICAL item (page creations carry theirs on the starter seed instead).
   initialTerm = "",
+  initialGloss = "",
   seedMediaLinks = [],
   items = [],
   onClose,
@@ -91,7 +92,7 @@ export default function AddSheet({
   const allTags = useMemo(() => allTagsIn(items), [items]);
 
   const [term, setTerm] = useState(initialTerm);
-  const [meanings, setMeanings] = useState([newMeaning()]);
+  const [meanings, setMeanings] = useState([newMeaning({ gloss: initialGloss })]);
   const [problem, setProblem] = useState("");
 
   /**

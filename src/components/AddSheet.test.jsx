@@ -82,6 +82,68 @@ describe("AddSheet", () => {
     expect(events.filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(0);
   });
 
+  it("turns example text into an editable phrase and meaning draft", async () => {
+    const user = userEvent.setup();
+    const existing = await createItem(newLexical({ term: "tener razón", form: "phrase" }));
+    const onCreated = vi.fn();
+
+    render(
+      <AddSheet
+        kind="lexical"
+        initialTerm="tener razon"
+        initialForm="phrase"
+        initialGloss="to be right"
+        items={[existing]}
+        onClose={vi.fn()}
+        onCreated={onCreated}
+      />
+    );
+
+    const term = screen.getByPlaceholderText("Spanish word or phrase *");
+    expect(term.value).toBe("tener razon");
+    expect(screen.getByRole("textbox", { name: "English gloss" }).value).toBe("to be right");
+
+    await user.clear(term);
+    await user.type(term, "tener razón");
+    expect(screen.getByRole("status").textContent).toMatch(/already in your cuaderno/i);
+    await user.click(screen.getByRole("button", { name: "Add to cuaderno" }));
+
+    await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));
+    const created = await db.items.get(onCreated.mock.calls[0][0]);
+    expect(created).toMatchObject({ term: "tener razón", form: "phrase" });
+    expect(created.meanings.map((meaning) => meaning.gloss)).toEqual(["to be right"]);
+    expect(created.myExamples).toEqual([]);
+
+    const events = await allEvents();
+    expect(events.filter((event) => event.type === EVENT_TYPES.create)).toHaveLength(2);
+    expect(events.filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(0);
+  });
+
+  it("does not store an empty meaning when an example has no English text", async () => {
+    const user = userEvent.setup();
+    const onCreated = vi.fn();
+
+    render(
+      <AddSheet
+        kind="lexical"
+        initialTerm="de acuerdo"
+        initialForm="phrase"
+        initialGloss=""
+        items={[]}
+        onClose={vi.fn()}
+        onCreated={onCreated}
+      />
+    );
+
+    expect(screen.getByRole("textbox", { name: "English gloss" }).value).toBe("");
+    await user.click(screen.getByRole("button", { name: "Add to cuaderno" }));
+
+    await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));
+    const created = await db.items.get(onCreated.mock.calls[0][0]);
+    expect(created.form).toBe("phrase");
+    expect(created.meanings).toEqual([]);
+  });
+
   it("creates ordered meaning blocks with stable personal ids", async () => {
     const user = userEvent.setup();
     const onCreated = vi.fn();

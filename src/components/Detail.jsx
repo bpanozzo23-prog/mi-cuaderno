@@ -41,6 +41,7 @@ import { activePageContextsForLexical } from "../lib/pageReferences.js";
 import { commitCollectionAdd } from "../db/collections.js";
 import KnowledgeConsolidation from "./KnowledgeConsolidation.jsx";
 import Biography from "./Biography.jsx";
+import ExamplePhraseAction from "./ExamplePhraseAction.jsx";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
@@ -173,6 +174,7 @@ function StandardDetail({
   backLabel = "Todo el cuaderno",
   onOpen,
   onChanged,
+  onAddPhraseFromExample,
   prepareBiographyFamily,
   pagePinned = false,
   onPagePinnedChange,
@@ -728,7 +730,11 @@ function StandardDetail({
       {!isPage && (
         <>
           <SectionTitle>Meanings</SectionTitle>
-          <MeaningsSection item={item} onPatch={patch} />
+          <MeaningsSection
+            item={item}
+            onPatch={patch}
+            onAddPhraseFromExample={onAddPhraseFromExample}
+          />
         </>
       )}
 
@@ -813,28 +819,34 @@ function StandardDetail({
                       {x.en}
                     </div>
                   )}
-                  {item.meanings.length > 0 && (
-                    <select
-                      aria-label="Assign general example to meaning"
-                      defaultValue=""
-                      onChange={async (event) => {
-                        if (!event.target.value) return;
-                        const nextMeanings = cloneMeanings(item.meanings);
-                        nextMeanings.find((meaning) => meaning.id === event.target.value).examples.push(x);
-                        await patch({
-                          meanings: nextMeanings,
-                          myExamples: item.myExamples.filter((_, itemIndex) => itemIndex !== i),
-                        });
-                      }}
-                      className="mt-1 text-xs rounded border px-1.5 py-1 max-w-full"
-                      style={{ background: C.card, borderColor: C.line, color: C.mut }}
-                    >
-                      <option value="">Assign to meaning…</option>
-                      {item.meanings.map((meaning) => (
-                        <option key={meaning.id} value={meaning.id}>{meaning.gloss}</option>
-                      ))}
-                    </select>
-                  )}
+                  <div className="mt-1 flex flex-wrap items-center gap-1">
+                    {item.meanings.length > 0 && (
+                      <select
+                        aria-label="Assign general example to meaning"
+                        defaultValue=""
+                        onChange={async (event) => {
+                          if (!event.target.value) return;
+                          const nextMeanings = cloneMeanings(item.meanings);
+                          nextMeanings.find((meaning) => meaning.id === event.target.value).examples.push(x);
+                          await patch({
+                            meanings: nextMeanings,
+                            myExamples: item.myExamples.filter((_, itemIndex) => itemIndex !== i),
+                          });
+                        }}
+                        className="text-xs rounded border px-1.5 py-1 max-w-full"
+                        style={{ background: C.card, borderColor: C.line, color: C.mut }}
+                      >
+                        <option value="">Assign to meaning…</option>
+                        {item.meanings.map((meaning) => (
+                          <option key={meaning.id} value={meaning.id}>{meaning.gloss}</option>
+                        ))}
+                      </select>
+                    )}
+                    <ExamplePhraseAction
+                      example={x}
+                      onAddPhraseFromExample={onAddPhraseFromExample}
+                    />
+                  </div>
                 </div>
                 <X
                   size={14}

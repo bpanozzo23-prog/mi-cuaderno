@@ -14,6 +14,7 @@ import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
 import DictMeaningImport from "./DictMeaningImport.jsx";
 import MeaningEditor from "./MeaningEditor.jsx";
 import SpeakButton from "./SpeakButton.jsx";
+import ExamplePhraseAction from "./ExamplePhraseAction.jsx";
 import {
   cleanMeanings,
   cloneMeanings,
@@ -56,7 +57,7 @@ function Labels({ meaning }) {
   );
 }
 
-export default function MeaningsSection({ item, onPatch }) {
+export default function MeaningsSection({ item, onPatch, onAddPhraseFromExample }) {
   const [expandedId, setExpandedId] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editDraft, setEditDraft] = useState(null);
@@ -338,21 +339,27 @@ export default function MeaningsSection({ item, onPatch }) {
                         <SpeakButton text={example.es} label={`Play example for ${meaning.gloss}`} />
                       </div>
                       {example.en && <div className="text-xs" style={{ color: C.mut }}>{example.en}</div>}
-                      <select
-                        aria-label={`Move example from ${meaning.gloss}`}
-                        defaultValue=""
-                        onChange={(event) => {
-                          if (event.target.value) moveExample(meaning.id, exampleIndex, event.target.value);
-                        }}
-                        className="mt-1 text-xs rounded border px-1.5 py-1"
-                        style={{ background: C.card, borderColor: C.line, color: C.mut }}
-                      >
-                        <option value="">Move example…</option>
-                        <option value="general">to General</option>
-                        {meanings.filter((entry) => entry.id !== meaning.id).map((entry) => (
-                          <option key={entry.id} value={entry.id}>to {entry.gloss}</option>
-                        ))}
-                      </select>
+                      <div className="mt-1 flex flex-wrap items-center gap-1">
+                        <select
+                          aria-label={`Move example from ${meaning.gloss}`}
+                          defaultValue=""
+                          onChange={(event) => {
+                            if (event.target.value) moveExample(meaning.id, exampleIndex, event.target.value);
+                          }}
+                          className="text-xs rounded border px-1.5 py-1"
+                          style={{ background: C.card, borderColor: C.line, color: C.mut }}
+                        >
+                          <option value="">Move example…</option>
+                          <option value="general">to General</option>
+                          {meanings.filter((entry) => entry.id !== meaning.id).map((entry) => (
+                            <option key={entry.id} value={entry.id}>to {entry.gloss}</option>
+                          ))}
+                        </select>
+                        <ExamplePhraseAction
+                          example={example}
+                          onAddPhraseFromExample={onAddPhraseFromExample}
+                        />
+                      </div>
                     </div>
                   ))}
                   {!meaning.note && !meaning.examples.length && <div className="text-xs italic" style={{ color: C.mut }}>No note or examples for this meaning.</div>}

@@ -222,6 +222,68 @@ describe("Phase 5a navigation continuity", () => {
   });
 });
 
+describe("example-to-phrase creation", () => {
+  it("cancels without a write, then creates an editable phrase and returns through the trail", async () => {
+    const user = userEvent.setup();
+    const source = await createItem(newLexical({
+      term: "razón",
+      myExamples: [{ es: "tener razon", en: "to be right" }],
+    }));
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "razón" }));
+    await waitFor(async () => {
+      expect((await allEvents()).some((event) =>
+        event.type === EVENT_TYPES.view && event.itemKey === source.id
+      )).toBe(true);
+    });
+    const sourceBefore = await getItem(source.id);
+    const eventsBefore = JSON.stringify(await allEvents());
+
+    const openBridge = () => screen.getByRole("button", {
+      name: "Add “tener razon” as a phrase",
+    });
+    await user.click(openBridge());
+    expect(screen.getByPlaceholderText("Spanish word or phrase *").value).toBe("tener razon");
+    expect(screen.getByRole("textbox", { name: "English gloss" }).value).toBe("to be right");
+    await user.click(screen.getByRole("button", { name: "Close" }));
+
+    await waitFor(() => expect(screen.queryByPlaceholderText("Spanish word or phrase *")).toBeNull());
+    expect((await allItems()).map((item) => item.id)).toEqual([source.id]);
+    expect(await getItem(source.id)).toEqual(sourceBefore);
+    expect(JSON.stringify(await allEvents())).toBe(eventsBefore);
+
+    await user.click(openBridge());
+    const term = screen.getByPlaceholderText("Spanish word or phrase *");
+    await user.clear(term);
+    await user.type(term, "tener razón");
+    await user.click(screen.getByRole("button", { name: "Add to cuaderno" }));
+
+    await waitFor(async () => expect((await allItems()).length).toBe(2));
+    const created = (await allItems()).find((item) => item.id !== source.id);
+    expect(created).toMatchObject({
+      type: "lexical",
+      form: "phrase",
+      term: "tener razón",
+      myExamples: [],
+      linkedKeys: [],
+    });
+    expect(created.meanings.map((meaning) => meaning.gloss)).toEqual(["to be right"]);
+    expect(await getItem(source.id)).toEqual(sourceBefore);
+    expect((await allEvents()).filter((event) =>
+      event.type === EVENT_TYPES.create && event.itemKey === created.id
+    )).toHaveLength(1);
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(0);
+
+    expect(await screen.findByText("tener razón", { selector: ".text-2xl *" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Atrás" }));
+    expect(await screen.findByText("razón", { selector: ".text-2xl *" })).toBeTruthy();
+    expect((await getItem(source.id)).myExamples).toEqual([
+      { es: "tener razon", en: "to be right" },
+    ]);
+  });
+});
+
 describe("Phase 23b wander navigation", () => {
   it("deduplicates only the same id, tab, and screen", () => {
     const detail = { tab: "cuaderno", screen: "detail", id: "user:a" };

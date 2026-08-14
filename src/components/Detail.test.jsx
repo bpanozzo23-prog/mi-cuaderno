@@ -31,7 +31,7 @@ afterEach(cleanup);
  * Mounts Detail the way Cuaderno does, and — like Cuaderno — re-reads items from the
  * database when the screen reports a change, keeping the same `item.id` throughout.
  */
-function renderDetail(item, onOpen = vi.fn(), state, initialItems = [item]) {
+function renderDetail(item, onOpen = vi.fn(), state, initialItems = [item], extraProps = {}) {
   function Harness() {
     const [items, setItems] = useState(initialItems);
     const current = items.find((i) => i.id === item.id) || item;
@@ -43,6 +43,7 @@ function renderDetail(item, onOpen = vi.fn(), state, initialItems = [item]) {
         onBack={vi.fn()}
         onOpen={onOpen}
         onChanged={async () => setItems(await allItems())}
+        {...extraProps}
       />
     );
   }
@@ -279,6 +280,39 @@ describe("collapsed optional-field composers", () => {
     expect(saved.mediaLinks.at(-1)).toEqual({ url: "https://example.com/new", label: "New source" });
     expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(2);
   }, 10000);
+
+  it("offers every saved personal example as a phrase seed without changing it", async () => {
+    const user = userEvent.setup();
+    const onAddPhraseFromExample = vi.fn();
+    const general = { es: "Tener razon", en: "To be right" };
+    const assigned = { es: "Siempre tienes razón.", en: "You are always right." };
+    const word = await createItem(newLexical({
+      term: "razón",
+      myExamples: [general],
+      meanings: [newMeaning({ gloss: "reason; correctness", examples: [assigned] })],
+    }));
+    const before = await getItem(word.id);
+
+    renderDetail(word, vi.fn(), undefined, [word], { onAddPhraseFromExample });
+
+    const generalAction = screen.getByRole("button", { name: "Add “Tener razon” as a phrase" });
+    expect(generalAction.textContent).toBe("Add as phrase…");
+    expect(generalAction.className).toContain("min-h-11");
+    await user.click(generalAction);
+    expect(onAddPhraseFromExample).toHaveBeenLastCalledWith(general);
+
+    await user.click(screen.getByRole("button", { name: "Expand meaning" }));
+    const assignedAction = screen.getByRole("button", {
+      name: "Add “Siempre tienes razón.” as a phrase",
+    });
+    expect(assignedAction.className).toContain("min-h-11");
+    await user.click(assignedAction);
+    expect(onAddPhraseFromExample).toHaveBeenLastCalledWith(assigned);
+    expect(onAddPhraseFromExample).toHaveBeenCalledTimes(2);
+
+    expect(await getItem(word.id)).toEqual(before);
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(0);
+  });
 
   it("keeps invalid drafts open and lets Cancel discard them without writing", async () => {
     const user = userEvent.setup();
