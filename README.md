@@ -302,7 +302,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   issues, personal/dictionary navigation, and zero fixture rows after cleanup. Deployed from
   `main` at `1432dd1` through Pages run 31749800168; personal schema stays v8. See the
   [direction](docs/PHASE-25-DIRECTION.md) and [implementation report](docs/PHASE-25-REPORT.md).
-- **Phase 26 — implemented and verified locally; deployment pending.** Saved visible Notes,
+- **Phase 26 — deployed.** Saved visible Notes,
   enabled Source captures, enabled Grammar explanations/examples, and Diario can now disclose
   personal vocabulary **Mentioned here** without writing until an explicit context-appropriate
   confirmation. Lexical Historia adds read-only **Seen together** neighborhoods from one exact
@@ -312,8 +312,19 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   added; personal schema stays v8. The complete serial suite passes 1,464/1,464 across 128 files,
   the 2,116-module production build and diff check pass, the exact-URL negative proof red/greened,
   and a disposable 375×812 flow verified explicit-write boundaries, 44px actions, zero overflow,
-  and a clear console before cleanup returned the fixture to zero items/events. See the
+  and a clear console before cleanup returned the fixture to zero items/events. Deployed from
+  `main` at `6780961` through Pages run 31812821165. See the
   [direction](docs/PHASE-26-DIRECTION.md) and [implementation report](docs/PHASE-26-REPORT.md).
+- **Editable media links — deployed.** A saved media link is no longer open-or-delete only: each
+  row carries a pencil that reopens the existing composer prefilled with its URL and label, and
+  Save link replaces that row rather than appending, logging one ordinary `edit`. This matters
+  most right after a share, since a shared TikTok carries no title and lands labelled only by its
+  raw URL. All four surfaces that render media links behave the same way — lexical detail, the
+  page Media links section, the page details editor's draft list (written only when the sheet
+  saves), and Diario's Más panel — and the lexical delete control became a labelled 44px button to
+  match. No schema, backup or event-type change; `{url, label}` already held both fields, and a
+  richer per-link note remains a separate decision. See the media-link entries in
+  [DECISIONS.md](DECISIONS.md).
 - **Collection bulk capture — deployed.** A Vocabulary page's existing
   Add vocabulary panel can now narrow saved entries to Words, Phrases, and an exact existing tag,
   then select every available match together. Existing members remain excluded and the final Add
