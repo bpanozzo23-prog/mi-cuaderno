@@ -1485,7 +1485,9 @@ the video attached, or new Source notebook. See the Share arrival destination ch
 `DECISIONS.md`. **Extended 2026-08-13:** an ephemeral continuation pill now keeps the video
 available after each action ("Add to another item" / "Done"), and the picker gained a create row
 for a new word or phrase carrying the video from birth — in-memory only, no schema or event
-change. Which targeted post-attach quick actions (add meaning, add capture…) deserve promotion
+change. **Extended 2026-08-14:** "New word or phrase" became a visible fourth chooser destination
+(owner-requested — the picker's create row alone was not discoverable). Which targeted
+post-attach quick actions (add meaning, add capture…) deserve promotion
 onto the pill is the remaining real-use question. See the Continue-with-this-video entries in
 `DECISIONS.md`.
 
@@ -1789,6 +1791,12 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-14 — "New word or phrase" promoted to a top-level share destination.** Owner-requested
+  after real use: creating a new entry from a share was reachable only through the picker's
+  buried create row. The chooser's second row now opens the blank creation sheet through the
+  existing `onCreateLexical` path, video attached from birth, pill following; the picker row
+  stays for the type-then-create case. Not yet deployed.
 
 - **2026-08-14 — Continue-with-this-video flow deployed.** The owner-approved push (`31f344a`)
   went out through a successful Pages run and the live site serves the new bundle. The remaining

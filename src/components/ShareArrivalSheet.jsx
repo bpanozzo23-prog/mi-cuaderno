@@ -138,6 +138,12 @@ export default function ShareArrivalSheet({ share, items = [], onAttach, onCreat
               onClick={() => setPicking(true)}
             />
             <DestinationRow
+              icon={Type}
+              title="New word or phrase"
+              description="A word or phrase met in the video, with the video attached from the start."
+              onClick={() => onCreateLexical("")}
+            />
+            <DestinationRow
               icon={Sigma}
               title="New Grammar guide"
               description="This video is a new grammar topic. Start a guide with the video attached."

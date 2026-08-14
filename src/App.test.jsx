@@ -841,6 +841,27 @@ describe("Android share target arrival", () => {
     await waitFor(() => expect(screen.queryByRole("region", { name: "Shared video" })).toBeNull());
   });
 
+  it("creates a new word from the top-level chooser row with the video attached", async () => {
+    const user = userEvent.setup();
+    arriveAt("?share_url=https%3A%2F%2Fvm.tiktok.com%2Fmadrugar&share_title=Madrugar");
+    render(<App />);
+
+    const chooser = await screen.findByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" });
+    await user.click(within(chooser).getByRole("button", { name: /New word or phrase/ }));
+
+    const termInput = await screen.findByPlaceholderText("Spanish word or phrase *");
+    expect(termInput.value).toBe("");
+    await user.type(termInput, "madrugar");
+    await user.click(screen.getByRole("button", { name: "Add to cuaderno" }));
+
+    await waitFor(async () => {
+      const created = (await allItems()).find((item) => item.term === "madrugar");
+      expect(created.form).toBe("word");
+      expect(created.mediaLinks).toEqual([{ url: "https://vm.tiktok.com/madrugar", label: "Madrugar" }]);
+    });
+    expect(await screen.findByRole("region", { name: "Shared video" })).toBeTruthy();
+  });
+
   it("creates a new phrase from the picker with the video attached from birth", async () => {
     const user = userEvent.setup();
     arriveAt("?share_url=https%3A%2F%2Fvm.tiktok.com%2Fquedar&share_title=Quedar");
