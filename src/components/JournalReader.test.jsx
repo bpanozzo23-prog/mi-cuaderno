@@ -453,7 +453,10 @@ describe("JournalReader", () => {
     vi.stubGlobal("fetch", fetchSpy);
     render(<JournalReader {...propsFor(withFeedback, [withFeedback])} />);
 
-    await user.click(await screen.findByRole("button", { name: /Feedback/i }));
+    // The collapsed trigger announces that a review exists and when it happened, so the reader
+    // reads as a dated section to expand rather than an action to take.
+    const reviewDate = new Date("2026-08-03T10:00:00.000Z").toLocaleDateString();
+    await user.click(await screen.findByRole("button", { name: `Feedback · ${reviewDate}` }));
 
     expect(screen.getByText("Clear")).toBeTruthy();
     expect(screen.getByText(/Reads well/)).toBeTruthy();
@@ -471,7 +474,8 @@ describe("JournalReader", () => {
     const entry = await createItem(newPage({ body: "Hoy escribí un poco.", pageDate: "2026-08-03" }));
     render(<JournalReader {...propsFor(entry, [entry])} />);
 
-    const button = await screen.findByRole("button", { name: /Feedback/i });
+    // With no stored review the trigger stays the plain ask affordance, no date attached.
+    const button = await screen.findByRole("button", { name: "Feedback" });
     expect(button.getAttribute("aria-expanded")).toBe("false");
 
     await user.click(button);

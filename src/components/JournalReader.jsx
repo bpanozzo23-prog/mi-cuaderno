@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, MoreHorizontal, Pencil, Plus, RotateCcw, Sparkles } from "lucide-react";
+import { ChevronDown, ChevronLeft, MoreHorizontal, Pencil, Plus, RotateCcw, Sparkles } from "lucide-react";
 import { C, MONO, SERIF, dotGrid } from "../theme.jsx";
 import { linkItems, setLinkRelationship, unlinkItems } from "../db/items.js";
 import { logView } from "../db/events.js";
@@ -264,7 +264,9 @@ export default function JournalReader({
 
       {/* A stored review stays readable even when the AI feature is off or the key is gone; only
           the request actions inside the panel need `aiReady`, so the button can never open a
-          panel whose only outcome is an error. */}
+          panel whose only outcome is an error. With a review stored, the collapsed trigger reads
+          as a dated section to expand — the editor's always-visible card taught that a bare
+          "Feedback" button reads as an action, hiding that a review already exists. */}
       {(aiReady || entry.feedback) && (
         <div className="mt-4">
           {!showFeedback && (
@@ -275,7 +277,15 @@ export default function JournalReader({
               className="inline-flex min-h-11 items-center gap-1 text-xs"
               style={{ color: C.pen }}
             >
-              <Sparkles size={13} /> Feedback
+              {entry.feedback ? (
+                <>
+                  <ChevronDown size={13} /> Feedback · {new Date(entry.feedback.reviewedAt).toLocaleDateString()}
+                </>
+              ) : (
+                <>
+                  <Sparkles size={13} /> Feedback
+                </>
+              )}
             </button>
           )}
           {showFeedback && (
