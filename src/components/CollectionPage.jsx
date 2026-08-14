@@ -848,6 +848,33 @@ export default function CollectionPage({
     }
   }
 
+  async function addMentionedVocabulary(row) {
+    const context = row?.context;
+    const candidate = { kind: "personal", itemId: row?.itemId };
+    if (!context || !row?.itemId) throw new Error("This prose context is no longer available.");
+
+    if (context.kind === "source_capture") {
+      await commitPageVocabularyAdd(item.id, {
+        candidates: [candidate],
+        context: { kind: "source", captureId: context.target.captureId },
+      });
+    } else if (context.kind === "grammar_example") {
+      await commitPageVocabularyAdd(item.id, {
+        candidates: [candidate],
+        context: {
+          kind: "grammar",
+          sectionId: context.target.sectionId,
+          exampleId: context.target.exampleId,
+        },
+      });
+    } else if (item.collection?.enabled) {
+      await commitPageVocabularyAdd(item.id, { candidates: [candidate] });
+    } else {
+      await linkItems(item.id, row.itemId, { type: "found_in", subject: "target" });
+    }
+    await onChanged();
+  }
+
   if (practiceSession && item.collection?.enabled) {
     return (
       <PracticeSession
@@ -1025,7 +1052,13 @@ export default function CollectionPage({
           </Card>
 
           <div className="mt-12">
-            <StructuredNotesSection page={item} onChanged={onChanged} />
+            <StructuredNotesSection
+              page={item}
+              items={items}
+              onOpen={onOpen}
+              onAddMention={addMentionedVocabulary}
+              onChanged={onChanged}
+            />
           </div>
 
           <div className="mt-12 space-y-12">
@@ -1038,6 +1071,7 @@ export default function CollectionPage({
                       items={items}
                       onOpen={onOpen}
                       onChanged={onChanged}
+                      onAddMention={addMentionedVocabulary}
                       onJumpToVocabulary={() => document.getElementById("page-vocabulary")?.scrollIntoView({ behavior: "smooth", block: "start" })}
                       onAddVocabulary={(captureId, candidates) => commitPageVocabularyAdd(item.id, {
                         candidates,
@@ -1055,6 +1089,7 @@ export default function CollectionPage({
                       items={items}
                       onOpen={onOpen}
                       onChanged={onChanged}
+                      onAddMention={addMentionedVocabulary}
                       onAddVocabulary={(sectionId, exampleId, candidates) => commitPageVocabularyAdd(item.id, {
                         candidates,
                         context: { kind: "grammar", sectionId, exampleId },

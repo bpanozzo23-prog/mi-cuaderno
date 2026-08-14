@@ -24,6 +24,7 @@ import DiarioFeedback from "./DiarioFeedback.jsx";
 import { aiFeedbackReady } from "../lib/aiPrefs.js";
 import { journalDateLabel } from "./JournalHome.jsx";
 import MarkdownText from "./MarkdownText.jsx";
+import MentionedHere from "./MentionedHere.jsx";
 import { plainTextFromMarkdown } from "../lib/noteMarkdown.js";
 
 function momentHeading(moment) {
@@ -242,6 +243,16 @@ export default function JournalReader({
           This moment is empty.
         </div>
       )}
+
+      <MentionedHere
+        items={items}
+        contextId={`${entry.id}:journal`}
+        onOpen={onOpen}
+        onAdd={async (row) => {
+          await linkItems(entry.id, row.itemId, { type: "found_in", subject: "target" });
+          await onChanged();
+        }}
+      />
 
       {entry.tags?.length > 0 && (
         <div className="mt-5 flex flex-wrap gap-1.5">

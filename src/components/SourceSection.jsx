@@ -26,6 +26,7 @@ import {
   saveSourceDetails,
 } from "../db/pageStructures.js";
 import CollectionAddVocabularySheet from "./CollectionAddVocabularySheet.jsx";
+import MentionedHere from "./MentionedHere.jsx";
 import PageSectionDisclosure from "./PageSectionDisclosure.jsx";
 
 const CAPTURE_TYPES = [
@@ -543,6 +544,7 @@ function CaptureOrganizer({ captures, onCancel, onSaved }) {
 }
 
 function CaptureCard({
+  pageId,
   capture,
   itemsById,
   expanded,
@@ -556,6 +558,7 @@ function CaptureCard({
   onCancelVocabulary,
   onCommitVocabulary,
   onDetachVocabulary,
+  onAddMention,
 }) {
   const type = CAPTURE_TYPES.find((option) => option.value === capture.type) || CAPTURE_TYPES[0];
   const TypeIcon = type.Icon;
@@ -607,6 +610,13 @@ function CaptureCard({
           {expanded ? "Show less" : "Show full passage"}
         </button>
       )}
+
+      <MentionedHere
+        items={items}
+        contextId={`${pageId}:source:${capture.id}`}
+        onOpen={onOpen}
+        onAdd={onAddMention}
+      />
 
       {capture.reflection && (
         <div className="mt-3 rounded-lg p-2 text-sm whitespace-pre-wrap break-words" style={{ background: C.paper, color: C.mut }}>
@@ -685,6 +695,7 @@ export default function SourceSection({
   onChanged,
   onAddVocabulary,
   onJumpToVocabulary,
+  onAddMention,
 }) {
   const source = page?.source;
   const [captureMenuOpen, setCaptureMenuOpen] = useState(false);
@@ -847,6 +858,7 @@ export default function SourceSection({
           {visibleCaptures.map((capture) => (
             <CaptureCard
               key={capture.id}
+              pageId={page.id}
               capture={capture}
               itemsById={itemsById}
               items={items}
@@ -890,6 +902,7 @@ export default function SourceSection({
                   setVocabularyDetachKey(null);
                 }
               }}
+              onAddMention={onAddMention}
             />
           ))}
 

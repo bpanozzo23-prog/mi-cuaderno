@@ -18,6 +18,7 @@ import {
 import { outlineNamesValid } from "../lib/oneLevelOutline.js";
 import MarkdownText from "./MarkdownText.jsx";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
+import MentionedHere from "./MentionedHere.jsx";
 import OutlineOrganizerFields from "./OutlineOrganizerFields.jsx";
 import PageSectionDisclosure, { SectionSpineNode } from "./PageSectionDisclosure.jsx";
 import { sectionFamily } from "./pageRoleMeta.js";
@@ -72,7 +73,7 @@ function DeleteSectionAction({ description, onDelete }) {
   );
 }
 
-function NotesOverview({ page, onChanged }) {
+function NotesOverview({ page, items, onOpen, onAddMention, onChanged }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(page.body || "");
   const [saving, setSaving] = useState(false);
@@ -146,6 +147,14 @@ function NotesOverview({ page, onChanged }) {
             </div>
             {problem && <div role="alert" className="mt-2 text-xs" style={{ color: C.red }}>{problem}</div>}
           </div>
+        )}
+        {!editing && (
+          <MentionedHere
+            items={items}
+            contextId={`${page.id}:notes:overview`}
+            onOpen={onOpen}
+            onAdd={onAddMention}
+          />
         )}
       </Card>
     </div>
@@ -304,7 +313,13 @@ function NotesOrganizer({ sections, onCancel, onSaved }) {
   );
 }
 
-export default function StructuredNotesSection({ page, onChanged }) {
+export default function StructuredNotesSection({
+  page,
+  items = [],
+  onOpen,
+  onAddMention,
+  onChanged,
+}) {
   const sections = page?.noteSections || [];
   const hierarchy = useMemo(() => noteSectionHierarchy(sections), [sections]);
   const counts = noteStructureCounts(sections);
@@ -398,6 +413,12 @@ export default function StructuredNotesSection({ page, onChanged }) {
           ) : (
             <div className="mt-2 text-xs" style={{ color: C.mut }}>No Notes body yet.</div>
           )}
+          <MentionedHere
+            items={items}
+            contextId={`${page.id}:notes:${section.id}`}
+            onOpen={onOpen}
+            onAdd={onAddMention}
+          />
           {!isSubsection && (
             <Button
               tone="quiet"
@@ -467,7 +488,14 @@ export default function StructuredNotesSection({ page, onChanged }) {
         </>
       ) : null}
     >
-      <NotesOverview key={`${page.id}:${page.body || ""}`} page={page} onChanged={changed} />
+      <NotesOverview
+        key={`${page.id}:${page.body || ""}`}
+        page={page}
+        items={items}
+        onOpen={onOpen}
+        onAddMention={onAddMention}
+        onChanged={changed}
+      />
 
       {sectionDraft && (
         <NoteSectionEditor

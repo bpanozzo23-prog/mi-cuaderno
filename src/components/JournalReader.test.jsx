@@ -93,6 +93,23 @@ describe("JournalReader", () => {
     expect(screen.queryByRole("button", { name: /Pin/i })).toBeNull();
   });
 
+  it("confirms a Diario prose mention without silently linking it", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({ term: "casa", dictKey: null }));
+    const entry = await createItem(newPage({ body: "Hoy limpié la casa.", pageDate: "2026-08-03" }));
+    const props = propsFor(entry, await allItems());
+    render(<JournalReader {...props} />);
+
+    expect((await getItem(entry.id)).linkedKeys).toEqual([]);
+    await user.click(await screen.findByRole("button", { name: "Mentioned here · 1" }));
+    await user.click(screen.getByRole("button", { name: "Add mentioned vocabulary casa" }));
+    await waitFor(async () => expect(await getItem(entry.id)).toMatchObject({
+      linkedKeys: [word.id],
+      linkAnnotations: [{ targetKey: word.id, type: "found_in", subject: "target", note: "" }],
+    }));
+    expect(props.onChanged).toHaveBeenCalled();
+  });
+
   it("links only existing personal vocabulary without logging an edit", async () => {
     const user = userEvent.setup();
     const word = await createItem(newLexical({ term: "sobremesa", form: "word" }));

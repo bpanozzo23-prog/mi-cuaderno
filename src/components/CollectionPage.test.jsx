@@ -9,6 +9,7 @@ import { allItems, createItem, getItem, newLexical, newPage, updateItem } from "
 import { allEvents, EVENT_TYPES } from "../db/events.js";
 import { newMeaning } from "../lib/meanings.js";
 import { newPageGroupKey } from "../lib/ids.js";
+import { newGrammarExample, newGrammarSection, newSourceCapture } from "../lib/pageKinds.js";
 
 beforeEach(async () => {
   await db.open();
@@ -419,6 +420,71 @@ describe("Collection organization and capture", () => {
     expect(screen.getAllByRole("textbox", { name: /Group \d+ name/ })).toHaveLength(2);
     expect((await getItem(fixture.page.id)).collection.groups).toHaveLength(2);
   });
+});
+
+describe("derived context confirmations", () => {
+  it("turns Notes mentions into a found-in edge, or ungrouped vocabulary when enabled", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({ term: "casa", dictKey: null }));
+    const notes = await createItem(newPage({ title: "Home notes", body: "La casa tiene un patio." }));
+
+    renderDetail(notes, await allItems());
+    await user.click(await screen.findByRole("button", { name: "Mentioned here · 1" }));
+    await user.click(screen.getByRole("button", { name: "Add mentioned vocabulary casa" }));
+    await waitFor(async () => expect(await getItem(notes.id)).toMatchObject({
+      linkedKeys: [word.id],
+      linkAnnotations: [{ targetKey: word.id, type: "found_in", subject: "target", note: "" }],
+    }));
+
+    cleanup();
+    const collection = await createItem(newPage({
+      title: "Home collection",
+      body: "Otra casa para estudiar.",
+      pageProfile: "collection",
+      collection: { groups: [] },
+    }));
+    renderDetail(collection, await allItems());
+    await user.click(await screen.findByRole("button", { name: "Mentioned here · 1" }));
+    await user.click(screen.getByRole("button", { name: "Add mentioned vocabulary casa" }));
+    await waitFor(async () => expect(await getItem(collection.id)).toMatchObject({
+      linkedKeys: [word.id],
+      collection: { groups: [] },
+    }));
+    expect(screen.getByText("Not grouped yet")).toBeTruthy();
+  });
+
+  it("confirms Source and Grammar matches into their exact saved contexts", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({ term: "sacar", dictKey: null }));
+    const capture = newSourceCapture({ type: "passage", text: "Quiero sacar la basura." });
+    const example = newGrammarExample({ es: "Voy a sacar la bolsa.", en: "I am going to take out the bag." });
+    const section = newGrammarSection({ name: "Infinitives", examples: [example] });
+    const page = await createItem(newPage({
+      title: "Housework",
+      pageFocus: "source",
+      source: { enabled: true, captures: [capture] },
+      grammar: { enabled: true, sections: [section] },
+    }));
+
+    renderDetail(page, await allItems());
+    const captureCard = screen.getByText("Quiero sacar la basura.").closest(".rounded-xl");
+    await user.click(await within(captureCard).findByRole("button", { name: "Mentioned here · 1" }));
+    await user.click(within(captureCard).getByRole("button", { name: "Add mentioned vocabulary sacar" }));
+    await waitFor(async () => {
+      const stored = await getItem(page.id);
+      expect(stored.source.captures[0].itemKeys).toEqual([word.id]);
+      expect(stored.linkedKeys).toEqual([word.id]);
+    });
+
+    const exampleCard = screen.getByText("Voy a sacar la bolsa.").closest(".rounded-lg.border.p-3");
+    await user.click(await within(exampleCard).findByRole("button", { name: "Mentioned here · 1" }));
+    await user.click(within(exampleCard).getByRole("button", { name: "Add mentioned vocabulary sacar" }));
+    await waitFor(async () => {
+      const stored = await getItem(page.id);
+      expect(stored.grammar.sections[0].examples[0].itemKeys).toEqual([word.id]);
+    });
+  });
+
 });
 
 describe("lexical Collection placement", () => {

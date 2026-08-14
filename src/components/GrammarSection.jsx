@@ -36,6 +36,7 @@ import CollectionAddVocabularySheet from "./CollectionAddVocabularySheet.jsx";
 import MarkdownText from "./MarkdownText.jsx";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
 import PageSectionDisclosure from "./PageSectionDisclosure.jsx";
+import MentionedHere from "./MentionedHere.jsx";
 import { sectionFamily } from "./pageRoleMeta.js";
 import OutlineOrganizerFields from "./OutlineOrganizerFields.jsx";
 
@@ -717,6 +718,7 @@ function ExampleCard({
   onCancelVocabulary,
   onCommitVocabulary,
   onDetachVocabulary,
+  onAddMention,
 }) {
   const [detachingKey, setDetachingKey] = useState(null);
   const [vocabularyProblem, setVocabularyProblem] = useState("");
@@ -770,6 +772,13 @@ function ExampleCard({
           <span className="truncate">{sourceStatus.text}</span>
         </button>
       )}
+
+      <MentionedHere
+        items={items}
+        contextId={`${page.id}:grammar:${section.id}:example:${example.id}`}
+        onOpen={onOpen}
+        onAdd={onAddMention}
+      />
 
       <VocabularyChips
         itemKeys={example.itemKeys}
@@ -830,6 +839,7 @@ export default function GrammarSection({
   onOpen,
   onChanged,
   onAddVocabulary,
+  onAddMention,
 }) {
   const grammar = page?.grammar;
   const sections = grammar?.sections || [];
@@ -905,6 +915,12 @@ export default function GrammarSection({
             {section.explanation}
           </MarkdownText>
         )}
+        <MentionedHere
+          items={items}
+          contextId={`${page.id}:grammar:${section.id}:overview`}
+          onOpen={onOpen}
+          onAdd={onAddMention}
+        />
         {section.pattern && (
           <div className="mt-3 overflow-x-auto rounded-lg border px-3 py-2 text-sm" style={{ background: C.paper, borderColor: C.line, color: C.penDark, fontFamily: MONO }}>
             {section.pattern}
@@ -947,6 +963,7 @@ export default function GrammarSection({
                 });
                 await changed();
               }}
+              onAddMention={onAddMention}
             />
           ))}
         </div>
