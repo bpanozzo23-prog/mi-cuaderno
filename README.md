@@ -425,6 +425,35 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   and a disposable 375×812 flow verified the pill's geometry, chooser reopen from a detail screen,
   create-from-picker, Done, and a clean reload. See the Continue-with-this-video entries in
   [DECISIONS.md](DECISIONS.md).
+- **New word/phrase share destination — deployed.** Creating a new entry from a share existed only
+  as the create row buried at the bottom of the existing-item picker, which real use showed was
+  not discoverable. The chooser's second row now opens the normal creation sheet blank — the space
+  rule infers word vs phrase as the owner types — with the video attached from creation and the
+  continuation pill following; the picker's create row stays for the type-to-search-then-create
+  case. No schema, preference, backup or event-type change. The complete serial suite passed
+  1,411/1,411 across 121 files at implementation, the manifest is unchanged, and a disposable
+  375×812 flow confirmed four chooser rows without overflow. See the Continue-with-this-video
+  entries in [DECISIONS.md](DECISIONS.md).
+- **Example-to-phrase bridge — deployed.** Every saved personal lexical example can now seed a new
+  phrase through the ordinary creation sheet, carrying its Spanish into the editable term and its
+  optional English into the editable first meaning. The action appears only after an example is
+  saved, preselects Phrase, and creates nothing until the normal confirmation; the source example
+  is unchanged, no stored link is invented, and Phase 22's read-only containment derives the
+  word↔phrase relationship. No schema, backup, preference, event-type or reference-data change.
+  See the Example-to-phrase bridge entries in [DECISIONS.md](DECISIONS.md).
+- **Personal twin merge — deployed.** A link made before a personal entry existed kept pointing at
+  the raw dictionary key even after the owner attached that entry to their own word — observed in
+  the real notebook, the evidence the v3→v4 migration deliberately waited for. Each such
+  connection row now offers a prompted, per-row merge: one tap re-points the stored key (and any
+  alias raw keys) at the twin, carries the annotation, honors an existing personal edge in either
+  physical direction without creating a reciprocal copy, and routes conflicting explicit
+  descriptions through a resolver instead of silently picking a survivor. The merge is
+  bookkeeping in the alias-repair manner — no edit event, no `updatedAt` — and automatic
+  machinery still never rewrites. Offered on Detail, non-vocabulary Collection pages and Diario's
+  Más; suppressed where an outgoing lexical link is vocabulary membership. No schema, preference,
+  backup or event-type change. The complete serial suite passes 1,442/1,442 across 124 files, and
+  a disposable 375×812 flow verified the offer and the re-pointed link by numbers. See the
+  Personal twin merge entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **8**. Before Dexie opens v8, schema-v1 through schema-v7 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
