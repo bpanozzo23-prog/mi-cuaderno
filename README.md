@@ -491,6 +491,18 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   disclosure and both search surfaces before cleanup returned the origin to zero items. Deployed
   from `main` at `29c3840` through Pages run 31835260852. See the Apuntes entries in
   [DECISIONS.md](DECISIONS.md).
+- **Attach-later for unattached words — deployed.** The §5 seam always defined dictionary
+  attachment as optional and reversible, but a word created without its entry had no path to
+  attach one afterwards: `DictAttachment`'s never-attached state rendered nothing, so the picker
+  the orphan Re-attach flow uses was unreachable (found through the owner's real *razonar*). The
+  unattached Detail card now shows a quiet dashed "Attach dictionary entry" control opening that
+  same picker pre-filled with the term; picking attaches with no edit event, and "not installed"
+  still renders nothing. Once attached, the personal-twin merge offer lights up anywhere the
+  entry is ordinarily linked. The same commit carries Historia's containment-title fix — the
+  phrase↔word section is named from the subject's own side ("Built on" on a phrase, "Phrases" on
+  a word). The complete serial suite passes 1,485/1,485 across 129 files, and a disposable
+  375×812 flow verified the control, the pre-filled picker, the stored attachment and the
+  attached row by numbers. See the Attach-later entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
