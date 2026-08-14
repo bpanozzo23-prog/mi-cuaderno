@@ -44,6 +44,12 @@ milestones and current contexts, including disclosed matches in owner prose, whi
 Cuaderno root gains event-free neighborhood wandering over ordinary connections and conjugation
 families. Both features are render-time views over existing data; schema remains v8.
 
+**Phase 26 amendment, 2026-08-13 — §§7, 8 and 12:** saved Page/Diario prose may derive
+owner-confirmable Mentioned-here vocabulary, lexical Historia may derive context neighborhoods,
+and exact personal URLs may reveal other items from the same source. Suggestions and neighborhoods
+remain render-time evidence; only explicit confirmation uses existing page-vocabulary or ordinary
+connection writers. Schema remains v8.
+
 ---
 
 ## 1. What this is
@@ -349,6 +355,16 @@ substring-matched. Gloss proposals compare individual personal meanings conserva
 limited to three; sparse POS metadata rejects only a known mismatch. Proposals have no durable
 dismissal state and may reappear. Only an explicit owner action calls the existing stored-once
 writer with `similar_meaning`; an already connected pair is never proposed.
+
+**Phase-26 contextual-knowledge clarification, 2026-08-13:** visible saved Notes, enabled Source
+capture text, enabled Grammar overview/example Spanish, and Diario prose may be matched against
+saved personal vocabulary through the same conservative token/form rules. A match is not a link or
+page-vocabulary reference. Explicit confirmation attaches Source/Grammar example vocabulary through
+the existing contextual writer, adds ungrouped Page vocabulary when Vocabulary is enabled, or
+creates a directional Found-in ordinary link for non-Vocabulary Page/Diario prose. Repeated
+co-occurrence and exact shared structures may derive a read-only Historia neighborhood but never a
+semantic relationship. Exact identical stored URLs may derive navigation rows and create no
+authority.
 
 ### Event rules
 
@@ -870,6 +886,23 @@ the biography swap, disclosed Diario snippets, inert wander stub, silent hops an
 Back behavior; the required deliberate failures redden; the complete serial suite, production
 build and diff check pass; and a disposable seeded 375×812 flow proves a rich biography plus a
 three-hop family walk without overflow, console warnings/errors, or owner-data access.
+
+**Amended 2026-08-13 — Phase 26: derived context connections.** A lazy visit-local context index
+matches saved personal vocabulary in visible saved Page and Diario prose. **Mentioned here** keeps
+matches non-authoritative until the owner explicitly attaches vocabulary to a Source capture or
+Grammar example, adds it to an enabled Page Vocabulary section, or confirms a directional Found-in
+ordinary link for other Page/Diario prose. Historia's read-only **Seen together** section derives
+neighbors from one exact named group/capture/example or at least two distinct prose contexts,
+including Diario, without inferring a semantic type. Exact identical stored Source/Media URLs may
+show other personal Words, Phrases, Pages and Diario entries inline. Every result is evidence, not
+stored authority; schema stays v8 and no preference, backup shape, event type, reference package,
+score, schedule, queue or background job is added.
+*Done when:* token matching preserves the ñ/whole-token/stop-list/ambiguity/clitic/optional-
+reference contract; each confirmation follows existing page-vocabulary/link authority and event
+rules; neighborhoods disclose qualifying contexts and write nothing; URL rows use exact
+case-sensitive trimmed equality; deliberate failure proofs redden; the complete serial suite,
+production build and diff check pass; and a seeded 375×812 flow proves all three slices without
+overflow, console warnings/errors, automatic writes or owner-data access.
 
 ## 13. Non-goals
 

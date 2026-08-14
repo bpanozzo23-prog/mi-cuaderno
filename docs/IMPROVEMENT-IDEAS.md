@@ -59,6 +59,9 @@ Useful information to retain for each idea:
 | Graph texture in Estadísticas | 2026-08-13 | Captured | Any time; a small derived Estadísticas addition that doubles as evidence for the other visualization ideas |
 | Moment-of-learning micro-visuals | 2026-08-13 | Captured | Whenever the Similar-meaning recall or Historia surfaces are next touched |
 | Global graph visualization | 2026-08-13 | Captured | Only after the smaller connection visuals prove value in real use; excluded from Phase 23 by name |
+| Evidence-backed synonym/antonym proposals | 2026-08-13 | Captured | After a target-identity/sense quality gate over r4 relation strings; never through rejected `relatedWords` |
+| Evidence-backed Page-to-Page proposals | 2026-08-13 | Captured | After Phase 26 exact-context and exact-URL evidence has real-use history |
+| Optional AI connection review | 2026-08-13 | Captured | After local derivations prove their value; Phase 6 disclosure and provenance decisions govern it |
 | Candidate future data sources (survey) | 2026-08-13 | Captured | When a need each serves becomes real (monolingual mode, audio, drill content); every license re-verified at adoption |
 | Conjugation catalog extensions | 2026-08-12 | Captured | When Phase 21's classifier next reopens; required-cell coverage must be swept before accepting either family |
 | Monolingual recall (Spanish usage cues) | 2026-08-12 | Captured | After checking how many real meanings carry a usage cue |
@@ -249,6 +252,13 @@ browsable groups from different dimensions (graph edges, tags, lens combinations
 planned first should consciously answer whether it subsumes the others or they coexist as
 parallel dimensions.
 
+**Phase 26 boundary — 2026-08-13:** this entry is the cluster/graph step in the owner's seven-step
+connection roadmap; it is not duplicated under a new name. Confirmed stored-once typed links remain
+graph authority. Phase 26's Mentioned here proposals never become edges, and its factual
+Seen-together evidence may appear in a future visualization only as a separately labeled edge kind
+rather than being folded into confirmed clusters or their statistics. The existing sequence still
+stands: Graph texture first, then bounded cluster/constellation views, and the global map last.
+
 #### Expected owner value
 
 - "What does my notebook know as a whole?" gets its first honest answer — groups, sizes, and the
@@ -380,6 +390,119 @@ should be closed rather than built.
 - Real use of the smaller visuals first: constellation hop counts felt (not logged — the
   event-free rule stands), cluster browsing reached for, Estadísticas texture consulted. This
   idea only graduates on their evidence.
+
+---
+
+### Evidence-backed synonym/antonym proposals
+
+- **Date added:** 2026-08-13
+- **Status:** Captured
+- **Origin:** Owner connection-derivation discussion; retained as step 4 after Phase 26 planning
+- **Owner interest:** Asked to retain for later, not approved for implementation.
+- **Potential data impact:** None for transient proposals; explicit acceptance uses ordinary
+  stored-once links. Dismissal memory would be new backed-up preference state.
+
+#### Description and current context
+
+Phase 22 already proposes Similar meaning from conservative overlap in the owner's own glosses.
+Phase 24 added sense- and entry-level r4 synonym/antonym strings that could supply a different,
+dictionary-backed kind of evidence: synonym could propose **Similar meaning**, and antonym could
+propose **Contrast**. The proposal must show the exact dictionary relation plus both personal
+meanings, then wait for explicit confirmation.
+
+R4 relation targets are plain strings, not stable dictionary IDs or sense references. A future
+quality gate must therefore require unique resolved personal attachments and compatible
+part-of-speech/sense evidence; an exact spelling alone is not authority. Phase 25's rejected
+`relatedWords` field is never an input — its lost provenance, target identity and false pairs are
+already a closed quality verdict.
+
+#### Risks and tradeoffs
+
+- Homographs and multi-entry lemmas can make a true-looking string identify the wrong target.
+- Dictionary synonymy is sense-specific; unioning all senses would revive the bank-style trap
+  Phase 22 deliberately avoided.
+- Proposals remain explained and visit-local. Nothing links automatically, and no transitive
+  synonym cluster becomes truth.
+
+#### Evidence needed
+
+- A shipped-r4 audit of unique target resolution and sense/POS compatibility over saved-attached
+  fixtures before any UI work.
+- Real comparison against Phase 22 proposals: whether the dictionary adds useful pairs rather than
+  duplicate noise.
+
+---
+
+### Evidence-backed Page-to-Page proposals
+
+- **Date added:** 2026-08-13
+- **Status:** Captured
+- **Origin:** Owner connection-derivation discussion; retained as step 5 after Phase 26 planning
+- **Owner interest:** Asked to retain for later, not approved for implementation.
+- **Potential data impact:** None for transient proposals; confirmation uses existing ordinary
+  Page links and relationship annotations.
+
+#### Description and current context
+
+Suggest a small number of currently unconnected Pages only when strong, disclosed evidence says
+why they belong together: several shared active contextual vocabulary items, or an exact URL shared
+through Phase 26's source index. Broad shared tags and mere same-role membership are insufficient.
+The proposal shows the shared evidence and asks the owner to choose the ordinary relationship;
+it never stores a similarity score or link automatically.
+
+An external Grammar `sourceCaptureRef` is not proposal evidence: the current validator already
+requires an outgoing Page connection to that Source page, so such a pair is already connected.
+This idea should reuse the active-structure gates and stored-once link writer instead of inventing
+a parallel Page graph.
+
+#### Risks and tradeoffs
+
+- Generic vocabulary can make unrelated Pages look similar; minimum evidence and visible terms are
+  more important than a clever score.
+- Suggested relationship type is a semantic judgement. V1 should ask rather than silently choose
+  Related, Found in or Explained by.
+- Proposal caps and no dismissal memory keep the first slice schema-free but allow repeat noise.
+
+#### Evidence needed
+
+- Real-use density after Phase 26: how many Page pairs share two or more meaningful contextual
+  items or an exact URL, and how often those pairs are already linked.
+
+---
+
+### Optional AI connection review
+
+- **Date added:** 2026-08-13
+- **Status:** Captured
+- **Origin:** Owner connection-derivation discussion; retained as step 7 after Phase 26 planning
+- **Owner interest:** Asked to retain for later and keep optional.
+- **Potential data impact:** Session-only proposals need none; accepted links use existing storage.
+  Cached proposals, dismissals, or AI-authored notes would require separate durability/provenance
+  decisions.
+
+#### Description and current context
+
+A user-started review of one current item could deliberately send selected notebook evidence to the
+existing Phase 6 provider and ask for possible targets and relationship types. The pre-send screen
+must state exactly which entries, meanings, prose or connection summaries leave the device. The AI
+returns explained proposals only; no background scan, automatic link, score, queue or silent send.
+
+The first safe slice proposes target and type, then leaves any relationship note owner-authored.
+Saving AI-written prose as the shared note would cross the open Personal-content provenance
+decision and must not arrive by accident. Every accepted target still goes through the existing
+stored-once writer and explicit approval pattern.
+
+#### Risks and tradeoffs
+
+- Model confidence is not evidence; every row must cite the notebook material that motivated it.
+- Cost, privacy and provider behavior make this a deliberately summoned tool, not ambient polish.
+- Durable rejection memory or cached model output would enlarge the personal backup contract.
+
+#### Evidence needed
+
+- Whether Phase 26's local derivations leave a real connection-discovery gap worth sending data
+  and spending tokens to fill.
+- A provenance decision before any AI-authored relationship note can become owner content.
 
 ---
 
@@ -1791,6 +1914,13 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-13 — Phase 26 connection roadmap split into implementation and retained ideas.** The
+  owner approved Mentioned here, Seen together, and exact-URL source bundles for Phase 26, and
+  asked that the remaining four steps stay visible for later. Added evidence-backed
+  synonym/antonym proposals, evidence-backed Page-to-Page proposals, and optional AI connection
+  review; amended the existing Connection cluster browsing family in place rather than creating a
+  duplicate graph entry. None of those four retained ideas is implementation approval.
 
 - **2026-08-14 — "New word or phrase" promoted to a top-level share destination.** Owner-requested
   after real use: creating a new entry from a share was reachable only through the picker's
