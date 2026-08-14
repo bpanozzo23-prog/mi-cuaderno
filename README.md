@@ -503,6 +503,14 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   a word). The complete serial suite passes 1,485/1,485 across 129 files, and a disposable
   375×812 flow verified the control, the pre-filled picker, the stored attachment and the
   attached row by numbers. See the Attach-later entries in [DECISIONS.md](DECISIONS.md).
+- **Backup pos validation widened — deployed.** The v8→v9 export-first gate failed closed on the
+  owner's real notebook: four words carried the dictionary's own part-of-speech codes (pron,
+  prep, intj, …), which `newLexicalFromEntry` has always copied onto items and the display layer
+  has always rendered — but backup validation checked the pos editor's six-value list. Entry-level
+  `pos` now validates as any string (non-strings still fail); the meaning-level `posOverride`
+  allowlist and the editor selectors are unchanged, and no stored data was rewritten — the
+  affected items were always correct. The complete serial suite passes 1,486/1,486 across 129
+  files. See the Backup pos validation entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
