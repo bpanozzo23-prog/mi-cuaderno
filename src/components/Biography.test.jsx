@@ -76,6 +76,51 @@ describe("Biography", () => {
     expect(screen.queryByRole("button", { name: /remove|unlink|edit|save relationship/i })).toBeNull();
   });
 
+  it("shows five evidence-backed neighbors between Phrases and Connections, then expands", async () => {
+    const user = userEvent.setup();
+    const onOpen = vi.fn();
+    const subject = newLexical({ term: "sacar", dictKey: null });
+    const phrase = newLexical({ term: "sacar la basura", form: "phrase" });
+    const neighbors = ["basura", "casa", "tarea", "cocina", "bolsa", "calle"]
+      .map((term) => newLexical({ term, dictKey: null }));
+    subject.linkedKeys = [neighbors[0].id];
+    const items = [subject, phrase, ...neighbors];
+    const prepared = neighbors.map((item, index) => ({
+      item,
+      itemId: item.id,
+      explicitCount: index === 0 ? 1 : 0,
+      proseCount: index === 0 ? 0 : 2,
+      contextCount: index === 0 ? 1 : 2,
+      contexts: [{ pageTitle: "Housework", label: index === 0 ? "Chores" : "Notes overview" }],
+    }));
+
+    render(
+      <Biography
+        item={subject}
+        items={items}
+        connections={connectionsFor(subject, items)}
+        onOpen={onOpen}
+        onClose={vi.fn()}
+        preparePhrases={vi.fn(async () => [{ item: phrase, word: subject, surface: "sacar" }])}
+        prepareProse={vi.fn(async () => [])}
+        prepareNeighborhoods={vi.fn(async () => prepared)}
+      />
+    );
+
+    const seen = await screen.findByText("Seen together");
+    const phrases = screen.getByText("Phrases");
+    const connections = screen.getByText("Connections");
+    expect(phrases.compareDocumentPosition(seen) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(seen.compareDocumentPosition(connections) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^calle/ })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Show all 6" }));
+    await user.click(screen.getByRole("button", { name: /^calle/ }));
+    expect(onOpen).toHaveBeenLastCalledWith(neighbors[5].id);
+    expect(screen.getAllByRole("button", { name: /^basura/ })).toHaveLength(2);
+    expect(screen.queryByRole("button", { name: /remove|unlink|edit|save relationship/i })).toBeNull();
+  });
+
   it("shows the saved conjugation family and marked teaching exit without changing the story", async () => {
     const user = userEvent.setup();
     const onOpen = vi.fn();

@@ -7,6 +7,7 @@ import {
   Link2,
   MapPin,
   MessageSquareText,
+  Network,
   Route,
 } from "lucide-react";
 import { C, Card, MONO, SERIF, SectionTitle, dotGrid } from "../theme.jsx";
@@ -18,6 +19,7 @@ import { preparePhraseContainment } from "../lib/phraseContainment.js";
 import { prepareProseContainment } from "../lib/proseContainment.js";
 import { groupConnections } from "../lib/relationships.js";
 import { prepareSavedConjugationFamily } from "../lib/wordFamilies.js";
+import { prepareContextNeighborhoods } from "../lib/contextConnections.js";
 import ConjugationFamilyRows from "./ConjugationFamilyRows.jsx";
 
 const datePart = (at) => String(at || "").slice(0, 10);
@@ -143,10 +145,13 @@ export default function Biography({
   prepareFamily = prepareSavedConjugationFamily,
   preparePhrases = preparePhraseContainment,
   prepareProse = prepareProseContainment,
+  prepareNeighborhoods = prepareContextNeighborhoods,
 }) {
   const [family, setFamily] = useState(null);
   const [phrases, setPhrases] = useState([]);
   const [prose, setProse] = useState([]);
+  const [neighborhoods, setNeighborhoods] = useState([]);
+  const [showAllNeighborhoods, setShowAllNeighborhoods] = useState(false);
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
@@ -219,10 +224,26 @@ export default function Biography({
     };
   }, [item, items, prepareProse]);
 
+  useEffect(() => {
+    let alive = true;
+    setNeighborhoods([]);
+    setShowAllNeighborhoods(false);
+    prepareNeighborhoods(item, items)
+      .then((rows) => {
+        if (alive) setNeighborhoods(rows);
+      })
+      .catch(() => {
+        if (alive) setNeighborhoods([]);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [item, items, prepareNeighborhoods]);
+
   const prosePages = prose.filter((row) => !row.journal);
   const journal = prose.filter((row) => row.journal);
   const habitatCount = collections.length + pageContexts.length + phrases.length
-    + connections.length + prose.length + Number(Boolean(family));
+    + neighborhoods.length + connections.length + prose.length + Number(Boolean(family));
 
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
@@ -281,6 +302,34 @@ export default function Biography({
               ? `Matched as ${row.surface}`
               : ""}
           />
+        </HabitatSection>
+      )}
+
+      {neighborhoods.length > 0 && (
+        <HabitatSection title="Seen together" icon={Network}>
+          <ContextRows
+            rows={showAllNeighborhoods ? neighborhoods : neighborhoods.slice(0, 5)}
+            onOpen={onOpen}
+            renderHeading={(row) => row.item.term}
+            renderMeta={(row) => {
+              const places = row.contexts
+                .slice(0, 2)
+                .map((context) => `${context.pageTitle} · ${context.label}`)
+                .join("; ");
+              return `${row.contextCount} shared ${row.contextCount === 1 ? "context" : "contexts"}${places ? ` · ${places}` : ""}`;
+            }}
+          />
+          {neighborhoods.length > 5 && (
+            <button
+              type="button"
+              aria-expanded={showAllNeighborhoods}
+              onClick={() => setShowAllNeighborhoods((current) => !current)}
+              className="mt-2 min-h-11 text-xs font-medium"
+              style={{ color: C.pen }}
+            >
+              {showAllNeighborhoods ? "Show fewer" : `Show all ${neighborhoods.length}`}
+            </button>
+          )}
         </HabitatSection>
       )}
 
