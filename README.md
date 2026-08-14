@@ -302,6 +302,18 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   issues, personal/dictionary navigation, and zero fixture rows after cleanup. Deployed from
   `main` at `1432dd1` through Pages run 31749800168; personal schema stays v8. See the
   [direction](docs/PHASE-25-DIRECTION.md) and [implementation report](docs/PHASE-25-REPORT.md).
+- **Phase 26 — implemented and verified locally; deployment pending.** Saved visible Notes,
+  enabled Source captures, enabled Grammar explanations/examples, and Diario can now disclose
+  personal vocabulary **Mentioned here** without writing until an explicit context-appropriate
+  confirmation. Lexical Historia adds read-only **Seen together** neighborhoods from one exact
+  named structure or repeated unambiguous prose across pages. Exact case-sensitive trimmed Source
+  and Media URLs disclose other personal items inline through **Also from this source**. No schema,
+  preference, backup, event type, reference package, background job, score, or automatic link was
+  added; personal schema stays v8. The complete serial suite passes 1,464/1,464 across 128 files,
+  the 2,116-module production build and diff check pass, the exact-URL negative proof red/greened,
+  and a disposable 375×812 flow verified explicit-write boundaries, 44px actions, zero overflow,
+  and a clear console before cleanup returned the fixture to zero items/events. See the
+  [direction](docs/PHASE-26-DIRECTION.md) and [implementation report](docs/PHASE-26-REPORT.md).
 - **Collection bulk capture — deployed.** A Vocabulary page's existing
   Add vocabulary panel can now narrow saved entries to Words, Phrases, and an exact existing tag,
   then select every available match together. Existing members remain excluded and the final Add

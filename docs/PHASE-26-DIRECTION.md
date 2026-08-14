@@ -1,7 +1,7 @@
 # Phase 26 — Derived context connections
 
-**Status:** Approved for implementation 2026-08-13; implementation in progress on
-`codex/phase-26-derived-context-connections`. This approval does not include a push or deployment.
+**Status:** Implemented and verified locally 2026-08-14 on
+`codex/phase-26-derived-context-connections`; push and deployment remain pending owner approval.
 **Origin:** The owner asked how the notebook could derive more connections, selected the first
 three recommendations for implementation, chose the conservative defaults in a six-question
 workshop, and asked that the remaining four recommendations be retained in Improvement Ideas.
@@ -128,3 +128,6 @@ The browser flow must snapshot items/events before read-only exploration, prove 
 confirmations mutate, measure 44px actions and zero horizontal overflow, and leave no console
 warnings/errors. No owner browser data or backup is available to Codex; all verification uses
 seeded fixtures and is cleaned afterward.
+
+The completed evidence, exact test/build counts, browser measurements, cleanup, and deployment
+boundary are recorded in [PHASE-26-REPORT.md](PHASE-26-REPORT.md).
