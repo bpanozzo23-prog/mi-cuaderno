@@ -293,7 +293,7 @@ export default function Biography({
       )}
 
       {phrases.length > 0 && (
-        <HabitatSection title="Phrases" icon={MessageSquareText}>
+        <HabitatSection title={item.form === "phrase" ? "Built on" : "Phrases"} icon={MessageSquareText}>
           <ContextRows
             rows={phrases}
             onOpen={onOpen}

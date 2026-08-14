@@ -121,6 +121,34 @@ describe("Biography", () => {
     expect(screen.queryByRole("button", { name: /remove|unlink|edit|save relationship/i })).toBeNull();
   });
 
+  it("names the containment section for the subject's own side of the relationship", async () => {
+    const onOpen = vi.fn();
+    const word = newLexical({ term: "sacar", dictKey: null });
+    const phrase = newLexical({ term: "sacar las uñas", form: "phrase" });
+    const shared = {
+      items: [word, phrase],
+      events: [],
+      state: emptyItemState,
+      reviewState: emptyReviewState,
+      onOpen,
+      onClose: vi.fn(),
+      prepareProse: vi.fn(async () => []),
+      prepareNeighborhoods: vi.fn(async () => []),
+    };
+
+    const view = render(<Biography item={phrase} {...shared} />);
+
+    expect(await screen.findByText("Built on")).toBeTruthy();
+    expect(screen.queryByText("Phrases")).toBeNull();
+    expect(screen.getByRole("button", { name: /^sacar$/ })).toBeTruthy();
+
+    view.rerender(<Biography item={word} {...shared} />);
+
+    expect(await screen.findByText("Phrases")).toBeTruthy();
+    expect(screen.queryByText("Built on")).toBeNull();
+    expect(screen.getByRole("button", { name: /^sacar las uñas/ })).toBeTruthy();
+  });
+
   it("shows the saved conjugation family and marked teaching exit without changing the story", async () => {
     const user = userEvent.setup();
     const onOpen = vi.fn();

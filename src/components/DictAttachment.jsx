@@ -89,6 +89,9 @@ export default function DictAttachment({ item, onOpen, onChanged, onEntryResolve
   const [state, setState] = useState(STATE.loading);
   const [entry, setEntry] = useState(null);
   const [picking, setPicking] = useState(false);
+  // Whether the unattached state may offer attaching: only with a dictionary installed. "Not
+  // installed" deliberately renders nothing (Phase 2f) — a control that can only fail is noise.
+  const [canAttach, setCanAttach] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -96,11 +99,18 @@ export default function DictAttachment({ item, onOpen, onChanged, onEntryResolve
     onEntryResolved?.(null);
     (async () => {
       if (!item.dictKey) {
-        if (alive) setState(STATE.none);
+        const installed = await dictionaryInstalled();
+        if (alive) {
+          setCanAttach(installed);
+          setState(STATE.none);
+        }
         return;
       }
       if (!(await dictionaryInstalled())) {
-        if (alive) setState(STATE.none);
+        if (alive) {
+          setCanAttach(false);
+          setState(STATE.none);
+        }
         return;
       }
       const { entry: found, resolvedFrom } = await resolveEntry(item.dictKey);
@@ -132,10 +142,28 @@ export default function DictAttachment({ item, onOpen, onChanged, onEntryResolve
     onChanged?.();
   }
 
-  if (state === STATE.loading || state === STATE.none) {
-    return picking ? (
-      <DictPicker term={item.term} onPick={attachTo} onCancel={() => setPicking(false)} />
-    ) : null;
+  if (state === STATE.loading) return null;
+
+  // Never attached. The §5 seam is a reversible relationship the owner may add at any time, so
+  // a word created without its dictionary entry — from a journal page, quick-create, or before
+  // the dictionary was installed — can gain the attachment later through the same picker the
+  // orphan Re-attach flow uses. Until 2026-08-14 this state rendered nothing: the picker
+  // existed but no control could reach it, so attach-later was a promise without a button.
+  if (state === STATE.none) {
+    if (picking) {
+      return <DictPicker term={item.term} onPick={attachTo} onCancel={() => setPicking(false)} />;
+    }
+    if (!canAttach) return null;
+    return (
+      <button
+        type="button"
+        onClick={() => setPicking(true)}
+        className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3 py-2 text-xs"
+        style={{ background: C.paper, borderColor: C.line, borderStyle: "dashed", color: C.mut }}
+      >
+        <BookMarked size={13} /> Attach dictionary entry
+      </button>
+    );
   }
 
   if (state === STATE.attached) {
