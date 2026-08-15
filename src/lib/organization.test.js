@@ -115,6 +115,51 @@ describe("Phase 5b browse ordering", () => {
 });
 
 describe("Phase 5b maintenance views", () => {
+  it("finds rolling 7-day and 30-day additions without accepting future or invalid dates", () => {
+    const now = new Date("2026-08-15T10:00:00.000Z");
+    const items = [
+      word("today", { createdAt: "2026-08-15T09:00:00.000Z" }),
+      word("seven-day-edge", { createdAt: "2026-08-08T10:00:00.000Z" }),
+      page("twenty-days", { createdAt: "2026-07-26T10:00:00.000Z" }),
+      word("thirty-day-edge", { createdAt: "2026-07-16T10:00:00.000Z" }),
+      word("too-old", { createdAt: "2026-07-16T09:59:59.999Z" }),
+      word("future", { createdAt: "2026-08-15T10:00:00.001Z" }),
+      word("invalid", { createdAt: "not-a-date" }),
+    ];
+
+    expect(ids(maintenanceItems(items, MAINTENANCE_VIEWS.added7Days, now))).toEqual([
+      "today",
+      "seven-day-edge",
+    ]);
+    expect(ids(maintenanceItems(items, MAINTENANCE_VIEWS.added30Days, now))).toEqual([
+      "today",
+      "seven-day-edge",
+      "twenty-days",
+      "thirty-day-edge",
+    ]);
+  });
+
+  it("finds media-backed items across content types", () => {
+    const items = [
+      word("video", { mediaLinks: [{ url: "https://example.com/video", label: "Lesson" }] }),
+      page("image", { mediaLinks: [{ url: "https://example.com/image.jpg", label: "Image" }] }),
+      word("plain", { mediaLinks: [] }),
+    ];
+
+    expect(ids(maintenanceItems(items, MAINTENANCE_VIEWS.withMedia))).toEqual(["video", "image"]);
+  });
+
+  it("finds only unattached words, never phrases or stale stored attachments", () => {
+    const items = [
+      word("unattached"),
+      word("attached", { dictKey: "dict:wiktionary-es:attached:verb" }),
+      word("phrase", { form: "phrase" }),
+      page("notes"),
+    ];
+
+    expect(ids(maintenanceItems(items, MAINTENANCE_VIEWS.unattachedWord))).toEqual(["unattached"]);
+  });
+
   it("finds only lexical items whose meaning is absent or blank", () => {
     const items = [
       word("empty", { translation: "" }),

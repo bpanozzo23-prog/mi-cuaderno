@@ -39,6 +39,9 @@ const BROWSE_OPTIONS = [
 
 const MAINTENANCE_OPTIONS = [
   { value: MAINTENANCE_VIEWS.all, label: "All items" },
+  { value: MAINTENANCE_VIEWS.added7Days, label: "Added in the last 7 days" },
+  { value: MAINTENANCE_VIEWS.added30Days, label: "Added in the last 30 days" },
+  { value: MAINTENANCE_VIEWS.withMedia, label: "With media links" },
   { value: MAINTENANCE_VIEWS.missingMeaning, label: "Missing meaning" },
   { value: MAINTENANCE_VIEWS.missingExamples, label: "Missing examples" },
   { value: MAINTENANCE_VIEWS.unlinked, label: "No links" },
@@ -62,6 +65,7 @@ export default function Cuaderno({
   onOpenLexical,
   onWander,
   random = Math.random,
+  now = new Date(),
   seedQuery = null,
   shareSource = null,
   pinnedPageIds = [],
@@ -135,8 +139,8 @@ export default function Cuaderno({
   // Maintenance must see the COMPLETE personal notebook. A page filtered out by the type
   // controls may still be the only item linking back to a word.
   const maintenanceSet = useMemo(
-    () => maintenanceItems(items, maintenanceView),
-    [items, maintenanceView]
+    () => maintenanceItems(items, maintenanceView, now),
+    [items, maintenanceView, now]
   );
 
   // Empty-query browsing belongs to Cuaderno, not Diario. A typed query is intentional global

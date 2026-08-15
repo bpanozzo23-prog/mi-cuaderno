@@ -50,6 +50,40 @@ export function matchesContextFilter(contexts = [], filter = LEXICAL_CONTEXTS.an
   return contexts.some((context) => context?.kind === filter);
 }
 
+/** One exact active Page context, composed after the broad habitat choice. */
+export function matchesPageFilter(contexts = [], pageId = "") {
+  if (!pageId) return true;
+  return contexts.some((context) => context?.pageId === pageId);
+}
+
+const spanishPageTitles = new Intl.Collator("es", { sensitivity: "base" });
+
+/**
+ * Contextual Page choices for the current lexical lens. A word counts once per Page even when it
+ * appears in several captures, groups or Grammar examples on that Page.
+ */
+export function pageContextCountsIn(items = [], contextIndex = new Map()) {
+  const counts = new Map();
+  for (const item of items) {
+    const seen = new Set();
+    for (const context of contextIndex.get(item.id) || []) {
+      if (!context?.pageId || seen.has(context.pageId)) continue;
+      seen.add(context.pageId);
+      const current = counts.get(context.pageId) || {
+        pageId: context.pageId,
+        pageTitle: context.pageTitle || "Untitled page",
+        count: 0,
+      };
+      current.count += 1;
+      counts.set(context.pageId, current);
+    }
+  }
+  return [...counts.values()].sort(
+    (left, right) => spanishPageTitles.compare(left.pageTitle, right.pageTitle)
+      || left.pageId.localeCompare(right.pageId)
+  );
+}
+
 /**
  * The learning lens. Display and retrieval only — grading stays in Repaso (§12).
  *

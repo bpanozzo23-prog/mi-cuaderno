@@ -109,6 +109,42 @@ afterEach(async () => {
 });
 
 describe("Phase 5c Cuaderno retrieval controls", () => {
+  it("browses rolling 7-day and 30-day additions plus media links", async () => {
+    const user = userEvent.setup();
+    const now = new Date("2026-08-15T10:00:00.000Z");
+    const items = [
+      word("today", { createdAt: "2026-08-15T09:00:00.000Z" }),
+      word("six-days", { createdAt: "2026-08-09T10:00:00.000Z" }),
+      page("twenty-days", { createdAt: "2026-07-26T10:00:00.000Z" }),
+      word("old-video", {
+        createdAt: "2026-06-01T10:00:00.000Z",
+        mediaLinks: [{ url: "https://example.com/video", label: "Lesson" }],
+      }),
+      page("Media page", {
+        createdAt: "2026-05-01T10:00:00.000Z",
+        mediaLinks: [{ url: "https://example.com/image.jpg", label: "Image" }],
+      }),
+    ];
+    render(<Cuaderno {...propsFor(items, { now })} />);
+    await openRefine(user);
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "View" }), "added-7-days");
+    expect(card("today")).toBeTruthy();
+    expect(card("six-days")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^twenty-days/ })).toBeNull();
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "View" }), "added-30-days");
+    expect(card("today")).toBeTruthy();
+    expect(card("six-days")).toBeTruthy();
+    expect(card("twenty-days")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^old-video/ })).toBeNull();
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "View" }), "with-media");
+    expect(card("old-video")).toBeTruthy();
+    expect(card("Media page")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^today/ })).toBeNull();
+  });
+
   it("orders browsing without changing search relevance or the shared source order", async () => {
     const user = userEvent.setup();
     const items = [

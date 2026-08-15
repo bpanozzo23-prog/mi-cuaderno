@@ -19,10 +19,16 @@ export const BROWSE_ORDERS = {
 
 export const MAINTENANCE_VIEWS = {
   all: "all",
+  added7Days: "added-7-days",
+  added30Days: "added-30-days",
+  withMedia: "with-media",
   missingMeaning: "missing-meaning",
   missingExamples: "missing-examples",
   unlinked: "unlinked",
+  unattachedWord: "unattached-word",
 };
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const headingOf = (item) =>
   String(item?.type === "page" ? item.title || "Untitled page" : item?.term || "");
@@ -47,15 +53,32 @@ export function orderItems(items = [], order = BROWSE_ORDERS.touched) {
 }
 
 /**
- * Neutral maintenance subsets. Call this with the COMPLETE notebook before a type filter: an
+ * Derived browse and maintenance subsets. Call this with the COMPLETE notebook before a type filter: an
  * otherwise empty word is still linked when a page points to it, even if the active UI type is
  * `palabras` and that page will later be hidden.
  *
  * A dictionary key in `linkedKeys[]` is a stored link and counts. `dictKey`, by contrast, is the
  * separate reference attachment defined by the personal/reference seam, not an item link.
  */
-export function maintenanceItems(items = [], view = MAINTENANCE_VIEWS.all) {
+export function maintenanceItems(items = [], view = MAINTENANCE_VIEWS.all, now = new Date()) {
   const candidates = [...items];
+
+  if (view === MAINTENANCE_VIEWS.added7Days || view === MAINTENANCE_VIEWS.added30Days) {
+    const nowMs = now instanceof Date ? now.getTime() : Date.parse(now);
+    const days = view === MAINTENANCE_VIEWS.added7Days ? 7 : 30;
+    const cutoff = nowMs - days * DAY_MS;
+    return candidates.filter((item) => {
+      const createdAt = Date.parse(item?.createdAt);
+      return Number.isFinite(nowMs)
+        && Number.isFinite(createdAt)
+        && createdAt >= cutoff
+        && createdAt <= nowMs;
+    });
+  }
+
+  if (view === MAINTENANCE_VIEWS.withMedia) {
+    return candidates.filter((item) => (item.mediaLinks || []).length > 0);
+  }
 
   if (view === MAINTENANCE_VIEWS.missingMeaning) {
     return candidates.filter((item) => item.type === "lexical" && !(item.meanings || []).length);
@@ -68,6 +91,12 @@ export function maintenanceItems(items = [], view = MAINTENANCE_VIEWS.all) {
   if (view === MAINTENANCE_VIEWS.unlinked) {
     return candidates.filter(
       (item) => !(item.linkedKeys || []).length && relatedTo(item, items).length === 0
+    );
+  }
+
+  if (view === MAINTENANCE_VIEWS.unattachedWord) {
+    return candidates.filter(
+      (item) => item.type === "lexical" && item.form === "word" && !item.dictKey
     );
   }
 

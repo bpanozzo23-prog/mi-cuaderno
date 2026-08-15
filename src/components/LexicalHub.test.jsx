@@ -1,9 +1,15 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import LexicalHub from "./LexicalHub.jsx";
 import { newGrammarExample, newGrammarSection, newSourceCapture } from "../lib/pageKinds.js";
+import { installedMeta } from "../db/ref/entries.js";
+
+vi.mock("../db/ref/entries.js", async (importOriginal) => ({
+  ...(await importOriginal()),
+  installedMeta: vi.fn(async () => null),
+}));
 
 const at = (day) => `2026-08-${String(day).padStart(2, "0")}T10:00:00.000Z`;
 
@@ -91,6 +97,8 @@ async function search(user, text) {
 
 afterEach(() => {
   cleanup();
+  vi.mocked(installedMeta).mockReset();
+  vi.mocked(installedMeta).mockResolvedValue(null);
   vi.restoreAllMocks();
 });
 
@@ -248,6 +256,43 @@ describe("the Words & phrases hub", () => {
       await user.click(row);
       expect(props.onSelect).toHaveBeenCalledWith("user:voces");
     });
+
+    it("filters to one exact Page and hands that visible set to Practice", async () => {
+      const user = userEvent.setup();
+      render(<LexicalHub {...propsFor(items)} />);
+      await openRefine(user);
+
+      expect(screen.getByRole("option", { name: "Interjections · 1" })).toBeTruthy();
+      expect(screen.getByRole("option", { name: "Podcast · 1" })).toBeTruthy();
+      expect(screen.getByRole("option", { name: "Voces · 1" })).toBeTruthy();
+      await choose(user, "Specific Page", "user:podcast");
+
+      expect(card("órale")).toBeTruthy();
+      expect(cardOrNull("nomás")).toBeNull();
+      expect(cardOrNull("ándale")).toBeNull();
+      expect(screen.getByRole("button", { name: "Refine (1)" })).toBeTruthy();
+
+      await user.click(screen.getByRole("button", { name: "Practice" }));
+      expect(screen.getByText("Practice 1 of 1 eligible card.")).toBeTruthy();
+      await user.click(screen.getByRole("button", { name: "Hub order" }));
+      await user.click(screen.getByRole("button", { name: "Start 1-card practice" }));
+      expect(screen.getByText("órale")).toBeTruthy();
+      expect(screen.queryByText("nomás")).toBeNull();
+    });
+
+    it("clears an exact Page that another habitat choice makes impossible", async () => {
+      const user = userEvent.setup();
+      render(<LexicalHub {...propsFor(items)} />);
+      await openRefine(user);
+      await choose(user, "Specific Page", "user:podcast");
+
+      await choose(user, "Where it lives", "grammar");
+
+      await waitFor(() => expect(screen.getByLabelText("Specific Page").value).toBe(""));
+      expect(screen.queryByRole("option", { name: "Podcast · 1" })).toBeNull();
+      expect(screen.getByRole("option", { name: "Interjections · 1" })).toBeTruthy();
+      expect(card("ándale")).toBeTruthy();
+    });
   });
 
   describe("the learning lens", () => {
@@ -340,6 +385,38 @@ describe("the Words & phrases hub", () => {
 
     expect(card("madrugar")).toBeTruthy();
     expect(cardOrNull("dormir")).toBeNull();
+  });
+
+  it("offers unattached words only with an installed dictionary", async () => {
+    const user = userEvent.setup();
+    vi.mocked(installedMeta).mockResolvedValue({ datasetVersion: "fixture-r4" });
+    const items = [
+      lexical("razonar"),
+      lexical("dormir", { dictKey: "dict:wiktionary-es:dormir:verb" }),
+      lexical("dar con", { id: "user:dar-con", form: "phrase" }),
+    ];
+    render(<LexicalHub {...propsFor(items)} />);
+    await openRefine(user);
+
+    expect(await screen.findByRole("option", { name: "No dictionary attachment" })).toBeTruthy();
+    await choose(user, "Vocabulary view", "unattached-word");
+    expect(card("razonar")).toBeTruthy();
+    expect(cardOrNull("dormir")).toBeNull();
+    expect(cardOrNull("dar con")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Phrases" }));
+    await waitFor(() => expect(screen.getByLabelText("Vocabulary view").value).toBe("all"));
+    expect(screen.queryByRole("option", { name: "No dictionary attachment" })).toBeNull();
+    expect(card("dar con")).toBeTruthy();
+  });
+
+  it("does not offer an attachment view when no dictionary is installed", async () => {
+    const user = userEvent.setup();
+    render(<LexicalHub {...propsFor([lexical("razonar")])} />);
+    await openRefine(user);
+
+    await waitFor(() => expect(installedMeta).toHaveBeenCalled());
+    expect(screen.queryByRole("option", { name: "No dictionary attachment" })).toBeNull();
   });
 
   it("counts the refinements it is hiding", async () => {

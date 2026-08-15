@@ -8,8 +8,10 @@ import {
   LEXICAL_LEARNING,
   matchesContextFilter,
   matchesLearningFilter,
+  matchesPageFilter,
   OTHER_INITIAL,
   pageContextIndex,
+  pageContextCountsIn,
   PINNED_LEXICAL_IDS_PREF,
 } from "./lexicalViews.js";
 import { newGrammarExample, newGrammarSection, newSourceCapture } from "./pageKinds.js";
@@ -94,6 +96,29 @@ describe("lexical hub derivations", () => {
 
       expect(index.has(item.id)).toBe(true);
       expect(index.has(page.id)).toBe(false);
+    });
+
+    it("counts each word once per exact Page and filters by its stable id", () => {
+      const first = word("nomás");
+      const second = word("órale");
+      const firstPage = pageHolding(first.id);
+      const secondPage = makePage({
+        title: "Ándale",
+        source: {
+          enabled: true,
+          captures: [newSourceCapture({ itemKeys: [first.id, second.id] })],
+        },
+      });
+      const items = [first, second, firstPage, secondPage];
+      const index = pageContextIndex(items);
+
+      expect(pageContextCountsIn([first, second], index)).toEqual([
+        { pageId: secondPage.id, pageTitle: "Ándale", count: 2 },
+        { pageId: firstPage.id, pageTitle: "Nomás", count: 1 },
+      ]);
+      expect(matchesPageFilter(index.get(first.id), firstPage.id)).toBe(true);
+      expect(matchesPageFilter(index.get(second.id), firstPage.id)).toBe(false);
+      expect(matchesPageFilter(index.get(second.id), "")).toBe(true);
     });
   });
 

@@ -10,6 +10,7 @@ import SearchBar from "./SearchBar.jsx";
 import SimilarMeaningRecallSession from "./SimilarMeaningRecallSession.jsx";
 import SimilarMeaningRecallSetupSheet from "./SimilarMeaningRecallSetupSheet.jsx";
 import { searchItems } from "../lib/search.js";
+import { installedMeta } from "../db/ref/entries.js";
 import { deriveReviewState, emptyReviewState } from "../lib/review.js";
 import { FILTERS, matchesTypeFilter } from "../lib/filters.js";
 import {
@@ -25,7 +26,9 @@ import {
   LEXICAL_LEARNING,
   matchesContextFilter,
   matchesLearningFilter,
+  matchesPageFilter,
   pageContextIndex,
+  pageContextCountsIn,
 } from "../lib/lexicalViews.js";
 import { buildPracticeDeck, isPracticeEligible } from "../lib/practice.js";
 import { preparePracticeCards } from "../lib/practiceCards.js";
@@ -72,6 +75,11 @@ const VIEW_OPTIONS = [
   { value: MAINTENANCE_VIEWS.unlinked, label: "No connections" },
 ];
 
+const UNATTACHED_WORD_OPTION = {
+  value: MAINTENANCE_VIEWS.unattachedWord,
+  label: "No dictionary attachment",
+};
+
 const BROWSE_OPTIONS = [
   { value: BROWSE_ORDERS.touched, label: "Recently touched" },
   { value: BROWSE_ORDERS.added, label: "Recently added" },
@@ -108,6 +116,7 @@ export default function LexicalHub({
   const [searchOpen, setSearchOpen] = useState(false);
   const [formFilter, setFormFilter] = useState(FILTERS.all);
   const [contextFilter, setContextFilter] = useState(LEXICAL_CONTEXTS.anywhere);
+  const [pageFilter, setPageFilter] = useState(null);
   const [learningFilter, setLearningFilter] = useState(LEXICAL_LEARNING.any);
   const [maintenanceView, setMaintenanceView] = useState(MAINTENANCE_VIEWS.all);
   const [browseOrder, setBrowseOrder] = useState(BROWSE_ORDERS.touched);
@@ -119,12 +128,24 @@ export default function LexicalHub({
   const [practiceStarting, setPracticeStarting] = useState(false);
   const [similarRecallSetupOpen, setSimilarRecallSetupOpen] = useState(false);
   const [similarRecallSession, setSimilarRecallSession] = useState(null);
+  const [dictionaryAvailable, setDictionaryAvailable] = useState(false);
 
   // The chip the owner tapped in Cuaderno arrives as a fresh request object each time, so tapping
   // "frases" twice still selects Phrases even after they changed the chip inside the hub.
   useEffect(() => {
     if (formRequest?.form) setFormFilter(formRequest.form);
   }, [formRequest]);
+
+  useEffect(() => {
+    if (!active) return undefined;
+    let current = true;
+    installedMeta().then((meta) => {
+      if (current) setDictionaryAvailable(Boolean(meta));
+    });
+    return () => {
+      current = false;
+    };
+  }, [active]);
 
   const searching = query.trim() !== "";
   const lexical = useMemo(() => items.filter((item) => item.type === "lexical"), [items]);
@@ -165,8 +186,26 @@ export default function LexicalHub({
     [contextFilter, contextIndex, formItems, learningFilter, review]
   );
 
+  const pageCounts = useMemo(
+    () => pageContextCountsIn(lensedItems, contextIndex),
+    [contextIndex, lensedItems]
+  );
+  const pageAvailable = pageFilter && pageCounts.some(({ pageId }) => pageId === pageFilter);
+  const effectivePage = pageAvailable ? pageFilter : null;
+
+  useEffect(() => {
+    if (pageFilter && !pageAvailable) setPageFilter(null);
+  }, [pageAvailable, pageFilter]);
+
+  const pageItems = useMemo(
+    () => effectivePage
+      ? lensedItems.filter((item) => matchesPageFilter(contextIndex.get(item.id) || [], effectivePage))
+      : lensedItems,
+    [contextIndex, effectivePage, lensedItems]
+  );
+
   // Tag choices describe the lens, not the already-selected tag, so the picker stays useful.
-  const tagCounts = useMemo(() => tagCountsIn(lensedItems), [lensedItems]);
+  const tagCounts = useMemo(() => tagCountsIn(pageItems), [pageItems]);
   const tagAvailable = tagFilter && tagCounts.some(({ tag }) => tag === tagFilter);
   const effectiveTag = tagAvailable ? tagFilter : null;
 
@@ -175,9 +214,16 @@ export default function LexicalHub({
   }, [tagAvailable, tagFilter]);
 
   const filtered = useMemo(
-    () => effectiveTag ? lensedItems.filter((item) => item.tags.includes(effectiveTag)) : lensedItems,
-    [effectiveTag, lensedItems]
+    () => effectiveTag ? pageItems.filter((item) => item.tags.includes(effectiveTag)) : pageItems,
+    [effectiveTag, pageItems]
   );
+
+  const attachmentViewAvailable = dictionaryAvailable && formFilter !== FILTERS.phrase;
+  useEffect(() => {
+    if (!attachmentViewAvailable && maintenanceView === MAINTENANCE_VIEWS.unattachedWord) {
+      setMaintenanceView(MAINTENANCE_VIEWS.all);
+    }
+  }, [attachmentViewAvailable, maintenanceView]);
 
   // Personal vocabulary only. The dictionary stays behind Cuaderno's one mixed list (§8); an
   // empty result here hands the query over rather than quietly widening the hub's scope.
@@ -215,6 +261,7 @@ export default function LexicalHub({
   );
 
   const refineCount = Number(contextFilter !== LEXICAL_CONTEXTS.anywhere)
+    + Number(Boolean(effectivePage))
     + Number(learningFilter !== LEXICAL_LEARNING.any)
     + Number(maintenanceView !== MAINTENANCE_VIEWS.all)
     + Number(browseOrder !== BROWSE_ORDERS.touched)
@@ -404,6 +451,19 @@ export default function LexicalHub({
               ))}
             </RefineSelect>
 
+            <RefineSelect
+              label="Specific Page"
+              value={effectivePage || ""}
+              onChange={(value) => setPageFilter(value || null)}
+              disabled={pageCounts.length === 0}
+              wide
+            >
+              <option value="">{pageCounts.length ? "Any page" : "No pages in this view"}</option>
+              {pageCounts.map(({ pageId, pageTitle, count }) => (
+                <option key={pageId} value={pageId}>{pageTitle} · {count}</option>
+              ))}
+            </RefineSelect>
+
             <RefineSelect label="Learning" value={learningFilter} onChange={setLearningFilter}>
               {LEARNING_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -419,6 +479,9 @@ export default function LexicalHub({
               {VIEW_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
+              {attachmentViewAvailable && (
+                <option value={UNATTACHED_WORD_OPTION.value}>{UNATTACHED_WORD_OPTION.label}</option>
+              )}
             </RefineSelect>
 
             <RefineSelect
