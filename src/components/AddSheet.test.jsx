@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import AddSheet from "./AddSheet.jsx";
 import { db, clearAllPersonalData } from "../db/db.js";
 import { allItems, createItem, newLexical, newPage } from "../db/items.js";
 import { allEvents, EVENT_TYPES } from "../db/events.js";
+import { removeDictionary } from "../db/ref/install.js";
+import { META_KEYS, refDb, setActiveSlot } from "../db/ref/refdb.js";
 import { newPageGroup } from "../lib/collections.js";
 import {
   emptyGrammar,
@@ -13,15 +15,142 @@ import {
   newGrammarSection,
   newSourceCapture,
 } from "../lib/pageKinds.js";
+import { FIXTURE_ENTRIES, FIXTURE_FORM_SHARDS } from "../test/dictFixture.js";
+
+const CASA = "dict:wiktionary-es:casa:noun";
 
 beforeEach(async () => {
+  await removeDictionary();
+  localStorage.clear();
   await db.open();
   await clearAllPersonalData();
 });
 
-afterEach(cleanup);
+afterEach(async () => {
+  cleanup();
+  await removeDictionary();
+});
+
+async function seedDictionary(previousIds = {}) {
+  const reference = refDb("a");
+  await reference.entries.put(FIXTURE_ENTRIES.find((entry) => entry.id === CASA));
+  await reference.formShards.bulkPut(FIXTURE_FORM_SHARDS.filter((row) => row.id === "ca"));
+  await reference.meta.put({
+    key: META_KEYS.dataset,
+    value: { datasetVersion: "add-sheet-fixture", counts: { entries: 1 }, previousIds },
+  });
+  setActiveSlot("a");
+}
 
 describe("AddSheet", () => {
+  it("selects an offline dictionary suggestion without losing a shared media link", async () => {
+    const user = userEvent.setup();
+    const onCreated = vi.fn();
+    await seedDictionary();
+
+    render(
+      <AddSheet
+        kind="lexical"
+        seedMediaLinks={[{ url: "https://vm.tiktok.com/casa", label: "Casa" }]}
+        items={[]}
+        onClose={vi.fn()}
+        onCreated={onCreated}
+      />
+    );
+
+    const term = screen.getByPlaceholderText("Spanish word or phrase *");
+    await user.type(term, "cas");
+    const suggestions = await screen.findByRole("region", { name: "Dictionary suggestions" });
+    await user.click(within(suggestions).getByRole("button", { name: /casa.*house.*starts with/i }));
+
+    expect(term.value).toBe("casa");
+    expect(screen.getByRole("region", { name: "Selected dictionary entry" })).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "English gloss" }).value).toBe("house");
+    expect(screen.getByRole("combobox").value).toBe("noun");
+
+    await user.click(screen.getByRole("button", { name: "Add to cuaderno" }));
+    await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));
+
+    const created = await db.items.get(onCreated.mock.calls[0][0]);
+    expect(created).toMatchObject({
+      term: "casa",
+      form: "word",
+      pos: "noun",
+      dictKey: CASA,
+      mediaLinks: [{ url: "https://vm.tiktok.com/casa", label: "Casa" }],
+    });
+    expect(created.meanings.map((meaning) => meaning.gloss)).toEqual(["house"]);
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.create)).toHaveLength(1);
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(0);
+  });
+
+  it("never overwrites a meaning already typed before choosing a dictionary entry", async () => {
+    const user = userEvent.setup();
+    await seedDictionary();
+
+    render(
+      <AddSheet
+        kind="lexical"
+        items={[]}
+        onClose={vi.fn()}
+        onCreated={vi.fn()}
+      />
+    );
+
+    await user.type(screen.getByPlaceholderText("Spanish word or phrase *"), "cas");
+    await user.type(screen.getByRole("textbox", { name: "English gloss" }), "home of a family");
+    const suggestions = await screen.findByRole("region", { name: "Dictionary suggestions" });
+    await user.click(within(suggestions).getByRole("button", { name: /casa.*house/ }));
+
+    expect(screen.getByRole("textbox", { name: "English gloss" }).value).toBe("home of a family");
+  });
+
+  it("labels an already-attached dictionary entry instead of creating an accidental twin", async () => {
+    const user = userEvent.setup();
+    const oldCasa = "dict:wiktionary-es:casa:old-noun";
+    await seedDictionary({ [oldCasa]: CASA });
+    const existing = await createItem(newLexical({ term: "casa", dictKey: oldCasa }));
+
+    render(
+      <AddSheet
+        kind="lexical"
+        items={[existing]}
+        onClose={vi.fn()}
+        onCreated={vi.fn()}
+      />
+    );
+
+    await user.type(screen.getByPlaceholderText("Spanish word or phrase *"), "cas");
+    const suggestions = await screen.findByRole("region", { name: "Dictionary suggestions" });
+    const attached = within(suggestions).getByRole("button", { name: /casa.*Already in your cuaderno/i });
+    expect(attached.disabled).toBe(true);
+  });
+
+  it("can remove a selected dictionary attachment while keeping the editable personal draft", async () => {
+    const user = userEvent.setup();
+    const onCreated = vi.fn();
+    await seedDictionary();
+
+    render(
+      <AddSheet
+        kind="lexical"
+        items={[]}
+        onClose={vi.fn()}
+        onCreated={onCreated}
+      />
+    );
+
+    await user.type(screen.getByPlaceholderText("Spanish word or phrase *"), "cas");
+    await user.click(await screen.findByRole("button", { name: /casa.*house/ }));
+    await user.click(screen.getByRole("button", { name: "Remove" }));
+    await user.click(screen.getByRole("button", { name: "Add to cuaderno" }));
+    await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));
+
+    const created = await db.items.get(onCreated.mock.calls[0][0]);
+    expect(created.dictKey).toBeNull();
+    expect(created.meanings.map((meaning) => meaning.gloss)).toEqual(["house"]);
+  });
+
   it("keeps journal creation in Diario rather than the Notes page form", () => {
     render(
       <AddSheet

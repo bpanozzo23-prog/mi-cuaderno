@@ -3,8 +3,8 @@ import { BookMarked, Unlink, Search, X, ChevronRight } from "lucide-react";
 import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
 import { grammarAbbreviations } from "../lib/partOfSpeech.js";
 import { resolveEntry, dictionaryInstalled } from "../db/ref/entries.js";
-import { searchDictionary } from "../db/ref/search.js";
 import { updateItem } from "../db/items.js";
+import { DictionaryResultRows, useDictionarySearch } from "./DictionarySearch.jsx";
 
 /**
  * The §5 seam, seen from the personal side.
@@ -24,19 +24,7 @@ const STATE = { loading: "loading", none: "none", attached: "attached", orphaned
 
 export function DictPicker({ term, placeholder = "Find the dictionary entry…", onPick, onCancel }) {
   const [query, setQuery] = useState(term || "");
-  const [results, setResults] = useState([]);
-
-  useEffect(() => {
-    let current = true;
-    const timer = setTimeout(async () => {
-      const found = await searchDictionary(query, { limit: 8 });
-      if (current) setResults(found);
-    }, 140);
-    return () => {
-      current = false;
-      clearTimeout(timer);
-    };
-  }, [query]);
+  const { results } = useDictionarySearch(query);
 
   return (
     <Card className="mt-2" style={{ borderColor: C.pen }}>
@@ -56,30 +44,11 @@ export function DictPicker({ term, placeholder = "Find the dictionary entry…",
       </div>
 
       <div className="mt-2 space-y-1">
-        {results.length === 0 && (
-          <div className="text-xs py-2" style={{ color: C.mut }}>
-            Nothing in the dictionary matches that.
-          </div>
-        )}
-        {results.map(({ entry }) => (
-          <button
-            key={entry.id}
-            onClick={() => onPick(entry)}
-            className="w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-lg"
-            style={{ background: C.paper }}
-          >
-            <div className="min-w-0 flex-1">
-              <span style={{ fontFamily: SERIF, color: C.ink, fontWeight: 600 }}>{entry.lemma}</span>
-              <span className="italic text-xs ml-1.5" style={{ color: C.mut }}>
-                {grammarAbbreviations(entry.pos, entry.gender)}
-              </span>
-              <div className="text-xs truncate" style={{ color: C.mut }}>
-                {entry.senses[0]?.gloss}
-              </div>
-            </div>
-            <ChevronRight size={14} className="shrink-0" style={{ color: C.mut }} />
-          </button>
-        ))}
+        <DictionaryResultRows
+          results={results}
+          onPick={onPick}
+          emptyMessage="Nothing in the dictionary matches that."
+        />
       </div>
     </Card>
   );

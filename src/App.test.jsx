@@ -903,9 +903,11 @@ describe("Android share target arrival", () => {
     await waitFor(() => expect(screen.queryByRole("region", { name: "Shared video" })).toBeNull());
   });
 
-  it("creates a new word from the top-level chooser row with the video attached", async () => {
+  it("creates a dictionary-attached word from the top-level chooser row with the video attached", async () => {
     const user = userEvent.setup();
-    arriveAt("?share_url=https%3A%2F%2Fvm.tiktok.com%2Fmadrugar&share_title=Madrugar");
+    await seedDictionary([CASA]);
+    await refDb("a").formShards.bulkPut(FIXTURE_FORM_SHARDS.filter((row) => row.id === "ca"));
+    arriveAt("?share_url=https%3A%2F%2Fvm.tiktok.com%2Fcasa&share_title=Casa");
     render(<App />);
 
     const chooser = await screen.findByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" });
@@ -913,14 +915,19 @@ describe("Android share target arrival", () => {
 
     const termInput = await screen.findByPlaceholderText("Spanish word or phrase *");
     expect(termInput.value).toBe("");
-    await user.type(termInput, "madrugar");
+    await user.type(termInput, "cas");
+    const suggestions = await screen.findByRole("region", { name: "Dictionary suggestions" });
+    await user.click(within(suggestions).getByRole("button", { name: /casa.*house/ }));
     await user.click(screen.getByRole("button", { name: "Add to cuaderno" }));
 
     await waitFor(async () => {
-      const created = (await allItems()).find((item) => item.term === "madrugar");
+      const created = (await allItems()).find((item) => item.term === "casa");
       expect(created.form).toBe("word");
-      expect(created.mediaLinks).toEqual([{ url: "https://vm.tiktok.com/madrugar", label: "Madrugar" }]);
+      expect(created.dictKey).toBe(CASA);
+      expect(created.meanings.map((meaning) => meaning.gloss)).toEqual(["house"]);
+      expect(created.mediaLinks).toEqual([{ url: "https://vm.tiktok.com/casa", label: "Casa" }]);
     });
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.create)).toHaveLength(1);
     expect(await screen.findByRole("region", { name: "Shared video" })).toBeTruthy();
   });
 

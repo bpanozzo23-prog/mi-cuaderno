@@ -81,13 +81,17 @@ export function newLexical({
  * rail alike). The seam rule (section 5) is why this only ever seeds the item — term and
  * gloss are copied into independent personal records, not referenced.
  */
-export function newLexicalFromEntry(entry) {
-  return newLexical({
+export function lexicalSeedFromEntry(entry) {
+  return {
     term: entry.lemma,
     meanings: entry.senses?.[0]?.gloss ? [newMeaning({ gloss: entry.senses[0].gloss })] : [],
     pos: entry.pos === "adj" ? "adjective" : entry.pos === "adv" ? "adverb" : entry.pos,
     dictKey: entry.id,
-  });
+  };
+}
+
+export function newLexicalFromEntry(entry) {
+  return newLexical(lexicalSeedFromEntry(entry));
 }
 
 export function newPage({

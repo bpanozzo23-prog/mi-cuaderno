@@ -1,15 +1,18 @@
-import { useMemo, useState } from "react";
-import { Plus, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { BookMarked, Plus, X } from "lucide-react";
 import { C, SERIF, Card, Button } from "../theme.jsx";
 import { POS_OPTIONS } from "./ItemCard.jsx";
 import TagInput from "./TagInput.jsx";
 import DuplicateWarning from "./DuplicateWarning.jsx";
-import { newLexical, newPage, createItem } from "../db/items.js";
+import { createItem, lexicalSeedFromEntry, newLexical, newPage } from "../db/items.js";
 import { copyPageStructure } from "../db/pageStructures.js";
+import { installedMeta } from "../db/ref/entries.js";
 import { localDate } from "../lib/dates.js";
 import { allTagsIn } from "../lib/tags.js";
 import { findPersonalHeadingDuplicates } from "../lib/duplicateGuard.js";
-import { newMeaning } from "../lib/meanings.js";
+import { meaningHasContext, newMeaning } from "../lib/meanings.js";
+import { grammarAbbreviations } from "../lib/partOfSpeech.js";
+import { TIER } from "../lib/search.js";
 import { newPageGroup, validateCollectionGroups } from "../lib/collections.js";
 import {
   emptyGrammar,
@@ -22,11 +25,17 @@ import {
 import { pageSeedFromRecipe } from "../lib/pageStarters.js";
 import MeaningEditor from "./MeaningEditor.jsx";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
+import { DictionaryResultRows, useDictionarySearch } from "./DictionarySearch.jsx";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
+const DICTIONARY_SUGGESTION_LIMIT = 4;
 
 function Field({ children }) {
   return <div className="space-y-1">{children}</div>;
+}
+
+function isBlankMeaningDraft(meaning) {
+  return !String(meaning?.gloss || "").trim() && !meaningHasContext(meaning);
 }
 
 const SOURCE_FORMAT_OPTIONS = [
@@ -126,6 +135,39 @@ export default function AddSheet({
   const [grammarKeyIdea, setGrammarKeyIdea] = useState("");
   const [tags, setTags] = useState([]);
   const [notes, setNotes] = useState("");
+  const [selectedDictionaryEntry, setSelectedDictionaryEntry] = useState(null);
+  const [dictionaryMeta, setDictionaryMeta] = useState(null);
+
+  useEffect(() => {
+    if (isPage) return undefined;
+    let current = true;
+    installedMeta().then((meta) => {
+      if (current) setDictionaryMeta(meta);
+    });
+    return () => { current = false; };
+  }, [isPage]);
+
+  const { results: dictionaryMatches } = useDictionarySearch(term, {
+    enabled: !isPage && !selectedDictionaryEntry,
+    // Fetch a few extras before removing English-gloss matches: this field is explicitly
+    // Spanish, so an English word that happens to share its spelling would be suggestion noise.
+    limit: 8,
+  });
+  const dictionarySuggestions = useMemo(
+    () => dictionaryMatches
+      .filter((row) => row.tier <= TIER.inflectedForm)
+      .slice(0, DICTIONARY_SUGGESTION_LIMIT),
+    [dictionaryMatches]
+  );
+  const attachedDictionaryIds = useMemo(() => {
+    const ids = new Set();
+    for (const item of items) {
+      if (item?.type !== "lexical" || !item.dictKey) continue;
+      ids.add(item.dictKey);
+      ids.add(dictionaryMeta?.previousIds?.[item.dictKey] || item.dictKey);
+    }
+    return ids;
+  }, [dictionaryMeta, items]);
 
   const duplicates = useMemo(
     () =>
@@ -181,6 +223,21 @@ export default function AddSheet({
       && sourceUrlError === ""
     : term.trim() !== "";
 
+  function selectDictionaryEntry(entry) {
+    const seed = lexicalSeedFromEntry(entry);
+    setSelectedDictionaryEntry(entry);
+    setTerm(seed.term);
+    setMeanings((current) =>
+      current.length === 1 && isBlankMeaningDraft(current[0]) && seed.meanings.length > 0
+        ? seed.meanings
+        : current
+    );
+    // The personal selector deliberately has a smaller vocabulary than the dictionary. Copy
+    // noun/verb/adjective/adverb when it fits; otherwise the visible attachment supplies the
+    // dictionary's own grammatical label without hiding an unsupported select value.
+    setPos((current) => current || (POS_OPTIONS.includes(seed.pos) ? seed.pos : ""));
+  }
+
   async function submit() {
     if (!ready) return;
     try {
@@ -217,7 +274,16 @@ export default function AddSheet({
           });
         await createItem(item);
       } else {
-        item = newLexical({ term, meanings, form, pos, notes, tags, mediaLinks: seedMediaLinks });
+        item = newLexical({
+          term,
+          meanings,
+          form,
+          pos,
+          notes,
+          tags,
+          mediaLinks: seedMediaLinks,
+          dictKey: selectedDictionaryEntry?.id || null,
+        });
         await createItem(item);
       }
       onCreated(item.id);
@@ -496,6 +562,56 @@ export default function AddSheet({
               className="w-full text-sm rounded-xl border px-3 py-2.5 outline-none"
               style={{ ...inputStyle, fontFamily: SERIF }}
             />
+            {selectedDictionaryEntry ? (
+              <div
+                role="region"
+                aria-label="Selected dictionary entry"
+                className="rounded-xl border p-2 flex items-center gap-2"
+                style={{ background: C.penPale, borderColor: C.pen, color: C.ink }}
+              >
+                <BookMarked size={15} className="shrink-0" style={{ color: C.pen }} />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-semibold" style={{ color: C.penDark }}>
+                    Dictionary entry selected
+                  </div>
+                  <div className="text-sm truncate">
+                    <span style={{ fontFamily: SERIF, fontWeight: 600 }}>
+                      {selectedDictionaryEntry.lemma}
+                    </span>
+                    <span className="italic text-xs ml-1.5" style={{ color: C.mut }}>
+                      {grammarAbbreviations(selectedDictionaryEntry.pos, selectedDictionaryEntry.gender)}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDictionaryEntry(null)}
+                  className="min-h-11 px-2 text-xs font-semibold"
+                  style={{ color: C.penDark }}
+                >
+                  Remove
+                </button>
+              </div>
+            ) : dictionarySuggestions.length > 0 ? (
+              <div
+                role="region"
+                aria-label="Dictionary suggestions"
+                className="rounded-xl border p-2"
+                style={{ background: C.card, borderColor: C.line }}
+              >
+                <div className="text-xs mb-1" style={{ color: C.mut }}>
+                  Dictionary suggestions — tap one to attach it
+                </div>
+                <div className="space-y-1">
+                  <DictionaryResultRows
+                    results={dictionarySuggestions}
+                    onPick={selectDictionaryEntry}
+                    disabledEntryIds={attachedDictionaryIds}
+                    showReason
+                  />
+                </div>
+              </div>
+            ) : null}
             {duplicates.length > 0 && <DuplicateWarning kind="lexical" />}
             <div className="space-y-2">
               <div className="text-xs" style={{ color: C.mut }}>Meanings — blank rows will not be saved</div>
