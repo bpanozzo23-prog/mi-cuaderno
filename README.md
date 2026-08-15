@@ -511,6 +511,30 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   allowlist and the editor selectors are unchanged, and no stored data was rewritten — the
   affected items were always correct. The complete serial suite passes 1,486/1,486 across 129
   files. See the Backup pos validation entries in [DECISIONS.md](DECISIONS.md).
+- **Creation-time dictionary suggestions — deployed.** The ordinary New word or phrase sheet now
+  offers compact Spanish-side suggestions from the installed offline dictionary, including when
+  creation starts from a shared video. Choosing a row explicitly selects a reversible attachment,
+  canonicalizes the draft term, and copies only the first gloss and a compatible part of speech
+  into still-blank fields; existing draft content and seeded Media links remain untouched. With no
+  installed dictionary, creation stays unchanged. No schema, backup, preference, manifest or
+  event-type change. See the creation-time dictionary entries in [DECISIONS.md](DECISIONS.md).
+- **Meaning-example reading polish — deployed.** Meaning-assigned examples now place Move and
+  Add-as-phrase behind one quiet 44px ellipsis action, with only one popover open at a time; a
+  conditional hairline separates a meaning note from its examples. General examples retain their
+  existing controls. Presentation and interaction only — no write path, schema, backup, event or
+  reference-data change. See the Meaning-example reading polish entries in
+  [DECISIONS.md](DECISIONS.md).
+- **Additional Refine views — deployed.** Todo now offers rolling **Added in the last 7 days** and
+  **Added in the last 30 days** lenses plus **With media links** across words, phrases and Pages.
+  Words & phrases gains an exact **Specific Page** refinement whose contextual counts, tag choices
+  and Practice source compose with the existing lenses; Words also offers **No dictionary
+  attachment** when the offline dictionary is installed. These are derived display subsets only:
+  no schema, storage, backup, preference, event or reference-package change. The combined current
+  tree passes 1,501/1,501 serial tests across 130 files and the production build; a disposable
+  375×812 pass verified the new visible views, 44px controls, zero horizontal overflow and no
+  console warnings/errors. Deployed from `main` at `c97ed20` through Pages run 31897874543, with
+  the live site serving `assets/index-B9Y8-EU6.js`. See the Additional Refine views entries in
+  [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
