@@ -21,3 +21,11 @@ Claude-Code-specific notes only:
   this machine only) defines the `mi-cuaderno-dev` configuration. If it is missing after a fresh
   clone, recreate it from `docs/claude-launch.example.json` and adjust `runtimeExecutable` if
   Node is installed elsewhere.
+- **This tool's skills copy is gitignored; Codex's is not.** The five vendored
+  `mattpocock/skills` entries live twice — `.agents/skills/` (tracked, what Codex reads) and
+  `.claude/skills/` (ignored by `.gitignore`, what this tool reads). A fresh clone restores only
+  the Codex half; recreate this one with `cp -r .agents/skills .claude/skills`, which carries the
+  local edits with it. **Never run `npx skills remove`** — it switched the checkout's branch
+  mid-command once (`DECISIONS.md`, 2026-08-14). Remove a skill by deleting both directories and
+  its `skills-lock.json` entry, and keep the two trees identical: `diff -r .agents/skills
+  .claude/skills` must be silent.
