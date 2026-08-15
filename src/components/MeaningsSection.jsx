@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
   ChevronDown,
   ChevronUp,
+  Ellipsis,
   GitMerge,
   ListRestart,
+  MoveRight,
   Pencil,
   Plus,
   Trash2,
@@ -68,9 +70,29 @@ export default function MeaningsSection({ item, onPatch, onAddPhraseFromExample 
   const [draftEditing, setDraftEditing] = useState(null);
   const [merge, setMerge] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);
+  const [openExampleActions, setOpenExampleActions] = useState(null);
   const [error, setError] = useState("");
 
   const meanings = item.meanings || [];
+
+  useEffect(() => {
+    if (!openExampleActions || typeof document === "undefined") return undefined;
+
+    function closeOnOutsidePress(event) {
+      if (!event.target.closest("[data-example-actions-root]")) setOpenExampleActions(null);
+    }
+
+    function closeOnEscape(event) {
+      if (event.key === "Escape") setOpenExampleActions(null);
+    }
+
+    document.addEventListener("pointerdown", closeOnOutsidePress);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsidePress);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [openExampleActions]);
 
   function startEditing(meaning) {
     setEditingId(meaning.id);
@@ -330,38 +352,91 @@ export default function MeaningsSection({ item, onPatch, onAddPhraseFromExample 
               </div>
 
               {expanded && (
-                <div className="mt-3 ml-5 pt-3 border-t space-y-2" style={{ borderColor: C.line }}>
+                <div className="mt-3 ml-5 pt-3 border-t space-y-3" style={{ borderColor: C.line }}>
                   {meaning.note && <div className="text-sm whitespace-pre-wrap" style={{ color: C.ink }}>{meaning.note}</div>}
-                  {meaning.examples.map((example, exampleIndex) => (
-                    <div key={exampleIndex} className="text-sm">
-                      <div className="flex items-start gap-1">
-                        <span className="min-w-0 flex-1" style={{ fontFamily: SERIF }}>{example.es}</span>
-                        <SpeakButton text={example.es} label={`Play example for ${meaning.gloss}`} />
-                      </div>
-                      {example.en && <div className="text-xs" style={{ color: C.mut }}>{example.en}</div>}
-                      <div className="mt-1 flex flex-wrap items-center gap-1">
-                        <select
-                          aria-label={`Move example from ${meaning.gloss}`}
-                          defaultValue=""
-                          onChange={(event) => {
-                            if (event.target.value) moveExample(meaning.id, exampleIndex, event.target.value);
-                          }}
-                          className="text-xs rounded border px-1.5 py-1"
-                          style={{ background: C.card, borderColor: C.line, color: C.mut }}
-                        >
-                          <option value="">Move example…</option>
-                          <option value="general">to General</option>
-                          {meanings.filter((entry) => entry.id !== meaning.id).map((entry) => (
-                            <option key={entry.id} value={entry.id}>to {entry.gloss}</option>
-                          ))}
-                        </select>
-                        <ExamplePhraseAction
-                          example={example}
-                          onAddPhraseFromExample={onAddPhraseFromExample}
-                        />
-                      </div>
+                  {meaning.examples.length > 0 && (
+                    <div
+                      role="group"
+                      aria-label={`Examples for ${meaning.gloss}`}
+                      className={`${meaning.note ? "border-t pt-3" : ""} space-y-4`}
+                      style={{ borderColor: C.line }}
+                    >
+                      {meaning.examples.map((example, exampleIndex) => {
+                        const actionsId = `${meaning.id}:${exampleIndex}`;
+                        const actionsOpen = openExampleActions === actionsId;
+                        const popoverId = `meaning-example-actions-${meaning.id}-${exampleIndex}`;
+                        return (
+                          <div key={exampleIndex} className="relative text-sm" data-example-actions-root>
+                            <div className="flex items-start gap-1">
+                              <div className="min-w-0 flex-1">
+                                <div style={{ fontFamily: SERIF }}>{example.es}</div>
+                                {example.en && <div className="mt-1 text-xs" style={{ color: C.mut }}>{example.en}</div>}
+                              </div>
+                              <div className="flex shrink-0 items-start">
+                                <SpeakButton text={example.es} label={`Play example for ${meaning.gloss}`} />
+                                <button
+                                  type="button"
+                                  aria-label={`Actions for “${example.es}”`}
+                                  aria-haspopup="dialog"
+                                  aria-expanded={actionsOpen}
+                                  aria-controls={popoverId}
+                                  onClick={() => setOpenExampleActions(actionsOpen ? null : actionsId)}
+                                  className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center"
+                                  style={{ color: C.pen }}
+                                >
+                                  <Ellipsis size={17} />
+                                </button>
+                              </div>
+                            </div>
+
+                            {actionsOpen && (
+                              <div
+                                id={popoverId}
+                                role="dialog"
+                                aria-label={`Actions for “${example.es}”`}
+                                className="absolute right-0 z-20 mt-1 w-56 max-w-full rounded-xl border p-1 shadow-lg"
+                                style={{ background: C.card, borderColor: C.line }}
+                              >
+                                <div className="flex min-h-11 items-center gap-2 px-2">
+                                  <MoveRight size={14} className="shrink-0" style={{ color: C.mut }} />
+                                  <select
+                                    aria-label={`Move example from ${meaning.gloss}`}
+                                    defaultValue=""
+                                    onChange={async (event) => {
+                                      const targetMeaningId = event.target.value;
+                                      if (!targetMeaningId) return;
+                                      setOpenExampleActions(null);
+                                      await moveExample(meaning.id, exampleIndex, targetMeaningId);
+                                    }}
+                                    className="min-w-0 flex-1 bg-transparent py-2 text-xs outline-none"
+                                    style={{ color: C.mut }}
+                                  >
+                                    <option value="">Move example…</option>
+                                    <option value="general">to General</option>
+                                    {meanings.filter((entry) => entry.id !== meaning.id).map((entry) => (
+                                      <option key={entry.id} value={entry.id}>to {entry.gloss}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div className="border-t" style={{ borderColor: C.line }}>
+                                  <ExamplePhraseAction
+                                    example={example}
+                                    menu
+                                    onAddPhraseFromExample={onAddPhraseFromExample
+                                      ? (selectedExample) => {
+                                        setOpenExampleActions(null);
+                                        onAddPhraseFromExample(selectedExample);
+                                      }
+                                      : undefined}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
+                  )}
                   {!meaning.note && !meaning.examples.length && <div className="text-xs italic" style={{ color: C.mut }}>No note or examples for this meaning.</div>}
                   <button
                     type="button"

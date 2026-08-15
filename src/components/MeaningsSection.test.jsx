@@ -41,6 +41,51 @@ describe("structured meaning presentation and editing", () => {
     expect(screen.getByText("Physical removal")).toBeTruthy();
   });
 
+  it("separates examples from the note and keeps their actions in one quiet menu", async () => {
+    const user = userEvent.setup();
+    const onPatch = vi.fn().mockResolvedValue(undefined);
+    const onAddPhraseFromExample = vi.fn();
+    render(
+      <MeaningsSection
+        item={item()}
+        onPatch={onPatch}
+        onAddPhraseFromExample={onAddPhraseFromExample}
+      />
+    );
+
+    await user.click(screen.getAllByRole("button", { name: "Expand meaning" })[0]);
+
+    const exampleGroup = screen.getByRole("group", { name: "Examples for take out" });
+    expect(exampleGroup.className).toContain("border-t");
+    expect(screen.queryByRole("combobox", { name: "Move example from take out" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Add “Sacó la llave.” as a phrase" })).toBeNull();
+
+    const actions = screen.getByRole("button", { name: "Actions for “Sacó la llave.”" });
+    expect(actions.className).toContain("min-h-11");
+    await user.click(actions);
+    expect(screen.getByRole("dialog", { name: "Actions for “Sacó la llave.”" })).toBeTruthy();
+
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Move example from take out" }),
+      "meaning:withdraw"
+    );
+    expect(onPatch).toHaveBeenCalledWith({
+      meanings: [
+        expect.objectContaining({ id: "meaning:take-out", examples: [] }),
+        expect.objectContaining({
+          id: "meaning:withdraw",
+          examples: [{ es: "Sacó la llave.", en: "She took out the key." }],
+        }),
+      ],
+    });
+    expect(screen.queryByRole("dialog", { name: "Actions for “Sacó la llave.”" })).toBeNull();
+
+    await user.click(actions);
+    await user.click(screen.getByRole("button", { name: "Add “Sacó la llave.” as a phrase" }));
+    expect(onAddPhraseFromExample).toHaveBeenCalledWith({ es: "Sacó la llave.", en: "She took out the key." });
+    expect(screen.queryByRole("dialog", { name: "Actions for “Sacó la llave.”" })).toBeNull();
+  });
+
   it("edits one meaning without changing its personal id", async () => {
     const user = userEvent.setup();
     const onPatch = vi.fn().mockResolvedValue(undefined);

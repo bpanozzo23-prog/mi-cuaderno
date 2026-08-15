@@ -302,6 +302,14 @@ describe("collapsed optional-field composers", () => {
     expect(onAddPhraseFromExample).toHaveBeenLastCalledWith(general);
 
     await user.click(screen.getByRole("button", { name: "Expand meaning" }));
+    const assignedMenu = screen.getByRole("button", {
+      name: "Actions for “Siempre tienes razón.”",
+    });
+    expect(assignedMenu.className).toContain("min-h-11");
+    expect(screen.queryByRole("button", {
+      name: "Add “Siempre tienes razón.” as a phrase",
+    })).toBeNull();
+    await user.click(assignedMenu);
     const assignedAction = screen.getByRole("button", {
       name: "Add “Siempre tienes razón.” as a phrase",
     });
