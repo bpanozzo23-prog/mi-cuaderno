@@ -71,6 +71,7 @@ export default function MeaningsSection({ item, onPatch, onAddPhraseFromExample 
   const [merge, setMerge] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);
   const [openExampleActions, setOpenExampleActions] = useState(null);
+  const [editingExample, setEditingExample] = useState(null);
   const [error, setError] = useState("");
 
   const meanings = item.meanings || [];
@@ -204,6 +205,37 @@ export default function MeaningsSection({ item, onPatch, onAddPhraseFromExample 
     } else {
       next.find((meaning) => meaning.id === targetMeaningId).examples.push(example);
       await onPatch({ meanings: next });
+    }
+  }
+
+  function startExampleEdit(meaningId, exampleIndex, example) {
+    setOpenExampleActions(null);
+    setEditingExample({
+      meaningId,
+      exampleIndex,
+      es: example.es,
+      en: example.en || "",
+    });
+    setError("");
+  }
+
+  async function saveExampleEdit(event) {
+    event.preventDefault();
+    const es = editingExample?.es.trim();
+    if (!es) return;
+    const next = cloneMeanings(meanings);
+    const meaning = next.find((entry) => entry.id === editingExample.meaningId);
+    if (!meaning?.examples?.[editingExample.exampleIndex]) return;
+    meaning.examples[editingExample.exampleIndex] = {
+      es,
+      en: editingExample.en.trim(),
+    };
+    try {
+      await onPatch({ meanings: next });
+      setEditingExample(null);
+      setError("");
+    } catch (problem) {
+      setError(problem.message);
     }
   }
 
@@ -365,72 +397,136 @@ export default function MeaningsSection({ item, onPatch, onAddPhraseFromExample 
                         const actionsId = `${meaning.id}:${exampleIndex}`;
                         const actionsOpen = openExampleActions === actionsId;
                         const popoverId = `meaning-example-actions-${meaning.id}-${exampleIndex}`;
+                        const editingThisExample = editingExample?.meaningId === meaning.id
+                          && editingExample.exampleIndex === exampleIndex;
                         return (
                           <div key={exampleIndex} className="relative text-sm" data-example-actions-root>
-                            <div className="flex items-start gap-1">
-                              <div className="min-w-0 flex-1">
-                                <div style={{ fontFamily: SERIF }}>{example.es}</div>
-                                {example.en && <div className="mt-1 text-xs" style={{ color: C.mut }}>{example.en}</div>}
-                              </div>
-                              <div className="flex shrink-0 items-start">
-                                <SpeakButton text={example.es} label={`Play example for ${meaning.gloss}`} />
-                                <button
-                                  type="button"
-                                  aria-label={`Actions for “${example.es}”`}
-                                  aria-haspopup="dialog"
-                                  aria-expanded={actionsOpen}
-                                  aria-controls={popoverId}
-                                  onClick={() => setOpenExampleActions(actionsOpen ? null : actionsId)}
-                                  className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center"
-                                  style={{ color: C.pen }}
-                                >
-                                  <Ellipsis size={17} />
-                                </button>
-                              </div>
-                            </div>
-
-                            {actionsOpen && (
-                              <div
-                                id={popoverId}
-                                role="dialog"
-                                aria-label={`Actions for “${example.es}”`}
-                                className="absolute right-0 z-20 mt-1 w-56 max-w-full rounded-xl border p-1 shadow-lg"
-                                style={{ background: C.card, borderColor: C.line }}
+                            {editingThisExample ? (
+                              <form
+                                aria-label={`Edit example “${example.es}”`}
+                                onSubmit={saveExampleEdit}
+                                className="space-y-2 rounded-lg border p-2"
+                                style={{ borderColor: C.line, background: C.paper }}
                               >
-                                <div className="flex min-h-11 items-center gap-2 px-2">
-                                  <MoveRight size={14} className="shrink-0" style={{ color: C.mut }} />
-                                  <select
-                                    aria-label={`Move example from ${meaning.gloss}`}
-                                    defaultValue=""
-                                    onChange={async (event) => {
-                                      const targetMeaningId = event.target.value;
-                                      if (!targetMeaningId) return;
-                                      setOpenExampleActions(null);
-                                      await moveExample(meaning.id, exampleIndex, targetMeaningId);
+                                <input
+                                  autoFocus
+                                  aria-label="Example in Spanish"
+                                  value={editingExample.es}
+                                  onChange={(event) => setEditingExample((current) => ({
+                                    ...current,
+                                    es: event.target.value,
+                                  }))}
+                                  className="min-h-11 w-full rounded-lg border px-2 text-sm outline-none"
+                                  style={{ background: C.card, borderColor: C.line, color: C.ink, fontFamily: SERIF }}
+                                />
+                                <input
+                                  aria-label="Example in English"
+                                  value={editingExample.en}
+                                  onChange={(event) => setEditingExample((current) => ({
+                                    ...current,
+                                    en: event.target.value,
+                                  }))}
+                                  className="min-h-11 w-full rounded-lg border px-2 text-sm outline-none"
+                                  style={{ background: C.card, borderColor: C.line, color: C.ink }}
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                  <Button type="submit" className="min-h-11" disabled={!editingExample.es.trim()}>
+                                    Save example
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    tone="quiet"
+                                    className="min-h-11"
+                                    aria-label="Cancel example edit"
+                                    onClick={() => {
+                                      setEditingExample(null);
+                                      setError("");
                                     }}
-                                    className="min-w-0 flex-1 bg-transparent py-2 text-xs outline-none"
-                                    style={{ color: C.mut }}
                                   >
-                                    <option value="">Move example…</option>
-                                    <option value="general">to General</option>
-                                    {meanings.filter((entry) => entry.id !== meaning.id).map((entry) => (
-                                      <option key={entry.id} value={entry.id}>to {entry.gloss}</option>
-                                    ))}
-                                  </select>
+                                    Cancel
+                                  </Button>
                                 </div>
-                                <div className="border-t" style={{ borderColor: C.line }}>
-                                  <ExamplePhraseAction
-                                    example={example}
-                                    menu
-                                    onAddPhraseFromExample={onAddPhraseFromExample
-                                      ? (selectedExample) => {
-                                        setOpenExampleActions(null);
-                                        onAddPhraseFromExample(selectedExample);
-                                      }
-                                      : undefined}
-                                  />
+                              </form>
+                            ) : (
+                              <>
+                                <div className="flex items-start gap-1">
+                                  <div className="min-w-0 flex-1">
+                                    <div style={{ fontFamily: SERIF }}>{example.es}</div>
+                                    {example.en && <div className="mt-1 text-xs" style={{ color: C.mut }}>{example.en}</div>}
+                                  </div>
+                                  <div className="flex shrink-0 items-start">
+                                    <SpeakButton text={example.es} label={`Play example for ${meaning.gloss}`} />
+                                    <button
+                                      type="button"
+                                      aria-label={`Actions for “${example.es}”`}
+                                      aria-haspopup="dialog"
+                                      aria-expanded={actionsOpen}
+                                      aria-controls={popoverId}
+                                      onClick={() => setOpenExampleActions(actionsOpen ? null : actionsId)}
+                                      className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center"
+                                      style={{ color: C.pen }}
+                                    >
+                                      <Ellipsis size={17} />
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
+
+                                {actionsOpen && (
+                                  <div
+                                    id={popoverId}
+                                    role="dialog"
+                                    aria-label={`Actions for “${example.es}”`}
+                                    className="absolute right-0 z-20 mt-1 w-56 max-w-full rounded-xl border p-1 shadow-lg"
+                                    style={{ background: C.card, borderColor: C.line }}
+                                  >
+                                    <button
+                                      type="button"
+                                      aria-label={`Edit example “${example.es}”`}
+                                      onClick={() => startExampleEdit(meaning.id, exampleIndex, example)}
+                                      className="flex min-h-11 w-full items-center gap-2 px-2 text-left text-xs"
+                                      style={{ color: C.mut }}
+                                    >
+                                      <Pencil size={14} className="shrink-0" />
+                                      Edit example…
+                                    </button>
+                                    <div className="border-t" style={{ borderColor: C.line }}>
+                                      <div className="flex min-h-11 items-center gap-2 px-2">
+                                        <MoveRight size={14} className="shrink-0" style={{ color: C.mut }} />
+                                        <select
+                                          aria-label={`Move example from ${meaning.gloss}`}
+                                          defaultValue=""
+                                          onChange={async (event) => {
+                                            const targetMeaningId = event.target.value;
+                                            if (!targetMeaningId) return;
+                                            setOpenExampleActions(null);
+                                            await moveExample(meaning.id, exampleIndex, targetMeaningId);
+                                          }}
+                                          className="min-w-0 flex-1 bg-transparent py-2 text-xs outline-none"
+                                          style={{ color: C.mut }}
+                                        >
+                                          <option value="">Move example…</option>
+                                          <option value="general">to General</option>
+                                          {meanings.filter((entry) => entry.id !== meaning.id).map((entry) => (
+                                            <option key={entry.id} value={entry.id}>to {entry.gloss}</option>
+                                          ))}
+                                        </select>
+                                      </div>
+                                    </div>
+                                    <div className="border-t" style={{ borderColor: C.line }}>
+                                      <ExamplePhraseAction
+                                        example={example}
+                                        menu
+                                        onAddPhraseFromExample={onAddPhraseFromExample
+                                          ? (selectedExample) => {
+                                            setOpenExampleActions(null);
+                                            onAddPhraseFromExample(selectedExample);
+                                          }
+                                          : undefined}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                              </>
                             )}
                           </div>
                         );

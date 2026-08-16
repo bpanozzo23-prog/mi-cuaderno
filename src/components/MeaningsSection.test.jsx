@@ -86,6 +86,58 @@ describe("structured meaning presentation and editing", () => {
     expect(screen.queryByRole("dialog", { name: "Actions for “Sacó la llave.”" })).toBeNull();
   });
 
+  it("edits one meaning-assigned example in place without changing its assignment or order", async () => {
+    const user = userEvent.setup();
+    const source = item();
+    source.meanings[0].examples.push({ es: "Sacó dos entradas.", en: "She got two tickets." });
+    const onPatch = vi.fn().mockResolvedValue(undefined);
+    render(<MeaningsSection item={source} onPatch={onPatch} />);
+
+    await user.click(screen.getAllByRole("button", { name: "Expand meaning" })[0]);
+    await user.click(screen.getByRole("button", { name: "Actions for “Sacó la llave.”" }));
+    const edit = screen.getByRole("button", { name: "Edit example “Sacó la llave.”" });
+    expect(edit.textContent).toBe("Edit example…");
+    await user.click(edit);
+
+    const spanish = screen.getByRole("textbox", { name: "Example in Spanish" });
+    const english = screen.getByRole("textbox", { name: "Example in English" });
+    expect(spanish.value).toBe("Sacó la llave.");
+    expect(english.value).toBe("She took out the key.");
+
+    await user.clear(spanish);
+    expect(screen.getByRole("button", { name: "Save example" }).disabled).toBe(true);
+    await user.type(spanish, "Sacó las llaves.");
+    await user.clear(english);
+    await user.type(english, "She took out the keys.");
+    await user.click(screen.getByRole("button", { name: "Save example" }));
+
+    expect(onPatch).toHaveBeenCalledTimes(1);
+    expect(onPatch.mock.calls[0][0].meanings[0]).toMatchObject({
+      id: "meaning:take-out",
+      examples: [
+        { es: "Sacó las llaves.", en: "She took out the keys." },
+        { es: "Sacó dos entradas.", en: "She got two tickets." },
+      ],
+    });
+    expect(onPatch.mock.calls[0][0].meanings[1].id).toBe("meaning:withdraw");
+  });
+
+  it("cancels a meaning-example edit without writing", async () => {
+    const user = userEvent.setup();
+    const onPatch = vi.fn().mockResolvedValue(undefined);
+    render(<MeaningsSection item={item()} onPatch={onPatch} />);
+
+    await user.click(screen.getAllByRole("button", { name: "Expand meaning" })[0]);
+    await user.click(screen.getByRole("button", { name: "Actions for “Sacó la llave.”" }));
+    await user.click(screen.getByRole("button", { name: "Edit example “Sacó la llave.”" }));
+    await user.type(screen.getByRole("textbox", { name: "Example in Spanish" }), " Unsaved");
+    await user.click(screen.getByRole("button", { name: "Cancel example edit" }));
+
+    expect(onPatch).not.toHaveBeenCalled();
+    expect(screen.getByText("Sacó la llave.")).toBeTruthy();
+    expect(screen.queryByRole("textbox", { name: "Example in Spanish" })).toBeNull();
+  });
+
   it("edits one meaning without changing its personal id", async () => {
     const user = userEvent.setup();
     const onPatch = vi.fn().mockResolvedValue(undefined);

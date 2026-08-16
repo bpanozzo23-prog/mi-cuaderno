@@ -342,6 +342,35 @@ describe("collapsed optional-field composers", () => {
     expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(0);
   });
 
+  it("edits a meaning-assigned example through its overflow menu with one ordinary edit", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({
+      term: "sacar",
+      meanings: [newMeaning({
+        gloss: "take out",
+        examples: [{ es: "Sacó la llave.", en: "She took out the key." }],
+      })],
+    }));
+
+    renderDetail(word);
+    await user.click(screen.getByRole("button", { name: "Expand meaning" }));
+    await user.click(screen.getByRole("button", { name: "Actions for “Sacó la llave.”" }));
+    await user.click(screen.getByRole("button", { name: "Edit example “Sacó la llave.”" }));
+
+    const spanish = screen.getByRole("textbox", { name: "Example in Spanish" });
+    const english = screen.getByRole("textbox", { name: "Example in English" });
+    await user.clear(spanish);
+    await user.type(spanish, "Sacó las llaves.");
+    await user.clear(english);
+    await user.type(english, "She took out the keys.");
+    await user.click(screen.getByRole("button", { name: "Save example" }));
+
+    await waitFor(async () => expect((await getItem(word.id)).meanings[0].examples).toEqual([
+      { es: "Sacó las llaves.", en: "She took out the keys." },
+    ]));
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(1);
+  });
+
   it("keeps invalid drafts open and lets Cancel discard them without writing", async () => {
     const user = userEvent.setup();
     const word = await createItem(newLexical({ term: "madrugar" }));
