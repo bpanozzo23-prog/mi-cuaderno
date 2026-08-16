@@ -105,8 +105,8 @@ Useful information to retain for each idea:
 | Android share target | 2026-08-11 | 2026-08-13 increment, deployed | 2026-08-13 entries in `DECISIONS.md` |
 | English→Spanish lookup | 2026-08-12 | Phase 2e, deployed (predated the capture) | `PHASE-2-REPORT.md`, 2026-07-31 entries in `DECISIONS.md` |
 | Global tag management | 2026-08-10 | Phase 20, deployed | `PHASE-20-DIRECTION.md`, `PHASE-20-REPORT.md` |
-| Markdown blank-line spacing | 2026-08-10 | Phase 19 increment, deployed | Phase 19 entries in `DECISIONS.md` |
-| Explicit Notes callouts | 2026-08-10 | Phase 19 increment, deployed | Phase 19 entries in `DECISIONS.md` |
+| Markdown blank-line spacing | 2026-08-10 | Phase 19 plus lexical-note follow-up, deployed | Phase 19 and 2026-08-16 entries in `DECISIONS.md` |
+| Explicit Notes callouts | 2026-08-10 | Phase 19 plus lexical-note follow-up, deployed | Phase 19 and 2026-08-16 entries in `DECISIONS.md` |
 | Structured Notes outlines | 2026-08-10 | Phase 19 schema-v7 increment, deployed | `PHASE-19-DIRECTION.md`, `PHASE-19-REPORT.md` |
 | Grammar guide depth and callouts | 2026-08-10 | Phase 19 first release, deployed | `PHASE-19-DIRECTION.md`, `PHASE-19-REPORT.md` |
 | Owner-centric stats | 2026-08-06 | Phase 11, deployed | `PHASE-11-DIRECTION.md`, Phase 11 entries in `DECISIONS.md` |
@@ -1786,9 +1786,10 @@ follow-up product decision.
 - **Date added:** 2026-08-10 — **Status:** Implemented — Phase 19 increment, deployed
 - **Records:** Phase 19 blank-line entries in `DECISIONS.md`
 
-A non-destructive Blank line action in Page Notes, Grammar Overview and Diario writes one exact
-top-level standalone `<br>` per press, rendered as an unlabeled spacer and omitted from
-visible-text consumers. Lexical notes unchanged; no schema, storage or backup change.
+A non-destructive Blank line action in Page Notes, Grammar Overview, Diario and top-level lexical
+notes writes one exact top-level standalone `<br>` per press, rendered as an unlabeled spacer and
+omitted from visible-text consumers. Lexical notes joined the deployed set in the 2026-08-16
+follow-up; no schema, storage or backup change.
 
 ---
 
@@ -1797,9 +1798,11 @@ visible-text consumers. Lexical notes unchanged; no schema, storage or backup ch
 - **Date added:** 2026-08-10 — **Status:** Implemented — Phase 19 increment, deployed
 - **Records:** Phase 19 callout entries in `DECISIONS.md`
 
-Page Notes editors offer a Note callout beside Block quote; only a blockquote beginning with
-`[!NOTE]` becomes a labeled accessible Notes-blue callout, and the marker stays out of search,
-previews and AI-visible text. Ordinary blockquotes remain quotations; schema stayed v7.
+Page Notes and top-level lexical-note editors offer a Note callout beside Block quote; only a
+blockquote beginning with `[!NOTE]` becomes a labeled accessible Notes-blue callout, and the
+marker stays out of search, previews and AI-visible text. Lexical notes joined the deployed set in
+the 2026-08-16 follow-up. Ordinary blockquotes remain quotations; schema stayed v7 at the original
+increment and remains v9 after the no-schema follow-up.
 
 ---
 

@@ -225,8 +225,9 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   keep Block quote and add Note callout,
   `[!NOTE]` markers render as accessible Notes-blue panels and stay out of visible-text consumers,
   and the second adds non-destructive Blank line controls to Page Notes, Grammar
-  Overviews and Diario while leaving lexical notes unchanged. Exact standalone `<br>` markers
-  render as spacing and stay out of visible-text consumers; the combined suite passes 1,214/1,214.
+  Overviews and Diario. A 2026-08-16 follow-up brings top-level lexical notes into the same
+  explicit Note-callout and Blank-line set. Exact standalone `<br>` markers render as spacing and
+  stay out of visible-text consumers; the original combined suite passed 1,214/1,214.
   Phase 19 may group later related owner-approved Page organization/formatting increments, but does
   not pre-approve unknown scope. See the approved [direction](docs/PHASE-19-DIRECTION.md) and
   [implementation report](docs/PHASE-19-REPORT.md).
@@ -351,7 +352,8 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   top-level word/phrase notes keep their existing plain-text storage and editor, with a compact
   toolbar for headings, bold, italic, highlight, lists, dividers and quotes. Read mode renders that
   deliberately small Markdown subset, while search, previews and AI feedback receive only visible
-  text. Raw HTML, images, tables, code and clickable links are not enabled. No schema, backup,
+  text. Raw HTML remains disabled except for the exact standalone `<br>` spacing marker; images,
+  tables, code and clickable links are not enabled. No schema, backup,
   preference or event change; the full serial suite passes 991/991 across 86 files, the production
   build and `git diff --check` pass, and a disposable 375×812 browser flow passed without overflow
   or console warnings/errors. See the Notebook Markdown entries in [DECISIONS.md](DECISIONS.md).
@@ -572,6 +574,19 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   both `preposition` and `conjunction`. Deployed from `main` at `0de63dd` through Pages run
   31918541094, with the live site serving `assets/index-Cz-JKOsP.js`. See the Broader
   part-of-speech vocabulary entries in [DECISIONS.md](DECISIONS.md).
+- **Lexical-note Markdown parity and meaning-example editing — deployed.** Top-level Word and
+  Phrase notes now expose the same Block quote, explicit Note callout and Blank line actions as
+  Page Notes during creation and later editing; their readers, review answers, search and previews
+  interpret those markers consistently. A meaning-assigned example's existing ellipsis menu now
+  adds **Edit example…** beside Move and Add as phrase, opening a prefilled inline Spanish/English
+  editor that replaces the example in place without changing its meaning assignment or order.
+  Cancel writes nothing and Save logs one ordinary `edit`. No storage, backup, preference,
+  event-type or schema change; `SCHEMA_VERSION` stays 9. The complete serial suite passes
+  1,534/1,534 across 130 files, the production build and `git diff --check` pass, and a disposable
+  375×812 origin proved exact formatting markers, the saved in-place edit, 44px actions, zero
+  horizontal overflow and a clear console. Deployed from `main` at `de89791` through Pages run
+  31972144810, with the live site serving `assets/index-BRnsFnkg.js`. See the 2026-08-16 entries in
+  [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
