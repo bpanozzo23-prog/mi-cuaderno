@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   derivePhraseContainment,
   preparePhraseContainment,
+  preparePhraseContainmentCandidates,
 } from "./phraseContainment.js";
 
 const lexical = ({
@@ -132,5 +133,111 @@ describe("phrase↔word containment derivation", () => {
 
     expect(rows.map((row) => row.item.id)).toEqual([exact.id]);
     expect(rows[0]).toMatchObject({ surface: "Dar", matchKind: "exact" });
+  });
+});
+
+describe("suppressed-candidate confirmation tier", () => {
+  const creerDeps = () => ({
+    resolveEntries: vi.fn(async (keys) => keys.map((key) => ({
+      entry: {
+        "dict:creer": { id: "dict:creer", lemma: "creer", pos: "verb", conjugationId: "conj:creer" },
+      }[key] || null,
+      resolvedFrom: null,
+    }))),
+    getConjugations: vi.fn(async (ids) => ids.map((id) => (
+      id === "conj:creer" ? table("creer", { yo: "creo" }) : null
+    ))),
+    getFormEntries: vi.fn(async () => new Map([
+      ["creo", [
+        { id: "dict:creer", lemma: "creer" },
+        { id: "dict:crear", lemma: "crear" },
+      ]],
+    ])),
+  });
+
+  it("offers a suppressed multi-lemma match as a candidate with its competitors, in both directions", async () => {
+    const creer = lexical({ term: "creer", pos: "verb", dictKey: "dict:creer" });
+    const source = phrase("Creo que sí.");
+    const items = [source, creer];
+
+    const shown = await preparePhraseContainment(creer, items, creerDeps());
+    expect(shown).toEqual([]);
+
+    const fromWord = await preparePhraseContainmentCandidates(creer, items, creerDeps());
+    expect(fromWord).toMatchObject([{
+      item: { id: source.id },
+      word: { id: creer.id },
+      surface: "Creo",
+      matchKind: "inflected",
+      competingLemmas: ["crear"],
+    }]);
+
+    const fromPhrase = await preparePhraseContainmentCandidates(source, items, creerDeps());
+    expect(fromPhrase).toMatchObject([
+      { item: { id: creer.id }, word: { id: creer.id }, competingLemmas: ["crear"] },
+    ]);
+  });
+
+  it("keeps reference-wide ambiguity like fui out of shown rows but offers each attached lemma", async () => {
+    const ir = lexical({ term: "ir", pos: "verb", dictKey: "dict:ir" });
+    const ser = lexical({ term: "ser", pos: "verb", dictKey: "dict:ser" });
+    const source = phrase("Ayer fui feliz.");
+    const items = [source, ir, ser];
+    const entries = {
+      "dict:ir": { id: "dict:ir", lemma: "ir", pos: "verb", conjugationId: "conj:ir" },
+      "dict:ser": { id: "dict:ser", lemma: "ser", pos: "verb", conjugationId: "conj:ser" },
+    };
+    const deps = {
+      resolveEntries: vi.fn(async (keys) => keys.map((key) => ({ entry: entries[key], resolvedFrom: null }))),
+      getConjugations: vi.fn(async (ids) => ids.map((id) => ({
+        "conj:ir": table("ir", { yo: "fui" }),
+        "conj:ser": table("ser", { yo: "fui" }),
+      }[id]))),
+      getFormEntries: vi.fn(async () => new Map([
+        ["fui", [entries["dict:ir"], entries["dict:ser"]]],
+      ])),
+    };
+
+    const rows = await preparePhraseContainmentCandidates(source, items, deps);
+    expect(rows).toMatchObject([
+      { word: { term: "ir" }, surface: "fui", competingLemmas: ["ser"] },
+      { word: { term: "ser" }, surface: "fui", competingLemmas: ["ir"] },
+    ]);
+  });
+
+  it("never proposes an exact match, a stop-word surface, or a posting missing the attached lemma", async () => {
+    const dar = lexical({ term: "dar", pos: "verb", dictKey: "dict:dar" });
+    const exact = phrase("Dar las gracias.");
+    const stopWordSurface = phrase("De vez en cuando.");
+    const mismatched = phrase("Me da igual.");
+    const items = [exact, stopWordSurface, mismatched, dar];
+    const entry = { id: "dict:dar", lemma: "dar", pos: "verb", conjugationId: "conj:dar" };
+    const deps = {
+      resolveEntries: vi.fn(async () => [{ entry, resolvedFrom: null }]),
+      // "de" (normalized dé) and "da" are both known forms, so both phrases match tentatively.
+      getConjugations: vi.fn(async () => [table("dar", { yo: "de", "él/ella/usted": "da" })]),
+      getFormEntries: vi.fn(async () => new Map([
+        ["de", [entry, { id: "dict:de", lemma: "de" }]],
+        ["da", [{ id: "dict:decir", lemma: "decir" }]],
+      ])),
+    };
+
+    const rows = await preparePhraseContainmentCandidates(dar, items, deps);
+    expect(rows).toEqual([]);
+  });
+
+  it("excludes an already-connected pair and returns nothing on reference failure", async () => {
+    const creer = lexical({ term: "creer", pos: "verb", dictKey: "dict:creer" });
+    const source = phrase("Creo que sí.");
+    creer.linkedKeys = [source.id];
+    creer.linkAnnotations = [{ targetKey: source.id, type: "found_in", subject: "owner", note: "" }];
+
+    expect(await preparePhraseContainmentCandidates(creer, [source, creer], creerDeps())).toEqual([]);
+
+    const fresh = lexical({ term: "creer", pos: "verb", dictKey: "dict:creer" });
+    const failing = {
+      resolveEntries: vi.fn(async () => { throw new Error("reference unavailable"); }),
+    };
+    expect(await preparePhraseContainmentCandidates(fresh, [source, fresh], failing)).toEqual([]);
   });
 });

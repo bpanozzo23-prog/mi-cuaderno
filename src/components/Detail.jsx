@@ -1083,6 +1083,15 @@ function StandardDetail({
             await linkItems(item.id, targetId, { type: "similar_meaning" });
             await onChanged();
           }}
+          onAcceptContainment={async (targetId) => {
+            // The word is always the found_in subject: a word is "Found in" its phrase, so a
+            // phrase-side confirmation stores the same edge with the target as subject.
+            await linkItems(item.id, targetId, {
+              type: "found_in",
+              subject: item.form === "word" ? "owner" : "target",
+            });
+            await onChanged();
+          }}
         />
       )}
 

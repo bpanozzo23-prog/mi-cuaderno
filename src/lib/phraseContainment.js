@@ -1,6 +1,7 @@
 import { getConjugations, getEntriesForForms, resolveEntry } from "../db/ref/entries.js";
 import { matchTermInText, verbForms } from "./cloze.js";
 import { normalize } from "./normalize.js";
+import { connectionsFor } from "./relationships.js";
 
 /** Fixed v1 noise rule from the approved Phase 22 direction. */
 export const CONTAINMENT_STOP_WORDS = new Set([
@@ -52,17 +53,16 @@ export function derivePhraseContainment(subject, items = [], profiles = new Map(
 
 const defaultResolveEntries = (keys) => Promise.all(keys.map((key) => resolveEntry(key)));
 
+/** Exact-only fallback: no tentative pass ran, so nothing was suppressed. */
+const exactOnlyOutcome = (rows) => ({ rows, tentative: null, profiles: new Map(), postings: new Map() });
+
 /**
- * Optional reference enrichment shared by lexical containment and prose containment.
- *
- * `derive` receives the current per-word form profiles and must return rows carrying
- * `matchKind` plus `normalizedSurface` for inferred matches. That small generic boundary keeps
- * reference resolution, conjugation loading, and the conservative ambiguity oracle in one
- * sequence. Every failure reruns the derivation without profiles, so personal exact matches
- * never depend on an installed dictionary.
+ * The full enrichment run, kept internal so the confirmation tier can see what the public
+ * sequence discarded without forking it: `tentative` is the pre-oracle derivation and
+ * `profiles`/`postings` carry the ambiguity evidence that separated it from `rows`.
  */
-export async function prepareWithFormProfiles(
-  words = [],
+async function runFormProfileSequence(
+  words,
   derive,
   {
     resolveEntries = defaultResolveEntries,
@@ -71,7 +71,7 @@ export async function prepareWithFormProfiles(
   } = {}
 ) {
   const attached = words.filter((word) => word.dictKey);
-  if (!attached.length) return derive(new Map());
+  if (!attached.length) return exactOnlyOutcome(derive(new Map()));
 
   try {
     const resolved = await resolveEntries(attached.map((word) => word.dictKey));
@@ -90,12 +90,12 @@ export async function prepareWithFormProfiles(
       });
     }
 
-    if (!profiles.size) return derive(new Map());
+    if (!profiles.size) return exactOnlyOutcome(derive(new Map()));
     const tentative = derive(profiles);
     const inferredSurfaces = [...new Set(
       tentative.filter((row) => row.matchKind === "inflected").map((row) => row.normalizedSurface)
     )];
-    if (!inferredSurfaces.length) return tentative;
+    if (!inferredSurfaces.length) return { rows: tentative, tentative, profiles, postings: new Map() };
 
     const postings = await getFormEntries(inferredSurfaces);
     for (const profile of profiles.values()) {
@@ -108,25 +108,83 @@ export async function prepareWithFormProfiles(
         }
       }
     }
-    return derive(profiles);
+    return { rows: derive(profiles), tentative, profiles, postings };
   } catch {
-    return derive(new Map());
+    return exactOnlyOutcome(derive(new Map()));
   }
 }
+
+/**
+ * Optional reference enrichment shared by lexical containment and prose containment.
+ *
+ * `derive` receives the current per-word form profiles and must return rows carrying
+ * `matchKind` plus `normalizedSurface` for inferred matches. That small generic boundary keeps
+ * reference resolution, conjugation loading, and the conservative ambiguity oracle in one
+ * sequence. Every failure reruns the derivation without profiles, so personal exact matches
+ * never depend on an installed dictionary.
+ */
+export async function prepareWithFormProfiles(words = [], derive, deps = {}) {
+  const { rows } = await runFormProfileSequence(words, derive, deps);
+  return rows;
+}
+
+const subjectWords = (subject, items) => isWord(subject)
+  ? (eligibleWord(subject) ? [subject] : [])
+  : isPhrase(subject)
+    ? items.filter(eligibleWord)
+    : [];
 
 /**
  * Optional reference enrichment around the pure phrase derivation. Its public signature and
  * exact-only fallback remain unchanged; prepareWithFormProfiles merely owns the shared reads.
  */
 export async function preparePhraseContainment(subject, items = [], deps = {}) {
-  const words = isWord(subject)
-    ? (eligibleWord(subject) ? [subject] : [])
-    : isPhrase(subject)
-      ? items.filter(eligibleWord)
-      : [];
   return prepareWithFormProfiles(
-    words,
+    subjectWords(subject, items),
     (profiles) => derivePhraseContainment(subject, items, profiles),
     deps
   );
+}
+
+/**
+ * The inflected matches the ambiguity oracle suppressed, offered for explicit owner
+ * confirmation rather than shown as derived facts. The conservative rule survives intact:
+ * the app still asserts nothing here. A row qualifies only when the form posting names the
+ * attached lemma among others — *creo* proposes *creer* against *crear*, while an empty or
+ * mismatched posting stays fully silent, exactly as the Phase 22 record requires. Stop-word
+ * surfaces never propose (normalized *dé* collides with the preposition *de*, which would
+ * offer *dar* under every phrase containing *de*), already-connected pairs are excluded, and
+ * any reference failure returns no candidates at all.
+ */
+export async function preparePhraseContainmentCandidates(subject, items = [], deps = {}) {
+  const { tentative, profiles, postings } = await runFormProfileSequence(
+    subjectWords(subject, items),
+    (profiles) => derivePhraseContainment(subject, items, profiles),
+    deps
+  );
+  if (!tentative || !profiles.size) return [];
+
+  const connected = new Set(connectionsFor(subject, items).map((row) => row.key));
+  const candidates = [];
+  for (const row of tentative) {
+    if (row.matchKind !== "inflected") continue;
+    const profile = profiles.get(row.word.id);
+    if (!profile?.ambiguousForms.has(row.normalizedSurface)) continue;
+    if (CONTAINMENT_STOP_WORDS.has(row.normalizedSurface)) continue;
+    if (connected.has(row.item.id)) continue;
+
+    // One display lemma per normalized identity, so alias rows never repeat in evidence.
+    const lemmasByNorm = new Map(
+      (postings.get(row.normalizedSurface) || [])
+        .map((entry) => [normalize(entry.lemma).trim(), entry.lemma])
+        .filter(([norm]) => Boolean(norm))
+    );
+    if (!lemmasByNorm.has(profile.entryLemma)) continue;
+    const competingLemmas = [...lemmasByNorm]
+      .filter(([norm]) => norm !== profile.entryLemma)
+      .map(([, lemma]) => lemma);
+    if (!competingLemmas.length) continue;
+    candidates.push({ ...row, competingLemmas });
+  }
+  return candidates;
 }

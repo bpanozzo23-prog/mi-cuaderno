@@ -95,6 +95,7 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Implemented as | Full records |
 |---|---|---|---|
+| Suppressed-containment confirmation | 2026-08-15 | Same-day increment, implemented locally (not yet deployed) | 2026-08-15 entries in `DECISIONS.md` |
 | Unused dictionary fields (shipped-lemma census) | 2026-08-13 | Phase 24 r4 enrichment, deployed | `PHASE-24-DIRECTION.md`, `PHASE-24-REPORT.md` |
 | The word's biography | 2026-08-12 | Phase 23a, deployed | `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md` |
 | Neighborhood browsing | 2026-08-12 | Phase 23b, deployed | `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md` |
@@ -1614,6 +1615,26 @@ Compressed summaries. The authoritative records are `DECISIONS.md` and each phas
 direction/report documents; each entry's original full reasoning is preserved in this file's git
 history. Still-open evidence and questions are kept here in full.
 
+### Suppressed-containment confirmation
+
+- **Date added:** 2026-08-15 — **Status:** Implemented locally — same-day increment, not yet deployed
+- **Records:** "Suppressed-containment confirmation tier" entries in `DECISIONS.md`
+
+Realizes the link-promotion increment `PHASE-23-DIRECTION.md` anticipated, scoped to the matches
+the Phase 22 ambiguity oracle deliberately hides. Detail's "From your cuaderno" card now proposes
+a suppressed inflected match (*Creo que* → *creer*, evidence shown: `also a form of crear`) with
+one explicit accept that writes the ordinary stored-once `found_in` edge — no event, no dismissal
+memory, oracle and matcher untouched. Candidates require a form posting naming the attached lemma
+among others; stop-word surfaces (the 28-row *dé* → `de` → *dar* artifact) never propose.
+
+Evidence that sized it: a diagnostic over the owner's real 2026-08-15 export found 48 suppressed
+rows against 83 shown — 28 artifact, ~16 genuine misses, ~4 correct suppressions. Real-use
+evidence to watch: whether wrong proposals (*al vino, vino* → *venir*) recur annoyingly enough to
+justify a dismissed-pairs durability decision, and whether prose-containment candidates (a
+different product question, Historia-side) become worth their own discussion.
+
+---
+
 ### Android share target
 
 - **Date added:** 2026-08-11 — **Status:** Implemented — 2026-08-13 increment, deployed
@@ -1945,6 +1966,12 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-15 — Suppressed-containment confirmation added directly to Implemented.** The owner
+  noticed *Creo que* missing *creer*, a diagnostic over their real export sized the suppressed
+  class (48 rows: 28 artifact, ~16 genuine, ~4 correct), and the confirm tier was planned and
+  implemented the same day. Recorded straight into history with its still-open evidence
+  questions; not yet deployed.
 
 - **2026-08-13 — Phase 26 connection roadmap split into implementation and retained ideas.** The
   owner approved Mentioned here, Seen together, and exact-URL source bundles for Phase 26, and

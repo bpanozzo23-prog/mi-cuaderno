@@ -40,6 +40,91 @@ describe("phrase↔word containment on lexical detail", () => {
     expect(JSON.stringify([word, phrase])).toBe(before);
   });
 
+  it("offers a suppressed candidate for confirmation and routes accept by perspective", async () => {
+    const user = userEvent.setup();
+    const open = vi.fn();
+    const accept = vi.fn(async () => {});
+    const word = newLexical({ term: "creer", form: "word" });
+    const phrase = newLexical({ term: "Creo que sí.", form: "phrase" });
+    const candidate = (item) => ({
+      item, word, phrase, surface: "Creo", normalizedSurface: "creo",
+      matchKind: "inflected", competingLemmas: ["crear"],
+    });
+    const prepareCandidates = vi.fn(async (subject) =>
+      [candidate(subject.id === word.id ? phrase : word)]);
+
+    const { rerender } = render(
+      <KnowledgeConsolidation
+        item={word}
+        items={[phrase, word]}
+        onOpen={open}
+        onAcceptContainment={accept}
+        prepareCandidates={prepareCandidates}
+      />
+    );
+    expect(await screen.findByText("Possibly appears in your phrases")).toBeTruthy();
+    expect(screen.getByText(/also a form of crear/)).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: `Open ${phrase.term}` }));
+    expect(open).toHaveBeenCalledWith(phrase.id);
+    await user.click(screen.getByRole("button", { name: `Link ${phrase.term} as Found in` }));
+    expect(accept).toHaveBeenCalledWith(phrase.id);
+
+    rerender(
+      <KnowledgeConsolidation
+        item={phrase}
+        items={[phrase, word]}
+        onOpen={open}
+        onAcceptContainment={accept}
+        prepareCandidates={prepareCandidates}
+      />
+    );
+    expect(await screen.findByText("Possibly built on")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Link creer as Contains" }));
+    expect(accept).toHaveBeenLastCalledWith(word.id);
+  });
+
+  it("reports a failed confirmation without unmounting and re-enables the action", async () => {
+    const user = userEvent.setup();
+    const word = newLexical({ term: "creer", form: "word" });
+    const phrase = newLexical({ term: "Creo que sí.", form: "phrase" });
+    const accept = vi.fn(async () => { throw new Error("No se pudo guardar."); });
+
+    render(
+      <KnowledgeConsolidation
+        item={word}
+        items={[phrase, word]}
+        onOpen={vi.fn()}
+        onAcceptContainment={accept}
+        prepareCandidates={vi.fn(async () => [{
+          item: phrase, word, phrase, surface: "Creo", normalizedSurface: "creo",
+          matchKind: "inflected", competingLemmas: ["crear"],
+        }])}
+      />
+    );
+    const button = await screen.findByRole("button", { name: `Link ${phrase.term} as Found in` });
+    await user.click(button);
+    expect((await screen.findByRole("alert")).textContent).toBe("No se pudo guardar.");
+    expect(button.hasAttribute("disabled")).toBe(false);
+    await user.click(button);
+    expect(accept).toHaveBeenCalledTimes(2);
+  });
+
+  it("shows no candidate block when the oracle suppressed nothing", async () => {
+    const word = newLexical({ term: "casa", form: "word" });
+    const phrase = newLexical({ term: "Mi casa es tu casa", form: "phrase" });
+    render(
+      <KnowledgeConsolidation
+        item={word}
+        items={[phrase, word]}
+        onOpen={vi.fn()}
+        prepareCandidates={vi.fn(async () => [])}
+      />
+    );
+    expect(await screen.findByText("Appears in 1 of your phrases")).toBeTruthy();
+    expect(screen.queryByText("Possibly appears in your phrases")).toBeNull();
+    expect(screen.queryByText(/Link .* as Found in/)).toBeNull();
+  });
+
   it("does not let an older async derivation leak onto a newly opened entry", async () => {
     const first = newLexical({ term: "casa", form: "word" });
     const second = newLexical({ term: "madrugar", form: "word" });

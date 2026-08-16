@@ -7,6 +7,7 @@ import Detail from "./Detail.jsx";
 import { db, clearAllPersonalData } from "../db/db.js";
 import { newLexical, newPage, createItem, allItems, getItem, linkItems } from "../db/items.js";
 import { allEvents, EVENT_TYPES } from "../db/events.js";
+import { clearActiveSlot, refDb, setActiveSlot, wipeSlot } from "../db/ref/refdb.js";
 import { newMeaning } from "../lib/meanings.js";
 
 /**
@@ -752,6 +753,95 @@ describe("same-meaning proposals", () => {
       expect(screen.queryByRole("button", { name: "Link molesto as Similar meaning" })).toBeNull();
     });
     expect(screen.getByText("Similar meaning")).toBeTruthy();
+  });
+});
+
+describe("suppressed-containment confirmation", () => {
+  const CREER = "dict:wiktionary-es:creer:verb";
+  const CREAR = "dict:wiktionary-es:crear:verb";
+
+  /** Seeds only what the candidate path reads: entries, tables, and the shared-form shard. */
+  async function seedAmbiguousPair() {
+    const ref = refDb("a");
+    await ref.entries.bulkPut([
+      { id: CREER, lemma: "creer", pos: "verb", conjugationId: "conj:wikt:creer", senses: [] },
+      { id: CREAR, lemma: "crear", pos: "verb", conjugationId: "conj:wikt:crear", senses: [] },
+    ]);
+    await ref.conjugations.bulkPut([
+      { id: "conj:wikt:creer", tenses: { "Indicative/Present": { yo: "creo" } } },
+      { id: "conj:wikt:crear", tenses: { "Indicative/Present": { yo: "creo" } } },
+    ]);
+    await ref.formShards.put({ id: "cr", terms: { creo: [CREER, CREAR], creer: [CREER], crear: [CREAR] } });
+    setActiveSlot("a");
+  }
+
+  afterEach(async () => {
+    await wipeSlot("a");
+    clearActiveSlot();
+  });
+
+  it("proposes the oracle-suppressed match and confirmation becomes one ordinary Found in edge", async () => {
+    await seedAmbiguousPair();
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({ term: "creer", pos: "verb", dictKey: CREER }));
+    const phrase = await createItem(newLexical({ term: "Creo que sí.", form: "phrase" }));
+    renderDetail(word, vi.fn(), undefined, [word, phrase]);
+
+    expect(await screen.findByText("Possibly appears in your phrases")).toBeTruthy();
+    expect(screen.getByText(/also a form of crear/)).toBeTruthy();
+    // The proposal alone changed nothing: no link, no annotation, derived rows still silent.
+    expect(screen.queryByText("Appears in 1 of your phrases")).toBeNull();
+    expect((await getItem(word.id)).linkedKeys).toEqual([]);
+    await waitFor(async () => {
+      expect((await allEvents()).some((event) => event.type === EVENT_TYPES.view)).toBe(true);
+    });
+    const detailEvents = await allEvents();
+
+    await user.click(screen.getByRole("button", { name: `Link ${phrase.term} as Found in` }));
+
+    await waitFor(async () => {
+      expect((await getItem(word.id)).linkedKeys).toEqual([phrase.id]);
+    });
+    expect((await getItem(word.id)).linkAnnotations).toEqual([{
+      targetKey: phrase.id,
+      type: "found_in",
+      subject: "owner",
+      note: "",
+    }]);
+    expect((await getItem(phrase.id)).linkedKeys).toEqual([]);
+    expect(await allEvents()).toEqual(detailEvents);
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: `Link ${phrase.term} as Found in` })).toBeNull();
+    });
+    expect(screen.getByText("Found in")).toBeTruthy();
+  });
+
+  it("stores a phrase-side confirmation with the word as subject, shown as Contains", async () => {
+    await seedAmbiguousPair();
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({ term: "creer", pos: "verb", dictKey: CREER }));
+    const phrase = await createItem(newLexical({ term: "Creo que sí.", form: "phrase" }));
+    renderDetail(phrase, vi.fn(), undefined, [word, phrase]);
+
+    expect(await screen.findByText("Possibly built on")).toBeTruthy();
+    // The mount's view event reloads items through onChanged, which re-derives candidates and
+    // replaces this block's nodes; clicking before that settles hits a detached button.
+    await waitFor(async () => {
+      expect((await allEvents()).some((event) => event.type === EVENT_TYPES.view)).toBe(true);
+    });
+    await user.click(await screen.findByRole("button", { name: "Link creer as Contains" }));
+
+    expect(screen.queryByRole("alert")?.textContent).toBeUndefined();
+    await waitFor(async () => {
+      expect((await getItem(phrase.id)).linkedKeys).toEqual([word.id]);
+    });
+    expect((await getItem(phrase.id)).linkAnnotations).toEqual([{
+      targetKey: word.id,
+      type: "found_in",
+      subject: "target",
+      note: "",
+    }]);
+    expect(screen.getByText("Contains")).toBeTruthy();
   });
 });
 
