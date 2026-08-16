@@ -535,6 +535,20 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   console warnings/errors. Deployed from `main` at `c97ed20` through Pages run 31897874543, with
   the live site serving `assets/index-B9Y8-EU6.js`. See the Additional Refine views entries in
   [DECISIONS.md](DECISIONS.md).
+- **Suppressed-containment confirmation — deployed.** Inflected phrase↔word matches the Phase 22
+  ambiguity oracle deliberately hides (*Creo que* never asserted *creer*, because `creo` is also
+  *crear*'s first person) are now offered in Detail's **From your cuaderno** card as explicit
+  proposals with their competing-lemma evidence; one tap writes the ordinary stored-once
+  **Found in** connection with no event, and the row joins the existing Connections groups
+  everywhere they render. The oracle, matcher, stop-list and clitic silences are untouched, a
+  candidate requires a form posting naming the attached lemma among others, stop-word surfaces
+  never propose, and there is no dismissal memory, matching Phase 22. Sized by a diagnostic over
+  the owner's real export: 48 suppressed rows, ~16 of them genuine misses. No schema, preference,
+  backup, event-type or reference change. The complete serial suite passes 1,510/1,510 across 130
+  files and the production build passes; a disposable 375×812 origin proved the seeded
+  creer/*Creo que sí.* confirmation end to end. Deployed from `main` at `39c0e90` through Pages
+  run 31917078425, with the live site serving `assets/index-BywqOKI0.js`. See the
+  Suppressed-containment confirmation tier entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,

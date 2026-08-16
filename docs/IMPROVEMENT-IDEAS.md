@@ -95,7 +95,7 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Implemented as | Full records |
 |---|---|---|---|
-| Suppressed-containment confirmation | 2026-08-15 | Same-day increment, implemented locally (not yet deployed) | 2026-08-15 entries in `DECISIONS.md` |
+| Suppressed-containment confirmation | 2026-08-15 | Same-day increment, deployed | 2026-08-15 entries in `DECISIONS.md` |
 | Unused dictionary fields (shipped-lemma census) | 2026-08-13 | Phase 24 r4 enrichment, deployed | `PHASE-24-DIRECTION.md`, `PHASE-24-REPORT.md` |
 | The word's biography | 2026-08-12 | Phase 23a, deployed | `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md` |
 | Neighborhood browsing | 2026-08-12 | Phase 23b, deployed | `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md` |
@@ -1617,7 +1617,7 @@ history. Still-open evidence and questions are kept here in full.
 
 ### Suppressed-containment confirmation
 
-- **Date added:** 2026-08-15 — **Status:** Implemented locally — same-day increment, not yet deployed
+- **Date added:** 2026-08-15 — **Status:** Implemented — same-day increment, deployed
 - **Records:** "Suppressed-containment confirmation tier" entries in `DECISIONS.md`
 
 Realizes the link-promotion increment `PHASE-23-DIRECTION.md` anticipated, scoped to the matches
@@ -1966,6 +1966,12 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-15 — Suppressed-containment confirmation deployed.** The owner-approved push
+  (`39c0e90`) went out through a successful Pages run and the live site serves the new bundle.
+  The remaining real-use evidence: whether wrong proposals recur annoyingly enough to justify a
+  dismissed-pairs decision, and whether the owner's ~16 genuine misses convert into confirmed
+  Found in links in practice.
 
 - **2026-08-15 — Suppressed-containment confirmation added directly to Implemented.** The owner
   noticed *Creo que* missing *creer*, a diagnostic over their real export sized the suppressed
