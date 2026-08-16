@@ -93,9 +93,30 @@ describe("newLexicalFromEntry", () => {
   });
 
   it("maps the dictionary's abbreviated pos tags to the cuaderno's own labels", () => {
-    expect(newLexicalFromEntry({ id: "dict:x", lemma: "x", pos: "adj", senses: [] }).pos).toBe("adjective");
-    expect(newLexicalFromEntry({ id: "dict:x", lemma: "x", pos: "adv", senses: [] }).pos).toBe("adverb");
-    expect(newLexicalFromEntry({ id: "dict:x", lemma: "x", pos: "verb", senses: [] }).pos).toBe("verb");
+    const seeded = (pos) => newLexicalFromEntry({ id: "dict:x", lemma: "x", pos, senses: [] }).pos;
+
+    expect(seeded("adj")).toBe("adjective");
+    expect(seeded("adv")).toBe("adverb");
+    expect(seeded("verb")).toBe("verb");
+    // These four used to pass through raw and were then dropped by the select that offers no
+    // such value, so saving "como (preposition)" lost the part of speech without saying so.
+    expect(seeded("prep")).toBe("preposition");
+    expect(seeded("conj")).toBe("conjunction");
+    expect(seeded("pron")).toBe("pronoun");
+    expect(seeded("intj")).toBe("interjection");
+  });
+
+  it("folds the dictionary's grammarian categories into other, and never seeds a raw tag", () => {
+    const seeded = (pos) => newLexicalFromEntry({ id: "dict:x", lemma: "x", pos, senses: [] }).pos;
+
+    for (const pos of ["det", "article", "num", "contraction", "particle"]) {
+      expect(seeded(pos)).toBe("other");
+    }
+    // `form` already tells a phrase from a word; an unknown tag is likewise better absent than
+    // stored as a value the owner can neither see nor change.
+    expect(seeded("phrase")).toBe("");
+    expect(seeded("proverb")).toBe("");
+    expect(seeded(undefined)).toBe("");
   });
 
   it("leaves meanings empty when the entry has no senses", () => {

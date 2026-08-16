@@ -1,4 +1,4 @@
-import { meaningGlosses } from "./meanings.js";
+import { LEXICAL_POS_OPTIONS, meaningGlosses } from "./meanings.js";
 import { normalize } from "./normalize.js";
 import { connectionsFor } from "./relationships.js";
 
@@ -16,7 +16,14 @@ export const GLOSS_STOP_WORDS = new Set([
 ]);
 
 const GLOSS_WORD = /[\p{L}\p{M}\p{N}]+(?:['’][\p{L}\p{M}\p{N}]+)*/gu;
-const KNOWN_POS = new Set(["noun", "verb", "adjective", "adverb", "other"]);
+/**
+ * Read from the option list rather than restated, because an unrecognized value here does not
+ * fail — it reads as "no part of speech recorded", and the mismatch guard below then stops
+ * separating the very pair it exists to separate. This set was a stale copy of the five options
+ * that predated preposition, conjunction, pronoun and interjection, which was harmless only
+ * while those could not be stored.
+ */
+const KNOWN_POS = new Set(LEXICAL_POS_OPTIONS.filter(Boolean));
 
 export function glossContentTokens(gloss) {
   const tokens = [];

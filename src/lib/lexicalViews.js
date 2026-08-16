@@ -1,4 +1,5 @@
 import { normalize } from "./normalize.js";
+import { LEXICAL_POS_OPTIONS } from "./meanings.js";
 import { activePageContextsForLexical } from "./pageReferences.js";
 
 /**
@@ -106,6 +107,51 @@ export function matchesLearningFilter(state, filter = LEXICAL_LEARNING.any) {
   if (filter === LEXICAL_LEARNING.due) return state.due === true;
   if (filter === LEXICAL_LEARNING.graduated) return state.graduated === true;
   return state.enrolled === true && state.graduated !== true;
+}
+
+/**
+ * The part-of-speech lens. `any` is the off position; every other value is one of
+ * `LEXICAL_POS_OPTIONS`.
+ *
+ * A word matches on its own `pos` OR on any meaning's `posOverride`, and that disjunction is the
+ * whole point. The dictionary splits a word like *como* into one entry per part of speech, but the
+ * notebook keeps it as a single item whose meanings carry the different roles; matching only the
+ * entry-level `pos` would hide *como* from a "conjunction" filter and push the owner into
+ * splitting entries to be findable — the storage shape bending to the filter rather than the
+ * reverse. True homographs stay separate items and are unaffected either way.
+ */
+export const LEXICAL_POS_ANY = "any";
+
+export function posValuesOf(item) {
+  const values = new Set();
+  if (item?.pos) values.add(item.pos);
+  for (const meaning of item?.meanings || []) {
+    if (meaning?.posOverride) values.add(meaning.posOverride);
+  }
+  return values;
+}
+
+export function matchesPosFilter(item, filter = LEXICAL_POS_ANY) {
+  if (!filter || filter === LEXICAL_POS_ANY) return true;
+  return posValuesOf(item).has(filter);
+}
+
+/**
+ * The parts of speech actually present in the current lens, in `LEXICAL_POS_OPTIONS` order rather
+ * than by count, so the choices do not reshuffle under the owner as they filter. A word counts
+ * once per distinct value it carries, and in both places when its entry and a meaning disagree —
+ * the same word the filter would return for either choice.
+ */
+export function posCountsIn(items = []) {
+  const counts = new Map();
+  for (const item of items) {
+    for (const pos of posValuesOf(item)) {
+      counts.set(pos, (counts.get(pos) || 0) + 1);
+    }
+  }
+  return LEXICAL_POS_OPTIONS
+    .filter((pos) => pos && counts.has(pos))
+    .map((pos) => ({ pos, count: counts.get(pos) }));
 }
 
 /** Terms that start with a digit or punctuation, and any blank term, share one trailing group. */

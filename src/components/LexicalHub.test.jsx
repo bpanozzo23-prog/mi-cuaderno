@@ -431,6 +431,91 @@ describe("the Words & phrases hub", () => {
     expect(screen.getByRole("button", { name: "Refine (2)" })).toBeTruthy();
   });
 
+  describe("the part-of-speech lens", () => {
+    const withPos = (term, pos) => lexical(term, { pos });
+    /** One item whose meanings carry the roles the dictionary would split into three entries. */
+    const como = () => lexical("como", {
+      pos: "",
+      meanings: [
+        { id: "meaning:como-prep", gloss: "like, as", usageCue: "", regions: [], usageLabels: [], posOverride: "preposition", verbBehavior: [], note: "", examples: [] },
+        { id: "meaning:como-conj", gloss: "as, since", usageCue: "", regions: [], usageLabels: [], posOverride: "conjunction", verbBehavior: [], note: "", examples: [] },
+      ],
+    });
+
+    it("narrows to one part of speech and back", async () => {
+      const user = userEvent.setup();
+      render(<LexicalHub {...propsFor([withPos("sobre", "preposition"), withPos("casa", "noun")])} />);
+      await openRefine(user);
+
+      await choose(user, "Part of speech", "preposition");
+      expect(card("sobre")).toBeTruthy();
+      expect(cardOrNull("casa")).toBeNull();
+
+      await choose(user, "Part of speech", "any");
+      expect(card("casa")).toBeTruthy();
+    });
+
+    it("offers only the parts of speech this view actually holds", async () => {
+      const user = userEvent.setup();
+      render(<LexicalHub {...propsFor([withPos("casa", "noun"), withPos("sacar", "verb")])} />);
+      await openRefine(user);
+
+      const select = screen.getByLabelText("Part of speech");
+      const options = within(select).getAllByRole("option").map((node) => node.textContent);
+      expect(options).toEqual(["Any", "noun · 1", "verb · 1"]);
+    });
+
+    it("keeps a multi-role word findable under each of its meanings' roles", async () => {
+      const user = userEvent.setup();
+      render(<LexicalHub {...propsFor([como(), withPos("casa", "noun")])} />);
+      await openRefine(user);
+
+      await choose(user, "Part of speech", "conjunction");
+      expect(card("como")).toBeTruthy();
+      expect(cardOrNull("casa")).toBeNull();
+
+      await choose(user, "Part of speech", "preposition");
+      expect(card("como")).toBeTruthy();
+    });
+
+    it("disables the lens when nothing in the view records a part of speech", async () => {
+      const user = userEvent.setup();
+      render(<LexicalHub {...propsFor([withPos("madrugar", "")])} />);
+      await openRefine(user);
+
+      const select = screen.getByLabelText("Part of speech");
+      expect(select.disabled).toBe(true);
+      expect(within(select).getByRole("option").textContent).toBe("None recorded in this view");
+    });
+
+    it("releases a selection the narrowed view no longer offers", async () => {
+      const user = userEvent.setup();
+      render(<LexicalHub {...propsFor([
+        lexical("dar con", { form: "phrase", pos: "verb" }),
+        withPos("sobre", "preposition"),
+      ])} />);
+      await openRefine(user);
+
+      await choose(user, "Part of speech", "preposition");
+      expect(cardOrNull("dar con")).toBeNull();
+
+      // Phrases hold no preposition, so the lens lets go rather than showing an empty hub.
+      await user.click(screen.getByRole("button", { name: "Phrases" }));
+      await waitFor(() => expect(screen.getByLabelText("Part of speech").value).toBe("any"));
+      expect(card("dar con")).toBeTruthy();
+    });
+
+    it("counts toward the refinements it is hiding", async () => {
+      const user = userEvent.setup();
+      render(<LexicalHub {...propsFor([withPos("sobre", "preposition")])} />);
+      await openRefine(user);
+
+      await choose(user, "Part of speech", "preposition");
+
+      expect(screen.getByRole("button", { name: "Refine (1)" })).toBeTruthy();
+    });
+  });
+
   describe("the A–Z index", () => {
     const items = [lexical("zorro"), lexical("ñoño"), lexical("árbol"), lexical("nube")];
 

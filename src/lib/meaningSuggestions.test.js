@@ -77,6 +77,17 @@ describe("same-meaning proposals", () => {
       .toEqual([sparse.id]);
   });
 
+  it("guards on the function-word classes too, not only the four it once knew", () => {
+    // An unrecognized value reads as "not recorded", which lets a mismatched pair THROUGH — so a
+    // part of speech the owner can choose but this guard cannot name is a silently weaker guard.
+    const focal = lexical({ term: "como", glosses: [{ gloss: "like", posOverride: "preposition" }] });
+    const mismatch = lexical({ term: "gustar", glosses: [{ gloss: "like", posOverride: "verb" }] });
+    const agreeing = lexical({ term: "según", glosses: [{ gloss: "like", posOverride: "preposition" }] });
+
+    expect(deriveSimilarMeaningSuggestions(focal, [focal, mismatch, agreeing]).map((row) => row.item.term))
+      .toEqual(["según"]);
+  });
+
   it("excludes self, pages, blank meanings, duplicate headings, and every existing connection", () => {
     const focal = lexical({ term: "enojado", glosses: ["angry"], linkedKeys: ["user:outgoing"] });
     const outgoing = lexical({ id: "user:outgoing", term: "molesto", glosses: ["angry"] });

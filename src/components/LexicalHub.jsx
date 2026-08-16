@@ -24,11 +24,14 @@ import {
   groupByInitial,
   LEXICAL_CONTEXTS,
   LEXICAL_LEARNING,
+  LEXICAL_POS_ANY,
   matchesContextFilter,
   matchesLearningFilter,
   matchesPageFilter,
+  matchesPosFilter,
   pageContextIndex,
   pageContextCountsIn,
+  posCountsIn,
 } from "../lib/lexicalViews.js";
 import { buildPracticeDeck, isPracticeEligible } from "../lib/practice.js";
 import { preparePracticeCards } from "../lib/practiceCards.js";
@@ -121,6 +124,7 @@ export default function LexicalHub({
   const [maintenanceView, setMaintenanceView] = useState(MAINTENANCE_VIEWS.all);
   const [browseOrder, setBrowseOrder] = useState(BROWSE_ORDERS.touched);
   const [tagFilter, setTagFilter] = useState(null);
+  const [posFilter, setPosFilter] = useState(LEXICAL_POS_ANY);
   const [refineOpen, setRefineOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [practiceSetupOpen, setPracticeSetupOpen] = useState(false);
@@ -213,9 +217,26 @@ export default function LexicalHub({
     if (tagFilter && !tagAvailable) setTagFilter(null);
   }, [tagAvailable, tagFilter]);
 
-  const filtered = useMemo(
+  const taggedItems = useMemo(
     () => effectiveTag ? pageItems.filter((item) => item.tags.includes(effectiveTag)) : pageItems,
     [effectiveTag, pageItems]
+  );
+
+  // Part of speech is the innermost lens, so its choices describe everything already narrowed —
+  // and, like tags, describe the lens rather than the selection, so the picker stays usable.
+  const posCounts = useMemo(() => posCountsIn(taggedItems), [taggedItems]);
+  const posAvailable = posCounts.some(({ pos }) => pos === posFilter);
+  const effectivePos = posAvailable ? posFilter : LEXICAL_POS_ANY;
+
+  useEffect(() => {
+    if (posFilter !== LEXICAL_POS_ANY && !posAvailable) setPosFilter(LEXICAL_POS_ANY);
+  }, [posAvailable, posFilter]);
+
+  const filtered = useMemo(
+    () => effectivePos === LEXICAL_POS_ANY
+      ? taggedItems
+      : taggedItems.filter((item) => matchesPosFilter(item, effectivePos)),
+    [effectivePos, taggedItems]
   );
 
   const attachmentViewAvailable = dictionaryAvailable && formFilter !== FILTERS.phrase;
@@ -265,7 +286,8 @@ export default function LexicalHub({
     + Number(learningFilter !== LEXICAL_LEARNING.any)
     + Number(maintenanceView !== MAINTENANCE_VIEWS.all)
     + Number(browseOrder !== BROWSE_ORDERS.touched)
-    + Number(Boolean(effectiveTag));
+    + Number(Boolean(effectiveTag))
+    + Number(effectivePos !== LEXICAL_POS_ANY);
 
   function toggleSearch() {
     if (!searchOpen) {
@@ -467,6 +489,21 @@ export default function LexicalHub({
             <RefineSelect label="Learning" value={learningFilter} onChange={setLearningFilter}>
               {LEARNING_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </RefineSelect>
+
+            <RefineSelect
+              label="Part of speech"
+              ariaLabel="Part of speech"
+              value={effectivePos}
+              onChange={setPosFilter}
+              disabled={posCounts.length === 0}
+            >
+              <option value={LEXICAL_POS_ANY}>
+                {posCounts.length ? "Any" : "None recorded in this view"}
+              </option>
+              {posCounts.map(({ pos, count }) => (
+                <option key={pos} value={pos}>{pos} · {count}</option>
               ))}
             </RefineSelect>
 

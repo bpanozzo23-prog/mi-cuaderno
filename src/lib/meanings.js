@@ -15,16 +15,30 @@ export const USAGE_LABELS = [
   "literal",
 ];
 
-export const LEXICAL_POS_OPTIONS = ["", "noun", "verb", "adjective", "adverb", "other"];
-export const MEANING_POS_OPTIONS = [
+/**
+ * The word classes the owner can choose, at the entry and at the meaning alike. The two lists
+ * were separate and unequal (only the meaning offered "interjection"), which meant a word could
+ * carry a part of speech its own meanings could not restate; one list is what keeps the entry
+ * select and the per-meaning override answering the same question.
+ *
+ * `partOfSpeech.js` maps the dictionary's abbreviations onto these. The dataset's remaining
+ * labels — determiner, article, numeral, contraction, particle — land on "other" deliberately:
+ * they name a grammarian's category rather than a shelf the owner would browse. "phrase" is not
+ * here at all, because `form` already tells a phrase from a word.
+ */
+export const LEXICAL_POS_OPTIONS = [
   "",
   "noun",
   "verb",
   "adjective",
   "adverb",
+  "pronoun",
+  "preposition",
+  "conjunction",
   "interjection",
   "other",
 ];
+export const MEANING_POS_OPTIONS = LEXICAL_POS_OPTIONS;
 export const VERB_BEHAVIORS = ["transitive", "intransitive", "reflexive", "pronominal", "impersonal"];
 export const COMMON_REGIONS = ["Mexico", "Latin America", "Spain"];
 

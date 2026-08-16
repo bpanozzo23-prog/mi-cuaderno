@@ -6,14 +6,19 @@ import {
   initialOf,
   LEXICAL_CONTEXTS,
   LEXICAL_LEARNING,
+  LEXICAL_POS_ANY,
   matchesContextFilter,
   matchesLearningFilter,
   matchesPageFilter,
+  matchesPosFilter,
   OTHER_INITIAL,
   pageContextIndex,
   pageContextCountsIn,
   PINNED_LEXICAL_IDS_PREF,
+  posCountsIn,
+  posValuesOf,
 } from "./lexicalViews.js";
+import { newMeaning } from "./meanings.js";
 import { newGrammarExample, newGrammarSection, newSourceCapture } from "./pageKinds.js";
 
 const word = (term) => makeLexical({ term });
@@ -148,6 +153,91 @@ describe("lexical hub derivations", () => {
     it("matches nothing but any when a word has no derived state at all", () => {
       expect(matchesLearningFilter(undefined, LEXICAL_LEARNING.tricky)).toBe(false);
       expect(matchesLearningFilter(undefined, LEXICAL_LEARNING.reviewing)).toBe(false);
+    });
+  });
+
+  describe("the part-of-speech lens", () => {
+    /** *como* as the notebook keeps it: one item, its roles carried by the meanings. */
+    const como = () => makeLexical({
+      term: "como",
+      pos: "",
+      meanings: [
+        newMeaning({ gloss: "like, as", posOverride: "preposition" }),
+        newMeaning({ gloss: "as, since", posOverride: "conjunction" }),
+      ],
+    });
+
+    it("keeps everything under any", () => {
+      expect(matchesPosFilter(makeLexical({ pos: "verb" }), LEXICAL_POS_ANY)).toBe(true);
+      expect(matchesPosFilter(makeLexical({ pos: "" }), LEXICAL_POS_ANY)).toBe(true);
+      expect(matchesPosFilter(makeLexical({ pos: "" }))).toBe(true);
+    });
+
+    it("matches a word on its own part of speech", () => {
+      const item = makeLexical({ term: "sobre", pos: "preposition" });
+
+      expect(matchesPosFilter(item, "preposition")).toBe(true);
+      expect(matchesPosFilter(item, "noun")).toBe(false);
+    });
+
+    it("finds a multi-role word by ANY of its meanings, so it need not be split into three", () => {
+      const item = como();
+
+      expect(matchesPosFilter(item, "preposition")).toBe(true);
+      expect(matchesPosFilter(item, "conjunction")).toBe(true);
+      expect(matchesPosFilter(item, "adverb")).toBe(false);
+    });
+
+    it("matches on the entry and on a meaning that departs from it alike", () => {
+      const item = makeLexical({
+        term: "bien",
+        pos: "adverb",
+        meanings: [newMeaning({ gloss: "good, benefit", posOverride: "noun" })],
+      });
+
+      expect(posValuesOf(item)).toEqual(new Set(["adverb", "noun"]));
+      expect(matchesPosFilter(item, "adverb")).toBe(true);
+      expect(matchesPosFilter(item, "noun")).toBe(true);
+    });
+
+    it("matches nothing but any when a word records no part of speech at all", () => {
+      const item = makeLexical({ pos: "", meanings: [newMeaning({ gloss: "to take out" })] });
+
+      expect(posValuesOf(item)).toEqual(new Set());
+      expect(matchesPosFilter(item, "verb")).toBe(false);
+    });
+
+    it("offers only the parts of speech present, in the option order rather than by count", () => {
+      const counts = posCountsIn([
+        makeLexical({ term: "casa", pos: "noun" }),
+        makeLexical({ term: "libro", pos: "noun" }),
+        makeLexical({ term: "sacar", pos: "verb" }),
+        como(),
+      ]);
+
+      // noun before verb before preposition before conjunction — LEXICAL_POS_OPTIONS order, even
+      // though nouns and prepositions would swap under a by-count sort.
+      expect(counts).toEqual([
+        { pos: "noun", count: 2 },
+        { pos: "verb", count: 1 },
+        { pos: "preposition", count: 1 },
+        { pos: "conjunction", count: 1 },
+      ]);
+    });
+
+    it("counts a word once per distinct value, never twice for one repeated meaning", () => {
+      const counts = posCountsIn([
+        makeLexical({
+          term: "bien",
+          pos: "adverb",
+          meanings: [
+            newMeaning({ gloss: "well", posOverride: "adverb" }),
+            newMeaning({ gloss: "quite", posOverride: "adverb" }),
+          ],
+        }),
+      ]);
+
+      expect(counts).toEqual([{ pos: "adverb", count: 1 }]);
     });
   });
 

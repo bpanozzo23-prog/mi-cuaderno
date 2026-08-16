@@ -4,6 +4,7 @@ import { isDictKey, isUserKey, newUserKey } from "../lib/ids.js";
 import { nowIso } from "../lib/dates.js";
 import { requestPersistence } from "../lib/persistence.js";
 import { cleanMeanings, newMeaning } from "../lib/meanings.js";
+import { personalPosForEntryPos } from "../lib/partOfSpeech.js";
 import { validateCollectionGroups } from "../lib/collections.js";
 import { isPageProfile, PAGE_PROFILES } from "../lib/pageProfiles.js";
 import {
@@ -85,7 +86,7 @@ export function lexicalSeedFromEntry(entry) {
   return {
     term: entry.lemma,
     meanings: entry.senses?.[0]?.gloss ? [newMeaning({ gloss: entry.senses[0].gloss })] : [],
-    pos: entry.pos === "adj" ? "adjective" : entry.pos === "adv" ? "adverb" : entry.pos,
+    pos: personalPosForEntryPos(entry.pos),
     dictKey: entry.id,
   };
 }

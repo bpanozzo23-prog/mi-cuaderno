@@ -1,7 +1,7 @@
 import { CalendarDays, Pin } from "lucide-react";
 import { C, SERIF, MONO, Hi } from "../theme.jsx";
 import { emptyItemState } from "../useNotebook.js";
-import { firstMeaningGloss } from "../lib/meanings.js";
+import { firstMeaningGloss, LEXICAL_POS_OPTIONS } from "../lib/meanings.js";
 import { activePageContextsForLexical } from "../lib/pageReferences.js";
 import { enabledPageRoles, isJournalPage } from "../lib/pageKinds.js";
 import { pageFolderStyle, pageSummary } from "./pageRoleMeta.js";
@@ -11,7 +11,7 @@ import TagChip from "./TagChip.jsx";
 import { PART_OF_SPEECH_ABBR, grammarAbbreviations } from "../lib/partOfSpeech.js";
 import { markdownPreviewText } from "../lib/noteMarkdown.js";
 
-export const POS_OPTIONS = ["", "noun", "verb", "adjective", "adverb", "other"];
+export const POS_OPTIONS = LEXICAL_POS_OPTIONS;
 export const POS_ABBR = PART_OF_SPEECH_ABBR;
 
 /** Personal `form` terminology. Dictionary part-of-speech labels remain separate. */
