@@ -170,6 +170,21 @@ describe("AddSheet", () => {
     expect(screen.getByRole("button", { name: "Add notes page" })).toBeTruthy();
   });
 
+  it("offers the complete Page Notes formatting set for a lexical note draft", () => {
+    render(
+      <AddSheet
+        kind="lexical"
+        items={[]}
+        onClose={vi.fn()}
+        onCreated={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole("button", { name: "Block quote" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Note callout" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Blank line" })).toBeTruthy();
+  });
+
   it("warns for a cleaned lexical heading but still creates another with the chosen form", async () => {
     const user = userEvent.setup();
     const existing = await createItem(
@@ -185,8 +200,6 @@ describe("AddSheet", () => {
         onCreated={onCreated}
       />
     );
-
-    expect(screen.queryByRole("button", { name: "Blank line" })).toBeNull();
 
     await user.type(screen.getByPlaceholderText("Spanish word or phrase *"), "  BUENOS   DÍAS  ");
     expect(screen.getByRole("status").textContent).toMatch(/already in your cuaderno/i);

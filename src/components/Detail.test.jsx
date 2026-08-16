@@ -126,6 +126,25 @@ describe("scan-first notes and page bodies", () => {
     expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(1);
   });
 
+  it("renders and edits lexical blank lines and explicit Note callouts like Page Notes", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({
+      term: "recordar",
+      notes: "> [!NOTE]\n> Keep the register in mind.\n\n<br>\n\nUse it carefully.",
+    }));
+
+    const { container } = renderDetail(word);
+
+    expect(screen.getByRole("note")).toBeTruthy();
+    expect(container.querySelectorAll(".note-blank-line")).toHaveLength(1);
+    expect(screen.queryByText("[!NOTE]")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Edit note" }));
+    expect(screen.getByRole("button", { name: "Block quote" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Note callout" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Blank line" })).toBeTruthy();
+  });
+
   it("writes and saves a page body through the existing body field", async () => {
     const user = userEvent.setup();
     const page = await createItem(newPage({ title: "Study source", body: "Uno\nDos" }));

@@ -140,11 +140,15 @@ describe("meaning-level context", () => {
 
 describe("search exclusions and empty queries", () => {
   it("matches the visible phrase across notebook Markdown markers", () => {
-    const formatted = lexical({ term: "importar", notes: "Esto es muy **importante** para mí." });
+    const formatted = lexical({
+      term: "importar",
+      notes: "> [!NOTE]\n> Esto es muy **importante** para mí.\n\n<br>\n\nÚsalo con cuidado.",
+    });
     expect(searchItems([formatted], "muy importante")[0]).toMatchObject({
       item: formatted,
       reason: "in your notes",
     });
+    expect(searchItems([formatted], "NOTE")).toEqual([]);
 
     const pageWithHighlight = page({ title: "Viaje", body: "Quiero ==recordar este lugar== mañana." });
     expect(searchItems([pageWithHighlight], "recordar este lugar")[0]).toMatchObject({

@@ -782,6 +782,8 @@ function StandardDetail({
           <>
             <MarkdownTextarea
               autoFocus
+              blankLines={!isPage}
+              noteCallouts={!isPage}
               aria-label={isPage ? "Page body" : "Note"}
               value={bodyDraft}
               onChange={(value) => {
@@ -808,7 +810,13 @@ function StandardDetail({
         ) : (
           <div className="flex items-start justify-between gap-3">
             {hasSavedBody ? (
-              <MarkdownText compact className="min-w-0 flex-1 text-sm" style={{ color: C.ink }}>
+              <MarkdownText
+                blankLines={!isPage}
+                explicitNoteCallouts={!isPage}
+                compact
+                className="min-w-0 flex-1 text-sm"
+                style={{ color: C.ink }}
+              >
                 {savedBody}
               </MarkdownText>
             ) : (

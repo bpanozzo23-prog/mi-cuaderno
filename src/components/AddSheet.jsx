@@ -670,6 +670,8 @@ export default function AddSheet({
               </select>
             </div>
             <MarkdownTextarea
+              blankLines
+              noteCallouts
               value={notes}
               onChange={setNotes}
               placeholder="First note (optional) — a mnemonic, a gotcha, where you heard it"

@@ -86,7 +86,7 @@ export default function LexicalAnswer({ item, showContext, onToggleContext, onOp
       )}
 
       {item.notes && (
-        <MarkdownText compact className="text-sm" style={{ color: C.mut }}>
+        <MarkdownText blankLines explicitNoteCallouts compact className="text-sm" style={{ color: C.mut }}>
           {item.notes}
         </MarkdownText>
       )}

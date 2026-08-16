@@ -25,7 +25,9 @@ import { isJournalPage } from "../lib/pageKinds.js";
 
 const previewOf = (item) => {
   const text = item.type === "page" ? item.body : item.notes;
-  return markdownPreviewText(text, { noteCallouts: item.type === "page" && !isJournalPage(item) }).slice(0, 80);
+  return markdownPreviewText(text, {
+    noteCallouts: item.type !== "page" || !isJournalPage(item),
+  }).slice(0, 80);
 };
 
 function ConnectionEditor({ connection, onSave, onCancel, onRemove }) {

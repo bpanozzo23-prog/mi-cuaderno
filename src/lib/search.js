@@ -151,7 +151,10 @@ function bestMatch(item, query, { allItems = [], includeContainedVocabulary = fa
   if (tag) return { tier: TIER.tag, reason: `${REASONS.tag} "${tag}"`, offset: 0 };
 
   // Tier 6: free text — notes, personal examples, page bodies.
-  if (!isPage && normalize([plainTextFromMarkdown(item.notes), meaningNotes(item)].filter(Boolean).join("\n")).includes(q)) {
+  if (!isPage && normalize([
+    plainTextFromMarkdown(item.notes, { noteCallouts: true }),
+    meaningNotes(item),
+  ].filter(Boolean).join("\n")).includes(q)) {
     return { tier: TIER.text, reason: REASONS.notes, offset: 0 };
   }
   if (!isPage && allPersonalExamples(item).some((x) => normalize(x.es).includes(q) || normalize(x.en).includes(q))) {

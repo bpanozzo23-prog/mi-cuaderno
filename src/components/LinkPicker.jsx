@@ -49,7 +49,11 @@ function contextLine(item) {
     return item.body ? markdownPreviewText(item.body, { noteCallouts: true }).slice(0, 60) : "page";
   }
   const glosses = meaningGlossText(item, " · ");
-  return glosses ? flatten(glosses) : item.notes ? markdownPreviewText(item.notes).slice(0, 60) : "";
+  return glosses
+    ? flatten(glosses)
+    : item.notes
+      ? markdownPreviewText(item.notes, { noteCallouts: true }).slice(0, 60)
+      : "";
 }
 
 function Row({ icon: Icon, heading, suffix, context, reason, linked, linkedLabel, onPick }) {

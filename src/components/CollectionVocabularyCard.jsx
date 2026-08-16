@@ -100,7 +100,8 @@ export default function CollectionVocabularyCard({
   }
 
   const example = firstExample(item);
-  const note = firstNonblank(...meanings.map((meaning) => meaning.note), item.notes);
+  const meaningNote = firstNonblank(...meanings.map((meaning) => meaning.note));
+  const note = meaningNote || firstNonblank(item.notes);
 
   return (
     <Card className="p-0 overflow-hidden">
@@ -156,7 +157,7 @@ export default function CollectionVocabularyCard({
 
           {note && (
             <div className="mt-3 text-xs whitespace-pre-wrap break-words line-clamp-2" style={{ color: C.mut }}>
-              {markdownPreviewText(note)}
+              {markdownPreviewText(note, { noteCallouts: !meaningNote })}
             </div>
           )}
 
