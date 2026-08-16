@@ -549,6 +549,29 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   creer/*Creo que sí.* confirmation end to end. Deployed from `main` at `39c0e90` through Pages
   run 31917078425, with the live site serving `assets/index-BywqOKI0.js`. See the
   Suppressed-containment confirmation tier entries in [DECISIONS.md](DECISIONS.md).
+- **Broader parts of speech — deployed.** The entry and per-meaning part-of-speech lists are now
+  one list, extended with **pronoun, preposition, conjunction and interjection**; they had been
+  separate and unequal, so a word could carry a part of speech its own meanings could not restate.
+  The dataset's determiner, article, numeral, contraction and particle fold into `other` as
+  grammarian categories rather than shelves to browse, and `phrase` maps to nothing because `form`
+  already tells a phrase from a word. This is what lets a word the dictionary splits by part of
+  speech (*como* as adverb, preposition and conjunction) stay **one** item whose meanings carry the
+  roles, with separate items reserved for true homographs. Words & phrases gains a **Part of
+  speech** refinement matching the item's own `pos` OR any meaning's override — matching only the
+  entry level would push the owner into splitting entries to stay findable — with counts describing
+  the narrowed view in option order and an impossible selection clearing itself. Seeding from a
+  dictionary entry now translates every tag through one table at the seam; it had handled only
+  `adj` and `adv`, so saving *como* as a preposition silently lost the part of speech. Two stale
+  copies of the old five-value list now read from the option list: the abbreviation map, which
+  showed a card reading "preposition" beside one reading "adv.", and the same-meaning proposal
+  guard, where an unrecognized value reads as *not recorded* and lets a mismatched pair through.
+  No storage, event, backup or schema change; `SCHEMA_VERSION` stays 9 and `item.pos` remains
+  deliberately un-enumerated in backup validation. The complete serial suite passes 1,529/1,529
+  across 130 files, the production build passes, a deliberate break of the meaning-override match
+  red/greened its four tests, and a disposable 375×812 origin proved a single *como* returned under
+  both `preposition` and `conjunction`. Deployed from `main` at `0de63dd` through Pages run
+  31918541094, with the live site serving `assets/index-Cz-JKOsP.js`. See the Broader
+  part-of-speech vocabulary entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
