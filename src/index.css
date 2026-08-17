@@ -68,6 +68,15 @@
   --color-amber: #8A5A0A;
   --color-amber-pale: #F8F0DC;
 
+  /* Markdown callout variants (owner-picked direction B, 2026-08-17). Dedicated tokens keep
+     advice/warning identity independent of Source, success and review-grade semantics. */
+  --color-callout-tip-line: #738A53;
+  --color-callout-tip-pale: #F1F5E9;
+  --color-callout-tip-ink: #4E6132;
+  --color-callout-ojo-line: #C49128;
+  --color-callout-ojo-pale: #FFF5D8;
+  --color-callout-ojo-ink: #745314;
+
   /* Named here for the first time. Each was previously a bare hex repeated across components,
      which is exactly the drift this file exists to stop. */
   --color-chip-border: #D9E1F2;
@@ -333,9 +342,19 @@
   background: var(--color-role-grammar-pale);
 }
 
-.note-markdown .note-callout--notes {
+.note-markdown .note-callout--notes.note-callout--note {
   border-color: var(--color-page-folder-notes-line);
   background: var(--color-pen-pale);
+}
+
+.note-markdown .note-callout--notes.note-callout--tip {
+  border-color: var(--color-callout-tip-line);
+  background: var(--color-callout-tip-pale);
+}
+
+.note-markdown .note-callout--notes.note-callout--ojo {
+  border-color: var(--color-callout-ojo-line);
+  background: var(--color-callout-ojo-pale);
 }
 
 .note-markdown .note-callout__label {
@@ -351,8 +370,16 @@
   color: var(--color-role-grammar-ink);
 }
 
-.note-markdown .note-callout--notes .note-callout__label {
+.note-markdown .note-callout--notes.note-callout--note .note-callout__label {
   color: var(--color-pen-dark);
+}
+
+.note-markdown .note-callout--notes.note-callout--tip .note-callout__label {
+  color: var(--color-callout-tip-ink);
+}
+
+.note-markdown .note-callout--notes.note-callout--ojo .note-callout__label {
+  color: var(--color-callout-ojo-ink);
 }
 
 .note-markdown .note-callout > :first-child {
@@ -371,6 +398,17 @@
   color: var(--color-pen);
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+.note-markdown code {
+  border-radius: 0.25rem;
+  background: var(--color-section-neutral-band);
+  color: var(--color-ink);
+  padding: 0.08em 0.3em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 /* Images are always their own block, wherever they sit in the sentence: on a 375px screen an
