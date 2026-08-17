@@ -29,7 +29,7 @@ function renderNotes(initialPage) {
 }
 
 describe("Structured Notes", () => {
-  it("keeps Overview callouts and the Section option directly discoverable on an empty page", async () => {
+  it("keeps Overview callout variants and the Section option directly discoverable on an empty page", async () => {
     const user = userEvent.setup();
     const page = await createItem(newPage({ title: "Collection explanation" }));
     renderNotes(page);
@@ -44,12 +44,14 @@ describe("Structured Notes", () => {
     overview.setSelectionRange(0, overview.value.length);
     expect(screen.getByRole("button", { name: "Block quote" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Blank line" })).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Note callout" }));
+    expect(screen.getByRole("button", { name: "Note callout" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "¡Ojo! callout" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Tip callout" }));
     await user.click(screen.getByRole("button", { name: "Save overview" }));
 
-    await waitFor(() => expect(screen.getByRole("note", { name: "Note" })).toBeTruthy());
-    expect(screen.getByRole("note", { name: "Note" }).textContent).toContain("Why these words belong together.");
-    expect((await getItem(page.id)).body).toBe("> [!NOTE]\n> Why these words belong together.");
+    await waitFor(() => expect(screen.getByRole("note", { name: "Tip" })).toBeTruthy());
+    expect(screen.getByRole("note", { name: "Tip" }).textContent).toContain("Why these words belong together.");
+    expect((await getItem(page.id)).body).toBe("> [!TIP]\n> Why these words belong together.");
     expect((await getItem(page.id)).noteSections).toEqual([]);
   });
 
@@ -63,7 +65,7 @@ describe("Structured Notes", () => {
     const rootBody = screen.getByRole("textbox", { name: "Notes section body" });
     await user.type(rootBody, "A shared situation.");
     rootBody.setSelectionRange(0, rootBody.value.length);
-    await user.click(screen.getByRole("button", { name: "Note callout" }));
+    await user.click(screen.getByRole("button", { name: "¡Ojo! callout" }));
     await user.click(screen.getByRole("button", { name: "Save section" }));
 
     await user.click(await screen.findByRole("button", { name: "Add Notes subsection to Collection context" }));
@@ -75,8 +77,8 @@ describe("Structured Notes", () => {
     const stored = await getItem(page.id);
     expect(stored.noteSections).toHaveLength(2);
     expect(stored.noteSections[1].parentId).toBe(stored.noteSections[0].id);
-    expect(stored.noteSections[0].body).toBe("> [!NOTE]\n> A shared situation.");
-    expect(screen.getByRole("note", { name: "Note" }).textContent).toContain("A shared situation.");
+    expect(stored.noteSections[0].body).toBe("> [!OJO]\n> A shared situation.");
+    expect(screen.getByRole("note", { name: "¡Ojo!" }).textContent).toContain("A shared situation.");
     expect(container.querySelector("blockquote")?.textContent).toContain("Mostly conversational.");
     expect(container.querySelector(".grammar-note-callout")).toBeNull();
     expect(screen.getByRole("button", { name: "Organize Notes" })).toBeTruthy();

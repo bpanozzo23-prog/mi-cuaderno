@@ -5,7 +5,7 @@
 **Owner:** The sole builder and only user of this app.
 **Companion file:** `mi-cuaderno.jsx` — a working single-file prototype of the notebook layer. It is the reference for features, interaction patterns, and visual design of **lexical entries**. Pages (§7) do not exist in the prototype and are new in v3. Where this brief contradicts the prototype's *implementation* (ID scheme, search normalization, the `struggling` field, event rules), **this brief wins** — the prototype shows what the app should feel like, not how it must be built.
 **Version:** v3 — revised after lock-in review. Product contract last amended
-~~August 3, 2026~~ ~~August 4, 2026~~ ~~August 5, 2026~~ ~~August 9, 2026~~ ~~August 10, 2026~~ ~~August 12, 2026~~ **August 13, 2026**; agent-facing framing refreshed August 2, 2026.
+~~August 3, 2026~~ ~~August 4, 2026~~ ~~August 5, 2026~~ ~~August 9, 2026~~ ~~August 10, 2026~~ ~~August 12, 2026~~ ~~August 13, 2026~~ **August 17, 2026**; agent-facing framing refreshed August 2, 2026.
 **Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. §§3, 9 and 12 — 2026-08-02: organizational improvements became Phase 5 and the AI assistant moved to Phase 6. §12 — 2026-08-02: independently scoped phases may proceed concurrently under explicit coordination rules. §§5, 7, 8, 10, 12 and 14 — 2026-08-02: personal lexical meanings became stable, structured annotations in schema v2 while review remains entry-level and dictionary senses remain replaceable reference data. **§§5, 7, 10, 12 and 14 — 2026-08-03: schema v3 adds durable `general | collection` page profiles and the first specialized profile, Vocabulary Collection, while dated General pages remain Journal entries and richer profiles stay deferred.** **§§5, 7, 10, 12 and 14 — 2026-08-04: schema v4 adds sparse typed and explained ordinary-connection annotations while `linkedKeys[]` remains authoritative for connection existence and Collection membership.** **§§5, 7, 8, 10, 12 and 14 — 2026-08-04: Phase 7 approves schema v5 composable pages with one leading focus, independently enabled Vocabulary, Source and Grammar structures, contextual retrieval, and sequential legacy backup upgrades.** **§§7, 12 and 14 — 2026-08-05: Phase 9 approves filtered, session-only free practice from the Words & phrases hub while Repaso remains the sole scheduled and event-backed review flow.** **§§7, 12 and 14 — 2026-08-07: Phase 14 approves an owner-started, event-backed Conjugation Gym with curated reference-only verb pools, richer derived performance, and optional history-ranked sessions that never create a due date or alter Leitner review.** **§§7, 12 and 14 — 2026-08-09: Phase 16 approves four-grade scheduled review, objective typed vocabulary recall, queue chunking, one event-free recovery pass, a shared vocabulary-card engine and history-free hub/Collection sessions.** **§§7, 12 and 14 — 2026-08-09: Phase 17 adds owner-started, event-backed Tense usage and Endings recognition lanes whose results remain isolated from form Adaptive, form statistics and Leitner review.** **§§7, 12 and 14 — 2026-08-10: Phase 18 adds the recall/production reverse of those lanes, balanced Regular and Spelling-change packs, exact Saved tag/page targeting and mode-separated depth reporting without changing schema, scheduling or choice evidence.** Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
 
 **Meaning-block amendment, 2026-08-13 — §7:** meaning-level part-of-speech overrides add
@@ -22,6 +22,11 @@ outline is durable Page organization for the Pages/Diario boundary; body length 
 **Phase 19 Notes callout amendment, 2026-08-10 — §§7, 8, 12 and 13:** Page Notes Overview and
 Notes-section bodies may store explicit `[!NOTE]` Markdown callouts while ordinary blockquotes
 remain quotations. This changes rendering and visible-text projection only; schema stays v7.
+
+**Phase 19 callout-variant and inline-action amendment, 2026-08-17 — §§7, 8, 12 and 13:** every
+explicit-Notes-callout editor adds `[!TIP]` and `[!OJO]` beside `[!NOTE]`; every Markdown toolbar
+adds inline code and an explicit HTTPS Link action. Grammar keeps its fixed blockquote-as-Note
+behavior, fenced code remains plain readable text, and schema stays v9.
 
 **Phase 20 amendment, 2026-08-10 — §§7 and 12:** Ajustes gains exact global tag rename, merge and
 removal across personal items. Each changed item keeps its timestamp but receives one ordinary
@@ -254,10 +259,15 @@ noteSections[{
 `body` on the Page itself remains the Notes Overview and is never moved or parsed into sections.
 Notes parents obey the same exactly-one-level, same-page, no-cycle and sibling-name rules as
 Grammar, through one shared parameterized hierarchy engine. ~~The Notes body strings use the safe
-Page Markdown dialect and ordinary blockquotes.~~ **Phase 19 Notes-callout amendment:** Notes body
+Page Markdown dialect and ordinary blockquotes.~~ ~~**Phase 19 Notes-callout amendment:** Notes body
 strings retain the safe Page Markdown dialect and ordinary unmarked blockquotes; a blockquote whose
 first line is exactly `[!NOTE]` renders as a visibly labeled accessible Note callout. The marker is
-formatting rather than visible prose and is excluded from search, previews and AI-visible text. A
+formatting rather than visible prose and is excluded from search, previews and AI-visible text.~~
+**Phase 19 callout-variant replacement, 2026-08-17:** Notes body strings retain the safe Page
+Markdown dialect and ordinary unmarked blockquotes; a blockquote whose first line is exactly
+`[!NOTE]`, `[!TIP]` or `[!OJO]` renders as the matching visibly labeled accessible callout. All
+three markers are formatting rather than visible prose and are excluded from search, previews and
+AI-visible text. A
 schema-v6 Page migrates by receiving only `noteSections: []`.
 
 **Inline-media amendment, 2026-08-11.** Everywhere the safe dialect renders, it additionally
@@ -806,15 +816,27 @@ editor, deeper nesting, new content type, event, preference, dictionary dependen
 identity is introduced. The approved contract and delivery order live in
 `docs/PHASE-19-DIRECTION.md`.
 
-**Amended 2026-08-10 — Phase 19 Notes callouts; revised 2026-08-16.** Page creation,
-Page-details editing, Notes
-Overview editing and Notes section/subsection editing expose both Block quote and Note callout.
-The Note action writes `> [!NOTE]` plus quoted prose; only that explicit marker receives the
-Notes-blue labeled callout treatment. Grammar retains its existing Grammar-colored callouts and
+**Amended 2026-08-10 — Phase 19 Notes callouts; revised 2026-08-16.** ~~Page creation,
+Page-details editing, Notes Overview editing and Notes section/subsection editing expose both Block
+quote and Note callout. The Note action writes `> [!NOTE]` plus quoted prose; only that explicit
+marker receives the Notes-blue labeled callout treatment.~~ **Revised 2026-08-17:** Page creation,
+Page-details editing, Notes Overview and Notes section/subsection editors expose Block quote plus
+Note, Tip and ¡Ojo! callouts. Their exact first-line markers are `[!NOTE]`, `[!TIP]` and the
+owner-chosen Spanish `[!OJO]`; read mode labels them Note, Tip and ¡Ojo! with distinct treatments.
+Grammar retains its existing Grammar-colored callouts and
 ~~ordinary lexical notes and Diario keep their existing Block quote control~~ **top-level lexical
 notes expose both Block quote and the same explicit Note callout as Page Notes, while Diario keeps
-its existing Block quote control**. The marker stays outside search and previews. No schema,
-backup, event, preference or content-type change is introduced.
+its existing Block quote control**; under the 2026-08-17 revision those top-level lexical-note
+editors receive all three explicit callout actions. ~~The marker stays outside search and
+previews.~~ **All three markers stay outside search and previews.** No schema, backup, event,
+preference or content-type change is introduced.
+
+**Amended 2026-08-17 — Phase 19 inline actions.** Every Markdown toolbar exposes **Inline code**
+and **Link**. Inline code wraps selected text in backticks and renders as a compact monospace span;
+fenced blocks stay unsupported and degrade to readable plain text. Link writes `[text](https://)`
+with the URL placeholder selected, using the existing rule that only HTTPS destinations become
+clickable. Bare URLs, autolinks, footnotes, tables, strikethrough, task lists and raw HTML remain
+outside the dialect.
 
 **Amended 2026-08-10 — Phase 19 Markdown blank lines; revised 2026-08-16.** Page Notes editors,
 Grammar Overview editors, ~~and Diario~~ **Diario and top-level lexical-note editors** expose a

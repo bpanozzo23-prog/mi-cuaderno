@@ -101,6 +101,20 @@ describe("JournalEditor stored feedback", () => {
 });
 
 describe("JournalEditor autosave", () => {
+  it("offers Inline code and Link in Diario and Apuntes without explicit callout variants", async () => {
+    const user = userEvent.setup();
+    render(<JournalEditor {...baseProps()} />);
+
+    expect(screen.getByRole("button", { name: "Inline code" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Link" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Tip callout" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "¡Ojo! callout" })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Apuntes" }));
+    expect(screen.getAllByRole("button", { name: "Inline code" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: "Link" })).toHaveLength(2);
+  });
+
   it("autosaves a non-destructive blank-line marker", async () => {
     const user = userEvent.setup();
     const entry = await createItem(newPage({

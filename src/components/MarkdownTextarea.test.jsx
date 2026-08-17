@@ -44,10 +44,38 @@ describe("MarkdownTextarea", () => {
   it("offers every approved formatting action in one accessible toolbar", () => {
     render(<Field initial="" />);
     expect(screen.getByRole("toolbar", { name: "Text formatting" })).toBeTruthy();
-    for (const name of ["Bold", "Italic", "Highlight", "Heading", "Bulleted list", "Numbered list", "Block quote", "Image link", "Divider"]) {
+    for (const name of ["Bold", "Italic", "Highlight", "Inline code", "Heading", "Bulleted list", "Numbered list", "Block quote", "Link", "Image link", "Divider"]) {
       expect(screen.getByRole("button", { name })).toBeTruthy();
     }
     expect(screen.queryByRole("button", { name: "Blank line" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Tip callout" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "¡Ojo! callout" })).toBeNull();
+  });
+
+  it("wraps and unwraps inline code while keeping the selection inside", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="Use hubiera here" />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(4, 11);
+
+    await user.click(screen.getByRole("button", { name: "Inline code" }));
+
+    expect(field.value).toBe("Use `hubiera` here");
+    await waitFor(() => expect([field.selectionStart, field.selectionEnd]).toEqual([5, 12]));
+    await user.click(screen.getByRole("button", { name: "Inline code" }));
+    expect(field.value).toBe("Use hubiera here");
+  });
+
+  it("places the caret between empty inline-code markers", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="" />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+
+    await user.click(screen.getByRole("button", { name: "Inline code" }));
+
+    expect(field.value).toBe("``");
+    await waitFor(() => expect([field.selectionStart, field.selectionEnd]).toEqual([1, 1]));
   });
 
   it("inserts an image template with the URL placeholder selected for pasting", async () => {
@@ -61,6 +89,20 @@ describe("MarkdownTextarea", () => {
 
     expect(field.value).toBe("![Mapa del voseo](https://)");
     await waitFor(() => expect(field.selectionStart).toBe("![Mapa del voseo](".length));
+    expect(field.selectionEnd).toBe(field.selectionStart + "https://".length);
+  });
+
+  it("inserts a link template with the URL placeholder selected for pasting", async () => {
+    const user = userEvent.setup();
+    render(<Field initial="El artículo" />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(0, field.value.length);
+
+    await user.click(screen.getByRole("button", { name: "Link" }));
+
+    expect(field.value).toBe("[El artículo](https://)");
+    await waitFor(() => expect(field.selectionStart).toBe("[El artículo](".length));
     expect(field.selectionEnd).toBe(field.selectionStart + "https://".length);
   });
 
@@ -96,6 +138,8 @@ describe("MarkdownTextarea", () => {
 
     expect(screen.getByRole("button", { name: "Note callout" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Block quote" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Tip callout" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "¡Ojo! callout" })).toBeNull();
     const field = screen.getByRole("textbox", { name: "Notes" });
     field.focus();
     field.setSelectionRange(0, 0);
@@ -108,18 +152,22 @@ describe("MarkdownTextarea", () => {
     expect(screen.queryByRole("button", { name: "Note callout" })).toBeNull();
   });
 
-  it("offers separate Block quote and explicit Note callout actions for Page Notes", async () => {
+  it.each([
+    ["Note callout", "NOTE"],
+    ["Tip callout", "TIP"],
+    ["¡Ojo! callout", "OJO"],
+  ])("offers Block quote and an explicit %s action for Page Notes", async (label, marker) => {
     const user = userEvent.setup();
     render(<Field initial="Remember this" noteCallouts />);
 
     expect(screen.getByRole("button", { name: "Block quote" })).toBeTruthy();
-    const callout = screen.getByRole("button", { name: "Note callout" });
+    const callout = screen.getByRole("button", { name: label });
     const field = screen.getByRole("textbox", { name: "Notes" });
     field.focus();
     field.setSelectionRange(0, field.value.length);
     await user.click(callout);
 
-    expect(field.value).toBe("> [!NOTE]\n> Remember this");
+    expect(field.value).toBe(`> [!${marker}]\n> Remember this`);
   });
 
   it("places the caret inside a new empty explicit Note callout", async () => {
@@ -276,13 +324,15 @@ describe("MarkdownTextarea", () => {
     expect(screen.getByRole("note")).toBeTruthy();
   });
 
-  it("previews explicit [!NOTE] callouts for Page Notes", async () => {
+  it("previews all explicit callout variants for Page Notes", async () => {
     const user = userEvent.setup();
-    render(<Field initial={"> [!NOTE]\n> hola"} noteCallouts />);
+    render(<Field initial={"> [!NOTE]\n> contexto\n\n> [!TIP]\n> consejo\n\n> [!OJO]\n> cuidado"} noteCallouts />);
 
     await user.click(screen.getByRole("button", { name: "Preview" }));
 
-    expect(screen.getByRole("note")).toBeTruthy();
+    expect(screen.getByRole("note", { name: "Note" })).toBeTruthy();
+    expect(screen.getByRole("note", { name: "Tip" })).toBeTruthy();
+    expect(screen.getByRole("note", { name: "¡Ojo!" })).toBeTruthy();
   });
 
   it("previews an empty draft as a placeholder instead of a bare box", async () => {

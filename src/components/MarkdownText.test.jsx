@@ -29,17 +29,31 @@ This is **bold**, *italic*, and ==highlighted==.
     expect(container.querySelector("hr")).toBeTruthy();
   });
 
-  it("does not render raw HTML, tables, or code as active elements", () => {
+  it("does not render raw HTML or tables as active elements", () => {
     const { container } = render(
-      <MarkdownText>{`Before <script>alert("no")</script> after.
-
-\`plain code\``}</MarkdownText>
+      <MarkdownText>{`Before <script>alert("no")</script> after.`}</MarkdownText>
     );
 
-    expect(container.querySelector("script, table, code, pre, iframe")).toBeNull();
-    expect(screen.getByText("plain code")).toBeTruthy();
+    expect(container.querySelector("script, table, pre, iframe")).toBeNull();
     expect(container.textContent).not.toContain("alert");
     expect(container.textContent).toContain("Before  after.");
+  });
+
+  it("renders inline code while fenced code stays readable plain text", () => {
+    const { container } = render(
+      <MarkdownText>{`Compare \`hubiera\` with \`habría\`.
+
+\`\`\`js
+const form = "hubiera";
+\`\`\`
+
+\`\`\`
+\`\`\``}</MarkdownText>
+    );
+
+    expect(container.querySelectorAll("code")).toHaveLength(2);
+    expect(container.querySelector("pre")).toBeNull();
+    expect(container.textContent).toContain('const form = "hubiera";');
   });
 
   it("renders an https image as a tappable block figure with captioned lazy no-referrer loading", () => {
@@ -132,6 +146,7 @@ After.`}</MarkdownText>
     const { container } = render(
       <MarkdownText calloutBlockquotes>{`Before.
 
+> [!TIP]
 > The speaker only needs to believe it is true.
 
 After.`}</MarkdownText>
@@ -139,16 +154,23 @@ After.`}</MarkdownText>
 
     const note = screen.getByRole("note", { name: "Note" });
     expect(note.textContent).toContain("Note");
+    expect(note.textContent).toContain("[!TIP]");
     expect(note.textContent).toContain("The speaker only needs to believe it is true.");
     expect(note.getAttribute("aria-label")).toBeNull();
     expect(note.getAttribute("aria-labelledby")).toBeTruthy();
     expect(container.querySelector("blockquote")).toBeNull();
   });
 
-  it("presents only explicitly marked Page Notes block quotes as callouts", () => {
+  it("presents typed Page Notes callouts and preserves ordinary block quotes", () => {
     const { container } = render(
       <MarkdownText blankLines explicitNoteCallouts>{`> [!NOTE]
 > Remember that belief is what matters.
+
+> [!TIP]
+> Keep the preposition in the whole phrase.
+
+> [!OJO]
+> Actualmente does not mean actually.
 
 <br>
 
@@ -156,9 +178,17 @@ After.`}</MarkdownText>
     );
 
     const note = screen.getByRole("note", { name: "Note" });
+    const tip = screen.getByRole("note", { name: "Tip" });
+    const ojo = screen.getByRole("note", { name: "¡Ojo!" });
     expect(note.textContent).toContain("Remember that belief is what matters.");
     expect(note.textContent).not.toContain("[!NOTE]");
     expect(container.querySelector(".notes-note-callout")).toBe(note);
+    expect(tip.classList.contains("note-callout--tip")).toBe(true);
+    expect(ojo.classList.contains("note-callout--ojo")).toBe(true);
+    for (const callout of [note, tip, ojo]) {
+      expect(callout.getAttribute("aria-label")).toBeNull();
+      expect(callout.getAttribute("aria-labelledby")).toBeTruthy();
+    }
     expect(container.querySelectorAll(".note-blank-line")).toHaveLength(1);
     expect(container.querySelector("blockquote")?.textContent).toContain("ordinary quotation");
   });

@@ -12,8 +12,10 @@ import MediaImage from "./MediaImage.jsx";
 const ALLOWED_ELEMENTS = [
   "p", "h1", "h2", "h3", "strong", "em", "mark",
   "ul", "ol", "li", "hr", "blockquote", "br",
-  "img", "a",
+  "img", "a", "code",
 ];
+
+const CALLOUT_LABELS = Object.freeze({ note: "Note", tip: "Tip", ojo: "¡Ojo!" });
 
 const isHttps = (url) => /^https:\/\//i.test(url || "");
 
@@ -36,28 +38,40 @@ function BodyLink({ href, children }) {
   );
 }
 
-function NoteCallout({ children, family }) {
+function NoteCallout({ children, family, type = "note" }) {
   const labelId = useId();
+  const label = CALLOUT_LABELS[type] || CALLOUT_LABELS.note;
   return (
     <aside
       role="note"
       aria-labelledby={labelId}
-      className={`note-callout ${family}-note-callout note-callout--${family}`}
+      className={`note-callout ${family}-note-callout note-callout--${family} note-callout--${type}`}
     >
-      <div id={labelId} className="note-callout__label">Note</div>
+      <div id={labelId} className="note-callout__label">{label}</div>
       {children}
     </aside>
   );
 }
 
-function hasExplicitCalloutClass(node) {
+function explicitCalloutType(node) {
   const names = node?.properties?.className || [];
-  return (Array.isArray(names) ? names : String(names).split(/\s+/)).includes("note-callout-source");
+  const classes = Array.isArray(names) ? names : String(names).split(/\s+/);
+  if (!classes.includes("note-callout-source")) return null;
+  return Object.keys(CALLOUT_LABELS).find((type) => (
+    classes.includes(`note-callout-source--${type}`)
+  )) || "note";
 }
 
 function hasBlankLineClass(node) {
   const names = node?.properties?.className || [];
   return (Array.isArray(names) ? names : String(names).split(/\s+/)).includes("note-blank-line-source");
+}
+
+function InlineCode({ children, node, ...props }) {
+  const value = String(children ?? "");
+  const spansMultipleLines = node?.position?.start?.line !== node?.position?.end?.line;
+  if (spansMultipleLines || value.includes("\n")) return <>{children}</>;
+  return <code {...props}>{children}</code>;
 }
 
 /**
@@ -76,11 +90,19 @@ export default function MarkdownText({
   explicitNoteCallouts = false,
   blankLines = false,
 }) {
-  const components = { img: BodyImage, a: BodyLink };
+  const components = { img: BodyImage, a: BodyLink, code: InlineCode };
   if (calloutBlockquotes || explicitNoteCallouts) {
     components.blockquote = ({ children: quoteChildren, className, node }) => {
-      if (calloutBlockquotes || (explicitNoteCallouts && hasExplicitCalloutClass(node))) {
-        return <NoteCallout family={calloutBlockquotes ? "grammar" : "notes"}>{quoteChildren}</NoteCallout>;
+      const explicitType = explicitNoteCallouts ? explicitCalloutType(node) : null;
+      if (calloutBlockquotes || explicitType) {
+        return (
+          <NoteCallout
+            family={calloutBlockquotes ? "grammar" : "notes"}
+            type={calloutBlockquotes ? "note" : explicitType}
+          >
+            {quoteChildren}
+          </NoteCallout>
+        );
       }
       return <blockquote className={className}>{quoteChildren}</blockquote>;
     };

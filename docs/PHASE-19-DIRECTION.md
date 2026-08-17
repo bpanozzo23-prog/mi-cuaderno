@@ -44,10 +44,13 @@ named Notes sections without adding an enable switch or converting prose into bl
   and the generated Note label never become searchable content. Disabled Grammar structures remain
   excluded, and every comparison still passes through the normalizer that preserves ñ.
 - Key idea, Pattern, Spanish and English example text, and example notes remain plain text. ~~Raw
-  HTML, images, tables, code and clickable Markdown links remain unsupported.~~ The exact
+  HTML, images, tables, code and clickable Markdown links remain unsupported.~~ ~~The exact
   top-level standalone `<br>` marker is the sole raw-HTML-shaped exception and renders as vertical
   spacing in Grammar Overviews; inline `<br>`, every other raw HTML form, images, tables, code and
-  clickable Markdown links remain unsupported.
+  clickable Markdown links remain unsupported.~~ **Revised 2026-08-17:** the exact standalone
+  `<br>` marker remains the only raw-HTML-shaped exception; the later shared-dialect increments
+  permit HTTPS images and labeled links plus inline code. Inline `<br>`, every other raw HTML form,
+  tables and fenced code remain unsupported, with fenced content degrading to readable plain text.
 - A changed explicit section save writes one ordinary page `edit`; Cancel and no-op Save write
   nothing. The formatting slice was committed independently while schema remained v5, before the
   schema-v6 hierarchy was integrated.

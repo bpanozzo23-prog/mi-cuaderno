@@ -311,7 +311,11 @@ The **indicative mood** describes what the speaker treats as certain.
     expect(screen.getByText("Overview")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Note callout" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Blank line" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Inline code" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Link" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Block quote" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Tip callout" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "¡Ojo! callout" })).toBeNull();
   });
 
   it("saves example pairs with an exact enabled Source capture, including one on the same page", async () => {

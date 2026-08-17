@@ -153,6 +153,10 @@ describe("composable page workspace", () => {
     expect(screen.getByRole("textbox", { name: "Page notes" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Block quote" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Note callout" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Tip callout" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "¡Ojo! callout" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Inline code" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Link" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Cancel" }));
 
     const connections = screen.getByRole("heading", { name: "Connections" }).closest("section");

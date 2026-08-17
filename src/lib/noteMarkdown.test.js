@@ -31,19 +31,32 @@ Remember **quedar** can mean ==to arrange to meet==.
     expect(plainTextFromMarkdown("**año** and ==señora==")).toBe("año and señora");
   });
 
-  it("omits an explicit Notes callout marker only when callouts are enabled", () => {
-    const source = `> [!NOTE]
-> The speaker only needs to believe it.
+  it.each(["NOTE", "TIP", "OJO"])(
+    "omits an explicit [%s] callout marker only when callouts are enabled",
+    (marker) => {
+      const source = `> [!${marker}]\n> The speaker only needs to believe it.\n\n> An ordinary quotation.`;
 
-> An ordinary quotation.`;
+      expect(plainTextFromMarkdown(source, { noteCallouts: true })).toBe(
+        "The speaker only needs to believe it.\nAn ordinary quotation."
+      );
+      expect(markdownPreviewText(source, { noteCallouts: true })).toBe(
+        "The speaker only needs to believe it. An ordinary quotation."
+      );
+      expect(plainTextFromMarkdown(source)).toContain(`[!${marker}]`);
+    }
+  );
 
-    expect(plainTextFromMarkdown(source, { noteCallouts: true })).toBe(
-      "The speaker only needs to believe it.\nAn ordinary quotation."
+  it.each(["[!tip]", "[!WARNING]", "[!TIP] same line"])(
+    "keeps the near-miss callout marker %s visible",
+    (marker) => {
+      expect(plainTextFromMarkdown(`> ${marker}`, { noteCallouts: true })).toContain(marker);
+    }
+  );
+
+  it("keeps inline-code text visible without its backticks", () => {
+    expect(plainTextFromMarkdown("Compare `hubiera` with `habría`.")).toBe(
+      "Compare hubiera with habría."
     );
-    expect(markdownPreviewText(source, { noteCallouts: true })).toBe(
-      "The speaker only needs to believe it. An ordinary quotation."
-    );
-    expect(plainTextFromMarkdown(source)).toContain("[!NOTE]");
   });
 
   it("keeps link labels visible while images stay out of search and previews", () => {

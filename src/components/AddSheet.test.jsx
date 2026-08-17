@@ -166,7 +166,11 @@ describe("AddSheet", () => {
     expect(screen.getByRole("textbox", { name: "Page overview" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Block quote" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Note callout" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Tip callout" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "¡Ojo! callout" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Blank line" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Inline code" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Link" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Add notes page" })).toBeTruthy();
   });
 
@@ -182,7 +186,11 @@ describe("AddSheet", () => {
 
     expect(screen.getByRole("button", { name: "Block quote" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Note callout" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Tip callout" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "¡Ojo! callout" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Blank line" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Inline code" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Link" })).toBeTruthy();
   });
 
   it("warns for a cleaned lexical heading but still creates another with the chosen form", async () => {

@@ -10,7 +10,7 @@ import { unified } from "unified";
 export const NOTE_MARKDOWN_PLUGINS = Object.freeze([remarkMark, remarkBreaks]);
 
 const NOTE_CALLOUT_CLASS = "note-callout-source";
-const NOTE_CALLOUT_MARKER = "[!NOTE]";
+const NOTE_CALLOUT_TYPES = new Set(["note", "tip", "ojo"]);
 const NOTE_BLANK_LINE_CLASS = "note-blank-line-source";
 
 function visitExplicitNoteCallouts(node) {
@@ -19,9 +19,11 @@ function visitExplicitNoteCallouts(node) {
     const paragraph = node.children?.[0];
     const first = paragraph?.type === "paragraph" ? paragraph.children?.[0] : null;
     const marker = first?.type === "text"
-      ? first.value.match(/^\[!NOTE\][ \t]*(?:\r?\n|$)/)
+      ? first.value.match(/^\[!(NOTE|TIP|OJO)\][ \t]*(?:\r?\n|$)/)
       : null;
     if (marker) {
+      const calloutType = marker[1].toLowerCase();
+      if (!NOTE_CALLOUT_TYPES.has(calloutType)) return;
       first.value = first.value.slice(marker[0].length);
       if (!first.value) paragraph.children.shift();
       if (!paragraph.children.length) node.children.shift();
@@ -30,7 +32,11 @@ function visitExplicitNoteCallouts(node) {
         ...node.data,
         hProperties: {
           ...node.data?.hProperties,
-          className: [...(Array.isArray(priorClasses) ? priorClasses : [priorClasses]), NOTE_CALLOUT_CLASS],
+          className: [
+            ...(Array.isArray(priorClasses) ? priorClasses : [priorClasses]),
+            NOTE_CALLOUT_CLASS,
+            `${NOTE_CALLOUT_CLASS}--${calloutType}`,
+          ],
         },
       };
     }
@@ -38,7 +44,7 @@ function visitExplicitNoteCallouts(node) {
   for (const child of node.children || []) visitExplicitNoteCallouts(child);
 }
 
-/** Mark and de-label explicit Page Notes callouts without changing their saved Markdown source. */
+/** Mark and de-label explicit Notes callouts without changing their saved Markdown source. */
 export function remarkExplicitNoteCallouts() {
   return visitExplicitNoteCallouts;
 }

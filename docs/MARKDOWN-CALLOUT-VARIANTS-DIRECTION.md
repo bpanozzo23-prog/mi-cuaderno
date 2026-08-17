@@ -1,9 +1,9 @@
 # Markdown callout variants and inline actions — direction
 
-**Status:** Draft written 2026-08-17 for owner review. Not approved, not implemented. On approval
-this increment joins the Phase 19 umbrella (page organization and formatting) as a further
-owner-approved increment, alongside §8 Explicit Notes callouts and §9 Markdown blank lines in
-`docs/PHASE-19-DIRECTION.md`.
+**Status:** Owner-approved and implemented 2026-08-17 with palette direction B (sage Tip,
+saffron ¡Ojo!); verified locally, not pushed or deployed. This increment joins the Phase 19
+umbrella (page organization and formatting) alongside §8 Explicit Notes callouts and §9 Markdown
+blank lines in `docs/PHASE-19-DIRECTION.md`.
 **Origin:** Owner request while reviewing Markdown editor options: study notes need a warning-toned
 callout for false friends and common mistakes ("¡Ojo!") and an advice-toned callout ("Tip"),
 plus two small toolbar gaps — inline code and plain links — that the dialect already half
@@ -71,6 +71,10 @@ string round-trips unchanged through ordinary persistence and backups.
   family, ¡Ojo! in an amber/warning family — but per the visual-changes agreement the exact
   values are **subjective choices presented as 2–3 variants** on a disposable scratchpad page
   with real-length content, and nothing enters `src/` until the owner picks.
+- **Owner-picked 2026-08-17:** direction B, the notebook-family treatment. Tip uses sage
+  (`#738A53` line, `#F1F5E9` background, `#4E6132` label); ¡Ojo! uses saffron
+  (`#C49128` line, `#FFF5D8` background, `#745314` label). Each still receives dedicated tokens
+  rather than borrowing Source, success or review-grade identity.
 - Label CSS reuses `.note-callout__label`; only the per-type colour rules are new.
 
 ## 3 — Inline code (dialect addition)
@@ -128,3 +132,21 @@ string round-trips unchanged through ordinary persistence and backups.
    `git diff --check`; a disposable 375×812 flow covering each new callout in a Notes editor,
    an ordinary quote staying a quote, marker-free search, 44×44 px actions and zero horizontal
    overflow. Nothing is pushed or deployed without a separate owner request.
+
+## Implementation closeout
+
+The parser, renderer, toolbar and integration tests first failed in 12 intended places against the
+prior implementation, then the focused gate passed 191/191 across ten files. The complete serial
+suite passes 1,549/1,549 tests across 130 files; its only output is the repository's known jsdom
+`scrollTo` notice. The production build transforms 2,122 modules, and `git diff --check` passes.
+
+A disposable 375×812 browser flow used an unsaved Notes-page creation draft, so it changed no
+personal item or event. Its preview rendered accessible Note, Tip and ¡Ojo! regions with exact
+resolved surface/border/label colours of blue `237 241 250` / `123 147 209` / `36 63 133`, sage
+`241 245 233` / `115 138 83` / `78 97 50`, and saffron `255 245 216` / `196 145 40` / `116 83 20`.
+One ordinary blockquote remained a blockquote; inline code used the monospace treatment; the HTTPS
+link opened in a new tab; and no source marker appeared in visible text. All 16 toolbar actions
+measured 44×44 px across three rows, with toolbar geometry 328/328 and document geometry 375/375.
+The console contained zero warnings or errors. The draft was closed without saving, notebook totals
+remained unchanged, the viewport override was reset and both local test servers were stopped. No
+owner browser data or real notebook snapshot was available or inspected.

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  BetweenHorizontalStart, Bold, Eye, Heading2, Highlighter, Image as ImageIcon, Italic, List,
-  ListOrdered, Minus, Quote, StickyNote,
+  BetweenHorizontalStart, Bold, Code, Eye, Heading2, Highlighter, Image as ImageIcon, Italic,
+  Lightbulb, Link as LinkIcon, List, ListOrdered, Minus, Quote, StickyNote, TriangleAlert,
 } from "lucide-react";
 import { C } from "../theme.jsx";
 import MarkdownText from "./MarkdownText.jsx";
@@ -10,7 +10,14 @@ const INLINE_ACTIONS = [
   { label: "Bold", icon: Bold, before: "**", after: "**" },
   { label: "Italic", icon: Italic, before: "*", after: "*" },
   { label: "Highlight", icon: Highlighter, before: "==", after: "==" },
+  { label: "Inline code", icon: Code, before: "`", after: "`" },
 ];
+
+const EXPLICIT_CALLOUT_ACTIONS = Object.freeze([
+  { label: "Note callout", icon: StickyNote, marker: "NOTE" },
+  { label: "Tip callout", icon: Lightbulb, marker: "TIP" },
+  { label: "¡Ojo! callout", icon: TriangleAlert, marker: "OJO" },
+]);
 
 // One grammar for both the toolbar's line rules and Enter continuation, so the two can never
 // disagree about what counts as a list or quote line.
@@ -115,17 +122,18 @@ function MarkdownToolbar({
     focusSelection(textarea, start, start + changed.length);
   }
 
-  function imageLink() {
+  function markdownLink(image = false) {
     const textarea = textareaRef.current;
     if (!textarea) return;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selected = value.slice(start, end);
     const placeholder = "https://";
-    const replacement = `![${selected}](${placeholder})`;
+    const opening = image ? "![" : "[";
+    const replacement = `${opening}${selected}](${placeholder})`;
     replaceSelection(value, onChange, replacement, start, end);
     // Leave the placeholder selected so pasting a copied URL overwrites it in one gesture.
-    const urlStart = start + 2 + selected.length + 2;
+    const urlStart = start + opening.length + selected.length + 2;
     focusSelection(textarea, urlStart, urlStart + placeholder.length);
   }
 
@@ -142,7 +150,7 @@ function MarkdownToolbar({
     focusSelection(textarea, caret, caret);
   }
 
-  function noteCallout() {
+  function explicitCallout(marker) {
     const textarea = textareaRef.current;
     if (!textarea) return;
     const [start, end] = lineRange(value, textarea.selectionStart, textarea.selectionEnd);
@@ -150,7 +158,7 @@ function MarkdownToolbar({
     const quoted = selected
       ? selected.split("\n").map((line) => line.trim() ? `> ${line}` : ">").join("\n")
       : "> ";
-    const replacement = `> [!NOTE]\n${quoted}`;
+    const replacement = `> [!${marker}]\n${quoted}`;
     replaceSelection(value, onChange, replacement, start, end);
     const caret = start + replacement.length;
     focusSelection(textarea, caret, caret);
@@ -196,9 +204,18 @@ function MarkdownToolbar({
       <ToolbarButton label="Bulleted list" icon={List} disabled={previewing} onAction={() => prefixLines("bullet")} />
       <ToolbarButton label="Numbered list" icon={ListOrdered} disabled={previewing} onAction={() => prefixLines("ordered")} />
       <ToolbarButton label={quoteLabel} icon={Quote} disabled={previewing} onAction={() => prefixLines("quote")} />
-      {noteCallouts && <ToolbarButton label="Note callout" icon={StickyNote} disabled={previewing} onAction={noteCallout} />}
+      {noteCallouts && EXPLICIT_CALLOUT_ACTIONS.map((action) => (
+        <ToolbarButton
+          key={action.marker}
+          label={action.label}
+          icon={action.icon}
+          disabled={previewing}
+          onAction={() => explicitCallout(action.marker)}
+        />
+      ))}
       {blankLines && <ToolbarButton label="Blank line" icon={BetweenHorizontalStart} disabled={previewing} onAction={blankLine} />}
-      <ToolbarButton label="Image link" icon={ImageIcon} disabled={previewing} onAction={imageLink} />
+      <ToolbarButton label="Link" icon={LinkIcon} disabled={previewing} onAction={() => markdownLink()} />
+      <ToolbarButton label="Image link" icon={ImageIcon} disabled={previewing} onAction={() => markdownLink(true)} />
       <ToolbarButton label="Divider" icon={Minus} disabled={previewing} onAction={divider} />
       <ToolbarButton label="Preview" icon={Eye} pressed={previewing} onAction={onTogglePreview} />
     </div>
