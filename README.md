@@ -587,6 +587,17 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   horizontal overflow and a clear console. Deployed from `main` at `de89791` through Pages run
   31972144810, with the live site serving `assets/index-BRnsFnkg.js`. See the 2026-08-16 entries in
   [DECISIONS.md](DECISIONS.md).
+- **General-example reading polish and editing — deployed.** Every saved General example now keeps
+  Edit, Assign to meaning, Add as phrase and Delete inside one 44px ellipsis menu, leaving only the
+  Spanish, optional English and speaker visible while reading. Edit opens the shared prefilled
+  inline Spanish/English editor, replaces the example in the same array position, and logs one
+  ordinary `edit`; Cancel writes nothing. No storage, backup, preference, event-type or schema
+  change; `SCHEMA_VERSION` stays 9. The complete serial suite passes 1,536/1,536 across 130 files,
+  the production build and `git diff --check` pass, and a disposable 375×812 origin verified the
+  collapsed actions, in-place edit, 44px menu rows, zero horizontal overflow and a clear console.
+  Deployed from `main` at `b77d809` through Pages run 31993261452, with the live site serving
+  `assets/index-boXJd412.js` and `assets/App-CqkQitpZ.js`. See the General-example reading polish
+  and editing entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
