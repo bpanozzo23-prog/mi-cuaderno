@@ -8,6 +8,12 @@ import "./index.css";
 import "@fontsource/gloria-hallelujah/latin-400.css";
 import "@fontsource/caveat/latin-500.css";
 import "@fontsource/caveat/latin-700.css";
+// The entry face (owner-picked 2026-08-16, "diccionario de bolsillo" variant): Literata for
+// headwords, glosses and note headings, replacing the Georgia stack that Android never had.
+import "@fontsource/literata/latin-400.css";
+import "@fontsource/literata/latin-400-italic.css";
+import "@fontsource/literata/latin-600.css";
+import "@fontsource/literata/latin-700.css";
 
 const root = createRoot(document.getElementById("root"));
 

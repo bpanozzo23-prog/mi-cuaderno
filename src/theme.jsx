@@ -92,7 +92,7 @@ export const HEAT = [
   "var(--color-heat-4)",
 ];
 
-export const SERIF = 'Georgia, "Iowan Old Style", "Times New Roman", serif';
+export const SERIF = '"Literata", Georgia, "Iowan Old Style", "Times New Roman", serif';
 export const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 /* The chalkboard's two hands (self-hosted via @fontsource, imported in main.jsx): a rough
    print for the numbers, a quicker script for labels and the heading. */

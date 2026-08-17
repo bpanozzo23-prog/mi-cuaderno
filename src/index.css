@@ -282,7 +282,7 @@
 .note-markdown h3 {
   margin: 0.9em 0 0.35em;
   color: var(--color-ink);
-  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  font-family: "Literata", Georgia, "Iowan Old Style", "Times New Roman", serif;
   font-weight: 700;
   line-height: 1.25;
 }
