@@ -598,6 +598,14 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   Deployed from `main` at `b77d809` through Pages run 31993261452, with the live site serving
   `assets/index-boXJd412.js` and `assets/App-CqkQitpZ.js`. See the General-example reading polish
   and editing entries in [DECISIONS.md](DECISIONS.md).
+- **Typography: Literata entry face — deployed.** The owner picked the "diccionario de bolsillo"
+  direction from a three-way scratchpad comparison: self-hosted Literata (latin 400/400i/600/700
+  via `@fontsource/literata`) now leads `SERIF` and the note-heading stack, and browsing glosses in
+  `ItemCard`/`LexicalHubCard` render in the entry face. Visual-only; no storage, event, backup or
+  schema change (`SCHEMA_VERSION` stays 9). The production build passes and the 375×812 dev origin
+  showed the loaded faces with zero horizontal overflow. Deployed from `main` at `d459d64` through
+  Pages run 31995019703, with the live CSS serving all four `literata-latin-*.woff2` files. See the
+  Typography direction entry in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
