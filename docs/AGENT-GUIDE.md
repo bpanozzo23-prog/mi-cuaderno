@@ -176,6 +176,26 @@ instead: computed styles (`getComputedStyle`), resolved colours, element counts,
 measurements, `scrollWidth` for overflow. Several phase closeouts have shipped on exactly this
 evidence.
 
+## Real notebook snapshot
+
+The owner may keep a disposable export at
+`private-data/mi-cuaderno-backup-latest.json`. It is a stale working snapshot, never the live
+browser database or the authoritative disaster-recovery copy.
+
+- **Request task-scoped access.** When real data would materially improve a task, explain what
+  you would inspect, why fixtures cannot answer it as well, and the expected output, then ask the
+  owner for permission before opening the file. An initial request that explicitly directs use of
+  the snapshot is approval for that stated scope. A different task or use requires fresh approval.
+- **Keep the source read-only.** Analyze it in place or load a separate copy into a disposable test
+  database when the approved scope requires that. Preserve the source file exactly; owner browser
+  data is never a test target.
+- **Contain derivatives.** Keep raw content and derived output within the approved task. Anything
+  entering tracked files must first be minimized and anonymized; the snapshot and raw extracts
+  never enter Git.
+- **Respect staleness.** Read `exportedAt` and describe conclusions as applying to that snapshot,
+  never as the owner's current live state. Without approval or without the file, continue with
+  seeded fixtures and state any resulting limitation.
+
 ## Visual changes
 
 Process rules for styling and layout work (owner-approved 2026-08-05). Aesthetic direction is

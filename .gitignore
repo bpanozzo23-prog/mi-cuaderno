@@ -11,6 +11,7 @@ pipeline/raw/
 .claude/
 
 # notebook backups — personal data, never committed (the repo is public)
+/private-data/
 mi-cuaderno-backup-*.json
 before-import-*.json
 
