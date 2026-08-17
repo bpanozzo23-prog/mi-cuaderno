@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft, Trash2, X, ExternalLink, Pencil, CalendarDays, FileText, Check,
   Highlighter, Eye, Clock, Plus, Bookmark, BookmarkCheck, Layers, RotateCcw,
-  BarChart3, ChevronDown, History,
+  BarChart3, ChevronDown, Ellipsis, History, MoveRight,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button, IconButton } from "../theme.jsx";
 import { POS_OPTIONS, personalHeadingSuffix, personalLexicalForm } from "./ItemCard.jsx";
@@ -44,6 +44,7 @@ import { commitCollectionAdd } from "../db/collections.js";
 import KnowledgeConsolidation from "./KnowledgeConsolidation.jsx";
 import Biography from "./Biography.jsx";
 import ExamplePhraseAction from "./ExamplePhraseAction.jsx";
+import ExampleEditForm from "./ExampleEditForm.jsx";
 import SharedSourceDisclosure from "./SharedSourceDisclosure.jsx";
 import { canonicalSharedSourceUrl } from "../lib/sharedSources.js";
 
@@ -194,6 +195,9 @@ function StandardDetail({
   const [addingExample, setAddingExample] = useState(false);
   const [exEs, setExEs] = useState("");
   const [exEn, setExEn] = useState("");
+  const [openGeneralExampleActions, setOpenGeneralExampleActions] = useState(null);
+  const [editingGeneralExample, setEditingGeneralExample] = useState(null);
+  const [generalExampleError, setGeneralExampleError] = useState("");
   const [addingMedia, setAddingMedia] = useState(false);
   const [mUrl, setMUrl] = useState("");
   const [mLabel, setMLabel] = useState("");
@@ -339,6 +343,9 @@ function StandardDetail({
     setAddingExample(false);
     setExEs("");
     setExEn("");
+    setOpenGeneralExampleActions(null);
+    setEditingGeneralExample(null);
+    setGeneralExampleError("");
     setAddingMedia(false);
     setMUrl("");
     setMLabel("");
@@ -354,6 +361,27 @@ function StandardDetail({
         : { term: item.term, pos: item.pos || "", form: item.form }
     );
   }, [item.id]);
+
+  useEffect(() => {
+    if (openGeneralExampleActions === null || typeof document === "undefined") return undefined;
+
+    function closeOnOutsidePress(event) {
+      if (!event.target.closest("[data-general-example-actions-root]")) {
+        setOpenGeneralExampleActions(null);
+      }
+    }
+
+    function closeOnEscape(event) {
+      if (event.key === "Escape") setOpenGeneralExampleActions(null);
+    }
+
+    document.addEventListener("pointerdown", closeOnOutsidePress);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsidePress);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [openGeneralExampleActions]);
 
   // An open is recorded when the owner intentionally opens an item — keyed on
   // item.id alone, so rerenders and edits within this screen never re-fire it.
@@ -416,6 +444,30 @@ function StandardDetail({
     setExEs("");
     setExEn("");
     setAddingExample(false);
+  }
+
+  function startGeneralExampleEdit(index, example) {
+    setOpenGeneralExampleActions(null);
+    setEditingGeneralExample({ index, es: example.es, en: example.en || "" });
+    setGeneralExampleError("");
+  }
+
+  async function saveGeneralExampleEdit(event) {
+    event.preventDefault();
+    const es = editingGeneralExample?.es.trim();
+    if (!es || !item.myExamples[editingGeneralExample.index]) return;
+    const nextExamples = item.myExamples.map((example, index) => (
+      index === editingGeneralExample.index
+        ? { es, en: editingGeneralExample.en.trim() }
+        : example
+    ));
+    try {
+      await patch({ myExamples: nextExamples });
+      setEditingGeneralExample(null);
+      setGeneralExampleError("");
+    } catch (problem) {
+      setGeneralExampleError(problem.message);
+    }
   }
 
   function cancelMedia() {
@@ -853,55 +905,130 @@ function StandardDetail({
         <>
           <SectionTitle>General examples</SectionTitle>
           <div className="space-y-2">
-            {item.myExamples.map((x, i) => (
-              <Card key={i} className="flex justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start gap-1">
-                    <span className="min-w-0 flex-1" style={{ fontFamily: SERIF, color: C.ink }}>{x.es}</span>
-                    <SpeakButton text={x.es} label={`Play example ${i + 1}`} />
-                  </div>
-                  {x.en && (
-                    <div className="text-xs mt-0.5" style={{ color: C.mut }}>
-                      {x.en}
-                    </div>
-                  )}
-                  <div className="mt-1 flex flex-wrap items-center gap-1">
-                    {item.meanings.length > 0 && (
-                      <select
-                        aria-label="Assign general example to meaning"
-                        defaultValue=""
-                        onChange={async (event) => {
-                          if (!event.target.value) return;
-                          const nextMeanings = cloneMeanings(item.meanings);
-                          nextMeanings.find((meaning) => meaning.id === event.target.value).examples.push(x);
-                          await patch({
-                            meanings: nextMeanings,
-                            myExamples: item.myExamples.filter((_, itemIndex) => itemIndex !== i),
-                          });
+            {item.myExamples.map((x, i) => {
+              const actionsOpen = openGeneralExampleActions === i;
+              const editingThisExample = editingGeneralExample?.index === i;
+              const popoverId = `general-example-actions-${i}`;
+              return (
+                <Card key={i}>
+                  <div className="relative" data-general-example-actions-root>
+                    {editingThisExample ? (
+                      <ExampleEditForm
+                        originalExample={x}
+                        draft={editingGeneralExample}
+                        onChange={setEditingGeneralExample}
+                        onSubmit={saveGeneralExampleEdit}
+                        onCancel={() => {
+                          setEditingGeneralExample(null);
+                          setGeneralExampleError("");
                         }}
-                        className="text-xs rounded border px-1.5 py-1 max-w-full"
-                        style={{ background: C.card, borderColor: C.line, color: C.mut }}
-                      >
-                        <option value="">Assign to meaning…</option>
-                        {item.meanings.map((meaning) => (
-                          <option key={meaning.id} value={meaning.id}>{meaning.gloss}</option>
-                        ))}
-                      </select>
+                        error={generalExampleError}
+                      />
+                    ) : (
+                      <>
+                        <div className="flex items-start gap-1">
+                          <div className="min-w-0 flex-1">
+                            <div style={{ fontFamily: SERIF, color: C.ink }}>{x.es}</div>
+                            {x.en && <div className="mt-1 text-xs" style={{ color: C.mut }}>{x.en}</div>}
+                          </div>
+                          <div className="flex shrink-0 items-start">
+                            <SpeakButton text={x.es} label={`Play example ${i + 1}`} />
+                            <button
+                              type="button"
+                              aria-label={`Actions for “${x.es}”`}
+                              aria-haspopup="dialog"
+                              aria-expanded={actionsOpen}
+                              aria-controls={popoverId}
+                              onClick={() => setOpenGeneralExampleActions(actionsOpen ? null : i)}
+                              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center"
+                              style={{ color: C.pen }}
+                            >
+                              <Ellipsis size={17} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {actionsOpen && (
+                          <div
+                            id={popoverId}
+                            role="dialog"
+                            aria-label={`Actions for “${x.es}”`}
+                            className="absolute right-0 z-20 mt-1 w-56 max-w-full rounded-xl border p-1 shadow-lg"
+                            style={{ background: C.card, borderColor: C.line }}
+                          >
+                            <button
+                              type="button"
+                              aria-label={`Edit example “${x.es}”`}
+                              onClick={() => startGeneralExampleEdit(i, x)}
+                              className="flex min-h-11 w-full items-center gap-2 px-2 text-left text-xs"
+                              style={{ color: C.mut }}
+                            >
+                              <Pencil size={14} className="shrink-0" />
+                              Edit example…
+                            </button>
+                            {item.meanings.length > 0 && (
+                              <div className="border-t" style={{ borderColor: C.line }}>
+                                <div className="flex min-h-11 items-center gap-2 px-2">
+                                  <MoveRight size={14} className="shrink-0" style={{ color: C.mut }} />
+                                  <select
+                                    aria-label={`Assign “${x.es}” to meaning`}
+                                    defaultValue=""
+                                    onChange={async (event) => {
+                                      if (!event.target.value) return;
+                                      setOpenGeneralExampleActions(null);
+                                      const nextMeanings = cloneMeanings(item.meanings);
+                                      nextMeanings.find((meaning) => meaning.id === event.target.value).examples.push(x);
+                                      await patch({
+                                        meanings: nextMeanings,
+                                        myExamples: item.myExamples.filter((_, itemIndex) => itemIndex !== i),
+                                      });
+                                    }}
+                                    className="min-w-0 flex-1 bg-transparent py-2 text-xs outline-none"
+                                    style={{ color: C.mut }}
+                                  >
+                                    <option value="">Assign to meaning…</option>
+                                    {item.meanings.map((meaning) => (
+                                      <option key={meaning.id} value={meaning.id}>{meaning.gloss}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                            )}
+                            {onAddPhraseFromExample && (
+                              <div className="border-t" style={{ borderColor: C.line }}>
+                                <ExamplePhraseAction
+                                  example={x}
+                                  menu
+                                  onAddPhraseFromExample={(selectedExample) => {
+                                    setOpenGeneralExampleActions(null);
+                                    onAddPhraseFromExample(selectedExample);
+                                  }}
+                                />
+                              </div>
+                            )}
+                            <div className="border-t" style={{ borderColor: C.line }}>
+                              <button
+                                type="button"
+                                aria-label={`Delete example “${x.es}”`}
+                                onClick={async () => {
+                                  setOpenGeneralExampleActions(null);
+                                  await patch({ myExamples: item.myExamples.filter((_, itemIndex) => itemIndex !== i) });
+                                }}
+                                className="flex min-h-11 w-full items-center gap-2 px-2 text-left text-xs"
+                                style={{ color: C.red }}
+                              >
+                                <Trash2 size={14} className="shrink-0" />
+                                Delete example
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
-                    <ExamplePhraseAction
-                      example={x}
-                      onAddPhraseFromExample={onAddPhraseFromExample}
-                    />
                   </div>
-                </div>
-                <X
-                  size={14}
-                  className="shrink-0 mt-1"
-                  style={{ color: C.mut }}
-                  onClick={() => patch({ myExamples: item.myExamples.filter((_, j) => j !== i) })}
-                />
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
             <Button
               tone="quiet"
               aria-expanded={addingExample}

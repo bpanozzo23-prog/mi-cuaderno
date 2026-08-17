@@ -17,6 +17,7 @@ import DictMeaningImport from "./DictMeaningImport.jsx";
 import MeaningEditor from "./MeaningEditor.jsx";
 import SpeakButton from "./SpeakButton.jsx";
 import ExamplePhraseAction from "./ExamplePhraseAction.jsx";
+import ExampleEditForm from "./ExampleEditForm.jsx";
 import {
   cleanMeanings,
   cloneMeanings,
@@ -402,51 +403,17 @@ export default function MeaningsSection({ item, onPatch, onAddPhraseFromExample 
                         return (
                           <div key={exampleIndex} className="relative text-sm" data-example-actions-root>
                             {editingThisExample ? (
-                              <form
-                                aria-label={`Edit example “${example.es}”`}
+                              <ExampleEditForm
+                                originalExample={example}
+                                draft={editingExample}
+                                onChange={setEditingExample}
                                 onSubmit={saveExampleEdit}
-                                className="space-y-2 rounded-lg border p-2"
-                                style={{ borderColor: C.line, background: C.paper }}
-                              >
-                                <input
-                                  autoFocus
-                                  aria-label="Example in Spanish"
-                                  value={editingExample.es}
-                                  onChange={(event) => setEditingExample((current) => ({
-                                    ...current,
-                                    es: event.target.value,
-                                  }))}
-                                  className="min-h-11 w-full rounded-lg border px-2 text-sm outline-none"
-                                  style={{ background: C.card, borderColor: C.line, color: C.ink, fontFamily: SERIF }}
-                                />
-                                <input
-                                  aria-label="Example in English"
-                                  value={editingExample.en}
-                                  onChange={(event) => setEditingExample((current) => ({
-                                    ...current,
-                                    en: event.target.value,
-                                  }))}
-                                  className="min-h-11 w-full rounded-lg border px-2 text-sm outline-none"
-                                  style={{ background: C.card, borderColor: C.line, color: C.ink }}
-                                />
-                                <div className="flex flex-wrap gap-2">
-                                  <Button type="submit" className="min-h-11" disabled={!editingExample.es.trim()}>
-                                    Save example
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    tone="quiet"
-                                    className="min-h-11"
-                                    aria-label="Cancel example edit"
-                                    onClick={() => {
-                                      setEditingExample(null);
-                                      setError("");
-                                    }}
-                                  >
-                                    Cancel
-                                  </Button>
-                                </div>
-                              </form>
+                                onCancel={() => {
+                                  setEditingExample(null);
+                                  setError("");
+                                }}
+                                error={error}
+                              />
                             ) : (
                               <>
                                 <div className="flex items-start gap-1">

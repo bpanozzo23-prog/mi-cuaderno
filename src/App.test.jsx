@@ -240,10 +240,15 @@ describe("example-to-phrase creation", () => {
     const sourceBefore = await getItem(source.id);
     const eventsBefore = JSON.stringify(await allEvents());
 
-    const openBridge = () => screen.getByRole("button", {
-      name: "Add “tener razon” as a phrase",
-    });
-    await user.click(openBridge());
+    const openBridge = async () => {
+      await user.click(screen.getByRole("button", {
+        name: "Actions for “tener razon”",
+      }));
+      return screen.getByRole("button", {
+        name: "Add “tener razon” as a phrase",
+      });
+    };
+    await user.click(await openBridge());
     expect(screen.getByPlaceholderText("Spanish word or phrase *").value).toBe("tener razon");
     expect(screen.getByRole("textbox", { name: "English gloss" }).value).toBe("to be right");
     await user.click(screen.getByRole("button", { name: "Close" }));
@@ -253,7 +258,7 @@ describe("example-to-phrase creation", () => {
     expect(await getItem(source.id)).toEqual(sourceBefore);
     expect(JSON.stringify(await allEvents())).toBe(eventsBefore);
 
-    await user.click(openBridge());
+    await user.click(await openBridge());
     const term = screen.getByPlaceholderText("Spanish word or phrase *");
     await user.clear(term);
     await user.type(term, "tener razón");

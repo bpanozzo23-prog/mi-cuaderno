@@ -315,6 +315,10 @@ describe("collapsed optional-field composers", () => {
 
     renderDetail(word, vi.fn(), undefined, [word], { onAddPhraseFromExample });
 
+    const generalMenu = screen.getByRole("button", { name: "Actions for “Tener razon”" });
+    expect(generalMenu.className).toContain("min-h-11");
+    expect(screen.queryByRole("button", { name: "Add “Tener razon” as a phrase" })).toBeNull();
+    await user.click(generalMenu);
     const generalAction = screen.getByRole("button", { name: "Add “Tener razon” as a phrase" });
     expect(generalAction.textContent).toBe("Add as phrase…");
     expect(generalAction.className).toContain("min-h-11");
@@ -340,6 +344,91 @@ describe("collapsed optional-field composers", () => {
 
     expect(await getItem(word.id)).toEqual(before);
     expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(0);
+  });
+
+  it("keeps General example management in overflow and edits one in place", async () => {
+    const user = userEvent.setup();
+    const onAddPhraseFromExample = vi.fn();
+    const word = await createItem(newLexical({
+      term: "deber",
+      myExamples: [
+        { es: "Debe está ocupado", en: "She must be busy" },
+        { es: "Deber ser el repartidor", en: "It must be the delivery guy" },
+      ],
+      meanings: [newMeaning({ gloss: "must" })],
+    }));
+
+    renderDetail(word, vi.fn(), undefined, [word], { onAddPhraseFromExample });
+
+    expect(screen.queryByRole("button", { name: "Edit example “Debe está ocupado”" })).toBeNull();
+    expect(screen.queryByRole("combobox", { name: "Assign “Debe está ocupado” to meaning" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Add “Debe está ocupado” as a phrase" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Delete example “Debe está ocupado”" })).toBeNull();
+
+    const actions = screen.getByRole("button", { name: "Actions for “Debe está ocupado”" });
+    expect(actions.className).toContain("min-h-11");
+    await user.click(actions);
+    expect(screen.getByRole("dialog", { name: "Actions for “Debe está ocupado”" })).toBeTruthy();
+    expect(screen.getByRole("combobox", { name: "Assign “Debe está ocupado” to meaning" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Add “Debe está ocupado” as a phrase" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Delete example “Debe está ocupado”" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Edit example “Debe está ocupado”" }));
+    const spanish = screen.getByRole("textbox", { name: "Example in Spanish" });
+    const english = screen.getByRole("textbox", { name: "Example in English" });
+    expect(spanish.value).toBe("Debe está ocupado");
+    expect(english.value).toBe("She must be busy");
+    await user.clear(spanish);
+    await user.type(spanish, "Debe estar ocupado");
+    await user.clear(english);
+    await user.type(english, "He must be busy");
+    await user.click(screen.getByRole("button", { name: "Save example" }));
+
+    await waitFor(async () => expect((await getItem(word.id)).myExamples).toEqual([
+      { es: "Debe estar ocupado", en: "He must be busy" },
+      { es: "Deber ser el repartidor", en: "It must be the delivery guy" },
+    ]));
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(1);
+
+    const editedActions = await waitFor(() => screen.getByRole("button", {
+      name: "Actions for “Debe estar ocupado”",
+    }));
+    await user.click(editedActions);
+    await user.click(screen.getByRole("button", { name: "Edit example “Debe estar ocupado”" }));
+    await user.type(screen.getByRole("textbox", { name: "Example in Spanish" }), " unsaved");
+    await user.click(screen.getByRole("button", { name: "Cancel example edit" }));
+    expect((await getItem(word.id)).myExamples[0].es).toBe("Debe estar ocupado");
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(1);
+  });
+
+  it("assigns and deletes General examples through their overflow menus", async () => {
+    const user = userEvent.setup();
+    const first = { es: "Debes descansar", en: "You must rest" };
+    const second = { es: "Debe ser tarde", en: "It must be late" };
+    const meaning = newMeaning({ id: "meaning:must", gloss: "must" });
+    const word = await createItem(newLexical({
+      term: "deber",
+      myExamples: [first, second],
+      meanings: [meaning],
+    }));
+
+    renderDetail(word);
+
+    await user.click(screen.getByRole("button", { name: "Actions for “Debes descansar”" }));
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Assign “Debes descansar” to meaning" }),
+      meaning.id
+    );
+    await waitFor(async () => {
+      const saved = await getItem(word.id);
+      expect(saved.myExamples).toEqual([second]);
+      expect(saved.meanings[0].examples).toEqual([first]);
+    });
+
+    await user.click(screen.getByRole("button", { name: "Actions for “Debe ser tarde”" }));
+    await user.click(screen.getByRole("button", { name: "Delete example “Debe ser tarde”" }));
+    await waitFor(async () => expect((await getItem(word.id)).myExamples).toEqual([]));
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(2);
   });
 
   it("edits a meaning-assigned example through its overflow menu with one ordinary edit", async () => {
