@@ -2,7 +2,7 @@ import { Bookmark, BookmarkCheck } from "lucide-react";
 import { C, Hi, MONO, SERIF, useHubTitleSize } from "../theme.jsx";
 import { emptyReviewState } from "../lib/review.js";
 import { firstMeaningGloss } from "../lib/meanings.js";
-import { personalHeadingSuffix } from "./ItemCard.jsx";
+import { PosSuffix, personalHeadingSuffix } from "./ItemCard.jsx";
 import PageContextSummary from "./PageContextSummary.jsx";
 import TagChip from "./TagChip.jsx";
 
@@ -59,9 +59,7 @@ export default function LexicalHubCard({
           {suffix && (
             <>
               {" "}
-              <span className="ml-1 text-sm font-normal italic" style={{ color: C.mut }}>
-                {suffix}
-              </span>
+              <PosSuffix className="text-sm ml-2">{suffix}</PosSuffix>
             </>
           )}
         </div>

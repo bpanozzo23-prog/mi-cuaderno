@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronUp, ExternalLink, Eye } from "lucide-react";
 import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
-import { personalHeadingSuffix } from "./ItemCard.jsx";
+import { PosSuffix, personalHeadingSuffix } from "./ItemCard.jsx";
 import { markdownPreviewText } from "../lib/noteMarkdown.js";
 
 const firstNonblank = (...values) => values.find((value) => String(value || "").trim()) || "";
@@ -77,7 +77,7 @@ export default function CollectionVocabularyCard({
             <div className="text-lg break-words" style={{ fontFamily: SERIF, color: C.ink, fontWeight: 700 }}>
               {item.term}
             </div>
-            {suffix && <div className="text-xs italic" style={{ color: C.mut }}>{suffix}</div>}
+            {suffix && <PosSuffix className="block text-xs">{suffix}</PosSuffix>}
           </div>
           {meanings.length > 0 && !revealed && (
             <Button tone="quiet" className="shrink-0" onClick={onReveal}>
@@ -114,7 +114,7 @@ export default function CollectionVocabularyCard({
         <div className="min-w-0 flex-1">
           <div className="break-words" style={{ fontFamily: SERIF, color: C.ink, fontWeight: 700 }}>
             {item.term}
-            {suffix && <span className="ml-2 text-xs italic font-normal" style={{ color: C.mut }}>{suffix}</span>}
+            {suffix && <PosSuffix className="ml-2 text-xs">{suffix}</PosSuffix>}
           </div>
           {first ? (
             <>

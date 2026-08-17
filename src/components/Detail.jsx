@@ -5,7 +5,7 @@ import {
   BarChart3, ChevronDown, Ellipsis, History, MoveRight,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button, IconButton } from "../theme.jsx";
-import { POS_OPTIONS, personalHeadingSuffix, personalLexicalForm } from "./ItemCard.jsx";
+import { POS_OPTIONS, PosSuffix, personalHeadingSuffix, personalLexicalForm } from "./ItemCard.jsx";
 import DictAttachment from "./DictAttachment.jsx";
 import LinkPicker from "./LinkPicker.jsx";
 import AliasConflictResolver from "./AliasConflictResolver.jsx";
@@ -678,9 +678,7 @@ function StandardDetail({
                 {headingSuffix && (
                   <>
                     {" "}
-                    <span className="italic font-normal text-base ml-2" style={{ color: C.mut }}>
-                      {headingSuffix}
-                    </span>
+                    <PosSuffix className="text-base ml-2">{headingSuffix}</PosSuffix>
                   </>
                 )}
                 {/* Lexical only: a page title is usually English and is not a thing to

@@ -24,6 +24,41 @@ export const personalHeadingSuffix = (item, attachedEntry = null) => {
   return grammarAbbreviations(pos, gender);
 };
 
+/**
+ * The grammar abbreviation that rides beside a headword — "v.", "n. · m." — set the way a printed
+ * dictionary sets it.
+ *
+ * Small caps in the entry face, upright, replacing the sans italic these six surfaces wore before
+ * (owner-picked 2026-08-17, completing the Literata direction). Italic here was competing with the
+ * gloss, which is the other thing on the card leaning right; small caps recede instead, which is
+ * the whole job of a grammar label.
+ *
+ * The component owns only the treatment. Size and margin stay with the caller because they
+ * genuinely differ — a flashcard's headword is `text-3xl` and a collection row's is `text-xs` —
+ * and that is also the drift this replaces: three margins and three sizes were spelled out six
+ * times, so any future change to the treatment had six places to miss.
+ */
+export function PosSuffix({ children, className = "" }) {
+  if (!children) return null;
+  return (
+    <span
+      className={`font-normal ${className}`}
+      style={{
+        fontFamily: SERIF,
+        /* Literata ships no true `smcp` in the fontsource latin subset, so Chrome — the only
+           browser this PWA runs in — synthesizes these from the capitals. The synthesis is what
+           makes the tracking below necessary: scaled-down caps set too tight without it. */
+        fontVariant: "small-caps",
+        fontStyle: "normal",
+        letterSpacing: "0.04em",
+        color: C.mut,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
 export default function ItemCard({
   item,
   state = emptyItemState,
@@ -84,9 +119,7 @@ export default function ItemCard({
             {headingSuffix && (
               <>
                 {" "}
-                <span className="italic font-normal text-sm ml-2" style={{ color: C.mut }}>
-                  {headingSuffix}
-                </span>
+                <PosSuffix className="text-sm ml-2">{headingSuffix}</PosSuffix>
               </>
             )}
           </div>

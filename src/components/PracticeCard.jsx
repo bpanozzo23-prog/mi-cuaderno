@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Check, X } from "lucide-react";
 import { Button, C, Card, Hi, SERIF } from "../theme.jsx";
-import { personalHeadingSuffix } from "./ItemCard.jsx";
+import { PosSuffix, personalHeadingSuffix } from "./ItemCard.jsx";
 import LexicalAnswer, { MeaningRow } from "./LexicalAnswer.jsx";
 import MediaImage from "./MediaImage.jsx";
 import SpeakButton from "./SpeakButton.jsx";
@@ -51,9 +51,7 @@ function TermHeading({ item, speak }) {
       {suffix && (
         <>
           {" "}
-          <span className="italic font-normal text-base ml-2" style={{ color: C.mut }}>
-            {suffix}
-          </span>
+          <PosSuffix className="text-base ml-2">{suffix}</PosSuffix>
         </>
       )}
       {speak && <SpeakButton text={item.term} className="align-middle ml-1" size={16} />}
