@@ -606,6 +606,17 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   showed the loaded faces with zero horizontal overflow. Deployed from `main` at `d459d64` through
   Pages run 31995019703, with the live CSS serving all four `literata-latin-*.woff2` files. See the
   Typography direction entry in [DECISIONS.md](DECISIONS.md).
+- **Typography: small-caps grammar labels — deployed.** The abbreviation beside a headword — "v.",
+  "n. · m." — is now set in small caps in the entry face, upright, replacing the sans italic it had
+  always worn; a new `PosSuffix` in `ItemCard.jsx` owns the treatment while each caller keeps its
+  own size and margin, replacing the same styling spelled out six times with three margins and
+  three sizes. Applied at the six headword surfaces; the three picker rows that disambiguate rather
+  than label keep the sans italic. Visual-only; `SCHEMA_VERSION` stays 9. The complete serial suite
+  passes 1,536/1,536 across 130 files (unchanged count), the production build and `git diff --check`
+  pass, and a disposable 375×812 origin measured the treatment at both type scales with zero
+  horizontal overflow and a clear console. No test asserts the styling itself. Deployed from `main`
+  at `51f21c3` through Pages run 32049318652, with the live `assets/App-D4BdW6sp.js` carrying the
+  rule. See the 2026-08-17 entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
