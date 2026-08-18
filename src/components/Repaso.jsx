@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Highlighter, SearchX, Play, CheckCircle2, Eye, ChevronRight, Dumbbell } from "lucide-react";
+import { Highlighter, Play, CheckCircle2, Eye, ChevronRight, Dumbbell } from "lucide-react";
 import { C, SERIF, MONO, CHALK_PRINT, CHALK_SCRIPT, dotGrid, Hi, SectionTitle, Card, Button } from "../theme.jsx";
 import ItemCard from "./ItemCard.jsx";
 import ReviewSession from "./ReviewSession.jsx";
@@ -36,10 +36,7 @@ const ACTIVITY_LABEL = {
   [EVENT_TYPES.reviewFail]: "Missed in review",
 };
 
-const KNOWN_ACTIVITY_TYPES = new Set([
-  ...Object.keys(ACTIVITY_LABEL),
-  EVENT_TYPES.searchMiss,
-]);
+const KNOWN_ACTIVITY_TYPES = new Set(Object.keys(ACTIVITY_LABEL));
 
 /** Phase 10a. Labels name the direction in the owner's own terms, not the code's. */
 const DIRECTION_OPTIONS = [
@@ -283,19 +280,9 @@ export default function Repaso({ notebook, onSelect }) {
     [itemState]
   );
 
-  const missedSearches = useMemo(() => {
-    const seen = new Map();
-    for (const event of events) {
-      if (event.type !== EVENT_TYPES.searchMiss) continue;
-      const query = event.metadata?.query;
-      if (!query) continue;
-      seen.set(query.toLowerCase(), { query, at: event.at });
-    }
-    return [...seen.values()].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 8);
-  }, [events]);
-
   // Newest first. Unknown future event types are ignored before applying the limit,
-  // as brief section 7 requires of every event consumer.
+  // as brief section 7 requires of every event consumer. Search misses remain in
+  // the event log but are intentionally outside Repaso's activity display.
   const recent = useMemo(
     () => [...events].reverse().filter((event) => KNOWN_ACTIVITY_TYPES.has(event.type)).slice(0, 12),
     [events]
@@ -689,26 +676,6 @@ export default function Repaso({ notebook, onSelect }) {
         </div>
       )}
 
-      {missedSearches.length > 0 && (
-        <>
-          <SectionTitle>Searched for, not found</SectionTitle>
-          <Card>
-            <div className="flex flex-wrap gap-1.5 items-center">
-              <SearchX size={14} style={{ color: C.mut }} />
-              {missedSearches.map(({ query }) => (
-                <span
-                  key={query}
-                  className="text-xs px-2 py-0.5 rounded-full"
-                  style={{ background: C.penPale, color: C.penDark }}
-                >
-                  {query}
-                </span>
-              ))}
-            </div>
-          </Card>
-        </>
-      )}
-
       <SectionTitle>Recent activity</SectionTitle>
       <div className="rounded-xl border divide-y" style={{ background: C.card, borderColor: C.line }}>
         {recent.length === 0 && (
@@ -722,21 +689,18 @@ export default function Repaso({ notebook, onSelect }) {
             ? activityEntries.get(event.itemKey)
             : null;
           const targetKey = item?.id || dictionary?.entry?.id || null;
-          const label =
-            event.type === EVENT_TYPES.searchMiss ? "Couldn't find" : ACTIVITY_LABEL[event.type];
-          const what = event.type === EVENT_TYPES.searchMiss
-            ? `“${event.metadata?.query ?? ""}”`
-            : item
-              ? itemHeading(item)
-              : dictionary?.state === "resolved"
-                ? dictionary.entry.lemma
-                : isDictKey(event.itemKey)
-                  ? dictionary?.state === "orphaned"
-                    ? "(reference unavailable)"
-                    : "(dictionary entry)"
-                  : event.type === EVENT_TYPES.delete
-                    ? "item"
-                    : "(deleted item)";
+          const label = ACTIVITY_LABEL[event.type];
+          const what = item
+            ? itemHeading(item)
+            : dictionary?.state === "resolved"
+              ? dictionary.entry.lemma
+              : isDictKey(event.itemKey)
+                ? dictionary?.state === "orphaned"
+                  ? "(reference unavailable)"
+                  : "(dictionary entry)"
+                : event.type === EVENT_TYPES.delete
+                  ? "item"
+                  : "(deleted item)";
           const content = (
             <>
               <span style={{ color: C.ink }} className="min-w-0 truncate">

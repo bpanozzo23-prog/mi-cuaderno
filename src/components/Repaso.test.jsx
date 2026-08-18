@@ -89,7 +89,7 @@ describe("Phase 5d actionable activity", () => {
     expect(screen.getByText("opens")).toBeTruthy();
   });
 
-  it("keeps deleted items and search misses visible but non-actionable", () => {
+  it("keeps deleted items visible but excludes search misses", () => {
     const events = [
       makeEvent({ type: EVENT_TYPES.view, itemKey: "user:deleted", at: at(1) }),
       makeEvent({
@@ -103,9 +103,9 @@ describe("Phase 5d actionable activity", () => {
     render(<Repaso notebook={notebookFor([], events)} onSelect={vi.fn()} />);
 
     expect(screen.getByText("(deleted item)")).toBeTruthy();
-    expect(screen.getAllByText("chamarra").length).toBeGreaterThan(0);
+    expect(screen.queryByText(/chamarra/)).toBeNull();
+    expect(screen.queryByText("Searched for, not found")).toBeNull();
     expect(screen.queryByRole("button", { name: /deleted item/i })).toBeNull();
-    expect(screen.queryByRole("button", { name: /Couldn't find.*chamarra/i })).toBeNull();
   });
 
   it("resolves current and aliased dictionary activity to the canonical entry", async () => {
@@ -156,12 +156,11 @@ describe("Phase 5d actionable activity", () => {
   });
 
   it("ignores unknown event types before taking the twelve most recent rows", () => {
-    const known = Array.from({ length: 12 }, (_, index) =>
-      makeEvent({
-        type: EVENT_TYPES.searchMiss,
-        metadata: { query: `missing-${index}` },
-        at: at(index),
-      })
+    const items = Array.from({ length: 12 }, (_, index) =>
+      makeLexical({ id: `user:word-${index}`, term: `word-${index}` })
+    );
+    const known = items.map((item, index) =>
+      makeEvent({ type: EVENT_TYPES.view, itemKey: item.id, at: at(index) })
     );
     const unknown = makeEvent({
       type: "future_event_type",
@@ -169,9 +168,9 @@ describe("Phase 5d actionable activity", () => {
       at: at(59),
     });
 
-    render(<Repaso notebook={notebookFor([], [...known, unknown])} onSelect={vi.fn()} />);
+    render(<Repaso notebook={notebookFor(items, [...known, unknown])} onSelect={vi.fn()} />);
 
-    expect(screen.getByText("“missing-0”")).toBeTruthy();
+    expect(screen.getByText("word-0")).toBeTruthy();
     expect(screen.queryByText(/future_event_type/)).toBeNull();
   });
 });
