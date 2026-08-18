@@ -30,6 +30,8 @@ export default function SearchBar({
   placeholder = "Search words, meanings, notes, pages…",
   inputLabel = "Search notebook",
   autoFocus = false,
+  className = "",
+  inputClassName = "",
 }) {
   const timer = useRef(null);
 
@@ -51,7 +53,7 @@ export default function SearchBar({
 
   return (
     <div
-      className="flex items-center gap-2 rounded-xl px-3 py-2 border"
+      className={`flex items-center gap-2 rounded-xl border px-3 py-2 focus-within:ring-2 focus-within:ring-[var(--color-pen)] focus-within:ring-offset-2 focus-within:ring-offset-[var(--color-paper)] ${className}`}
       style={{ background: C.card, borderColor: C.line }}
     >
       <Search size={16} style={{ color: C.mut }} />
@@ -61,11 +63,16 @@ export default function SearchBar({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         autoFocus={autoFocus}
-        className="flex-1 bg-transparent outline-none text-sm"
+        className={`min-w-0 flex-1 bg-transparent text-sm outline-none ${inputClassName}`}
         style={{ color: C.ink }}
       />
       {value && (
-        <button onClick={() => onChange("")} aria-label="Clear search">
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          aria-label="Clear search"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-pen)]"
+        >
           <X size={14} style={{ color: C.mut }} />
         </button>
       )}

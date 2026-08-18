@@ -294,6 +294,7 @@ export default function App() {
   // Each hub brings its own focused header, so the app header steps aside for both of them.
   const hubOpen = tab === "cuaderno"
     && (cuadernoRoute.screen === "pages" || cuadernoRoute.screen === "lexical");
+  const cuadernoLandingOpen = tab === "cuaderno" && cuadernoRoute.screen === "list";
 
   // The document is the scroll container. A newly selected tab or detail must never inherit
   // a long source page's scroll offset and appear to open halfway down the destination. The two
@@ -311,8 +312,9 @@ export default function App() {
     <TagColorProvider colors={tagColors}>
     <div className="min-h-screen" style={{ background: C.paper, color: C.ink }}>
       <div className="max-w-md mx-auto min-h-screen relative" style={{ background: C.paper }}>
-        {!hubOpen && !studySessionActive && (
+        {!hubOpen && !cuadernoLandingOpen && !studySessionActive && (
           <header
+            aria-label="App header"
             className="sticky top-0 z-20 px-4 pt-4 pb-3"
             style={{ background: C.paper, borderBottom: `1px solid ${C.line}` }}
           >
@@ -320,9 +322,6 @@ export default function App() {
               <div>
                 <div className="text-2xl font-bold" style={{ fontFamily: SERIF, color: C.ink }}>
                   Mi <Hi>cuaderno</Hi>
-                </div>
-                <div className="text-xs mt-1" style={{ color: C.mut }}>
-                  Spanish notebook
                 </div>
               </div>
               {tab !== "diario" && (

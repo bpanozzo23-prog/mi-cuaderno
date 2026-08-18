@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, BookOpen, FileText, Route, X } from "lucide-react";
+import { ArrowLeft, Plus, BookOpen, FileText, X } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Chip, Card } from "../theme.jsx";
 import ItemCard from "./ItemCard.jsx";
 import AddSheet from "./AddSheet.jsx";
@@ -8,6 +8,7 @@ import Detail from "./Detail.jsx";
 import DictCard from "./DictCard.jsx";
 import DictDetail from "./DictDetail.jsx";
 import SearchBar from "./SearchBar.jsx";
+import CuadernoLanding from "./CuadernoLanding.jsx";
 import EmptyState from "./EmptyState.jsx";
 import { RefineBar, RefinePanel, RefineSelect } from "./Refine.jsx";
 import { searchItems, mergeResults } from "../lib/search.js";
@@ -89,9 +90,26 @@ export default function Cuaderno({
   const [shareFollowUp, setShareFollowUp] = useState(null);
   const [addSeed, setAddSeed] = useState(null);
   const [dictionary, setDictionary] = useState(null);
+  const [rootMode, setRootMode] = useState("landing");
+  const [resultLimit, setResultLimit] = useState(30);
 
   const searching = query.trim() !== "";
   const wanderItems = useMemo(() => eligibleWanderItems(items), [items]);
+  const nonJournalItems = useMemo(
+    () => items.filter((item) => !isJournalEntry(item)),
+    [items]
+  );
+  const recentItems = useMemo(
+    () => orderItems(nonJournalItems, BROWSE_ORDERS.touched).slice(0, 3),
+    [nonJournalItems]
+  );
+  const wordCount = nonJournalItems.filter(
+    (item) => item.type === "lexical" && item.form !== "phrase"
+  ).length;
+  const phraseCount = nonJournalItems.filter(
+    (item) => item.type === "lexical" && item.form === "phrase"
+  ).length;
+  const pageCount = nonJournalItems.filter((item) => item.type === "page").length;
 
   // Whether this device has the dictionary changes what an empty screen should say, and
   // what the search box should promise. It is per-device by design (§11).
@@ -119,12 +137,34 @@ export default function Cuaderno({
     setTypeFilter(next);
   }
 
+  function changeQuery(next) {
+    setQuery(next);
+    if (!next.trim()) setRootMode("landing");
+  }
+
+  function openBrowseAll() {
+    setQuery("");
+    setTypeFilter(FILTERS.all);
+    setTagFilter(null);
+    setBrowseOrder(BROWSE_ORDERS.touched);
+    setMaintenanceView(MAINTENANCE_VIEWS.all);
+    setRefineOpen(false);
+    setResultLimit(30);
+    setRootMode("browse");
+  }
+
+  function startWander() {
+    const start = sampleWanderStart(wanderItems, random);
+    if (start) onWander?.(start.id);
+  }
+
   // A query handed over from the Words & phrases hub, which searches personal vocabulary only.
   // Keyed so handing over the same text twice still re-applies it after the owner edits the box.
   useEffect(() => {
     if (!seedQuery?.key) return;
     setQuery(seedQuery.text || "");
     setTypeFilter(FILTERS.all);
+    setRootMode("landing");
   }, [seedQuery]);
 
   // A URL shared in from another Android app (share_target → App's startup dispatch). It opens
@@ -249,8 +289,11 @@ export default function Cuaderno({
   const refineCount = Number(maintenanceView !== MAINTENANCE_VIEWS.all)
     + Number(browseOrder !== BROWSE_ORDERS.touched)
     + Number(Boolean(effectiveTag));
+  const displayedVisible = rootMode === "landing" ? [] : visible.slice(0, resultLimit);
+  const canLoadMore = rootMode !== "landing" && displayedVisible.length < visible.length;
 
   const selected = items.find((i) => i.id === selectedId) || null;
+  const rootOverlayOpen = Boolean(askKind || askPageStarter || addKind || shareArrival);
 
   /**
    * The review state behind a lexical entry's stats strip (Phase 11). Gated, not merely
@@ -394,141 +437,185 @@ export default function Cuaderno({
 
   return (
     <>
-      <div className="px-4 pt-3" style={{ background: C.paper }}>
-        {/*
-          The miss count is the COMBINED one: a query the dictionary answers is not a
-          word the owner could not find (§7), so it must not become a search_miss.
-        */}
-        <SearchBar
-          value={query}
-          onChange={setQuery}
-          resultCount={visible.length}
+      <div aria-hidden={rootOverlayOpen ? true : undefined}>
+      {rootMode === "landing" ? (
+        <CuadernoLanding
+          query={query}
+          onQueryChange={changeQuery}
+          results={visible}
           pending={dictPending}
+          dictionary={dictionary}
           onMissLogged={reload}
-          placeholder={dictionary ? "Search the dictionary and your notes…" : "Search words, meanings, notes, pages…"}
+          wordCount={wordCount}
+          phraseCount={phraseCount}
+          pageCount={pageCount}
+          totalCount={nonJournalItems.length}
+          recentItems={recentItems}
+          items={items}
+          onOpen={onSelect}
+          onOpenLexical={() => onOpenLexical?.(FILTERS.all)}
+          onOpenPages={onOpenPages}
+          onBrowseAll={openBrowseAll}
+          onShowAllResults={() => {
+            setResultLimit(30);
+            setRootMode("search");
+          }}
+          canWander={wanderItems.length > 0 && Boolean(onWander)}
+          onWander={startWander}
         />
-        <div className="flex gap-1.5 items-center mt-2">
-          {TYPE_FILTERS.map((f) => (
-            <Chip key={f.id} active={typeFilter === f.id} onClick={() => changeTypeFilter(f.id)}>
-              {f.label}
-            </Chip>
-          ))}
-        </div>
+      ) : (
+        <>
+          <div className="px-4 pt-3" style={{ background: C.paper }}>
+            <div className="flex min-h-11 items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setRootMode("landing")}
+                aria-label="Back to landing"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-pen)]"
+                style={{ color: C.pen }}
+              >
+                <ArrowLeft size={20} aria-hidden="true" />
+              </button>
+              <h1 className="text-xl font-bold" style={{ color: C.ink, fontFamily: SERIF }}>
+                {rootMode === "search" ? "Search results" : "Browse all"}
+              </h1>
+              <span className="ml-auto shrink-0 text-xs" style={{ fontFamily: MONO, color: C.mut }}>
+                {visible.length}
+              </span>
+            </div>
 
-        <div className="mt-3 flex min-h-11 items-center justify-between gap-3">
-          <RefineBar
-            panelId="cuaderno-refine"
-            open={refineOpen}
-            count={refineCount}
-            onToggle={() => setRefineOpen((open) => !open)}
-          />
-          <span className="shrink-0 text-xs" style={{ fontFamily: MONO, color: C.mut }}>
-            {visible.length}
-          </span>
-        </div>
+            {(rootMode === "search" || rootMode === "browse") && (
+              <div className="mt-2">
+                {/* The miss count is combined across the personal and dictionary layers. */}
+                <SearchBar
+                  value={query}
+                  onChange={rootMode === "browse" ? setQuery : changeQuery}
+                  resultCount={visible.length}
+                  pending={dictPending}
+                  onMissLogged={reload}
+                  placeholder={dictionary ? "Search your notebook and dictionary…" : "Search your notebook…"}
+                  autoFocus
+                />
+              </div>
+            )}
 
-        {refineOpen && (
-          <RefinePanel id="cuaderno-refine">
-            <RefineSelect label="View" value={maintenanceView} onChange={setMaintenanceView}>
-              {MAINTENANCE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
+            <div className="mt-2 flex items-center gap-1.5">
+              {TYPE_FILTERS.map((f) => (
+                <Chip key={f.id} active={typeFilter === f.id} onClick={() => changeTypeFilter(f.id)}>
+                  {f.label}
+                </Chip>
               ))}
-            </RefineSelect>
+            </div>
 
-            <RefineSelect
-              label="Order"
-              value={searching ? "relevance" : browseOrder}
-              onChange={setBrowseOrder}
-              disabled={searching}
-            >
-              {searching && <option value="relevance">Search relevance</option>}
-              {BROWSE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </RefineSelect>
+            <div className="mt-3 flex min-h-11 items-center justify-between gap-3">
+              <RefineBar
+                panelId="cuaderno-refine"
+                open={refineOpen}
+                count={refineCount}
+                onToggle={() => setRefineOpen((open) => !open)}
+              />
+            </div>
 
-            <RefineSelect
-              label="Tag"
-              value={effectiveTag || ""}
-              onChange={(value) => setTagFilter(value || null)}
-              disabled={tagCounts.length === 0}
-              wide
-            >
-              <option value="">
-                {tagCounts.length === 0 ? "No tags in this view" : "All tags"}
-              </option>
-              {tagCounts.map(({ tag, count }) => (
-                <option key={tag} value={tag}>
-                  {tag} · {count}
-                </option>
-              ))}
-            </RefineSelect>
-          </RefinePanel>
-        )}
+            {refineOpen && (
+              <RefinePanel id="cuaderno-refine">
+                <RefineSelect label="View" value={maintenanceView} onChange={setMaintenanceView}>
+                  {MAINTENANCE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </RefineSelect>
 
-        {!searching && wanderItems.length > 0 && onWander && (
-          <button
-            type="button"
-            onClick={() => {
-              const start = sampleWanderStart(wanderItems, random);
-              if (start) onWander(start.id);
-            }}
-            className="mt-2 flex min-h-11 w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-medium"
-            style={{ background: C.penPale, borderColor: C.chipBorder, color: C.penDark }}
-          >
-            <Route size={15} className="shrink-0" />
-            <span>Pasear por mi cuaderno</span>
-            <span className="ml-auto shrink-0 text-xs" style={{ fontFamily: MONO, opacity: 0.75 }}>
-              al azar
-            </span>
-          </button>
-        )}
+                <RefineSelect
+                  label="Order"
+                  value={searching ? "relevance" : browseOrder}
+                  onChange={setBrowseOrder}
+                  disabled={searching}
+                >
+                  {searching && <option value="relevance">Search relevance</option>}
+                  {BROWSE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </RefineSelect>
+
+                <RefineSelect
+                  label="Tag"
+                  value={effectiveTag || ""}
+                  onChange={(value) => setTagFilter(value || null)}
+                  disabled={tagCounts.length === 0}
+                  wide
+                >
+                  <option value="">
+                    {tagCounts.length === 0 ? "No tags in this view" : "All tags"}
+                  </option>
+                  {tagCounts.map(({ tag, count }) => (
+                    <option key={tag} value={tag}>
+                      {tag} · {count}
+                    </option>
+                  ))}
+                </RefineSelect>
+              </RefinePanel>
+            )}
+          </div>
+
+          <div className="space-y-[7.5px] px-4 py-4 pb-28" style={dotGrid}>
+            {visible.length === 0 && (
+              <EmptyState
+                hasItems={items.length > 0}
+                searching={searching}
+                query={query}
+                dictionary={dictionary}
+                dictionaryEligible={dictionaryEligible}
+                onOpenSettings={onOpenSettings}
+              />
+            )}
+            {displayedVisible.map((result) =>
+              result.kind === "entry" ? (
+                <DictCard key={result.key} entry={result.entry} reason={result.reason} onOpen={onSelect} />
+              ) : (
+                <ItemCard
+                  key={result.key}
+                  item={result.item}
+                  state={itemState.get(result.item.id) || emptyItemState}
+                  onOpen={onSelect}
+                  reason={result.reason}
+                  items={items}
+                  pinned={pinnedPageIds.includes(result.item.id)}
+                  onPinnedChange={isJournalEntry(result.item) || !onPagePinnedChange
+                    ? undefined
+                    : (pinned) => onPagePinnedChange(result.item.id, pinned)}
+                  showTags={false}
+                />
+              )
+            )}
+            {canLoadMore && (
+              <button
+                type="button"
+                onClick={() => setResultLimit((limit) => limit + 30)}
+                className="mt-3 min-h-11 w-full rounded-lg border px-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-pen)]"
+                style={{ background: C.card, borderColor: C.line, color: C.pen }}
+              >
+                Load 30 more
+              </button>
+            )}
+          </div>
+        </>
+      )}
       </div>
 
-      <div className="px-4 py-4 space-y-[7.5px] pb-28" style={dotGrid}>
-        {visible.length === 0 && (
-          <EmptyState
-            hasItems={items.length > 0}
-            searching={searching}
-            query={query}
-            dictionary={dictionary}
-            dictionaryEligible={dictionaryEligible}
-            onOpenSettings={onOpenSettings}
-          />
-        )}
-        {visible.map((result) =>
-          result.kind === "entry" ? (
-            <DictCard key={result.key} entry={result.entry} reason={result.reason} onOpen={onSelect} />
-          ) : (
-            <ItemCard
-              key={result.key}
-              item={result.item}
-              state={itemState.get(result.item.id) || emptyItemState}
-              onOpen={onSelect}
-              reason={result.reason}
-              items={items}
-              pinned={pinnedPageIds.includes(result.item.id)}
-              onPinnedChange={isJournalEntry(result.item) || !onPagePinnedChange
-                ? undefined
-                : (pinned) => onPagePinnedChange(result.item.id, pinned)}
-              showTags={false}
-            />
-          )
-        )}
-      </div>
-
-      <button
-        onClick={() => setAskKind(true)}
-        aria-label="Add"
-        className="fixed z-30 rounded-full p-4 shadow-lg"
-        style={{ background: C.floatingAdd, color: C.onAccent, bottom: 84, right: "max(16px, calc(50% - 208px))" }}
-      >
-        <Plus size={22} />
-      </button>
+      {!rootOverlayOpen && (
+        <button
+          type="button"
+          onClick={() => setAskKind(true)}
+          aria-label="Add"
+          className="fixed z-30 rounded-full p-4 shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-pen)]"
+          style={{ background: C.floatingAdd, color: C.onAccent, bottom: 84, right: "max(16px, calc(50% - 208px))" }}
+        >
+          <Plus size={22} />
+        </button>
+      )}
 
       {askKind && (
         <div
@@ -537,15 +624,23 @@ export default function Cuaderno({
           onClick={() => setAskKind(false)}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cuaderno-add-kind-title"
             className="w-full max-w-md rounded-t-2xl p-4 pb-6 space-y-2"
             style={{ background: C.paper }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-1">
-              <div className="font-semibold" style={{ fontFamily: SERIF, color: C.ink, fontSize: 18 }}>
+              <div id="cuaderno-add-kind-title" className="font-semibold" style={{ fontFamily: SERIF, color: C.ink, fontSize: 18 }}>
                 ¿Qué añadimos?
               </div>
-              <button onClick={() => setAskKind(false)} aria-label="Close">
+              <button
+                type="button"
+                onClick={() => setAskKind(false)}
+                aria-label="Close"
+                className="flex h-11 w-11 items-center justify-center rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-pen)]"
+              >
                 <X size={18} style={{ color: C.mut }} />
               </button>
             </div>

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Cuaderno from "./Cuaderno.jsx";
 import { removeDictionary } from "../db/ref/install.js";
@@ -73,8 +73,16 @@ function card(name) {
   return screen.getByRole("button", { name: new RegExp(`^${name}`) });
 }
 
-// View, Order and Tag live behind the Refine disclosure, as they do in both hubs.
-const openRefine = (user) => user.click(screen.getByRole("button", { name: /^Refine/ }));
+const openBrowseAll = async (user) => {
+  const door = screen.queryByRole("button", { name: /^Browse all/ });
+  if (door) await user.click(door);
+};
+
+// View, Order and Tag live behind Browse all's Refine disclosure, as they do in both hubs.
+const openRefine = async (user) => {
+  await openBrowseAll(user);
+  await user.click(screen.getByRole("button", { name: /^Refine/ }));
+};
 
 function expectBefore(first, second) {
   expect(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -106,6 +114,49 @@ afterEach(async () => {
   cleanup();
   await removeDictionary();
   vi.restoreAllMocks();
+});
+
+describe("Cuaderno landing", () => {
+  it("shows notebook doors, the three most recent non-journal items, and opens the hubs", async () => {
+    const user = userEvent.setup();
+    const props = propsFor([
+      word("aunque"),
+      word("tener en cuenta", { id: "user:phrase", form: "phrase" }),
+      page("Grammar guide", { pageFocus: "grammar" }),
+      word("older"),
+    ]);
+    render(<Cuaderno {...props} />);
+
+    expect(screen.getByRole("heading", { name: "Mi cuaderno" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Words & phrases\. 2 words · 1 phrase/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Pages\. 1 page/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Browse all 4 items/ })).toBeTruthy();
+    expect(card("aunque")).toBeTruthy();
+    expect(card("tener en cuenta")).toBeTruthy();
+    expect(card("Grammar guide")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^older/ })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: /^Words & phrases/ }));
+    expect(props.onOpenLexical).toHaveBeenCalledWith("all");
+    await user.click(screen.getByRole("button", { name: /^Pages/ }));
+    expect(props.onOpenPages).toHaveBeenCalledOnce();
+  });
+
+  it("shows five compact search results before the explicit all-results view", async () => {
+    const user = userEvent.setup();
+    const items = Array.from({ length: 7 }, (_, index) => word(`casa-${index + 1}`));
+    render(<Cuaderno {...propsFor(items)} />);
+
+    await user.type(screen.getByRole("textbox", { name: "Search notebook" }), "casa");
+    const overlay = screen.getByRole("region", { name: "Search results" });
+    expect(within(overlay).getAllByRole("button", { name: /^casa-/ })).toHaveLength(5);
+    await user.click(within(overlay).getByRole("button", { name: "See all 7 results" }));
+    expect(screen.getByRole("heading", { name: "Search results" })).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Search notebook" }).value).toBe("casa");
+
+    await user.click(screen.getByRole("button", { name: "Back to landing" }));
+    expect(screen.getByRole("textbox", { name: "Search notebook" }).value).toBe("casa");
+  });
 });
 
 describe("Phase 5c Cuaderno retrieval controls", () => {
@@ -289,6 +340,8 @@ describe("Phase 5c Cuaderno retrieval controls", () => {
     const user = userEvent.setup();
     render(<Cuaderno {...propsFor([word("one", { tags: ["study"] })])} />);
 
+    await openBrowseAll(user);
+
     // Nothing is refined yet, so the disclosure is closed and its label carries no count.
     expect(screen.queryByRole("combobox", { name: "View" })).toBeNull();
     expect(screen.queryByRole("combobox", { name: "Order" })).toBeNull();
@@ -331,6 +384,7 @@ describe("Phase 5c Cuaderno retrieval controls", () => {
 
     render(<Cuaderno {...propsFor(items)} />);
     // The disclosure is visit-local too: it comes back closed, with nothing to report.
+    await openBrowseAll(user);
     expect(screen.getByRole("button", { name: "Refine" })).toBeTruthy();
     await openRefine(user);
     expect(screen.getByRole("combobox", { name: "Order" }).value).toBe("touched");
@@ -369,9 +423,10 @@ describe("composable page retrieval and starters", () => {
     await user.type(screen.getByRole("textbox", { name: "Search notebook" }), "nomás");
     expect(card("nomás")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Context hub" })).toBeNull();
-    expect(screen.getByText("Context hub")).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Search results" })).getByText("Context hub")).toBeTruthy();
 
-    await user.click(screen.getByRole("button", { name: "páginas" }));
+    await user.click(screen.getByRole("button", { name: "Clear search" }));
+    await user.click(screen.getByRole("button", { name: /^Pages/ }));
     expect(props.onOpenPages).toHaveBeenCalledOnce();
   });
 
@@ -382,6 +437,7 @@ describe("composable page retrieval and starters", () => {
       word("de repente", { id: "user:phrase", form: "phrase" }),
     ]);
     render(<Cuaderno {...props} />);
+    await openBrowseAll(user);
 
     await user.click(screen.getByRole("button", { name: "palabras" }));
     expect(props.onOpenLexical).toHaveBeenCalledWith("word");
@@ -403,6 +459,7 @@ describe("composable page retrieval and starters", () => {
       [word("madrugar"), word("de repente", { id: "user:phrase", form: "phrase" })],
       { onOpenLexical: undefined, onOpenPages: undefined }
     )} />);
+    await openBrowseAll(user);
 
     await user.click(screen.getByRole("button", { name: "frases" }));
 
@@ -539,7 +596,7 @@ describe("Phase 23b: idle wandering launcher", () => {
     render(<Cuaderno {...propsFor([first, pageOnly, last], { onWander, random })} />);
 
     const launcher = screen.getByRole("button", { name: /Pasear por mi cuaderno/ });
-    expect(launcher.className).toContain("min-h-11");
+    expect(launcher.className).toContain("min-h-[76px]");
     await user.click(launcher);
     expect(random).toHaveBeenCalledTimes(1);
     expect(onWander).toHaveBeenCalledWith(last.id);

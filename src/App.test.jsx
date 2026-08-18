@@ -110,12 +110,17 @@ async function linkedTrail() {
   return { phrase, word, page };
 }
 
+async function openBrowseAll(user) {
+  await user.click(await screen.findByRole("button", { name: /^Browse all/ }));
+}
+
 describe("Phase 5a navigation continuity", () => {
   it("opens each linked destination at the top and backs through the detail trail", async () => {
     const user = userEvent.setup();
     await linkedTrail();
     render(<App />);
 
+    await openBrowseAll(user);
     await user.click(await screen.findByRole("button", { name: /^Study source$/ }));
     expect(screen.getByRole("button", { name: "Todo el cuaderno" })).toBeTruthy();
     await waitFor(() => expect(window.scrollTo).toHaveBeenLastCalledWith(0, 0));
@@ -138,7 +143,7 @@ describe("Phase 5a navigation continuity", () => {
     expect(screen.getByRole("button", { name: "Todo el cuaderno" })).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Todo el cuaderno" }));
-    expect(screen.getByPlaceholderText(/Search words, meanings, notes, pages/)).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Search notebook" })).toBeTruthy();
   });
 
   it("clears a linked trail when leaving Cuaderno", async () => {
@@ -146,6 +151,7 @@ describe("Phase 5a navigation continuity", () => {
     await linkedTrail();
     render(<App />);
 
+    await openBrowseAll(user);
     await user.click(await screen.findByRole("button", { name: /^Study source$/ }));
     await user.click(screen.getByRole("button", { name: /^madrugar/ }));
     expect(screen.getByRole("button", { name: "Atrás" })).toBeTruthy();
@@ -155,7 +161,7 @@ describe("Phase 5a navigation continuity", () => {
     await user.click(screen.getByRole("button", { name: "Cuaderno" }));
 
     expect(screen.queryByRole("button", { name: "Atrás" })).toBeNull();
-    expect(screen.getByPlaceholderText(/Search words, meanings, notes, pages/)).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Search notebook" })).toBeTruthy();
   });
 
   it("keeps optional-field drafts scoped to the entry where they were typed", async () => {
@@ -163,6 +169,7 @@ describe("Phase 5a navigation continuity", () => {
     await linkedTrail();
     render(<App />);
 
+    await openBrowseAll(user);
     await user.click(await screen.findByRole("button", { name: /^Study source$/ }));
     await user.click(screen.getByRole("button", { name: /^madrugar/ }));
     await user.click(screen.getByRole("button", { name: "Add an example" }));
@@ -181,6 +188,7 @@ describe("Phase 5a navigation continuity", () => {
     await linkItems(page.id, word.id);
     render(<App />);
 
+    await openBrowseAll(user);
     await user.click(await screen.findByRole("button", { name: /^Study source$/ }));
     await user.click(screen.getByRole("button", { name: /^madrugar/ }));
     await user.click(await screen.findByRole("button", { name: /^casa/ }));
@@ -201,6 +209,7 @@ describe("Phase 5a navigation continuity", () => {
     await createItem(newLexical({ term: "verb source", linkedKeys: [SACAR] }));
     render(<App />);
 
+    await openBrowseAll(user);
     await user.click(await screen.findByRole("button", { name: /^verb source$/ }));
     await user.click(await screen.findByRole("button", { name: /^sacar/ }));
     expect(await screen.findByText("Shares this pattern")).toBeTruthy();
@@ -231,6 +240,7 @@ describe("example-to-phrase creation", () => {
     }));
     render(<App />);
 
+    await openBrowseAll(user);
     await user.click(await screen.findByRole("button", { name: "razón" }));
     await waitFor(async () => {
       expect((await allEvents()).some((event) =>
@@ -359,17 +369,18 @@ describe("study-session focus mode", () => {
     render(<App />);
 
     const navigation = await screen.findByRole("navigation", { name: "Primary" });
-    expect(screen.getByText("Spanish notebook")).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Mi cuaderno" })).toBeTruthy();
     await user.click(within(navigation).getByRole("button", { name: "Repaso" }));
+    expect(screen.getByRole("banner", { name: "App header" })).toBeTruthy();
     await user.click(await screen.findByRole("button", { name: "Start" }));
 
     expect(await screen.findByRole("region", { name: "Review session" })).toBeTruthy();
-    expect(screen.queryByText("Spanish notebook")).toBeNull();
+    expect(screen.queryByRole("banner", { name: "App header" })).toBeNull();
     expect(screen.queryByRole("navigation", { name: "Primary" })).toBeNull();
     expect(screen.getByRole("progressbar", { name: "Session progress" })).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Finish" }));
-    expect(await screen.findByText("Spanish notebook")).toBeTruthy();
+    expect(await screen.findByRole("banner", { name: "App header" })).toBeTruthy();
     expect(screen.getByRole("navigation", { name: "Primary" })).toBeTruthy();
   });
 });
@@ -391,7 +402,7 @@ describe("Phase 4z Pages hub navigation", () => {
     render(<App />);
 
     await screen.findByRole("textbox", { name: "Search notebook" });
-    await user.click(screen.getByRole("button", { name: "páginas" }));
+    await user.click(screen.getByRole("button", { name: /^Pages\./ }));
     expect(screen.getByRole("button", { name: "Dated organized notes" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Body-only moment" })).toBeNull();
 
@@ -414,10 +425,9 @@ describe("Phase 4z Pages hub navigation", () => {
     render(<App />);
 
     await screen.findByRole("textbox", { name: "Search notebook" });
-    await user.click(screen.getByRole("button", { name: "páginas" }));
+    await user.click(screen.getByRole("button", { name: /^Pages\./ }));
 
     expect(screen.getByRole("heading", { name: "Pages" })).toBeTruthy();
-    expect(screen.queryByText("Spanish notebook")).toBeNull();
     await user.click(screen.getByRole("button", { name: "Sources" }));
     expect(screen.getByRole("button", { name: "Listening source" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Plain notes" })).toBeNull();
@@ -440,7 +450,7 @@ describe("Phase 4z Pages hub navigation", () => {
     await waitFor(() => expect(window.scrollTo).toHaveBeenLastCalledWith(0, 436));
     await user.click(within(screen.getByRole("region", { name: "Cuaderno surface" })).getByRole("button", { name: "Cuaderno" }));
     expect(screen.getByRole("textbox", { name: "Search notebook" })).toBeTruthy();
-    expect(screen.getByText("Spanish notebook")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Mi cuaderno" })).toBeTruthy();
   });
 });
 
@@ -460,7 +470,8 @@ describe("Phase 8 Words & phrases hub navigation", () => {
     render(<App />);
 
     await screen.findByRole("textbox", { name: "Search notebook" });
-    await user.click(screen.getByRole("button", { name: "frases" }));
+    await user.click(screen.getByRole("button", { name: /^Words & phrases\./ }));
+    await user.click(screen.getByRole("button", { name: "Phrases" }));
 
     // The hub replaces the app header and arrives with the tapped chip already applied.
     expect(screen.getByRole("heading", { name: "Words & phrases" })).toBeTruthy();
@@ -479,15 +490,14 @@ describe("Phase 8 Words & phrases hub navigation", () => {
     window.scrollTo.mockClear();
     await user.click(screen.getByRole("button", { name: "Words & phrases" }));
 
-    // Back lands on the hub with its visit-local chip and the pin both intact.
+    // Back lands on the combined hub with the pin and scroll position intact.
     expect(screen.getByRole("heading", { name: "Words & phrases" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Unpin de repente" })).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "madrugar" })).toBeNull();
     await waitFor(() => expect(window.scrollTo).toHaveBeenLastCalledWith(0, 512));
 
     await user.click(within(screen.getByRole("region", { name: "Cuaderno surface" })).getByRole("button", { name: "Cuaderno" }));
     expect(screen.getByRole("textbox", { name: "Search notebook" })).toBeTruthy();
-    expect(screen.getByText("Spanish notebook")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Mi cuaderno" })).toBeTruthy();
   });
 
   /** The shared seed above is built for link traversal; searching also needs the form shards. */
@@ -512,7 +522,7 @@ describe("Phase 8 Words & phrases hub navigation", () => {
     render(<App />);
 
     await screen.findByRole("textbox", { name: "Search notebook" });
-    await user.click(screen.getByRole("button", { name: "palabras" }));
+    await user.click(screen.getByRole("button", { name: /^Words & phrases\./ }));
     await user.click(screen.getByRole("button", { name: "Search words and phrases" }));
     await user.type(screen.getByLabelText("Search words and phrases"), "casa");
 
@@ -541,7 +551,7 @@ describe("Phase 4p Diario foundation", () => {
       "Ajustes",
     ]);
     await screen.findByRole("textbox", { name: "Search notebook" });
-    expect(screen.getByLabelText("Notebook totals").textContent).toContain("1 página");
+    expect(screen.getByRole("button", { name: /^Pages\. 1 page/ })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /Morning check-in/ })).toBeNull();
 
     await user.click(within(navigation).getByRole("button", { name: "Diario" }));
@@ -700,6 +710,7 @@ describe("Phase 4s journal reading and connections", () => {
     }));
     render(<App />);
 
+    await openBrowseAll(user);
     await user.click(await screen.findByRole("button", { name: "Move into Diario" }));
     await user.click(screen.getByLabelText("Page actions"));
     await user.click(screen.getByRole("button", { name: /Customize page/ }));
@@ -728,6 +739,7 @@ describe("Phase 20 global tag management", () => {
 
     const navigation = await screen.findByRole("navigation", { name: "Primary" });
     await screen.findByRole("textbox", { name: "Search notebook" });
+    await openBrowseAll(user);
     await user.click(screen.getByRole("button", { name: "Refine" }));
     await user.selectOptions(screen.getByRole("combobox", { name: "Tag" }), "verbs");
     expect(screen.getByRole("combobox", { name: "Tag" }).value).toBe("verbs");
