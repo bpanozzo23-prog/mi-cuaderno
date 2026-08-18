@@ -11,12 +11,15 @@ const labeledEntryAmount = (count, label) =>
 
 export default function TagManagementSheet({
   source,
+  initialDestination = "",
   items = [],
   onClose,
   onSaved,
   onExportBackup,
 }) {
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState(() =>
+    typeof initialDestination === "string" ? initialDestination : ""
+  );
   const [confirmation, setConfirmation] = useState(null);
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);

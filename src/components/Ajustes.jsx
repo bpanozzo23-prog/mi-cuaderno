@@ -1,5 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
-import { Download, Upload, HardDrive, ShieldCheck, ShieldAlert, AlertTriangle, Pencil } from "lucide-react";
+import { useCallback, useEffect, useId, useState } from "react";
+import {
+  AlertTriangle,
+  ChevronDown,
+  Download,
+  HardDrive,
+  Pencil,
+  ShieldAlert,
+  ShieldCheck,
+  Upload,
+} from "lucide-react";
 import { C, SERIF, MONO, dotGrid, SectionTitle, Card, Button } from "../theme.jsx";
 import { db, getPref } from "../db/db.js";
 import {
@@ -19,7 +28,8 @@ import AiCard from "./AiCard.jsx";
 import TagChip from "./TagChip.jsx";
 import { installedMeta } from "../db/ref/entries.js";
 import { tagCountsIn } from "../lib/organization.js";
-import { TAG_SWATCHES, tagSwatchId } from "../lib/tagColors.js";
+import { caseVariantGroups } from "../lib/tags.js";
+import { TAG_SWATCHES, swatchById, tagSwatchId } from "../lib/tagColors.js";
 import TagManagementSheet from "./TagManagementSheet.jsx";
 
 function backupAgeLabel(iso) {
@@ -29,6 +39,151 @@ function backupAgeLabel(iso) {
   if (days === 0) return "today";
   if (days === 1) return "yesterday";
   return `${days} days ago`;
+}
+
+const entryAmount = (count) => count === 1 ? "1 entry" : `${count} entries`;
+
+function TagColourRow({
+  tag,
+  count,
+  expanded,
+  tagColors,
+  onToggle,
+  onManage,
+  onTagColorChange,
+}) {
+  const paletteId = useId();
+  const activeSwatchId = tagSwatchId(tag, tagColors);
+  const activeSwatch = swatchById(activeSwatchId);
+
+  return (
+    <div className="border-b py-1 last:border-b-0" style={{ borderColor: C.line }}>
+      <div className="flex items-start gap-2">
+        <button
+          type="button"
+          aria-label={`Choose colour for ${tag}; current ${activeSwatch.label}`}
+          aria-expanded={expanded}
+          aria-controls={paletteId}
+          onClick={onToggle}
+          className="flex min-h-11 min-w-0 flex-1 items-center justify-between gap-2 rounded-lg px-1 text-left"
+        >
+          <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+            <TagChip tag={tag} className="max-w-full whitespace-normal break-all text-left" />
+            <span className="text-xs" style={{ fontFamily: MONO, color: C.mut }}>
+              {entryAmount(count)}
+            </span>
+          </span>
+          <ChevronDown
+            aria-hidden="true"
+            size={16}
+            className={`shrink-0 transition-transform ${expanded ? "rotate-180" : ""}`}
+            style={{ color: C.mut }}
+          />
+        </button>
+        <Button
+          tone="quiet"
+          className="min-h-11 shrink-0"
+          aria-label={`Manage tag ${tag}`}
+          onClick={onManage}
+        >
+          <Pencil size={15} /> Manage
+        </Button>
+      </div>
+
+      {expanded && (
+        <div
+          id={paletteId}
+          className="flex flex-wrap gap-1 pb-2 pt-1"
+          role="group"
+          aria-label={`Colour for ${tag}`}
+        >
+          {TAG_SWATCHES.map((swatch) => {
+            const active = activeSwatchId === swatch.id;
+            return (
+              <button
+                key={swatch.id}
+                type="button"
+                aria-label={`${swatch.label} for ${tag}`}
+                aria-pressed={active}
+                onClick={() => onTagColorChange?.(tag, swatch.id)}
+                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg"
+              >
+                <span
+                  className="inline-block h-6 w-6 rounded-full border-2"
+                  style={{
+                    background: swatch.background === "transparent" ? C.card : swatch.background,
+                    borderColor: active ? C.pen : swatch.border,
+                  }}
+                />
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CaseDuplicateGroup({ variants, countsByTag, onReview }) {
+  const [destination, setDestination] = useState(null);
+
+  useEffect(() => {
+    if (destination !== null && !variants.includes(destination)) setDestination(null);
+  }, [destination, variants]);
+
+  return (
+    <div className="rounded-lg border p-2.5" style={{ borderColor: C.line }}>
+      <div
+        role="group"
+        aria-label={`Choose spelling to keep from ${variants.join(", ")}`}
+        className="flex flex-wrap gap-1.5"
+      >
+        {variants.map((tag) => {
+          const selected = destination === tag;
+          return (
+            <button
+              key={tag}
+              type="button"
+              aria-label={`Keep spelling ${tag}`}
+              aria-pressed={selected}
+              onClick={() => setDestination(tag)}
+              className="flex min-h-11 min-w-0 max-w-full items-center gap-1.5 rounded-lg border px-2 text-left"
+              style={{
+                background: selected ? C.penPale : C.card,
+                borderColor: selected ? C.pen : C.line,
+                color: C.ink,
+              }}
+            >
+              <TagChip tag={tag} className="max-w-full whitespace-normal break-all text-left" />
+              <span className="shrink-0 text-[11px]" style={{ fontFamily: MONO, color: C.mut }}>
+                {countsByTag.get(tag) || 0}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {destination === null ? (
+        <div className="mt-1.5 text-xs" style={{ color: C.mut }}>
+          Choose the exact spelling to keep.
+        </div>
+      ) : (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {variants.filter((source) => source !== destination).map((source) => (
+            <Button
+              key={source}
+              tone="quiet"
+              className="min-h-11 min-w-0 max-w-full"
+              aria-label={`Review ${source} → ${destination}`}
+              onClick={() => onReview(source, destination)}
+            >
+              <span className="break-all text-left">Review {source} → {destination}</span>
+            </Button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function Ajustes({
@@ -48,6 +203,9 @@ export default function Ajustes({
   const [dictionary, setDictionary] = useState(null);
   const [managedTag, setManagedTag] = useState(null);
   const [tagNote, setTagNote] = useState("");
+  const [expandedTag, setExpandedTag] = useState(null);
+  const [duplicatesOpen, setDuplicatesOpen] = useState(false);
+  const duplicatesPanelId = useId();
 
   async function refresh() {
     const [status, last, items, events] = await Promise.all([
@@ -76,6 +234,11 @@ export default function Ajustes({
     await recordBackupTaken(envelope.exportedAt);
     setNote("Backup downloaded. Keep it somewhere off this phone.");
     refresh();
+  }
+
+  function openTagManagement(source, initialDestination = "") {
+    setTagNote("");
+    setManagedTag({ source, initialDestination });
   }
 
   function handleTagSaved(result) {
@@ -140,6 +303,18 @@ export default function Ajustes({
   // Derived at render from the notebook already in memory, the same way tag suggestions are: a tag
   // becomes colourable the moment it is used anywhere, and stops being listed when it is not.
   const tags = tagCountsIn(notebook?.items || []);
+  const countsByTag = new Map(tags.map(({ tag, count }) => [tag, count]));
+  const duplicateGroups = caseVariantGroups(tags.map(({ tag }) => tag));
+
+  useEffect(() => {
+    if (expandedTag !== null && !tags.some(({ tag }) => tag === expandedTag)) {
+      setExpandedTag(null);
+    }
+  }, [expandedTag, notebook?.items]);
+
+  useEffect(() => {
+    if (duplicatesOpen && duplicateGroups.length === 0) setDuplicatesOpen(false);
+  }, [duplicateGroups.length, duplicatesOpen]);
 
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
@@ -281,57 +456,53 @@ export default function Ajustes({
             {tagNote}
           </div>
         )}
-        {tags.length > 0 && (
-          <div className="mt-3 space-y-4">
-            {tags.map(({ tag, count }) => (
-              <div key={tag}>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex min-w-0 flex-wrap items-center gap-2 pt-1">
-                    <TagChip tag={tag} className="max-w-full whitespace-normal break-all text-left" />
-                    <span className="text-xs" style={{ fontFamily: MONO, color: C.mut }}>
-                      {count === 1 ? "1 entry" : `${count} entries`}
-                    </span>
-                  </div>
-                  <Button
-                    tone="quiet"
-                    className="min-h-11 shrink-0"
-                    aria-label={`Manage tag ${tag}`}
-                    onClick={() => {
-                      setTagNote("");
-                      setManagedTag(tag);
-                    }}
-                  >
-                    <Pencil size={15} /> Manage
-                  </Button>
-                </div>
-                <div
-                  className="mt-1 flex flex-wrap gap-1"
-                  role="group"
-                  aria-label={`Colour for ${tag}`}
-                >
-                  {TAG_SWATCHES.map((swatch) => {
-                    const active = tagSwatchId(tag, tagColors) === swatch.id;
-                    return (
-                      <button
-                        key={swatch.id}
-                        type="button"
-                        aria-label={`${swatch.label} for ${tag}`}
-                        aria-pressed={active}
-                        onClick={() => onTagColorChange?.(tag, swatch.id)}
-                        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg"
-                      >
-                        <span
-                          className="inline-block h-6 w-6 rounded-full border-2"
-                          style={{
-                            background: swatch.background === "transparent" ? C.card : swatch.background,
-                            borderColor: active ? C.pen : swatch.border,
-                          }}
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
+        {duplicateGroups.length > 0 && (
+          <div className="mt-3 rounded-lg border px-2" style={{ borderColor: C.line }}>
+            <button
+              type="button"
+              aria-expanded={duplicatesOpen}
+              aria-controls={duplicatesPanelId}
+              onClick={() => setDuplicatesOpen((open) => !open)}
+              className="flex min-h-11 w-full items-center justify-between gap-2 text-left text-sm font-medium"
+              style={{ color: C.pen }}
+            >
+              <span>Possible duplicates · {duplicateGroups.length}</span>
+              <ChevronDown
+                aria-hidden="true"
+                size={16}
+                className={`shrink-0 transition-transform ${duplicatesOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+            {duplicatesOpen && (
+              <div id={duplicatesPanelId} className="space-y-2 pb-2">
+                <p className="text-xs leading-relaxed" style={{ color: C.mut }}>
+                  These exact tags differ only by capitalization. Choose the spelling to keep, then review each merge.
+                </p>
+                {duplicateGroups.map((variants) => (
+                  <CaseDuplicateGroup
+                    key={variants[0].toLowerCase()}
+                    variants={variants}
+                    countsByTag={countsByTag}
+                    onReview={openTagManagement}
+                  />
+                ))}
               </div>
+            )}
+          </div>
+        )}
+        {tags.length > 0 && (
+          <div className="mt-2">
+            {tags.map(({ tag, count }) => (
+              <TagColourRow
+                key={tag}
+                tag={tag}
+                count={count}
+                expanded={expandedTag === tag}
+                tagColors={tagColors}
+                onToggle={() => setExpandedTag((current) => current === tag ? null : tag)}
+                onManage={() => openTagManagement(tag)}
+                onTagColorChange={onTagColorChange}
+              />
             ))}
           </div>
         )}
@@ -339,7 +510,8 @@ export default function Ajustes({
 
       {managedTag !== null && (
         <TagManagementSheet
-          source={managedTag}
+          source={managedTag.source}
+          initialDestination={managedTag.initialDestination}
           items={notebook?.items || []}
           onClose={() => setManagedTag(null)}
           onSaved={handleTagSaved}

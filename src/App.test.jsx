@@ -757,6 +757,11 @@ describe("Phase 20 global tag management", () => {
     await waitFor(() => {
       expect(screen.queryByRole("button", { name: "Manage tag verbs" })).toBeNull();
       expect(screen.getByRole("button", { name: "Manage tag word classes" })).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Red for word classes" })).toBeNull();
+      expect(screen.getByRole("button", { name: "Choose colour for word classes; current Red" })).toBeTruthy();
+    });
+    await user.click(screen.getByRole("button", { name: "Choose colour for word classes; current Red" }));
+    await waitFor(() => {
       expect(screen.getByRole("button", { name: "Red for word classes" }).getAttribute("aria-pressed")).toBe("true");
     });
 

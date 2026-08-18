@@ -41,6 +41,7 @@ describe("TagManagementSheet", () => {
     );
 
     expect(screen.getByText("2 entries use this exact tag.")).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "New tag name" }).value).toBe("");
     await user.type(screen.getByRole("textbox", { name: "New tag name" }), "  word classes  ");
     expect(screen.queryByRole("button", { name: "Confirm rename" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "Rename tag" }));
@@ -50,6 +51,44 @@ describe("TagManagementSheet", () => {
       destination: "word classes",
     });
     await waitFor(() => expect(onSaved).toHaveBeenCalledWith(expect.objectContaining({ kind: "rename" })));
+  });
+
+  it("prefills a suggested destination without merging before both confirmations", async () => {
+    const user = userEvent.setup();
+    const onSaved = vi.fn();
+    applyGlobalTagChange.mockResolvedValue({
+      kind: "merge",
+      source: "verbs",
+      destination: "grammar",
+      sourceCount: 2,
+      destinationCount: 2,
+      overlapCount: 1,
+      finalCount: 3,
+      changedCount: 2,
+    });
+
+    render(
+      <TagManagementSheet
+        source="verbs"
+        initialDestination="grammar"
+        items={items}
+        onClose={vi.fn()}
+        onSaved={onSaved}
+      />
+    );
+
+    expect(screen.getByRole("textbox", { name: "New tag name" }).value).toBe("grammar");
+    expect(screen.getByText("Merge into an existing tag")).toBeTruthy();
+    expect(screen.getByText("1 entry already has both")).toBeTruthy();
+    expect(applyGlobalTagChange).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Merge tags" }));
+    expect(screen.getByRole("button", { name: "Confirm merge" })).toBeTruthy();
+    expect(applyGlobalTagChange).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Confirm merge" }));
+    expect(applyGlobalTagChange).toHaveBeenCalledWith({ source: "verbs", destination: "grammar" });
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith(expect.objectContaining({ kind: "merge" })));
   });
 
   it("suggests an existing exact tag, previews overlap, and requires merge confirmation", async () => {

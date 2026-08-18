@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { allTagsIn, planGlobalTagChange, suggestTags } from "./tags.js";
+import { allTagsIn, caseVariantGroups, planGlobalTagChange, suggestTags } from "./tags.js";
 
 const item = (tags) => ({ tags });
 
@@ -62,6 +62,51 @@ describe("suggestTags offers tags the owner already uses", () => {
 
   it("offers nothing when nothing matches", () => {
     expect(suggestTags(TAGS, "zzz")).toEqual([]);
+  });
+});
+
+describe("caseVariantGroups finds only capitalization variants", () => {
+  it("groups two- and three-spelling variants while omitting singletons", () => {
+    expect(caseVariantGroups(["grammar", "verbs", "Verbs", "VERBS", "study", "Study"]))
+      .toEqual([
+        ["Study", "study"],
+        ["VERBS", "Verbs", "verbs"],
+      ]);
+  });
+
+  it("is deterministic regardless of input order and deduplicates exact spellings", () => {
+    const tags = ["verbs", "Verbs", "VERBS", "verbs", "Study", "study"];
+
+    expect(caseVariantGroups([...tags].reverse())).toEqual(caseVariantGroups(tags));
+  });
+
+  it("preserves accents, diaeresis and ñ instead of treating them as case differences", () => {
+    expect(caseVariantGroups([
+      "tu",
+      "tú",
+      "TU",
+      "TÚ",
+      "ano",
+      "año",
+      "ANO",
+      "AÑO",
+      "pinguino",
+      "pingüino",
+      "PINGUINO",
+      "PINGÜINO",
+    ])).toEqual([
+      ["ANO", "ano"],
+      ["AÑO", "año"],
+      ["PINGUINO", "pinguino"],
+      ["PINGÜINO", "pingüino"],
+      ["TU", "tu"],
+      ["TÚ", "tú"],
+    ]);
+  });
+
+  it("returns no suggestion group when every spelling is unique by case", () => {
+    expect(caseVariantGroups(["tu", "tú", "ano", "año", "pinguino", "pingüino"]))
+      .toEqual([]);
   });
 });
 

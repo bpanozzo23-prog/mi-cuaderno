@@ -29,6 +29,34 @@ export function allTagsIn(items = []) {
   return [...seen].sort((a, b) => a.localeCompare(b));
 }
 
+const compareExactStrings = (left, right) => left < right ? -1 : left > right ? 1 : 0;
+
+/**
+ * Exact tag spellings that differ only by capitalization.
+ *
+ * This deliberately does not use normalize(): duplicate suggestions here are narrower than tag
+ * search, because an acute accent, diaeresis or ñ is content rather than capitalization. Results
+ * are deterministic even if the caller's item order changes, and exact repeats are ignored.
+ */
+export function caseVariantGroups(tags = []) {
+  const groups = new Map();
+  const exactTags = [...new Set(
+    (Array.isArray(tags) ? tags : []).filter((tag) => typeof tag === "string")
+  )].sort(compareExactStrings);
+
+  for (const tag of exactTags) {
+    const key = tag.toLowerCase();
+    const variants = groups.get(key) || [];
+    variants.push(tag);
+    groups.set(key, variants);
+  }
+
+  return [...groups.entries()]
+    .filter(([, variants]) => variants.length > 1)
+    .sort(([left], [right]) => compareExactStrings(left, right))
+    .map(([, variants]) => variants);
+}
+
 /**
  * Tags worth offering for what has been typed so far.
  *
