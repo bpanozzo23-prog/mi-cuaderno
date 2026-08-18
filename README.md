@@ -617,6 +617,28 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   horizontal overflow and a clear console. No test asserts the styling itself. Deployed from `main`
   at `51f21c3` through Pages run 32049318652, with the live `assets/App-D4BdW6sp.js` carrying the
   rule. See the 2026-08-17 entries in [DECISIONS.md](DECISIONS.md).
+- **Markdown callout variants and inline actions — deployed.** Every explicit-callout editor now
+  offers Note, Tip and ¡Ojo!, while every Markdown toolbar adds Inline code and HTTPS Link. The
+  shared reader/search/preview path recognizes the exact `[!NOTE]`, `[!TIP]` and `[!OJO]` markers;
+  ordinary blockquotes remain quotations, fenced code stays readable plain text, and Tip/¡Ojo! use
+  the owner-picked sage and saffron palette. No storage, backup, event, preference or schema change;
+  `SCHEMA_VERSION` stays 9. The complete serial suite passes 1,549/1,549 across 130 files, the
+  production build transforms 2,122 modules, and a 375×812 browser flow verified the accessible
+  callouts, exact colours, contained toolbar and clear console. Deployed from `main` at `1869593`
+  through Pages run 32081320262. See the 2026-08-17 entries in
+  [DECISIONS.md](DECISIONS.md).
+- **Cuaderno landing foyer — deployed.** Cuaderno now opens as the owner-picked notebook-specific
+  library foyer instead of rendering the complete notebook list: global search shows up to five
+  immediate results, illustrated Words & phrases and Pages doors lead to their dedicated hubs, a
+  three-item Recent row resumes work, and quieter Browse all and Wander exits preserve full access.
+  Browse all keeps the existing refinement controls and reveals long results in 30-item increments;
+  the floating Add button remains. No storage, backup, event, preference or schema change;
+  `SCHEMA_VERSION` stays 9. The complete serial suite passes 1,551/1,551 across 130 files, the
+  production build transforms 2,126 modules, and the 375×812 fixture verified search, Browse all,
+  hub navigation, zero horizontal overflow and a clear console; design QA against the selected
+  mock also passes. Deployed from `main` at `65200bf` through Pages run 32194741780, with the live
+  site serving `assets/index-BtkD3Yn0.js` and `assets/App-Bxg2YwU1.js`. See the 2026-08-18 entries
+  in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
