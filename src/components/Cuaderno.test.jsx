@@ -595,19 +595,21 @@ describe("Phase 23b: idle wandering launcher", () => {
     const random = vi.fn(() => 0.99);
     render(<Cuaderno {...propsFor([first, pageOnly, last], { onWander, random })} />);
 
-    const launcher = screen.getByRole("button", { name: /Pasear por mi cuaderno/ });
-    expect(launcher.className).toContain("min-h-[76px]");
+    const launcher = screen.getByRole("button", { name: "Pasear" });
+    expect(launcher.textContent).toBe("Pasear");
+    expect(launcher.className).toContain("min-h-14");
+    expect(screen.queryByText("Start somewhere unexpected.")).toBeNull();
     await user.click(launcher);
     expect(random).toHaveBeenCalledTimes(1);
     expect(onWander).toHaveBeenCalledWith(last.id);
 
     await user.type(screen.getByRole("textbox", { name: "Search notebook" }), "casa");
-    expect(screen.queryByRole("button", { name: /Pasear por mi cuaderno/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Pasear" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "Clear search" }));
-    expect(screen.getByRole("button", { name: /Pasear por mi cuaderno/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Pasear" })).toBeTruthy();
 
     cleanup();
     render(<Cuaderno {...propsFor([pageOnly], { onWander })} />);
-    expect(screen.queryByRole("button", { name: /Pasear por mi cuaderno/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Pasear" })).toBeNull();
   });
 });

@@ -436,7 +436,7 @@ describe("Phase 23b wander navigation", () => {
     render(<App />);
 
     await screen.findByRole("textbox", { name: "Search notebook" });
-    await user.click(screen.getByRole("button", { name: /Pasear por mi cuaderno/ }));
+    await user.click(screen.getByRole("button", { name: "Pasear" }));
     expect(await screen.findByText("Paseo por tu cuaderno")).toBeTruthy();
     expect(screen.getByText("casa", { selector: ".text-2xl" })).toBeTruthy();
     expect(JSON.stringify(await allEvents())).toBe(before);
@@ -1309,7 +1309,7 @@ describe("Cuidar hub navigation", () => {
     render(<App />);
 
     await screen.findByRole("textbox", { name: "Search notebook" });
-    await user.click(screen.getByRole("button", { name: /Cuidar mi cuaderno/ }));
+    await user.click(screen.getByRole("button", { name: "Cuidar" }));
     expect(await screen.findByRole("heading", { name: "Cuidar mi cuaderno" })).toBeTruthy();
 
     const connect = screen.getByRole("region", { name: "Conectar" });
@@ -1338,7 +1338,7 @@ describe("Cuidar hub navigation", () => {
     render(<App />);
 
     await screen.findByRole("textbox", { name: "Search notebook" });
-    await user.click(screen.getByRole("button", { name: /Cuidar mi cuaderno/ }));
+    await user.click(screen.getByRole("button", { name: "Cuidar" }));
     const twins = await screen.findByRole("region", { name: "Etiquetas gemelas" });
     expect(within(twins).getByText("Idiom · idiom")).toBeTruthy();
 
@@ -1357,8 +1357,9 @@ describe("Cuidar hub navigation", () => {
     render(<App />);
 
     await screen.findByRole("textbox", { name: "Search notebook" });
-    const door = screen.getByRole("button", { name: /Cuidar mi cuaderno/ });
-    expect(door.textContent).toContain("Pequeñas mejoras, si te apetece.");
+    const door = screen.getByRole("button", { name: "Cuidar" });
+    expect(door.textContent).toBe("Cuidar");
+    expect(screen.queryByText("Pequeñas mejoras, si te apetece.")).toBeNull();
     await user.click(door);
 
     expect(await screen.findByText("Todo está en orden.")).toBeTruthy();
