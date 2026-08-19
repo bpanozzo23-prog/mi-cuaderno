@@ -677,6 +677,15 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   `assets/App-DVjQswaH.js` carries the hub's markers. Hub empty-state copy remains the plain
   placeholder pending the owner's voice-variant pick. See the 2026-08-18 entries in
   [DECISIONS.md](DECISIONS.md).
+- **Compact Cuidar and Pasear landing doors — deployed.** Each optional foyer exit now contains
+  only its original leading icon and the single-word label **Cuidar** or **Pasear**; the longer
+  “mi cuaderno” copy, subtitles and trailing chevrons are gone. The full-width 58px buttons retain
+  their existing colors, behavior and accessible touch targets. Focused Cuaderno/App coverage
+  passes 62/62, the production build transforms 2,129 modules, and an isolated 375×812 check
+  measured no horizontal overflow or console warnings/errors. Deployed from `main` at `3dc1ecf`
+  through Pages run
+  [32215040409](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32215040409). See the
+  2026-08-18/19 entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
