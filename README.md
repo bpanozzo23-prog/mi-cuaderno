@@ -697,6 +697,28 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   a clear console. Deployed from `main` at `4968878` through Pages run
   [32279564126](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32279564126). See the
   2026-08-19 entries in [DECISIONS.md](DECISIONS.md).
+- **Share page-kind chooser — deployed.** A shared URL's **New page** route now opens an explicit
+  Notes/Vocabulary/Grammar/Source chooser, Notes first as the simple default, instead of treating
+  every new page as a Source notebook. Shared Notes, Vocabulary and Grammar pages carry the URL as
+  an ordinary Media link; a shared Source notebook keeps it only as its Primary URL. A
+  sender-provided Android share title prefills the editable title; a bare TikTok URL leaves it
+  blank rather than fetched or invented. No schema, backup, preference, manifest, navigation or
+  event-type change; `SCHEMA_VERSION` stays 9. Focused share coverage passes 62/62, the complete
+  serial suite passes 1,600/1,600 across 134 files, the production build and `git diff --check`
+  pass, and an isolated 375×812 origin verified all four choices fit without overflow. See the
+  2026-08-19 entries in [DECISIONS.md](DECISIONS.md).
+- **Diario skill-focused prompts — deployed.** The optional prompt library grows from 24 to 42
+  prompts with three grammar-skill categories beside the original four: **Narrate**
+  (preterite/imperfect, reflexive routine, sequencing), **Imagine** (subjunctive, future,
+  conditional, si-clauses) and **Connect** (ser/estar description, discourse connectors, por/para,
+  object pronouns, comparisons). Each prompt embeds its structural constraint in its own text, so
+  selection stays visit-local guidance and never stored metadata. Data-only change to
+  `journalPrompts.js`; `SCHEMA_VERSION` stays 9. Focused coverage passes 19/19 and the complete
+  serial suite 1,600/1,600, and a 375×812 dev-server flow confirmed each new category renders its
+  six prompts with no horizontal overflow and a clear console. Both increments deployed from
+  `main` at `7ed9aca` through Pages run
+  [32292697167](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32292697167). See the
+  2026-08-19 entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
