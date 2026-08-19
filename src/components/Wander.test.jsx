@@ -74,6 +74,7 @@ describe("Wander", () => {
         }])}
         loadMeta={vi.fn(async () => ({ previousIds: {} }))}
         prepareJournal={vi.fn(async () => [{ journal: true }, { journal: true }])}
+        random={vi.fn(() => 0)}
       />
     );
 
@@ -89,6 +90,12 @@ describe("Wander", () => {
     fireEvent.click(stub);
     expect(onHop).not.toHaveBeenCalled();
     expect(onOpen).not.toHaveBeenCalled();
+
+    const expectedRandomTarget = items.find(
+      (row) => row.type === "lexical" && row.id !== current.id
+    );
+    await user.click(screen.getByRole("button", { name: "Otra al azar" }));
+    expect(onHop).toHaveBeenLastCalledWith(expectedRandomTarget.id);
 
     await user.click(screen.getByRole("button", { name: new RegExp(`^${neighbor.term}`) }));
     expect(onHop).toHaveBeenLastCalledWith(neighbor.id);
@@ -145,6 +152,23 @@ describe("Wander", () => {
     expect(onHop).toHaveBeenCalledWith(word.id);
     await user.click(screen.getByRole("button", { name: "Open full entry" }));
     expect(onOpen).toHaveBeenCalledWith(page.id);
+  });
+
+  it("hides the random action when the current lexical entry is the only eligible destination", () => {
+    const only = newLexical({ term: "casa" });
+
+    render(
+      <Wander
+        item={only}
+        items={[only, newPage({ title: "Notes" })]}
+        onHop={vi.fn()}
+        onOpen={vi.fn()}
+        onBack={vi.fn()}
+        prepareJournal={vi.fn(async () => [])}
+      />
+    );
+
+    expect(screen.queryByRole("button", { name: "Otra al azar" })).toBeNull();
   });
 
   /**

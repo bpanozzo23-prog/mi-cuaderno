@@ -441,6 +441,12 @@ describe("Phase 23b wander navigation", () => {
     expect(screen.getByText("casa", { selector: ".text-2xl" })).toBeTruthy();
     expect(JSON.stringify(await allEvents())).toBe(before);
 
+    await user.click(screen.getByRole("button", { name: "Otra al azar" }));
+    expect(screen.getByText("hogar", { selector: ".text-2xl" })).toBeTruthy();
+    expect(JSON.stringify(await allEvents())).toBe(before);
+    await user.click(screen.getByRole("button", { name: "Wander" }));
+    expect(screen.getByText("casa", { selector: ".text-2xl" })).toBeTruthy();
+
     await user.click(screen.getByRole("button", { name: /^hogar/ }));
     expect(screen.getByText("hogar", { selector: ".text-2xl" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: /^Architecture notes/ }));

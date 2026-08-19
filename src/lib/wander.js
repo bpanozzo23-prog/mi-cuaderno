@@ -26,6 +26,14 @@ export function sampleWanderStart(items = [], random = Math.random) {
   return eligible[index];
 }
 
+/** Uniform over lexical entries other than the center currently on screen. */
+export function sampleWanderNext(items = [], currentId, random = Math.random) {
+  return sampleWanderStart(
+    eligibleWanderItems(items).filter((item) => item.id !== currentId),
+    random
+  );
+}
+
 const explicitRelationship = (relationship) =>
   relationship.type !== "related" || relationship.note !== "";
 

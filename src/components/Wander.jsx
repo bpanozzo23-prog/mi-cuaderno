@@ -5,6 +5,7 @@ import {
   ExternalLink,
   Link2,
   Route,
+  Shuffle,
 } from "lucide-react";
 import { C, Card, MONO, SERIF, SectionTitle, dotGrid } from "../theme.jsx";
 import {
@@ -16,7 +17,7 @@ import {
 } from "../db/ref/entries.js";
 import { firstMeaningGloss } from "../lib/meanings.js";
 import { prepareProseContainment } from "../lib/proseContainment.js";
-import { deriveWanderConnections } from "../lib/wander.js";
+import { deriveWanderConnections, sampleWanderNext } from "../lib/wander.js";
 import { prepareSavedConjugationFamily } from "../lib/wordFamilies.js";
 import ConjugationFamilyRows from "./ConjugationFamilyRows.jsx";
 
@@ -66,6 +67,7 @@ export default function Wander({
   loadFamilies = getConjugationPatternFamilies,
   loadMeta = installedMeta,
   prepareJournal = prepareProseContainment,
+  random = Math.random,
 }) {
   const [resolvedEntries, setResolvedEntries] = useState([]);
   const [family, setFamily] = useState(null);
@@ -136,6 +138,14 @@ export default function Wander({
     [item, items, resolvedEntries]
   );
   const gloss = isLexical ? firstMeaningGloss(item) : "";
+  const canJumpRandom = items.some(
+    (candidate) => candidate?.type === "lexical" && candidate.id !== item?.id
+  );
+
+  function jumpRandom() {
+    const next = sampleWanderNext(items, item?.id, random);
+    if (next) onHop(next.id);
+  }
 
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
@@ -164,6 +174,21 @@ export default function Wander({
         </div>
         {gloss && <div className="mt-1 text-sm break-words" style={{ color: C.mut }}>{gloss}</div>}
       </Card>
+
+      {canJumpRandom && (
+        <button
+          type="button"
+          onClick={jumpRandom}
+          className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold active:opacity-80"
+          style={{
+            background: C.roleSourcePale,
+            borderColor: C.pageFolderSourceLine,
+            color: C.roleSourceInk,
+          }}
+        >
+          <Shuffle size={16} aria-hidden="true" /> Otra al azar
+        </button>
+      )}
 
       <SectionTitle>
         <span className="inline-flex items-center gap-1.5"><Link2 size={14} /> Connections</span>

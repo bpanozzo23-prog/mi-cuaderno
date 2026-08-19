@@ -4,6 +4,7 @@ import {
   deriveSavedFamilySiblings,
   deriveWanderConnections,
   eligibleWanderItems,
+  sampleWanderNext,
   sampleWanderStart,
 } from "./wander.js";
 
@@ -29,6 +30,19 @@ describe("wander starting population", () => {
       "user:three",
     ]);
     expect(sampleWanderStart([makePage()], () => 0)).toBeNull();
+  });
+
+  it("samples another lexical entry without returning the current center", () => {
+    const current = makeLexical({ id: "user:current", term: "uno" });
+    const phrase = makeLexical({ id: "user:phrase", term: "a veces", form: "phrase" });
+    const word = makeLexical({ id: "user:word", term: "dos" });
+    const page = makePage({ id: "user:page" });
+
+    expect(sampleWanderNext([current, page, phrase, word], current.id, () => 0)?.id)
+      .toBe(phrase.id);
+    expect(sampleWanderNext([current, page, phrase, word], current.id, () => 0.99)?.id)
+      .toBe(word.id);
+    expect(sampleWanderNext([current, page], current.id, () => 0)).toBeNull();
   });
 });
 
