@@ -453,7 +453,9 @@ acceptance criteria.
 
 The owner approved a dated reversal of Phase 5a's no-history and reset-on-tab-switch rules after
 the app grew to four primary tabs and several major drill-downs. The implementation is complete
-locally and is not pushed or deployed. Final verification evidence is recorded in `DECISIONS.md`.
+and deployed from `main` at `3b4e717` through GitHub Pages run
+[32208156024](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32208156024). Final
+verification and release evidence is recorded in `DECISIONS.md`.
 
 ## What changed
 
@@ -485,4 +487,7 @@ reset, hardware-style study Back consumed exactly once, and a fresh Cuaderno roo
 prior browser entry. The document measured `scrollWidth === clientWidth === 360` inside
 `innerWidth === 375`, no visible element crossed the viewport, and browser warning/error logs were
 empty. The synthetic fixture remains only on the isolated browser origin; no owner data was
-available or inspected. Nothing was pushed or deployed.
+available or inspected. At that verification point nothing had been pushed or deployed. The owner
+then approved the release: local and remote `main` matched at `3b4e717`, the Pages workflow
+completed successfully, and the live root returned HTTP 200 serving `assets/index-CeP41uet.js`.
+The final installed-Android hardware Back check remains owner-side.

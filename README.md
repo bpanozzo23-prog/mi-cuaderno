@@ -639,6 +639,27 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   mock also passes. Deployed from `main` at `65200bf` through Pages run 32194741780, with the live
   site serving `assets/index-BtkD3Yn0.js` and `assets/App-Bxg2YwU1.js`. See the 2026-08-18 entries
   in [DECISIONS.md](DECISIONS.md).
+- **Repaso search-miss display removal — deployed.** Repaso no longer shows stored `search_miss`
+  events in either its standalone card or Recent activity; Cuaderno's global search still records
+  genuine misses, and existing history remains untouched. This is presentation-only, with no
+  schema, backup or event-storage change. See the 2026-08-18 entry in
+  [DECISIONS.md](DECISIONS.md).
+- **Compact tag settings and duplicate review — deployed.** Ajustes keeps tag palettes collapsed,
+  opens at most one eleven-swatch palette, and derives a neutral review for strict case-only tag
+  variants. Every merge still uses the existing preview, confirmation, optional-backup and atomic
+  transaction path; nothing merges automatically. No schema, preference, backup or event change.
+  See the 2026-08-18 entries in [DECISIONS.md](DECISIONS.md).
+- **Browser-backed navigation continuity — deployed.** A validated shallow `history.state`
+  snapshot now gives Cuaderno, Diario, Repaso and Ajustes one remembered stack each, keeps visited
+  tabs mounted for task-local filters, and aligns browser/hardware Back, Forward and visible Back
+  controls. Refresh restores stable major destinations while drafts, filters and study progress
+  remain transient and return safely to launchers. No router, URL route, durable-storage, schema,
+  backup or event change. The complete current-tree suite passes 1,576/1,576 across 132 files, the
+  production build transforms 2,127 modules, and the disposable 375×812 flow passed. These three
+  increments deployed together from `main` at `3b4e717` through Pages run
+  [32208156024](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32208156024), with the live
+  root returning HTTP 200 and serving `assets/index-CeP41uet.js`. See the 2026-08-18 entries in
+  [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
