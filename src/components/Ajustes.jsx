@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import {
   AlertTriangle,
   ChevronDown,
@@ -188,6 +188,7 @@ function CaseDuplicateGroup({ variants, countsByTag, onReview }) {
 
 export default function Ajustes({
   notebook,
+  duplicatesRequest = null,
   tagColors = {},
   onTagColorChange,
   onDataReplaced,
@@ -206,6 +207,20 @@ export default function Ajustes({
   const [expandedTag, setExpandedTag] = useState(null);
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
   const duplicatesPanelId = useId();
+  const tagsSectionRef = useRef(null);
+
+  // Arrival from the Cuidar hub's tag-twins card: open the duplicates review and bring the Tags
+  // section into view. Keyed so tapping the suggestion again re-applies after a manual collapse;
+  // the optional call tolerates environments without scrollIntoView (jsdom). The follow-up
+  // scroll compensates for the async Backup/Storage cards above settling their heights.
+  useEffect(() => {
+    if (!duplicatesRequest?.key) return undefined;
+    setDuplicatesOpen(true);
+    const scroll = () => tagsSectionRef.current?.scrollIntoView?.({ block: "start" });
+    scroll();
+    const timer = setTimeout(scroll, 250);
+    return () => clearTimeout(timer);
+  }, [duplicatesRequest]);
 
   async function refresh() {
     const [status, last, items, events] = await Promise.all([
@@ -440,7 +455,9 @@ export default function Ajustes({
 
       <AiCard />
 
-      <SectionTitle>Tags</SectionTitle>
+      <div ref={tagsSectionRef}>
+        <SectionTitle>Tags</SectionTitle>
+      </div>
       <Card>
         {tags.length === 0 ? (
           <div className="text-sm" style={{ color: C.mut }}>

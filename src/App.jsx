@@ -8,6 +8,7 @@ import Diario from "./components/Diario.jsx";
 import Repaso from "./components/Repaso.jsx";
 import Ajustes from "./components/Ajustes.jsx";
 import Wander from "./components/Wander.jsx";
+import CuidarHub from "./components/CuidarHub.jsx";
 import { useNotebook } from "./useNotebook.js";
 import { isJournalEntry } from "./lib/journal.js";
 import { parseSharePayload } from "./lib/shareTarget.js";
@@ -141,6 +142,7 @@ export default function App() {
   const [pinnedLexicalIds, setPinnedLexicalIds] = useState([]);
   const [tagColors, setTagColors] = useState({});
   const [studySessionActive, setStudySessionActive] = useState(false);
+  const [ajustesDuplicatesRequest, setAjustesDuplicatesRequest] = useState(null);
   const notebook = useNotebook();
 
   navigationRef.current = navigation;
@@ -395,6 +397,17 @@ export default function App() {
     pushRoute({ tab: "cuaderno", screen: "pages" });
   }
 
+  function openCuidar() {
+    pushRoute({ tab: "cuaderno", screen: "cuidar" });
+  }
+
+  // Arrival from the Cuidar hub's tag-twins card: land on Ajustes with the duplicates review
+  // already open. In-memory only — a refresh simply shows plain Ajustes.
+  function reviewTagTwins() {
+    setAjustesDuplicatesRequest({ key: makeNavigationVisitKey() });
+    switchTab("ajustes");
+  }
+
   function openLexical(form = FILTERS.all) {
     pushRoute(
       { tab: "cuaderno", screen: "lexical" },
@@ -405,7 +418,9 @@ export default function App() {
   function openCuadernoRoot(screen, options = {}) {
     const payloadFactory = screen === "search"
       ? (visitKey) => ({ seedQuery: { text: options.query || "", key: visitKey } })
-      : null;
+      : screen === "browse" && options.maintenanceView
+        ? (visitKey) => ({ browseView: { view: options.maintenanceView, key: visitKey } })
+        : null;
     if (options.replace) replaceRoute({ tab: "cuaderno", screen }, payloadFactory);
     else pushRoute({ tab: "cuaderno", screen }, payloadFactory);
   }
@@ -556,7 +571,10 @@ export default function App() {
     ? notebook.items.find((item) => item.id === cuadernoRoute.id) || null
     : null;
   const hubOpen = tab === "cuaderno"
-    && (cuadernoRoute.screen === "pages" || cuadernoRoute.screen === "lexical");
+    && ["pages", "lexical", "cuidar"].includes(cuadernoRoute.screen);
+  const cuidarVisitKey = navigation.stacks.cuaderno.findLast(
+    (stackRoute) => stackRoute.screen === "cuidar"
+  )?.visitKey || null;
   const cuadernoRootOpen = tab === "cuaderno" && CUADERNO_ROOT_SCREENS.has(cuadernoRoute.screen);
 
   return (
@@ -606,7 +624,7 @@ export default function App() {
           <>
             {visitedTabs.has("cuaderno") && (
               <section hidden={tab !== "cuaderno"} aria-label="Cuaderno surface">
-                <div hidden={cuadernoRoute.screen === "pages" || cuadernoRoute.screen === "lexical" || cuadernoRoute.screen === "wander"}>
+                <div hidden={["pages", "lexical", "wander", "cuidar"].includes(cuadernoRoute.screen)}>
                   <Cuaderno
                     notebook={notebook}
                     selectedId={["detail", "biography"].includes(cuadernoRoute.screen) ? cuadernoRoute.id : null}
@@ -620,8 +638,10 @@ export default function App() {
                     onOpenSettings={() => switchTab("ajustes")}
                     onOpenPages={openPages}
                     onOpenLexical={openLexical}
+                    onOpenCuidar={openCuidar}
                     onWander={openWander}
                     seedQuery={cuadernoPayload.seedQuery || null}
+                    seedBrowseView={cuadernoPayload.browseView || null}
                     shareSource={cuadernoPayload.shareSource || null}
                     pinnedPageIds={pinnedPageIds}
                     onPagePinnedChange={changePagePinned}
@@ -648,6 +668,17 @@ export default function App() {
                     onBack={navigateBack}
                     backLabel={backLabel}
                     onSearchDictionary={searchEverything}
+                  />
+                </div>
+                <div hidden={cuadernoRoute.screen !== "cuidar"}>
+                  <CuidarHub
+                    notebook={notebook}
+                    visitKey={cuidarVisitKey}
+                    onBack={navigateBack}
+                    backLabel={backLabel}
+                    onSelect={openItem}
+                    onSeeAll={(view) => openCuadernoRoot("browse", { maintenanceView: view })}
+                    onReviewTags={reviewTagTwins}
                   />
                 </div>
                 <div hidden={cuadernoRoute.screen !== "wander"}>
@@ -696,6 +727,7 @@ export default function App() {
               <section hidden={tab !== "ajustes"} aria-label="Ajustes surface">
                 <Ajustes
                   notebook={notebook}
+                  duplicatesRequest={ajustesDuplicatesRequest}
                   tagColors={tagColors}
                   onTagColorChange={changeTagColor}
                   onDataReplaced={notebook.reload}

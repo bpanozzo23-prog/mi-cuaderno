@@ -4,6 +4,7 @@ import {
   FileText,
   Languages,
   Route,
+  Sprout,
 } from "lucide-react";
 import { C, SERIF } from "../theme.jsx";
 import { firstMeaningGloss } from "../lib/meanings.js";
@@ -185,6 +186,7 @@ export default function CuadernoLanding({
   onOpenPages,
   onBrowseAll,
   onShowAllResults,
+  onOpenCuidar,
   canWander,
   onWander,
 }) {
@@ -315,11 +317,42 @@ export default function CuadernoLanding({
         </div>
       </section>
 
+      {Boolean(onOpenCuidar) && (
+        // Deliberately static: no counts, no category info, no notebook-dependent voice. The
+        // door never pressures — whether anything needs tending is discovered inside.
+        <button
+          type="button"
+          onClick={onOpenCuidar}
+          className={`mt-6 flex min-h-[76px] w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left active:opacity-80 ${quietFocus}`}
+          style={{
+            background: C.card,
+            borderColor: C.line,
+            color: C.ink,
+          }}
+        >
+          <span
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+            style={{ background: C.roleSourcePale, color: C.roleSourceInk }}
+          >
+            <Sprout size={20} aria-hidden="true" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[16px] font-bold leading-tight" style={{ fontFamily: SERIF }}>
+              Cuidar mi cuaderno
+            </span>
+            <span className="mt-1 block text-xs" style={{ color: C.entryMeaning }}>
+              Pequeñas mejoras, si te apetece.
+            </span>
+          </span>
+          <ChevronRight size={19} className="shrink-0" aria-hidden="true" />
+        </button>
+      )}
+
       {canWander && (
         <button
           type="button"
           onClick={onWander}
-          className={`mt-6 flex min-h-[76px] w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left active:opacity-80 ${quietFocus}`}
+          className={`mt-3 flex min-h-[76px] w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left active:opacity-80 ${quietFocus}`}
           style={{
             background: C.roleSourcePale,
             borderColor: C.pageFolderSourceLine,

@@ -64,10 +64,12 @@ export default function Cuaderno({
   onOpenSettings,
   onOpenPages,
   onOpenLexical,
+  onOpenCuidar,
   onWander,
   random = Math.random,
   now = new Date(),
   seedQuery = null,
+  seedBrowseView = null,
   shareSource = null,
   rootScreen = null,
   onOpenRoot = null,
@@ -178,6 +180,21 @@ export default function Cuaderno({
     setTypeFilter(FILTERS.all);
     if (!controlledRootMode) setRootMode("landing");
   }, [seedQuery]);
+
+  // A maintenance view handed over from the Cuidar hub's "see all" action. Keyed like seedQuery
+  // so tapping the same category twice still re-applies after the owner changed the controls.
+  // Everything else resets so the arriving list is exactly the promised one.
+  useEffect(() => {
+    if (!seedBrowseView?.key) return;
+    setQuery("");
+    setTypeFilter(FILTERS.all);
+    setTagFilter(null);
+    setBrowseOrder(BROWSE_ORDERS.touched);
+    setMaintenanceView(seedBrowseView.view);
+    setRefineOpen(false);
+    setResultLimit(30);
+    if (!controlledRootMode) setRootMode("browse");
+  }, [seedBrowseView]);
 
   // A URL shared in from another Android app (share_target → App's startup dispatch). It opens
   // the destination chooser rather than committing to a new Source page: the owner's dominant
@@ -470,6 +487,7 @@ export default function Cuaderno({
           onOpen={onSelect}
           onOpenLexical={() => onOpenLexical?.(FILTERS.all)}
           onOpenPages={onOpenPages}
+          onOpenCuidar={onOpenCuidar}
           onBrowseAll={openBrowseAll}
           onShowAllResults={() => {
             setResultLimit(30);

@@ -1284,3 +1284,84 @@ describe("Android share target arrival", () => {
     expect(screen.queryByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" })).toBeNull();
   });
 });
+
+describe("Cuidar hub navigation", () => {
+  const OLD = "2026-07-01T10:00:00.000Z";
+
+  async function seedGarden() {
+    const terms = ["solitaria", "aislada", "suelta", "perdida", "olvidada"];
+    const words = [];
+    for (const term of terms) {
+      const word = await createItem(newLexical({
+        term,
+        meanings: [newMeaning({ gloss: "alone" })],
+        myExamples: ["Un ejemplo mío."],
+      }));
+      await db.items.update(word.id, { createdAt: OLD });
+      words.push(word);
+    }
+    return words;
+  }
+
+  it("walks door → hub → see-all Browse view and backs out through history", async () => {
+    const user = userEvent.setup();
+    await seedGarden();
+    render(<App />);
+
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(screen.getByRole("button", { name: /Cuidar mi cuaderno/ }));
+    expect(await screen.findByRole("heading", { name: "Cuidar mi cuaderno" })).toBeTruthy();
+
+    const connect = screen.getByRole("region", { name: "Conectar" });
+    await user.click(within(connect).getByRole("button", { name: "Ver las 5" }));
+    expect(await screen.findByRole("heading", { name: "Browse all" })).toBeTruthy();
+    // The arriving list is exactly the promised maintenance view, and the transient
+    // payload that carried it never enters browser history.
+    const region = within(screen.getByRole("region", { name: "Cuaderno surface" }));
+    expect(await region.findByRole("button", { name: /^solitaria/ })).toBeTruthy();
+    expect(JSON.stringify(window.history.state.mcNavigation)).not.toContain("browseView");
+    expect(JSON.stringify(window.history.state.mcNavigation)).toContain("cuidar");
+
+    window.history.back();
+    expect(await screen.findByRole("heading", { name: "Cuidar mi cuaderno" })).toBeTruthy();
+    window.history.back();
+    expect(await screen.findByRole("textbox", { name: "Search notebook" })).toBeTruthy();
+  }, 10_000);
+
+  it("routes tag twins to Ajustes with the duplicates review open", async () => {
+    const user = userEvent.setup();
+    const first = await createItem(newLexical({ term: "modismo", tags: ["idiom"] }));
+    const second = await createItem(newLexical({ term: "refrán", tags: ["Idiom"] }));
+    await linkItems(first.id, second.id);
+    await db.items.update(first.id, { createdAt: OLD });
+    await db.items.update(second.id, { createdAt: OLD });
+    render(<App />);
+
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(screen.getByRole("button", { name: /Cuidar mi cuaderno/ }));
+    const twins = await screen.findByRole("region", { name: "Etiquetas gemelas" });
+    expect(within(twins).getByText("Idiom · idiom")).toBeTruthy();
+
+    await user.click(within(twins).getByRole("button", { name: "Revisar en Ajustes" }));
+    const toggle = await screen.findByRole("button", { name: /Possible duplicates · 1/ });
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(
+      screen.getByText("These exact tags differ only by capitalization. Choose the spelling to keep, then review each merge.")
+    ).toBeTruthy();
+    // Let Ajustes' initial async storage refresh settle before teardown closes the database.
+    await screen.findByText(/2 items · /);
+  }, 10_000);
+
+  it("celebrates a tended notebook inside the hub while the door stays static", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    const door = screen.getByRole("button", { name: /Cuidar mi cuaderno/ });
+    expect(door.textContent).toContain("Pequeñas mejoras, si te apetece.");
+    await user.click(door);
+
+    expect(await screen.findByText("Todo está en orden.")).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Conectar" })).toBeNull();
+  }, 10_000);
+});
