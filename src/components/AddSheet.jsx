@@ -252,7 +252,7 @@ export default function AddSheet({
             tags,
             pageFocus: seed.pageFocus,
             noteSections: seed.noteSections,
-            // A shared-in video rides the starter (grammarShareStarter) onto the new page.
+            // A shared-in video rides its share-aware starter onto a non-Source page.
             mediaLinks: seed.mediaLinks || [],
             collection: {
               enabled: collectionEnabled,

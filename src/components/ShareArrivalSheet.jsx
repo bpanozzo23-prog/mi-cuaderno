@@ -1,10 +1,26 @@
 import { useMemo, useState } from "react";
-import { BookOpen, FileText, Link2, Plus, Search, Sigma, Type, X } from "lucide-react";
+import {
+  BookOpen,
+  ChevronLeft,
+  FileText,
+  FolderPlus,
+  Link2,
+  Plus,
+  Search,
+  Sigma,
+  Type,
+  X,
+} from "lucide-react";
 import { C, SERIF, Card } from "../theme.jsx";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
 import { pickerMatches } from "../lib/links.js";
 import { isJournalEntry } from "../lib/journal.js";
-import { grammarShareStarter, sourceShareStarter } from "../lib/shareTarget.js";
+import {
+  grammarShareStarter,
+  notesShareStarter,
+  sourceShareStarter,
+  vocabularyShareStarter,
+} from "../lib/shareTarget.js";
 
 /**
  * Destination chooser for a URL shared in from another Android app (share_target → App's
@@ -79,7 +95,7 @@ export function ShareContinuationPill({ share, onReopen, onDone }) {
 }
 
 export default function ShareArrivalSheet({ share, items = [], onAttach, onCreate, onCreateLexical, onClose }) {
-  const [picking, setPicking] = useState(false);
+  const [view, setView] = useState("destinations");
   const [query, setQuery] = useState("");
 
   const candidates = useMemo(
@@ -129,13 +145,13 @@ export default function ShareArrivalSheet({ share, items = [], onAttach, onCreat
           </button>
         </div>
 
-        {!picking && (
+        {view === "destinations" && (
           <>
             <DestinationRow
               icon={FileText}
               title="Add to an existing page or word"
               description="Attach the link to something you already have — it becomes a Media link there."
-              onClick={() => setPicking(true)}
+              onClick={() => setView("picker")}
             />
             <DestinationRow
               icon={Type}
@@ -144,21 +160,60 @@ export default function ShareArrivalSheet({ share, items = [], onAttach, onCreat
               onClick={() => onCreateLexical("")}
             />
             <DestinationRow
+              icon={BookOpen}
+              title="New page…"
+              description="Choose Notes, Vocabulary, Grammar, or Source for this video."
+              onClick={() => setView("page")}
+            />
+          </>
+        )}
+
+        {view === "page" && (
+          <>
+            <button
+              type="button"
+              onClick={() => setView("destinations")}
+              className="inline-flex min-h-11 items-center gap-1 text-xs"
+              style={{ color: C.pen }}
+            >
+              <ChevronLeft size={15} /> Share destinations
+            </button>
+            <div className="pb-1">
+              <div className="font-semibold" style={{ fontFamily: SERIF, color: C.ink }}>
+                What kind of page?
+              </div>
+              <div className="text-xs mt-0.5" style={{ color: C.mut }}>
+                Notes is the simplest default. Nothing is saved until you add the page.
+              </div>
+            </div>
+            <DestinationRow
+              icon={FileText}
+              title="Notes page"
+              description="Flexible notes and connections, with the video attached as a Media link."
+              onClick={() => onCreate(notesShareStarter(share))}
+            />
+            <DestinationRow
+              icon={FolderPlus}
+              title="Vocabulary page"
+              description="Collect related words and phrases, with the video attached as a Media link."
+              onClick={() => onCreate(vocabularyShareStarter(share))}
+            />
+            <DestinationRow
               icon={Sigma}
-              title="New Grammar guide"
-              description="This video is a new grammar topic. Start a guide with the video attached."
+              title="Grammar guide"
+              description="Start a blank guide with the video attached as a Media link."
               onClick={() => onCreate(grammarShareStarter(share))}
             />
             <DestinationRow
               icon={BookOpen}
-              title="New Source notebook"
-              description="A work you will keep returning to, with captures and its own vocabulary."
+              title="Source notebook"
+              description="Treat the video as the source itself, using its URL as the Primary URL."
               onClick={() => onCreate(sourceShareStarter(share))}
             />
           </>
         )}
 
-        {picking && (
+        {view === "picker" && (
           <>
             <div
               className="flex items-center gap-2 rounded-lg px-2 py-1.5 border"
@@ -176,7 +231,7 @@ export default function ShareArrivalSheet({ share, items = [], onAttach, onCreat
               />
               <button
                 onClick={() => {
-                  setPicking(false);
+                  setView("destinations");
                   setQuery("");
                 }}
                 aria-label="Back to destinations"

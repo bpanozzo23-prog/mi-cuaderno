@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { grammarShareStarter, parseSharePayload, sourceShareStarter } from "./shareTarget.js";
+import {
+  grammarShareStarter,
+  notesShareStarter,
+  parseSharePayload,
+  sourceShareStarter,
+  vocabularyShareStarter,
+} from "./shareTarget.js";
 import { PAGE_FOCUSES } from "./pageKinds.js";
 
 describe("parseSharePayload", () => {
@@ -80,6 +86,47 @@ describe("sourceShareStarter", () => {
 
   it("defaults the title to empty", () => {
     expect(sourceShareStarter({ url: "https://example.com/a" }).title).toBe("");
+  });
+});
+
+describe("notesShareStarter", () => {
+  it("builds the blank Notes starter with the shared URL as a media link", () => {
+    expect(notesShareStarter({ url: "https://vm.tiktok.com/x", title: "Cinco respuestas" })).toEqual({
+      pageFocus: PAGE_FOCUSES.notes,
+      collectionEnabled: false,
+      sourceEnabled: false,
+      grammarEnabled: false,
+      noteSections: [],
+      groupNames: [],
+      sectionNames: [],
+      sourceFormat: "",
+      mediaLinks: [{ url: "https://vm.tiktok.com/x", label: "Cinco respuestas" }],
+      title: "Cinco respuestas",
+    });
+  });
+
+  it("leaves the title and media label empty when the sender supplies no title", () => {
+    const starter = notesShareStarter({ url: "https://vm.tiktok.com/x" });
+    expect(starter.title).toBe("");
+    expect(starter.mediaLinks).toEqual([{ url: "https://vm.tiktok.com/x", label: "" }]);
+  });
+});
+
+describe("vocabularyShareStarter", () => {
+  it("builds the blank Vocabulary starter with the shared URL as a media link", () => {
+    const starter = vocabularyShareStarter({
+      url: "https://vm.tiktok.com/x",
+      title: "Formas de responder",
+    });
+    expect(starter.pageFocus).toBe(PAGE_FOCUSES.vocabulary);
+    expect(starter.collectionEnabled).toBe(true);
+    expect(starter.sourceEnabled).toBe(false);
+    expect(starter.grammarEnabled).toBe(false);
+    expect(starter.groupNames).toEqual([]);
+    expect(starter.mediaLinks).toEqual([
+      { url: "https://vm.tiktok.com/x", label: "Formas de responder" },
+    ]);
+    expect(starter.title).toBe("Formas de responder");
   });
 });
 

@@ -1,4 +1,5 @@
 import { isHttpSourceUrl, PAGE_FOCUSES } from "./pageKinds.js";
+import { pageSeedFromRecipe } from "./pageStarters.js";
 
 /**
  * The Android share sheet hands the app whatever the sending app chose to put in each field,
@@ -45,6 +46,27 @@ export function sourceShareStarter({ url, title = "" }) {
     sourceUrl: url,
     title,
   };
+}
+
+/**
+ * Notes and Vocabulary pages have no Source identity field, so a shared URL belongs in their
+ * ordinary Media links. Both start from the same blank recipes as normal page creation; the
+ * share contributes only the optional sender-provided title and the link.
+ */
+function mediaPageShareStarter(familyId, { url, title = "" }) {
+  return {
+    ...pageSeedFromRecipe(familyId, "blank"),
+    mediaLinks: [{ url, label: title }],
+    title,
+  };
+}
+
+export function notesShareStarter(share) {
+  return mediaPageShareStarter("notes", share);
+}
+
+export function vocabularyShareStarter(share) {
+  return mediaPageShareStarter("vocabulary", share);
 }
 
 /**

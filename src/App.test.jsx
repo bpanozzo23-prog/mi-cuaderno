@@ -17,7 +17,7 @@ import {
 import { newMeaning } from "./lib/meanings.js";
 import { localDate } from "./lib/dates.js";
 import { TAG_COLORS_PREF } from "./lib/tagColors.js";
-import { newNoteSection } from "./lib/pageKinds.js";
+import { newNoteSection, PAGE_FOCUSES } from "./lib/pageKinds.js";
 
 const CASA = "dict:wiktionary-es:casa:noun";
 const SACAR = "dict:wiktionary-es:sacar:verb";
@@ -1116,14 +1116,16 @@ describe("Android share target arrival", () => {
     await waitFor(() => expect(search.value).toBe(prose));
   });
 
-  it("offers the destination chooser for a shared URL, and Source creation stays prefilled", async () => {
+  it("offers the page-kind chooser for a shared URL, and Source creation stays prefilled", async () => {
     const user = userEvent.setup();
     arriveAt("?share_url=https%3A%2F%2Fexample.com%2Farticle&share_title=Un%20art%C3%ADculo");
     render(<App />);
 
     const chooser = await screen.findByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" });
     expect(within(chooser).getByText("https://example.com/article")).toBeTruthy();
-    await user.click(within(chooser).getByRole("button", { name: /New Source notebook/ }));
+    await user.click(within(chooser).getByRole("button", { name: /New page/ }));
+    expect(within(chooser).getByText("What kind of page?")).toBeTruthy();
+    await user.click(within(chooser).getByRole("button", { name: /^Source notebook/ }));
 
     expect(await screen.findByText("New Source notebook")).toBeTruthy();
     expect(screen.getByRole("textbox", { name: "Primary URL" }).value).toBe("https://example.com/article");
@@ -1145,7 +1147,9 @@ describe("Android share target arrival", () => {
     arriveAt("?share_url=https%3A%2F%2Fvm.tiktok.com%2Ffake");
     render(<App />);
 
-    await user.click(await screen.findByRole("button", { name: "Close share destinations" }));
+    const chooser = await screen.findByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" });
+    await user.click(within(chooser).getByRole("button", { name: /New page/ }));
+    await user.click(within(chooser).getByRole("button", { name: "Close share destinations" }));
 
     expect(screen.queryByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" })).toBeNull();
     expect(screen.getByRole("textbox", { name: "Search notebook" }).value).toBe("");
@@ -1160,7 +1164,8 @@ describe("Android share target arrival", () => {
     render(<App />);
 
     const chooser = await screen.findByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" });
-    await user.click(within(chooser).getByRole("button", { name: /New Grammar guide/ }));
+    await user.click(within(chooser).getByRole("button", { name: /New page/ }));
+    await user.click(within(chooser).getByRole("button", { name: /^Grammar guide/ }));
 
     expect(await screen.findByText("New Grammar guide")).toBeTruthy();
     expect(screen.getByPlaceholderText("Title *").value).toBe("Ser vs estar");
@@ -1175,6 +1180,64 @@ describe("Android share target arrival", () => {
       expect(pages[0].grammar.enabled).toBe(true);
     });
     expect(await screen.findByRole("region", { name: "Shared video" })).toBeTruthy();
+  });
+
+  it("starts with Notes first and leaves its title blank when TikTok supplies no title", async () => {
+    const user = userEvent.setup();
+    arriveAt("?share_url=https%3A%2F%2Fvm.tiktok.com%2Frespuestas");
+    render(<App />);
+
+    const chooser = await screen.findByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" });
+    await user.click(within(chooser).getByRole("button", { name: /New page/ }));
+    const pageChoices = within(chooser).getAllByRole("button")
+      .map((button) => button.textContent.trim())
+      .filter((text) => ["Notes page", "Vocabulary page", "Grammar guide", "Source notebook"]
+        .some((title) => text.startsWith(title)));
+    expect(pageChoices[0]).toMatch(/^Notes page/);
+    await user.click(within(chooser).getByRole("button", { name: /^Notes page/ }));
+
+    expect(await screen.findByText("New notes page")).toBeTruthy();
+    const title = screen.getByPlaceholderText("Title *");
+    expect(title.value).toBe("");
+    await user.type(title, "Ways to say no problem");
+    await user.click(screen.getByRole("button", { name: "Add notes page" }));
+
+    await waitFor(async () => {
+      const pages = (await allItems()).filter((item) => item.type === "page");
+      expect(pages).toHaveLength(1);
+      expect(pages[0].pageFocus).toBe(PAGE_FOCUSES.notes);
+      expect(pages[0].collection.enabled).toBe(false);
+      expect(pages[0].source.enabled).toBe(false);
+      expect(pages[0].grammar.enabled).toBe(false);
+      expect(pages[0].mediaLinks).toEqual([
+        { url: "https://vm.tiktok.com/respuestas", label: "" },
+      ]);
+    });
+  });
+
+  it("starts a blank Vocabulary page with the shared video attached as a media link", async () => {
+    const user = userEvent.setup();
+    arriveAt("?share_url=https%3A%2F%2Fvm.tiktok.com%2Frespuestas&share_title=Formas%20de%20responder");
+    render(<App />);
+
+    const chooser = await screen.findByRole("dialog", { name: "Compartido — ¿dónde lo guardas?" });
+    await user.click(within(chooser).getByRole("button", { name: /New page/ }));
+    await user.click(within(chooser).getByRole("button", { name: /^Vocabulary page/ }));
+
+    expect(await screen.findByText("New vocabulary page")).toBeTruthy();
+    expect(screen.getByPlaceholderText("Title *").value).toBe("Formas de responder");
+    await user.click(screen.getByRole("button", { name: "Add vocabulary page" }));
+
+    await waitFor(async () => {
+      const pages = (await allItems()).filter((item) => item.type === "page");
+      expect(pages).toHaveLength(1);
+      expect(pages[0].pageFocus).toBe(PAGE_FOCUSES.vocabulary);
+      expect(pages[0].collection.enabled).toBe(true);
+      expect(pages[0].collection.groups).toEqual([]);
+      expect(pages[0].mediaLinks).toEqual([
+        { url: "https://vm.tiktok.com/respuestas", label: "Formas de responder" },
+      ]);
+    });
   });
 
   it("attaches the shared video to an existing page as one ordinary media-link edit", async () => {
