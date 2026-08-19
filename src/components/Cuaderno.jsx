@@ -8,7 +8,7 @@ import Detail from "./Detail.jsx";
 import DictCard from "./DictCard.jsx";
 import DictDetail from "./DictDetail.jsx";
 import SearchBar from "./SearchBar.jsx";
-import CuadernoLanding from "./CuadernoLanding.jsx";
+import CuadernoLanding, { SearchCreateAction } from "./CuadernoLanding.jsx";
 import EmptyState from "./EmptyState.jsx";
 import { RefineBar, RefinePanel, RefineSelect } from "./Refine.jsx";
 import { searchItems, mergeResults } from "../lib/search.js";
@@ -172,6 +172,14 @@ export default function Cuaderno({
     if (start) onWander?.(start.id);
   }
 
+  function openLexicalCreatorFromSearch(searchedTerm = query) {
+    const initialTerm = String(searchedTerm || "").trim();
+    if (!initialTerm) return;
+    setPageStarter(null);
+    setAddSeed({ initialTerm });
+    setAddKind("lexical");
+  }
+
   // A query handed over from the Words & phrases hub, which searches personal vocabulary only.
   // Keyed so handing over the same text twice still re-applies it after the owner edits the box.
   useEffect(() => {
@@ -279,6 +287,7 @@ export default function Cuaderno({
    */
   const [dictResults, setDictResults] = useState([]);
   const [dictPending, setDictPending] = useState(false);
+  const [dictResolvedQuery, setDictResolvedQuery] = useState("");
   const dictionaryEligible =
     maintenanceView === MAINTENANCE_VIEWS.all && wantsDictionary(typeFilter, effectiveTag);
   const dictionaryWanted = searching && dictionaryEligible;
@@ -287,21 +296,30 @@ export default function Cuaderno({
     if (!dictionaryWanted) {
       setDictResults([]);
       setDictPending(false);
+      setDictResolvedQuery("");
       return;
     }
     let current = true;
     setDictPending(true);
+    setDictResolvedQuery("");
+    const requestedQuery = query;
     const timer = setTimeout(async () => {
-      const found = await searchDictionary(query);
+      const found = await searchDictionary(requestedQuery);
       if (!current) return;
       setDictResults(found);
       setDictPending(false);
+      setDictResolvedQuery(requestedQuery);
     }, SEARCH_DEBOUNCE_MS);
     return () => {
       current = false;
       clearTimeout(timer);
     };
   }, [query, dictionaryWanted]);
+
+  const globalSearchSettled = searching
+    && dictionaryEligible
+    && !dictPending
+    && dictResolvedQuery === query;
 
   const visible = useMemo(
     () =>
@@ -476,6 +494,7 @@ export default function Cuaderno({
           onQueryChange={changeQuery}
           results={visible}
           pending={dictPending}
+          searchSettled={globalSearchSettled}
           dictionary={dictionary}
           onMissLogged={reload}
           wordCount={wordCount}
@@ -488,6 +507,7 @@ export default function Cuaderno({
           onOpenLexical={() => onOpenLexical?.(FILTERS.all)}
           onOpenPages={onOpenPages}
           onOpenCuidar={onOpenCuidar}
+          onCreateLexical={openLexicalCreatorFromSearch}
           onBrowseAll={openBrowseAll}
           onShowAllResults={() => {
             setResultLimit(30);
@@ -633,6 +653,13 @@ export default function Cuaderno({
               >
                 Load 30 more
               </button>
+            )}
+            {globalSearchSettled && (
+              <SearchCreateAction
+                query={query}
+                onCreate={openLexicalCreatorFromSearch}
+                className="mt-3 rounded-xl border"
+              />
             )}
           </div>
         </>

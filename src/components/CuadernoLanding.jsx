@@ -3,6 +3,7 @@ import {
   ChevronRight,
   FileText,
   Languages,
+  Plus,
   Route,
   Sprout,
 } from "lucide-react";
@@ -104,6 +105,25 @@ function SearchResultRow({ result, onOpen, items }) {
   );
 }
 
+export function SearchCreateAction({ query, onCreate, className = "" }) {
+  const term = String(query || "").trim();
+  if (!term || !onCreate) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onCreate(term)}
+      className={`flex min-h-12 w-full items-center gap-3 border-t px-4 py-2.5 text-left text-sm font-semibold active:opacity-75 ${quietFocus} ${className}`}
+      style={{ background: C.card, borderColor: C.line, color: C.pen }}
+    >
+      <Plus size={17} className="shrink-0" aria-hidden="true" />
+      <span className="min-w-0 break-words">
+        Add <span style={{ fontFamily: SERIF }}>“{term}”</span> as a new word or phrase
+      </span>
+    </button>
+  );
+}
+
 function CollectionDoor({ label, count, image, onClick }) {
   return (
     <button
@@ -173,6 +193,7 @@ export default function CuadernoLanding({
   onQueryChange,
   results,
   pending,
+  searchSettled,
   dictionary,
   onMissLogged,
   wordCount,
@@ -187,6 +208,7 @@ export default function CuadernoLanding({
   onBrowseAll,
   onShowAllResults,
   onOpenCuidar,
+  onCreateLexical,
   canWander,
   onWander,
 }) {
@@ -257,6 +279,9 @@ export default function CuadernoLanding({
                 See all {results.length} results
                 <ChevronRight size={16} aria-hidden="true" />
               </button>
+            )}
+            {searchSettled && (
+              <SearchCreateAction query={query} onCreate={onCreateLexical} />
             )}
           </section>
         )}

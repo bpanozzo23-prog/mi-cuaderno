@@ -157,6 +157,47 @@ describe("Cuaderno landing", () => {
     await user.click(screen.getByRole("button", { name: "Back to Todo el cuaderno" }));
     expect(screen.getByRole("textbox", { name: "Search notebook" }).value).toBe("casa");
   });
+
+  it("offers the searched text to the normal lexical creator even when an approximate result exists", async () => {
+    const user = userEvent.setup();
+    render(<Cuaderno {...propsFor([word("casa grande")])} />);
+
+    await user.type(screen.getByRole("textbox", { name: "Search notebook" }), "casa");
+    const overlay = screen.getByRole("region", { name: "Search results" });
+    expect(within(overlay).getByRole("button", { name: /^casa grande/ })).toBeTruthy();
+
+    await user.click(await within(overlay).findByRole("button", {
+      name: "Add “casa” as a new word or phrase",
+    }));
+
+    expect(screen.getByText("New word or phrase")).toBeTruthy();
+    expect(screen.getByPlaceholderText("Spanish word or phrase *").value).toBe("casa");
+  });
+
+  it("creates a zero-result phrase through the ordinary one-item, one-create-event path", async () => {
+    const user = userEvent.setup();
+    const props = propsFor([]);
+    render(<Cuaderno {...props} />);
+
+    await user.type(screen.getByRole("textbox", { name: "Search notebook" }), "dar con");
+    const overlay = screen.getByRole("region", { name: "Search results" });
+    await user.click(await within(overlay).findByRole("button", {
+      name: "Add “dar con” as a new word or phrase",
+    }));
+    await user.click(screen.getByRole("button", { name: "Add to cuaderno" }));
+
+    await waitFor(() => expect(props.onSelect).toHaveBeenCalledTimes(1));
+    const createdId = props.onSelect.mock.calls[0][0];
+    expect(await db.items.get(createdId)).toMatchObject({
+      id: createdId,
+      type: "lexical",
+      form: "phrase",
+      term: "dar con",
+    });
+    expect(await db.events.where("itemKey").equals(createdId).toArray()).toMatchObject([
+      { type: "create", itemKey: createdId },
+    ]);
+  });
 });
 
 describe("Phase 5c Cuaderno retrieval controls", () => {
