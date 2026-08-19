@@ -660,6 +660,23 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   [32208156024](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32208156024), with the live
   root returning HTTP 200 and serving `assets/index-CeP41uet.js`. See the 2026-08-18 entries in
   [DECISIONS.md](DECISIONS.md).
+- **Cuidar mi cuaderno hub — deployed.** A quiet, always-static landing door above Pasear opens an
+  optional tending hub with four render-derived invitation categories: Conectar (unlinked entries),
+  Completar (missing meaning), Dar ejemplos (missing examples) and Etiquetas gemelas (case-only tag
+  twins shared with Ajustes' Possible-duplicates review). Each visit samples up to three concrete
+  items per category; a 7-day grace window shields new entries from Conectar and Dar ejemplos, and
+  "Ver las N" hands the matching maintenance view to Browse all through a transient visit payload.
+  Etiquetas gemelas lands on Ajustes with the duplicates review expanded. No dismissal state,
+  counters, preferences, events, backup or schema change; `SCHEMA_VERSION` stays 9. The complete
+  serial suite passes 1,593/1,593 across 134 files, the production build transforms 2,129 modules,
+  and a disposable 375×812 fixture verified all category derivations, the grace window, Journal
+  exclusion and every navigation flow by numbers with zero horizontal overflow and a clear console.
+  Deployed from `main` at `f6f5f04` through Pages run
+  [32213861769](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32213861769), with the
+  live root returning HTTP 200 and serving `assets/index-DCw9BCWv.js`; the deployed
+  `assets/App-DVjQswaH.js` carries the hub's markers. Hub empty-state copy remains the plain
+  placeholder pending the owner's voice-variant pick. See the 2026-08-18 entries in
+  [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
