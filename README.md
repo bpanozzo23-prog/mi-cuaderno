@@ -686,6 +686,17 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   through Pages run
   [32215040409](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32215040409). See the
   2026-08-18/19 entries in [DECISIONS.md](DECISIONS.md).
+- **Global-search creation bridge — deployed.** After Cuaderno's full personal-plus-dictionary
+  search settles, its result list offers the exact query to the ordinary **New word or phrase**
+  sheet even when approximate matches exist. The trimmed term is prefilled; the existing
+  word/phrase inference, duplicate warning and explicit dictionary-selection flow remain in
+  charge, and nothing writes until confirmation. No storage, backup, preference, event-type,
+  reference-package or schema change; `SCHEMA_VERSION` stays 9. The complete serial suite passes
+  1,595/1,595 across 134 files, the production build and `git diff --check` pass, and a disposable
+  375×812 flow verified the 48px action, prefill, ordinary creation, zero horizontal overflow and
+  a clear console. Deployed from `main` at `4968878` through Pages run
+  [32279564126](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32279564126). See the
+  2026-08-19 entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
