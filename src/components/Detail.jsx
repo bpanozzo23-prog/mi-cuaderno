@@ -183,6 +183,10 @@ function StandardDetail({
   prepareBiographyFamily,
   pagePinned = false,
   onPagePinnedChange,
+  destinationScreen = null,
+  onOpenBiography = null,
+  onCloseBiography = null,
+  biographyBackLabel = null,
 }) {
   const isPage = item.type === "page";
   const itemKind = isPage ? "page" : personalLexicalForm(item);
@@ -212,6 +216,7 @@ function StandardDetail({
   const [linkConflicts, setLinkConflicts] = useState([]);
   const [statsExpanded, setStatsExpanded] = useState(false);
   const [view, setView] = useState("detail");
+  const activeView = destinationScreen === "biography" ? "biography" : view;
   const [resolvedAttachment, setResolvedAttachment] = useState({ itemId: null, entry: null });
   const attachedEntry = resolvedAttachment.itemId === item.id ? resolvedAttachment.entry : null;
   const headingSuffix = isPage ? "" : personalHeadingSuffix(item, attachedEntry);
@@ -394,7 +399,7 @@ function StandardDetail({
     });
   }, [item.id]);
 
-  if (view === "biography") {
+  if (activeView === "biography") {
     return (
       <Biography
         item={item}
@@ -404,7 +409,8 @@ function StandardDetail({
         reviewState={reviewState}
         connections={connections}
         onOpen={onOpen}
-        onClose={() => setView("detail")}
+        onClose={onCloseBiography || (() => setView("detail"))}
+        backLabel={biographyBackLabel}
         prepareFamily={prepareBiographyFamily}
       />
     );
@@ -750,7 +756,7 @@ function StandardDetail({
               {!isPage && (
                 <button
                   type="button"
-                  onClick={() => setView("biography")}
+                  onClick={onOpenBiography || (() => setView("biography"))}
                   className="inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium"
                   style={{ background: C.card, borderColor: C.line, color: C.mut }}
                 >

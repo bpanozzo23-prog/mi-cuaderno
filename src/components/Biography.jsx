@@ -142,6 +142,7 @@ export default function Biography({
   connections = [],
   onOpen,
   onClose,
+  backLabel = null,
   prepareFamily = prepareSavedConjugationFamily,
   preparePhrases = preparePhraseContainment,
   prepareProse = prepareProseContainment,
@@ -253,7 +254,7 @@ export default function Biography({
         className="mb-3 flex min-h-11 items-center gap-1 text-sm"
         style={{ color: C.pen }}
       >
-        <ChevronLeft size={16} /> {item.term}
+        <ChevronLeft size={16} /> {backLabel || item.term}
       </button>
 
       <div className="mb-1 text-xs font-semibold uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.08em" }}>

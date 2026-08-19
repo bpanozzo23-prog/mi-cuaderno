@@ -410,7 +410,7 @@ describe("Phase 16: scheduled-review missed round", () => {
 
     await user.click(screen.getByRole("button", { name: "Tap to see the meaning" }));
     await user.click(screen.getByRole("button", { name: "Good" }));
-    await user.click(screen.getByRole("button", { name: "Start next 20" }));
+    await user.click(await screen.findByRole("button", { name: "Start next 20" }));
     expect(onStartNext).toHaveBeenCalledTimes(1);
   });
 });

@@ -63,6 +63,7 @@ export default function PageHub({
   onPagePinnedChange,
   onSelect,
   onBack,
+  backLabel = "Cuaderno",
 }) {
   const { items, reload } = notebook;
   const [query, setQuery] = useState("");
@@ -165,7 +166,7 @@ export default function PageHub({
             className="inline-flex min-h-11 items-center justify-self-start text-sm"
             style={{ color: C.pen }}
           >
-            <ChevronLeft size={18} /> Cuaderno
+            <ChevronLeft size={18} /> {backLabel}
           </button>
           <h1 className="text-lg font-semibold" style={{ fontFamily: SERIF, color: C.ink }}>
             Pages

@@ -179,10 +179,23 @@ function ChalkboardPanel({ children }) {
   );
 }
 
-export default function Repaso({ notebook, onSelect }) {
+export default function Repaso({
+  notebook,
+  onSelect,
+  route = null,
+  onNavigate = null,
+  onBack = null,
+  backLabel = "Repaso",
+}) {
   const { items, events, itemState, reload } = notebook;
   const [view, setView] = useState("home");
   const [gymInitialView, setGymInitialView] = useState("setup");
+  const majorView = route?.screen || view;
+
+  function navigateMajor(next) {
+    if (onNavigate) onNavigate(next);
+    else setView(next === "gym-performance" ? "gym" : next);
+  }
 
   const byId = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
 
@@ -366,28 +379,32 @@ export default function Repaso({ notebook, onSelect }) {
     setView("review");
   }
 
-  if (view === "stats") {
+  if (view !== "review" && majorView === "stats") {
     // Nothing to reload on return: this screen only ever read.
     return (
       <Estadisticas
         items={items}
         events={events}
-        onBack={() => setView("home")}
+        onBack={onBack || (() => setView("home"))}
+        backLabel={backLabel}
         onOpenConjugationPerformance={() => {
           setGymInitialView("stats");
-          setView("gym");
+          navigateMajor("gym-performance");
         }}
       />
     );
   }
 
-  if (view === "gym") {
+  if (view !== "review" && (majorView === "gym" || majorView === "gym-performance")) {
     return (
       <ConjugationGym
         items={items}
         events={events}
-        initialView={gymInitialView}
-        onBack={() => setView("home")}
+        initialView={majorView === "gym-performance" ? "stats" : gymInitialView}
+        destinationView={route ? (majorView === "gym-performance" ? "stats" : "setup") : null}
+        onNavigate={(next) => navigateMajor(next === "stats" ? "gym-performance" : "gym")}
+        onBack={onBack || (() => setView("home"))}
+        backLabel={backLabel}
         onOpen={onSelect}
         onGraded={reload}
       />
@@ -586,7 +603,7 @@ export default function Repaso({ notebook, onSelect }) {
             className="shrink-0"
             onClick={() => {
               setGymInitialView("setup");
-              setView("gym");
+              navigateMajor("gym");
             }}
           >
             Open
@@ -615,7 +632,7 @@ export default function Repaso({ notebook, onSelect }) {
         </ChalkboardPanel>
       )}
       <button
-        onClick={() => setView("stats")}
+        onClick={() => navigateMajor("stats")}
         className="mt-2 w-full min-h-11 flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-left"
         style={{ background: C.card, borderColor: C.line }}
       >

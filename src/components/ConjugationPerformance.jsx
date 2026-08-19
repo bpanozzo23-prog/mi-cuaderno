@@ -60,6 +60,7 @@ export default function ConjugationPerformance({
   events,
   library,
   onBack,
+  backLabel = "Gym",
   onPractice,
   onOpen,
 }) {
@@ -101,7 +102,7 @@ export default function ConjugationPerformance({
     <div className="px-4 py-4 pb-28" style={dotGrid}>
       <div className="mb-4 flex items-center justify-between gap-3">
         <button onClick={onBack} className="flex items-center gap-1 text-sm" style={{ color: C.pen }}>
-          <ChevronLeft size={16} /> Gym
+          <ChevronLeft size={16} /> {backLabel}
         </button>
         <div className="text-sm font-semibold" style={{ color: C.ink }}>Conjugation performance</div>
         <div className="w-12" />

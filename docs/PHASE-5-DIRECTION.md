@@ -40,6 +40,15 @@ earlier one produces evidence, but nothing below requires real notebook data.
 - Preserve Phase 4's quick-create contract: creating and linking inside the picker still does not
   navigate or discard the originating draft.
 
+**Superseding follow-up — browser-backed continuity (owner-approved 2026-08-18).** The two
+historical rules above that clear navigation on a tab change and prohibit browser-history
+integration no longer govern the broader app. Keep a shallow, validated browser-history snapshot
+with one remembered route stack per primary tab. Stable major destinations and item identities may
+survive refresh; payloads, drafts, filters, study progress and scroll positions remain in memory.
+Browser Back, Forward and visible Back controls share one chronological path, while missing items,
+new unsaved editors and active study sessions resolve to safe destinations. This follow-up adds no
+URL routes, router dependency, durable browser storage or schema change; schema remains v9.
+
 ### 5b — organizational derivations
 
 - Add pure, database-free helpers for browse ordering, contextual tag counts and neutral

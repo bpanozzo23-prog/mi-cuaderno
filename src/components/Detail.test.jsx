@@ -430,6 +430,9 @@ describe("collapsed optional-field composers", () => {
       expect(saved.myExamples).toEqual([second]);
       expect(saved.meanings[0].examples).toEqual([first]);
     });
+    await waitFor(() => expect(screen.queryByRole("button", {
+      name: "Actions for “Debes descansar”",
+    })).toBeNull());
 
     await user.click(screen.getByRole("button", { name: "Actions for “Debe ser tarde”" }));
     await user.click(screen.getByRole("button", { name: "Delete example “Debe ser tarde”" }));

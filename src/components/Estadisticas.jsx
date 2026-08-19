@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { C, HEAT, SERIF, MONO, dotGrid, SectionTitle, Card, Segmented } from "../theme.jsx";
 import {
@@ -385,13 +385,13 @@ function GrowthChart({ series }) {
   );
 }
 
-export default function Estadisticas({ items, events, onBack, onOpenConjugationPerformance }) {
-  // Repaso swaps this in locally, so App's route-keyed scroll reset never fires for it —
-  // without this the screen opens wherever the Repaso list happened to be scrolled to.
-  useLayoutEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
+export default function Estadisticas({
+  items,
+  events,
+  onBack,
+  backLabel = "Repaso",
+  onOpenConjugationPerformance,
+}) {
   // Two views of the same activity: the month page for "did I show up", the trend for how
   // that has held over time. The month is the default because it is the one the owner is
   // standing in.
@@ -416,7 +416,7 @@ export default function Estadisticas({ items, events, onBack, onOpenConjugationP
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
       <button onClick={onBack} className="flex items-center gap-1 text-sm mb-3" style={{ color: C.pen }}>
-        <ChevronLeft size={16} /> Repaso
+        <ChevronLeft size={16} /> {backLabel}
       </button>
 
       <h1 className="text-xl mb-1" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>

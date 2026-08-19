@@ -13,6 +13,7 @@ export default function Diario({
   onEdit,
   onStart,
   onMaterialized,
+  registerEditorNavigationHandlers = null,
 }) {
   const entries = journalEntries(notebook.items);
   const selected = entries.find((entry) => entry.id === route?.id) || null;
@@ -27,6 +28,7 @@ export default function Diario({
         backLabel={backLabel}
         onChanged={notebook.reload}
         onMaterialized={onMaterialized}
+        registerNavigationHandlers={registerEditorNavigationHandlers}
       />
     );
   }

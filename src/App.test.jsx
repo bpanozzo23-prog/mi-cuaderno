@@ -23,11 +23,13 @@ const CASA = "dict:wiktionary-es:casa:noun";
 const SACAR = "dict:wiktionary-es:sacar:verb";
 
 beforeEach(async () => {
+  window.history.replaceState(null, "", "/");
   await removeDictionary();
   localStorage.clear();
   await db.open();
   await clearAllPersonalData();
   Object.defineProperty(window, "scrollTo", { value: vi.fn(), configurable: true });
+  Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
 });
 
 afterEach(async () => {
@@ -122,7 +124,7 @@ describe("Phase 5a navigation continuity", () => {
 
     await openBrowseAll(user);
     await user.click(await screen.findByRole("button", { name: /^Study source$/ }));
-    expect(screen.getByRole("button", { name: "Todo el cuaderno" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Browse all" })).toBeTruthy();
     await waitFor(() => expect(window.scrollTo).toHaveBeenLastCalledWith(0, 0));
 
     window.scrollTo.mockClear();
@@ -140,13 +142,15 @@ describe("Phase 5a navigation continuity", () => {
 
     await user.click(screen.getByRole("button", { name: "Atrás" }));
     expect(screen.getByText("Study source", { selector: ".text-2xl *" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Todo el cuaderno" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Browse all" })).toBeTruthy();
 
-    await user.click(screen.getByRole("button", { name: "Todo el cuaderno" }));
-    expect(screen.getByRole("textbox", { name: "Search notebook" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Browse all" }));
+    expect(await screen.findByRole("heading", { name: "Browse all" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Back to Todo el cuaderno" }));
+    expect(await screen.findByRole("textbox", { name: "Search notebook" })).toBeTruthy();
   });
 
-  it("clears a linked trail when leaving Cuaderno", async () => {
+  it("restores Cuaderno's linked trail after visiting another tab", async () => {
     const user = userEvent.setup();
     await linkedTrail();
     render(<App />);
@@ -160,8 +164,9 @@ describe("Phase 5a navigation continuity", () => {
     expect(await screen.findByText("Para hoy")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Cuaderno" }));
 
-    expect(screen.queryByRole("button", { name: "Atrás" })).toBeNull();
-    expect(screen.getByRole("textbox", { name: "Search notebook" })).toBeTruthy();
+    expect(await screen.findByText("madrugar", { selector: ".text-2xl *" })).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Cuaderno surface" }))
+      .getByRole("button", { name: "Repaso" })).toBeTruthy();
   });
 
   it("keeps optional-field drafts scoped to the entry where they were typed", async () => {
@@ -228,6 +233,111 @@ describe("Phase 5a navigation continuity", () => {
       );
       expect(views.map((event) => event.itemKey).sort()).toEqual([SACAR, buscar.id].sort());
     });
+  });
+});
+
+describe("browser-backed navigation continuity", () => {
+  it("uses browser Back and Forward across personal and dictionary details without duplicate views", async () => {
+    const user = userEvent.setup();
+    await seedDictionary();
+    const word = await createItem(newLexical({ term: "madrugar", linkedKeys: [CASA] }));
+    render(<App />);
+
+    await openBrowseAll(user);
+    await user.click(await screen.findByRole("button", { name: "madrugar" }));
+    await user.click(await screen.findByRole("button", { name: /^casa/ }));
+    expect(await screen.findByText("casa", { selector: ".text-2xl" })).toBeTruthy();
+
+    window.history.back();
+    expect(await screen.findByText("madrugar", { selector: ".text-2xl *" })).toBeTruthy();
+
+    window.history.forward();
+    expect(await screen.findByText("casa", { selector: ".text-2xl" })).toBeTruthy();
+
+    await waitFor(async () => {
+      const views = (await allEvents()).filter((event) =>
+        event.type === EVENT_TYPES.view && [word.id, CASA].includes(event.itemKey)
+      );
+      expect(views.filter((event) => event.itemKey === word.id)).toHaveLength(1);
+      expect(views.filter((event) => event.itemKey === CASA)).toHaveLength(1);
+    });
+  });
+
+  it("replays tab chronology, restores each stack, and lets Back undo an active-tab reset", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const primary = await screen.findByRole("navigation", { name: "Primary" });
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(screen.getByRole("button", { name: /^Pages\./ }));
+    expect(screen.getByRole("heading", { name: "Pages" })).toBeTruthy();
+    await user.click(within(primary).getByRole("button", { name: "Repaso" }));
+    await waitFor(() => expect(within(primary).getByRole("button", { name: "Repaso" })
+      .getAttribute("aria-current")).toBe("page"));
+    await user.click(within(primary).getByRole("button", { name: "Diario" }));
+    await waitFor(() => expect(within(primary).getByRole("button", { name: "Diario" })
+      .getAttribute("aria-current")).toBe("page"));
+
+    window.history.back();
+    await waitFor(() => expect(within(primary).getByRole("button", { name: "Repaso" })
+      .getAttribute("aria-current")).toBe("page"));
+    window.history.back();
+    expect(await screen.findByRole("heading", { name: "Pages" })).toBeTruthy();
+
+    await user.click(within(primary).getByRole("button", { name: "Cuaderno" }));
+    expect(await screen.findByRole("heading", { name: "Mi cuaderno" })).toBeTruthy();
+    window.history.back();
+    expect(await screen.findByRole("heading", { name: "Pages" })).toBeTruthy();
+  }, 10_000);
+
+  it("restores a stable Historia visit on refresh while resetting route scroll", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({ term: "madrugar" }));
+    await createItem(newPage({ title: "History source", linkedKeys: [word.id] }));
+    let mounted = render(<App />);
+
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(await screen.findByRole("button", { name: /^Pages\./ }));
+    mounted.unmount();
+    mounted = render(<App />);
+    expect(await screen.findByRole("heading", { name: "Pages" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "History source" }));
+    await user.click(screen.getByRole("button", { name: /^madrugar/ }));
+    await user.click(screen.getByRole("button", { name: "Historia" }));
+    expect(screen.getByText("Historia")).toBeTruthy();
+    expect(window.history.state.mcNavigation.stacks.cuaderno.at(-1)).toMatchObject({
+      screen: "biography",
+      id: word.id,
+    });
+
+    Object.defineProperty(window, "scrollY", { value: 333, configurable: true });
+    window.scrollTo.mockClear();
+    mounted.unmount();
+    render(<App />);
+
+    expect(await screen.findByText("Historia")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "madrugar" })).toBeTruthy();
+    await waitFor(() => expect(window.scrollTo).toHaveBeenLastCalledWith(0, 0));
+  });
+
+  it("keeps full-search text out of history and falls back to the foyer on refresh", async () => {
+    const user = userEvent.setup();
+    await Promise.all(Array.from({ length: 6 }, (_, index) =>
+      createItem(newLexical({ term: `navterm ${index + 1}` }))
+    ));
+    const mounted = render(<App />);
+
+    const search = await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.type(search, "navterm");
+    await user.click(await screen.findByRole("button", { name: "See all 6 results" }));
+    expect(screen.getByRole("heading", { name: "Search results" })).toBeTruthy();
+    expect(JSON.stringify(window.history.state.mcNavigation)).not.toContain("navterm");
+
+    mounted.unmount();
+    render(<App />);
+    const refreshedSearch = await screen.findByRole("textbox", { name: "Search notebook" });
+    expect(refreshedSearch.value).toBe("");
+    expect(screen.getByRole("heading", { name: "Mi cuaderno" })).toBeTruthy();
   });
 });
 
@@ -346,13 +456,13 @@ describe("Phase 23b wander navigation", () => {
       )).toBe(true);
     });
 
-    await user.click(screen.getByRole("button", { name: "Atrás" }));
-    expect(screen.getByText("Paseo por tu cuaderno")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Wander" }));
+    expect(await screen.findByText("Paseo por tu cuaderno")).toBeTruthy();
     expect(screen.getByText("Architecture notes", { selector: ".text-2xl" })).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Atrás" }));
-    expect(screen.getByText("hogar", { selector: ".text-2xl" })).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Atrás" }));
-    expect(screen.getByText("casa", { selector: ".text-2xl" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Wander" }));
+    expect(await screen.findByText("hogar", { selector: ".text-2xl" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Wander" }));
+    expect(await screen.findByText("casa", { selector: ".text-2xl" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Todo el cuaderno" }));
     expect(screen.getByRole("textbox", { name: "Search notebook" })).toBeTruthy();
   });
@@ -378,10 +488,136 @@ describe("study-session focus mode", () => {
     expect(screen.queryByRole("banner", { name: "App header" })).toBeNull();
     expect(screen.queryByRole("navigation", { name: "Primary" })).toBeNull();
     expect(screen.getByRole("progressbar", { name: "Session progress" })).toBeTruthy();
+    expect(window.history.state.mcStudySession).toEqual({ version: 1 });
 
     await user.click(screen.getByRole("button", { name: "Finish" }));
     expect(await screen.findByRole("banner", { name: "App header" })).toBeTruthy();
     expect(screen.getByRole("navigation", { name: "Primary" })).toBeTruthy();
+    expect(window.history.state.mcStudySession).toBeUndefined();
+  });
+
+  it("uses the same transient marker for hardware Back and consumes it exactly once", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({ term: "madrugar" }));
+    await logEvent(EVENT_TYPES.trickyOn, word.id);
+    render(<App />);
+
+    const navigation = await screen.findByRole("navigation", { name: "Primary" });
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(within(navigation).getByRole("button", { name: "Repaso" }));
+    await user.click(await screen.findByRole("button", { name: "Start" }));
+    expect(await screen.findByRole("region", { name: "Review session" })).toBeTruthy();
+    expect(window.history.state.mcStudySession).toEqual({ version: 1 });
+
+    window.history.back();
+    const restoredNavigation = await screen.findByRole("navigation", { name: "Primary" });
+    await waitFor(() => expect(within(restoredNavigation).getByRole("button", { name: "Repaso" })
+      .getAttribute("aria-current")).toBe("page"));
+    expect(screen.queryByRole("region", { name: "Review session" })).toBeNull();
+    expect(window.history.state.mcStudySession).toBeUndefined();
+
+    window.history.back();
+    await waitFor(() => expect(within(restoredNavigation).getByRole("button", { name: "Cuaderno" })
+      .getAttribute("aria-current")).toBe("page"));
+  });
+
+  it("replaces the session marker when opening its entry and returns to the launcher", async () => {
+    const user = userEvent.setup();
+    const word = await createItem(newLexical({
+      term: "madrugar",
+      meanings: [newMeaning({ gloss: "to get up early" })],
+    }));
+    await logEvent(EVENT_TYPES.trickyOn, word.id);
+    render(<App />);
+
+    const navigation = await screen.findByRole("navigation", { name: "Primary" });
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(within(navigation).getByRole("button", { name: "Repaso" }));
+    await user.click(await screen.findByRole("button", { name: "Start" }));
+    await user.click(await screen.findByRole("button", { name: "Tap to see the meaning" }));
+    await user.click(screen.getByRole("button", { name: "Open the full entry" }));
+    await user.click(screen.getByRole("button", { name: "Open the full entry and end session" }));
+
+    expect(await screen.findByText("madrugar", { selector: ".text-2xl *" })).toBeTruthy();
+    expect(window.history.state.mcStudySession).toBeUndefined();
+    const restoredNavigation = await screen.findByRole("navigation", { name: "Primary" });
+    window.history.back();
+    await waitFor(() => expect(within(restoredNavigation).getByRole("button", { name: "Repaso" })
+      .getAttribute("aria-current")).toBe("page"));
+    expect(screen.queryByRole("region", { name: "Review session" })).toBeNull();
+    expect(screen.getByText("Para hoy")).toBeTruthy();
+  });
+});
+
+describe("retained Repaso destinations", () => {
+  it("restores major screens, preserves performance filters across detail Back, and resets them on refresh", async () => {
+    const user = userEvent.setup();
+    await seedConjugationFamily();
+    const saved = await createItem(newLexical({ term: "sacar", dictKey: SACAR }));
+    for (let index = 0; index < 3; index += 1) {
+      await logEvent(EVENT_TYPES.drillFail, saved.id, {
+        sessionId: "navigation-regression",
+        promptId: `navigation-regression:${index}`,
+        sessionKind: "focus",
+        source: "saved",
+        curriculum: null,
+        verbKey: "lemma:sacar",
+        lemma: "sacar",
+        dictKey: SACAR,
+        tense: "Indicative/Present",
+        slot: "yo",
+        mode: "typed",
+        verdict: "wrong",
+        diagnosis: "wrong_tense",
+        stage: "initial",
+        cardIndex: index + 1,
+        deckSize: 3,
+      });
+    }
+
+    let mounted = render(<App />);
+    const primary = await screen.findByRole("navigation", { name: "Primary" });
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(within(primary).getByRole("button", { name: "Repaso" }));
+    await user.click(await screen.findByRole("button", { name: /Actividad y crecimiento/ }));
+    expect(await screen.findByText("Actividad")).toBeTruthy();
+
+    mounted.unmount();
+    mounted = render(<App />);
+    expect(await screen.findByText("Actividad")).toBeTruthy();
+    await user.click(within(screen.getByRole("region", { name: "Repaso surface" }))
+      .getByRole("button", { name: "Repaso" }));
+    await user.click(await screen.findByRole("button", { name: "Open" }));
+    expect(await screen.findByText("Train the forms you need")).toBeTruthy();
+    mounted.unmount();
+    mounted = render(<App />);
+    expect(await screen.findByText("Train the forms you need")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "View conjugation performance" }));
+    expect(await screen.findByText("Conjugation performance")).toBeTruthy();
+
+    await user.click(screen.getByRole("radio", { name: "Saved" }));
+    await user.selectOptions(screen.getByRole("combobox", { name: "Performance tense pack" }), "all");
+    await user.click(await screen.findByRole("button", { name: "sacar" }));
+    expect(await screen.findByText("sacar", { selector: ".text-2xl *" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Conjugation performance" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Conjugation performance" }));
+    expect(await screen.findByText("Conjugation performance")).toBeTruthy();
+    expect(screen.getByRole("radio", { name: "Saved" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("combobox", { name: "Performance tense pack" }).value).toBe("all");
+
+    await user.click(screen.getByRole("button", { name: "sacar" }));
+    expect(await screen.findByText("sacar", { selector: ".text-2xl *" })).toBeTruthy();
+    window.history.back();
+    expect(await screen.findByText("Conjugation performance")).toBeTruthy();
+    expect(screen.getByRole("radio", { name: "Saved" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("combobox", { name: "Performance tense pack" }).value).toBe("all");
+
+    mounted.unmount();
+    render(<App />);
+    expect(await screen.findByText("Conjugation performance")).toBeTruthy();
+    expect(screen.getByRole("radio", { name: "All" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("combobox", { name: "Performance tense pack" }).value).toBe("everyday");
   });
 });
 
@@ -406,7 +642,7 @@ describe("Phase 4z Pages hub navigation", () => {
     expect(screen.getByRole("button", { name: "Dated organized notes" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Body-only moment" })).toBeNull();
 
-    await user.click(within(screen.getByRole("region", { name: "Cuaderno surface" })).getByRole("button", { name: "Cuaderno" }));
+    await user.click(within(screen.getByRole("region", { name: "Cuaderno surface" })).getByRole("button", { name: "Todo el cuaderno" }));
     await user.click(within(screen.getByRole("navigation", { name: "Primary" })).getByRole("button", { name: "Diario" }));
     const diario = screen.getByRole("region", { name: "Diario surface" });
     expect(within(diario).getByRole("button", { name: "Open Body-only moment" })).toBeTruthy();
@@ -444,11 +680,11 @@ describe("Phase 4z Pages hub navigation", () => {
     window.scrollTo.mockClear();
     await user.click(screen.getByRole("button", { name: "Pages" }));
 
-    expect(screen.getByRole("heading", { name: "Pages" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Pages" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Listening source" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Plain notes" })).toBeNull();
     await waitFor(() => expect(window.scrollTo).toHaveBeenLastCalledWith(0, 436));
-    await user.click(within(screen.getByRole("region", { name: "Cuaderno surface" })).getByRole("button", { name: "Cuaderno" }));
+    await user.click(within(screen.getByRole("region", { name: "Cuaderno surface" })).getByRole("button", { name: "Todo el cuaderno" }));
     expect(screen.getByRole("textbox", { name: "Search notebook" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Mi cuaderno" })).toBeTruthy();
   });
@@ -491,12 +727,12 @@ describe("Phase 8 Words & phrases hub navigation", () => {
     await user.click(screen.getByRole("button", { name: "Words & phrases" }));
 
     // Back lands on the combined hub with the pin and scroll position intact.
-    expect(screen.getByRole("heading", { name: "Words & phrases" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Words & phrases" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Unpin de repente" })).toBeTruthy();
     await waitFor(() => expect(window.scrollTo).toHaveBeenLastCalledWith(0, 512));
 
-    await user.click(within(screen.getByRole("region", { name: "Cuaderno surface" })).getByRole("button", { name: "Cuaderno" }));
-    expect(screen.getByRole("textbox", { name: "Search notebook" })).toBeTruthy();
+    await user.click(within(screen.getByRole("region", { name: "Cuaderno surface" })).getByRole("button", { name: "Todo el cuaderno" }));
+    expect(await screen.findByRole("textbox", { name: "Search notebook" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Mi cuaderno" })).toBeTruthy();
   });
 
@@ -568,9 +804,9 @@ describe("Phase 4p Diario foundation", () => {
     await user.type(search, "Morning");
     await user.click(screen.getByRole("button", { name: /Morning check-in/ }));
 
-    expect(screen.getByRole("button", { name: "Back to Cuaderno" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Back to Todo el cuaderno" })).toBeTruthy();
     expect(within(screen.getByRole("region", { name: "Diario surface" })).getByText("Hoy practiqué.")).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Back to Cuaderno" }));
+    await user.click(screen.getByRole("button", { name: "Back to Todo el cuaderno" }));
 
     expect(screen.getByRole("textbox", { name: "Search notebook" }).value).toBe("Morning");
     expect(screen.getByRole("button", { name: /Morning check-in/ })).toBeTruthy();
@@ -623,6 +859,65 @@ describe("Phase 4r journal capture", () => {
       expect(updated.body).toBe("Antes. Después.");
       expect(updated.pageDate).toBe("2026-07-31");
     });
+  });
+
+  it("blocks hardware Back on an invalid date, then saves before a valid hardware Back", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const navigation = await screen.findByRole("navigation", { name: "Primary" });
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(within(navigation).getByRole("button", { name: "Diario" }));
+    await user.click(screen.getByRole("button", { name: "New moment" }));
+
+    fireEvent.change(screen.getByLabelText("Journal date"), { target: { value: "" } });
+    await user.type(screen.getByRole("textbox", { name: "Journal body" }), "No se pierde.");
+    window.history.back();
+
+    await waitFor(() => expect(screen.getByRole("status").textContent)
+      .toBe("Choose a date before leaving"));
+    await waitFor(() => expect(window.history.state.mcNavigation.stacks.diario.at(-1).screen)
+      .toBe("edit"));
+    expect(screen.getByRole("textbox", { name: "Journal body" }).value).toBe("No se pierde.");
+
+    fireEvent.change(screen.getByLabelText("Journal date"), { target: { value: "2026-08-18" } });
+    window.history.back();
+
+    await waitFor(() => expect(screen.queryByLabelText("Journal date")).toBeNull());
+    await waitFor(async () => {
+      const entries = await allItems();
+      expect(entries).toHaveLength(1);
+      expect(entries[0]).toMatchObject({ body: "No se pierde.", pageDate: "2026-08-18" });
+    });
+  });
+
+  it("restores a Diario reader on refresh but sends a new unsaved editor to its launcher", async () => {
+    const user = userEvent.setup();
+    await createItem(newPage({
+      title: "Refreshable moment",
+      body: "Todavía aquí.",
+      pageDate: "2026-08-18",
+    }));
+    let mounted = render(<App />);
+
+    const navigation = await screen.findByRole("navigation", { name: "Primary" });
+    await screen.findByRole("textbox", { name: "Search notebook" });
+    await user.click(within(navigation).getByRole("button", { name: "Diario" }));
+    await user.click(await screen.findByRole("button", { name: "Open Refreshable moment" }));
+    mounted.unmount();
+    mounted = render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Refreshable moment" })).toBeTruthy();
+    expect(screen.getByText("Todavía aquí.")).toBeTruthy();
+    window.history.back();
+    await screen.findByRole("button", { name: "New moment" });
+    await user.click(screen.getByRole("button", { name: "New moment" }));
+    expect(await screen.findByLabelText("Journal date")).toBeTruthy();
+
+    mounted.unmount();
+    render(<App />);
+    expect(await screen.findByRole("button", { name: "New moment" })).toBeTruthy();
+    expect(screen.queryByLabelText("Journal date")).toBeNull();
   });
 });
 
@@ -725,7 +1020,7 @@ describe("Phase 4s journal reading and connections", () => {
     const diario = await screen.findByRole("region", { name: "Diario surface" });
     await waitFor(() => expect(within(diario).getByRole("heading", { name: "Move into Diario" })).toBeTruthy());
     expect(within(diario).getByText("Keep this writing.")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Back to Cuaderno" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Back to Browse all" })).toBeTruthy();
   });
 });
 
@@ -799,12 +1094,17 @@ describe("Android share target arrival", () => {
 
   it("lands shared text in the two-layer search box and strips the params", async () => {
     arriveAt("?share_text=madrugar");
-    render(<App />);
+    const mounted = render(<App />);
 
     // The seed and the URL strip are passive effects — await the observable result.
     const search = await screen.findByRole("textbox", { name: "Search notebook" });
     await waitFor(() => expect(search.value).toBe("madrugar"));
     await waitFor(() => expect(window.location.search).toBe(""));
+    expect(JSON.stringify(window.history.state.mcNavigation)).not.toContain("madrugar");
+
+    mounted.unmount();
+    render(<App />);
+    expect((await screen.findByRole("textbox", { name: "Search notebook" })).value).toBe("");
   });
 
   it("lands long shared prose whole in the search box for the owner to trim", async () => {

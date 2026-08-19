@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { BookOpen, BarChart3, Settings, Loader2, PenLine } from "lucide-react";
 import { C, SERIF, MONO, Hi } from "./theme.jsx";
 import Cuaderno from "./components/Cuaderno.jsx";
@@ -20,12 +20,23 @@ import { allTagsIn } from "./lib/tags.js";
 import { DEFAULT_SWATCH, TAG_COLORS_PREF, normalizeTagColors } from "./lib/tagColors.js";
 import { TagColorProvider } from "./components/TagChip.jsx";
 import { StudySessionProvider } from "./components/StudySessionFrame.jsx";
+import {
+  activeRoute,
+  historyStateWithNavigation,
+  initializeNavigation,
+  labelForRoute,
+  makeNavigationVisitKey,
+  navigationFromHistoryState,
+  pushDestination,
+  replaceActiveDestination,
+  sanitizeHydratedNavigation,
+  sameRouteDestination,
+  selectPrimaryTab,
+} from "./lib/navigation.js";
 
-/**
- * Spanish pluralization for the header counts: only 1 takes the singular, 0 takes the plural.
- * Worth the three lines in a notebook for learning Spanish — and splitting phrases out gave the
- * counts a line that will often read exactly 1, where the wrong plural is most visible.
- */
+export { sameRouteDestination } from "./lib/navigation.js";
+
+/** Spanish pluralization for the header counts: only 1 takes the singular. */
 const count = (n, singular) => `${n} ${n === 1 ? singular : `${singular}s`}`;
 
 const TABS = [
@@ -35,63 +46,432 @@ const TABS = [
   { id: "ajustes", label: "Ajustes", icon: Settings },
 ];
 
-const baseRoute = (tab) => ({ tab, screen: "list", id: null });
-const isHubRoute = (route) => route?.tab === "cuaderno"
-  && (route.screen === "pages" || route.screen === "lexical");
+const STUDY_SESSION_STATE_KEY = "mcStudySession";
+const STUDY_SESSION_STATE_VERSION = 1;
+const PERSONAL_ITEM_SCREENS = new Set(["detail", "biography", "wander", "read", "edit"]);
+const CUADERNO_ROOT_SCREENS = new Set(["landing", "browse", "search"]);
 
-export const sameRouteDestination = (current, next) => current?.id === next?.id
-  && current?.tab === next?.tab
-  && current?.screen === next?.screen;
+function stateWithoutStudyMarker(state) {
+  const next = state && typeof state === "object" ? { ...state } : {};
+  delete next[STUDY_SESSION_STATE_KEY];
+  return next;
+}
 
-/**
- * An Android share (manifest `share_target`, vite.config.js) arrives as a plain GET on the
- * start URL with `share_*` query params. Consuming it here — once, while building the initial
- * trail — keeps the no-router rule intact: the params become an ordinary in-memory route and
- * nothing is stored. Nothing is saved implicitly either; a share only opens a screen with
- * fields prefilled (§ share-target decision, DECISIONS.md 2026-08-13).
- */
-function initialRouteTrail(search) {
-  const payload = parseSharePayload(search);
-  if (payload?.kind === "text") {
-    return [{ tab: "cuaderno", screen: "list", id: null, seedQuery: { text: payload.text, key: Date.now() } }];
+function hasStudyMarker(state) {
+  return state?.[STUDY_SESSION_STATE_KEY]?.version === STUDY_SESSION_STATE_VERSION;
+}
+
+function urlWithoutShareParams() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete("share_title");
+  url.searchParams.delete("share_text");
+  url.searchParams.delete("share_url");
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function initialAppNavigation() {
+  const sharePayload = parseSharePayload(window.location.search);
+  const initialized = initializeNavigation({ historyState: window.history.state, sharePayload });
+  const visitPayloads = new Map();
+  if (initialized.sharePayload?.kind === "text") {
+    visitPayloads.set(initialized.shareVisitKey, {
+      seedQuery: { text: initialized.sharePayload.text, key: initialized.shareVisitKey },
+    });
+  } else if (initialized.sharePayload?.kind === "url") {
+    visitPayloads.set(initialized.shareVisitKey, {
+      shareSource: {
+        url: initialized.sharePayload.url,
+        title: initialized.sharePayload.title,
+        key: initialized.shareVisitKey,
+      },
+    });
   }
-  if (payload?.kind === "url") {
-    return [{
-      tab: "cuaderno",
-      screen: "list",
-      id: null,
-      shareSource: { url: payload.url, title: payload.title, key: Date.now() },
-    }];
-  }
-  return [baseRoute("cuaderno")];
+  return {
+    ...initialized,
+    visitPayloads,
+    consumedShare: Boolean(sharePayload),
+    startedOnStudyMarker: hasStudyMarker(window.history.state),
+  };
+}
+
+function transientPayloadExists(payloads, visitKey, kind) {
+  const payload = payloads.get(visitKey);
+  if (kind === "searchQuery") return Boolean(payload?.seedQuery?.text?.trim());
+  if (kind === "journalSeed") return Boolean(payload?.seed);
+  return false;
+}
+
+function prunedMissingPersonalRoutes(navigation, items, pendingIds) {
+  const itemIds = new Set(items.map((item) => item.id));
+  let changed = false;
+  const stacks = Object.fromEntries(Object.entries(navigation.stacks).map(([tab, stack]) => {
+    const filtered = stack.filter((route, index) => {
+      if (index === 0 || !route.id || !PERSONAL_ITEM_SCREENS.has(route.screen) || isDictKey(route.id)) {
+        return true;
+      }
+      const keep = itemIds.has(route.id) || pendingIds.has(route.id);
+      if (!keep) changed = true;
+      return keep;
+    });
+    return [tab, filtered.length > 0 ? filtered : [stack[0]]];
+  }));
+  return changed ? { ...navigation, stacks } : navigation;
 }
 
 export default function App() {
-  // Every destination, including a list, is part of one session-only trail. This preserves
-  // Cuaderno → Diario → word → Back without a URL router or any stored navigation state.
-  const [routeTrail, setRouteTrail] = useState(() => initialRouteTrail(window.location.search));
+  const initialRef = useRef(null);
+  if (!initialRef.current) initialRef.current = initialAppNavigation();
+
+  const visitPayloadsRef = useRef(initialRef.current.visitPayloads);
+  const scrollByVisitRef = useRef(new Map());
+  const pendingPersonalIdsRef = useRef(new Set());
+  const navigationRef = useRef(initialRef.current.navigation);
+  const editorNavigationRef = useRef(null);
+  const skipEditorGuardOnceRef = useRef(false);
+  const studyMarkerActiveRef = useRef(false);
+  const studySessionMountedRef = useRef(false);
+  const studyFinishRef = useRef(null);
+  const skipStudyFinishOnceRef = useRef(false);
+  const studyEndTimerRef = useRef(null);
+
+  const [navigation, setNavigation] = useState(initialRef.current.navigation);
+  const [visitedTabs, setVisitedTabs] = useState(() => new Set([initialRef.current.navigation.activeTab]));
+  const [, setTransientRevision] = useState(0);
   const [pinnedPageIds, setPinnedPageIds] = useState([]);
   const [pinnedLexicalIds, setPinnedLexicalIds] = useState([]);
   const [tagColors, setTagColors] = useState({});
   const [studySessionActive, setStudySessionActive] = useState(false);
   const notebook = useNotebook();
 
-  // The consumed share params must not survive into the address bar or history: a refresh or
-  // Back would otherwise replay the share and reopen a sheet the owner already dismissed.
-  useEffect(() => {
-    if (window.location.search.includes("share_")) {
-      window.history.replaceState(null, "", import.meta.env.BASE_URL);
+  navigationRef.current = navigation;
+  const route = activeRoute(navigation);
+  const tab = navigation.activeTab;
+
+  const rememberVisitedTab = useCallback((nextTab) => {
+    setVisitedTabs((current) => {
+      if (current.has(nextTab)) return current;
+      return new Set([...current, nextTab]);
+    });
+  }, []);
+
+  const captureCurrentScroll = useCallback(() => {
+    const currentRoute = activeRoute(navigationRef.current);
+    if (!currentRoute?.visitKey) return;
+    const y = Number(window.scrollY);
+    scrollByVisitRef.current.set(currentRoute.visitKey, Number.isFinite(y) ? y : 0);
+  }, []);
+
+  const setVisitPayload = useCallback((visitKey, payload) => {
+    if (!visitKey || !payload) return;
+    visitPayloadsRef.current.set(visitKey, payload);
+    setTransientRevision((value) => value + 1);
+  }, []);
+
+  const commitNavigation = useCallback((next, {
+    replace = false,
+    payload = null,
+    captureScroll = true,
+  } = {}) => {
+    const current = navigationRef.current;
+    if (payload) setVisitPayload(activeRoute(next)?.visitKey, payload);
+    if (next === current) return false;
+    if (captureScroll) captureCurrentScroll();
+
+    let shouldReplace = replace;
+    let historyState = stateWithoutStudyMarker(window.history.state);
+    if (studyMarkerActiveRef.current) {
+      // Entry-open actions inside a session already run the existing Finish callback. Replace
+      // the marker so Back returns directly to the launcher without a dead session entry.
+      studyMarkerActiveRef.current = false;
+      skipStudyFinishOnceRef.current = false;
+      shouldReplace = true;
+    }
+    historyState = historyStateWithNavigation(historyState, next);
+    if (shouldReplace) window.history.replaceState(historyState, "", window.location.href);
+    else window.history.pushState(historyState, "", window.location.href);
+
+    navigationRef.current = next;
+    setNavigation(next);
+    rememberVisitedTab(next.activeTab);
+    return true;
+  }, [captureCurrentScroll, rememberVisitedTab, setVisitPayload]);
+
+  const applyPoppedNavigation = useCallback((rawNavigation, rawState) => {
+    const sanitized = sanitizeHydratedNavigation(rawNavigation, {
+      hasTransientPayload: (visitKey, kind) => transientPayloadExists(
+        visitPayloadsRef.current,
+        visitKey,
+        kind,
+      ),
+    });
+    if (sanitized !== rawNavigation) {
+      window.history.replaceState(
+        historyStateWithNavigation(stateWithoutStudyMarker(rawState), sanitized),
+        "",
+        window.location.href,
+      );
+    }
+    navigationRef.current = sanitized;
+    setNavigation(sanitized);
+    rememberVisitedTab(sanitized.activeTab);
+  }, [rememberVisitedTab]);
+
+  const handlePopState = useCallback(async (event) => {
+    const targetHasStudyMarker = hasStudyMarker(event.state);
+    const targetNavigation = navigationFromHistoryState(event.state);
+    const current = navigationRef.current;
+    captureCurrentScroll();
+
+    if (studyMarkerActiveRef.current && !targetHasStudyMarker) {
+      const finish = studyFinishRef.current;
+      const skipFinish = skipStudyFinishOnceRef.current;
+      studyMarkerActiveRef.current = false;
+      skipStudyFinishOnceRef.current = false;
+      studyFinishRef.current = null;
+      if (!skipFinish) finish?.();
+      if (targetNavigation) applyPoppedNavigation(targetNavigation, event.state);
+      return;
+    }
+
+    // Forward after finishing, or a refresh of a marker entry, must never resurrect a session.
+    if (targetHasStudyMarker) {
+      const cleanState = stateWithoutStudyMarker(event.state);
+      if (targetNavigation) {
+        window.history.replaceState(
+          historyStateWithNavigation(cleanState, targetNavigation),
+          "",
+          window.location.href,
+        );
+        applyPoppedNavigation(targetNavigation, cleanState);
+      } else {
+        window.history.replaceState(cleanState, "", window.location.href);
+      }
+      return;
+    }
+
+    if (!targetNavigation) return;
+    const currentRoute = activeRoute(current);
+    const targetRoute = activeRoute(targetNavigation);
+    const leavingEditor = currentRoute?.tab === "diario"
+      && currentRoute.screen === "edit"
+      && !sameRouteDestination(currentRoute, targetRoute);
+
+    if (leavingEditor && !skipEditorGuardOnceRef.current) {
+      const allowed = await (editorNavigationRef.current?.prepareToLeave?.() ?? true);
+      if (!allowed) {
+        const recoveryDelta = targetNavigation.depth <= current.depth ? 1 : -1;
+        window.history.go(recoveryDelta);
+        return;
+      }
+    }
+    skipEditorGuardOnceRef.current = false;
+    applyPoppedNavigation(targetNavigation, event.state);
+  }, [applyPoppedNavigation, captureCurrentScroll]);
+
+  useLayoutEffect(() => {
+    const previousScrollRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    const initial = initialRef.current;
+    let initialState = historyStateWithNavigation(
+      stateWithoutStudyMarker(window.history.state),
+      navigationRef.current,
+    );
+    if (initial.startedOnStudyMarker) initialState = stateWithoutStudyMarker(initialState);
+    window.history.replaceState(
+      initialState,
+      "",
+      initial.consumedShare ? urlWithoutShareParams() : window.location.href,
+    );
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      window.history.scrollRestoration = previousScrollRestoration;
+    };
+  }, [handlePopState]);
+
+  useLayoutEffect(() => {
+    const destinationY = scrollByVisitRef.current.get(route?.visitKey) || 0;
+    window.scrollTo(0, destinationY);
+  }, [route?.visitKey, tab]);
+
+  const registerEditorNavigationHandlers = useCallback((handlers) => {
+    editorNavigationRef.current = handlers;
+  }, []);
+
+  const beginStudySession = useCallback((finish) => {
+    studySessionMountedRef.current = true;
+    studyFinishRef.current = finish;
+    clearTimeout(studyEndTimerRef.current);
+    if (studyMarkerActiveRef.current) return;
+
+    const state = historyStateWithNavigation(
+      stateWithoutStudyMarker(window.history.state),
+      navigationRef.current,
+    );
+    window.history.pushState({
+      ...state,
+      [STUDY_SESSION_STATE_KEY]: { version: STUDY_SESSION_STATE_VERSION },
+    }, "", window.location.href);
+    studyMarkerActiveRef.current = true;
+    skipStudyFinishOnceRef.current = false;
+  }, []);
+
+  const endStudySession = useCallback(() => {
+    studySessionMountedRef.current = false;
+    clearTimeout(studyEndTimerRef.current);
+    // Delay one task so StrictMode's setup → cleanup → setup probe cannot consume the marker.
+    studyEndTimerRef.current = setTimeout(() => {
+      if (
+        !studySessionMountedRef.current
+        && studyMarkerActiveRef.current
+        && hasStudyMarker(window.history.state)
+      ) {
+        skipStudyFinishOnceRef.current = true;
+        window.history.back();
+      }
+    }, 0);
+  }, []);
+
+  const requestStudyFinish = useCallback((fallbackFinish) => {
+    if (studyMarkerActiveRef.current && hasStudyMarker(window.history.state)) {
+      window.history.back();
+    } else {
+      fallbackFinish?.();
     }
   }, []);
 
-  const route = routeTrail[routeTrail.length - 1];
-  const tab = route.tab;
-  const selectedId = route.id;
+  function pushRoute(destination, payloadForVisit = null) {
+    const visitKey = makeNavigationVisitKey();
+    const next = pushDestination(navigationRef.current, destination, { visitKey });
+    const payload = typeof payloadForVisit === "function"
+      ? payloadForVisit(activeRoute(next)?.visitKey)
+      : payloadForVisit;
+    commitNavigation(next, { payload });
+  }
 
-  // Counted the way the tabs divide things, since a single "palabras" total that quietly
-  // included phrases stopped being true the moment they got their own tab.
-  const lexical = notebook.items.filter((i) => i.type === "lexical");
-  const phraseCount = lexical.filter((i) => i.form === "phrase").length;
+  function replaceRoute(destination, payloadForVisit = null) {
+    const next = replaceActiveDestination(navigationRef.current, destination);
+    const payload = typeof payloadForVisit === "function"
+      ? payloadForVisit(activeRoute(next)?.visitKey)
+      : payloadForVisit;
+    commitNavigation(next, { replace: true, payload });
+  }
+
+  function navigateBack(options = {}) {
+    captureCurrentScroll();
+    if (options?.editorPrepared) skipEditorGuardOnceRef.current = true;
+    window.history.back();
+  }
+
+  async function switchTab(nextTab) {
+    const currentRoute = activeRoute(navigationRef.current);
+    if (currentRoute?.tab === "diario" && currentRoute.screen === "edit") {
+      if (nextTab === "diario") {
+        const allowed = await (editorNavigationRef.current?.prepareToLeave?.() ?? true);
+        if (!allowed) return;
+      } else {
+        await editorNavigationRef.current?.flushForTabSwitch?.();
+      }
+    }
+    const next = selectPrimaryTab(navigationRef.current, nextTab, {
+      visitKey: makeNavigationVisitKey(),
+    });
+    commitNavigation(next);
+  }
+
+  function openItem(id) {
+    if (!id) return;
+    const item = notebook.items.find((candidate) => candidate.id === id);
+    const targetTab = !isDictKey(id) && isJournalEntry(item) ? "diario" : "cuaderno";
+    pushRoute({ tab: targetTab, screen: targetTab === "diario" ? "read" : "detail", id });
+  }
+
+  function openWander(id) {
+    if (id) pushRoute({ tab: "cuaderno", screen: "wander", id });
+  }
+
+  function openPages() {
+    pushRoute({ tab: "cuaderno", screen: "pages" });
+  }
+
+  function openLexical(form = FILTERS.all) {
+    pushRoute(
+      { tab: "cuaderno", screen: "lexical" },
+      (visitKey) => ({ formRequest: { form, key: visitKey } }),
+    );
+  }
+
+  function openCuadernoRoot(screen, options = {}) {
+    const payloadFactory = screen === "search"
+      ? (visitKey) => ({ seedQuery: { text: options.query || "", key: visitKey } })
+      : null;
+    if (options.replace) replaceRoute({ tab: "cuaderno", screen }, payloadFactory);
+    else pushRoute({ tab: "cuaderno", screen }, payloadFactory);
+  }
+
+  function searchEverything(text) {
+    pushRoute(
+      { tab: "cuaderno", screen: "search" },
+      (visitKey) => ({ seedQuery: { text, key: visitKey } }),
+    );
+  }
+
+  function editJournal(id) {
+    if (id) pushRoute({ tab: "diario", screen: "edit", id });
+  }
+
+  function startJournal(seed = {}) {
+    pushRoute(
+      { tab: "diario", screen: "edit", id: null },
+      (visitKey) => ({ seed: { ...seed, draftKey: visitKey } }),
+    );
+  }
+
+  function journalMaterialized(id) {
+    if (!id) return;
+    pendingPersonalIdsRef.current.add(id);
+    replaceRoute({ tab: "diario", screen: "edit", id });
+  }
+
+  function openBiography() {
+    const current = activeRoute(navigationRef.current);
+    if (current?.tab === "cuaderno" && current.id) {
+      pushRoute({ tab: "cuaderno", screen: "biography", id: current.id });
+    }
+  }
+
+  function openRepasoDestination(screen) {
+    pushRoute({ tab: "repaso", screen });
+  }
+
+  // A page can cross surfaces when its date or profile changes. Replace only the active visit;
+  // every earlier browser entry and both remembered stacks keep their chronology.
+  useEffect(() => {
+    const current = activeRoute(navigationRef.current);
+    if (notebook.loading || !current?.id || isDictKey(current.id)) return;
+    const item = notebook.items.find((candidate) => candidate.id === current.id);
+    if (!item) return;
+    pendingPersonalIdsRef.current.delete(current.id);
+    const canonicalTab = isJournalEntry(item) ? "diario" : "cuaderno";
+    if (canonicalTab === current.tab) return;
+    replaceRoute({
+      tab: canonicalTab,
+      screen: canonicalTab === "diario" ? "read" : "detail",
+      id: current.id,
+    });
+  }, [notebook.items, notebook.loading, route?.id, route?.tab]);
+
+  // Deleted personal items cannot strand refresh or Forward on an empty detail surface.
+  useEffect(() => {
+    if (notebook.loading) return;
+    const current = navigationRef.current;
+    const pruned = prunedMissingPersonalRoutes(current, notebook.items, pendingPersonalIdsRef.current);
+    if (pruned !== current) commitNavigation(pruned, { replace: true, captureScroll: false });
+  }, [commitNavigation, notebook.items, notebook.loading]);
+
+  const lexical = notebook.items.filter((item) => item.type === "lexical");
+  const phraseCount = lexical.filter((item) => item.form === "phrase").length;
   const wordCount = lexical.length - phraseCount;
   const pageCount = notebook.items.filter((item) => item.type === "page" && !isJournalEntry(item)).length;
 
@@ -110,8 +490,6 @@ export default function App() {
     };
   }, [notebook.items]);
 
-  // The lexical pin list is hoisted for the same reason as the page one: hub cards and the
-  // preference stay synchronized without a schema, event or timestamp change (Phase 4z).
   useEffect(() => {
     let current = true;
     const lexicalIds = new Set(
@@ -129,9 +507,6 @@ export default function App() {
     };
   }, [notebook.items]);
 
-  // Hoisted for the same reason as the pin lists: five unrelated places render a tag, and they all
-  // have to agree. Pruning happens in memory only — a write on every launch is the kind of thing
-  // that is hard to explain later, and a colour left behind by a deleted tag harms nothing.
   useEffect(() => {
     let current = true;
     const known = allTagsIn(notebook.items);
@@ -169,150 +544,32 @@ export default function App() {
     );
   }
 
-  function switchTab(next) {
-    setRouteTrail([baseRoute(next)]);
-  }
-
-  function openItem(id) {
-    if (!id) return;
-    const originScrollY = window.scrollY;
-    const item = notebook.items.find((candidate) => candidate.id === id);
-    const targetTab = !isDictKey(id) && isJournalEntry(item) ? "diario" : "cuaderno";
-    const next = { tab: targetTab, screen: targetTab === "diario" ? "read" : "detail", id };
-    setRouteTrail((trail) => {
-      const current = trail[trail.length - 1];
-      if (sameRouteDestination(current, next)) return trail;
-      const origin = isHubRoute(current)
-        ? { ...current, returnScrollY: originScrollY }
-        : current;
-      return [...trail.slice(0, -1), origin, next];
-    });
-  }
-
-  function openWander(id) {
-    if (!id) return;
-    const next = { tab: "cuaderno", screen: "wander", id };
-    setRouteTrail((trail) => {
-      const current = trail[trail.length - 1];
-      return sameRouteDestination(current, next) ? trail : [...trail, next];
-    });
-  }
-
-  function openPages() {
-    setRouteTrail((trail) => {
-      const current = trail[trail.length - 1];
-      return current.tab === "cuaderno" && current.screen === "pages"
-        ? trail
-        : [...trail, { tab: "cuaderno", screen: "pages", id: null }];
-    });
-  }
-
-  /**
-   * The Words & phrases hub. The tapped chip travels as a keyed request rather than a bare value,
-   * so choosing *frases* twice still selects Phrases even after the owner changed the chip inside
-   * the hub — the same idiom the journal draft seed uses below.
-   */
-  function openLexical(form = FILTERS.all) {
-    setRouteTrail((trail) => {
-      const current = trail[trail.length - 1];
-      const formRequest = { form, key: Date.now() };
-      return current.tab === "cuaderno" && current.screen === "lexical"
-        ? [...trail.slice(0, -1), { ...current, formRequest }]
-        : [...trail, { tab: "cuaderno", screen: "lexical", id: null, formRequest }];
-    });
-  }
-
-  /**
-   * The hub searches personal vocabulary only, so a miss there is not proof the word does not
-   * exist. This carries the query back to the one list that spans both layers (§8), where the
-   * dictionary can answer and a genuine miss can be logged.
-   */
-  function searchEverything(text) {
-    setRouteTrail((trail) => [
-      ...trail,
-      { tab: "cuaderno", screen: "list", id: null, seedQuery: { text, key: Date.now() } },
-    ]);
-  }
-
-  function backFromDetail() {
-    setRouteTrail((trail) => (trail.length > 1 ? trail.slice(0, -1) : [baseRoute(trail[0].tab)]));
-  }
-
-  function editJournal(id) {
-    if (!id) return;
-    setRouteTrail((trail) => [...trail, { tab: "diario", screen: "edit", id, seed: null }]);
-  }
-
-  function startJournal(seed = {}) {
-    setRouteTrail((trail) => [
-      ...trail,
-      { tab: "diario", screen: "edit", id: null, seed: { ...seed, draftKey: Date.now() } },
-    ]);
-  }
-
-  function journalMaterialized(id) {
-    setRouteTrail((trail) => [
-      ...trail.slice(0, -1),
-      { ...trail[trail.length - 1], id },
-    ]);
-  }
-
-  // A page can cross surfaces when its date or profile changes. Replace only the current route;
-  // the origin trail stays intact, so moving a journal back to Pages never loses Back.
-  useEffect(() => {
-    if (notebook.loading || !route.id || isDictKey(route.id)) return;
-    const item = notebook.items.find((candidate) => candidate.id === route.id);
-    if (!item) return;
-    const canonicalTab = isJournalEntry(item) ? "diario" : "cuaderno";
-    if (canonicalTab === route.tab) return;
-    setRouteTrail((trail) => [
-      ...trail.slice(0, -1),
-      { ...trail[trail.length - 1], tab: canonicalTab, screen: canonicalTab === "diario" ? "read" : "detail" },
-    ]);
-  }, [notebook.items, notebook.loading, route.id, route.tab]);
-
-  const previousRoute = routeTrail[routeTrail.length - 2] || null;
-  const backLabel = previousRoute?.id
-    ? "Atrás"
-    : previousRoute?.screen === "pages"
-      ? "Pages"
-    : previousRoute?.screen === "lexical"
-      ? "Words & phrases"
-    : previousRoute?.tab && previousRoute.tab !== route.tab
-      ? TABS.find((candidate) => candidate.id === previousRoute.tab)?.label
-      : route.tab === "diario"
-        ? "Diario"
-        : "Todo el cuaderno";
-
-  // Keep the two notebook surfaces mounted while the session trail crosses between them.
-  // Their local search/filter state then survives Journal → Back without becoming stored data.
-  const cuadernoRoute = [...routeTrail].reverse().find((candidate) => candidate.tab === "cuaderno") || baseRoute("cuaderno");
-  const diarioRoute = [...routeTrail].reverse().find((candidate) => candidate.tab === "diario") || baseRoute("diario");
+  const backLabel = navigation.backLabel || labelForRoute(
+    navigation.stacks[tab]?.at(-2) || navigation.stacks[tab]?.[0]
+  );
+  const cuadernoRoute = navigation.stacks.cuaderno.at(-1);
+  const diarioRoute = navigation.stacks.diario.at(-1);
+  const repasoRoute = navigation.stacks.repaso.at(-1);
+  const cuadernoPayload = visitPayloadsRef.current.get(cuadernoRoute.visitKey) || {};
+  const diarioPayload = visitPayloadsRef.current.get(diarioRoute.visitKey) || {};
   const wanderItem = cuadernoRoute.screen === "wander"
     ? notebook.items.find((item) => item.id === cuadernoRoute.id) || null
     : null;
-  // Each hub brings its own focused header, so the app header steps aside for both of them.
   const hubOpen = tab === "cuaderno"
     && (cuadernoRoute.screen === "pages" || cuadernoRoute.screen === "lexical");
-  const cuadernoLandingOpen = tab === "cuaderno" && cuadernoRoute.screen === "list";
-
-  // The document is the scroll container. A newly selected tab or detail must never inherit
-  // a long source page's scroll offset and appear to open halfway down the destination. The two
-  // dedicated hubs are the narrow exception: Back restores the offset captured when their entry
-  // was opened, while that entry still arrives at the top.
-  useLayoutEffect(() => {
-    const destinationY = isHubRoute(route) && Number.isFinite(route.returnScrollY)
-      ? route.returnScrollY
-      : 0;
-    window.scrollTo(0, destinationY);
-  }, [route.screen, tab, selectedId]);
+  const cuadernoRootOpen = tab === "cuaderno" && CUADERNO_ROOT_SCREENS.has(cuadernoRoute.screen);
 
   return (
-    <StudySessionProvider onActiveChange={setStudySessionActive}>
+    <StudySessionProvider
+      onActiveChange={setStudySessionActive}
+      onSessionStart={beginStudySession}
+      onSessionEnd={endStudySession}
+      requestFinish={requestStudyFinish}
+    >
     <TagColorProvider colors={tagColors}>
     <div className="min-h-screen" style={{ background: C.paper, color: C.ink }}>
       <div className="max-w-md mx-auto min-h-screen relative" style={{ background: C.paper }}>
-        {!hubOpen && !cuadernoLandingOpen && !studySessionActive && (
+        {!hubOpen && !cuadernoRootOpen && !studySessionActive && (
           <header
             aria-label="App header"
             className="sticky top-0 z-20 px-4 pt-4 pb-3"
@@ -347,98 +604,117 @@ export default function App() {
           </div>
         ) : (
           <>
-            <section hidden={tab !== "cuaderno"} aria-label="Cuaderno surface">
-              <div hidden={cuadernoRoute.screen === "pages" || cuadernoRoute.screen === "lexical" || cuadernoRoute.screen === "wander"}>
-                <Cuaderno
-                  notebook={notebook}
-                  selectedId={cuadernoRoute.screen === "detail" ? cuadernoRoute.id : null}
-                  onSelect={openItem}
-                  onBack={backFromDetail}
-                  backLabel={backLabel}
-                  onOpenSettings={() => switchTab("ajustes")}
-                  onOpenPages={openPages}
-                  onOpenLexical={openLexical}
-                  onWander={openWander}
-                  seedQuery={cuadernoRoute.seedQuery || null}
-                  shareSource={cuadernoRoute.shareSource || null}
-                  pinnedPageIds={pinnedPageIds}
-                  onPagePinnedChange={changePagePinned}
-                />
-              </div>
-              <div hidden={cuadernoRoute.screen !== "pages"}>
-                <PageHub
-                  notebook={notebook}
-                  pinnedPageIds={pinnedPageIds}
-                  onPagePinnedChange={changePagePinned}
-                  onSelect={openItem}
-                  onBack={backFromDetail}
-                />
-              </div>
-              <div hidden={cuadernoRoute.screen !== "lexical"}>
-                <LexicalHub
-                  notebook={notebook}
-                  active={cuadernoRoute.screen === "lexical"}
-                  formRequest={cuadernoRoute.formRequest || null}
-                  pinnedLexicalIds={pinnedLexicalIds}
-                  onLexicalPinnedChange={changeLexicalPinned}
-                  onSelect={openItem}
-                  onBack={backFromDetail}
-                  onSearchDictionary={searchEverything}
-                />
-              </div>
-              <div hidden={cuadernoRoute.screen !== "wander"}>
-                {cuadernoRoute.screen === "wander" && wanderItem && (
-                  <Wander
-                    key={wanderItem.id}
-                    item={wanderItem}
-                    items={notebook.items}
-                    onHop={openWander}
-                    onOpen={openItem}
-                    onBack={backFromDetail}
+            {visitedTabs.has("cuaderno") && (
+              <section hidden={tab !== "cuaderno"} aria-label="Cuaderno surface">
+                <div hidden={cuadernoRoute.screen === "pages" || cuadernoRoute.screen === "lexical" || cuadernoRoute.screen === "wander"}>
+                  <Cuaderno
+                    notebook={notebook}
+                    selectedId={["detail", "biography"].includes(cuadernoRoute.screen) ? cuadernoRoute.id : null}
+                    rootScreen={cuadernoRoute.screen}
+                    onOpenRoot={openCuadernoRoot}
+                    onSelect={openItem}
+                    onBack={navigateBack}
+                    backLabel={backLabel}
+                    onOpenBiography={openBiography}
+                    onCloseBiography={navigateBack}
+                    onOpenSettings={() => switchTab("ajustes")}
+                    onOpenPages={openPages}
+                    onOpenLexical={openLexical}
+                    onWander={openWander}
+                    seedQuery={cuadernoPayload.seedQuery || null}
+                    shareSource={cuadernoPayload.shareSource || null}
+                    pinnedPageIds={pinnedPageIds}
+                    onPagePinnedChange={changePagePinned}
+                  />
+                </div>
+                <div hidden={cuadernoRoute.screen !== "pages"}>
+                  <PageHub
+                    notebook={notebook}
+                    pinnedPageIds={pinnedPageIds}
+                    onPagePinnedChange={changePagePinned}
+                    onSelect={openItem}
+                    onBack={navigateBack}
                     backLabel={backLabel}
                   />
-                )}
-              </div>
-            </section>
-            <section hidden={tab !== "diario"} aria-label="Diario surface">
-              <Diario
-                notebook={notebook}
-                route={diarioRoute}
-                onSelect={openItem}
-                onBack={backFromDetail}
-                backLabel={backLabel}
-                onEdit={editJournal}
-                onStart={startJournal}
-                onMaterialized={journalMaterialized}
-              />
-            </section>
-            {tab === "repaso" && (
-              <Repaso
-                notebook={notebook}
-                onSelect={openItem}
-              />
+                </div>
+                <div hidden={cuadernoRoute.screen !== "lexical"}>
+                  <LexicalHub
+                    notebook={notebook}
+                    active={cuadernoRoute.screen === "lexical"}
+                    formRequest={cuadernoPayload.formRequest || null}
+                    pinnedLexicalIds={pinnedLexicalIds}
+                    onLexicalPinnedChange={changeLexicalPinned}
+                    onSelect={openItem}
+                    onBack={navigateBack}
+                    backLabel={backLabel}
+                    onSearchDictionary={searchEverything}
+                  />
+                </div>
+                <div hidden={cuadernoRoute.screen !== "wander"}>
+                  {cuadernoRoute.screen === "wander" && wanderItem && (
+                    <Wander
+                      key={wanderItem.id}
+                      item={wanderItem}
+                      items={notebook.items}
+                      onHop={openWander}
+                      onOpen={openItem}
+                      onBack={navigateBack}
+                      backLabel={backLabel}
+                    />
+                  )}
+                </div>
+              </section>
             )}
-            {tab === "ajustes" && (
-              <Ajustes
-                notebook={notebook}
-                tagColors={tagColors}
-                onTagColorChange={changeTagColor}
-                onDataReplaced={notebook.reload}
-                onTagsChanged={notebook.reload}
-              />
+            {visitedTabs.has("diario") && (
+              <section hidden={tab !== "diario"} aria-label="Diario surface">
+                <Diario
+                  notebook={notebook}
+                  route={{ ...diarioRoute, seed: diarioPayload.seed || null }}
+                  onSelect={openItem}
+                  onBack={navigateBack}
+                  backLabel={backLabel}
+                  onEdit={editJournal}
+                  onStart={startJournal}
+                  onMaterialized={journalMaterialized}
+                  registerEditorNavigationHandlers={registerEditorNavigationHandlers}
+                />
+              </section>
+            )}
+            {visitedTabs.has("repaso") && (
+              <section hidden={tab !== "repaso"} aria-label="Repaso surface">
+                <Repaso
+                  notebook={notebook}
+                  route={repasoRoute}
+                  onNavigate={openRepasoDestination}
+                  onBack={navigateBack}
+                  backLabel={backLabel}
+                  onSelect={openItem}
+                />
+              </section>
+            )}
+            {visitedTabs.has("ajustes") && (
+              <section hidden={tab !== "ajustes"} aria-label="Ajustes surface">
+                <Ajustes
+                  notebook={notebook}
+                  tagColors={tagColors}
+                  onTagColorChange={changeTagColor}
+                  onDataReplaced={notebook.reload}
+                  onTagsChanged={notebook.reload}
+                />
+              </section>
             )}
           </>
         )}
 
         {!studySessionActive && <nav aria-label="Primary" className="fixed bottom-0 inset-x-0 z-30">
           <div className="max-w-md mx-auto flex border-t" style={{ background: C.card, borderColor: C.line }}>
-            {TABS.map((t) => {
-              const Icon = t.icon;
-              const active = tab === t.id;
+            {TABS.map((item) => {
+              const Icon = item.icon;
+              const active = tab === item.id;
               return (
                 <button
-                  key={t.id}
-                  onClick={() => switchTab(t.id)}
+                  key={item.id}
+                  onClick={() => switchTab(item.id)}
                   aria-current={active ? "page" : undefined}
                   className="flex-1 py-2.5 flex flex-col items-center gap-0.5"
                 >
@@ -447,7 +723,7 @@ export default function App() {
                     className="text-[11px]"
                     style={{ color: active ? C.pen : C.mut, fontWeight: active ? 600 : 400 }}
                   >
-                    {t.label}
+                    {item.label}
                   </span>
                 </button>
               );

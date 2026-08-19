@@ -154,7 +154,7 @@ describe("Cuaderno landing", () => {
     expect(screen.getByRole("heading", { name: "Search results" })).toBeTruthy();
     expect(screen.getByRole("textbox", { name: "Search notebook" }).value).toBe("casa");
 
-    await user.click(screen.getByRole("button", { name: "Back to landing" }));
+    await user.click(screen.getByRole("button", { name: "Back to Todo el cuaderno" }));
     expect(screen.getByRole("textbox", { name: "Search notebook" }).value).toBe("casa");
   });
 });

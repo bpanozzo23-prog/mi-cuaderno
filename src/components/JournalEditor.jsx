@@ -43,6 +43,7 @@ export default function JournalEditor({
   backLabel = "Diario",
   onChanged,
   onMaterialized,
+  registerNavigationHandlers = null,
   autosaveMs = JOURNAL_AUTOSAVE_MS,
 }) {
   const initial = cleanDraft({
@@ -145,6 +146,48 @@ export default function JournalEditor({
     return task;
   }
 
+  function flushForTabSwitch() {
+    clearTimeout(timerRef.current);
+    const requested = latestDraftRef.current;
+    const flushDraft = requested.pageDate
+      ? requested
+      : { ...requested, pageDate: lastValidDateRef.current };
+    if (
+      flushDraft.pageDate &&
+      (materializedIdRef.current || draftHasContent(flushDraft)) &&
+      !sameDraft(flushDraft, lastSavedRef.current)
+    ) {
+      const version = ++versionRef.current;
+      return enqueueSave(flushDraft, version, { quiet: true });
+    }
+    return Promise.resolve(materializedIdRef.current);
+  }
+
+  async function prepareToLeave() {
+    const requested = latestDraftRef.current;
+    if (!requested.pageDate && !sameDraft(requested, lastSavedRef.current)) {
+      setStatus("Choose a date before leaving");
+      return false;
+    }
+    clearTimeout(timerRef.current);
+    if (
+      (materializedIdRef.current || draftHasContent(requested)) &&
+      !sameDraft(requested, lastSavedRef.current)
+    ) {
+      const version = ++versionRef.current;
+      setStatus("Saving…");
+      const savedId = await enqueueSave(requested, version);
+      if (!savedId) return false;
+    }
+    return true;
+  }
+
+  useEffect(() => {
+    if (!registerNavigationHandlers) return undefined;
+    registerNavigationHandlers({ prepareToLeave, flushForTabSwitch });
+    return () => registerNavigationHandlers(null);
+  }, [registerNavigationHandlers, title, body, date, apuntes]);
+
   useEffect(() => {
     const openedId = entry?.id;
     if (!openedId) return undefined;
@@ -185,40 +228,14 @@ export default function JournalEditor({
     return () => {
       mountedRef.current = false;
       clearTimeout(timerRef.current);
-      const requested = latestDraftRef.current;
-      // The tab bar can replace this route without calling leaveEditor. Preserve writing with the
-      // latest date the owner selected rather than letting a temporarily blank required field drop it.
-      const flushDraft = requested.pageDate
-        ? requested
-        : { ...requested, pageDate: lastValidDateRef.current };
-      if (
-        flushDraft.pageDate &&
-        (materializedIdRef.current || draftHasContent(flushDraft)) &&
-        !sameDraft(flushDraft, lastSavedRef.current)
-      ) {
-        const version = ++versionRef.current;
-        enqueueSave(flushDraft, version, { quiet: true });
-      }
+      // The tab bar can hide this editor without calling its guarded Back action. Preserve writing
+      // with the latest valid date rather than letting a temporarily blank required field drop it.
+      flushForTabSwitch();
     };
   }, []);
 
   async function leaveEditor() {
-    const requested = latestDraftRef.current;
-    if (!requested.pageDate && !sameDraft(requested, lastSavedRef.current)) {
-      setStatus("Choose a date before leaving");
-      return;
-    }
-    clearTimeout(timerRef.current);
-    if (
-      (materializedIdRef.current || draftHasContent(requested)) &&
-      !sameDraft(requested, lastSavedRef.current)
-    ) {
-      const version = ++versionRef.current;
-      setStatus("Saving…");
-      const savedId = await enqueueSave(requested, version);
-      if (!savedId) return;
-    }
-    onBack();
+    if (await prepareToLeave()) onBack({ editorPrepared: true });
   }
 
   function choosePrompt(next) {

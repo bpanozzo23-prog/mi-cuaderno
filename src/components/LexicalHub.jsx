@@ -112,6 +112,7 @@ export default function LexicalHub({
   onLexicalPinnedChange,
   onSelect,
   onBack,
+  backLabel = "Cuaderno",
   onSearchDictionary,
 }) {
   const { items, events, reload } = notebook;
@@ -365,7 +366,7 @@ export default function LexicalHub({
             className="inline-flex min-h-11 items-center justify-self-start text-sm"
             style={{ color: C.pen }}
           >
-            <ChevronLeft size={18} /> Cuaderno
+            <ChevronLeft size={18} /> {backLabel}
           </button>
           <h1 className="text-lg font-semibold" style={{ fontFamily: SERIF, color: C.ink }}>
             Words &amp; phrases

@@ -71,11 +71,20 @@ export default function ConjugationGym({
   items,
   events,
   initialView = "setup",
+  destinationView = null,
+  onNavigate = null,
   onBack,
+  backLabel = "Repaso",
   onOpen,
   onGraded,
 }) {
   const [view, setView] = useState(initialView);
+  const activeView = view === "session" ? "session" : (destinationView || view);
+
+  function showMajor(next) {
+    setView(next);
+    onNavigate?.(next);
+  }
   const [library, setLibrary] = useState({ loading: true, installed: false, saved: [], core: [], unavailableCore: [] });
   const [loadError, setLoadError] = useState(false);
   const [drill, setDrill] = useState("forms");
@@ -362,23 +371,24 @@ export default function ConjugationGym({
     if (focus?.slot) nextTarget.slot = focus.slot;
     if (Object.values(nextTarget).some(Boolean)) setFocusTarget(nextTarget);
     setStartError("");
-    setView("setup");
+    showMajor("setup");
   }
 
-  if (view === "stats") {
+  if (activeView === "stats") {
     return (
       <ConjugationPerformance
         items={items}
         events={events}
         library={library}
-        onBack={() => setView("setup")}
+        onBack={destinationView ? onBack : () => showMajor("setup")}
+        backLabel={backLabel}
         onPractice={practiceFromStats}
         onOpen={onOpen}
       />
     );
   }
 
-  if (view === "session" && session) {
+  if (activeView === "session" && session) {
     if (session.skill) {
       if (session.mode === "recall") {
         return (
@@ -429,10 +439,10 @@ export default function ConjugationGym({
     <div className="px-4 py-4 pb-28" style={dotGrid}>
       <Header
         title="Conjugation Gym"
-        backLabel="Repaso"
+        backLabel={backLabel}
         onBack={onBack}
         action={
-          <button onClick={() => setView("stats")} aria-label="View conjugation performance" style={{ color: C.pen }}>
+          <button onClick={() => showMajor("stats")} aria-label="View conjugation performance" style={{ color: C.pen }}>
             <BarChart3 size={18} className="ml-auto" />
           </button>
         }

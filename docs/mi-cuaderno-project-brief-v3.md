@@ -5,7 +5,7 @@
 **Owner:** The sole builder and only user of this app.
 **Companion file:** `mi-cuaderno.jsx` — a working single-file prototype of the notebook layer. It is the reference for features, interaction patterns, and visual design of **lexical entries**. Pages (§7) do not exist in the prototype and are new in v3. Where this brief contradicts the prototype's *implementation* (ID scheme, search normalization, the `struggling` field, event rules), **this brief wins** — the prototype shows what the app should feel like, not how it must be built.
 **Version:** v3 — revised after lock-in review. Product contract last amended
-~~August 3, 2026~~ ~~August 4, 2026~~ ~~August 5, 2026~~ ~~August 9, 2026~~ ~~August 10, 2026~~ ~~August 12, 2026~~ ~~August 13, 2026~~ **August 17, 2026**; agent-facing framing refreshed August 2, 2026.
+~~August 3, 2026~~ ~~August 4, 2026~~ ~~August 5, 2026~~ ~~August 9, 2026~~ ~~August 10, 2026~~ ~~August 12, 2026~~ ~~August 13, 2026~~ ~~August 17, 2026~~ **August 18, 2026**; agent-facing framing refreshed August 2, 2026.
 **Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. §§3, 9 and 12 — 2026-08-02: organizational improvements became Phase 5 and the AI assistant moved to Phase 6. §12 — 2026-08-02: independently scoped phases may proceed concurrently under explicit coordination rules. §§5, 7, 8, 10, 12 and 14 — 2026-08-02: personal lexical meanings became stable, structured annotations in schema v2 while review remains entry-level and dictionary senses remain replaceable reference data. **§§5, 7, 10, 12 and 14 — 2026-08-03: schema v3 adds durable `general | collection` page profiles and the first specialized profile, Vocabulary Collection, while dated General pages remain Journal entries and richer profiles stay deferred.** **§§5, 7, 10, 12 and 14 — 2026-08-04: schema v4 adds sparse typed and explained ordinary-connection annotations while `linkedKeys[]` remains authoritative for connection existence and Collection membership.** **§§5, 7, 8, 10, 12 and 14 — 2026-08-04: Phase 7 approves schema v5 composable pages with one leading focus, independently enabled Vocabulary, Source and Grammar structures, contextual retrieval, and sequential legacy backup upgrades.** **§§7, 12 and 14 — 2026-08-05: Phase 9 approves filtered, session-only free practice from the Words & phrases hub while Repaso remains the sole scheduled and event-backed review flow.** **§§7, 12 and 14 — 2026-08-07: Phase 14 approves an owner-started, event-backed Conjugation Gym with curated reference-only verb pools, richer derived performance, and optional history-ranked sessions that never create a due date or alter Leitner review.** **§§7, 12 and 14 — 2026-08-09: Phase 16 approves four-grade scheduled review, objective typed vocabulary recall, queue chunking, one event-free recovery pass, a shared vocabulary-card engine and history-free hub/Collection sessions.** **§§7, 12 and 14 — 2026-08-09: Phase 17 adds owner-started, event-backed Tense usage and Endings recognition lanes whose results remain isolated from form Adaptive, form statistics and Leitner review.** **§§7, 12 and 14 — 2026-08-10: Phase 18 adds the recall/production reverse of those lanes, balanced Regular and Spelling-change packs, exact Saved tag/page targeting and mode-separated depth reporting without changing schema, scheduling or choice evidence.** Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
 
 **Meaning-block amendment, 2026-08-13 — §7:** meaning-level part-of-speech overrides add
@@ -653,6 +653,25 @@ the top; existing fields support useful browse sorting and neutral maintenance v
 vocabulary remains manageable on a phone; long and sparse detail pages are easier to scan;
 active recent activity can reopen its item; exact personal matches receive duplicate warnings;
 and all of this ships with `SCHEMA_VERSION` still 1.
+
+**Amended 2026-08-18 — Phase 5a navigation-continuity reversal.** The original in-memory-only,
+reset-on-tab-switch rule was appropriate for the smaller Phase 5 app but is now superseded.
+Navigation uses shallow browser history with one remembered stack for each primary tab. Browser
+Back, Forward and visible Back actions traverse the same chronological history; changing tabs
+restores that tab's last major destination, selecting the active tab pushes its root, and
+cross-tab item navigation retains the originating snapshot. A validated v1
+`history.state.mcNavigation` snapshot may contain only the active tab, depth, allowlisted stable
+routes, item ids, visit keys and fixed Back-label metadata. Search handoffs, share payloads,
+editor seeds and drafts, filters, study progress and scroll offsets remain visit-only memory.
+Refresh restores stable hubs, major screens and valid items, while payload-only search, a new
+unsaved editor and an active study session fall back to their safe launchers. Missing personal
+destinations fall back to the nearest valid route. No URL routes, router dependency, durable
+browser storage, preference, event, backup or schema change is introduced; `SCHEMA_VERSION`
+remains 9.
+*Done when:* Android/browser Back, Forward and visible Back controls agree; per-tab stacks and
+Back labels restore the actual origin; Repaso drill-down filters survive an item round trip;
+Diario leave guards and study Finish semantics remain safe; refresh sanitizes transient work;
+and seeded 375×812 checks show no overflow or console errors.
 
 **Phase 6 — AI assistant.** Implement per §9.
 *Done when:* the spend cap is set and the disclosure is visible before first send; the assistant correctly answers a question about the owner's tricky words; and a proposed entry lands in the notebook only after the approve tap.

@@ -444,3 +444,45 @@ draft behavior, dictionary orphan handling and backup shapes remain intact, and
 Phase 5 now enters real-use observation. Regressions and general usability friction continue through Phase
 4; real-data-dependent content models and schema work remain deferred under the original
 acceptance criteria.
+
+---
+
+# Follow-up — browser-backed navigation continuity (2026-08-18)
+
+## Status
+
+The owner approved a dated reversal of Phase 5a's no-history and reset-on-tab-switch rules after
+the app grew to four primary tabs and several major drill-downs. The implementation is complete
+locally and is not pushed or deployed. Final verification evidence is recorded in `DECISIONS.md`.
+
+## What changed
+
+- A validated v1 `history.state.mcNavigation` snapshot coordinates browser Back/Forward with the
+  visible Back controls and remembers one stable route stack per primary tab.
+- Tabs mount lazily and remain mounted once visited, preserving visit-local filters and work
+  without adding startup work or persistence for unopened tabs.
+- Stable Cuaderno, Diario and Repaso destinations restore on refresh. Search payloads, filters,
+  drafts, study progress and scroll offsets never enter the snapshot; unsafe refresh states fall
+  back to their launchers.
+- Diario's existing date/save guard coordinates hardware Back, and study sessions use a transient
+  marker so hardware Back and Finish run the same completion path exactly once.
+- Share parameters remain one-shot, missing items fall back safely, and Page↔Diario identity
+  changes replace the active destination. Preferences, events, backups and schema are unchanged;
+  `SCHEMA_VERSION` remains 9.
+
+## Verification
+
+The pure controller and focused App/component checks pass, followed by the complete serial suite
+at **1,576/1,576 tests across 132 files**, the production build at **2,127 transformed modules**,
+and `git diff --check`. A deliberate failure that unmounted Repaso while a linked entry was open
+reset the Saved performance filter exactly as expected; restoring retained mounting returned the
+regression test to green.
+
+A disposable 375×812 browser origin verified visible and browser Back from a saved weak verb to
+the exact `Saved` + `All tenses` performance view, detail restoration after refresh with transient
+filters reset, Cuaderno→Diario→Repaso Back/Forward chronology and dynamic labels, active-tab root
+reset, hardware-style study Back consumed exactly once, and a fresh Cuaderno root leaving for its
+prior browser entry. The document measured `scrollWidth === clientWidth === 360` inside
+`innerWidth === 375`, no visible element crossed the viewport, and browser warning/error logs were
+empty. The synthetic fixture remains only on the isolated browser origin; no owner data was
+available or inspected. Nothing was pushed or deployed.

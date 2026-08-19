@@ -69,6 +69,10 @@ export default function Cuaderno({
   now = new Date(),
   seedQuery = null,
   shareSource = null,
+  rootScreen = null,
+  onOpenRoot = null,
+  onOpenBiography = null,
+  onCloseBiography = null,
   pinnedPageIds = [],
   onPagePinnedChange,
 }) {
@@ -91,6 +95,10 @@ export default function Cuaderno({
   const [addSeed, setAddSeed] = useState(null);
   const [dictionary, setDictionary] = useState(null);
   const [rootMode, setRootMode] = useState("landing");
+  const controlledRootMode = ["landing", "browse", "search"].includes(rootScreen)
+    ? rootScreen
+    : null;
+  const activeRootMode = controlledRootMode || rootMode;
   const [resultLimit, setResultLimit] = useState(30);
 
   const searching = query.trim() !== "";
@@ -139,7 +147,10 @@ export default function Cuaderno({
 
   function changeQuery(next) {
     setQuery(next);
-    if (!next.trim()) setRootMode("landing");
+    if (!next.trim()) {
+      if (onOpenRoot) onOpenRoot("landing", { replace: true });
+      else setRootMode("landing");
+    }
   }
 
   function openBrowseAll() {
@@ -150,7 +161,8 @@ export default function Cuaderno({
     setMaintenanceView(MAINTENANCE_VIEWS.all);
     setRefineOpen(false);
     setResultLimit(30);
-    setRootMode("browse");
+    if (onOpenRoot) onOpenRoot("browse");
+    else setRootMode("browse");
   }
 
   function startWander() {
@@ -164,7 +176,7 @@ export default function Cuaderno({
     if (!seedQuery?.key) return;
     setQuery(seedQuery.text || "");
     setTypeFilter(FILTERS.all);
-    setRootMode("landing");
+    if (!controlledRootMode) setRootMode("landing");
   }, [seedQuery]);
 
   // A URL shared in from another Android app (share_target → App's startup dispatch). It opens
@@ -289,8 +301,8 @@ export default function Cuaderno({
   const refineCount = Number(maintenanceView !== MAINTENANCE_VIEWS.all)
     + Number(browseOrder !== BROWSE_ORDERS.touched)
     + Number(Boolean(effectiveTag));
-  const displayedVisible = rootMode === "landing" ? [] : visible.slice(0, resultLimit);
-  const canLoadMore = rootMode !== "landing" && displayedVisible.length < visible.length;
+  const displayedVisible = activeRootMode === "landing" ? [] : visible.slice(0, resultLimit);
+  const canLoadMore = activeRootMode !== "landing" && displayedVisible.length < visible.length;
 
   const selected = items.find((i) => i.id === selectedId) || null;
   const rootOverlayOpen = Boolean(askKind || askPageStarter || addKind || shareArrival);
@@ -418,6 +430,9 @@ export default function Cuaderno({
           backLabel={backLabel}
           onOpen={onSelect}
           onChanged={reload}
+          destinationScreen={rootScreen}
+          onOpenBiography={onOpenBiography}
+          onCloseBiography={onCloseBiography}
           onAddPhraseFromExample={(example) => {
             setPageStarter(null);
             setAddSeed({
@@ -438,7 +453,7 @@ export default function Cuaderno({
   return (
     <>
       <div aria-hidden={rootOverlayOpen ? true : undefined}>
-      {rootMode === "landing" ? (
+      {activeRootMode === "landing" ? (
         <CuadernoLanding
           query={query}
           onQueryChange={changeQuery}
@@ -458,7 +473,8 @@ export default function Cuaderno({
           onBrowseAll={openBrowseAll}
           onShowAllResults={() => {
             setResultLimit(30);
-            setRootMode("search");
+            if (onOpenRoot) onOpenRoot("search", { query });
+            else setRootMode("search");
           }}
           canWander={wanderItems.length > 0 && Boolean(onWander)}
           onWander={startWander}
@@ -469,27 +485,27 @@ export default function Cuaderno({
             <div className="flex min-h-11 items-center gap-2">
               <button
                 type="button"
-                onClick={() => setRootMode("landing")}
-                aria-label="Back to landing"
+                onClick={onBack || (() => setRootMode("landing"))}
+                aria-label={`Back to ${backLabel}`}
                 className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-pen)]"
                 style={{ color: C.pen }}
               >
                 <ArrowLeft size={20} aria-hidden="true" />
               </button>
               <h1 className="text-xl font-bold" style={{ color: C.ink, fontFamily: SERIF }}>
-                {rootMode === "search" ? "Search results" : "Browse all"}
+                {activeRootMode === "search" ? "Search results" : "Browse all"}
               </h1>
               <span className="ml-auto shrink-0 text-xs" style={{ fontFamily: MONO, color: C.mut }}>
                 {visible.length}
               </span>
             </div>
 
-            {(rootMode === "search" || rootMode === "browse") && (
+            {(activeRootMode === "search" || activeRootMode === "browse") && (
               <div className="mt-2">
                 {/* The miss count is combined across the personal and dictionary layers. */}
                 <SearchBar
                   value={query}
-                  onChange={rootMode === "browse" ? setQuery : changeQuery}
+                  onChange={activeRootMode === "browse" ? setQuery : changeQuery}
                   resultCount={visible.length}
                   pending={dictPending}
                   onMissLogged={reload}

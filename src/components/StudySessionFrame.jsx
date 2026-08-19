@@ -2,7 +2,10 @@ import { createContext, useCallback, useContext, useLayoutEffect, useRef } from 
 import { ChevronLeft } from "lucide-react";
 import { C, MONO, SERIF, dotGrid } from "../theme.jsx";
 
-const StudySessionRegistrationContext = createContext(() => () => {});
+const StudySessionRegistrationContext = createContext({
+  register: () => () => {},
+  requestFinish: null,
+});
 
 /**
  * Lets the app shell step aside while a nested study session is mounted.
@@ -11,32 +14,48 @@ const StudySessionRegistrationContext = createContext(() => () => {});
  * mount/unmount probe, or a future hand-off between two session components, cannot restore the
  * global chrome while another frame still owns focus mode.
  */
-export function StudySessionProvider({ onActiveChange, children }) {
-  const registrations = useRef(new Set());
+export function StudySessionProvider({
+  onActiveChange,
+  onSessionStart = null,
+  onSessionEnd = null,
+  requestFinish = null,
+  children,
+}) {
+  const registrations = useRef(new Map());
 
-  const register = useCallback((token) => {
-    registrations.current.add(token);
-    if (registrations.current.size === 1) onActiveChange(true);
+  const register = useCallback((token, finish) => {
+    registrations.current.set(token, finish);
+    if (registrations.current.size === 1) {
+      onActiveChange(true);
+      onSessionStart?.(finish);
+    }
 
     return () => {
       registrations.current.delete(token);
-      if (registrations.current.size === 0) onActiveChange(false);
+      if (registrations.current.size === 0) {
+        onActiveChange(false);
+        onSessionEnd?.();
+      }
     };
-  }, [onActiveChange]);
+  }, [onActiveChange, onSessionEnd, onSessionStart]);
 
   return (
-    <StudySessionRegistrationContext.Provider value={register}>
+    <StudySessionRegistrationContext.Provider value={{ register, requestFinish }}>
       {children}
     </StudySessionRegistrationContext.Provider>
   );
 }
 
-function useStudySessionRegistration() {
-  const register = useContext(StudySessionRegistrationContext);
+function useStudySessionRegistration(onFinish) {
+  const { register, requestFinish } = useContext(StudySessionRegistrationContext);
   const token = useRef(null);
+  const finishRef = useRef(onFinish);
   if (!token.current) token.current = Symbol("study-session");
+  finishRef.current = onFinish;
+  const finish = useCallback(() => finishRef.current?.(), []);
 
-  useLayoutEffect(() => register(token.current), [register]);
+  useLayoutEffect(() => register(token.current, finish), [finish, register]);
+  return requestFinish ? () => requestFinish(finish) : finish;
 }
 
 /** One quiet line above a card's actual question content. */
@@ -66,7 +85,7 @@ export default function StudySessionFrame({
   summary = false,
   children,
 }) {
-  useStudySessionRegistration();
+  const finish = useStudySessionRegistration(onFinish);
 
   const safeTotal = Math.max(0, Number(total) || 0);
   const safeCurrent = safeTotal > 0
@@ -90,7 +109,7 @@ export default function StudySessionFrame({
             {onFinish ? (
               <button
                 type="button"
-                onClick={onFinish}
+                onClick={finish}
                 className="inline-flex min-h-11 items-center justify-self-start text-sm"
                 style={{ color: C.pen }}
               >
