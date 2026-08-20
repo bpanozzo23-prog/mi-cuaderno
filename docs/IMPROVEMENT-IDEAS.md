@@ -52,8 +52,10 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
-| Diario skill-practice prompting suite | 2026-08-20 | Captured | Any time; the derived-only options need no rule change, while tracking-dependent options need the 2026-08-03 amendment designed first |
-| Separate classroom-diario space | 2026-08-20 | Captured | After one or two prompting-suite options are in real use and show whether skill entries crowd the timeline |
+| Diario skill-practice prompting suite | 2026-08-20 | Ready to plan — direction approved as Taller | Now; `docs/DIARIO-TALLER-DIRECTION.md` is the workshopped contract awaiting an implementation plan |
+| Separate classroom-diario space | 2026-08-20 | Captured | Owner chose one-Diario-two-doors for v1; revisit only if real mixed use shows the single timeline chafing |
+| In-app AI prompt drafting | 2026-08-20 | Captured | After the ad hoc prompt-workshop practice proves what good personalized prompts look like |
+| Personal prompt store | 2026-08-20 | Captured | If workshopped prompts ever get too personal for the public repo; shipped-in-code is the deliberate start |
 | Historia word families | 2026-08-13 | Phase 25a deployed; Phase 25b rejected at gate | Closed for now; any derivational revival needs redesigned reference data |
 | Diario follow-up AI requests | 2026-08-14 | Captured | After the Apuntes box (schema v9) has real-use history showing the Gemini round-trip still chafes |
 | Edge-kind visual vocabulary | 2026-08-13 | Captured | Any time; mostly the lighter visual loop — side-by-side variants, colours through theme tokens |
@@ -125,7 +127,13 @@ Useful information to retain for each idea:
 ### Diario skill-practice prompting suite
 
 - **Date added:** 2026-08-20
-- **Status:** Captured
+- **Last reviewed:** 2026-08-20 — workshopped into an approved direction the same day. A
+  multi-round owner workshop settled the full v1 design (the **Taller** door, drills in the
+  ordinary editor with keep-or-discard, rich practice events, a tema interest layer, static plus
+  dictionary-powered scaffolds, tiers, quiet derived timeline badges, no AI, record-don't-display
+  tracking). The contract is `docs/DIARIO-TALLER-DIRECTION.md`; own-voice recycling was ranked
+  below the three chosen features and stays captured here rather than entering v1.
+- **Status:** Ready to plan — direction approved
 - **Origin:** Owner direction after the 2026-08-19 skill-focused prompt categories deployed
   (`7ed9aca`); recorded from the follow-up prompting-directions discussion, 2026-08-20
 - **Owner interest:** Expects to pursue. The owner explicitly opened the door to amending the
@@ -175,6 +183,9 @@ notebook. The captured options deepen the classroom character in rough order of 
 ### Separate classroom-diario space
 
 - **Date added:** 2026-08-20
+- **Last reviewed:** 2026-08-20 — the Taller workshop chose **one Diario, two doors** for v1 and
+  deliberately avoided foreclosing a later gathering of practice surfaces under Taller. This
+  entry stays captured as the contingent future split; the evidence bar below is unchanged.
 - **Status:** Captured
 - **Origin:** Same 2026-08-20 owner direction as the prompting suite
 - **Owner interest:** Raised by the owner as a possibility, explicitly contingent on what gets
@@ -194,6 +205,46 @@ derives the split (e.g. entries created from a skill prompt *if* prompt usage be
 or simply a separate entry point that filters nothing); the expensive version stores entry kind,
 which is a §7 discussion. Evidence needed first: real mixed use of the prompting suite showing
 the single timeline actually chafes.
+
+### In-app AI prompt drafting
+
+- **Date added:** 2026-08-20
+- **Status:** Captured
+- **Origin:** Owner reflection during the Taller interests discussion, 2026-08-20: "I think that
+  llms should be a good prompt writing resource and that my guidance can help direct it."
+- **Owner interest:** Wants AI-written, owner-directed prompts, but chose the session-workshop
+  model first and asked that runtime generation be captured for later.
+- **Potential data impact:** Governed by §9/Phase 6 policy (owner key, disclosure before send,
+  spend cap) if built; generated prompts would also need a storage home — see Personal prompt
+  store below.
+
+#### Description and current context
+
+Someday Taller could draft a fresh personalized prompt on demand — interests × skill × recent
+notebook activity. Deliberately gated: the ad hoc **prompt workshop practice** (owner directs an
+LLM in a session, curated results ship as ordinary `journalPrompts.js` data — exactly how the
+2026-08-19 skill categories were made) must first prove what good personalized prompts look like.
+The earlier capture note stands: runtime generation trades away an auditable, offline, free
+library for marginal variety, so it needs demonstrated value the workshop cadence cannot supply.
+
+### Personal prompt store
+
+- **Date added:** 2026-08-20
+- **Status:** Captured
+- **Origin:** Privacy question raised while placing workshopped interest-prompts, 2026-08-20
+- **Owner interest:** "I don't expect that the prompts will contain much personal information.
+  Maybe start with shipped and then add a store later if necessary."
+- **Potential data impact:** A new personal-data home for owner prompts (with backup coverage) —
+  a real §5 discussion if opened, and adjacent to §7's two-content-types rule, so a design must
+  say what a stored prompt *is* (likely a preference-shaped record, not a third content type).
+
+#### Description and current context
+
+Workshopped prompts ship in the public repo's static library, which is fine while they name broad
+interests. If prompts ever name the owner's actual life (people, pets, places), they belong in a
+private in-app store — editable, backed up, mixed into the same Taller/prompt-library surfaces as
+shipped prompts. Also the natural home for any future in-app AI-drafted prompts, and a small-form
+revival of the long-deferred "user-authored templates" idea.
 
 ### Diario follow-up AI requests
 
@@ -2044,6 +2095,14 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-20 — Taller direction workshopped and approved; two follow-on ideas captured.** A
+  multi-round owner workshop turned the prompting-suite capture into an approved v1 direction,
+  `docs/DIARIO-TALLER-DIRECTION.md`: the Taller door on the Diario, drills with keep-or-discard,
+  rich practice events under a narrow amendment of the 2026-08-03 rule, an owner-edited tema
+  list, dictionary-powered scaffolds, tiers, and record-don't-display tracking; no AI in v1.
+  In-app AI prompt drafting and a Personal prompt store were captured as new Active entries; the
+  separate-space idea stays captured after the owner chose one-Diario-two-doors for v1.
 
 - **2026-08-20 — Classroom-diario direction captured as a two-entry batch.** After the 2026-08-19
   skill-focused prompt categories deployed, the owner declared a direction shift: the Diario
