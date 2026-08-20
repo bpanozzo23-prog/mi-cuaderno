@@ -52,6 +52,8 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
+| Diario skill-practice prompting suite | 2026-08-20 | Captured | Any time; the derived-only options need no rule change, while tracking-dependent options need the 2026-08-03 amendment designed first |
+| Separate classroom-diario space | 2026-08-20 | Captured | After one or two prompting-suite options are in real use and show whether skill entries crowd the timeline |
 | Historia word families | 2026-08-13 | Phase 25a deployed; Phase 25b rejected at gate | Closed for now; any derivational revival needs redesigned reference data |
 | Diario follow-up AI requests | 2026-08-14 | Captured | After the Apuntes box (schema v9) has real-use history showing the Gemini round-trip still chafes |
 | Edge-kind visual vocabulary | 2026-08-13 | Captured | Any time; mostly the lighter visual loop — side-by-side variants, colours through theme tokens |
@@ -119,6 +121,79 @@ Useful information to retain for each idea:
 ---
 
 ## Active ideas
+
+### Diario skill-practice prompting suite
+
+- **Date added:** 2026-08-20
+- **Status:** Captured
+- **Origin:** Owner direction after the 2026-08-19 skill-focused prompt categories deployed
+  (`7ed9aca`); recorded from the follow-up prompting-directions discussion, 2026-08-20
+- **Owner interest:** Expects to pursue. The owner explicitly opened the door to amending the
+  2026-08-03 "visit-local guidance, never stored metadata" prompt rule: serious diary/journaling
+  work happens outside the app in English, so the Diario is more likely to be used — and used
+  more — as a space for deliberately working on Spanish skills, while still receiving some
+  reflection-style entries.
+- **Potential data impact:** Splits by option. The derived-only options need no storage at all;
+  prompt-usage memory or per-skill tracking would need a new event, preference, or field and
+  therefore §5 in full plus an explicit amendment of the 2026-08-03 rule in `DECISIONS.md`.
+
+#### Description and current context
+
+The prompt library (42 bilingual prompts, seven categories, `src/lib/journalPrompts.js`) is
+static and anonymous: nothing knows which prompts are used, and prompts know nothing about the
+notebook. The captured options deepen the classroom character in rough order of cost:
+
+- **Vocabulary-integrated prompts** — a prompt variant that samples 2–3 of the owner's own items
+  (due in Repaso, or recently created) and shows them as chips to work into the entry. Fully
+  derived at render, in the same style as the Cuidar hub's per-visit samples.
+- **Weakness-aware grammar prompts** — bias Narrate-style prompts toward the owner's weakest
+  tenses using the Conjugation Gym's existing derivations (`conjugationStats.js`). Derived only.
+- **Own-voice recycling** — prompts that point at the timeline: retell an old entry in another
+  tense, rewrite three past sentences with new connectors. Needs no data support at all.
+- **Micro-scaffolds** — a transient word bank under a chosen skill prompt (connectors, time
+  markers, subjunctive triggers). Data-only addition to the prompt records.
+- **Difficulty tiers** — two variants per skill category, mixed in or behind a subtle toggle.
+- **AI review with a declared focus** — the Phase 6 entry review accepts an optional focus chosen
+  at review time ("attend to preterite vs. imperfect"). Grows the workshopped, test-pinned
+  review prompt, so it needs its own small direction discussion; §9 disclosure posture governs.
+- **Prompt-usage memory / per-skill tracking** — no-repeat windows, "which skills have I practiced
+  lately", per-category streaks. Each requires storing prompt usage, i.e. the rule amendment and
+  a real storage decision; weigh against the app's anti-tracking ethos (Cuidar's no-counters
+  design) before choosing this over the derived alternatives.
+
+#### Considerations recorded at capture
+
+- Considered and set aside at capture: AI-generated prompts (the static bilingual list is
+  auditable, offline, and free; generation adds spend and provenance questions for marginal
+  variety) and unprompted prompt display on the Diario landing (the pull-model "Need a prompt?"
+  matches the app's no-nagging character).
+- The 2026-08-03 rule amendment, when made, should say precisely what becomes storable (prompt
+  ids used? skill categories? dates?) rather than dropping the rule wholesale — most captured
+  options need no storage, and the rule's anti-classification instinct still protects ordinary
+  reflective entries.
+
+### Separate classroom-diario space
+
+- **Date added:** 2026-08-20
+- **Status:** Captured
+- **Origin:** Same 2026-08-20 owner direction as the prompting suite
+- **Owner interest:** Raised by the owner as a possibility, explicitly contingent on what gets
+  built: "depending on what gets added, maybe there might even be a need for separate spaces."
+- **Potential data impact:** Potentially large. A separate space could stay purely presentational
+  (a filter or second hub over the same dated pages) or could want a stored distinction between
+  reflective and skill entries — the latter touches §7's two-content-types rule and page
+  identity, so it must not be assumed.
+
+#### Description and current context
+
+If the classroom direction grows (skill prompts, scaffolds, tracked practice), skill-drill
+entries and reflective moments may sit awkwardly in one timeline. The idea is a second hub —
+the current Diario for reflection, a classroom space for structured writing practice — in the
+spirit of the existing hub pattern (Pages hub, Words & phrases hub, Cuidar). The cheap version
+derives the split (e.g. entries created from a skill prompt *if* prompt usage becomes storable,
+or simply a separate entry point that filters nothing); the expensive version stores entry kind,
+which is a §7 discussion. Evidence needed first: real mixed use of the prompting suite showing
+the single timeline actually chafes.
 
 ### Diario follow-up AI requests
 
@@ -1969,6 +2044,14 @@ added optional import of dictionary senses as ordinary meaning records with no l
 ---
 
 ## Document history
+
+- **2026-08-20 — Classroom-diario direction captured as a two-entry batch.** After the 2026-08-19
+  skill-focused prompt categories deployed, the owner declared a direction shift: the Diario
+  should also be a space for deliberately working on skills, and the 2026-08-03 visit-local
+  prompt rule may be amended to support it. The prompting-suite options (vocabulary-integrated,
+  weakness-aware, own-voice recycling, scaffolds, tiers, AI review focus, usage tracking) and
+  the contingent separate-space idea were recorded; AI-generated prompts and unprompted landing
+  display were considered and set aside at capture.
 
 - **2026-08-15 — Suppressed-containment confirmation deployed.** The owner-approved push
   (`39c0e90`) went out through a successful Pages run and the live site serves the new bundle.
