@@ -719,6 +719,18 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   `main` at `7ed9aca` through Pages run
   [32292697167](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32292697167). See the
   2026-08-19 entries in [DECISIONS.md](DECISIONS.md).
+- **Pasear random continuation — deployed.** Pasear offers **Otra al azar** directly below its
+  current center, sampling uniformly from every other saved Word or Phrase, so a dead-end
+  neighborhood no longer requires returning to Cuaderno to draw again. The current lexical center
+  is excluded so the action always moves somewhere new; the action hides when no alternative
+  exists, and each draw is an ordinary transient Wander hop — Back preserves the route trail and
+  the no-event, no-storage boundary stands. No schema, backup, preference or event-type change;
+  `SCHEMA_VERSION` stays 9. Focused coverage passes 56/56, the complete serial suite passes
+  1,602/1,602 across 134 files, the production build and `git diff --check` pass, and a disposable
+  375×812 origin verified the 44px action, the move, Back restoring the prior center, and no
+  horizontal overflow. Deployed from `main` at `976d9c0` through Pages run
+  [32420448459](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32420448459). See the
+  2026-08-19/20 entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
