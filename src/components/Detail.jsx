@@ -811,7 +811,13 @@ function StandardDetail({
         </>
       )}
 
-      <StructuredNotesSection item={item} onChanged={onChanged} />
+      {isPage ? (
+        <StructuredNotesSection item={item} onChanged={onChanged} />
+      ) : (
+        <div className="mt-6">
+          <StructuredNotesSection item={item} onChanged={onChanged} />
+        </div>
+      )}
 
       <SectionTitle>Tags</SectionTitle>
       <TagInput tags={item.tags} allTags={allTags} onChange={(tags) => patch({ tags })} />
