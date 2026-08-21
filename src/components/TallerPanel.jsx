@@ -1,19 +1,54 @@
-import { useMemo, useState } from "react";
-import { Hammer, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Hammer, Plus, X } from "lucide-react";
 import { Button, C, Card, SERIF } from "../theme.jsx";
+import { getPref, setPref } from "../db/db.js";
 import { JOURNAL_PROMPT_CATEGORIES } from "../lib/journalPrompts.js";
-import { drawDrillPrompt, proposeTallerSkill, sampleOfferedWords } from "../lib/taller.js";
+import {
+  TALLER_TEMAS_PREF,
+  cleanTemas,
+  drawDrillPrompt,
+  drawTema,
+  proposeTallerSkill,
+  sampleOfferedWords,
+} from "../lib/taller.js";
 
 /**
  * The Taller door's proposal panel (docs/DIARIO-TALLER-DIRECTION.md): one proposed skill with
- * the full category list one tap away. Everything here is visit-local; the drill itself starts
- * through `onStart({ drill })` and the door never shows counts, suggestions or pressure.
+ * the full category list one tap away, plus the owner-edited tema list — kept inside Taller so
+ * the feature stays self-contained. Everything but the tema preference is visit-local; the
+ * drill itself starts through `onStart({ drill })` and the door never shows counts or pressure.
  */
 export default function TallerPanel({ items = [], events = [], onStart, onClose, random = Math.random }) {
   const proposed = useMemo(() => proposeTallerSkill(events), [events]);
   const [skill, setSkill] = useState(proposed);
   const [choosing, setChoosing] = useState(false);
+  const [temas, setTemas] = useState([]);
+  const [managingTemas, setManagingTemas] = useState(false);
+  const [temaDraft, setTemaDraft] = useState("");
   const skillLabel = JOURNAL_PROMPT_CATEGORIES.find((category) => category.id === skill)?.label || skill;
+
+  useEffect(() => {
+    let live = true;
+    getPref(TALLER_TEMAS_PREF, []).then((stored) => {
+      if (live) setTemas(cleanTemas(stored));
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  async function saveTemas(next) {
+    const cleaned = cleanTemas(next);
+    setTemas(cleaned);
+    await setPref(TALLER_TEMAS_PREF, cleaned);
+  }
+
+  function addTema() {
+    const tema = temaDraft.trim();
+    if (!tema) return;
+    setTemaDraft("");
+    saveTemas([...temas, tema]);
+  }
 
   function startDrill() {
     const prompt = drawDrillPrompt(skill, { events, items, random });
@@ -21,7 +56,7 @@ export default function TallerPanel({ items = [], events = [], onStart, onClose,
     const offeredWords = prompt.offersWords
       ? sampleOfferedWords(items, events, { random }).map((item) => ({ id: item.id, term: item.term }))
       : [];
-    onStart({ drill: { skill, prompt, offeredWords } });
+    onStart({ drill: { skill, prompt, offeredWords, tema: drawTema(temas, { random }), temas } });
   }
 
   return (
@@ -77,6 +112,65 @@ export default function TallerPanel({ items = [], events = [], onStart, onClose,
           ))}
         </div>
       )}
+
+      <section aria-label="Mis temas" className="mt-3">
+        <button
+          type="button"
+          onClick={() => setManagingTemas((open) => !open)}
+          aria-expanded={managingTemas}
+          className="inline-flex min-h-11 items-center gap-1 text-xs"
+          style={{ color: C.pen }}
+        >
+          Mis temas{temas.length > 0 ? ` (${temas.length})` : ""}
+        </button>
+        {managingTemas && (
+          <div className="mt-1">
+            <div className="text-xs" style={{ color: C.mut }}>
+              Intereses que un ejercicio puede proponer. Solo una sugerencia — nada los comprueba.
+            </div>
+            {temas.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {temas.map((tema) => (
+                  <span
+                    key={tema}
+                    className="inline-flex items-center gap-1 rounded-full border pl-2.5 pr-1 py-0.5 text-xs"
+                    style={{ background: C.paper, borderColor: C.chipBorder, color: C.ink }}
+                  >
+                    {tema}
+                    <button
+                      type="button"
+                      onClick={() => saveTemas(temas.filter((existing) => existing !== tema))}
+                      aria-label={`Remove tema ${tema}`}
+                      className="p-1.5"
+                    >
+                      <X size={12} style={{ color: C.mut }} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="mt-2 flex gap-2">
+              <input
+                aria-label="New tema"
+                value={temaDraft}
+                onChange={(event) => setTemaDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    addTema();
+                  }
+                }}
+                placeholder="escalada, cocina, mi perro…"
+                className="min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm outline-none"
+                style={{ background: C.card, borderColor: C.line, color: C.ink }}
+              />
+              <Button tone="quiet" onClick={addTema} aria-label="Add tema" disabled={!temaDraft.trim()}>
+                <Plus size={15} />
+              </Button>
+            </div>
+          </div>
+        )}
+      </section>
 
       <Button className="mt-3 w-full" onClick={startDrill}>
         <Hammer size={14} /> Empezar

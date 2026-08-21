@@ -2,6 +2,7 @@ import { JOURNAL_PROMPT_CATEGORIES, JOURNAL_PROMPTS } from "./journalPrompts.js"
 import { conjugationPerformance } from "./conjugationStats.js";
 import { deriveReviewState } from "./review.js";
 import { localDate } from "./dates.js";
+import { TENSE_ENDINGS } from "./recognitionContent.js";
 
 /**
  * Taller — the Diario's skill-directed writing drill (docs/DIARIO-TALLER-DIRECTION.md).
@@ -121,6 +122,44 @@ export function sampleOfferedWords(items, events, { today = localDate(), random 
     // topping up from the union until the minimum is met or the pool runs dry
   }
   return picked.length >= OFFERED_WORDS_MIN ? picked : [];
+}
+
+/**
+ * The owner-edited interest list ("escalada, cocina, mi perro…"), stored as a preference on
+ * the existing generic preference/backup path — the `pinnedLexicalIds` precedent. Private
+ * personal data, never in the repo; edited inside Taller so the feature stays self-contained.
+ */
+export const TALLER_TEMAS_PREF = "tallerTemas";
+
+/** Trimmed, unique, non-empty strings — the shape the preference stores and validation expects. */
+export function cleanTemas(value) {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set();
+  const cleaned = [];
+  for (const raw of value) {
+    if (typeof raw !== "string") continue;
+    const tema = raw.trim();
+    if (!tema || seen.has(tema)) continue;
+    seen.add(tema);
+    cleaned.push(tema);
+  }
+  return cleaned;
+}
+
+/**
+ * One tema draw for the chip. The shuffle excludes the current tema so a redraw always moves;
+ * with nothing else to move to, the current tema stays rather than vanishing mid-drill.
+ */
+export function drawTema(temas, { random = Math.random, exclude = null } = {}) {
+  const pool = (temas || []).filter((tema) => tema !== exclude);
+  if (pool.length === 0) return exclude ?? null;
+  return pool[Math.floor(random() * pool.length)];
+}
+
+/** The shipped regular-endings rows for a tense-targeted prompt — reused Gym reference data. */
+export function endingsForTense(tense) {
+  if (!tense) return [];
+  return TENSE_ENDINGS.filter((row) => row.answer === tense);
 }
 
 export function promptHasTiers(prompt) {

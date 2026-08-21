@@ -1,15 +1,16 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { Check, ChevronDown, ChevronLeft, Hammer, Lightbulb, X } from "lucide-react";
+import { Check, ChevronDown, ChevronLeft, Hammer, Lightbulb, Shuffle, X } from "lucide-react";
 import { Button, C, Card, SERIF, dotGrid } from "../theme.jsx";
 import { createItem, newPage, updateItem } from "../db/items.js";
 import { logPracticeWrite, logView } from "../db/events.js";
 import { localDate } from "../lib/dates.js";
 import { isFeedbackStale } from "../lib/diarioReview.js";
 import { JOURNAL_PROMPT_CATEGORIES } from "../lib/journalPrompts.js";
-import { bodyWithIncludedPrompt, promptHasTiers, promptTextForTier } from "../lib/taller.js";
+import { bodyWithIncludedPrompt, drawTema, promptHasTiers, promptTextForTier } from "../lib/taller.js";
 import PromptLibrary from "./PromptLibrary.jsx";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
 import FeedbackReview from "./FeedbackReview.jsx";
+import TallerScaffold from "./TallerScaffold.jsx";
 
 export const JOURNAL_AUTOSAVE_MS = 650;
 
@@ -69,6 +70,7 @@ export default function JournalEditor({
   const [prompt, setPrompt] = useState(() => initialPrompt(seed));
   const [choosingPrompt, setChoosingPrompt] = useState(false);
   const [tier, setTier] = useState("standard");
+  const [tema, setTema] = useState(drill?.tema ?? null);
   const [includePrompt, setIncludePrompt] = useState(false);
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const [drillBusy, setDrillBusy] = useState(false);
@@ -276,7 +278,7 @@ export default function JournalEditor({
     promptId: drill.prompt.id,
     tier,
     offeredWordIds: (drill.offeredWords || []).map((word) => word.id),
-    tema: drill.tema ?? null,
+    tema: tema ?? null,
   });
 
   async function keepDrill() {
@@ -373,6 +375,26 @@ export default function JournalEditor({
             </div>
             <div className="mt-2 text-sm" style={{ color: C.ink, fontFamily: SERIF }}>{drillPromptText.es}</div>
             {drillPromptText.en && <div className="mt-1 text-xs" style={{ color: C.mut }}>{drillPromptText.en}</div>}
+            {tema && (
+              <div className="mt-2 flex items-center gap-1.5" aria-label="Tema">
+                <span
+                  className="rounded-full border px-2.5 py-1 text-xs"
+                  style={{ background: C.paper, borderColor: C.chipBorder, color: C.ink, fontFamily: SERIF }}
+                >
+                  Tema: {tema}
+                </span>
+                {(drill.temas || []).length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setTema(drawTema(drill.temas, { exclude: tema }))}
+                    aria-label="Shuffle tema"
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center"
+                  >
+                    <Shuffle size={14} style={{ color: C.mut }} />
+                  </button>
+                )}
+              </div>
+            )}
             {promptHasTiers(drill.prompt) && (
               <div className="mt-2.5 flex gap-1.5">
                 {drill.prompt.easier && (
@@ -421,6 +443,7 @@ export default function JournalEditor({
                 </div>
               </div>
             )}
+            <TallerScaffold prompt={drill.prompt} />
           </Card>
         )}
 

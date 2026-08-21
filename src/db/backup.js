@@ -30,6 +30,7 @@ import { PINNED_PAGE_IDS_PREF } from "../lib/pageKinds.js";
 import { validatePageStructures } from "../lib/pageKinds.js";
 import { PINNED_LEXICAL_IDS_PREF } from "../lib/lexicalViews.js";
 import { TAG_COLORS_PREF, TAG_SWATCHES } from "../lib/tagColors.js";
+import { TALLER_TEMAS_PREF } from "../lib/taller.js";
 import { AI_API_KEY_PREF, AI_ENABLED_PREF } from "../lib/aiPrefs.js";
 import { validateStoredFeedback } from "../lib/diarioReview.js";
 import { validateApuntes } from "../lib/journal.js";
@@ -547,6 +548,30 @@ function validateAiPreferences(preferences, errors) {
 }
 
 /**
+ * Taller temas. Same contract as tag colours: absent is always valid — a backup written before
+ * Taller existed still restores with no schema-version change. Present, it must be the shape the
+ * app writes: an array of trimmed non-empty strings without duplicates.
+ */
+function validateTallerTemasPreference(preferences, errors) {
+  if (!Object.prototype.hasOwnProperty.call(preferences, TALLER_TEMAS_PREF)) return;
+  const temas = preferences[TALLER_TEMAS_PREF];
+  if (!Array.isArray(temas)) {
+    errors.push(`preferences.${TALLER_TEMAS_PREF} must be an array`);
+    return;
+  }
+  const seenTemas = new Set();
+  temas.forEach((tema, index) => {
+    const where = `preferences.${TALLER_TEMAS_PREF}[${index}]`;
+    if (typeof tema !== "string" || tema.trim() === "" || tema !== tema.trim()) {
+      errors.push(`${where} must be a trimmed non-empty string`);
+      return;
+    }
+    if (seenTemas.has(tema)) errors.push(`preferences.${TALLER_TEMAS_PREF} must not contain duplicates`);
+    else seenTemas.add(tema);
+  });
+}
+
+/**
  * One pin list. Absent is always valid — a backup written before a given pin surface existed must
  * still restore, which is also why adding the lexical list needed no schema-version change.
  */
@@ -605,6 +630,7 @@ function validateSchemaState(userItems, events, preferences, schemaVersion, erro
   // checks are the same whatever schema the file was written at.
   validateTagColorsPreference(preferences, errors);
   validateAiPreferences(preferences, errors);
+  validateTallerTemasPreference(preferences, errors);
 
   if (schemaVersion >= 3) validateV3References(userItems, preferences, errors);
   if (schemaVersion >= 4) validateV4References(userItems, errors);

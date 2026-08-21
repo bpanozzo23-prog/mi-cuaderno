@@ -4,7 +4,8 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import JournalEditor from "./JournalEditor.jsx";
 import JournalHome from "./JournalHome.jsx";
-import { clearAllPersonalData, db } from "../db/db.js";
+import { clearAllPersonalData, db, getPref } from "../db/db.js";
+import { TALLER_TEMAS_PREF } from "../lib/taller.js";
 import { allItems, createItem, newLexical, newPage } from "../db/items.js";
 import { allEvents, EVENT_TYPES, logPracticeWrite } from "../db/events.js";
 import { JOURNAL_PROMPTS } from "../lib/journalPrompts.js";
@@ -175,6 +176,26 @@ describe("Taller drill flow", () => {
     expect(screen.queryByRole("button", { name: "Más difícil" })).toBeNull();
   });
 
+  it("shows the tema as a nudge, shuffles to another, and records the one in use", async () => {
+    const user = userEvent.setup();
+    const seed = drillSeed({ tema: "cocina", temas: ["cocina", "escalada"] });
+    render(<JournalEditor {...drillProps(seed)} />);
+
+    expect(screen.getByText("Tema: cocina")).toBeTruthy();
+    // Excluding the current tema with one alternative makes the shuffle deterministic.
+    await user.click(screen.getByRole("button", { name: "Shuffle tema" }));
+    expect(screen.getByText("Tema: escalada")).toBeTruthy();
+
+    await user.type(screen.getByRole("textbox", { name: "Journal body" }), "Escalé una pared.");
+    await user.click(screen.getByRole("button", { name: "Guardar en el Diario" }));
+    await waitFor(async () => expect((await practiceEvents()).length).toBe(1));
+    expect((await practiceEvents())[0].metadata.tema).toBe("escalada");
+
+    cleanup();
+    render(<JournalEditor {...drillProps(drillSeed())} />);
+    expect(screen.queryByText(/^Tema:/)).toBeNull();
+  });
+
   it("leaves silently with a blank body: no confirm, no event", async () => {
     const user = userEvent.setup();
     const props = drillProps(drillSeed());
@@ -244,6 +265,48 @@ describe("Taller door and proposal panel", () => {
     expect(seed.drill.skill).toBe("narrate");
     expect(seed.drill.prompt.category).toBe("narrate");
     expect(Array.isArray(seed.drill.offeredWords)).toBe(true);
+  });
+
+  it("edits the owner's tema list inside Taller and seeds the drill with one tema", async () => {
+    const user = userEvent.setup();
+    const onStart = vi.fn();
+    render(
+      <JournalHome
+        entries={[]}
+        events={[]}
+        items={[]}
+        onOpen={vi.fn()}
+        onEdit={vi.fn()}
+        onStart={onStart}
+        now={new Date(2026, 0, 1, 12)}
+        random={() => 0}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: "Taller" }));
+    await user.click(screen.getByRole("button", { name: /Mis temas/ }));
+    await user.type(screen.getByRole("textbox", { name: "New tema" }), "escalada");
+    await user.click(screen.getByRole("button", { name: "Add tema" }));
+    await waitFor(async () => expect(await getPref(TALLER_TEMAS_PREF)).toEqual(["escalada"]));
+
+    await user.click(screen.getByRole("button", { name: "Empezar" }));
+    const seed = onStart.mock.calls[0][0];
+    expect(seed.drill.tema).toBe("escalada");
+    expect(seed.drill.temas).toEqual(["escalada"]);
+
+    // Removal persists too.
+    cleanup();
+    render(
+      <JournalHome
+        entries={[]} events={[]} items={[]}
+        onOpen={vi.fn()} onEdit={vi.fn()} onStart={vi.fn()}
+        now={new Date(2026, 0, 1, 12)}
+      />
+    );
+    await user.click(screen.getByRole("button", { name: "Taller" }));
+    await user.click(screen.getByRole("button", { name: /Mis temas/ }));
+    await user.click(await screen.findByRole("button", { name: "Remove tema escalada" }));
+    await waitFor(async () => expect(await getPref(TALLER_TEMAS_PREF)).toEqual([]));
   });
 
   it("keeps all seven categories one tap away", async () => {

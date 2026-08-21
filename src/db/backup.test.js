@@ -307,6 +307,37 @@ describe("import: replace and restore", () => {
     expect(restored.every((e) => /^\d{4}-\d{2}-\d{2}$/.test(e.localDate))).toBe(true);
   });
 
+  it("round-trips the Taller temas preference, accepts its absence, and refuses malformed shapes", async () => {
+    await setPref("tallerTemas", ["escalada", "cocina"]);
+    const text = JSON.stringify(await buildBackup());
+    await clearAllPersonalData();
+
+    const { ok, envelope } = validateBackup(text);
+    expect(ok).toBe(true);
+    await importBackup(envelope);
+    expect(await getPref("tallerTemas")).toEqual(["escalada", "cocina"]);
+
+    // A backup written before Taller existed still restores.
+    const withoutTemas = JSON.parse(text);
+    delete withoutTemas.preferences.tallerTemas;
+    expect(validateBackup(withoutTemas).ok).toBe(true);
+
+    // Malformed shapes name their exact problem and import nothing.
+    const notArray = JSON.parse(text);
+    notArray.preferences.tallerTemas = "escalada";
+    expect(validateBackup(notArray).errors).toContain("preferences.tallerTemas must be an array");
+
+    const untrimmed = JSON.parse(text);
+    untrimmed.preferences.tallerTemas = ["  escalada "];
+    expect(validateBackup(untrimmed).errors)
+      .toContain("preferences.tallerTemas[0] must be a trimmed non-empty string");
+
+    const duplicated = JSON.parse(text);
+    duplicated.preferences.tallerTemas = ["cocina", "cocina"];
+    expect(validateBackup(duplicated).errors)
+      .toContain("preferences.tallerTemas must not contain duplicates");
+  });
+
   it("round-trips practice events, including a discarded drill's subject-less one", async () => {
     // Taller practice events (docs/DIARIO-TALLER-DIRECTION.md) are the first stored prompt
     // usage; a discarded drill's event carries no itemKey at all. Both shapes must survive a

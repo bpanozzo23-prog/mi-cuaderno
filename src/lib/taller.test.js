@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   TALLER_SKILL_CATEGORY_IDS,
   bodyWithIncludedPrompt,
+  cleanTemas,
   drawDrillPrompt,
+  drawTema,
+  endingsForTense,
   practiceSkillByPage,
   promptHasTiers,
   promptTextForTier,
@@ -150,6 +153,34 @@ describe("bodyWithIncludedPrompt", () => {
   it("prepends the prompt as one quote block above the writing", () => {
     expect(bodyWithIncludedPrompt("¿Qué pasó?", "Hoy fui al mercado."))
       .toBe("> ¿Qué pasó?\n\nHoy fui al mercado.");
+  });
+});
+
+describe("temas", () => {
+  it("cleans the preference to trimmed, unique, non-empty strings", () => {
+    expect(cleanTemas(["  escalada ", "cocina", "escalada", "", "   ", 7, null, "mi perro"]))
+      .toEqual(["escalada", "cocina", "mi perro"]);
+    expect(cleanTemas("not-an-array")).toEqual([]);
+    expect(cleanTemas(undefined)).toEqual([]);
+  });
+
+  it("draws a tema, and the shuffle always moves somewhere new when it can", () => {
+    expect(drawTema([], {})).toBeNull();
+    expect(drawTema(["cocina"], { random: () => 0 })).toBe("cocina");
+    // Excluding the current tema with one alternative is deterministic.
+    expect(drawTema(["cocina", "escalada"], { random: () => 0, exclude: "cocina" })).toBe("escalada");
+    // With nothing else to move to, the current tema stays rather than vanishing.
+    expect(drawTema(["cocina"], { exclude: "cocina" })).toBe("cocina");
+  });
+});
+
+describe("endingsForTense", () => {
+  it("returns the shipped regular-endings rows for a targeted tense and nothing otherwise", () => {
+    const preterite = endingsForTense("Indicative/Preterite");
+    expect(preterite.length).toBeGreaterThan(0);
+    expect(preterite.every((row) => row.answer === "Indicative/Preterite")).toBe(true);
+    expect(endingsForTense(null)).toEqual([]);
+    expect(endingsForTense("Imperative Affirmative/Present")).toEqual([]);
   });
 });
 
