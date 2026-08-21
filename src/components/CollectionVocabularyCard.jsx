@@ -2,6 +2,7 @@ import { ChevronDown, ChevronUp, ExternalLink, Eye } from "lucide-react";
 import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
 import { PosSuffix, personalHeadingSuffix } from "./ItemCard.jsx";
 import { markdownPreviewText } from "../lib/noteMarkdown.js";
+import { lexicalNotePreview } from "../lib/lexicalNotes.js";
 
 const firstNonblank = (...values) => values.find((value) => String(value || "").trim()) || "";
 
@@ -101,7 +102,7 @@ export default function CollectionVocabularyCard({
 
   const example = firstExample(item);
   const meaningNote = firstNonblank(...meanings.map((meaning) => meaning.note));
-  const note = meaningNote || firstNonblank(item.notes);
+  const note = meaningNote || lexicalNotePreview(item);
 
   return (
     <Card className="p-0 overflow-hidden">
@@ -157,7 +158,7 @@ export default function CollectionVocabularyCard({
 
           {note && (
             <div className="mt-3 text-xs whitespace-pre-wrap break-words line-clamp-2" style={{ color: C.mut }}>
-              {markdownPreviewText(note, { noteCallouts: !meaningNote })}
+              {meaningNote ? markdownPreviewText(note) : note}
             </div>
           )}
 

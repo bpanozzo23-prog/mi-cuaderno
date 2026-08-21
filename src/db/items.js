@@ -9,10 +9,12 @@ import { validateCollectionGroups } from "../lib/collections.js";
 import { isPageProfile, PAGE_PROFILES } from "../lib/pageProfiles.js";
 import {
   isPageFocus,
+  normalizeNoteSections,
   normalizePageStructures,
   PAGE_FOCUSES,
   PINNED_PAGE_IDS_PREF,
   validatePageStructures,
+  validateNoteSections,
 } from "../lib/pageKinds.js";
 import { validateStoredFeedback } from "../lib/diarioReview.js";
 import { PINNED_LEXICAL_IDS_PREF } from "../lib/lexicalViews.js";
@@ -47,6 +49,7 @@ export function newLexical({
   form = "word",
   pos = "",
   notes = "",
+  noteSections = [],
   tags = [],
   myExamples = [],
   mediaLinks = [],
@@ -55,6 +58,9 @@ export function newLexical({
   dictKey = null,
 } = {}) {
   const at = nowIso();
+  const normalizedNoteSections = normalizeNoteSections(noteSections);
+  const noteErrors = validateNoteSections(normalizedNoteSections, { where: "lexical.noteSections" });
+  if (noteErrors.length) throw new Error(noteErrors[0]);
   return {
     id: newUserKey(),
     type: "lexical",
@@ -64,6 +70,7 @@ export function newLexical({
     meanings: cleanMeanings(meanings),
     pos,
     notes,
+    noteSections: normalizedNoteSections,
     myExamples,
     tags: cleanTags(tags),
     linkedKeys,

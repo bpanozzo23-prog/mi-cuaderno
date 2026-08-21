@@ -25,6 +25,9 @@ export default function SchemaUpgradeGate({ fromVersion = null, onContinue }) {
   if (knownVersion === null || knownVersion < 7) {
     changes.push("adds an empty structured Notes outline to every Page while leaving every existing Page body unchanged");
   }
+  if (knownVersion === null || knownVersion < 10) {
+    changes.push("adds an empty structured Notes outline to every Word and Phrase while leaving every existing note unchanged");
+  }
   const upgradeDescription = changes.length
     ? `It ${changes.join(" and ")}. IDs, prose, links, timestamps, events, and preferences are unchanged.`
     : "It brings the notebook up to the current personal-data format without changing owner content.";

@@ -222,6 +222,26 @@ export function noteSectionBreadcrumb(section, sections = []) {
   return outlineBreadcrumb(section, sections);
 }
 
+/** Shared validation for the one-level Notes outline owned by either a Page or lexical item. */
+export function validateNoteSections(sections, {
+  where = "noteSections",
+  seenIds = new Set(),
+} = {}) {
+  const errors = validateOneLevelOutline(sections, {
+    where,
+    isId: isNoteSectionKey,
+    idLabel: "note-section",
+    seenIds,
+    normalizeName: pageStructureNameKey,
+  });
+  if (!Array.isArray(sections)) return errors;
+  sections.forEach((section, index) => {
+    if (!isPlainObject(section)) return;
+    if (!isString(section.body)) errors.push(`${where}[${index}].body must be a string`);
+  });
+  return errors;
+}
+
 /** Read the flat schema-v6 array as one root level plus one child level without cloning content. */
 export function grammarSectionHierarchy(sections = []) {
   return outlineHierarchy(sections);
@@ -328,7 +348,7 @@ const registerStableId = (id, where, label, predicate, seen, errors) => {
  */
 export function validatePageStructures(page, {
   where = "page",
-  schemaVersion = 9,
+  schemaVersion = 10,
   seenGroupIds = new Set(),
   seenCaptureIds = new Set(),
   seenSectionIds = new Set(),
@@ -351,17 +371,10 @@ export function validatePageStructures(page, {
   } else if (!Array.isArray(page.noteSections)) {
     errors.push(`${where}.noteSections must be an array`);
   } else {
-    errors.push(...validateOneLevelOutline(page.noteSections, {
+    errors.push(...validateNoteSections(page.noteSections, {
       where: `${where}.noteSections`,
-      isId: isNoteSectionKey,
-      idLabel: "note-section",
       seenIds: seenNoteSectionIds,
-      normalizeName: pageStructureNameKey,
     }));
-    page.noteSections.forEach((section, index) => {
-      if (!isPlainObject(section)) return;
-      if (!isString(section.body)) errors.push(`${where}.noteSections[${index}].body must be a string`);
-    });
   }
 
   const collection = page.collection;

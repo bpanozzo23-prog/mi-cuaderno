@@ -397,7 +397,12 @@ describe("import: replace and restore", () => {
       notes: "Entry note",
       myExamples: [{ es: "Saca la basura.", en: "Take out the trash." }],
     });
-    const { meanings: _meanings, linkAnnotations: _linkAnnotations, ...v1Item } = current;
+    const {
+      meanings: _meanings,
+      linkAnnotations: _linkAnnotations,
+      noteSections: _noteSections,
+      ...v1Item
+    } = current;
     const v1Page = makeLegacyPage({ id: "user:v1-page", title: "Legacy page", linkedKeys: [current.id] });
     const v1 = {
       format: BACKUP_FORMAT,
@@ -428,7 +433,7 @@ describe("import: replace and restore", () => {
   });
 
   it("validates and upgrades a schema-v2 backup before restoring it", async () => {
-    const lexical = withoutAnnotations(makeLexical({ id: "user:v2-word", term: "pensar" }));
+    const lexical = withoutNoteSections(withoutAnnotations(makeLexical({ id: "user:v2-word", term: "pensar" })));
     const page = makeLegacyPage({ id: "user:v2-page", title: "Thinking", linkedKeys: [lexical.id] });
     const v2 = {
       format: BACKUP_FORMAT,
@@ -445,17 +450,17 @@ describe("import: replace and restore", () => {
     expect(checked.ok).toBe(true);
     expect(checked.summary).toMatchObject({ schemaVersion: 2, targetSchemaVersion: SCHEMA_VERSION, willUpgrade: true });
     expect(checked.envelope.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(checked.envelope.userItems[0]).toEqual({ ...lexical, linkAnnotations: [] });
+    expect(checked.envelope.userItems[0]).toEqual({ ...lexical, linkAnnotations: [], noteSections: [] });
     expect(checked.envelope.userItems[1]).toEqual(upgradedGeneralPage(page));
     expect(checked.envelope.preferences.pinnedPageIds).toEqual([page.id]);
   });
 
   it("validates and upgrades schema v3 through annotations and composable page structures", () => {
-    const lexical = withoutAnnotations(makeLexical({
+    const lexical = withoutNoteSections(withoutAnnotations(makeLexical({
       id: "user:v3-word",
       term: "pensar",
       linkedKeys: ["user:v3-page", "user:v3-page", "user:v3-word"],
-    }));
+    })));
     const page = withoutAnnotations(makeV4Page({
       id: "user:v3-page",
       title: "Thinking",
@@ -476,7 +481,7 @@ describe("import: replace and restore", () => {
     expect(checked.ok).toBe(true);
     expect(checked.summary).toMatchObject({ schemaVersion: 3, targetSchemaVersion: SCHEMA_VERSION, willUpgrade: true });
     expect(checked.envelope.userItems).toEqual([
-      { ...lexical, linkAnnotations: [] },
+      { ...lexical, linkAnnotations: [], noteSections: [] },
       upgradedGeneralPage((({ pageProfile: _pageProfile, collection: _collection, ...rest }) => rest)(page)),
     ]);
     expect(checked.envelope.userItems[0].linkedKeys).toEqual(lexical.linkedKeys);
@@ -486,7 +491,7 @@ describe("import: replace and restore", () => {
   it("upgrades schema v4 while preserving dictionary alias conflicts and orphans", () => {
     const oldKey = "dict:wiktionary-es:chamba:noun:old";
     const canonicalKey = "dict:wiktionary-es:chamba:noun";
-    const item = makeLexical({
+    const item = withoutNoteSections(makeLexical({
       id: "user:chamba",
       term: "chamba",
       linkedKeys: [oldKey, canonicalKey, "dict:wiktionary-es:installed-orphan"],
@@ -500,7 +505,7 @@ describe("import: replace and restore", () => {
           note: "Keep this even when the entry cannot resolve.",
         },
       ],
-    });
+    }));
     const v4 = {
       format: BACKUP_FORMAT,
       schemaVersion: 4,
@@ -514,12 +519,16 @@ describe("import: replace and restore", () => {
     const checked = validateBackup(JSON.stringify(v4));
 
     expect(checked.ok).toBe(true);
-    expect(checked.envelope).toEqual({ ...v4, schemaVersion: SCHEMA_VERSION });
+    expect(checked.envelope).toEqual({
+      ...v4,
+      schemaVersion: SCHEMA_VERSION,
+      userItems: [{ ...item, noteSections: [] }],
+    });
     expect(checked.summary).toMatchObject({ schemaVersion: 4, targetSchemaVersion: SCHEMA_VERSION, willUpgrade: true });
   });
 
   it("upgrades schema-v5 Source and Grammar structures without mutating the legacy envelope", () => {
-    const word = makeLexical({ id: "user:word", term: "nomás" });
+    const word = withoutNoteSections(makeLexical({ id: "user:word", term: "nomás" }));
     const sourcePage = makePage({
       id: "user:source",
       title: "Radio Ambulante — El hilo",
@@ -593,7 +602,7 @@ describe("import: replace and restore", () => {
     expect(checked.envelope).toEqual({
       ...v5,
       schemaVersion: SCHEMA_VERSION,
-      userItems: [word, sourcePage, grammarPage],
+      userItems: [{ ...word, noteSections: [] }, sourcePage, grammarPage],
     });
     expect(checked.summary).toMatchObject({
       schemaVersion: 5,
@@ -648,7 +657,7 @@ describe("import: replace and restore", () => {
       body: "Hoy fui al mercado.",
       pageDate: "2026-08-10",
     });
-    const word = makeLexical({ id: "user:word", term: "mercado" });
+    const word = withoutNoteSections(makeLexical({ id: "user:word", term: "mercado" }));
     const v7 = {
       format: BACKUP_FORMAT,
       schemaVersion: 7,
@@ -667,7 +676,7 @@ describe("import: replace and restore", () => {
     expect(checked.envelope).toEqual({
       ...v7,
       schemaVersion: SCHEMA_VERSION,
-      userItems: [word, page],
+      userItems: [{ ...word, noteSections: [] }, page],
     });
     expect(checked.summary).toMatchObject({
       schemaVersion: 7,
@@ -689,7 +698,7 @@ describe("import: replace and restore", () => {
         reviewedHash: "abc123",
       },
     });
-    const word = makeLexical({ id: "user:word", term: "mercado" });
+    const word = withoutNoteSections(makeLexical({ id: "user:word", term: "mercado" }));
     const v8 = {
       format: BACKUP_FORMAT,
       schemaVersion: 8,
@@ -708,7 +717,7 @@ describe("import: replace and restore", () => {
     expect(checked.envelope).toEqual({
       ...v8,
       schemaVersion: SCHEMA_VERSION,
-      userItems: [word, page],
+      userItems: [{ ...word, noteSections: [] }, page],
     });
     expect(checked.summary).toMatchObject({
       schemaVersion: 8,
@@ -717,7 +726,7 @@ describe("import: replace and restore", () => {
     });
   });
 
-  it("round-trips exact schema-v9 Notes hierarchies, a stored entry review and Apuntes", () => {
+  it("upgrades schema v9 by adding an empty lexical Notes outline and preserving Pages exactly", () => {
     const rootId = "note-section:66666666-6666-4666-8666-666666666666";
     const notesPage = makePage({
       id: "user:notes-hierarchy",
@@ -746,12 +755,17 @@ describe("import: replace and restore", () => {
       },
       apuntes: "## Google follow up\n\n- Use **recopilar** instead of juntar.",
     });
+    const lexical = withoutNoteSections(makeLexical({
+      id: "user:legacy-word",
+      term: "sacar",
+      notes: "General note with **exact** Markdown.\r\n",
+    }));
     const v9 = {
       format: BACKUP_FORMAT,
-      schemaVersion: SCHEMA_VERSION,
+      schemaVersion: 9,
       exportedAt: "2026-08-11T11:00:00.000Z",
       appVersion: "0.1.0",
-      userItems: [notesPage, reviewedPage],
+      userItems: [lexical, notesPage, reviewedPage],
       events: [],
       preferences: {},
     };
@@ -759,7 +773,48 @@ describe("import: replace and restore", () => {
     const checked = validateBackup(JSON.stringify(v9));
 
     expect(checked.ok).toBe(true);
-    expect(checked.envelope).toEqual(v9);
+    expect(checked.envelope).toEqual({
+      ...v9,
+      schemaVersion: SCHEMA_VERSION,
+      userItems: [{ ...lexical, noteSections: [] }, notesPage, reviewedPage],
+    });
+    expect(checked.summary.willUpgrade).toBe(true);
+  });
+
+  it("round-trips exact schema-v10 lexical and Page Notes hierarchies", () => {
+    const pageRootId = "note-section:66666666-6666-4666-8666-666666666666";
+    const lexicalRootId = "note-section:88888888-8888-4888-8888-888888888888";
+    const word = makeLexical({
+      id: "user:structured-word",
+      notes: "General note",
+      noteSections: [
+        { id: lexicalRootId, parentId: null, name: "Usage", body: "Use it **carefully**." },
+        {
+          id: "note-section:99999999-9999-4999-8999-999999999999",
+          parentId: lexicalRootId,
+          name: "Register",
+          body: "Mostly informal.",
+        },
+      ],
+    });
+    const page = makePage({
+      id: "user:structured-page",
+      noteSections: [{ id: pageRootId, parentId: null, name: "About", body: "Page note." }],
+    });
+    const v10 = {
+      format: BACKUP_FORMAT,
+      schemaVersion: SCHEMA_VERSION,
+      exportedAt: "2026-08-21T11:00:00.000Z",
+      appVersion: "0.1.0",
+      userItems: [word, page],
+      events: [],
+      preferences: {},
+    };
+
+    const checked = validateBackup(JSON.stringify(v10));
+
+    expect(checked.ok).toBe(true);
+    expect(checked.envelope).toEqual(v10);
     expect(checked.summary.willUpgrade).toBe(false);
   });
 
@@ -975,6 +1030,7 @@ describe("validation happens before anything is written", () => {
     ["duplicate item ids", { ...baseline(), userItems: [makeLexical({ id: "user:a" }), makeLexical({ id: "user:a" })] }],
     ["a lingering schema-v4 pageProfile", { ...baseline(), userItems: [{ ...makePage(), pageProfile: "general" }] }],
     ["a missing Notes outline array", { ...baseline(), userItems: [{ ...makePage(), noteSections: undefined }] }],
+    ["a lexical item missing its Notes outline array", { ...baseline(), userItems: [withoutNoteSections(makeLexical())] }],
     ["a page without the stored-review field", { ...baseline(), userItems: [withoutFeedback(makePage())] }],
     ["a stored review with an unknown verdict", { ...baseline(), userItems: [makePage({ feedback: {
       verdict: "meh", summary: "", items: [], reviewedAt: "2026-08-11T10:00:00.000Z", reviewedHash: "abc",
@@ -1021,6 +1077,41 @@ describe("validation happens before anything is written", () => {
           makePage({ id: "user:notes-one", noteSections: [section] }),
           makePage({ id: "user:notes-two", noteSections: [{ ...section }] }),
         ],
+      };
+    })()],
+    ["a duplicate Notes section id across a Page and lexical item", (() => {
+      const section = {
+        id: "note-section:34343434-3434-4434-8434-343434343434",
+        parentId: null,
+        name: "Shared identity",
+        body: "",
+      };
+      return {
+        ...baseline(),
+        userItems: [
+          makePage({ id: "user:notes-page", noteSections: [section] }),
+          makeLexical({ id: "user:notes-word", noteSections: [{ ...section }] }),
+        ],
+      };
+    })()],
+    ["a lexical Notes grandchild", (() => {
+      const rootId = "note-section:35353535-3535-4535-8535-353535353535";
+      const childId = "note-section:36363636-3636-4636-8636-363636363636";
+      return {
+        ...baseline(),
+        userItems: [{
+          ...makeLexical({ id: "user:deep-notes-word" }),
+          noteSections: [
+            { id: rootId, parentId: null, name: "Root", body: "" },
+            { id: childId, parentId: rootId, name: "Child", body: "" },
+            {
+              id: "note-section:37373737-3737-4737-8737-373737373737",
+              parentId: childId,
+              name: "Too deep",
+              body: "",
+            },
+          ],
+        }],
       };
     })()],
     ["an unknown page focus", collectionInput({ pageFocus: "worksheet" })],
@@ -1212,6 +1303,27 @@ describe("validation happens before anything is written", () => {
 
     expect(checked.ok).toBe(false);
     expect(checked.errors.join(" ")).toMatch(/apuntes is not part of schema v8/);
+  });
+
+  it("rejects a schema-v9 envelope that tries to smuggle in schema-v10 lexical Notes storage", () => {
+    const input = {
+      ...baseline(),
+      schemaVersion: 9,
+      userItems: [makeLexical({
+        id: "user:sneaky-lexical-notes",
+        noteSections: [{
+          id: "note-section:38383838-3838-4838-8838-383838383838",
+          parentId: null,
+          name: "Too early",
+          body: "Not valid in v9.",
+        }],
+      })],
+    };
+
+    const checked = validateBackup(input);
+
+    expect(checked.ok).toBe(false);
+    expect(checked.errors.join(" ")).toMatch(/noteSections is not part of schema v9/);
   });
 
   it("rejects annotations stored on both sides of one reciprocal personal pair", () => {

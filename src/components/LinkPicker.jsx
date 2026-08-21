@@ -13,6 +13,7 @@ import { meaningGlossText } from "../lib/meanings.js";
 import { isImplicitRelationship, normalizeRelationship } from "../lib/relationships.js";
 import RelationshipSelect from "./RelationshipSelect.jsx";
 import { markdownPreviewText } from "../lib/noteMarkdown.js";
+import { lexicalNotePreview } from "../lib/lexicalNotes.js";
 
 /**
  * One box for linking anything (Phase 4, requirement 1).
@@ -51,9 +52,7 @@ function contextLine(item) {
   const glosses = meaningGlossText(item, " · ");
   return glosses
     ? flatten(glosses)
-    : item.notes
-      ? markdownPreviewText(item.notes, { noteCallouts: true }).slice(0, 60)
-      : "";
+    : lexicalNotePreview(item, 60);
 }
 
 function Row({ icon: Icon, heading, suffix, context, reason, linked, linkedLabel, onPick }) {

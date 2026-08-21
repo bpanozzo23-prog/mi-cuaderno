@@ -8,6 +8,7 @@ import {
 } from "./meanings.js";
 import { activePageVocabularyKeys } from "./pageReferences.js";
 import { isJournalPage } from "./pageKinds.js";
+import { lexicalNotesPlainText } from "./lexicalNotes.js";
 
 /**
  * Search over the personal layer, per brief section 8.
@@ -152,7 +153,7 @@ function bestMatch(item, query, { allItems = [], includeContainedVocabulary = fa
 
   // Tier 6: free text — notes, personal examples, page bodies.
   if (!isPage && normalize([
-    plainTextFromMarkdown(item.notes, { noteCallouts: true }),
+    lexicalNotesPlainText(item),
     meaningNotes(item),
   ].filter(Boolean).join("\n")).includes(q)) {
     return { tier: TIER.text, reason: REASONS.notes, offset: 0 };

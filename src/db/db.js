@@ -231,6 +231,29 @@ db.version(9)
   .stores(PERSONAL_STORES)
   .upgrade(migratePersonalDataToV9);
 
+/** Schema v10 adds the permanent one-level Notes outline to Words and Phrases. */
+export function upgradeLexicalItemV9(item) {
+  if (!item || item.type !== "lexical") return { ...item };
+  return {
+    ...item,
+    noteSections: [],
+  };
+}
+
+export async function migratePersonalDataToV10(transaction) {
+  await transaction
+    .table("items")
+    .where("type")
+    .equals("lexical")
+    .modify((item) => {
+      Object.assign(item, upgradeLexicalItemV9(item));
+    });
+}
+
+db.version(10)
+  .stores(PERSONAL_STORES)
+  .upgrade(migratePersonalDataToV10);
+
 export async function getPref(key, fallback = null) {
   const row = await db.prefs.get(key);
   return row === undefined ? fallback : row.value;

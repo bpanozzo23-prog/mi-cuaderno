@@ -6,7 +6,6 @@ import { newPageGroup } from "../lib/collections.js";
 import {
   PAGE_FOCUSES,
   canonicalGrammarSections,
-  canonicalNoteSections,
   emptyGrammar,
   emptySource,
   hasDurablePageStructure,
@@ -21,7 +20,6 @@ import {
 import {
   isGrammarExampleKey,
   isGrammarSectionKey,
-  isNoteSectionKey,
   isSourceCaptureKey,
 } from "../lib/ids.js";
 import {
@@ -33,6 +31,11 @@ import {
   makeLinkAnnotation,
   reorientRelationship,
 } from "../lib/relationships.js";
+import {
+  deleteNoteSectionMutation,
+  organizeNoteSectionsMutation,
+  saveNoteSectionMutation,
+} from "../lib/noteSectionMutations.js";
 
 const assertPage = (page, pageId) => {
   if (!page || page.type !== "page") throw new Error(`Page ${pageId} does not exist.`);
@@ -322,29 +325,13 @@ export async function saveNoteSection(pageId, draft = {}) {
   await db.transaction("rw", db.items, db.events, async () => {
     const stored = assertPage(await db.items.get(pageId), pageId);
     const page = clonePage(stored);
-    const sectionId = draft.id || null;
-    const index = sectionId
-      ? page.noteSections.findIndex((section) => section.id === sectionId)
-      : -1;
-    if (sectionId && (!isNoteSectionKey(sectionId) || index < 0)) {
-      throw new Error("Notes section does not exist.");
-    }
-    const current = index >= 0 ? page.noteSections[index] : null;
-    const section = current
-      ? {
-          ...current,
-          name: String(draft.name ?? current.name).trim(),
-          body: draft.body ?? current.body,
-        }
-      : newNoteSection(draft);
-    if (current && section.name === current.name && section.body === current.body) {
-      result = { page: stored, section: current, changed: false };
+    const mutation = saveNoteSectionMutation(page.noteSections, draft);
+    if (!mutation.changed) {
+      result = { page: stored, section: mutation.section, changed: false };
       return;
     }
-    if (index < 0) page.noteSections.push(section);
-    else page.noteSections[index] = section;
-    page.noteSections = canonicalNoteSections(page.noteSections);
-    result = { page: await putExplicitEdit(page), section, changed: true };
+    page.noteSections = mutation.sections;
+    result = { page: await putExplicitEdit(page), section: mutation.section, changed: true };
   });
   return result;
 }
@@ -353,13 +340,8 @@ export async function deleteNoteSection(pageId, sectionId) {
   let result;
   await db.transaction("rw", db.items, db.events, async () => {
     const page = clonePage(assertPage(await db.items.get(pageId), pageId));
-    if (!isNoteSectionKey(sectionId)) throw new Error("Notes section does not exist.");
-    const section = page.noteSections.find((candidate) => candidate.id === sectionId);
-    if (!section) throw new Error("Notes section does not exist.");
-    if (page.noteSections.some((candidate) => candidate.parentId === sectionId)) {
-      throw new Error("Promote or move this section’s subsections first.");
-    }
-    page.noteSections = page.noteSections.filter((candidate) => candidate.id !== sectionId);
+    const mutation = deleteNoteSectionMutation(page.noteSections, sectionId);
+    page.noteSections = mutation.sections;
     const saved = await putExplicitEdit(page);
     result = {
       page: saved,
@@ -373,40 +355,11 @@ export async function saveNoteOrganization(pageId, sections = []) {
   let result;
   await db.transaction("rw", db.items, db.events, async () => {
     const page = clonePage(assertPage(await db.items.get(pageId), pageId));
-    const currentIds = new Set(page.noteSections.map((section) => section.id));
-    const nextIds = sections.map((section) => section?.id);
-    const nextIdSet = new Set(nextIds);
-    if (nextIdSet.size !== nextIds.length || nextIds.some((id) => !isNoteSectionKey(id))) {
-      throw new Error("Notes organization section IDs must be stable and unique.");
-    }
-    if ([...currentIds].some((id) => !nextIdSet.has(id))) {
-      throw new Error("Notes organization must include every current section exactly once.");
-    }
-
-    const sectionsById = new Map(page.noteSections.map((section) => [section.id, section]));
-    const organizationSignature = (rows) => JSON.stringify(rows.map((section) => ({
-      id: section.id,
-      parentId: section.parentId ?? null,
-      name: section.name,
-    })));
-    const beforeSignature = organizationSignature(page.noteSections);
-    page.noteSections = canonicalNoteSections(sections.map((draft) => {
-      const current = sectionsById.get(draft.id);
-      return {
-        ...(current || {
-          id: draft.id,
-          parentId: null,
-          body: "",
-        }),
-        parentId: Object.prototype.hasOwnProperty.call(draft, "parentId")
-          ? draft.parentId
-          : current?.parentId ?? null,
-        name: String(draft.name || "").trim(),
-      };
-    }));
+    const mutation = organizeNoteSectionsMutation(page.noteSections, sections);
+    page.noteSections = mutation.sections;
     validateNextPage(page);
-    if (organizationSignature(page.noteSections) === beforeSignature) {
-      result = page;
+    if (!mutation.changed) {
+      result = assertPage(await db.items.get(pageId), pageId);
       return;
     }
     result = await putExplicitEdit(page);

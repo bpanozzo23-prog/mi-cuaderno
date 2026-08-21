@@ -17,6 +17,33 @@ const page = {
 };
 
 describe("connection cards", () => {
+  it("falls through a blank General note to the first canonical named lexical note", () => {
+    render(
+      <ItemLinkCard
+        item={{
+          id: "user:word",
+          type: "lexical",
+          form: "word",
+          term: "quedar",
+          meanings: [],
+          notes: "",
+          noteSections: [{
+            id: "note-section:13131313-1313-4313-8313-131313131313",
+            parentId: null,
+            name: "Usage",
+            body: "Arrange to meet.",
+          }],
+          linkedKeys: [],
+          linkAnnotations: [],
+          updatedAt: "2026-08-21T00:00:00.000Z",
+        }}
+        onOpen={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("Usage: Arrange to meet.")).toBeTruthy();
+  });
+
   it("clamps a shared note, suppresses the target preview, and edits inline", async () => {
     const user = userEvent.setup();
     const onSaveRelationship = vi.fn();

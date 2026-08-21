@@ -5,7 +5,7 @@
 **Owner:** The sole builder and only user of this app.
 **Companion file:** `mi-cuaderno.jsx` — a working single-file prototype of the notebook layer. It is the reference for features, interaction patterns, and visual design of **lexical entries**. Pages (§7) do not exist in the prototype and are new in v3. Where this brief contradicts the prototype's *implementation* (ID scheme, search normalization, the `struggling` field, event rules), **this brief wins** — the prototype shows what the app should feel like, not how it must be built.
 **Version:** v3 — revised after lock-in review. Product contract last amended
-~~August 3, 2026~~ ~~August 4, 2026~~ ~~August 5, 2026~~ ~~August 9, 2026~~ ~~August 10, 2026~~ ~~August 12, 2026~~ ~~August 13, 2026~~ ~~August 17, 2026~~ **August 18, 2026**; agent-facing framing refreshed August 2, 2026.
+~~August 3, 2026~~ ~~August 4, 2026~~ ~~August 5, 2026~~ ~~August 9, 2026~~ ~~August 10, 2026~~ ~~August 12, 2026~~ ~~August 13, 2026~~ ~~August 17, 2026~~ ~~August 18, 2026~~ **August 21, 2026**; agent-facing framing refreshed August 2, 2026.
 **Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. §§3, 9 and 12 — 2026-08-02: organizational improvements became Phase 5 and the AI assistant moved to Phase 6. §12 — 2026-08-02: independently scoped phases may proceed concurrently under explicit coordination rules. §§5, 7, 8, 10, 12 and 14 — 2026-08-02: personal lexical meanings became stable, structured annotations in schema v2 while review remains entry-level and dictionary senses remain replaceable reference data. **§§5, 7, 10, 12 and 14 — 2026-08-03: schema v3 adds durable `general | collection` page profiles and the first specialized profile, Vocabulary Collection, while dated General pages remain Journal entries and richer profiles stay deferred.** **§§5, 7, 10, 12 and 14 — 2026-08-04: schema v4 adds sparse typed and explained ordinary-connection annotations while `linkedKeys[]` remains authoritative for connection existence and Collection membership.** **§§5, 7, 8, 10, 12 and 14 — 2026-08-04: Phase 7 approves schema v5 composable pages with one leading focus, independently enabled Vocabulary, Source and Grammar structures, contextual retrieval, and sequential legacy backup upgrades.** **§§7, 12 and 14 — 2026-08-05: Phase 9 approves filtered, session-only free practice from the Words & phrases hub while Repaso remains the sole scheduled and event-backed review flow.** **§§7, 12 and 14 — 2026-08-07: Phase 14 approves an owner-started, event-backed Conjugation Gym with curated reference-only verb pools, richer derived performance, and optional history-ranked sessions that never create a due date or alter Leitner review.** **§§7, 12 and 14 — 2026-08-09: Phase 16 approves four-grade scheduled review, objective typed vocabulary recall, queue chunking, one event-free recovery pass, a shared vocabulary-card engine and history-free hub/Collection sessions.** **§§7, 12 and 14 — 2026-08-09: Phase 17 adds owner-started, event-backed Tense usage and Endings recognition lanes whose results remain isolated from form Adaptive, form statistics and Leitner review.** **§§7, 12 and 14 — 2026-08-10: Phase 18 adds the recall/production reverse of those lanes, balanced Regular and Spelling-change packs, exact Saved tag/page targeting and mode-separated depth reporting without changing schema, scheduling or choice evidence.** Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
 
 **Meaning-block amendment, 2026-08-13 — §7:** meaning-level part-of-speech overrides add
@@ -63,6 +63,11 @@ editor and reader. Saving it is an ordinary owner edit (timestamp bump, one `edi
 visit). It is searchable in global and Diario search, rides in backups like any other item field,
 and is never part of an AI request or the stored review's staleness hash, which cover only title
 and body.
+
+**Lexical Structured Notes amendment, 2026-08-21 — §§5, 7, 8, 10, 12 and 13:** schema v10
+preserves every Word and Phrase `notes` string as its General note and adds mandatory
+`noteSections[]` with exactly one subsection level. Pages and lexical entries share stable Notes
+section identities, hierarchy rules and safe Markdown behavior; meaning-level notes remain plain.
 
 ---
 
@@ -128,6 +133,9 @@ The app code and the bundled reference data are licensed separately. Reference-d
 - **Schema-v7 Notes-outline amendment, 2026-08-10:** every Page gains mandatory
   `noteSections[]`; stores and indexes remain fixed. Schema-v1 through v6 databases pass through
   the untouched export-first gate before v7 opens, and earlier schemas must reject the field.
+- **Schema-v10 lexical Notes amendment, 2026-08-21:** every lexical item gains mandatory
+  `noteSections[]`; stores and indexes remain fixed. Schema-v1 through v9 databases pass through
+  the untouched export-first gate before v10 opens. Existing lexical `notes` strings remain exact.
 - **The seam rule:** *personal items always have their own stable ID; attaching one to a dictionary entry is a reversible relationship, not its identity.* ~~Lexical items always store their own `term` (and `translation`, when given) even while attached, so they stay meaningful on their own.~~ **Amended 2026-08-02:** lexical items always store their own `term` and ordered personal `meanings[]` even while attached. Each personal meaning has its own `meaning:<uuid>` identity and never stores or derives its identity from a dictionary sense ID, index or ordering.
 - ~~**Page-profile seam amendment, 2026-08-03:** Collection membership can contain only independent
   personal lexical items. A selected dictionary entry must first create or reuse its personal
@@ -269,6 +277,12 @@ Markdown dialect and ordinary unmarked blockquotes; a blockquote whose first lin
 three markers are formatting rather than visible prose and are excluded from search, previews and
 AI-visible text. A
 schema-v6 Page migrates by receiving only `noteSections: []`.
+
+**Schema-v10 lexical Notes-outline addition, 2026-08-21:** every lexical item stores the same
+`noteSections[]` shape and one-level hierarchy while retaining `notes` as its permanent General
+note. Existing lexical content is never parsed or moved. Notes-section IDs are globally unique
+across Pages and lexical entries. Section bodies use the complete safe lexical Markdown dialect;
+meaning-level `meaning.note` remains plain text and outside the outline.
 
 **Inline-media amendment, 2026-08-11.** Everywhere the safe dialect renders, it additionally
 renders `![alt](url)` images and `[label](url)` hyperlinks when the URL is https; any other URL
@@ -431,6 +445,9 @@ authority.
   history-free session over direct confirmed Similar meaning neighbors. Starting, revealing,
   self-grading, repeating misses, finishing, or leaving writes no event or timestamp and changes no
   Repaso, Gym, due date, preference, score, or schedule.
+- **Lexical Structured Notes event clarification, 2026-08-21:** a changed section/subsection save,
+  confirmed deletion or changed organization save writes one ordinary lexical `edit` and updates
+  `updatedAt`. Cancel, disclosure state, organizer drafts and no-op saves write nothing.
 
 ## 8. Search rules
 
@@ -459,6 +476,10 @@ authority.
 - **Phase-19 Structured Notes search clarification, 2026-08-10:** Notes section names and the
   visible-text projection of each section body match at Tier 6 with reason **in a Notes section**.
   Page-body matches retain their existing earlier check and reason.
+- **Lexical Structured Notes search clarification, 2026-08-21:** lexical Notes section names and
+  visible Markdown body text join the existing Tier-6 lexical Notes match with reason **in your
+  notes**. The General note is considered first, followed by sections in canonical display order;
+  Markdown and callout markers remain excluded.
 
 ## 9. AI assistant policy (~~Phase 5~~ **Phase 6**)
 
@@ -545,6 +566,13 @@ Backup envelope:
   Dexie. Source schemas through v6 reject a premature `noteSections` field; v7 requires it and
   validates globally unique IDs, same-page one-level parents, cycles and sibling names. Current v7
   exports round-trip exactly and newer versions remain blocked.
+- **Schema-v10 amendment, 2026-08-21:** stores and indexes remain unchanged. Every lexical item
+  receives mandatory `noteSections: []`; every Page and all schema-v9 content remain untouched.
+  Schemas 1 through 9 require an untouched deeply validated export before v10 opens and upgrade
+  sequentially in memory or Dexie. Source schemas through v9 reject a premature lexical field;
+  v10 requires it and deeply validates globally unique IDs, same-item one-level parents, cycles,
+  sibling names and string bodies across both personal item types. Current v10 exports round-trip
+  exactly and newer versions remain blocked.
 - On first meaningful use, request persistent storage (`navigator.storage.persist()`), surface whether it was granted, and tell the owner plainly that clearing browser data, uninstalling, or losing the device destroys local data — which is why export is one tap away and the settings screen shows "last backup: N days ago".
 
 ## Secrets
@@ -885,6 +913,19 @@ children create/edit/reorder/reparent/delete according to the contract; search, 
 all Page/Diario consumers agree; and the full suite, build, diff check, failure proofs and seeded
 375×812 v6 export→upgrade→edit→export→wipe→restore flow pass without overflow or console errors.
 
+**Lexical Structured Notes increment, approved 2026-08-21.** Preserve every lexical `notes`
+string as General note and add schema-v10 one-level Notes outlines to Words and Phrases. Creation
+keeps one optional General note; Detail adds named section/subsection editing and organization.
+Search, compact previews and the shared study answer consume one common visible-text projection,
+while study keeps named sections behind a count disclosure. Meaning notes, examples, media, tags,
+links, provenance, templates and deeper nesting remain outside the outline. The approved contract
+and delivery boundary live in `docs/LEXICAL-STRUCTURED-NOTES-DIRECTION.md`.
+*Done when:* schemas 1–9 cross the untouched export-first gate into deeply validated v10; every
+existing lexical note remains exact; every constructor and backup path carries the mandatory
+array; mutations, event rules, retrieval and readers agree; and the complete suite, build, diff
+check, deliberate failure proof and disposable 375×812 migration/edit/restore flow pass without
+overflow or console errors.
+
 **Amended 2026-08-10 — Phase 20: global tag management.** Ajustes can rename one exact stored tag
 across every personal item, merge it into one exact existing destination, or remove it everywhere.
 Normalized lookalikes are suggestions only. Rename preserves tag position; overlap keeps the
@@ -972,6 +1013,10 @@ Phase 19 does not relax that boundary. Grammar Overview and the Page Notes Overv
 in the existing safe Markdown dialect. Grammar and Notes each permit exactly one subsection level
 through shared hierarchy machinery rather than arbitrary blocks, custom fields or recursive
 nesting. Diario receives no separate schema or outline editor.
+
+Schema v10 extends that same bounded Notes hierarchy to the top-level notes of Words and Phrases.
+It does not turn meaning notes, examples, media, tags or connections into blocks, and it adds no
+recursive nesting, templates, provenance or general lexical-entry builder.
 
 ## 14. Deferred decisions — do not solve early
 

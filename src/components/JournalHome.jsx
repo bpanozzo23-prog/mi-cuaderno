@@ -141,6 +141,7 @@ export default function JournalHome({
         <TallerPanel
           items={items}
           events={events}
+          today={today}
           random={random}
           onStart={(seed) => {
             setTallerOpen(false);

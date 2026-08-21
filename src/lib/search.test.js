@@ -138,6 +138,29 @@ describe("meaning-level context", () => {
   });
 });
 
+describe("lexical Structured Notes search", () => {
+  const structured = [newLexical({
+    term: "quedar",
+    noteSections: [{
+      id: "note-section:12121212-1212-4212-8212-121212121212",
+      parentId: null,
+      name: "Usage and register",
+      body: "> [!TIP]\n> Often means **to arrange to meet** in this context.",
+    }],
+  })];
+
+  it.each(["Usage and register", "arrange to meet"])("finds %s in named lexical Notes", (query) => {
+    expect(searchItems(structured, query)[0]).toMatchObject({
+      tier: TIER.text,
+      reason: "in your notes",
+    });
+  });
+
+  it("does not index the callout marker itself", () => {
+    expect(searchItems(structured, "TIP")).toEqual([]);
+  });
+});
+
 describe("search exclusions and empty queries", () => {
   it("matches the visible phrase across notebook Markdown markers", () => {
     const formatted = lexical({

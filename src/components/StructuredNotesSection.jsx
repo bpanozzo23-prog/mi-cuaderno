@@ -8,6 +8,11 @@ import {
   saveNoteSection,
 } from "../db/pageStructures.js";
 import {
+  deleteLexicalNoteSection,
+  saveLexicalNoteOrganization,
+  saveLexicalNoteSection,
+} from "../db/lexicalNotes.js";
+import {
   canonicalNoteSections,
   hasEnabledStructuredCapability,
   noteSectionHierarchy,
@@ -73,13 +78,17 @@ function DeleteSectionAction({ description, onDelete }) {
   );
 }
 
-function NotesOverview({ page, items, onOpen, onAddMention, onChanged }) {
+function NotesOverview({ owner, lexical, items, onOpen, onAddMention, onChanged }) {
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(page.body || "");
+  const saved = lexical ? owner.notes || "" : owner.body || "";
+  const [draft, setDraft] = useState(saved);
   const [saving, setSaving] = useState(false);
   const [problem, setProblem] = useState("");
-  const saved = page.body || "";
   const dirty = draft !== saved;
+  const overviewName = lexical ? "General note" : "Overview";
+  const editLabel = lexical
+    ? (saved.trim() ? "Edit note" : "Add note")
+    : (saved.trim() ? "Edit Notes overview" : "Write Notes overview");
 
   return (
     <div className="relative mt-3">
@@ -87,19 +96,21 @@ function NotesOverview({ page, items, onOpen, onAddMention, onChanged }) {
       <Card>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h3 className="text-sm font-bold" style={{ color: C.ink, fontFamily: SERIF }}>Overview</h3>
+            <h3 className="text-sm font-bold" style={{ color: C.ink, fontFamily: SERIF }}>{overviewName}</h3>
             {!editing && (saved.trim() ? (
               <MarkdownText blankLines explicitNoteCallouts compact className="mt-2 break-words text-sm leading-relaxed" style={{ color: C.ink }}>
                 {saved}
               </MarkdownText>
             ) : (
-              <div className="mt-1 text-xs" style={{ color: C.mut }}>Add context for the page as a whole.</div>
+              <div className="mt-1 text-xs" style={{ color: C.mut }}>
+                {lexical ? "No notes yet." : "Add context for the page as a whole."}
+              </div>
             ))}
           </div>
           {!editing && (
             <button
               type="button"
-              aria-label={saved.trim() ? "Edit Notes overview" : "Write Notes overview"}
+              aria-label={editLabel}
               onClick={() => {
                 setDraft(saved);
                 setProblem("");
@@ -118,10 +129,12 @@ function NotesOverview({ page, items, onOpen, onAddMention, onChanged }) {
               autoFocus
               blankLines
               noteCallouts
-              aria-label="Notes overview"
+              aria-label={lexical ? "Note" : "Notes overview"}
               value={draft}
               onChange={setDraft}
-              placeholder="What is this page or collection about?"
+              placeholder={lexical
+                ? "Your notes — mnemonics, gotchas, where you heard it…"
+                : "What is this page or collection about?"}
               className="min-h-32 w-full rounded-lg border px-3 py-2 text-sm leading-relaxed outline-none"
               style={fieldStyle}
             />
@@ -130,7 +143,7 @@ function NotesOverview({ page, items, onOpen, onAddMention, onChanged }) {
                 setSaving(true);
                 setProblem("");
                 try {
-                  await updateItem(page.id, { body: draft });
+                  await updateItem(owner.id, lexical ? { notes: draft } : { body: draft });
                   setEditing(false);
                   await onChanged?.();
                 } catch (error) {
@@ -138,7 +151,7 @@ function NotesOverview({ page, items, onOpen, onAddMention, onChanged }) {
                 } finally {
                   setSaving(false);
                 }
-              }}>{saving ? "Saving…" : "Save overview"}</Button>
+              }}>{saving ? "Saving…" : lexical ? "Save note" : "Save overview"}</Button>
               <Button tone="quiet" className="min-h-11" disabled={saving} onClick={() => {
                 setDraft(saved);
                 setEditing(false);
@@ -148,10 +161,10 @@ function NotesOverview({ page, items, onOpen, onAddMention, onChanged }) {
             {problem && <div role="alert" className="mt-2 text-xs" style={{ color: C.red }}>{problem}</div>}
           </div>
         )}
-        {!editing && (
+        {!editing && !lexical && (
           <MentionedHere
             items={items}
-            contextId={`${page.id}:notes:overview`}
+            contextId={`${owner.id}:notes:overview`}
             onOpen={onOpen}
             onAdd={onAddMention}
           />
@@ -315,12 +328,15 @@ function NotesOrganizer({ sections, onCancel, onSaved }) {
 
 export default function StructuredNotesSection({
   page,
+  item,
   items = [],
   onOpen,
   onAddMention,
   onChanged,
 }) {
-  const sections = page?.noteSections || [];
+  const owner = page || item;
+  const lexical = owner?.type === "lexical";
+  const sections = owner?.noteSections || [];
   const hierarchy = useMemo(() => noteSectionHierarchy(sections), [sections]);
   const counts = noteStructureCounts(sections);
   const [sectionDraft, setSectionDraft] = useState(null);
@@ -328,7 +344,7 @@ export default function StructuredNotesSection({
   const [collapsedSections, setCollapsedSections] = useState(() => new Set(
     sections.filter((section) => !section.body?.trim()).map((section) => section.id)
   ));
-  const hasOverview = Boolean(page?.body?.trim());
+  const hasOverview = Boolean((lexical ? owner?.notes : owner?.body)?.trim());
   const hasContent = hasOverview || sections.length > 0;
 
   useEffect(() => {
@@ -337,17 +353,17 @@ export default function StructuredNotesSection({
     setCollapsedSections(new Set(
       sections.filter((section) => !section.body?.trim()).map((section) => section.id)
     ));
-  }, [page.id]);
+  }, [owner?.id]);
 
-  if (!page || page.type !== "page") return null;
+  if (!owner || (owner.type !== "page" && owner.type !== "lexical")) return null;
 
   const summary = [
     ...(counts.sections ? [`${counts.sections} ${counts.sections === 1 ? "section" : "sections"}`] : []),
     ...(counts.subsections ? [`${counts.subsections} ${counts.subsections === 1 ? "subsection" : "subsections"}`] : []),
-  ].join(" · ") || (hasOverview ? "Overview" : "Empty");
-  const movesToJournal = Boolean(page.pageDate)
+  ].join(" · ") || (hasOverview ? (lexical ? "General note" : "Overview") : "Empty");
+  const movesToJournal = !lexical && Boolean(owner.pageDate)
     && sections.length === 1
-    && !hasEnabledStructuredCapability(page);
+    && !hasEnabledStructuredCapability(owner);
 
   async function changed() {
     await onChanged?.();
@@ -413,12 +429,14 @@ export default function StructuredNotesSection({
           ) : (
             <div className="mt-2 text-xs" style={{ color: C.mut }}>No Notes body yet.</div>
           )}
-          <MentionedHere
-            items={items}
-            contextId={`${page.id}:notes:${section.id}`}
-            onOpen={onOpen}
-            onAdd={onAddMention}
-          />
+          {!lexical && (
+            <MentionedHere
+              items={items}
+              contextId={`${owner.id}:notes:${section.id}`}
+              onOpen={onOpen}
+              onAdd={onAddMention}
+            />
+          )}
           {!isSubsection && (
             <Button
               tone="quiet"
@@ -454,12 +472,12 @@ export default function StructuredNotesSection({
 
   return (
     <PageSectionDisclosure
-      id="page-notes"
+      id={lexical ? "lexical-notes" : "page-notes"}
       family="notes"
       title="Notes"
       summary={summary}
-      defaultCollapsed={!hasContent}
-      resetKey={page.id}
+      defaultCollapsed={lexical ? false : !hasContent}
+      resetKey={owner.id}
       actions={!organizing ? (
         <>
           {sections.length > 0 && (
@@ -470,7 +488,7 @@ export default function StructuredNotesSection({
                 setOrganizing(true);
                 setSectionDraft(null);
               }}
-              className="inline-flex items-center justify-center rounded-lg border p-2"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border p-2"
               style={{ background: NOTES_FAMILY.band, borderColor: NOTES_FAMILY.line, color: NOTES_FAMILY.ink }}
             >
               <ListTree size={15} />
@@ -480,7 +498,7 @@ export default function StructuredNotesSection({
             type="button"
             aria-label="Add Notes section"
             onClick={() => openEditor({ parentId: null })}
-            className="inline-flex items-center justify-center rounded-lg border p-2"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border p-2"
             style={{ background: NOTES_FAMILY.band, borderColor: NOTES_FAMILY.line, color: NOTES_FAMILY.ink }}
           >
             <Plus size={15} />
@@ -489,8 +507,9 @@ export default function StructuredNotesSection({
       ) : null}
     >
       <NotesOverview
-        key={`${page.id}:${page.body || ""}`}
-        page={page}
+        key={`${owner.id}:${lexical ? owner.notes || "" : owner.body || ""}`}
+        owner={owner}
+        lexical={lexical}
         items={items}
         onOpen={onOpen}
         onAddMention={onAddMention}
@@ -505,12 +524,14 @@ export default function StructuredNotesSection({
           movesToJournal={movesToJournal && sectionDraft.id === sections[0]?.id}
           onCancel={() => setSectionDraft(null)}
           onSaved={async (draft) => {
-            await saveNoteSection(page.id, draft);
+            if (lexical) await saveLexicalNoteSection(owner.id, draft);
+            else await saveNoteSection(owner.id, draft);
             setSectionDraft(null);
             await changed();
           }}
           onDelete={sectionDraft.id ? async () => {
-            await deleteNoteSection(page.id, sectionDraft.id);
+            if (lexical) await deleteLexicalNoteSection(owner.id, sectionDraft.id);
+            else await deleteNoteSection(owner.id, sectionDraft.id);
             setSectionDraft(null);
             await changed();
           } : null}
@@ -522,7 +543,8 @@ export default function StructuredNotesSection({
           sections={sections}
           onCancel={() => setOrganizing(false)}
           onSaved={async (draft) => {
-            await saveNoteOrganization(page.id, draft);
+            if (lexical) await saveLexicalNoteOrganization(owner.id, draft);
+            else await saveNoteOrganization(owner.id, draft);
             setOrganizing(false);
             await changed();
           }}
@@ -537,7 +559,9 @@ export default function StructuredNotesSection({
 
       {sections.length === 0 && !sectionDraft && !organizing && (
         <div className="mt-3 text-xs" style={{ color: C.mut }}>
-          Add named sections when the page needs more structure than its Overview.
+          {lexical
+            ? "Add named sections when this entry needs more structure than its General note."
+            : "Add named sections when the page needs more structure than its Overview."}
         </div>
       )}
     </PageSectionDisclosure>

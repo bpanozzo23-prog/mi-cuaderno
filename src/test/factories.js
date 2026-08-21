@@ -21,6 +21,7 @@ export function makeLexical(overrides = {}) {
       : [newMeaning({ gloss: "to take out" })]),
     pos: "verb",
     notes: "",
+    noteSections: [],
     myExamples: [],
     tags: [],
     linkedKeys: [],

@@ -227,6 +227,25 @@ describe("structured Notes mutations", () => {
     expect(await editEventsFor(page.id)).toEqual([]);
   });
 
+  it("treats an unchanged organizer save as a no-op when valid imported rows are interleaved", async () => {
+    const root = newNoteSection({ name: "Root", body: "Root prose." });
+    const other = newNoteSection({ name: "Other", body: "Other prose." });
+    const child = newNoteSection({ parentId: root.id, name: "Child", body: "Child prose." });
+    const page = await createItem(newPage({ title: "Imported outline", noteSections: [root, child, other] }));
+    await db.items.put({ ...page, noteSections: [root, other, child] });
+    const before = await getItem(page.id);
+
+    const unchanged = await saveNoteOrganization(page.id, [
+      { id: root.id, parentId: null, name: "Root" },
+      { id: child.id, parentId: root.id, name: "Child" },
+      { id: other.id, parentId: null, name: "Other" },
+    ]);
+
+    expect(unchanged).toEqual(before);
+    expect((await getItem(page.id)).noteSections).toEqual([root, other, child]);
+    expect(await editEventsFor(page.id)).toEqual([]);
+  });
+
   it("blocks deleting a parent, but deletes a leaf together with its own prose", async () => {
     const root = newNoteSection({ name: "Root", body: "Root prose." });
     const child = newNoteSection({ parentId: root.id, name: "Child", body: "Leaf prose may be deleted." });

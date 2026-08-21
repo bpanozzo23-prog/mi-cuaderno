@@ -10,6 +10,7 @@ import RelationshipSelect from "./RelationshipSelect.jsx";
 import TwinMergeResolver from "./TwinMergeResolver.jsx";
 import { markdownPreviewText } from "../lib/noteMarkdown.js";
 import { isJournalPage } from "../lib/pageKinds.js";
+import { lexicalNotePreview } from "../lib/lexicalNotes.js";
 
 /**
  * One link, shown as something you can recognise (requirement 4).
@@ -24,9 +25,10 @@ import { isJournalPage } from "../lib/pageKinds.js";
  */
 
 const previewOf = (item) => {
-  const text = item.type === "page" ? item.body : item.notes;
+  if (item.type !== "page") return lexicalNotePreview(item, 80);
+  const text = item.body;
   return markdownPreviewText(text, {
-    noteCallouts: item.type !== "page" || !isJournalPage(item),
+    noteCallouts: !isJournalPage(item),
   }).slice(0, 80);
 };
 

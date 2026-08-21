@@ -25,9 +25,10 @@ async function seedLegacyDatabase(schemaVersion) {
   await legacy.open();
 
   const current = makeLexical({ id: "user:sacar", term: "sacar", linkedKeys: ["user:page"] });
+  const { noteSections: _lexicalNoteSections, ...currentBeforeLexicalNotes } = current;
   const currentForSchema = schemaVersion < 4
-    ? (({ linkAnnotations: _linkAnnotations, ...legacyItem }) => legacyItem)(current)
-    : current;
+    ? (({ linkAnnotations: _linkAnnotations, ...legacyItem }) => legacyItem)(currentBeforeLexicalNotes)
+    : currentBeforeLexicalNotes;
   const lexical = schemaVersion === 1
     ? (() => {
         const { meanings: _meanings, ...v1Item } = currentForSchema;
@@ -51,13 +52,14 @@ async function seedLegacyDatabase(schemaVersion) {
   const relationshipShape = schemaVersion < 4
     ? (({ linkAnnotations: _linkAnnotations, ...legacyPage }) => legacyPage)(currentPage)
     : currentPage;
-  // Every seeded version predates schema v9, so the Apuntes field never appears — and versions
-  // below v8 predate the stored-review field too.
+  // Page root fields follow their own schema eras; lexical Notes do not exist until v10.
   const { apuntes: _apuntes, ...pageBeforeApuntes } = relationshipShape;
   const { feedback: _feedback, ...pageBeforeFeedback } = pageBeforeApuntes;
   const { noteSections: _noteSections, ...pageBeforeNotesOutline } = pageBeforeFeedback;
   let page;
-  if (schemaVersion >= 8) {
+  if (schemaVersion >= 9) {
+    page = relationshipShape;
+  } else if (schemaVersion >= 8) {
     page = pageBeforeApuntes;
   } else if (schemaVersion >= 7) {
     page = pageBeforeFeedback;
@@ -113,7 +115,7 @@ describe("export-first schema gate", () => {
     });
   });
 
-  it.each([1, 2, 3, 4, 5, 6, 7, 8])("exports the untouched schema-v%s envelope before v9 can open", async (schemaVersion) => {
+  it.each([1, 2, 3, 4, 5, 6, 7, 8, 9])("exports the untouched schema-v%s envelope before v10 can open", async (schemaVersion) => {
     const { lexical, page } = await seedLegacyDatabase(schemaVersion);
 
     expect(await preupgradeStatus()).toMatchObject({
@@ -149,7 +151,12 @@ describe("export-first schema gate", () => {
     } else {
       expect(backup.userItems.find((item) => item.id === page.id).feedback).toBeNull();
     }
-    expect(backup.userItems.find((item) => item.id === page.id)).not.toHaveProperty("apuntes");
+    if (schemaVersion < 9) {
+      expect(backup.userItems.find((item) => item.id === page.id)).not.toHaveProperty("apuntes");
+    } else {
+      expect(backup.userItems.find((item) => item.id === page.id).apuntes).toBeNull();
+    }
+    expect(backup.userItems.find((item) => item.id === lexical.id)).not.toHaveProperty("noteSections");
     if (schemaVersion === 1) {
       expect(backup.userItems.find((item) => item.id === lexical.id).translation).toBe("take out\nwithdraw");
       expect(backup.userItems.find((item) => item.id === lexical.id)).not.toHaveProperty("meanings");

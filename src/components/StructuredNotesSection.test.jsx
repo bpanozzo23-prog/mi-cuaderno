@@ -4,7 +4,7 @@ import { useState } from "react";
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { clearAllPersonalData, db } from "../db/db.js";
-import { createItem, getItem, newPage } from "../db/items.js";
+import { createItem, getItem, newLexical, newPage } from "../db/items.js";
 import { newNoteSection } from "../lib/pageKinds.js";
 import StructuredNotesSection from "./StructuredNotesSection.jsx";
 
@@ -22,6 +22,19 @@ function renderNotes(initialPage) {
       <StructuredNotesSection
         page={page}
         onChanged={async () => setPage(await getItem(page.id))}
+      />
+    );
+  }
+  return render(<Harness />);
+}
+
+function renderLexicalNotes(initialItem) {
+  function Harness() {
+    const [item, setItem] = useState(initialItem);
+    return (
+      <StructuredNotesSection
+        item={item}
+        onChanged={async () => setItem(await getItem(item.id))}
       />
     );
   }
@@ -156,5 +169,34 @@ describe("Structured Notes", () => {
     await user.click(within(confirmation).getByRole("button", { name: "Confirm delete" }));
 
     await waitFor(async () => expect((await getItem(page.id)).noteSections).toEqual([]));
+  });
+});
+
+describe("lexical Structured Notes", () => {
+  it("adds a second note box and one subsection without changing the General note", async () => {
+    const user = userEvent.setup();
+    const item = await createItem(newLexical({
+      term: "quedar",
+      notes: "General note kept exactly.\n",
+    }));
+    renderLexicalNotes(item);
+
+    expect(screen.getByText("General note kept exactly.")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Add Notes section" }));
+    await user.type(screen.getByRole("textbox", { name: "Notes section name" }), "Usage");
+    await user.type(screen.getByRole("textbox", { name: "Notes section body" }), "Use with care.");
+    await user.click(screen.getByRole("button", { name: "Save section" }));
+
+    await user.click(await screen.findByRole("button", { name: "Add Notes subsection to Usage" }));
+    await user.type(screen.getByRole("textbox", { name: "Notes section name" }), "Register");
+    await user.type(screen.getByRole("textbox", { name: "Notes section body" }), "Mostly informal.");
+    await user.click(screen.getByRole("button", { name: "Save section" }));
+
+    await waitFor(() => expect(screen.getByText("1 section · 1 subsection")).toBeTruthy());
+    const saved = await getItem(item.id);
+    expect(saved.notes).toBe("General note kept exactly.\n");
+    expect(saved.noteSections).toHaveLength(2);
+    expect(saved.noteSections[1].parentId).toBe(saved.noteSections[0].id);
+    expect(screen.queryByRole("button", { name: "Add Notes subsection to Register" })).toBeNull();
   });
 });

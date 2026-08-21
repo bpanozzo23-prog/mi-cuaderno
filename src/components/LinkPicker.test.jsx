@@ -15,6 +15,7 @@ const lexical = (id, term, form = "word") => ({
   meanings: [],
   pos: "",
   notes: "",
+  noteSections: [],
   tags: [],
   linkedKeys: [],
   mediaLinks: [],
@@ -71,6 +72,23 @@ afterEach(async () => {
 });
 
 describe("LinkPicker duplicate guard", () => {
+  it("uses a named note section as lexical context when no meaning or General note exists", () => {
+    const source = page("source", "Source");
+    const target = {
+      ...lexical("target", "quedar"),
+      noteSections: [{
+        id: "note-section:14141414-1414-4414-8414-141414141414",
+        parentId: null,
+        name: "Usage",
+        body: "Arrange to meet.",
+      }],
+    };
+
+    render(<LinkPicker {...pickerProps(source, [source, target])} />);
+
+    expect(screen.getByText("Usage: Arrange to meet.")).toBeTruthy();
+  });
+
   it("starts at Related, offers the approved order, and passes the selected perspective", async () => {
     const user = userEvent.setup();
     const source = page("source", "Source");

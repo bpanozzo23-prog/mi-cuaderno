@@ -762,12 +762,32 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   [docs/DIARIO-TALLER-DIRECTION.md](docs/DIARIO-TALLER-DIRECTION.md) and the Taller v1 entries
   in [DECISIONS.md](DECISIONS.md).
 
-`SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
+- **Lexical Structured Notes — implemented and verified locally; not pushed or deployed.** Schema
+  v10 preserves every existing Word/Phrase `notes` string as its permanent **General note** and
+  adds a mandatory one-level `noteSections[]` outline. Lexical Detail now supports multiple named
+  Markdown sections and one subsection level with stable IDs, confirmed leaf deletion, and an
+  explicit organizer for rename/reorder/promote/reparent; real saves log one ordinary `edit`, while
+  cancel, disclosure and no-op saves log nothing. Search covers section names and visible Markdown
+  body text with **in your notes**; connection/picker/Collection previews share General-first
+  canonical order; review and free practice keep named sections behind a count disclosure. The
+  v9→v10 migration adds only `noteSections: []` to lexical items, backup schemas 1–10 validate
+  sequentially, and Page/lexical Notes IDs share global collision validation. The closeout also
+  made the shared Notes header icons 44px and fixed Taller's daily proposal to use JournalHome's
+  already-derived local date instead of silently consulting the wall clock. The complete serial
+  suite passes 1,661/1,661 across 140 files; the production build transforms 2,136 modules; and
+  `git diff --check` passes. A disposable seeded 375×812 origin exercised General note, a long
+  root and subsection, full Markdown editor, organizer and name/body search: Notes stayed 328/328px,
+  the document stayed within the 375px viewport, every visible Notes action met 44px, third-level
+  nesting stayed absent, and the console was clean. See
+  [docs/LEXICAL-STRUCTURED-NOTES-DIRECTION.md](docs/LEXICAL-STRUCTURED-NOTES-DIRECTION.md) and the
+  2026-08-21 entries in [DECISIONS.md](DECISIONS.md).
+
+`SCHEMA_VERSION` is **10**. Before Dexie opens v10, schema-v1 through schema-v9 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
 relationship, composable-page, Grammar-hierarchy, Structured-Notes, entry-feedback and Apuntes
-migrations in order. Backup schemas 1 through 9 are accepted, upgraded sequentially in memory,
-deeply validated as v9, and only then offered for replace-and-restore; newer versions remain
-blocked.
+migrations, followed by Lexical Structured Notes, in order. Backup schemas 1 through 10 are
+accepted, upgraded sequentially in memory, deeply validated as v10, and only then offered for
+replace-and-restore; newer versions remain blocked.
 
 ## Testing
 

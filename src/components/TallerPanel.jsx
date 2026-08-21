@@ -18,8 +18,8 @@ import {
  * the feature stays self-contained. Everything but the tema preference is visit-local; the
  * drill itself starts through `onStart({ drill })` and the door never shows counts or pressure.
  */
-export default function TallerPanel({ items = [], events = [], onStart, onClose, random = Math.random }) {
-  const proposed = useMemo(() => proposeTallerSkill(events), [events]);
+export default function TallerPanel({ items = [], events = [], today, onStart, onClose, random = Math.random }) {
+  const proposed = useMemo(() => proposeTallerSkill(events, today), [events, today]);
   const [skill, setSkill] = useState(proposed);
   const [choosing, setChoosing] = useState(false);
   const [temas, setTemas] = useState([]);

@@ -35,7 +35,7 @@ export function newGrammarSectionKey() {
   return `grammar-section:${newId()}`;
 }
 
-/** Stable identity for an editable section inside one Page's permanent Notes outline. */
+/** Stable identity for an editable section inside a Page or lexical item's Notes outline. */
 export function newNoteSectionKey() {
   return `note-section:${newId()}`;
 }

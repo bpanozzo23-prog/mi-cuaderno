@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { BookOpen } from "lucide-react";
+import { BookOpen, ChevronDown, ChevronUp } from "lucide-react";
 import { C, SERIF, MONO } from "../theme.jsx";
 import { meaningLabels } from "../lib/meanings.js";
 import MarkdownText from "./MarkdownText.jsx";
+import { canonicalNoteSections } from "../lib/pageKinds.js";
 
 /**
  * One personal meaning row. Exported for the reverse card face (Phase 10a), which shows
@@ -31,11 +32,17 @@ export function MeaningRow({ meaning, index, showCue = true }) {
 /** The shared answer side for scheduled Repaso and session-only free practice. */
 export default function LexicalAnswer({ item, showContext, onToggleContext, onOpen, onExit }) {
   const [openArmed, setOpenArmed] = useState(false);
+  const [showNamedNotes, setShowNamedNotes] = useState(false);
   const hasMeaningContext = item.meanings?.some(
     (meaning) => meaning.note || meaning.examples?.length
   );
 
-  useEffect(() => setOpenArmed(false), [item.id]);
+  useEffect(() => {
+    setOpenArmed(false);
+    setShowNamedNotes(false);
+  }, [item.id]);
+
+  const noteSections = canonicalNoteSections(item.noteSections || []);
 
   function openFullEntry() {
     if (onExit && !openArmed) {
@@ -89,6 +96,39 @@ export default function LexicalAnswer({ item, showContext, onToggleContext, onOp
         <MarkdownText blankLines explicitNoteCallouts compact className="text-sm" style={{ color: C.mut }}>
           {item.notes}
         </MarkdownText>
+      )}
+
+      {noteSections.length > 0 && (
+        <div>
+          <button
+            type="button"
+            aria-expanded={showNamedNotes}
+            onClick={() => setShowNamedNotes((open) => !open)}
+            className="inline-flex min-h-11 items-center gap-1 text-xs underline underline-offset-2"
+            style={{ color: C.pen }}
+          >
+            {showNamedNotes ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+            {showNamedNotes ? "Hide" : "Show"} {noteSections.length} named note {noteSections.length === 1 ? "section" : "sections"}
+          </button>
+          {showNamedNotes && (
+            <div className="mt-2 space-y-2">
+              {noteSections.map((section) => (
+                <div
+                  key={section.id}
+                  className={`rounded-lg p-2 text-sm ${section.parentId ? "ml-4" : ""}`}
+                  style={{ background: C.paper }}
+                >
+                  <div className="text-xs font-semibold" style={{ color: C.mut }}>{section.name}</div>
+                  {section.body?.trim() && (
+                    <MarkdownText blankLines explicitNoteCallouts compact className="mt-1" style={{ color: C.ink }}>
+                      {section.body}
+                    </MarkdownText>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {item.myExamples?.slice(0, 2).map((example, index) => (

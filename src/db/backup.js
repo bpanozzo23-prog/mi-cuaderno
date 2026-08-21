@@ -9,6 +9,7 @@ import {
   upgradePageItemV6,
   upgradePageItemV7,
   upgradePageItemV8,
+  upgradeLexicalItemV9,
 } from "./db.js";
 import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
 import { nowIso } from "../lib/dates.js";
@@ -27,7 +28,7 @@ import {
 } from "../lib/ids.js";
 import { isPageProfile } from "../lib/pageProfiles.js";
 import { PINNED_PAGE_IDS_PREF } from "../lib/pageKinds.js";
-import { validatePageStructures } from "../lib/pageKinds.js";
+import { validateNoteSections, validatePageStructures } from "../lib/pageKinds.js";
 import { PINNED_LEXICAL_IDS_PREF } from "../lib/lexicalViews.js";
 import { TAG_COLORS_PREF, TAG_SWATCHES } from "../lib/tagColors.js";
 import { TALLER_TEMAS_PREF } from "../lib/taller.js";
@@ -267,6 +268,18 @@ function validateItem(
       if (item.pos !== undefined && !isString(item.pos)) errors.push(`${where}.pos must be a string`);
     } else if (!isString(item.pos)) errors.push(`${where}.pos must be a string`);
     if (!isString(item.notes)) errors.push(`${where}.notes must be a string`);
+    if (schemaVersion < 10) {
+      if (Object.prototype.hasOwnProperty.call(item, "noteSections")) {
+        errors.push(`${where}.noteSections is not part of schema v${schemaVersion}`);
+      }
+    } else if (!Array.isArray(item.noteSections)) {
+      errors.push(`${where}.noteSections must be an array`);
+    } else {
+      errors.push(...validateNoteSections(item.noteSections, {
+        where: `${where}.noteSections`,
+        seenIds: seenNoteSectionIds,
+      }));
+    }
     validateExamples(item.myExamples, `${where}.myExamples`, errors);
     if (schemaVersion === 1) {
       if (item.translation !== undefined && !isString(item.translation)) {
@@ -653,6 +666,7 @@ const upgradeItemsV5ToV6 = (userItems) => userItems.map((item) => upgradePageIte
 const upgradeItemsV6ToV7 = (userItems) => userItems.map((item) => upgradePageItemV6(item));
 const upgradeItemsV7ToV8 = (userItems) => userItems.map((item) => upgradePageItemV7(item));
 const upgradeItemsV8ToV9 = (userItems) => userItems.map((item) => upgradePageItemV8(item));
+const upgradeItemsV9ToV10 = (userItems) => userItems.map((item) => upgradeLexicalItemV9(item));
 
 function validateEvent(event, index, errors) {
   const where = `events[${index}]`;
@@ -693,7 +707,7 @@ export function validateBackup(raw) {
     errors.push(
       `This backup is schema version ${parsed.schemaVersion}, newer than this app understands (${SCHEMA_VERSION}). Update the app first.`
     );
-  } else if (![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(parsed.schemaVersion)) {
+  } else if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].includes(parsed.schemaVersion)) {
     errors.push(`Schema version ${parsed.schemaVersion} is not supported.`);
   }
   if (!Array.isArray(parsed.userItems)) errors.push("userItems must be an array.");
@@ -765,6 +779,13 @@ export function validateBackup(raw) {
   if (upgradedSchemaVersion === 8) {
     upgradedItems = upgradeItemsV8ToV9(upgradedItems);
     upgradedSchemaVersion = 9;
+    validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
+  }
+  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
+
+  if (upgradedSchemaVersion === 9) {
+    upgradedItems = upgradeItemsV9ToV10(upgradedItems);
+    upgradedSchemaVersion = 10;
     validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
   }
   if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };

@@ -9,11 +9,13 @@ import {
   migratePersonalDataToV7,
   migratePersonalDataToV8,
   migratePersonalDataToV9,
+  migratePersonalDataToV10,
   PERSONAL_STORES,
   upgradePageItemV5,
   upgradePageItemV6,
   upgradePageItemV7,
   upgradePageItemV8,
+  upgradeLexicalItemV9,
 } from "./db.js";
 import { emptyGrammar, emptySource } from "../lib/pageKinds.js";
 
@@ -55,6 +57,7 @@ function declareCurrentSchema(database) {
   database.version(7).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV7);
   database.version(8).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV8);
   database.version(9).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV9);
+  database.version(10).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV10);
 }
 
 const upgradedNotesPage = (page, { linkAnnotations = [], groups = [] } = {}) => ({
@@ -69,8 +72,10 @@ const upgradedNotesPage = (page, { linkAnnotations = [], groups = [] } = {}) => 
   grammar: emptyGrammar(),
 });
 
-describe("personal-data schema v9 migrations", () => {
-  it("runs v1 → v2 → v3 → v4 → v5 → v6 → v7 → v8 → v9 in order without touching unrelated data", async () => {
+const upgradedLexical = (lexical, extra = {}) => ({ ...lexical, ...extra, noteSections: [] });
+
+describe("personal-data schema v10 migrations", () => {
+  it("runs v1 → v2 → v3 → v4 → v5 → v6 → v7 → v8 → v9 → v10 in order without touching unrelated data", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(1).stores(PERSONAL_STORES);
@@ -113,6 +118,7 @@ describe("personal-data schema v9 migrations", () => {
       expect(stored.updatedAt).toBe(lexical.updatedAt);
       expect(stored.linkedKeys).toEqual(lexical.linkedKeys);
       expect(stored.linkAnnotations).toEqual([]);
+      expect(stored.noteSections).toEqual([]);
       expect(await upgraded.items.get(page.id)).toEqual(upgradedNotesPage(page));
       expect(await upgraded.events.toArray()).toEqual([event]);
       expect(await upgraded.prefs.toArray()).toEqual([{ key: "preference", value: true }]);
@@ -122,7 +128,7 @@ describe("personal-data schema v9 migrations", () => {
     }
   });
 
-  it("runs v2 → v3 → v4 → v5 → v6 → v7 → v8 → v9 while preserving structured content, events, preferences and timestamps", async () => {
+  it("runs v2 → v3 → v4 → v5 → v6 → v7 → v8 → v9 → v10 while preserving structured content, events, preferences and timestamps", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(2).stores(PERSONAL_STORES);
@@ -166,7 +172,7 @@ describe("personal-data schema v9 migrations", () => {
     try {
       await upgraded.open();
 
-      expect(await upgraded.items.get(lexical.id)).toEqual({ ...lexical, linkAnnotations: [] });
+      expect(await upgraded.items.get(lexical.id)).toEqual(upgradedLexical(lexical, { linkAnnotations: [] }));
       expect(await upgraded.items.get(page.id)).toEqual(upgradedNotesPage(page));
       expect(await upgraded.events.toArray()).toEqual([event]);
       expect(await upgraded.prefs.toArray()).toEqual([{ key: "preference", value: { nested: true } }]);
@@ -176,7 +182,7 @@ describe("personal-data schema v9 migrations", () => {
     }
   });
 
-  it("runs v3 → v4 → v5 → v6 → v7 → v8 → v9 and preserves redundant legacy topology", async () => {
+  it("runs v3 → v4 → v5 → v6 → v7 → v8 → v9 → v10 and preserves redundant legacy topology", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(3).stores(PERSONAL_STORES);
@@ -226,7 +232,7 @@ describe("personal-data schema v9 migrations", () => {
     try {
       await upgraded.open();
 
-      expect(await upgraded.items.get(lexical.id)).toEqual({ ...lexical, linkAnnotations: [] });
+      expect(await upgraded.items.get(lexical.id)).toEqual(upgradedLexical(lexical, { linkAnnotations: [] }));
       const { pageProfile: _pageProfile, collection, ...pageBase } = page;
       expect(await upgraded.items.get(page.id)).toEqual({
         ...pageBase,
@@ -252,7 +258,7 @@ describe("personal-data schema v9 migrations", () => {
     }
   });
 
-  it("runs v4 → v5 → v6 → v7 → v8 → v9 by replacing only page identity and adding empty structures", async () => {
+  it("runs v4 → v5 → v6 → v7 → v8 → v9 → v10 by replacing only page identity and adding empty structures", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const legacy = new Dexie(name);
     legacy.version(4).stores(PERSONAL_STORES);
@@ -464,7 +470,7 @@ describe("personal-data schema v9 migrations", () => {
       const stored = await upgraded.items.get(page.id);
       expect(stored).toEqual(upgradePageItemV8(upgradedPage));
       expect(stored.updatedAt).toBe(page.updatedAt);
-      expect(await upgraded.items.get(lexical.id)).toEqual(lexical);
+      expect(await upgraded.items.get(lexical.id)).toEqual(upgradedLexical(lexical));
       expect(await upgraded.events.toArray()).toEqual([event]);
       expect(await upgraded.prefs.toArray()).toEqual([preference]);
     } finally {
@@ -537,9 +543,66 @@ describe("personal-data schema v9 migrations", () => {
       const stored = await upgraded.items.get(page.id);
       expect(stored).toEqual(upgradedPage);
       expect(stored.updatedAt).toBe(page.updatedAt);
-      expect(await upgraded.items.get(lexical.id)).toEqual(lexical);
+      expect(await upgraded.items.get(lexical.id)).toEqual(upgradedLexical(lexical));
       expect(await upgraded.events.toArray()).toEqual([event]);
       expect(await upgraded.prefs.toArray()).toEqual([preference]);
+    } finally {
+      upgraded.close();
+      await Dexie.delete(name);
+    }
+  });
+
+  it("runs v9 → v10 as a pure lexical root-field addition and leaves Pages untouched", async () => {
+    const lexical = {
+      id: "user:sacar",
+      type: "lexical",
+      dictKey: null,
+      form: "word",
+      term: "sacar",
+      meanings: [],
+      pos: "verb",
+      notes: "General note with **exact** Markdown.\r\n",
+      myExamples: [],
+      tags: ["verbs"],
+      linkedKeys: [],
+      linkAnnotations: [],
+      mediaLinks: [],
+      createdAt: "2026-08-01T10:00:00.000Z",
+      updatedAt: at,
+    };
+    const page = {
+      ...pageFixture(),
+      linkAnnotations: [],
+      pageFocus: "notes",
+      noteSections: [],
+      collection: { enabled: false, groups: [] },
+      source: emptySource(),
+      grammar: emptyGrammar(),
+      feedback: null,
+      apuntes: null,
+    };
+    const lexicalSnapshot = structuredClone(lexical);
+    const pageSnapshot = structuredClone(page);
+
+    expect(upgradeLexicalItemV9(lexical)).toEqual({ ...lexical, noteSections: [] });
+    expect(upgradeLexicalItemV9(page)).toEqual(page);
+    expect(lexical).toEqual(lexicalSnapshot);
+    expect(page).toEqual(pageSnapshot);
+
+    const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
+    const legacy = new Dexie(name);
+    legacy.version(9).stores(PERSONAL_STORES);
+    await legacy.open();
+    await legacy.items.bulkAdd([lexical, page]);
+    legacy.close();
+
+    const upgraded = new Dexie(name);
+    declareCurrentSchema(upgraded);
+    try {
+      await upgraded.open();
+      expect(await upgraded.items.get(lexical.id)).toEqual({ ...lexical, noteSections: [] });
+      expect((await upgraded.items.get(lexical.id)).notes).toBe(lexical.notes);
+      expect(await upgraded.items.get(page.id)).toEqual(page);
     } finally {
       upgraded.close();
       await Dexie.delete(name);

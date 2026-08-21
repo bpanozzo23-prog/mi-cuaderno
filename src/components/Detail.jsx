@@ -34,8 +34,7 @@ import { cloneMeanings } from "../lib/meanings.js";
 import MeaningsSection from "./MeaningsSection.jsx";
 import SpeakButton from "./SpeakButton.jsx";
 import CollectionPage from "./CollectionPage.jsx";
-import MarkdownText from "./MarkdownText.jsx";
-import MarkdownTextarea from "./MarkdownTextarea.jsx";
+import StructuredNotesSection from "./StructuredNotesSection.jsx";
 import MediaImage from "./MediaImage.jsx";
 import { isDirectImageUrl } from "../lib/mediaUrls.js";
 import { getAvailableCollectionDestinations, getCollectionPlacements } from "../lib/collections.js";
@@ -192,10 +191,7 @@ function StandardDetail({
   const itemKind = isPage ? "page" : personalLexicalForm(item);
 
   const [editingHead, setEditingHead] = useState(false);
-  const [editingBody, setEditingBody] = useState(false);
   const [head, setHead] = useState({});
-  const [bodyDraft, setBodyDraft] = useState("");
-  const [bodyDirty, setBodyDirty] = useState(false);
   const [addingExample, setAddingExample] = useState(false);
   const [exEs, setExEs] = useState("");
   const [exEn, setExEn] = useState("");
@@ -341,10 +337,7 @@ function StandardDetail({
   }
 
   useEffect(() => {
-    setBodyDraft(isPage ? item.body || "" : item.notes || "");
-    setBodyDirty(false);
     setEditingHead(false);
-    setEditingBody(false);
     setAddingExample(false);
     setExEs("");
     setExEn("");
@@ -434,18 +427,6 @@ function StandardDetail({
     await patch(fields);
   }
 
-  async function saveBody() {
-    await patch(isPage ? { body: bodyDraft } : { notes: bodyDraft });
-    setBodyDirty(false);
-    setEditingBody(false);
-  }
-
-  function cancelBody() {
-    setBodyDraft(isPage ? item.body || "" : item.notes || "");
-    setBodyDirty(false);
-    setEditingBody(false);
-  }
-
   function cancelExample() {
     setExEs("");
     setExEn("");
@@ -491,8 +472,6 @@ function StandardDetail({
     setAddingMedia(true);
   }
 
-  const savedBody = isPage ? item.body || "" : item.notes || "";
-  const hasSavedBody = savedBody.trim() !== "";
   const examplesAreEmpty = !isPage && item.myExamples.length === 0;
   const mediaIsEmpty = !isPage && item.mediaLinks.length === 0;
   const collectionsAreEmpty = !isPage
@@ -832,75 +811,7 @@ function StandardDetail({
         </>
       )}
 
-      <SectionTitle>{isPage ? "Page" : "Notes"}</SectionTitle>
-      <Card>
-        {editingBody ? (
-          <>
-            <MarkdownTextarea
-              autoFocus
-              blankLines={!isPage}
-              noteCallouts={!isPage}
-              aria-label={isPage ? "Page body" : "Note"}
-              value={bodyDraft}
-              onChange={(value) => {
-                setBodyDraft(value);
-                setBodyDirty(true);
-              }}
-              placeholder={
-                isPage
-                  ? "Write the page — grammar rules, a source, what happened today…"
-                  : "Your notes — mnemonics, gotchas, where you heard it…"
-              }
-              className="w-full bg-transparent outline-none text-sm"
-              style={{ color: C.ink, minHeight: isPage ? 160 : 96 }}
-            />
-            <div className="mt-2 flex gap-2">
-              <Button onClick={saveBody} disabled={!bodyDirty}>
-                Save {isPage ? "page" : "note"}
-              </Button>
-              <Button tone="quiet" onClick={cancelBody}>
-                Cancel
-              </Button>
-            </div>
-          </>
-        ) : (
-          <div className="flex items-start justify-between gap-3">
-            {hasSavedBody ? (
-              <MarkdownText
-                blankLines={!isPage}
-                explicitNoteCallouts={!isPage}
-                compact
-                className="min-w-0 flex-1 text-sm"
-                style={{ color: C.ink }}
-              >
-                {savedBody}
-              </MarkdownText>
-            ) : (
-              <div className="min-w-0 flex-1 text-sm italic" style={{ color: C.mut }}>
-                {isPage ? "This page is empty." : "No notes yet."}
-              </div>
-            )}
-            <button
-              type="button"
-              aria-label={
-                hasSavedBody
-                  ? `Edit ${isPage ? "page" : "note"}`
-                  : isPage
-                    ? "Write page"
-                    : "Add note"
-              }
-              className="shrink-0 inline-flex h-11 w-11 items-center justify-center"
-              onClick={() => {
-                setBodyDraft(savedBody);
-                setBodyDirty(false);
-                setEditingBody(true);
-              }}
-            >
-              <Pencil size={14} style={{ color: C.pen }} />
-            </button>
-          </div>
-        )}
-      </Card>
+      <StructuredNotesSection item={item} onChanged={onChanged} />
 
       <SectionTitle>Tags</SectionTitle>
       <TagInput tags={item.tags} allTags={allTags} onChange={(tags) => patch({ tags })} />
