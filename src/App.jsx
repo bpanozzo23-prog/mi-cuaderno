@@ -449,6 +449,14 @@ export default function App() {
     replaceRoute({ tab: "diario", screen: "edit", id });
   }
 
+  // A kept Taller drill lands on its new entry's reader, where the existing vocabulary
+  // affordances live; Back then returns to the Diario home the drill was opened from.
+  function journalDrillKept(id) {
+    if (!id) return;
+    pendingPersonalIdsRef.current.add(id);
+    replaceRoute({ tab: "diario", screen: "read", id });
+  }
+
   function openBiography() {
     const current = activeRoute(navigationRef.current);
     if (current?.tab === "cuaderno" && current.id) {
@@ -707,6 +715,7 @@ export default function App() {
                   onEdit={editJournal}
                   onStart={startJournal}
                   onMaterialized={journalMaterialized}
+                  onDrillKept={journalDrillKept}
                   registerEditorNavigationHandlers={registerEditorNavigationHandlers}
                 />
               </section>

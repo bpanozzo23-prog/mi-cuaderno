@@ -1,10 +1,12 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { ChevronDown, ChevronLeft, Lightbulb, X } from "lucide-react";
+import { Check, ChevronDown, ChevronLeft, Hammer, Lightbulb, X } from "lucide-react";
 import { Button, C, Card, SERIF, dotGrid } from "../theme.jsx";
 import { createItem, newPage, updateItem } from "../db/items.js";
-import { logView } from "../db/events.js";
+import { logPracticeWrite, logView } from "../db/events.js";
 import { localDate } from "../lib/dates.js";
 import { isFeedbackStale } from "../lib/diarioReview.js";
+import { JOURNAL_PROMPT_CATEGORIES } from "../lib/journalPrompts.js";
+import { bodyWithIncludedPrompt, promptHasTiers, promptTextForTier } from "../lib/taller.js";
 import PromptLibrary from "./PromptLibrary.jsx";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
 import FeedbackReview from "./FeedbackReview.jsx";
@@ -43,9 +45,13 @@ export default function JournalEditor({
   backLabel = "Diario",
   onChanged,
   onMaterialized,
+  onDrillKept = null,
   registerNavigationHandlers = null,
   autosaveMs = JOURNAL_AUTOSAVE_MS,
 }) {
+  // A Taller drill (docs/DIARIO-TALLER-DIRECTION.md): same writing surface, but keep-or-discard
+  // replaces the save flow entirely — nothing below may persist or log until one is chosen.
+  const drill = seed?.drill || null;
   const initial = cleanDraft({
     title: entry?.title,
     body: entry?.body,
@@ -62,6 +68,11 @@ export default function JournalEditor({
   const [status, setStatus] = useState(entry ? "Saved" : "Start writing to create this moment");
   const [prompt, setPrompt] = useState(() => initialPrompt(seed));
   const [choosingPrompt, setChoosingPrompt] = useState(false);
+  const [tier, setTier] = useState("standard");
+  const [includePrompt, setIncludePrompt] = useState(false);
+  const [confirmingDiscard, setConfirmingDiscard] = useState(false);
+  const [drillBusy, setDrillBusy] = useState(false);
+  const drillDoneRef = useRef(false);
 
   const bodyRef = useRef(null);
   const timerRef = useRef(null);
@@ -147,6 +158,9 @@ export default function JournalEditor({
   }
 
   function flushForTabSwitch() {
+    // Drill text is transient: hiding the editor writes nothing, and the still-mounted
+    // component keeps the draft in memory for the owner's return.
+    if (drill) return Promise.resolve(null);
     clearTimeout(timerRef.current);
     const requested = latestDraftRef.current;
     const flushDraft = requested.pageDate
@@ -164,6 +178,13 @@ export default function JournalEditor({
   }
 
   async function prepareToLeave() {
+    if (drill) {
+      // Writing happened, so leaving must pass through keep-or-discard; a blank drill
+      // (or one already resolved) leaves silently and logs nothing.
+      if (drillDoneRef.current || !latestDraftRef.current.body.trim()) return true;
+      setConfirmingDiscard(true);
+      return false;
+    }
     const requested = latestDraftRef.current;
     if (!requested.pageDate && !sameDraft(requested, lastSavedRef.current)) {
       setStatus("Choose a date before leaving");
@@ -198,6 +219,7 @@ export default function JournalEditor({
   }, []);
 
   useEffect(() => {
+    if (drill) return undefined;
     clearTimeout(timerRef.current);
     const requested = latestDraftRef.current;
     if (sameDraft(requested, lastSavedRef.current)) {
@@ -244,6 +266,64 @@ export default function JournalEditor({
     requestAnimationFrame(() => bodyRef.current?.focus());
   }
 
+  const drillPromptText = drill ? promptTextForTier(drill.prompt, tier) : null;
+  const drillSkillLabel = drill
+    ? (JOURNAL_PROMPT_CATEGORIES.find((category) => category.id === drill.skill)?.label || drill.skill)
+    : null;
+
+  const drillEventDetails = () => ({
+    skill: drill.skill,
+    promptId: drill.prompt.id,
+    tier,
+    offeredWordIds: (drill.offeredWords || []).map((word) => word.id),
+    tema: drill.tema ?? null,
+  });
+
+  async function keepDrill() {
+    const requested = latestDraftRef.current;
+    if (drillBusy || drillDoneRef.current || !requested.body.trim()) return;
+    setDrillBusy(true);
+    try {
+      const body = includePrompt
+        ? bodyWithIncludedPrompt(drillPromptText.es, requested.body)
+        : requested.body;
+      const created = await createItem(newPage({
+        title: requested.title,
+        body,
+        pageDate: requested.pageDate || localDate(),
+      }));
+      await logPracticeWrite(created.id, { ...drillEventDetails(), kept: true });
+      drillDoneRef.current = true;
+      onChanged();
+      onDrillKept?.(created.id);
+    } catch {
+      if (mountedRef.current) setDrillBusy(false);
+    }
+  }
+
+  async function discardDrill() {
+    if (drillBusy || drillDoneRef.current) return;
+    setDrillBusy(true);
+    try {
+      await logPracticeWrite(null, { ...drillEventDetails(), kept: false });
+      drillDoneRef.current = true;
+      onChanged();
+      onBack({ editorPrepared: true });
+    } catch {
+      if (mountedRef.current) setDrillBusy(false);
+    }
+  }
+
+  function requestDiscard() {
+    // No writing yet means nothing to lose and nothing to record — just leave.
+    if (!latestDraftRef.current.body.trim()) {
+      drillDoneRef.current = true;
+      onBack({ editorPrepared: true });
+      return;
+    }
+    setConfirmingDiscard(true);
+  }
+
   return (
     <div className="px-4 py-4 pb-28" style={dotGrid}>
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -256,25 +336,27 @@ export default function JournalEditor({
         >
           <ChevronLeft size={16} /> {backLabel}
         </button>
-        <span role="status" className="text-xs text-right" style={{ color: status === "Saved" ? C.green : C.mut }}>
-          {status}
+        <span role="status" className="text-xs text-right" style={{ color: !drill && status === "Saved" ? C.green : C.mut }}>
+          {drill ? "Nada se guarda hasta que decidas" : status}
         </span>
       </div>
 
       <div className="space-y-3">
-        <input
-          type="date"
-          required
-          aria-label="Journal date"
-          value={date}
-          onChange={(event) => {
-            const nextDate = event.target.value;
-            if (nextDate) lastValidDateRef.current = nextDate;
-            setDate(nextDate);
-          }}
-          className="w-full min-h-11 rounded-xl border px-3 py-2.5 text-sm outline-none"
-          style={{ background: C.card, borderColor: C.line, color: C.ink }}
-        />
+        {!drill && (
+          <input
+            type="date"
+            required
+            aria-label="Journal date"
+            value={date}
+            onChange={(event) => {
+              const nextDate = event.target.value;
+              if (nextDate) lastValidDateRef.current = nextDate;
+              setDate(nextDate);
+            }}
+            className="w-full min-h-11 rounded-xl border px-3 py-2.5 text-sm outline-none"
+            style={{ background: C.card, borderColor: C.line, color: C.ink }}
+          />
+        )}
         <input
           aria-label="Journal title"
           value={title}
@@ -283,6 +365,64 @@ export default function JournalEditor({
           className="w-full bg-transparent text-xl font-semibold outline-none"
           style={{ color: C.ink, fontFamily: SERIF }}
         />
+
+        {drill && (
+          <Card id="taller-drill-prompt" style={{ background: C.diarioPale, borderColor: C.diarioBorder }}>
+            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase" style={{ color: C.diarioInk, letterSpacing: "0.08em" }}>
+              <Hammer size={13} /> Taller · {drillSkillLabel}
+            </div>
+            <div className="mt-2 text-sm" style={{ color: C.ink, fontFamily: SERIF }}>{drillPromptText.es}</div>
+            {drillPromptText.en && <div className="mt-1 text-xs" style={{ color: C.mut }}>{drillPromptText.en}</div>}
+            {promptHasTiers(drill.prompt) && (
+              <div className="mt-2.5 flex gap-1.5">
+                {drill.prompt.easier && (
+                  <button
+                    type="button"
+                    onClick={() => setTier((current) => (current === "easier" ? "standard" : "easier"))}
+                    aria-pressed={tier === "easier"}
+                    className="min-h-11 rounded-full border px-3 py-1 text-xs"
+                    style={tier === "easier"
+                      ? { background: C.pen, borderColor: C.pen, color: C.onAccent }
+                      : { background: C.card, borderColor: C.chipBorder, color: C.penDark }}
+                  >
+                    Más fácil
+                  </button>
+                )}
+                {drill.prompt.harder && (
+                  <button
+                    type="button"
+                    onClick={() => setTier((current) => (current === "harder" ? "standard" : "harder"))}
+                    aria-pressed={tier === "harder"}
+                    className="min-h-11 rounded-full border px-3 py-1 text-xs"
+                    style={tier === "harder"
+                      ? { background: C.pen, borderColor: C.pen, color: C.onAccent }
+                      : { background: C.card, borderColor: C.chipBorder, color: C.penDark }}
+                  >
+                    Más difícil
+                  </button>
+                )}
+              </div>
+            )}
+            {drill.offeredWords?.length > 0 && (
+              <div className="mt-3">
+                <div className="text-[11px] uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>
+                  Si te sirven
+                </div>
+                <div className="mt-1.5 flex flex-wrap gap-1.5" aria-label="Offered words">
+                  {drill.offeredWords.map((word) => (
+                    <span
+                      key={word.id}
+                      className="rounded-full border px-2.5 py-1 text-xs"
+                      style={{ background: C.paper, borderColor: C.chipBorder, color: C.ink, fontFamily: SERIF }}
+                    >
+                      {word.term}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </Card>
+        )}
 
         {prompt && (
           <Card id="active-journal-prompt" className="relative pr-10" style={{ background: C.diarioPale, borderColor: C.diarioBorder }}>
@@ -304,7 +444,7 @@ export default function JournalEditor({
           autoFocus
           blankLines
           aria-label="Journal body"
-          aria-describedby={prompt ? "active-journal-prompt" : undefined}
+          aria-describedby={drill ? "taller-drill-prompt" : prompt ? "active-journal-prompt" : undefined}
           value={body}
           onChange={setBody}
           placeholder="What do you want to remember? Write in Spanish, English, or both."
@@ -312,6 +452,54 @@ export default function JournalEditor({
           style={{ background: C.card, borderColor: C.line, color: C.ink, fontFamily: SERIF }}
         />
 
+        {drill && (
+          <section aria-label="Keep or discard this practice" className="space-y-3">
+            <button
+              type="button"
+              onClick={() => setIncludePrompt((current) => !current)}
+              aria-pressed={includePrompt}
+              className="flex min-h-11 items-center gap-2 text-sm"
+              style={{ color: C.ink }}
+            >
+              <span
+                aria-hidden="true"
+                className="inline-flex h-5 w-5 items-center justify-center rounded border"
+                style={includePrompt
+                  ? { background: C.pen, borderColor: C.pen, color: C.onAccent }
+                  : { background: C.card, borderColor: C.line }}
+              >
+                {includePrompt && <Check size={13} />}
+              </span>
+              Incluir la pregunta al guardar
+            </button>
+            {confirmingDiscard ? (
+              <Card className="p-3" style={{ borderColor: C.dangerBorder }}>
+                <div className="text-sm" style={{ color: C.ink }}>
+                  ¿Descartar esta práctica? El texto se pierde.
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <Button tone="dangerArmed" onClick={discardDrill} disabled={drillBusy}>
+                    Descartar
+                  </Button>
+                  <Button tone="quiet" onClick={() => setConfirmingDiscard(false)} disabled={drillBusy}>
+                    Seguir escribiendo
+                  </Button>
+                </div>
+              </Card>
+            ) : (
+              <div className="flex gap-2">
+                <Button onClick={keepDrill} disabled={drillBusy || !draft.body.trim()}>
+                  Guardar en el Diario
+                </Button>
+                <Button tone="quiet" onClick={requestDiscard} disabled={drillBusy}>
+                  Descartar
+                </Button>
+              </div>
+            )}
+          </section>
+        )}
+
+        {!drill && (
         <section aria-label="Apuntes for this entry">
           <button
             type="button"
@@ -339,6 +527,7 @@ export default function JournalEditor({
             </div>
           </div>
         </section>
+        )}
 
         {entry?.feedback && (
           <section aria-label="Feedback on this entry">
@@ -361,11 +550,15 @@ export default function JournalEditor({
           </section>
         )}
 
-        <Button tone="quiet" onClick={() => setChoosingPrompt((open) => !open)} aria-expanded={choosingPrompt}>
-          <Lightbulb size={15} /> {prompt ? "Change prompt" : "Need a prompt?"}
-        </Button>
-        {choosingPrompt && (
-          <PromptLibrary onSelect={choosePrompt} onClose={() => setChoosingPrompt(false)} />
+        {!drill && (
+          <>
+            <Button tone="quiet" onClick={() => setChoosingPrompt((open) => !open)} aria-expanded={choosingPrompt}>
+              <Lightbulb size={15} /> {prompt ? "Change prompt" : "Need a prompt?"}
+            </Button>
+            {choosingPrompt && (
+              <PromptLibrary onSelect={choosePrompt} onClose={() => setChoosingPrompt(false)} />
+            )}
+          </>
         )}
       </div>
     </div>

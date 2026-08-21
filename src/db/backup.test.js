@@ -307,6 +307,31 @@ describe("import: replace and restore", () => {
     expect(restored.every((e) => /^\d{4}-\d{2}-\d{2}$/.test(e.localDate))).toBe(true);
   });
 
+  it("round-trips practice events, including a discarded drill's subject-less one", async () => {
+    // Taller practice events (docs/DIARIO-TALLER-DIRECTION.md) are the first stored prompt
+    // usage; a discarded drill's event carries no itemKey at all. Both shapes must survive a
+    // backup at schema v9 with no schema bump — checked through JSON text.
+    const page = makePage({ title: "Práctica", pageDate: "2026-08-20" });
+    await db.items.add(page);
+    const details = { skill: "narrate", promptId: "narrate-scene", tier: "easier", offeredWordIds: ["user:w1"], tema: "escalada" };
+    await db.events.bulkAdd([
+      makeEvent({ type: "practice_write", itemKey: page.id, metadata: { ...details, kept: true } }),
+      makeEvent({ type: "practice_write", itemKey: null, metadata: { ...details, kept: false } }),
+    ]);
+
+    const text = JSON.stringify(await buildBackup());
+    await clearAllPersonalData();
+    const { ok, envelope } = validateBackup(text);
+    expect(ok).toBe(true);
+    await importBackup(envelope);
+
+    const restored = (await db.events.toArray()).sort((a, b) => String(a.itemKey).localeCompare(String(b.itemKey)));
+    expect(restored.map((e) => e.metadata.kept)).toEqual([false, true]);
+    expect(restored[0].itemKey).toBeNull();
+    expect(restored[1].itemKey).toBe(page.id);
+    expect(restored.every((e) => e.metadata.skill === "narrate" && e.metadata.tier === "easier")).toBe(true);
+  });
+
   it("survives a JSON string round-trip, not just an in-memory object", async () => {
     await db.items.add(makeLexical({ term: "año" }));
     const text = JSON.stringify(await buildBackup());

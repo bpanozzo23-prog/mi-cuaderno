@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronUp,
   Clock3,
+  Hammer,
   PenLine,
   Plus,
   Search,
@@ -21,7 +22,9 @@ import {
   searchJournalEntries,
   todayJournalEntry,
 } from "../lib/journal.js";
+import { practiceSkillByPage } from "../lib/taller.js";
 import { markdownPreviewText, plainTextFromMarkdown } from "../lib/noteMarkdown.js";
+import TallerPanel from "./TallerPanel.jsx";
 
 function localDateObject(dateString) {
   const [year, month, day] = String(dateString).split("-").map(Number);
@@ -45,7 +48,7 @@ function entryHeading(entry) {
   return firstLine ? firstLine.slice(0, 64) : "Untitled moment";
 }
 
-function EntryCard({ entry, onOpen, eyebrow = null }) {
+function EntryCard({ entry, onOpen, eyebrow = null, badge = null }) {
   const titled = Boolean(entry.title?.trim());
   const bodyPreview = markdownPreviewText(entry.body);
   return (
@@ -57,7 +60,7 @@ function EntryCard({ entry, onOpen, eyebrow = null }) {
     >
       <Card className="active:opacity-80">
         <div className="flex items-center justify-between gap-2 text-[11px]" style={{ color: C.mut, fontFamily: MONO }}>
-          <span>{eyebrow || journalDateLabel(entry.pageDate)}</span>
+          <span>{eyebrow || journalDateLabel(entry.pageDate)}{badge ? ` · ${badge}` : ""}</span>
           {entry.tags?.length > 0 && <span className="truncate">#{entry.tags[0]}</span>}
         </div>
         <div className={`${titled ? "mt-1 font-semibold" : "mt-1 text-sm line-clamp-2"}`} style={{ color: C.ink, fontFamily: SERIF }}>
@@ -73,10 +76,21 @@ function EntryCard({ entry, onOpen, eyebrow = null }) {
   );
 }
 
-export default function JournalHome({ entries, onOpen, onEdit, onStart, now = new Date() }) {
+export default function JournalHome({
+  entries,
+  items = [],
+  events = [],
+  onOpen,
+  onEdit,
+  onStart,
+  now = new Date(),
+  random = Math.random,
+}) {
   const today = localDate(now);
   const [query, setQuery] = useState("");
   const [archiveOpen, setArchiveOpen] = useState(false);
+  const [tallerOpen, setTallerOpen] = useState(false);
+  const skillByPage = useMemo(() => practiceSkillByPage(events), [events]);
   const todayEntry = useMemo(() => todayJournalEntry(entries, today), [entries, today]);
   const continuation = useMemo(() => continueJournalEntry(entries, todayEntry), [entries, todayEntry]);
   const memory = useMemo(() => priorYearMemory(entries, today), [entries, today]);
@@ -117,8 +131,24 @@ export default function JournalHome({ entries, onOpen, onEdit, onStart, now = ne
           <Button tone="quiet" onClick={() => onStart({ date: today })}>
             <Plus size={15} /> New moment
           </Button>
+          <Button tone="quiet" onClick={() => setTallerOpen((open) => !open)} aria-expanded={tallerOpen}>
+            <Hammer size={15} /> Taller
+          </Button>
         </div>
       </Card>
+
+      {tallerOpen && (
+        <TallerPanel
+          items={items}
+          events={events}
+          random={random}
+          onStart={(seed) => {
+            setTallerOpen(false);
+            onStart(seed);
+          }}
+          onClose={() => setTallerOpen(false)}
+        />
+      )}
 
       {continuation && (
         <div className="mt-3">
@@ -170,7 +200,7 @@ export default function JournalHome({ entries, onOpen, onEdit, onStart, now = ne
         <section aria-label="Journal search results" className="mt-5">
           <h2 className="mb-2 text-xs font-semibold uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>Search</h2>
           {results.length > 0 ? (
-            <div className="space-y-2.5">{results.map((entry) => <EntryCard key={entry.id} entry={entry} onOpen={onOpen} />)}</div>
+            <div className="space-y-2.5">{results.map((entry) => <EntryCard key={entry.id} entry={entry} onOpen={onOpen} badge={skillByPage.get(entry.id)} />)}</div>
           ) : (
             <div className="py-7 text-center text-sm italic" style={{ color: C.mut }}>No moments match that.</div>
           )}
@@ -180,7 +210,7 @@ export default function JournalHome({ entries, onOpen, onEdit, onStart, now = ne
           <section aria-label="Journal timeline" className="mt-6">
             <h2 className="mb-2 text-xs font-semibold uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>Timeline</h2>
             {current.length > 0 ? (
-              <div className="space-y-2.5">{current.map((entry) => <EntryCard key={entry.id} entry={entry} onOpen={onOpen} />)}</div>
+              <div className="space-y-2.5">{current.map((entry) => <EntryCard key={entry.id} entry={entry} onOpen={onOpen} badge={skillByPage.get(entry.id)} />)}</div>
             ) : (
               <div className="py-7 text-center text-sm italic" style={{ color: C.mut }}>Your first moment can begin with today.</div>
             )}
@@ -203,7 +233,7 @@ export default function JournalHome({ entries, onOpen, onEdit, onStart, now = ne
                   {archive.map((group) => (
                     <div key={group.year}>
                       <h3 className="mb-2 text-sm font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>{group.year}</h3>
-                      <div className="space-y-2.5">{group.entries.map((entry) => <EntryCard key={entry.id} entry={entry} onOpen={onOpen} />)}</div>
+                      <div className="space-y-2.5">{group.entries.map((entry) => <EntryCard key={entry.id} entry={entry} onOpen={onOpen} badge={skillByPage.get(entry.id)} />)}</div>
                     </div>
                   ))}
                 </div>

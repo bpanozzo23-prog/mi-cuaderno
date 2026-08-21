@@ -13,6 +13,7 @@ export default function Diario({
   onEdit,
   onStart,
   onMaterialized,
+  onDrillKept = null,
   registerEditorNavigationHandlers = null,
 }) {
   const entries = journalEntries(notebook.items);
@@ -28,6 +29,7 @@ export default function Diario({
         backLabel={backLabel}
         onChanged={notebook.reload}
         onMaterialized={onMaterialized}
+        onDrillKept={onDrillKept}
         registerNavigationHandlers={registerEditorNavigationHandlers}
       />
     );
@@ -50,5 +52,14 @@ export default function Diario({
     );
   }
 
-  return <JournalHome entries={entries} onOpen={onSelect} onEdit={onEdit} onStart={onStart} />;
+  return (
+    <JournalHome
+      entries={entries}
+      items={notebook.items}
+      events={notebook.events}
+      onOpen={onSelect}
+      onEdit={onEdit}
+      onStart={onStart}
+    />
+  );
 }

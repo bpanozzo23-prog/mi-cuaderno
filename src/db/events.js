@@ -24,6 +24,7 @@ export const EVENT_TYPES = {
   searchMiss: "search_miss",
   drillPass: "drill_pass",
   drillFail: "drill_fail",
+  practiceWrite: "practice_write",
 };
 
 /**
@@ -131,6 +132,26 @@ export async function logDrill(itemKey, passed, details = null, when = new Date(
     { ...(details || {}) },
     when
   );
+}
+
+/**
+ * Records one Taller drill outcome (docs/DIARIO-TALLER-DIRECTION.md) — the narrow 2026-08-20
+ * amendment of the 2026-08-03 visit-local prompt rule. Logged exactly once per drill, only at
+ * keep/discard time. `pageId` is the kept Journal page's id, or null when the writing was
+ * discarded: a discarded drill still logs, because writing happened, but its text is never
+ * stored anywhere. Ordinary "Need a prompt?" selection remains visit-local and unrecorded.
+ *
+ * `details` carries { skill, promptId, tier, kept, offeredWordIds, tema }. `kept` is explicit
+ * even though `itemKey` implies it — deleting the page later leaves `itemKey` dangling, and
+ * kept-ness must survive that. Offered word ids record only what was shown; no event is ever
+ * logged against the words themselves.
+ */
+export async function logPracticeWrite(pageId, details = null, when = new Date()) {
+  // Same guard as logReview: a Date in the details slot would spread to no keys and
+  // silently become "now", leaving metadata that looks perfectly correct.
+  if (details instanceof Date) return logPracticeWrite(pageId, null, details);
+
+  return logEvent(EVENT_TYPES.practiceWrite, pageId, { ...(details || {}) }, when);
 }
 
 export async function toggleTricky(itemKey, currentlyTricky, when = new Date()) {
