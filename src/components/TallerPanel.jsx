@@ -70,7 +70,12 @@ export default function TallerPanel({ items = [], events = [], onStart, onClose,
             Una práctica corta. Tú decides si se guarda.
           </div>
         </div>
-        <button type="button" onClick={onClose} aria-label="Close Taller" className="p-2">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close Taller"
+          className="inline-flex min-h-11 min-w-11 items-center justify-center"
+        >
           <X size={16} style={{ color: C.mut }} />
         </button>
       </div>

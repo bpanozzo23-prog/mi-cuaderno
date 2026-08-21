@@ -270,11 +270,12 @@ export function Segmented({ label, value, options, onChange }) {
   );
 }
 
-export function Card({ children, className = "", style = {} }) {
+export function Card({ children, className = "", style = {}, ...rest }) {
   return (
     <div
       className={`rounded-xl border p-3 ${className}`}
       style={{ background: C.card, borderColor: C.line, ...style }}
+      {...rest}
     >
       {children}
     </div>
