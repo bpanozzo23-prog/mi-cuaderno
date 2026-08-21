@@ -732,6 +732,36 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   [32420448459](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32420448459). See the
   2026-08-19/20 entries in [DECISIONS.md](DECISIONS.md).
 
+- **Taller — Diario writing practice — deployed.** The Diario keeps "Write today" untouched and
+  gains a quiet **Taller** door: a panel proposes one skill (the least-recently-practiced of
+  Narrate/Imagine/Connect, rotating by local day before any practice data exists) with all seven
+  prompt categories one tap away and an owner-edited **Mis temas** interest list (new
+  `tallerTemas` preference riding the generic backup path, narrowly validated). A drill runs in
+  the ordinary journal editor with every persistence path suppressed: the prompt at an optional
+  easier/harder tier, a shuffleable tema nudge never spliced into the Spanish, always-visible
+  regular endings for tense-targeted prompts, a word bank and a read-only live verb lookup from
+  the installed dictionary (absent when none is installed), and sometimes 2–3 of the owner's own
+  words as unlabeled chips that create no link and no event. **Keep or discard** replaces the
+  save flow: keep writes one ordinary dated Journal entry — with one default-off tap to include
+  the prompt as a quote block — and lands on its reader; discard confirms in two steps and keeps
+  no text. Either way one `practice_write` event records skill, prompt id, tier, kept/discarded,
+  offered word ids and tema — the first deliberate storage of prompt usage, under two narrow
+  owner-approved amendments of the 2026-08-03 visit-local prompt rule and the never-automatic-
+  body-text rule. Kept entries show a muted derived skill badge in the timeline; streak, history
+  and coverage displays stay deferred until real practice data exists, and no AI participates.
+  `SCHEMA_VERSION` stays 9: backup validation enumerates no event types, and the subject-less
+  discarded-drill event round-trips, pinned by test. Weakness-aware prompt draws softly prefer
+  tenses the Conjugation Gym's derivations mark weak. The complete serial suite passes
+  1,640/1,640 across 137 files (run twice, around a shared `Card` rest-prop fix the closeout
+  caught), the production build and `git diff --check` pass, three deliberate red/green proofs
+  reddened as intended, and a disposable 375×812 closeout walked the door, panel, temas, tiers,
+  scaffolds, a live r4 `sacar` lookup, keep-with-prompt, the timeline badge and the discard path
+  by the numbers with zero horizontal overflow and a clean console. Deployed from `main` at
+  `6d7dd34` through Pages run
+  [32437421316](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32437421316). See
+  [docs/DIARIO-TALLER-DIRECTION.md](docs/DIARIO-TALLER-DIRECTION.md) and the Taller v1 entries
+  in [DECISIONS.md](DECISIONS.md).
+
 `SCHEMA_VERSION` is **9**. Before Dexie opens v9, schema-v1 through schema-v8 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
 relationship, composable-page, Grammar-hierarchy, Structured-Notes, entry-feedback and Apuntes
