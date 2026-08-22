@@ -10,10 +10,15 @@ Codex-specific notes only:
 - **The owner's real browser data is not available in Codex's test browser.** Verify against
   seeded fixture data as the guide describes; never treat an empty notebook as the owner's
   actual state.
-- **This Codex shell is Windows PowerShell 5.1.** Use `npm.cmd test`, `npm.cmd run build` and
-  `npm.cmd run dev`; plain `npm` resolves to `npm.ps1`, which this machine's execution policy
-  blocks. When reading the repository's UTF-8 files with `Get-Content`, pass `-Encoding UTF8`
-  (or use `rg`) so ñ, section signs and punctuation are not garbled.
+- **On the Windows laptop this Codex shell is Windows PowerShell 5.1.** Use `npm.cmd test`,
+  `npm.cmd run build` and `npm.cmd run dev`; plain `npm` resolves to `npm.ps1`, which that
+  machine's execution policy blocks. When reading the repository's UTF-8 files with
+  `Get-Content`, pass `-Encoding UTF8` (or use `rg`) so ñ, section signs and punctuation are not
+  garbled.
+- **On the XPS server (`uname` says `Linux`) the shell is bash**, reached over SSH inside
+  `tmux`. `npm.cmd` does not exist there and plain `npm test` is correct; use `cat`/`rg` rather
+  than `Get-Content`. There is no browser pane — see the guide's "Two machines, one remote" for
+  how verification and unpushed commits are handled across the two checkouts.
 - **Subagents:** For substantial reviews, audits, or debugging with at least two independent
   read-only investigations, use at most two subagents when doing so would materially improve
   coverage or keep noisy exploration out of the main context. Suitable work includes mapping
