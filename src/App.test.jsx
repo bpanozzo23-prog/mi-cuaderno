@@ -1417,8 +1417,15 @@ describe("Cuidar hub navigation", () => {
     expect(
       screen.getByText("These exact tags differ only by capitalization. Choose the spelling to keep, then review each merge.")
     ).toBeTruthy();
-    // Let Ajustes' initial async storage refresh settle before teardown closes the database.
+    // Let Ajustes' mount-time async work settle before teardown deletes the reference slots.
+    // The Backup card's refresh reads only the personal database, which teardown never closes,
+    // so the items line alone proved insufficient: the Dictionary card's refresh also opens
+    // the *inactive* reference slot (pendingInstall), and on a slow CPU that open is still in
+    // flight when afterEach's removeDictionary() closes it — an unhandled DatabaseClosedError.
+    // The card's settled state is its manifest notice (jsdom serves no manifest), rendered
+    // strictly after that read has returned.
     await screen.findByText(/2 items · /);
+    await screen.findByText(/Could not reach the dictionary files/, {}, { timeout: 3000 });
   }, 10_000);
 
   it("celebrates a tended notebook inside the hub while the door stays static", async () => {
