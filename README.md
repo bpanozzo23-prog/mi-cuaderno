@@ -762,7 +762,8 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   [docs/DIARIO-TALLER-DIRECTION.md](docs/DIARIO-TALLER-DIRECTION.md) and the Taller v1 entries
   in [DECISIONS.md](DECISIONS.md).
 
-- **Lexical Structured Notes — implemented and verified locally; not pushed or deployed.** Schema
+- **Lexical Structured Notes — deployed.** (Pushed 2026-08-21 as `2b8fabd` with the spacing
+  follow-up `6195ee8`; both GitHub Pages runs completed successfully.) Schema
   v10 preserves every existing Word/Phrase `notes` string as its permanent **General note** and
   adds a mandatory one-level `noteSections[]` outline. Lexical Detail now supports multiple named
   Markdown sections and one subsection level with stable IDs, confirmed leaf deletion, and an
@@ -781,6 +782,15 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   nesting stayed absent, and the console was clean. See
   [docs/LEXICAL-STRUCTURED-NOTES-DIRECTION.md](docs/LEXICAL-STRUCTURED-NOTES-DIRECTION.md) and the
   2026-08-21 entries in [DECISIONS.md](DECISIONS.md).
+- **Recent list expansion — deployed.** The Cuaderno landing's Recent card shows five items
+  (was three) with a "Show more" toggle revealing up to ten; the expanded state is in-memory
+  only and "Browse all" remains the full-list door. No schema, preference, event or backup
+  change. The complete serial suite passes 1,659/1,661 across 140 files on the XPS: the two
+  failures (`TallerDrill.test.jsx` keep-flow, `JournalEditor.test.jsx` prompt leak) predate this
+  change on a clean checkout and look date-sensitive — recorded here so the next run is not read
+  as a regression of this feature. The production build passes. No browser closeout: shipped from
+  the headless XPS on test and build evidence only. See the 2026-08-23 entry in
+  [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **10**. Before Dexie opens v10, schema-v1 through schema-v9 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
