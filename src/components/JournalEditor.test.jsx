@@ -184,10 +184,11 @@ describe("JournalEditor autosave", () => {
     await user.type(screen.getByRole("textbox", { name: "Journal title" }), "Morning");
     await user.type(screen.getByRole("textbox", { name: "Journal body" }), "Hoy caminé.");
 
-    await waitFor(async () => expect(await allItems()).toHaveLength(1));
+    // The page materializes from an early keystroke's autosave, so a length-only wait can
+    // observe a partial body; wait for the final text, as the update wait below already does.
+    await waitFor(async () => expect((await allItems())[0]?.body).toBe("Hoy caminé."));
     const [created] = await allItems();
     expect(created.title).toBe("Morning");
-    expect(created.body).toBe("Hoy caminé.");
     expect(created.pageDate).toBe("2026-08-03");
     expect(props.onMaterialized).toHaveBeenCalledWith(created.id);
 
@@ -331,9 +332,9 @@ describe("JournalEditor autosave", () => {
     await user.click(screen.getByRole("button", { name: "Apuntes" }));
     await user.type(screen.getByRole("textbox", { name: "Apuntes" }), "Feedback de Gemini.");
 
-    await waitFor(async () => expect(await allItems()).toHaveLength(1));
+    // Same partial-save seam as above: the page exists after the first Apuntes keystroke.
+    await waitFor(async () => expect((await allItems())[0]?.apuntes).toBe("Feedback de Gemini."));
     const [created] = await allItems();
-    expect(created.apuntes).toBe("Feedback de Gemini.");
     expect(created.body).toBe("");
     expect(created.pageDate).toBe("2026-08-03");
   });
@@ -349,9 +350,9 @@ describe("JournalEditor autosave", () => {
     expect(screen.getByRole("textbox", { name: "Journal body" }).value).toBe("");
 
     await user.type(screen.getByRole("textbox", { name: "Journal body" }), "Escuché la palabra sobremesa.");
-    await waitFor(async () => expect(await allItems()).toHaveLength(1));
+    // Same partial-save seam as above — this is the flake seen at line ~354/356 in full runs.
+    await waitFor(async () => expect((await allItems())[0]?.body).toBe("Escuché la palabra sobremesa."));
     const [created] = await allItems();
-    expect(created.body).toBe("Escuché la palabra sobremesa.");
     expect(created.promptId).toBeUndefined();
     expect(created.prompt).toBeUndefined();
   });

@@ -86,7 +86,9 @@ describe("Taller drill flow", () => {
       tema: null,
     });
     expect(await allItems()).toEqual([]);
-    expect(props.onBack).toHaveBeenCalledWith({ editorPrepared: true });
+    // Same seam as the keep test: onBack fires after the event write resolves, one tick
+    // after the event is visible to the query above.
+    await waitFor(() => expect(props.onBack).toHaveBeenCalledWith({ editorPrepared: true }));
   });
 
   it("keep without the tap includes no prompt text; the tap prepends one quote block", async () => {
@@ -97,7 +99,9 @@ describe("Taller drill flow", () => {
     await user.type(screen.getByRole("textbox", { name: "Journal body" }), "Fui al mercado.");
     await user.click(screen.getByRole("button", { name: "Guardar en el Diario" }));
 
-    await waitFor(async () => expect((await allItems()).length).toBe(1));
+    // The page row lands mid-flow, before keepDrill's practice event and callback; waiting on
+    // onDrillKept — its final step — means everything below is settled, not racing a slow CPU.
+    await waitFor(() => expect(props.onDrillKept).toHaveBeenCalledTimes(1));
     const [plain] = await allItems();
     expect(plain.body).toBe("Fui al mercado.");
     expect(plain.body).not.toContain(tieredPrompt.es);
@@ -111,12 +115,15 @@ describe("Taller drill flow", () => {
     cleanup();
     await clearAllPersonalData();
 
-    render(<JournalEditor {...drillProps(drillSeed())} />);
+    const tapProps = drillProps(drillSeed());
+    render(<JournalEditor {...tapProps} />);
     await user.type(screen.getByRole("textbox", { name: "Journal body" }), "Fui al mercado.");
     await user.click(screen.getByRole("button", { name: "Incluir la pregunta al guardar" }));
     await user.click(screen.getByRole("button", { name: "Guardar en el Diario" }));
 
-    await waitFor(async () => expect((await allItems()).length).toBe(1));
+    // Settled-flow wait again — ending on the page row alone lets this half's practice event
+    // land inside the next test, after its clearAllPersonalData.
+    await waitFor(() => expect(tapProps.onDrillKept).toHaveBeenCalledTimes(1));
     const [included] = await allItems();
     expect(included.body).toBe(`> ${tieredPrompt.es}\n\nFui al mercado.`);
   });
