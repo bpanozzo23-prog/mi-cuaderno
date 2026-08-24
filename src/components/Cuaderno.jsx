@@ -109,8 +109,9 @@ export default function Cuaderno({
     () => items.filter((item) => !isJournalEntry(item)),
     [items]
   );
+  // The landing shows 5 of these and reveals the rest behind its Show more toggle.
   const recentItems = useMemo(
-    () => orderItems(nonJournalItems, BROWSE_ORDERS.touched).slice(0, 3),
+    () => orderItems(nonJournalItems, BROWSE_ORDERS.touched).slice(0, 10),
     [nonJournalItems]
   );
   const wordCount = nonJournalItems.filter(

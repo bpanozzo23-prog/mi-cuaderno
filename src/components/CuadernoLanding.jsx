@@ -7,6 +7,7 @@ import {
   Route,
   Sprout,
 } from "lucide-react";
+import { useState } from "react";
 import { C, SERIF } from "../theme.jsx";
 import { firstMeaningGloss } from "../lib/meanings.js";
 import { activePageContextsForLexical } from "../lib/pageReferences.js";
@@ -214,6 +215,11 @@ export default function CuadernoLanding({
 }) {
   const searching = query.trim() !== "";
   const topResults = results.slice(0, 5);
+  // Collapsed shows 5 of the up-to-10 recent items Cuaderno passes in; in-memory only, so the
+  // landing reopens compact.
+  const [recentExpanded, setRecentExpanded] = useState(false);
+  const visibleRecent = recentExpanded ? recentItems : recentItems.slice(0, 5);
+  const recentOverflow = recentItems.length > 5;
 
   return (
     <main className="px-4 pb-32 pt-2" style={{ background: C.paper }}>
@@ -330,9 +336,20 @@ export default function CuadernoLanding({
         >
           {recentItems.length > 0 ? (
             <div className="divide-y" style={{ borderColor: C.line }}>
-              {recentItems.map((item) => (
+              {visibleRecent.map((item) => (
                 <RecentRow key={item.id} item={item} onOpen={onOpen} />
               ))}
+              {recentOverflow && (
+                <button
+                  type="button"
+                  onClick={() => setRecentExpanded((open) => !open)}
+                  aria-expanded={recentExpanded}
+                  className={`flex min-h-11 w-full items-center justify-center gap-1 px-4 text-sm font-semibold active:opacity-75 ${quietFocus}`}
+                  style={{ color: C.pen }}
+                >
+                  {recentExpanded ? "Show less" : `Show more (${recentItems.length - 5})`}
+                </button>
+              )}
             </div>
           ) : (
             <div className="px-4 py-5 text-sm" style={{ color: C.entryMeaning }}>

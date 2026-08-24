@@ -117,24 +117,32 @@ afterEach(async () => {
 });
 
 describe("Cuaderno landing", () => {
-  it("shows notebook doors, the three most recent non-journal items, and opens the hubs", async () => {
+  it("shows notebook doors, five recent items expandable to ten, and opens the hubs", async () => {
     const user = userEvent.setup();
     const props = propsFor([
       word("aunque"),
       word("tener en cuenta", { id: "user:phrase", form: "phrase" }),
       page("Grammar guide", { pageFocus: "grammar" }),
-      word("older"),
+      ...Array.from({ length: 9 }, (_, index) => word(`extra-${index + 1}`)),
     ]);
     render(<Cuaderno {...props} />);
 
     expect(screen.getByRole("heading", { name: "Mi cuaderno" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /^Words & phrases\. 2 words · 1 phrase/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Words & phrases\. 10 words · 1 phrase/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: /^Pages\. 1 page/ })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /^Browse all 4 items/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Browse all 12 items/ })).toBeTruthy();
     expect(card("aunque")).toBeTruthy();
     expect(card("tener en cuenta")).toBeTruthy();
     expect(card("Grammar guide")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /^older/ })).toBeNull();
+    expect(card("extra-2")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^extra-3/ })).toBeNull();
+
+    // Show more reveals the rest of the ten-item pool; the pool itself stays capped at ten.
+    await user.click(screen.getByRole("button", { name: "Show more (5)" }));
+    expect(card("extra-7")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^extra-8/ })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Show less" }));
+    expect(screen.queryByRole("button", { name: /^extra-3/ })).toBeNull();
 
     await user.click(screen.getByRole("button", { name: /^Words & phrases/ }));
     expect(props.onOpenLexical).toHaveBeenCalledWith("all");
