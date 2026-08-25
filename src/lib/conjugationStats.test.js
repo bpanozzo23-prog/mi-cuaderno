@@ -122,6 +122,30 @@ describe("Conjugation Gym performance contracts", () => {
       .toEqual(conjugationPerformance([formEvent]));
   });
 
+  it("reports Choose answers separately with their diagnoses and leaves every typed figure identical", () => {
+    const typedEvents = [
+      answer({ passed: true, minute: 1 }),
+      answer({ passed: false, minute: 2, diagnosis: "wrong_tense" }),
+      answer({ passed: true, minute: 3, stage: "retry", promptId: "p-2" }),
+    ];
+    const choiceEvents = [
+      answer({ passed: false, minute: 4, mode: "choice", verdict: "wrong", diagnosis: "wrong_person", chosen: "sois" }),
+      answer({ passed: false, minute: 5, mode: "choice", verdict: "wrong", diagnosis: "wrong_person", chosen: "eres" }),
+      answer({ passed: true, minute: 6, mode: "choice", verdict: "exact", diagnosis: null }),
+      answer({ passed: true, minute: 7, mode: "choice", verdict: "exact", diagnosis: null, stage: "missed" }),
+    ];
+    const options = { activeVerbs: [active("ser", "saved")], dictionaryAvailable: true };
+
+    const withChoice = conjugationPerformance([...typedEvents, ...choiceEvents], options);
+    const typedOnly = conjugationPerformance(typedEvents, options);
+    expect(withChoice.choice).toMatchObject({ answered: 3, passed: 1, accuracy: 1 / 3 });
+    expect(withChoice.choice.diagnoses).toHaveLength(1);
+    expect(withChoice.choice.diagnoses[0]).toMatchObject({ diagnosis: "wrong_person", answered: 2, passed: 0 });
+    expect({ ...withChoice, choice: null }).toEqual({ ...typedOnly, choice: null });
+    expect(withChoice.lifetime).toEqual(typedOnly.lifetime);
+    expect(withChoice.reveal).toEqual(typedOnly.reveal);
+  });
+
   it("does not let retry or missed-round passes inflate first-attempt accuracy", () => {
     const events = [
       answer({ passed: false, minute: 1, promptId: "p-1" }),

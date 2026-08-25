@@ -75,6 +75,12 @@ Contrasts lane (ser/estar, por/para) of four-choice cloze over curated original 
 `tense`. Form statistics, Adaptive and review derivations stay isolated; schema stays v10. See
 `docs/CONTRAST-LANE-DIRECTION.md`.
 
+**Forms Choose amendment, 2026-08-24 — §§7 and 12:** the Forms drill adds a Choose answer mode —
+the answer plus three other forms of the same verb — writing ordinary Forms events with
+`mode: "choice"`, ladder `diagnosis` and miss-only `chosen`. Primary accuracy remains typed initial
+attempts; Choose is reported separately like Reveal and feeds Adaptive targeting like a Reveal
+miss. Schema stays v10. See `docs/FORMS-CHOICE-DIRECTION.md`.
+
 ---
 
 ## 1. What this is
@@ -453,6 +459,12 @@ authority.
   carry **no `tense`**, `itemKey`, `verbKey`, `slot` or response text. Form statistics exclude
   every recognition-kind event structurally rather than by skill name; Adaptive and every review
   derivation continue to ignore them. Usage and Endings metadata are unchanged.
+- **Forms Choose amendment, 2026-08-24:** Forms answers may carry `mode: "choice"` with the
+  unchanged Forms metadata, `verdict` `exact` or `wrong`, the typed checker's ladder `diagnosis`
+  for a miss, and **miss-only `chosen`** — the offered dictionary form that was tapped, never
+  owner-typed text. Typed initial attempts remain the sole primary accuracy denominator; Choose is
+  reported separately like Reveal, a Choose miss is Adaptive targeting evidence and a Choose pass
+  is exposure only, and every review derivation continues to ignore all drill types.
 - **Phase-22 recall clarification, 2026-08-12:** Similar-meaning recall is an owner-started,
   history-free session over direct confirmed Similar meaning neighbors. Starting, revealing,
   self-grading, repeating misses, finishing, or leaving writes no event or timestamp and changes no

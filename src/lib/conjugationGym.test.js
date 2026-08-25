@@ -497,6 +497,33 @@ describe("adaptive decks", () => {
     expect(gymCellKey(deck[0])).toBe("lemma:ser|Indicative/Present|tú");
   });
 
+  it("treats a Choose miss as targeting evidence and a Choose pass as exposure only", () => {
+    const verbs = [verb("ser"), verb("estar")];
+    const miss = [{
+      type: "drill_fail",
+      at: "2026-08-07T12:00:00.000Z",
+      metadata: {
+        mode: "choice", stage: "initial", promptId: "choice-1", verdict: "wrong", diagnosis: "wrong_person", chosen: "eres",
+        verbKey: "lemma:ser", tense: "Indicative/Present", slot: "yo",
+      },
+    }];
+    const deck = buildAdaptiveGymDeck(verbs, miss, { size: 10, now: "2026-08-09T12:00:00.000Z", rng: seeded([0.4, 0.6]) });
+    expect(deck.slice(0, 4).map(gymCellKey)).toContain("lemma:ser|Indicative/Present|yo");
+
+    const twoCells = verb("ser", ["Indicative/Present"]);
+    twoCells.conjugation.tenses["Indicative/Present"] = { yo: "soy", "tú": "eres" };
+    const pass = [{
+      type: "drill_pass",
+      at: "2026-08-07T12:00:00.000Z",
+      metadata: {
+        mode: "choice", stage: "initial", promptId: "choice-1", verdict: "exact", diagnosis: null,
+        verbKey: "lemma:ser", tense: "Indicative/Present", slot: "yo",
+      },
+    }];
+    const exposure = buildAdaptiveGymDeck([twoCells], pass, { size: 1, now: "2026-08-09T12:00:00.000Z", rng: seeded([0.5]) });
+    expect(gymCellKey(exposure[0])).toBe("lemma:ser|Indicative/Present|tú");
+  });
+
   it("ranks an unresolved recent miss ahead of a recovered one", () => {
     const twoCells = verb("ser", ["Indicative/Present"]);
     twoCells.conjugation.tenses["Indicative/Present"] = { yo: "soy", "tú": "eres", nosotros: "somos" };

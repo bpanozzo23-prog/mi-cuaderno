@@ -159,6 +159,7 @@ export function conjugationPerformance(
   const rows = normalizeEvents(events, { items, itemLemmas, targets: activeTargets, source, tenses });
   const primary = rows.filter((row) => isTypedMode(row.mode) && row.stage === "initial");
   const revealRows = rows.filter((row) => row.mode === "reveal" && row.stage === "initial");
+  const choiceRows = rows.filter((row) => row.mode === "choice" && row.stage === "initial");
   const recentRows = primary.slice(-50);
   const previousRows = primary.slice(-100, -50);
   const recent = summary(recentRows);
@@ -262,6 +263,16 @@ export function conjugationPerformance(
     previous,
     lifetime: summary(primary),
     reveal: summary(revealRows),
+    // Choose is recognition of the verb's own forms, reported beside Reveal and never in the
+    // typed denominator; its miss diagnoses come from the same ladder as typed answers.
+    choice: {
+      ...summary(choiceRows),
+      diagnoses: aggregate(
+        choiceRows.filter((row) => !row.passed).map((row) => ({ ...row, diagnosis: row.diagnosis || "wrong" })),
+        "diagnosis",
+        "diagnosis"
+      ),
+    },
     recovery: recoveryFrom(rows),
     tenses: tensesRows,
     slots: slotsRows,
