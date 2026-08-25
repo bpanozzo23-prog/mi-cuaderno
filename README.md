@@ -835,6 +835,27 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   plus the owner's phone check against the `--host` dev URL. Pushed 2026-08-24 as `939e48f`. See
   [docs/TRANSFORM-LANE-DIRECTION.md](docs/TRANSFORM-LANE-DIRECTION.md) and the "Transform lane"
   entries in [DECISIONS.md](DECISIONS.md).
+- **Diario skill-prompt examples and coverage expansion — deployed.** Every skill prompt
+  (narrate/imagine/connect) now carries a Spanish-only `example` — a short model answer to the
+  base prompt — shown only behind a new collapsed 44px **Ejemplo** disclosure in both the Taller
+  drill card and the ordinary selected-prompt card; reflective prompts carry none, and the
+  example is transient drill furniture: display-only, never stored on a page or event, never
+  inserted into body text. The library grows 42 → 47 with five owner-chosen coverage prompts —
+  past-subjunctive hypotheticals and hubiera/habría regret chains (Imagine), pluscuamperfecto
+  narration (Narrate), gustar-type reactions (word-offering) and duration expressions (Connect) —
+  all tiered with examples; the three new tenses are the first prompts to use them and all have
+  endings-scaffold rows. The invariant suite pins per-category counts (narrate 7, imagine 8,
+  connect 8, reflective four at 6) and that every skill prompt ships both tiers and an example.
+  `SCHEMA_VERSION` stays 10; no event type, preference or backup change. The complete serial
+  suite passes 1,711/1,711 across 145 files on the Windows laptop, the production build and
+  `git diff --check` pass, and two deliberate failure proofs reddened as intended
+  (a default-expanded example; a miscategorized prompt against the count map). A disposable
+  375×812 closeout verified both disclosures collapsed by default, correct text on expand, the
+  44px trigger, no overlap with the remove-prompt control, zero horizontal overflow and a clean
+  console, and the live root serves the same bundle name as the local build. Pushed 2026-08-25
+  as `1316ee2` through Pages run
+  [32904787874](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32904787874). See
+  the 2026-08-25 entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **10**. Before Dexie opens v10, schema-v1 through schema-v9 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
