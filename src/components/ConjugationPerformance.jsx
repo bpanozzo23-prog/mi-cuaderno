@@ -330,6 +330,25 @@ export default function ConjugationPerformance({
         </>
       )}
 
+      {stats.choice.answered > 0 && (
+        <>
+          <SectionTitle>Choose practice</SectionTitle>
+          <Card className="p-4">
+            <div className="text-sm" style={{ color: C.ink }}>
+              {stats.choice.passed} of {stats.choice.answered} chosen correctly
+            </div>
+            {stats.choice.diagnoses.length > 0 && (
+              <div className="mt-1 text-[10px]" style={{ fontFamily: MONO, color: C.mut }}>
+                {stats.choice.diagnoses
+                  .map((row) => `${(DIAGNOSIS_LABEL[row.diagnosis] || row.diagnosis).toLowerCase()} ×${row.answered}`)
+                  .join(" · ")}
+              </div>
+            )}
+            <div className="mt-1 text-xs" style={{ color: C.mut }}>Recognition of the verb's own forms — shown separately from typed recall.</div>
+          </Card>
+        </>
+      )}
+
       {stats.tenses.length > 0 && (
         <>
           <SectionTitle>By tense</SectionTitle>

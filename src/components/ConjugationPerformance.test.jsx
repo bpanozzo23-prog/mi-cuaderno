@@ -228,6 +228,23 @@ describe("dedicated Conjugation Gym performance", () => {
     expect(screen.getByText(/1 of 1 initial misses recovered/)).toBeTruthy();
   });
 
+  it("shows Choose practice with its miss diagnoses without touching typed accuracy", () => {
+    const events = [
+      answer({ passed: false, promptId: "typed-miss" }),
+      answer({ passed: false, mode: "choice", diagnosis: "wrong_person" }),
+      answer({ passed: false, mode: "choice", diagnosis: "wrong_person" }),
+      answer({ passed: false, mode: "choice", diagnosis: "wrong_tense" }),
+      answer({ passed: true, mode: "choice", diagnosis: null }),
+    ];
+    render(<ConjugationPerformance items={[]} events={events} library={library()} onBack={vi.fn()} />);
+
+    expect(screen.getByText("0 correct of 1")).toBeTruthy();
+    expect(screen.getByText("Choose practice")).toBeTruthy();
+    expect(screen.getByText("1 of 4 chosen correctly")).toBeTruthy();
+    expect(screen.getByText("wrong person ×2 · wrong tense ×1")).toBeTruthy();
+    expect(screen.queryByText(/reveals/)).toBeNull();
+  });
+
   it("names accent collisions in Error patterns", () => {
     render(<ConjugationPerformance
       items={[]}
