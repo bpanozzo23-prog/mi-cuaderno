@@ -6,6 +6,7 @@ import { TENSE_PACKS } from "../lib/conjugationGym.js";
 import { qualifiedTenseLabel } from "../lib/conjugation.js";
 import { recognitionPerformance } from "../lib/recognitionStats.js";
 import { gymDepthPerformance } from "../lib/gymDepthStats.js";
+import { CONTRAST_PAIRS } from "../lib/contrastContent.js";
 
 const SOURCE_OPTIONS = [
   { value: "all", label: "All" },
@@ -32,7 +33,8 @@ const DIAGNOSIS_LABEL = {
 };
 
 const pct = (value) => value === null || value === undefined ? "—" : `${Math.round(value * 100)}%`;
-const SKILL_LABEL = { usage: "Tense usage", endings: "Endings" };
+const SKILL_LABEL = { usage: "Tense usage", endings: "Endings", contrast: "Contrasts" };
+const pairLabel = (pair) => CONTRAST_PAIRS[pair]?.label || pair;
 
 function AccuracyRow({ label, row, weak = row.weak, onPractice = null }) {
   const percent = Math.round((row.accuracy || 0) * 100);
@@ -175,6 +177,24 @@ export default function ConjugationPerformance({
                 <AccuracyRow key={lane.skill} label={SKILL_LABEL[lane.skill] || lane.skill} row={lane} weak={false} />
               ))}
             </div>
+            {recognition.pairs.length > 0 && (
+              <div className="mt-4 border-t pt-3" style={{ borderColor: C.line }}>
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-wide" style={{ fontFamily: MONO, color: C.mut }}>By pair</div>
+                <div className="space-y-2.5">
+                  {recognition.pairs.map((row) => (
+                    <div key={row.pair}>
+                      <AccuracyRow label={pairLabel(row.pair)} row={row} weak={false} />
+                      {row.confusions.length > 0 && (
+                        <div className="mt-0.5 text-[10px]" style={{ fontFamily: MONO, color: C.mut }}>
+                          {row.confusions.map((confusion) => `«${confusion.answer}» answered as «${confusion.chosen}» ×${confusion.count}`).join(" · ")}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {recognition.tenses.length > 0 && (
             <div className="mt-4 border-t pt-3" style={{ borderColor: C.line }}>
               <div className="mb-2 text-[10px] font-semibold uppercase tracking-wide" style={{ fontFamily: MONO, color: C.mut }}>By tense</div>
               <div className="space-y-2.5">
@@ -197,8 +217,9 @@ export default function ConjugationPerformance({
                 })}
               </div>
             </div>
+            )}
             <div className="mt-3 text-[10px]" style={{ color: C.mut }}>
-              Choice recognition is global; the tense-pack filter applies, while Saved/Built-in filters only Forms.
+              Choice recognition is global; the tense-pack filter applies to tense lanes only, while Saved/Built-in filters only Forms.
             </div>
           </>
         )}

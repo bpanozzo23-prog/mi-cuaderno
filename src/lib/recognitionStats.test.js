@@ -65,6 +65,44 @@ describe("recognition performance", () => {
     expect(stats.tenses.map((row) => row.tense)).toEqual(["Subjunctive/Present"]);
   });
 
+  it("aggregates Contrasts answers per pair, outside every tense row and tense-pack scope", () => {
+    const contrast = ({ passed, pair, answerKey, chosen = null, stage = "initial" }) => {
+      const event = answer({ passed, skill: "contrast", tense: null, chosen, stage });
+      delete event.metadata.tense;
+      event.metadata.pair = pair;
+      event.metadata.answer = answerKey;
+      return event;
+    };
+    const events = [
+      answer({ passed: true, skill: "usage", tense: "Indicative/Preterite" }),
+      contrast({ passed: false, pair: "ser-estar", answerKey: "es", chosen: "está" }),
+      contrast({ passed: false, pair: "ser-estar", answerKey: "es", chosen: "está" }),
+      contrast({ passed: true, pair: "ser-estar", answerKey: "están" }),
+      contrast({ passed: false, pair: "por-para", answerKey: "por", chosen: "para" }),
+      contrast({ passed: true, pair: "por-para", answerKey: "para", stage: "missed" }),
+    ];
+
+    const stats = recognitionPerformance(events);
+    expect(stats.lifetime).toEqual({ answered: 5, passed: 2, accuracy: 0.4 });
+    expect(stats.lanes).toEqual([
+      { skill: "contrast", answered: 4, passed: 1, accuracy: 0.25 },
+      { skill: "usage", answered: 1, passed: 1, accuracy: 1 },
+    ]);
+    expect(stats.tenses.map((row) => row.tense)).toEqual(["Indicative/Preterite"]);
+    expect(stats.pairs).toEqual([
+      { pair: "por-para", answered: 1, passed: 0, accuracy: 0, confusions: [{ answer: "por", chosen: "para", count: 1 }] },
+      { pair: "ser-estar", answered: 3, passed: 1, accuracy: 1 / 3, confusions: [{ answer: "es", chosen: "está", count: 2 }] },
+    ]);
+    expect(stats.confusions).toEqual([]);
+    expect(stats.missed).toEqual({ answered: 1, passed: 1, accuracy: 1 });
+
+    // A tense-pack scope narrows tense lanes only; contrast rows carry no tense to scope by.
+    const scoped = recognitionPerformance(events, { tenses: ["Subjunctive/Present"] });
+    expect(scoped.tenses).toEqual([]);
+    expect(scoped.pairs).toEqual(stats.pairs);
+    expect(scoped.lifetime).toEqual({ answered: 4, passed: 1, accuracy: 0.25 });
+  });
+
   it("keeps recall and typed events byte-for-byte outside Phase 17 choice figures", () => {
     const choiceEvents = [
       answer({ passed: true, skill: "usage", tense: "Indicative/Present" }),

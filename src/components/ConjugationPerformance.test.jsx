@@ -147,6 +147,31 @@ describe("dedicated Conjugation Gym performance", () => {
     expect(screen.getByText(/Choice missed round: 1\/1 correct/)).toBeTruthy();
   });
 
+  it("shows Contrasts per pair with its own confusions and no tense row", () => {
+    const contrast = ({ passed, pair, answer, chosen = null }) => {
+      const event = recognitionAnswer({ passed, skill: "contrast", chosen });
+      delete event.metadata.tense;
+      event.metadata.pair = pair;
+      event.metadata.answer = answer;
+      return event;
+    };
+    const events = [
+      contrast({ passed: false, pair: "ser-estar", answer: "es", chosen: "está" }),
+      contrast({ passed: true, pair: "ser-estar", answer: "son" }),
+      contrast({ passed: false, pair: "por-para", answer: "para", chosen: "por" }),
+    ];
+    render(<ConjugationPerformance items={[]} events={events} library={library()} onBack={vi.fn()} />);
+
+    expect(screen.getByText("Contrasts")).toBeTruthy();
+    expect(screen.getByText("By pair")).toBeTruthy();
+    expect(screen.queryByText("By tense")).toBeNull();
+    expect(screen.getByText("Ser / estar")).toBeTruthy();
+    expect(screen.getByText("Por / para")).toBeTruthy();
+    expect(screen.getByText("«es» answered as «está» ×1")).toBeTruthy();
+    expect(screen.getByText("«para» answered as «por» ×1")).toBeTruthy();
+    expect(screen.queryByText("Choice confusions")).toBeNull();
+  });
+
   it("reports Usage recall and Typed Endings without blending retries into primary accuracy", () => {
     const events = [
       depthAnswer({ passed: true, skill: "usage", mode: "recall", promptId: "u1" }),
