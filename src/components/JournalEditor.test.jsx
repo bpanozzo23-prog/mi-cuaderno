@@ -8,6 +8,7 @@ import { clearAllPersonalData, db } from "../db/db.js";
 import { allItems, createItem, getItem, newPage, saveEntryFeedback } from "../db/items.js";
 import { allEvents, EVENT_TYPES } from "../db/events.js";
 import { makeStoredFeedback } from "../lib/diarioReview.js";
+import { JOURNAL_PROMPTS } from "../lib/journalPrompts.js";
 
 beforeEach(async () => {
   await db.open();
@@ -355,5 +356,26 @@ describe("JournalEditor autosave", () => {
     const [created] = await allItems();
     expect(created.promptId).toBeUndefined();
     expect(created.prompt).toBeUndefined();
+  });
+
+  it("offers a skill prompt's example behind the Ejemplo disclosure, none for reflective prompts", async () => {
+    const user = userEvent.setup();
+    const skillPrompt = JOURNAL_PROMPTS.find((prompt) => prompt.category === "narrate");
+    render(<JournalEditor {...baseProps()} />);
+
+    await user.click(screen.getByRole("button", { name: "Need a prompt?" }));
+    await user.click(screen.getByRole("button", { name: "Narrate" }));
+    await user.click(screen.getByRole("button", { name: `Use prompt: ${skillPrompt.es}` }));
+
+    expect(screen.queryByText(skillPrompt.example)).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Ejemplo" }));
+    expect(screen.getByText(skillPrompt.example)).toBeTruthy();
+
+    // A reflective prompt carries no example, so the disclosure disappears with it.
+    await user.click(screen.getByRole("button", { name: "Change prompt" }));
+    await user.click(screen.getByRole("button", { name: "Reflect" }));
+    await user.click(screen.getByRole("button", { name: /Use prompt: ¿Qué emoción fue más fuerte/ }));
+    expect(screen.queryByRole("button", { name: "Ejemplo" })).toBeNull();
+    expect(screen.queryByText(skillPrompt.example)).toBeNull();
   });
 });

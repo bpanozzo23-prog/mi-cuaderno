@@ -7,6 +7,7 @@ import { localDate } from "../lib/dates.js";
 import { isFeedbackStale } from "../lib/diarioReview.js";
 import { JOURNAL_PROMPT_CATEGORIES } from "../lib/journalPrompts.js";
 import { bodyWithIncludedPrompt, drawTema, promptHasTiers, promptTextForTier } from "../lib/taller.js";
+import PromptExample from "./PromptExample.jsx";
 import PromptLibrary from "./PromptLibrary.jsx";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
 import FeedbackReview from "./FeedbackReview.jsx";
@@ -425,6 +426,7 @@ export default function JournalEditor({
                 )}
               </div>
             )}
+            <PromptExample key={drill.prompt.id} prompt={drill.prompt} />
             {drill.offeredWords?.length > 0 && (
               <div className="mt-3">
                 <div className="text-[11px] uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>
@@ -459,6 +461,7 @@ export default function JournalEditor({
             </button>
             <div className="text-sm" style={{ color: C.ink, fontFamily: SERIF }}>{prompt.es}</div>
             {prompt.en && <div className="mt-1 text-xs" style={{ color: C.mut }}>{prompt.en}</div>}
+            <PromptExample key={prompt.id} prompt={prompt} />
           </Card>
         )}
 

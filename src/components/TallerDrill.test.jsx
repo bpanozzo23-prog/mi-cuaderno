@@ -183,6 +183,22 @@ describe("Taller drill flow", () => {
     expect(screen.queryByRole("button", { name: "Más difícil" })).toBeNull();
   });
 
+  it("keeps the example hidden until asked and omits the button without one", async () => {
+    const user = userEvent.setup();
+    render(<JournalEditor {...drillProps(drillSeed())} />);
+
+    expect(screen.queryByText(tieredPrompt.example)).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Ejemplo" }));
+    expect(screen.getByText(tieredPrompt.example)).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Ejemplo" }));
+    expect(screen.queryByText(tieredPrompt.example)).toBeNull();
+
+    cleanup();
+    const exampleless = { id: "test-prompt", category: "reflect", es: "¿Qué importa?", en: "What matters?" };
+    render(<JournalEditor {...drillProps(drillSeed({ skill: "reflect", prompt: exampleless }))} />);
+    expect(screen.queryByRole("button", { name: "Ejemplo" })).toBeNull();
+  });
+
   it("shows the tema as a nudge, shuffles to another, and records the one in use", async () => {
     const user = userEvent.setup();
     const seed = drillSeed({ tema: "cocina", temas: ["cocina", "escalada"] });

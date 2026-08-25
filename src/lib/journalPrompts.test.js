@@ -47,6 +47,19 @@ describe("journal prompt library", () => {
       expect(prompt.easier, prompt.id).toBeUndefined();
       expect(prompt.harder, prompt.id).toBeUndefined();
       expect(prompt.offersWords, prompt.id).toBeUndefined();
+      expect(prompt.example, prompt.id).toBeUndefined();
+    }
+  });
+
+  it("ships both tiers and a Spanish-only example with every skill prompt", () => {
+    const skillPrompts = JOURNAL_PROMPTS.filter((prompt) => SKILL_CATEGORY_IDS.includes(prompt.category));
+    expect(skillPrompts.length).toBeGreaterThan(0);
+    for (const prompt of skillPrompts) {
+      expect(prompt.easier, prompt.id).toBeDefined();
+      expect(prompt.harder, prompt.id).toBeDefined();
+      expect(typeof prompt.example, prompt.id).toBe("string");
+      expect(prompt.example.trim(), prompt.id).not.toBe("");
+      expect(prompt.example, prompt.id).not.toBe(prompt.es);
     }
   });
 

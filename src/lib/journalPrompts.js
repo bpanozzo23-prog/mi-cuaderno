@@ -15,6 +15,10 @@ export const JOURNAL_PROMPT_CATEGORIES = Object.freeze([
  * variants, a `tense` naming the targeted conjugation table key (exact `"Mood/Tense"` from
  * `conjugation.js`, so stats and endings scaffolds need no mapping), and `offersWords` marking
  * prompts where the drill may show a few of the owner's own saved words.
+ *
+ * Skill prompts also carry an `example`: a short Spanish-only model answer to the base prompt
+ * (deliberately no English — reading it is comprehension practice). It is transient display
+ * furniture behind the editor's Ejemplo disclosure, never stored or inserted into an entry.
  */
 export const JOURNAL_PROMPTS = Object.freeze([
   { id: "notice-remember", category: "notice", es: "¿Qué pasó hoy que no quiero olvidar?", en: "What happened today that I do not want to forget?" },
@@ -51,6 +55,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "Tell something that happened today: imperfect for the scene, preterite for what occurred.",
     easier: { es: "Cuenta algo que pasó hoy en dos frases: primero cómo era el momento, luego qué ocurrió.", en: "Tell something that happened today in two sentences: first what the moment was like, then what occurred." },
     harder: { es: "Cuenta algo que pasó hoy alternando escena y acción varias veces: qué pasaba alrededor mientras ocurría cada cosa.", en: "Tell something that happened today, alternating scene and action several times: what was going on around you as each thing occurred." },
+    example: "Estaba en la cocina y la casa estaba tranquila. De repente sonó el teléfono: era mi hermana con una buena noticia. Colgué y me quedé sonriendo un rato.",
   },
   {
     id: "narrate-interrupted", category: "narrate", tense: "Indicative/Imperfect",
@@ -58,6 +63,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "What were you doing when something interrupted you today?",
     easier: { es: "Completa: «Yo estaba... cuando...».", en: "Complete: \"I was... when...\"" },
     harder: { es: "Cuenta una interrupción de hoy: qué hacías, qué pasó, y qué habías planeado hacer antes.", en: "Tell one interruption from today: what you were doing, what happened, and what you had planned to do before." },
+    example: "Yo estaba leyendo en el sofá cuando alguien llamó a la puerta. Era un vecino que necesitaba ayuda con una caja pesada. Cuando volví, mi café ya estaba frío.",
   },
   {
     id: "narrate-before", category: "narrate", tense: "Indicative/Imperfect",
@@ -65,6 +71,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "Compare what your typical morning used to be like with what you did this morning.",
     easier: { es: "Escribe dos frases: «Antes yo siempre...» y «Hoy yo...».", en: "Write two sentences: \"Before, I always...\" and \"Today I...\"" },
     harder: { es: "Compara tu vida de hace unos años con la de hoy: qué hacías entonces, qué hiciste hoy, y qué cambió.", en: "Compare your life a few years ago with today: what you used to do, what you did today, and what changed." },
+    example: "Antes yo siempre desayunaba de prisa y salía corriendo. Esta mañana me levanté temprano, preparé el café con calma y hasta leí un poco antes de empezar.",
   },
   {
     id: "narrate-routine", category: "narrate", tense: "Indicative/Preterite", offersWords: true,
@@ -72,6 +79,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "Tell your morning from the moment you woke up, step by step.",
     easier: { es: "Escribe tres cosas que hiciste esta mañana, en orden.", en: "Write three things you did this morning, in order." },
     harder: { es: "Cuenta tu mañana paso a paso, incluyendo lo que hiciste por ti y lo que otros te hicieron o dijeron.", en: "Tell your morning step by step, including what you did for yourself and what others did or said to you." },
+    example: "Me desperté a las siete, me duché y preparé el desayuno. Después revisé el correo y salí a caminar un rato. Volví a casa justo antes de la lluvia.",
   },
   {
     id: "narrate-order", category: "narrate", tense: "Indicative/Preterite", offersWords: true,
@@ -79,6 +87,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "Tell one moment of today using \"first,\" \"then,\" \"while,\" and \"in the end.\"",
     easier: { es: "Cuenta un momento de hoy usando «primero» y «luego».", en: "Tell one moment of today using \"first\" and \"then.\"" },
     harder: { es: "Cuenta un momento de hoy usando «en cuanto», «mientras tanto», «justo cuando» y «al final».", en: "Tell one moment of today using \"as soon as,\" \"meanwhile,\" \"just when,\" and \"in the end.\"" },
+    example: "Primero fui al mercado a comprar fruta. Luego pasé por la farmacia, y mientras esperaba mi turno, hablé con una señora muy amable. Al final volví a casa cansado pero contento.",
   },
   {
     id: "narrate-perfect", category: "narrate", tense: "Indicative/Present Perfect",
@@ -86,6 +95,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "What have you done today that you had never done before?",
     easier: { es: "Escribe tres frases que empiecen con «Hoy he...».", en: "Write three sentences starting with \"Today I have...\"" },
     harder: { es: "¿Qué has hecho hoy que nunca habías hecho, y qué habías hecho ya muchas veces? Compara.", en: "What have you done today that you had never done, and what had you already done many times? Compare." },
+    example: "Hoy he cocinado un plato que nunca había probado. He seguido la receta paso a paso y me ha salido bastante bien. También he aprendido que la paciencia importa más que la prisa.",
   },
 
   {
@@ -94,6 +104,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "Write three sentences starting with \"I'm glad that...,\" \"It bothers me that...,\" or \"I doubt that...\"",
     easier: { es: "Completa una frase: «Me alegra que...».", en: "Complete one sentence: \"I'm glad that...\"" },
     harder: { es: "Escribe sobre tu día usando «me alegra que», «me molesta que», «dudo que» y «es posible que», todo en un párrafo.", en: "Write about your day using \"I'm glad that,\" \"it bothers me that,\" \"I doubt that,\" and \"it's possible that,\" all in one paragraph." },
+    example: "Me alegra que mi amiga venga a visitarme este fin de semana. Me molesta que el autobús llegue tarde casi todos los días. Dudo que termine el libro esta semana.",
   },
   {
     id: "imagine-hope", category: "imagine", tense: "Subjunctive/Present",
@@ -101,6 +112,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "What do you hope happens tomorrow? Start with \"I hope that...\"",
     easier: { es: "Completa: «Espero que mañana...».", en: "Complete: \"I hope that tomorrow...\"" },
     harder: { es: "Escribe tres esperanzas para esta semana con «espero que», «ojalá» y «quiero que», y explica por qué.", en: "Write three hopes for this week with \"I hope that,\" \"hopefully,\" and \"I want that,\" and explain why." },
+    example: "Espero que mañana haga buen tiempo para salir a caminar. También espero que la reunión sea corta y que me quede energía por la tarde.",
   },
   {
     id: "imagine-advice", category: "imagine", tense: "Indicative/Conditional",
@@ -108,6 +120,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "What would you recommend to someone living your day today?",
     easier: { es: "Completa: «Yo le recomendaría...».", en: "Complete: \"I would recommend...\"" },
     harder: { es: "Dale tres consejos a alguien que fuera a vivir tu día: qué haría bien, qué evitaría y qué cambiaría.", en: "Give three pieces of advice to someone about to live your day: what they would do well, what they would avoid, and what they would change." },
+    example: "Yo le recomendaría desayunar con calma y salir a caminar temprano. Le diría que la tarde sería larga, así que guardaría algo de energía para el final.",
   },
   {
     id: "imagine-tomorrow", category: "imagine", tense: "Indicative/Future", offersWords: true,
@@ -115,6 +128,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "Describe tomorrow as if you already knew it: what will you do?",
     easier: { es: "Escribe tres frases sobre mañana con «voy a...» o «haré...».", en: "Write three sentences about tomorrow with \"I'm going to...\" or \"I will...\"" },
     harder: { es: "Describe mañana hora por hora: qué harás, dónde estarás y cómo te sentirás al final.", en: "Describe tomorrow hour by hour: what you will do, where you will be, and how you will feel at the end." },
+    example: "Mañana me levantaré temprano y trabajaré hasta el mediodía. Por la tarde iré al supermercado y prepararé algo rico. Estaré cansado, pero me sentiré tranquilo.",
   },
   {
     id: "imagine-redo", category: "imagine", tense: "Indicative/Conditional",
@@ -122,6 +136,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "If you could repeat one moment of today, what would you change?",
     easier: { es: "Completa: «Si pudiera repetir hoy, yo...».", en: "Complete: \"If I could repeat today, I...\"" },
     harder: { es: "Si hubieras hecho una cosa de otra manera hoy, ¿qué habría pasado después? Sigue la cadena.", en: "If you had done one thing differently today, what would have happened next? Follow the chain." },
+    example: "Si pudiera repetir hoy, cambiaría la tarde. No pasaría dos horas mirando el teléfono; llamaría a mi madre y saldría a caminar antes de que oscureciera.",
   },
   {
     id: "imagine-wish", category: "imagine", tense: "Subjunctive/Present",
@@ -129,6 +144,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "What do you want to be different this week?",
     easier: { es: "Completa: «Quiero que esta semana...».", en: "Complete: \"I want this week to...\"" },
     harder: { es: "Escribe tres deseos para esta semana con «quiero que», «necesito que» y «ojalá», y di qué harás tú para lograrlos.", en: "Write three wishes for this week with \"I want,\" \"I need,\" and \"hopefully,\" and say what you yourself will do to make them happen." },
+    example: "Quiero que esta semana sea más tranquila que la pasada. Quiero que cenemos juntos al menos dos veces, y ojalá el trabajo me deje tiempo para leer.",
   },
 
   {
@@ -137,6 +153,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "Describe a person you saw today: what they are like, and how they were.",
     easier: { es: "Describe a una persona de hoy con dos frases: una con «es» y otra con «estaba».", en: "Describe a person from today in two sentences: one with \"es\" and one with \"estaba.\"" },
     harder: { es: "Describe a dos personas de hoy: cómo son, cómo estaban, y en qué se parecen o se diferencian.", en: "Describe two people from today: what they are like, how they were, and how they are alike or different." },
+    example: "Mi vecino es alto y un poco callado, pero es muy amable. Hoy estaba cansado porque había trabajado toda la noche, y aun así me saludó con una sonrisa.",
   },
   {
     id: "connect-mood", category: "connect", offersWords: true,
@@ -144,6 +161,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "Describe your mood right now without using \"bien\" or \"mal.\"",
     easier: { es: "Escribe una frase: «Ahora mismo estoy...» con una palabra nueva.", en: "Write one sentence: \"Right now I am...\" with a new word." },
     harder: { es: "Describe tu estado de ánimo con tres matices distintos y explica de dónde viene cada uno.", en: "Describe your mood in three distinct shades and explain where each one comes from." },
+    example: "Ahora mismo estoy tranquilo y un poco soñoliento. El día fue largo, pero me siento satisfecho, como cuando terminas una lista de tareas.",
   },
   {
     id: "connect-opinion", category: "connect",
@@ -151,6 +169,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "Write an opinion about something today using \"although,\" \"however,\" or \"that's why.\"",
     easier: { es: "Escribe una opinión sobre hoy usando «pero».", en: "Write an opinion about today using \"but.\"" },
     harder: { es: "Defiende una opinión sobre algo de hoy usando «aunque», «sin embargo», «por lo tanto» y «a pesar de».", en: "Defend an opinion about something today using \"although,\" \"however,\" \"therefore,\" and \"despite.\"" },
+    example: "Aunque llovió toda la tarde, el día fue bueno. El tráfico estuvo terrible; sin embargo, llegué a tiempo, y por eso decidí no quejarme.",
   },
   {
     id: "connect-porpara", category: "connect",
@@ -158,6 +177,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "What did you do today for someone, or what purpose drove what you did?",
     easier: { es: "Escribe dos frases sobre hoy: una con «por» y otra con «para».", en: "Write two sentences about today: one with \"por\" and one with \"para.\"" },
     harder: { es: "Cuenta un momento de hoy usando «por» y «para» al menos dos veces cada uno, con sentidos distintos.", en: "Tell one moment of today using \"por\" and \"para\" at least twice each, with different senses." },
+    example: "Hoy compré pan para el desayuno de mañana. Después pasé por casa de mi abuela por su cumpleaños y le llevé flores para alegrarle el día.",
   },
   {
     id: "connect-pronouns", category: "connect",
@@ -165,6 +185,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "Who told you, gave you, or asked you for something today? Tell it.",
     easier: { es: "Completa: «Hoy alguien me dijo...».", en: "Complete: \"Today someone told me...\"" },
     harder: { es: "Cuenta un intercambio de hoy sin repetir los nombres: usa «se lo», «me la», «te los» donde puedas.", en: "Tell one exchange from today without repeating the names: use \"se lo,\" \"me la,\" \"te los\" where you can." },
+    example: "Hoy mi jefa me pidió un favor y se lo hice sin problema. Después mi hermano me mandó una foto del perro y yo le contesté con otra.",
   },
   {
     id: "connect-compare", category: "connect", offersWords: true,
@@ -172,5 +193,6 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "Compare two moments of today using \"more... than,\" \"less... than,\" or \"as... as.\"",
     easier: { es: "Compara hoy con ayer en una frase con «más... que».", en: "Compare today with yesterday in one sentence with \"more... than.\"" },
     harder: { es: "Compara tres momentos de hoy entre sí: cuál fue el mejor, el peor, y por qué, usando superlativos.", en: "Compare three moments of today with one another: which was the best, the worst, and why, using superlatives." },
+    example: "La mañana fue más tranquila que la tarde. El almuerzo estuvo tan rico como el de ayer, y la reunión fue menos larga que la de la semana pasada.",
   },
 ]);
