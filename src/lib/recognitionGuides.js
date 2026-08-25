@@ -27,9 +27,13 @@ export function guideTermsForTense(tense) {
   ].map(normalize).filter(Boolean))];
 }
 
-/** At most two active Grammar-focused pages whose title names this tense. */
-export function grammarGuidesForTense(items, tense) {
-  const terms = guideTermsForTense(tense);
+/**
+ * At most two active Grammar-focused pages whose normalized title contains one of the terms.
+ * The match is a substring test, so callers must supply terms long enough not to hide inside
+ * unrelated titles (the Contrasts lane passes multi-word terms for exactly that reason).
+ */
+export function grammarGuidesForTerms(items, rawTerms) {
+  const terms = [...new Set((rawTerms || []).map(normalize).filter(Boolean))];
   if (!terms.length) return [];
   return (items || [])
     .filter((item) =>
@@ -37,4 +41,9 @@ export function grammarGuidesForTense(items, tense) {
       terms.some((term) => normalize(item.title).includes(term))
     )
     .slice(0, 2);
+}
+
+/** At most two active Grammar-focused pages whose title names this tense. */
+export function grammarGuidesForTense(items, tense) {
+  return grammarGuidesForTerms(items, guideTermsForTense(tense));
 }

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Check, RotateCcw, X } from "lucide-react";
 import { C, MONO, SERIF, Button, Card } from "../theme.jsx";
 import { qualifiedTenseLabel } from "../lib/conjugation.js";
+import { CONTRAST_PAIRS, contrastOptions } from "../lib/contrastContent.js";
 import { recognitionTenses } from "../lib/recognitionContent.js";
 import { rebuildMissedRecognitionDeck } from "../lib/recognitionDeck.js";
 import { logDrill } from "../db/events.js";
@@ -10,7 +11,19 @@ import StudySessionFrame, { StudyCardEyebrow } from "./StudySessionFrame.jsx";
 const fallbackSessionId = () =>
   globalThis.crypto?.randomUUID?.() || `recognition-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-const lowerLabel = (tense) => qualifiedTenseLabel(tense).toLowerCase();
+const isContrast = (card) => card?.skill === "contrast";
+
+/** Tense keys render through the shared label; Contrasts options are forms shown verbatim. */
+const optionLabel = (card, key) => (isContrast(card) ? key : qualifiedTenseLabel(key));
+const feedbackLabel = (card, key) => (isContrast(card) ? `«${key}»` : qualifiedTenseLabel(key).toLowerCase());
+
+/** The option vocabulary a missed-round rebuild may draw from, per lane. */
+const laneScopeFor = (card) => (isContrast(card) ? contrastOptions("both") : recognitionTenses(card?.skill));
+
+/** Recognition identity: tense lanes persist the canonical tense, Contrasts persist pair + answer and no tense. */
+const answerMetadata = (card) => (
+  isContrast(card) ? { pair: card.pair, answer: card.answer } : { tense: card.answer }
+);
 
 export default function RecognitionDrill({
   deck,
@@ -35,7 +48,7 @@ export default function RecognitionDrill({
   const activeDeck = round === "missed" ? missedDeck : deck;
   const card = activeDeck[index] || null;
   const done = index >= activeDeck.length;
-  const laneTenses = useMemo(() => recognitionTenses(deck[0]?.skill), [deck]);
+  const laneTenses = useMemo(() => laneScopeFor(deck[0]), [deck]);
 
   async function choose(chosen) {
     if (!card || result || busy) return;
@@ -46,7 +59,7 @@ export default function RecognitionDrill({
       await logDrill(null, passed, {
         skill: card.skill,
         cardId: card.id,
-        tense: card.answer,
+        ...answerMetadata(card),
         mode: "choice",
         ...(passed ? {} : { chosen }),
         sessionId: card.sessionId || componentSessionId,
@@ -159,12 +172,12 @@ export default function RecognitionDrill({
       ) : null}
     >
       <Card className="p-5">
-        <StudyCardEyebrow>Which tense is this?</StudyCardEyebrow>
+        <StudyCardEyebrow>{isContrast(card) ? CONTRAST_PAIRS[card.pair]?.eyebrow || "Which one fits?" : "Which tense is this?"}</StudyCardEyebrow>
         <div className="mt-3 text-center text-lg leading-relaxed" style={{ fontFamily: SERIF, fontWeight: 700, color: C.ink }}>
           {card.prompt}
         </div>
 
-        <div className="mt-5 grid gap-2" aria-label="Tense choices">
+        <div className="mt-5 grid gap-2" aria-label={isContrast(card) ? "Choices" : "Tense choices"}>
           {card.options.map((option) => {
             const chosen = result?.chosen === option;
             const correct = result && option === card.answer;
@@ -182,7 +195,7 @@ export default function RecognitionDrill({
                   background: correct ? C.greenPale : wrong ? C.redPale : C.paper,
                 }}
               >
-                {qualifiedTenseLabel(option)}
+                {optionLabel(card, option)}
               </button>
             );
           })}
@@ -194,8 +207,8 @@ export default function RecognitionDrill({
               {result.passed ? <Check size={17} className="mt-0.5 shrink-0" /> : <X size={17} className="mt-0.5 shrink-0" />}
               <span>
                 {result.passed
-                  ? `Right — ${qualifiedTenseLabel(card.answer)}.`
-                  : `That’s ${lowerLabel(result.chosen)}. ${card.contrast || `The answer is ${lowerLabel(card.answer)}.`}`}
+                  ? `Right — ${isContrast(card) ? `«${card.answer}»` : qualifiedTenseLabel(card.answer)}.`
+                  : `That’s ${feedbackLabel(card, result.chosen)}. ${card.contrast || `The answer is ${feedbackLabel(card, card.answer)}.`}`}
               </span>
             </div>
             {renderReveal?.(card, result, {

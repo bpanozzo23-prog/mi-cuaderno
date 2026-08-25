@@ -30,11 +30,13 @@ import {
 } from "../lib/recognitionContent.js";
 import { buildRecognitionDeck, buildUsageRecallDeck } from "../lib/recognitionDeck.js";
 import { buildEndingsProductionDeck } from "../lib/endingsProduction.js";
+import { CONTRAST_PAIRS, CONTRAST_PAIR_IDS, contrastCards, contrastOptions } from "../lib/contrastContent.js";
 import ConjugationDrill from "./ConjugationDrill.jsx";
 import ConjugationPerformance from "./ConjugationPerformance.jsx";
 import RecognitionDrill from "./RecognitionDrill.jsx";
 import EndingsReveal from "./EndingsReveal.jsx";
 import UsageReveal from "./UsageReveal.jsx";
+import ContrastReveal from "./ContrastReveal.jsx";
 import UsageRecallDrill from "./UsageRecallDrill.jsx";
 import EndingsProductionDrill from "./EndingsProductionDrill.jsx";
 
@@ -48,7 +50,10 @@ const DRILLS = [
   { value: "forms", label: "Forms" },
   { value: "usage", label: "Tense usage" },
   { value: "endings", label: "Endings" },
+  { value: "contrast", label: "Contrasts" },
 ];
+
+const RECOGNITION_TITLES = { usage: "Tense usage", endings: "Endings", contrast: "Contrasts" };
 
 function Header({ title, backLabel, onBack, action }) {
   return (
@@ -99,6 +104,7 @@ export default function ConjugationGym({
   const [usageDirection, setUsageDirection] = useState("choice");
   const [usageRecallSize, setUsageRecallSize] = useState("all");
   const [endingsDirection, setEndingsDirection] = useState("choice");
+  const [contrastPair, setContrastPair] = useState(CONTRAST_PAIR_IDS[0]);
   const [slots, setSlots] = useState([...GYM_SLOTS]);
   const [oneVerb, setOneVerb] = useState("");
   const [savedSubset, setSavedSubset] = useState({ kind: "all", value: "" });
@@ -190,11 +196,17 @@ export default function ConjugationGym({
     : RECOGNITION_EVERYDAY_TENSES.filter((tense) => laneTenses.includes(tense));
   const usageRecall = drill === "usage" && usageDirection === "recall";
   const endingsProduction = drill === "endings" && endingsDirection === "typed";
+  const contrastLane = drill === "contrast";
   const recognitionAvailable = drill === "forms"
     ? 0
-    : usageRecall
-      ? recognitionTenseScope.length
-      : RECOGNITION_CARDS[drill].filter((card) => recognitionTenseScope.includes(card.answer)).length;
+    : contrastLane
+      ? contrastCards(contrastPair).length
+      : usageRecall
+        ? recognitionTenseScope.length
+        : RECOGNITION_CARDS[drill].filter((card) => recognitionTenseScope.includes(card.answer)).length;
+  const recognitionReady = contrastLane
+    ? recognitionAvailable > 0
+    : recognitionTenseScope.length >= (usageRecall || endingsProduction ? 1 : 4);
   const availableForms = useMemo(
     () => gymCellCount(deckVerbs, {
       tenses: advanced ? selectedTenses : TENSE_PACKS.everyday.tenses,
@@ -256,15 +268,22 @@ export default function ConjugationGym({
 
   function start() {
     if (drill !== "forms") {
-      if ((usageRecall || endingsProduction) && recognitionTenseScope.length < 1) {
+      if (!contrastLane && (usageRecall || endingsProduction) && recognitionTenseScope.length < 1) {
         setStartError(`Choose at least one tense for ${usageRecall ? "recall" : "production"}.`);
         return;
       }
-      if (!usageRecall && !endingsProduction && recognitionTenseScope.length < 4) {
+      if (!contrastLane && !usageRecall && !endingsProduction && recognitionTenseScope.length < 4) {
         setStartError("Choose at least four tenses so every card can have four distinct choices.");
         return;
       }
-      const built = usageRecall
+      const contrastScope = contrastLane ? contrastOptions(contrastPair) : null;
+      const built = contrastLane
+        ? buildRecognitionDeck(contrastCards(contrastPair), {
+            size,
+            tenseScope: contrastScope,
+            allTenses: contrastScope,
+          })
+        : usageRecall
         ? buildUsageRecallDeck(TENSE_USAGE_CARDS, {
             size: usageRecallSize,
             tenseScope: recognitionTenseScope,
@@ -414,13 +433,15 @@ export default function ConjugationGym({
       return (
         <RecognitionDrill
           deck={session.deck}
-          title={session.skill === "endings" ? "Endings" : "Tense usage"}
+          title={RECOGNITION_TITLES[session.skill] || "Tense usage"}
           onFinish={() => setView("setup")}
           onGraded={onGraded}
           onOpen={onOpen}
           renderReveal={session.skill === "endings"
             ? (card) => <EndingsReveal card={card} library={library} />
-            : (card, _result, controls) => <UsageReveal card={card} items={items} controls={controls} />}
+            : session.skill === "contrast"
+              ? (card, _result, controls) => <ContrastReveal card={card} items={items} controls={controls} />
+              : (card, _result, controls) => <UsageReveal card={card} items={items} controls={controls} />}
         />
       );
     }
@@ -476,11 +497,13 @@ export default function ConjugationGym({
               {RECOGNITION_LANES[drill].eyebrow}
             </div>
             <p className="mt-1 text-xs" style={{ color: C.mut }}>
-              {usageRecall
-                ? "Name at least one valid use, reveal the curated set, then grade your recall."
-                : endingsProduction
-                  ? "Produce all five endings, with one retry that keeps passing fields locked."
-                  : "Choose the tense from four options. Recognition practice never changes your vocabulary review schedule."}
+              {contrastLane
+                ? "Fill the blank from four options: ser or estar, por or para. Recognition practice never changes your vocabulary review schedule."
+                : usageRecall
+                  ? "Name at least one valid use, reveal the curated set, then grade your recall."
+                  : endingsProduction
+                    ? "Produce all five endings, with one retry that keeps passing fields locked."
+                    : "Choose the tense from four options. Recognition practice never changes your vocabulary review schedule."}
             </p>
           </Card>
 
@@ -520,8 +543,28 @@ export default function ConjugationGym({
             </>
           )}
 
-          <SectionTitle>Tense scope</SectionTitle>
+          <SectionTitle>{contrastLane ? "Pair" : "Tense scope"}</SectionTitle>
           <Card className="space-y-4 p-4">
+            {contrastLane ? (
+              <div>
+                <label htmlFor="contrast-pair" className="mb-1 block text-xs" style={{ color: C.mut }}>Pair</label>
+                <select
+                  id="contrast-pair"
+                  value={contrastPair}
+                  onChange={(event) => {
+                    setContrastPair(event.target.value);
+                    setStartError("");
+                  }}
+                  className="w-full rounded-lg border px-3 py-2 text-sm"
+                  style={{ color: C.ink, borderColor: C.line, background: C.paper }}
+                >
+                  {CONTRAST_PAIR_IDS.map((id) => (
+                    <option key={id} value={id}>{CONTRAST_PAIRS[id].label}</option>
+                  ))}
+                  <option value="both">Both pairs</option>
+                </select>
+              </div>
+            ) : (
             <div>
               <label htmlFor="recognition-tense-pack" className="mb-1 block text-xs" style={{ color: C.mut }}>Tense pack</label>
               <select
@@ -535,8 +578,9 @@ export default function ConjugationGym({
                 <option value="customize">Customize</option>
               </select>
             </div>
+            )}
 
-            {recognitionPack === "customize" && (
+            {!contrastLane && recognitionPack === "customize" && (
               <fieldset>
                 <legend className="mb-2 text-xs" style={{ color: C.mut }}>Tenses with {RECOGNITION_LANES[drill].label.toLowerCase()} cards</legend>
                 <div className="space-y-1.5">
@@ -584,7 +628,7 @@ export default function ConjugationGym({
           <Button
             className="mt-4 w-full py-3"
             onClick={start}
-            disabled={!recognitionAvailable || recognitionTenseScope.length < (usageRecall || endingsProduction ? 1 : 4)}
+            disabled={!recognitionAvailable || !recognitionReady}
           >
             <Play size={16} /> Start {RECOGNITION_LANES[drill].label.toLowerCase()}
           </Button>

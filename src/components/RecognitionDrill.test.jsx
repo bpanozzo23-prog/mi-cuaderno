@@ -106,6 +106,62 @@ describe("recognition multiple-choice sessions", () => {
     ]);
   });
 
+  it("labels Contrasts options verbatim, teaches the rule, and persists pair + answer without a tense", async () => {
+    const user = userEvent.setup();
+    const onGraded = vi.fn();
+    const contrastCard = card({
+      id: "contrast:ser-estar:profession",
+      skill: "contrast",
+      pair: "ser-estar",
+      prompt: "Mi hermana ___ médica.",
+      gloss: "My sister is a doctor.",
+      answer: "es",
+      contrast: "Professions and identity take ser.",
+      confusables: ["está", "son", "era"],
+      alsoAcceptable: [],
+      vocabulary: ["es", "está", "son", "era"],
+      options: ["está", "es", "era", "son"],
+    });
+    render(<RecognitionDrill deck={[contrastCard]} title="Contrasts" onFinish={vi.fn()} onGraded={onGraded} />);
+
+    expect(screen.getByText("Which verb?")).toBeTruthy();
+    expect(screen.getByText("Mi hermana ___ médica.")).toBeTruthy();
+    expect(within(screen.getByLabelText("Choices")).getAllByRole("button").map((button) => button.textContent))
+      .toEqual(["está", "es", "era", "son"]);
+
+    await user.click(screen.getByRole("button", { name: "está" }));
+    await waitFor(() => expect(onGraded).toHaveBeenCalledTimes(1));
+    expect(screen.getByText(/That’s «está»\. Professions and identity take ser\./)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "está" }).disabled).toBe(true);
+
+    const [event] = await allEvents();
+    expect(event).toMatchObject({ type: "drill_fail", itemKey: null });
+    expect(event.metadata).toEqual({
+      skill: "contrast",
+      cardId: "contrast:ser-estar:profession",
+      pair: "ser-estar",
+      answer: "es",
+      mode: "choice",
+      chosen: "está",
+      sessionId: "recognition-1",
+      promptId: "recognition-1:1",
+      sessionKind: "recognition",
+      stage: "initial",
+      cardIndex: 1,
+      deckSize: 1,
+    });
+    expect(event.metadata).not.toHaveProperty("tense");
+    expect(event.metadata).not.toHaveProperty("verbKey");
+    expect(event.metadata).not.toHaveProperty("slot");
+
+    // The missed round keeps the same four forms in a new order.
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    await user.click(screen.getByRole("button", { name: "Practice 1 missed card" }));
+    const again = within(screen.getByLabelText("Choices")).getAllByRole("button").map((button) => button.textContent);
+    expect([...again].sort()).toEqual(["era", "es", "está", "son"]);
+    expect(again).not.toEqual(["está", "es", "era", "son"]);
+  });
+
   it("requires a second tap before a reveal link leaves the session", async () => {
     const user = userEvent.setup();
     const onOpen = vi.fn();

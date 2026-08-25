@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { StrictMode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ConjugationGym from "./ConjugationGym.jsx";
 import * as gymReference from "../db/ref/gym.js";
@@ -97,6 +97,30 @@ describe("Conjugation Gym setup", () => {
     expect(screen.getByText("Indicative present")).toBeTruthy();
     expect(screen.getByText("1 of 1")).toBeTruthy();
     expect(screen.getByText("Recall at least one valid use.")).toBeTruthy();
+  });
+
+  it("offers the Contrasts lane without a dictionary, scopes it by pair, and starts a choice session", async () => {
+    const user = userEvent.setup();
+    render(<ConjugationGym items={[]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await user.click(screen.getByRole("radio", { name: "Contrasts" }));
+    expect(screen.getByText("Which one fits?")).toBeTruthy();
+    expect(screen.queryByText("Dictionary not installed")).toBeNull();
+    expect(screen.queryByLabelText("Tense pack")).toBeNull();
+    expect(screen.queryByText("Direction")).toBeNull();
+    expect(screen.getByLabelText("Pair").value).toBe("ser-estar");
+    expect(screen.getByText("32 cards available for these choices.")).toBeTruthy();
+
+    await user.selectOptions(screen.getByLabelText("Pair"), "both");
+    expect(screen.getByText("64 cards available for these choices.")).toBeTruthy();
+    await user.selectOptions(screen.getByLabelText("Prompts"), "20");
+    await user.click(screen.getByRole("button", { name: "Start contrasts" }));
+
+    expect(screen.getByText("Contrasts")).toBeTruthy();
+    expect(screen.getByText("1 of 20")).toBeTruthy();
+    const choices = within(screen.getByLabelText("Choices")).getAllByRole("button");
+    expect(choices).toHaveLength(4);
+    expect(choices.every((button) => !button.textContent.includes("/"))).toBe(true);
   });
 
   it("starts five-field Typed Endings without an installed dictionary", async () => {
