@@ -7,11 +7,13 @@
  */
 
 import { CONTRAST_CARDS } from "./contrastContent.js";
+import { TRANSFORM_CARDS } from "./transformContent.js";
 
 export const RECOGNITION_LANES = {
   usage: { label: "Tense usage", eyebrow: "What is it for?" },
   endings: { label: "Endings", eyebrow: "What does it look like?" },
   contrast: { label: "Contrasts", eyebrow: "Which one fits?" },
+  transform: { label: "Transform", eyebrow: "Indicative → subjunctive" },
 };
 
 export const RECOGNITION_EVERYDAY_TENSES = [
@@ -157,10 +159,14 @@ export const RECOGNITION_CARDS = {
   usage: TENSE_USAGE_CARDS,
   endings: TENSE_ENDINGS,
   contrast: CONTRAST_CARDS,
+  transform: TRANSFORM_CARDS,
 };
 
-/** Tense-keyed lanes only; Contrasts answers are forms and prepositions, scoped by pair instead. */
+/**
+ * Tense-keyed lanes only; Contrasts answers are forms and prepositions scoped by set, and
+ * Transform answers are forms scoped by trigger family.
+ */
 export function recognitionTenses(skill) {
-  if (skill === "contrast") return [];
+  if (skill === "contrast" || skill === "transform") return [];
   return [...new Set((RECOGNITION_CARDS[skill] || []).map((card) => card.answer))];
 }

@@ -54,20 +54,27 @@ export function gradeEndingRow(values, row, rows = TENSE_ENDINGS) {
   };
 }
 
-function balancedRows(rows, size, rng) {
+const byAnswer = (row) => row.answer;
+
+/**
+ * Shuffles, then picks greedily so consecutive rows differ on `keyOf` whenever the pool
+ * allows and keys spread evenly. Endings balance by tense; Transform balances by trigger
+ * family. Rows are spliced from the pool, so a deck never repeats one.
+ */
+function balancedRows(rows, size, rng, keyOf = byAnswer) {
   const pool = shuffle(rows, rng);
   const deck = [];
   const counts = new Map();
   while (deck.length < size && pool.length) {
     const previous = deck.at(-1);
-    const canSwitch = previous && pool.some((row) => row.answer !== previous.answer);
+    const canSwitch = previous && pool.some((row) => keyOf(row) !== keyOf(previous));
     let bestIndex = 0;
     let bestScore = null;
     for (let index = 0; index < pool.length; index += 1) {
       const row = pool[index];
       const score = [
-        canSwitch && row.answer === previous.answer ? 1 : 0,
-        counts.get(row.answer) || 0,
+        canSwitch && keyOf(row) === keyOf(previous) ? 1 : 0,
+        counts.get(keyOf(row)) || 0,
       ];
       if (!bestScore || score[0] < bestScore[0] || (score[0] === bestScore[0] && score[1] < bestScore[1])) {
         bestIndex = index;
@@ -76,9 +83,21 @@ function balancedRows(rows, size, rng) {
     }
     const [next] = pool.splice(bestIndex, 1);
     deck.push(next);
-    counts.set(next.answer, (counts.get(next.answer) || 0) + 1);
+    counts.set(keyOf(next), (counts.get(keyOf(next)) || 0) + 1);
   }
   return deck;
+}
+
+/** A finite, unique-row typed deck balanced on `keyOf`, capped honestly at the rows available. */
+export function buildTypedDeck(rows, { size = 10, rng = Math.random, keyOf = byAnswer } = {}) {
+  const candidates = rows || [];
+  return balancedRows(candidates, Math.min(Number(size) || 0, candidates.length), rng, keyOf);
+}
+
+/** Repeats every initially missed row once, de-duplicated by its stable id. */
+export function rebuildMissedTypedDeck(rows, { rng = Math.random, keyOf = byAnswer } = {}) {
+  const unique = [...new Map((rows || []).map((row) => [row.id, row])).values()];
+  return balancedRows(unique, unique.length, rng, keyOf);
 }
 
 /** Builds a finite, unique-row production deck and caps honestly at available rows. */
@@ -88,11 +107,10 @@ export function buildEndingsProductionDeck(
 ) {
   const allowed = tenseScope?.length ? new Set(tenseScope) : null;
   const candidates = (rows || []).filter((row) => !allowed || allowed.has(row.answer));
-  return balancedRows(candidates, Math.min(Number(size) || 0, candidates.length), rng);
+  return buildTypedDeck(candidates, { size, rng });
 }
 
 /** Repeats every initially missed row once, de-duplicated by its stable row id. */
 export function rebuildMissedEndingsProductionDeck(rows, { rng = Math.random } = {}) {
-  const unique = [...new Map((rows || []).map((row) => [row.id, row])).values()];
-  return balancedRows(unique, unique.length, rng);
+  return rebuildMissedTypedDeck(rows, { rng });
 }
