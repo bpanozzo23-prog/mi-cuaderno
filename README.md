@@ -819,6 +819,22 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   phone check against the `--host` dev URL. Pushed 2026-08-24 as `f3e4d03`. See
   [docs/FORMS-CHOICE-DIRECTION.md](docs/FORMS-CHOICE-DIRECTION.md) and the "Forms Choose" entries
   in [DECISIONS.md](DECISIONS.md).
+- **Transform lane — deployed.** The Conjugation Gym gains a fifth, typed lane, Transform: an
+  indicative sentence and a subjunctive trigger frame with one blank, the present-subjunctive form
+  typed and graded exactly (accent slips named, accent collisions and the kept indicative diagnosed
+  through the typed ladder when the dictionary is installed), one unrevealed retry, a de-duplicated
+  missed round, and a reveal with the completed sentence, gloss, rule and the verb's paradigm. 40
+  curated frames across five trigger families, every verb a curated Gym lemma and every answer
+  reproduced from the packaged tables by test; the lane works without the dictionary. Events carry
+  `skill: "transform"`, `mode: "typed"`, tense, verdict and diagnosis and no typed string or verb
+  identity; a "Typed Transform" performance block reports separately, including how often the
+  indicative was kept. `SCHEMA_VERSION` stays 10; no event type, preference or backup change. The
+  complete serial suite passes 1,708/1,708 across 145 files on the XPS, the production build
+  transforms 2,141 modules, `git diff --check` passes, and two deliberate failure proofs reddened
+  as intended. No agent browser closeout: shipped from the headless XPS on test and build evidence
+  plus the owner's phone check against the `--host` dev URL. Pushed 2026-08-24 as `939e48f`. See
+  [docs/TRANSFORM-LANE-DIRECTION.md](docs/TRANSFORM-LANE-DIRECTION.md) and the "Transform lane"
+  entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **10**. Before Dexie opens v10, schema-v1 through schema-v9 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
