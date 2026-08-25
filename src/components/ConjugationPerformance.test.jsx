@@ -147,6 +147,29 @@ describe("dedicated Conjugation Gym performance", () => {
     expect(screen.getByText(/Choice missed round: 1\/1 correct/)).toBeTruthy();
   });
 
+  it("reports typed Transform separately, naming how often the indicative was kept", () => {
+    const transform = ({ passed, promptId, stage = "initial", verdict, diagnosis = null }) => {
+      const event = depthAnswer({ passed, skill: "transform", mode: "typed", tense: "Subjunctive/Present", promptId, stage, verdict });
+      event.metadata.diagnosis = diagnosis;
+      return event;
+    };
+    const events = [
+      transform({ passed: true, promptId: "t1", verdict: "exact", diagnosis: "exact" }),
+      transform({ passed: false, promptId: "t2", verdict: "wrong", diagnosis: "wrong_tense" }),
+      transform({ passed: true, promptId: "t2", verdict: "exact", diagnosis: "exact", stage: "retry" }),
+      transform({ passed: false, promptId: "t3", verdict: "wrong", diagnosis: "wrong_tense" }),
+      transform({ passed: true, promptId: "t3", verdict: "accents", diagnosis: "accents", stage: "missed" }),
+    ];
+    render(<ConjugationPerformance items={[]} events={events} library={library()} onBack={vi.fn()} />);
+
+    expect(screen.getByText("Typed Transform")).toBeTruthy();
+    expect(screen.getByText("1/3 first-attempt frames")).toBeTruthy();
+    expect(screen.getByText("1 exact · 0 accent-assisted · kept the indicative ×2")).toBeTruthy();
+    expect(screen.getByText("Immediate recovery: 1/1")).toBeTruthy();
+    expect(screen.getByText("Missed round: 1/1 recovered")).toBeTruthy();
+    expect(screen.getByText("No typed Endings rows in this tense pack yet.")).toBeTruthy();
+  });
+
   it("shows Contrasts per pair with its own confusions and no tense row", () => {
     const contrast = ({ passed, pair, answer, chosen = null }) => {
       const event = recognitionAnswer({ passed, skill: "contrast", chosen });

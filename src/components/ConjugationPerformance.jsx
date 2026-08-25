@@ -297,6 +297,36 @@ export default function ConjugationPerformance({
         )}
       </Card>
 
+      <SectionTitle>Typed Transform</SectionTitle>
+      <Card className="p-4">
+        {depth.typedTransform.firstAttempts.answered === 0 ? (
+          <div className="text-sm" style={{ color: C.mut }}>No typed Transform frames in this tense pack yet.</div>
+        ) : (
+          <>
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-2xl" style={{ fontFamily: MONO, color: C.ink }}>{pct(depth.typedTransform.firstAttempts.accuracy)}</span>
+              <span className="text-xs text-right" style={{ color: C.mut }}>
+                {depth.typedTransform.firstAttempts.passed}/{depth.typedTransform.firstAttempts.answered} first-attempt frames
+              </span>
+            </div>
+            <div className="mt-2 text-xs" style={{ color: C.mut }}>
+              {depth.typedTransform.firstAttempts.exact} exact · {depth.typedTransform.firstAttempts.accents} accent-assisted
+              {depth.typedTransform.keptIndicative > 0 && ` · kept the indicative ×${depth.typedTransform.keptIndicative}`}
+            </div>
+            {depth.typedTransform.immediate.attempted > 0 && (
+              <div className="mt-3 border-t pt-3 text-xs" style={{ borderColor: C.line, color: C.mut }}>
+                Immediate recovery: {depth.typedTransform.immediate.recovered}/{depth.typedTransform.immediate.attempted}
+              </div>
+            )}
+            {depth.typedTransform.missed.attempted > 0 && (
+              <div className="mt-1 text-xs" style={{ color: C.mut }}>
+                Missed round: {depth.typedTransform.missed.recovered}/{depth.typedTransform.missed.attempted} recovered
+              </div>
+            )}
+          </>
+        )}
+      </Card>
+
       <SectionTitle>Coverage</SectionTitle>
       <Card className="p-4">
         {library.loading ? (
