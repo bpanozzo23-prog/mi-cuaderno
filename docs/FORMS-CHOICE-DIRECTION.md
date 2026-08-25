@@ -1,7 +1,7 @@
 # Forms Choose — multiple choice with morphological distractors
 
-**Status:** Direction approved by the owner 2026-08-24 after a planning session; implementation
-in progress on this direction. Not pushed or deployed until the owner asks.
+**Status:** Implemented and verified locally 2026-08-24 (four commits on `main`); not pushed or
+deployed until the owner asks. Direction approved by the owner 2026-08-24 after a planning session.
 **Origin:** The owner's 2026-08-24 review of cloze / multiple-choice / transformation drill ideas
 against the app. After the Contrasts lane, the next item chosen was *MCQ with morphological
 distractors*: asked for one cell of a verb, pick the right form from four forms of the same verb,
