@@ -116,3 +116,32 @@ event-type change. The Confusion-pair drills idea (owner-annotated vocabulary pa
 The project standard: focused and complete serial suites green, production build, diff check,
 at least two deliberate failure proofs observed red then restored, and the phone check with no
 horizontal overflow or console error. Push, README Status and deployment wait for the owner.
+
+## Follow-on — Connectors (2026-08-24)
+
+The owner asked whether the lane covered syntactic-function distractors for *conjunctions*; it
+did not, and the owner asked for connectors as a follow-on. Decisions:
+
+- **A third set inside the lane, not a new lane.** Same engine, same event shape
+  (`pair: "connectors"`), same per-set statistics block. The setup select is relabelled **Set**
+  (Ser / estar, Por / para, Connectors, All sets); the persisted metadata key stays `pair` and the
+  registry stays `CONTRAST_PAIRS` — persisted keys are never renamed for display reasons.
+- **Vocabulary:** `pero, aunque, sin embargo, porque, por eso, así que, además, en cambio,
+  mientras, entonces`. Multi-word options render as ordinary chips.
+- **Forcing devices.** Connectors are far more interchangeable than por/para, so each sentence is
+  framed to admit one connector in its slot: a question–answer frame for `porque`; a semicolon for
+  `por eso` / `así que` (each `alsoAcceptable` where the other is the answer, with `entonces`);
+  sentence-initial position for `aunque`; a full stop plus comma for `sin embargo`; a second
+  subject for `en cambio`; `y, ___,` for `además`. Where a second connector is still defensible it
+  is `alsoAcceptable`, never a distractor.
+- **Distractor #1** is the opposite direction of the same relation (`porque` ↔ `por eso`,
+  `aunque` ↔ `pero`, `sin embargo` → `pero`, `mientras` ↔ `entonces`) unless that connector is
+  itself acceptable on the card — the confusion an English speaker actually makes.
+- **26 cards**, deliberately fewer than the 32 of the pairs: the one-correct-answer rule cuts
+  harder here, and 26 clean cards beat 32 with two defensible answers.
+- Guide terms for the set are `conectores`, `connectors`, `palabras de enlace`, `marcadores del
+  discurso`, `pero y aunque`, `porque y por eso`; the multi-word rule now also admits a single
+  word of eight or more letters, which keeps its purpose (no bare `para`) intact.
+
+No component logic, statistics, event or schema change: the reveal, drill and performance panel
+key off the registry.

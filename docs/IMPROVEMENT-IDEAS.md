@@ -1694,8 +1694,11 @@ statistics with directional confusions, and Grammar guide links on multi-word te
 Performance's recognition guard became structural in the process. The Gym keeps its name; the
 sibling-practice-home question stays open.
 
+A same-day follow-on added **Connectors** as a third set in the lane (26 cards: `pero`, `aunque`,
+`sin embargo`, `porque`, `por eso`, `así que`, `además`, `en cambio`, `mientras`, `entonces`).
+
 **Still open:** preposition choice beyond por/para and gender/article agreement (option 3) remain
-unbuilt; the capture's advice to let Diario AI feedback name the *next* pair still applies. The
+unbuilt; the capture's advice to let Diario AI feedback name the *next* set still applies. The
 vocabulary-side sibling, Confusion-pair drills, stays captured.
 
 ---

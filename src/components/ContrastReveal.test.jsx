@@ -42,9 +42,21 @@ describe("Contrast reveal", () => {
     expect(requestOpen).toHaveBeenCalledWith("user:por");
     porPara.unmount();
 
-    render(<ContrastReveal card={byId("contrast:ser-estar:keys")} items={items} controls={{ ...controls, openArmed: "user:ser" }} />);
+    const serEstar = render(<ContrastReveal card={byId("contrast:ser-estar:keys")} items={items} controls={{ ...controls, openArmed: "user:ser" }} />);
     expect(screen.getByRole("button", { name: "Open Ser y estar and end session" })).toBeTruthy();
     expect(screen.getByRole("alert").textContent).toMatch(/ends the session\. 3 prompts remain/);
     expect(screen.queryByText(/Observaciones/)).toBeNull();
+    serEstar.unmount();
+
+    render(
+      <ContrastReveal
+        card={byId("contrast:connectors:cause-party")}
+        items={[...items, guide("user:con", "Conectores: pero, aunque, sin embargo")]}
+        controls={controls}
+      />
+    );
+    expect(screen.getAllByRole("button", { name: /Open your guide/ }).map((button) => button.textContent))
+      .toEqual(["Open your guide · Conectores: pero, aunque, sin embargo"]);
+    expect(screen.getByText(/¿Por qué no viniste a la fiesta\? — porque estaba enfermo\./)).toBeTruthy();
   });
 });

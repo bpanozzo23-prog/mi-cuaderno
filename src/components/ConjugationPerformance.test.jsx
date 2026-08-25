@@ -159,6 +159,7 @@ describe("dedicated Conjugation Gym performance", () => {
       contrast({ passed: false, pair: "ser-estar", answer: "es", chosen: "está" }),
       contrast({ passed: true, pair: "ser-estar", answer: "son" }),
       contrast({ passed: false, pair: "por-para", answer: "para", chosen: "por" }),
+      contrast({ passed: false, pair: "connectors", answer: "porque", chosen: "por eso" }),
     ];
     render(<ConjugationPerformance items={[]} events={events} library={library()} onBack={vi.fn()} />);
 
@@ -167,8 +168,10 @@ describe("dedicated Conjugation Gym performance", () => {
     expect(screen.queryByText("By tense")).toBeNull();
     expect(screen.getByText("Ser / estar")).toBeTruthy();
     expect(screen.getByText("Por / para")).toBeTruthy();
+    expect(screen.getByText("Connectors")).toBeTruthy();
     expect(screen.getByText("«es» answered as «está» ×1")).toBeTruthy();
     expect(screen.getByText("«para» answered as «por» ×1")).toBeTruthy();
+    expect(screen.getByText("«porque» answered as «por eso» ×1")).toBeTruthy();
     expect(screen.queryByText("Choice confusions")).toBeNull();
   });
 

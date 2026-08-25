@@ -36,14 +36,26 @@ export const CONTRAST_PAIRS = {
     eyebrow: "Which preposition?",
     vocabulary: ["por", "para", "a", "de", "en", "con"],
   },
+  connectors: {
+    id: "connectors",
+    label: "Connectors",
+    eyebrow: "Which connector?",
+    // Not a pair: one set spanning cause, consequence, contrast, concession, addition and time.
+    vocabulary: ["pero", "aunque", "sin embargo", "porque", "por eso", "así que", "además", "en cambio", "mientras", "entonces"],
+  },
 };
 
 export const CONTRAST_PAIR_IDS = Object.keys(CONTRAST_PAIRS);
 
-/** Multi-word only: the shared guide matcher is a substring test, and `para` alone would match *Comparativos*. */
+/**
+ * Multi-word or long terms only: the shared guide matcher is a substring test, and `para` alone
+ * would match *Comparativos*. A single word qualifies only when it is long and distinctive
+ * (`conectores`), never a function word.
+ */
 export const CONTRAST_GUIDE_TERMS = {
   "ser-estar": ["ser y estar", "ser vs estar", "ser vs. estar", "ser/estar", "ser o estar", "ser and estar"],
   "por-para": ["por y para", "por vs para", "por vs. para", "por/para", "por o para", "por and para"],
+  connectors: ["conectores", "connectors", "palabras de enlace", "marcadores del discurso", "pero y aunque", "porque y por eso"],
 };
 
 const contrast = (pair, slug, answer, prompt, gloss, rule, confusables, options = {}) => ({
@@ -61,6 +73,7 @@ const contrast = (pair, slug, answer, prompt, gloss, rule, confusables, options 
 
 const SER_ESTAR = "ser-estar";
 const POR_PARA = "por-para";
+const CONNECTORS = "connectors";
 
 const SER_ESTAR_CARDS = [
   // ser — identity, profession, origin
@@ -282,16 +295,126 @@ const POR_PARA_CARDS = [
     "Comparison against what is expected takes para.", ["por", "a", "de"]),
 ];
 
-export const CONTRAST_CARDS = [...SER_ESTAR_CARDS, ...POR_PARA_CARDS];
+/**
+ * Connectors are far more interchangeable than por/para, so each sentence is framed to admit
+ * one connector in its slot: clause order, punctuation (a full stop before `sin embargo`, a
+ * question before `porque`) and sentence position do the forcing, and every second defensible
+ * connector sits in `alsoAcceptable`. Distractor #1 is the opposite direction of the same
+ * relation (cause ↔ consequence, concession ↔ contrast) unless that one is itself acceptable.
+ */
+const CONNECTOR_CARDS = [
+  // cause — porque, forced by a question-and-answer frame
+  contrast(CONNECTORS, "cause-party", "porque",
+    "¿Por qué no viniste a la fiesta? — ___ estaba enfermo.", "Why didn't you come to the party? — Because I was ill.",
+    "Porque introduces the cause; por eso introduces the consequence.", ["por eso", "aunque", "mientras"]),
+  contrast(CONNECTORS, "cause-late", "porque",
+    "¿Por qué llegaste tarde? — ___ el autobús no pasó.", "Why were you late? — Because the bus didn't come.",
+    "Porque introduces the cause; por eso introduces the consequence.", ["por eso", "así que", "mientras"]),
+  contrast(CONNECTORS, "cause-study", "porque",
+    "¿Por qué estudias español? — ___ mi familia vive en México.", "Why do you study Spanish? — Because my family lives in Mexico.",
+    "Porque introduces the cause; por eso introduces the consequence.", ["por eso", "aunque", "entonces"]),
+  // consequence — por eso / así que, each acceptable where the other is the answer
+  contrast(CONNECTORS, "result-party", "por eso",
+    "Estaba enfermo; ___ no fui a la fiesta.", "I was ill; that's why I didn't go to the party.",
+    "Por eso introduces the consequence; porque would introduce the cause.", ["porque", "pero", "además"],
+    { alsoAcceptable: ["así que", "entonces"] }),
+  contrast(CONNECTORS, "result-money", "por eso",
+    "No tengo dinero; ___ no puedo viajar este verano.", "I have no money; that's why I can't travel this summer.",
+    "Por eso introduces the consequence; porque would introduce the cause.", ["porque", "aunque", "mientras"],
+    { alsoAcceptable: ["así que", "entonces"] }),
+  contrast(CONNECTORS, "result-rain", "por eso",
+    "Llovía muchísimo; ___ cancelaron el partido.", "It was pouring; that's why they cancelled the match.",
+    "Por eso introduces the consequence; porque would introduce the cause.", ["porque", "sin embargo", "mientras"],
+    { alsoAcceptable: ["así que", "entonces"] }),
+  contrast(CONNECTORS, "so-sleep", "así que",
+    "Ya es tarde, ___ me voy a dormir.", "It's late, so I'm going to bed.",
+    "Así que draws the consequence; porque would give the reason.", ["porque", "pero", "aunque"],
+    { alsoAcceptable: ["por eso", "entonces"] }),
+  contrast(CONNECTORS, "so-bread", "así que",
+    "No había pan, ___ fui a la panadería.", "There was no bread, so I went to the bakery.",
+    "Así que draws the consequence; porque would give the reason.", ["porque", "mientras", "en cambio"],
+    { alsoAcceptable: ["por eso", "entonces"] }),
+  // contrast — pero
+  contrast(CONNECTORS, "but-come", "pero",
+    "Ven, ___ no llegues tarde.", "Come, but don't be late.",
+    "Pero contrasts two clauses; aunque would concede one.", ["aunque", "porque", "así que"]),
+  contrast(CONNECTORS, "but-time", "pero",
+    "Quiero ir, ___ no tengo tiempo.", "I want to go, but I have no time.",
+    "Pero contrasts two clauses; aunque would concede one.", ["porque", "por eso", "mientras"],
+    { alsoAcceptable: ["aunque", "sin embargo"] }),
+  contrast(CONNECTORS, "but-small", "pero",
+    "Es pequeño ___ muy cómodo.", "It is small but very comfortable.",
+    "Pero contrasts two qualities; aunque would concede one.", ["además", "en cambio", "porque"],
+    { alsoAcceptable: ["aunque"] }),
+  // concession — aunque, forced by sentence-initial position
+  contrast(CONNECTORS, "although-rain", "aunque",
+    "___ llovía mucho, salimos a caminar.", "Although it was raining hard, we went out for a walk.",
+    "Aunque opens a concession; pero cannot open the sentence this way.", ["pero", "porque", "por eso"]),
+  contrast(CONNECTORS, "although-tired", "aunque",
+    "___ estoy cansado, voy a terminar el trabajo hoy.", "Although I'm tired, I'm going to finish the work today.",
+    "Aunque opens a concession; pero cannot open the sentence this way.", ["pero", "porque", "así que"]),
+  contrast(CONNECTORS, "although-money", "aunque",
+    "___ no tengo mucho dinero, soy feliz.", "Although I don't have much money, I am happy.",
+    "Aunque opens a concession; pero cannot open the sentence this way.", ["pero", "además", "por eso"]),
+  // adversative after a full stop — sin embargo
+  contrast(CONNECTORS, "however-exam", "sin embargo",
+    "Estudió mucho. ___, no aprobó el examen.", "He studied a lot. However, he didn't pass the exam.",
+    "Sin embargo opens a new sentence; pero joins two clauses.", ["pero", "además", "por eso"]),
+  contrast(CONNECTORS, "however-hotel", "sin embargo",
+    "El hotel era caro. ___, la comida era excelente.", "The hotel was expensive. However, the food was excellent.",
+    "Sin embargo opens a new sentence; pero joins two clauses.", ["pero", "además", "porque"],
+    { alsoAcceptable: ["en cambio"] }),
+  contrast(CONNECTORS, "however-beach", "sin embargo",
+    "Hace frío. ___, los niños quieren ir a la playa.", "It's cold. However, the children want to go to the beach.",
+    "Sin embargo opens a new sentence; pero joins two clauses.", ["pero", "así que", "además"]),
+  // comparison of two subjects — en cambio
+  contrast(CONNECTORS, "whereas-tea", "en cambio",
+    "A mí me gusta el café; a mi hermana, ___, le gusta el té.", "I like coffee; my sister, on the other hand, likes tea.",
+    "En cambio sets two subjects against each other.", ["además", "por eso", "porque"],
+    { alsoAcceptable: ["sin embargo"] }),
+  contrast(CONNECTORS, "whereas-parents", "en cambio",
+    "Mi padre es muy tranquilo; mi madre, ___, es muy nerviosa.", "My father is very calm; my mother, on the other hand, is very anxious.",
+    "En cambio sets two subjects against each other.", ["además", "así que", "mientras"],
+    { alsoAcceptable: ["sin embargo"] }),
+  // addition — además
+  contrast(CONNECTORS, "besides-cheap", "además",
+    "Es barato y, ___, está cerca de casa.", "It's cheap and, besides, it's close to home.",
+    "Además adds a point; pero would contrast one.", ["pero", "en cambio", "por eso"]),
+  contrast(CONNECTORS, "besides-rain", "además",
+    "No quiero salir: estoy cansado y, ___, llueve.", "I don't want to go out: I'm tired and, besides, it's raining.",
+    "Además adds a point; pero would contrast one.", ["pero", "sin embargo", "mientras"]),
+  contrast(CONNECTORS, "besides-city", "además",
+    "Es una ciudad bonita. ___, tiene un clima perfecto.", "It's a pretty city. Besides, it has perfect weather.",
+    "Además adds a point; sin embargo would contrast one.", ["pero", "sin embargo", "por eso"]),
+  // simultaneity — mientras
+  contrast(CONNECTORS, "while-cook", "mientras",
+    "Cocino ___ escucho música.", "I cook while I listen to music.",
+    "Mientras joins two things happening at once.", ["entonces", "porque", "pero"]),
+  contrast(CONNECTORS, "while-study", "mientras",
+    "Mi hermano estudia ___ yo trabajo.", "My brother studies while I work.",
+    "Mientras joins two things happening at once.", ["entonces", "aunque", "por eso"]),
+  // sequence — entonces
+  contrast(CONNECTORS, "then-run", "entonces",
+    "Terminé el trabajo y ___ salí a correr.", "I finished work and then went out for a run.",
+    "Entonces marks what came next.", ["mientras", "porque", "aunque"],
+    { alsoAcceptable: ["por eso"] }),
+  contrast(CONNECTORS, "then-beach", "entonces",
+    "Si no llueve mañana, ___ vamos a la playa.", "If it doesn't rain tomorrow, then we'll go to the beach.",
+    "Entonces marks what follows.", ["mientras", "porque", "aunque"]),
+];
 
-/** The union option vocabulary of the chosen pairs — the Contrasts analogue of `recognitionTenses`. */
+export const CONTRAST_CARDS = [...SER_ESTAR_CARDS, ...POR_PARA_CARDS, ...CONNECTOR_CARDS];
+
+const ALL_SETS = new Set(["all", "both", undefined, null, ""]);
+const setIds = (pairIds) => (ALL_SETS.has(pairIds) ? CONTRAST_PAIR_IDS : [].concat(pairIds));
+
+/** The union option vocabulary of the chosen sets — the Contrasts analogue of `recognitionTenses`. */
 export function contrastOptions(pairIds) {
-  const ids = pairIds === "both" || !pairIds ? CONTRAST_PAIR_IDS : [].concat(pairIds);
-  return [...new Set(ids.flatMap((id) => CONTRAST_PAIRS[id]?.vocabulary || []))];
+  return [...new Set(setIds(pairIds).flatMap((id) => CONTRAST_PAIRS[id]?.vocabulary || []))];
 }
 
-/** The cards for one pair id, `"both"`, or a list of pair ids. */
+/** The cards for one set id, `"all"` (or the older `"both"`), or a list of set ids. */
 export function contrastCards(pairIds) {
-  const ids = new Set(pairIds === "both" || !pairIds ? CONTRAST_PAIR_IDS : [].concat(pairIds));
+  const ids = new Set(setIds(pairIds));
   return CONTRAST_CARDS.filter((card) => ids.has(card.pair));
 }

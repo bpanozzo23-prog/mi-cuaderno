@@ -18,10 +18,11 @@ const rngFrom = (values) => {
 const optionSet = (options) => [...options].sort().join("|");
 
 describe("Contrasts reference content", () => {
-  it("ships two pairs of stable, unique, well-formed cards", () => {
-    expect(CONTRAST_PAIR_IDS).toEqual(["ser-estar", "por-para"]);
+  it("ships three sets of stable, unique, well-formed cards", () => {
+    expect(CONTRAST_PAIR_IDS).toEqual(["ser-estar", "por-para", "connectors"]);
     expect(CONTRAST_CARDS.filter((card) => card.pair === "ser-estar")).toHaveLength(32);
     expect(CONTRAST_CARDS.filter((card) => card.pair === "por-para")).toHaveLength(32);
+    expect(CONTRAST_CARDS.filter((card) => card.pair === "connectors")).toHaveLength(26);
     expect(new Set(CONTRAST_CARDS.map((card) => card.id)).size).toBe(CONTRAST_CARDS.length);
     for (const card of CONTRAST_CARDS) {
       expect(card.id).toBe(`contrast:${card.pair}:${card.id.split(":")[2]}`);
@@ -58,6 +59,19 @@ describe("Contrasts reference content", () => {
     }
   });
 
+  it("puts the opposite-direction connector first unless that one is itself acceptable", () => {
+    const opposite = {
+      porque: "por eso", "por eso": "porque", "así que": "porque",
+      pero: "aunque", aunque: "pero", "sin embargo": "pero",
+      "en cambio": "sin embargo", además: "pero", mientras: "entonces", entonces: "mientras",
+    };
+    for (const card of contrastCards("connectors")) {
+      const expected = opposite[card.answer];
+      expect(expected, card.id).toBeTruthy();
+      if (!card.alsoAcceptable.includes(expected)) expect(card.confusables[0], card.id).toBe(expected);
+    }
+  });
+
   it("registers as a recognition lane without a tense scope", () => {
     expect(RECOGNITION_CARDS.contrast).toBe(CONTRAST_CARDS);
     expect(RECOGNITION_LANES.contrast).toEqual({ label: "Contrasts", eyebrow: "Which one fits?" });
@@ -65,18 +79,24 @@ describe("Contrasts reference content", () => {
     expect(recognitionTenses("usage").every((tense) => tense.includes("/"))).toBe(true);
   });
 
-  it("scopes options and cards by pair, with 'both' as the union", () => {
+  it("scopes options and cards by set, with 'all' (or the older 'both') as the union", () => {
     expect(contrastOptions("por-para")).toEqual(["por", "para", "a", "de", "en", "con"]);
-    expect(contrastOptions("both")).toHaveLength(20);
+    expect(contrastOptions("all")).toHaveLength(30);
+    expect(contrastOptions("both")).toEqual(contrastOptions("all"));
     expect(contrastCards("por-para").every((card) => card.pair === "por-para")).toBe(true);
-    expect(contrastCards("both")).toHaveLength(64);
+    expect(contrastCards("all")).toHaveLength(90);
+    expect(contrastCards("both")).toHaveLength(90);
     expect(contrastCards(["ser-estar"])).toHaveLength(32);
   });
 
-  it("uses only multi-word guide terms so short words cannot match unrelated titles", () => {
-    for (const terms of Object.values(CONTRAST_GUIDE_TERMS)) {
+  it("uses only multi-word or long guide terms so function words cannot match unrelated titles", () => {
+    for (const [pair, terms] of Object.entries(CONTRAST_GUIDE_TERMS)) {
+      expect(CONTRAST_PAIRS[pair]).toBeTruthy();
       expect(terms.length).toBeGreaterThan(0);
-      for (const term of terms) expect(term.trim().split(/\s+|\//).length).toBeGreaterThan(1);
+      for (const term of terms) {
+        const words = term.trim().split(/\s+|\//).length;
+        expect(words > 1 || term.length >= 8, term).toBe(true);
+      }
     }
   });
 });
@@ -96,23 +116,23 @@ describe("Contrasts decks through the shared recognition engine", () => {
     }
   });
 
-  it("never crosses pairs in a both-pairs deck, even when the anti-repeat swap runs", () => {
-    const scope = contrastOptions("both");
-    const deck = buildRecognitionDeck(contrastCards("both"), {
+  it("never crosses sets in an all-sets deck, even when the anti-repeat swap runs", () => {
+    const scope = contrastOptions("all");
+    const deck = buildRecognitionDeck(contrastCards("all"), {
       size: 20,
       tenseScope: scope,
       allTenses: scope,
       rng: rngFrom([0.12, 0.84, 0.31, 0.67, 0.45, 0.02, 0.98]),
     });
     expect(deck).toHaveLength(20);
-    expect(new Set(deck.map((card) => card.pair)).size).toBe(2);
+    expect(new Set(deck.map((card) => card.pair)).size).toBe(3);
     for (const card of deck) {
       const vocabulary = new Set(CONTRAST_PAIRS[card.pair].vocabulary);
       for (const option of card.options) expect(vocabulary.has(option)).toBe(true);
     }
-    // Force the swap path on a por/para card: the union scope lists ser/estar forms first, so
-    // without the per-card vocabulary the replacement would be "soy".
-    for (const card of contrastCards("por-para")) {
+    // Force the swap path on por/para and connector cards: the union scope lists ser/estar forms
+    // first, so without the per-card vocabulary the replacement would be "soy".
+    for (const card of [...contrastCards("por-para"), ...contrastCards("connectors")]) {
       const same = recognitionOptions(card, { tenseScope: scope, allTenses: scope, rng: () => 0.4 });
       const swapped = recognitionOptions(card, {
         tenseScope: scope, allTenses: scope, rng: () => 0.4, previousOptions: same,

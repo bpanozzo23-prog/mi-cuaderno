@@ -498,7 +498,7 @@ export default function ConjugationGym({
             </div>
             <p className="mt-1 text-xs" style={{ color: C.mut }}>
               {contrastLane
-                ? "Fill the blank from four options: ser or estar, por or para. Recognition practice never changes your vocabulary review schedule."
+                ? "Fill the blank from four options: ser or estar, por or para, or the right connector. Recognition practice never changes your vocabulary review schedule."
                 : usageRecall
                   ? "Name at least one valid use, reveal the curated set, then grade your recall."
                   : endingsProduction
@@ -543,11 +543,11 @@ export default function ConjugationGym({
             </>
           )}
 
-          <SectionTitle>{contrastLane ? "Pair" : "Tense scope"}</SectionTitle>
+          <SectionTitle>{contrastLane ? "Set" : "Tense scope"}</SectionTitle>
           <Card className="space-y-4 p-4">
             {contrastLane ? (
               <div>
-                <label htmlFor="contrast-pair" className="mb-1 block text-xs" style={{ color: C.mut }}>Pair</label>
+                <label htmlFor="contrast-pair" className="mb-1 block text-xs" style={{ color: C.mut }}>Set</label>
                 <select
                   id="contrast-pair"
                   value={contrastPair}
@@ -561,7 +561,7 @@ export default function ConjugationGym({
                   {CONTRAST_PAIR_IDS.map((id) => (
                     <option key={id} value={id}>{CONTRAST_PAIRS[id].label}</option>
                   ))}
-                  <option value="both">Both pairs</option>
+                  <option value="all">All sets</option>
                 </select>
               </div>
             ) : (

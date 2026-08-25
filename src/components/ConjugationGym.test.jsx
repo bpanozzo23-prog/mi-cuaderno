@@ -108,11 +108,13 @@ describe("Conjugation Gym setup", () => {
     expect(screen.queryByText("Dictionary not installed")).toBeNull();
     expect(screen.queryByLabelText("Tense pack")).toBeNull();
     expect(screen.queryByText("Direction")).toBeNull();
-    expect(screen.getByLabelText("Pair").value).toBe("ser-estar");
+    expect(screen.getByLabelText("Set").value).toBe("ser-estar");
     expect(screen.getByText("32 cards available for these choices.")).toBeTruthy();
 
-    await user.selectOptions(screen.getByLabelText("Pair"), "both");
-    expect(screen.getByText("64 cards available for these choices.")).toBeTruthy();
+    await user.selectOptions(screen.getByLabelText("Set"), "connectors");
+    expect(screen.getByText("26 cards available for these choices.")).toBeTruthy();
+    await user.selectOptions(screen.getByLabelText("Set"), "all");
+    expect(screen.getByText("90 cards available for these choices.")).toBeTruthy();
     await user.selectOptions(screen.getByLabelText("Prompts"), "20");
     await user.click(screen.getByRole("button", { name: "Start contrasts" }));
 
