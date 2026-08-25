@@ -1,7 +1,7 @@
 # Transform lane — typed indicative → present-subjunctive transformation
 
-**Status:** Direction approved by the owner 2026-08-24 after a planning session; implementation
-in progress on this direction. Not pushed or deployed until the owner asks.
+**Status:** Implemented and verified locally 2026-08-24 (four commits on `main`); not pushed or
+deployed until the owner asks. Direction approved by the owner 2026-08-24 after a planning session.
 **Origin:** The owner's 2026-08-24 review of cloze / multiple-choice / transformation drill ideas.
 After the Contrasts lane and Forms Choose, the next item chosen was *mood transformation*: show an
 indicative sentence and a matrix trigger, type the subjunctive form, graded exactly.
