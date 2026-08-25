@@ -83,7 +83,6 @@ Useful information to retain for each idea:
 | Review forecast | 2026-08-12 | Captured | Low priority per owner; a small derived Estadísticas addition |
 | Confusion-pair drills | 2026-08-12 | Captured | Any time; the annotations are already curated (promoted out of Learning depth history) |
 | Dictation cards | 2026-08-11 | Captured | After real use of the picture face settles the face-priority pattern |
-| Non-verb grammar drills | 2026-08-11 | Planned | Direction approved 2026-08-24 — `docs/CONTRAST-LANE-DIRECTION.md` (ser/estar and por/para first) |
 | Frequency coverage | 2026-08-11 | Captured | Any time; a derived Estadísticas view over existing `freqRank` data |
 | Phase 19/20 review nits (edge polish) | 2026-08-10 | Captured | Whenever a related area is next touched; none is urgent |
 | Saved views | 2026-08-02 | Captured | Now discussable: Phase 8's lenses have been in daily use, so the owner can name repeated combinations |
@@ -99,6 +98,7 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Implemented as | Full records |
 |---|---|---|---|
+| Non-verb grammar drills | 2026-08-11 | Contrasts Gym lane, implemented locally 2026-08-24 (not yet deployed) | `docs/CONTRAST-LANE-DIRECTION.md`; 2026-08-24 entries in `DECISIONS.md` |
 | Suppressed-containment confirmation | 2026-08-15 | Same-day increment, deployed | 2026-08-15 entries in `DECISIONS.md` |
 | Unused dictionary fields (shipped-lemma census) | 2026-08-13 | Phase 24 r4 enrichment, deployed | `PHASE-24-DIRECTION.md`, `PHASE-24-REPORT.md` |
 | The word's biography | 2026-08-12 | Phase 23a, deployed | `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md` |
@@ -1369,70 +1369,6 @@ Spanish voice would govern availability.
 
 ---
 
-### Non-verb grammar drills
-
-- **Date added:** 2026-08-11
-- **Last reviewed:** 2026-08-24 — planned as the **Contrasts** Gym lane; contract in
-  `docs/CONTRAST-LANE-DIRECTION.md`. Option 1 ("one lane first") won, with two pairs at once:
-  ser/estar as conjugated-form choices and por/para as preposition choices. The Gym keeps its
-  name; a sibling practice home stays deferred.
-- **Status:** Planned
-- **Owner interest:** Chose ser/estar and por/para directly on 2026-08-24 while reviewing
-  cloze/MCQ drill ideas, rather than waiting for Diario AI feedback to name the first pair.
-- **Origin:** Brainstorming session on unconsidered possibilities; not yet requested from real friction
-- **Potential data impact:** None expected; curated reference data plus existing
-  `drill_pass`/`drill_fail` events with additive metadata, following the Usage/Endings precedent
-
-#### Description and current context
-
-The Gym's lane structure and engines generalize past conjugation: the four-choice recognition
-engine (Phase 17) and typed production with exact-first grading (Phase 18) could drive drills for
-*ser/estar*, *por/para*, preposition choice, and gender/article agreement. Each lane needs what
-Usage needed: a curated item set with confusables and explanations. This is content work more than
-engineering — the machinery is built.
-
-**Sibling idea:** Confusion-pair drills (above) is the vocabulary-side counterpart, drawing decks
-from the owner's own `often_confused`/`contrast` annotations rather than curated reference data.
-A shared engine serving both is plausible; the data sources and curation burden differ.
-
-#### Potential options
-
-1. **One lane first.** Ship the single highest-value confusion (likely *ser/estar* or *por/para*)
-   as one new lane with a curated deck, and let real use decide whether more follow.
-2. **A generic confusable-pair lane** fed by curated data files, so later pairs are data additions
-   rather than new lanes.
-3. **Gender/article drills** driven by the dictionary's own entry data rather than hand curation,
-   if the shipped entries carry reliable gender.
-
-#### Expected owner value
-
-- Extends deliberate practice to the errors that most persist for English speakers, which
-  conjugation drills cannot touch.
-- Reuses the Gym's session anatomy, missed rounds and performance reporting without new concepts.
-
-#### Risks and tradeoffs
-
-- Curation is the real cost: each item needs a correct answer, plausible distractors and an
-  explanation, and a wrong or ambiguous curated item teaches the error it exists to prevent.
-- Context-dependent items (*ser/estar* especially) can have two defensible answers; items must be
-  chosen so the deck is objectively gradable, the same bar the Usage lane set.
-- Every existing consumer of `drill_pass`/`drill_fail` (form statistics, Adaptive, Leitner replay)
-  must explicitly ignore the new metadata kinds, as they already do for recognition answers.
-
-#### Evidence needed
-
-- Which confusions actually recur in the owner's own Spanish — Diario AI feedback is accumulating
-  exactly this evidence, and it should pick the first lane rather than guessing from a textbook's
-  priorities.
-- Whether the dictionary's entry data carries gender reliably enough for option 3.
-
-#### Questions for a future discussion
-
-- First lane: *ser/estar*, *por/para*, or whatever the Diario feedback names most often?
-- Do these belong inside the Conjugation Gym (renaming it), or as a sibling practice home?
-
----
-
 ### Frequency coverage
 
 - **Date added:** 2026-08-11
@@ -1742,6 +1678,27 @@ entry slowing them down in a typed session.
 ---
 
 ## Implemented ideas (history)
+
+### Non-verb grammar drills
+
+- **Date added:** 2026-08-11 — **Status:** Implemented — Contrasts Gym lane, verified locally
+  2026-08-24; not yet pushed or deployed
+- **Records:** `docs/CONTRAST-LANE-DIRECTION.md`; "Contrasts lane" entries in `DECISIONS.md`
+- **Owner interest:** Chose ser/estar and por/para directly on 2026-08-24 while reviewing
+  cloze/MCQ drill ideas, rather than waiting for Diario AI feedback to name the first pair.
+
+Option 1 of the capture ("one lane first") shipped as a fourth Gym lane: 32 ser/estar cards with
+conjugated-form options and 32 por/para cards, four-choice cloze through the Phase 17 engine,
+`drill_pass`/`drill_fail` with `skill: "contrast"`, `pair`, `answer` and no `tense`, per-pair
+statistics with directional confusions, and Grammar guide links on multi-word terms. Form
+Performance's recognition guard became structural in the process. The Gym keeps its name; the
+sibling-practice-home question stays open.
+
+**Still open:** preposition choice beyond por/para and gender/article agreement (option 3) remain
+unbuilt; the capture's advice to let Diario AI feedback name the *next* pair still applies. The
+vocabulary-side sibling, Confusion-pair drills, stays captured.
+
+---
 
 Compressed summaries. The authoritative records are `DECISIONS.md` and each phase's
 direction/report documents; each entry's original full reasoning is preserved in this file's git

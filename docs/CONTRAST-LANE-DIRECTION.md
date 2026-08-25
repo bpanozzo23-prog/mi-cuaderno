@@ -1,7 +1,7 @@
 # Contrasts lane — ser/estar and por/para four-choice cloze
 
-**Status:** Direction approved by the owner 2026-08-24 after a planning session; implementation
-in progress on this direction. Not pushed or deployed until the owner asks.
+**Status:** Implemented and verified locally 2026-08-24 (four commits on `main`); not pushed or
+deployed until the owner asks. Direction approved by the owner 2026-08-24 after a planning session.
 **Origin:** The owner reviewed a survey of cloze / multiple-choice / transformation drill ideas
 against what the app already has and chose *differentiative choice cloze* — a Spanish sentence
 with the function word blanked and four options — as the first to build. `docs/IMPROVEMENT-IDEAS.md`
