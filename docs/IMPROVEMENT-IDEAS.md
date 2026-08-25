@@ -83,7 +83,7 @@ Useful information to retain for each idea:
 | Review forecast | 2026-08-12 | Captured | Low priority per owner; a small derived Estadísticas addition |
 | Confusion-pair drills | 2026-08-12 | Captured | Any time; the annotations are already curated (promoted out of Learning depth history) |
 | Dictation cards | 2026-08-11 | Captured | After real use of the picture face settles the face-priority pattern |
-| Non-verb grammar drills | 2026-08-11 | Captured | After Diario AI feedback accumulates evidence of which confusions recur |
+| Non-verb grammar drills | 2026-08-11 | Planned | Direction approved 2026-08-24 — `docs/CONTRAST-LANE-DIRECTION.md` (ser/estar and por/para first) |
 | Frequency coverage | 2026-08-11 | Captured | Any time; a derived Estadísticas view over existing `freqRank` data |
 | Phase 19/20 review nits (edge polish) | 2026-08-10 | Captured | Whenever a related area is next touched; none is urgent |
 | Saved views | 2026-08-02 | Captured | Now discussable: Phase 8's lenses have been in daily use, so the owner can name repeated combinations |
@@ -1372,7 +1372,13 @@ Spanish voice would govern availability.
 ### Non-verb grammar drills
 
 - **Date added:** 2026-08-11
-- **Status:** Captured
+- **Last reviewed:** 2026-08-24 — planned as the **Contrasts** Gym lane; contract in
+  `docs/CONTRAST-LANE-DIRECTION.md`. Option 1 ("one lane first") won, with two pairs at once:
+  ser/estar as conjugated-form choices and por/para as preposition choices. The Gym keeps its
+  name; a sibling practice home stays deferred.
+- **Status:** Planned
+- **Owner interest:** Chose ser/estar and por/para directly on 2026-08-24 while reviewing
+  cloze/MCQ drill ideas, rather than waiting for Diario AI feedback to name the first pair.
 - **Origin:** Brainstorming session on unconsidered possibilities; not yet requested from real friction
 - **Potential data impact:** None expected; curated reference data plus existing
   `drill_pass`/`drill_fail` events with additive metadata, following the Usage/Endings precedent
@@ -2096,6 +2102,11 @@ added optional import of dictionary senses as ordinary meaning records with no l
 
 ## Document history
 
+- **2026-08-24 — Non-verb grammar drills planned as the Contrasts Gym lane.** The owner reviewed
+  a survey of cloze, multiple-choice and transformation drill ideas against the app and chose the
+  differentiative choice cloze first, naming ser/estar and por/para as the pairs. The direction is
+  `docs/CONTRAST-LANE-DIRECTION.md`; the entry moves to Planned. Confusion-pair drills stays
+  captured as the vocabulary-side sibling.
 - **2026-08-20 — Taller direction workshopped and approved; two follow-on ideas captured.** A
   multi-round owner workshop turned the prompting-suite capture into an approved v1 direction,
   `docs/DIARIO-TALLER-DIRECTION.md`: the Taller door on the Diario, drills with keep-or-discard,

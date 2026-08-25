@@ -10,6 +10,18 @@ import {
 
 const DRILL_TYPES = new Set(["drill_pass", "drill_fail"]);
 const isPassed = (event) => event.type === "drill_pass";
+
+/**
+ * Recognition lanes (Tense usage, Endings, Contrasts) reuse the drill event types. Forms
+ * performance must stay blind to them by structure: every recognition session stamps
+ * `sessionKind: "recognition"`, and the skill list is the belt to that braces — a lane
+ * added later that forgets the session kind still fails the second test, and the
+ * adversarial contract tests pin each lane individually.
+ */
+const RECOGNITION_SKILLS = new Set(["usage", "endings", "contrast"]);
+const isRecognitionEvent = (event) => (
+  event?.metadata?.sessionKind === "recognition" || RECOGNITION_SKILLS.has(event?.metadata?.skill)
+);
 const isTypedMode = (mode) => mode === "typed" || mode === "type";
 const ratio = (passed, answered) => (answered ? passed / answered : null);
 
@@ -77,7 +89,7 @@ function normalizeEvents(events, { items, itemLemmas, targets, source, tenses })
 
   return (events || [])
     .filter((event) => DRILL_TYPES.has(event?.type))
-    .filter((event) => event?.metadata?.skill !== "usage" && event?.metadata?.skill !== "endings")
+    .filter((event) => !isRecognitionEvent(event))
     .map((event, order) => {
       const metadata = event.metadata || {};
       const item = event.itemKey ? itemById.get(event.itemKey) : null;

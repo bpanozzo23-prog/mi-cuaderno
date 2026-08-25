@@ -607,7 +607,22 @@ describe("drill events stay out of the review model", () => {
         slotVerdicts: { yo: "wrong" },
       },
     });
-    const after = stateOf([word], [pass("user:1", "2026-07-30"), recognition, recall, typedEndings]);
+    const contrast = makeEvent({
+      type: "drill_fail",
+      itemKey: null,
+      at: at("2026-08-03"),
+      localDate: "2026-08-03",
+      metadata: {
+        skill: "contrast",
+        cardId: "contrast:ser-estar:profession",
+        pair: "ser-estar",
+        answer: "es",
+        chosen: "está",
+        mode: "choice",
+        sessionKind: "recognition",
+      },
+    });
+    const after = stateOf([word], [pass("user:1", "2026-07-30"), recognition, recall, typedEndings, contrast]);
 
     expect(after.states.get(word.id)).toEqual(reviewed.states.get(word.id));
     expect(after.due).toEqual(reviewed.due);

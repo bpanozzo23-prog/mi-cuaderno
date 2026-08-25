@@ -446,6 +446,19 @@ describe("adaptive decks", () => {
         slotVerdicts: { yo: "wrong" },
         stage: "initial",
       },
+    }, {
+      type: "drill_fail",
+      at: "2026-08-09T12:03:00.000Z",
+      metadata: {
+        skill: "contrast",
+        cardId: "contrast:ser-estar:profession",
+        pair: "ser-estar",
+        answer: "es",
+        chosen: "está",
+        mode: "choice",
+        sessionKind: "recognition",
+        stage: "initial",
+      },
     }];
     const options = { size: 10, now: "2026-08-09T13:00:00.000Z" };
 

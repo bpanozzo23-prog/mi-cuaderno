@@ -95,6 +95,33 @@ describe("Conjugation Gym performance contracts", () => {
       .toEqual(conjugationPerformance([formEvent]));
   });
 
+  it("excludes a Contrasts choice answer structurally, not by a named skill list", () => {
+    const formEvent = answer({ passed: true, minute: 1 });
+    const contrastEvent = {
+      id: "contrast-1",
+      type: "drill_fail",
+      itemKey: null,
+      at: at(2),
+      localDate: "2026-08-07",
+      metadata: {
+        skill: "contrast",
+        cardId: "contrast:ser-estar:profession",
+        pair: "ser-estar",
+        answer: "es",
+        chosen: "está",
+        // Same adversarial collision as the Usage case above: the mode filter alone must not
+        // be what keeps a recognition answer out of Forms figures.
+        mode: "typed",
+        sessionKind: "recognition",
+        stage: "initial",
+        // No tense: a contrast answer must never be readable as a tense key.
+      },
+    };
+
+    expect(conjugationPerformance([formEvent, contrastEvent]))
+      .toEqual(conjugationPerformance([formEvent]));
+  });
+
   it("does not let retry or missed-round passes inflate first-attempt accuracy", () => {
     const events = [
       answer({ passed: false, minute: 1, promptId: "p-1" }),
