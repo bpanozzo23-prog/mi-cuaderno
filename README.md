@@ -805,6 +805,20 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   on test and build evidence plus the owner's phone check against the `--host` dev URL. Pushed
   2026-08-24 as `bc5c053`. See [docs/CONTRAST-LANE-DIRECTION.md](docs/CONTRAST-LANE-DIRECTION.md)
   and the "Contrasts lane" entries in [DECISIONS.md](DECISIONS.md).
+- **Forms Choose — deployed.** The Conjugation Gym's Forms drill gains a third answer mode,
+  Choose, beside Type and Reveal: the answer plus three other forms of the same verb (another
+  person in the same tense, the same person in the first curated confusable tense, one more from
+  either family), objective marking, the typed ladder's diagnosis on a miss (wrong person / wrong
+  tense), no immediate retry, and one missed round. Events are the unchanged Forms shape with
+  `mode: "choice"` and miss-only `chosen`; primary accuracy stays typed-only, a "Choose practice"
+  card reports separately with its diagnoses, and Choose misses feed Adaptive like Reveal misses.
+  `SCHEMA_VERSION` stays 10; no event type, preference or backup change. The complete serial suite
+  passes 1,694/1,694 across 143 files on the XPS, the production build transforms 2,139 modules,
+  `git diff --check` passes, and three deliberate failure proofs reddened as intended. No agent
+  browser closeout: shipped from the headless XPS on test and build evidence plus the owner's
+  phone check against the `--host` dev URL. Pushed 2026-08-24 as `f3e4d03`. See
+  [docs/FORMS-CHOICE-DIRECTION.md](docs/FORMS-CHOICE-DIRECTION.md) and the "Forms Choose" entries
+  in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **10**. Before Dexie opens v10, schema-v1 through schema-v9 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
