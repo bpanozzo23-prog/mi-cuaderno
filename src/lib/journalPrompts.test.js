@@ -5,14 +5,23 @@ import { TALLER_SCAFFOLDS, scaffoldForCategory } from "./tallerScaffolds.js";
 
 const SKILL_CATEGORY_IDS = ["narrate", "imagine", "connect"];
 
+// Reflective categories stay at their original six; skill categories grow by
+// owner-directed coverage expansion (2026-08-25) and pin their exact counts here.
+const CATEGORY_COUNTS = { notice: 6, reflect: 6, spanish: 6, grow: 6, narrate: 7, imagine: 8, connect: 8 };
+const TOTAL_PROMPTS = Object.values(CATEGORY_COUNTS).reduce((sum, count) => sum + count, 0);
+
 describe("journal prompt library", () => {
-  it("contains 42 unique, bilingual, evenly grouped prompts", () => {
-    expect(JOURNAL_PROMPTS).toHaveLength(42);
-    expect(new Set(JOURNAL_PROMPTS.map((prompt) => prompt.id)).size).toBe(42);
-    expect(new Set(JOURNAL_PROMPTS.map((prompt) => prompt.es)).size).toBe(42);
+  it("contains 47 unique, bilingual prompts in the pinned per-category counts", () => {
+    expect(TOTAL_PROMPTS).toBe(47);
+    expect(JOURNAL_PROMPTS).toHaveLength(TOTAL_PROMPTS);
+    expect(new Set(JOURNAL_PROMPTS.map((prompt) => prompt.id)).size).toBe(TOTAL_PROMPTS);
+    expect(new Set(JOURNAL_PROMPTS.map((prompt) => prompt.es)).size).toBe(TOTAL_PROMPTS);
     expect(JOURNAL_PROMPTS.every((prompt) => prompt.es && prompt.en)).toBe(true);
     for (const category of JOURNAL_PROMPT_CATEGORIES) {
-      expect(JOURNAL_PROMPTS.filter((prompt) => prompt.category === category.id)).toHaveLength(6);
+      expect(
+        JOURNAL_PROMPTS.filter((prompt) => prompt.category === category.id),
+        category.id
+      ).toHaveLength(CATEGORY_COUNTS[category.id]);
     }
   });
 

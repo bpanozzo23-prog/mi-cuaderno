@@ -97,6 +97,14 @@ export const JOURNAL_PROMPTS = Object.freeze([
     harder: { es: "¿Qué has hecho hoy que nunca habías hecho, y qué habías hecho ya muchas veces? Compara.", en: "What have you done today that you had never done, and what had you already done many times? Compare." },
     example: "Hoy he cocinado un plato que nunca había probado. He seguido la receta paso a paso y me ha salido bastante bien. También he aprendido que la paciencia importa más que la prisa.",
   },
+  {
+    id: "narrate-already", category: "narrate", tense: "Indicative/Past Perfect",
+    es: "Elige un momento de hoy: ¿qué ya había pasado antes de ese momento?",
+    en: "Pick one moment of today: what had already happened before that moment?",
+    easier: { es: "Completa: «Cuando llegué, ya había...».", en: "Complete: \"When I arrived, ... had already...\"" },
+    harder: { es: "Cuenta un momento de hoy y tres cosas que ya habían pasado antes de ese momento, en orden.", en: "Tell one moment of today and three things that had already happened before it, in order." },
+    example: "Cuando llegué a la oficina, mi compañera ya había hecho café. La reunión ya había empezado, y alguien ya había abierto las ventanas porque hacía calor.",
+  },
 
   {
     id: "imagine-emotions", category: "imagine", tense: "Subjunctive/Present",
@@ -146,6 +154,22 @@ export const JOURNAL_PROMPTS = Object.freeze([
     harder: { es: "Escribe tres deseos para esta semana con «quiero que», «necesito que» y «ojalá», y di qué harás tú para lograrlos.", en: "Write three wishes for this week with \"I want,\" \"I need,\" and \"hopefully,\" and say what you yourself will do to make them happen." },
     example: "Quiero que esta semana sea más tranquila que la pasada. Quiero que cenemos juntos al menos dos veces, y ojalá el trabajo me deje tiempo para leer.",
   },
+  {
+    id: "imagine-hypothetical", category: "imagine", tense: "Subjunctive/Imperfect",
+    es: "Si tuvieras un día libre mañana, sin obligaciones, ¿qué harías?",
+    en: "If you had a free day tomorrow, with no obligations, what would you do?",
+    easier: { es: "Completa: «Si tuviera tiempo mañana, yo...».", en: "Complete: \"If I had time tomorrow, I...\"" },
+    harder: { es: "Describe tu día ideal usando «si tuviera», «si pudiera» y «si estuviera», y explica por qué cada cosa.", en: "Describe your ideal day using \"if I had,\" \"if I could,\" and \"if I were,\" and explain why each one." },
+    example: "Si tuviera un día libre mañana, dormiría hasta tarde y desayunaría sin prisa. Si pudiera, iría al mar, aunque fuera solo por una hora.",
+  },
+  {
+    id: "imagine-regret", category: "imagine", tense: "Subjunctive/Past Perfect",
+    es: "Si un momento de hoy hubiera sido diferente, ¿qué habría pasado después?",
+    en: "If one moment of today had been different, what would have happened next?",
+    easier: { es: "Completa: «Si hubiera salido más temprano, yo...».", en: "Complete: \"If I had left earlier, I...\"" },
+    harder: { es: "Elige dos momentos de hoy y cuenta qué habría pasado si cada uno hubiera sido diferente.", en: "Pick two moments of today and tell what would have happened if each one had been different." },
+    example: "Si hubiera salido cinco minutos antes, no habría perdido el autobús. Habría llegado con calma y habría tenido tiempo para un café.",
+  },
 
   {
     id: "connect-person", category: "connect", offersWords: true,
@@ -194,5 +218,21 @@ export const JOURNAL_PROMPTS = Object.freeze([
     easier: { es: "Compara hoy con ayer en una frase con «más... que».", en: "Compare today with yesterday in one sentence with \"more... than.\"" },
     harder: { es: "Compara tres momentos de hoy entre sí: cuál fue el mejor, el peor, y por qué, usando superlativos.", en: "Compare three moments of today with one another: which was the best, the worst, and why, using superlatives." },
     example: "La mañana fue más tranquila que la tarde. El almuerzo estuvo tan rico como el de ayer, y la reunión fue menos larga que la de la semana pasada.",
+  },
+  {
+    id: "connect-gustar", category: "connect", offersWords: true,
+    es: "Cuenta tu día con «me encanta», «me molesta», «me cuesta» o «me falta».",
+    en: "Tell your day with \"I love,\" \"it bothers me,\" \"it's hard for me,\" or \"I'm missing.\"",
+    easier: { es: "Escribe dos frases: una con «me gusta» y otra con «me molesta».", en: "Write two sentences: one with \"I like\" and one with \"it bothers me.\"" },
+    harder: { es: "Escribe sobre hoy usando «me encanta», «me cuesta», «me hace falta» y «me duele», cada uno con su porqué.", en: "Write about today using \"I love,\" \"it's hard for me,\" \"I need,\" and \"it hurts,\" each with its reason." },
+    example: "Me encanta el silencio de la casa por la mañana. Hoy me costó concentrarme después del almuerzo, y me faltó tiempo para todo lo que quería hacer.",
+  },
+  {
+    id: "connect-duration", category: "connect",
+    es: "¿Desde cuándo haces algo que hiciste hoy? Usa «desde hace», «llevo» o «acabo de».",
+    en: "How long have you been doing something you did today? Use \"desde hace,\" \"llevo,\" or \"acabo de.\"",
+    easier: { es: "Completa: «Llevo mucho tiempo...» o «Acabo de...».", en: "Complete: \"Llevo mucho tiempo...\" or \"Acabo de...\"" },
+    harder: { es: "Cuenta tres costumbres tuyas con «desde hace», «llevo + gerundio» y «acabar de», y di cómo empezó cada una.", en: "Tell three habits of yours with \"desde hace,\" \"llevo + gerundio,\" and \"acabar de,\" and say how each one began." },
+    example: "Llevo dos años escribiendo un poco cada noche. Estudio español desde hace seis meses, y hoy acabo de aprender una palabra nueva que quiero usar mañana.",
   },
 ]);
