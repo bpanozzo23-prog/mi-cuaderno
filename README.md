@@ -791,6 +791,20 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   as a regression of this feature. The production build passes. No browser closeout: shipped from
   the headless XPS on test and build evidence only. See the 2026-08-23 entry in
   [DECISIONS.md](DECISIONS.md).
+- **Contrasts lane — deployed.** The Conjugation Gym gains a fourth lane, Contrasts: four-choice
+  cloze over curated original sentences in three sets — ser/estar (32 cards, conjugated-form
+  options), por/para (32) and Connectors (26: pero, aunque, sin embargo, porque, por eso, así que,
+  además, en cambio, mientras, entonces) — with a Set select, no immediate retry, one missed
+  round, a reveal with the completed sentence, gloss and Grammar-guide links, and a "By pair"
+  block with directional confusions in performance. Answers reuse `drill_pass` / `drill_fail`
+  with `skill: "contrast"`, `pair`, `answer` and no `tense`; Forms performance now excludes
+  recognition events structurally. `SCHEMA_VERSION` stays 10; no event type, preference or
+  backup change. The complete serial suite passes 1,682/1,682 across 142 files on the XPS, the
+  production build transforms 2,138 modules, `git diff --check` passes, and four deliberate
+  failure proofs reddened as intended. No agent browser closeout: shipped from the headless XPS
+  on test and build evidence plus the owner's phone check against the `--host` dev URL. Pushed
+  2026-08-24 as `bc5c053`. See [docs/CONTRAST-LANE-DIRECTION.md](docs/CONTRAST-LANE-DIRECTION.md)
+  and the "Contrasts lane" entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **10**. Before Dexie opens v10, schema-v1 through schema-v9 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
