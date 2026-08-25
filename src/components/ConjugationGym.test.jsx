@@ -125,6 +125,28 @@ describe("Conjugation Gym setup", () => {
     expect(choices.every((button) => !button.textContent.includes("/"))).toBe(true);
   });
 
+  it("offers the Transform lane without a dictionary, scopes it by trigger family, and starts a typed session", async () => {
+    const user = userEvent.setup();
+    render(<ConjugationGym items={[]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await user.click(screen.getByRole("radio", { name: "Transform" }));
+    expect(screen.getByText("Indicative → subjunctive")).toBeTruthy();
+    expect(screen.queryByText("Dictionary not installed")).toBeNull();
+    expect(screen.queryByLabelText("Tense pack")).toBeNull();
+    expect(screen.queryByText("Direction")).toBeNull();
+    expect(screen.getByLabelText("Triggers").value).toBe("all");
+    expect(screen.getByText("40 cards available for these choices.")).toBeTruthy();
+
+    await user.selectOptions(screen.getByLabelText("Triggers"), "doubt");
+    expect(screen.getByText("8 cards available for these choices.")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Start transform" }));
+
+    expect(screen.getByText("Transform · Doubt & denial")).toBeTruthy();
+    expect(screen.getByText("1 of 8")).toBeTruthy();
+    expect(screen.getByLabelText("Type the form")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Check" })).toBeTruthy();
+  });
+
   it("starts five-field Typed Endings without an installed dictionary", async () => {
     const user = userEvent.setup();
     render(<ConjugationGym items={[]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
