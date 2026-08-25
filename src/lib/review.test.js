@@ -622,7 +622,22 @@ describe("drill events stay out of the review model", () => {
         sessionKind: "recognition",
       },
     });
-    const after = stateOf([word], [pass("user:1", "2026-07-30"), recognition, recall, typedEndings, contrast]);
+    const transform = makeEvent({
+      type: "drill_fail",
+      itemKey: null,
+      at: at("2026-08-04"),
+      localDate: "2026-08-04",
+      metadata: {
+        skill: "transform",
+        cardId: "transform:doubt:venir-viene",
+        tense: "Subjunctive/Present",
+        mode: "typed",
+        verdict: "wrong",
+        diagnosis: "wrong_tense",
+        sessionKind: "recognition",
+      },
+    });
+    const after = stateOf([word], [pass("user:1", "2026-07-30"), recognition, recall, typedEndings, contrast, transform]);
 
     expect(after.states.get(word.id)).toEqual(reviewed.states.get(word.id));
     expect(after.due).toEqual(reviewed.due);

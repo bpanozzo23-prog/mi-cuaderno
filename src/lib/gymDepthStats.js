@@ -16,7 +16,7 @@ function recoverySummary(rows, initialMisses, stage) {
   return { attempted: attempted.size, recovered: recovered.size, accuracy: ratio(recovered.size, attempted.size) };
 }
 
-/** Mode-separated Phase 18 statistics derived only from recall and typed-Endings events. */
+/** Mode-separated statistics derived only from recall, typed-Endings and typed-Transform events. */
 export function gymDepthPerformance(events, { tenses = null } = {}) {
   const allowed = tenses?.length ? new Set(tenses) : null;
   const rows = (events || [])
@@ -28,6 +28,7 @@ export function gymDepthPerformance(events, { tenses = null } = {}) {
       mode: event.metadata?.mode || null,
       tense: event.metadata?.tense || null,
       verdict: event.metadata?.verdict || null,
+      diagnosis: event.metadata?.diagnosis || null,
       stage: event.metadata?.stage || "initial",
       promptId: event.metadata?.promptId || event.id || `event-${index}`,
     }))
@@ -46,6 +47,16 @@ export function gymDepthPerformance(events, { tenses = null } = {}) {
     accents: endingsInitial.filter((row) => row.passed && row.verdict === "accents").length,
   };
 
+  // Transform: typed indicative → subjunctive; a `wrong_tense` miss means the indicative was kept.
+  const transformRows = rows.filter((row) => row.skill === "transform" && row.mode === "typed");
+  const transformInitial = transformRows.filter((row) => row.stage === "initial");
+  const transformMisses = transformInitial.filter((row) => !row.passed);
+  const transformFirstAttempts = {
+    ...summary(transformInitial),
+    exact: transformInitial.filter((row) => row.passed && row.verdict === "exact").length,
+    accents: transformInitial.filter((row) => row.passed && row.verdict === "accents").length,
+  };
+
   return {
     usageRecall: {
       firstAttempts: summary(usageInitial),
@@ -55,6 +66,12 @@ export function gymDepthPerformance(events, { tenses = null } = {}) {
       firstAttempts: endingFirstAttempts,
       immediate: recoverySummary(endingsRows, endingsMisses, "retry"),
       missed: recoverySummary(endingsRows, endingsMisses, "missed"),
+    },
+    typedTransform: {
+      firstAttempts: transformFirstAttempts,
+      immediate: recoverySummary(transformRows, transformMisses, "retry"),
+      missed: recoverySummary(transformRows, transformMisses, "missed"),
+      keptIndicative: transformMisses.filter((row) => row.diagnosis === "wrong_tense").length,
     },
   };
 }

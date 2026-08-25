@@ -81,6 +81,13 @@ the answer plus three other forms of the same verb — writing ordinary Forms ev
 attempts; Choose is reported separately like Reveal and feeds Adaptive targeting like a Reveal
 miss. Schema stays v10. See `docs/FORMS-CHOICE-DIRECTION.md`.
 
+**Transform lane amendment, 2026-08-24 — §§7 and 12:** the Conjugation Gym adds an owner-started,
+typed Transform lane (indicative sentence → present-subjunctive form under a curated trigger),
+writing `drill_pass` / `drill_fail` with `skill: "transform"`, `mode: "typed"`, canonical `tense`,
+verdict and diagnosis, and no typed string or verb identity. Curated answers are proven against the
+packaged tables; the lane needs no installed dictionary. Schema stays v10. See
+`docs/TRANSFORM-LANE-DIRECTION.md`.
+
 ---
 
 ## 1. What this is
@@ -465,6 +472,12 @@ authority.
   owner-typed text. Typed initial attempts remain the sole primary accuracy denominator; Choose is
   reported separately like Reveal, a Choose miss is Adaptive targeting evidence and a Choose pass
   is exposure only, and every review derivation continues to ignore all drill types.
+- **Transform typed amendment, 2026-08-24:** Transform answers reuse `drill_pass` / `drill_fail`
+  with `skill: "transform"`, stable `cardId`, `tense: "Subjunctive/Present"`, `mode: "typed"`, a
+  `verdict` (`exact | accents | wrong`), the typed checker's ladder `diagnosis`, session/prompt/stage
+  fields and `sessionKind: "recognition"`. They carry **no typed string**, `itemKey`, `verbKey`,
+  `slot`, `lemma`, `source` or `curriculum`. Form statistics, Adaptive ordering and recognition
+  statistics ignore them; every review derivation continues to ignore all drill types.
 - **Phase-22 recall clarification, 2026-08-12:** Similar-meaning recall is an owner-started,
   history-free session over direct confirmed Similar meaning neighbors. Starting, revealing,
   self-grading, repeating misses, finishing, or leaving writes no event or timestamp and changes no

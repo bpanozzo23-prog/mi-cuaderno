@@ -459,6 +459,19 @@ describe("adaptive decks", () => {
         sessionKind: "recognition",
         stage: "initial",
       },
+    }, {
+      type: "drill_fail",
+      at: "2026-08-09T12:04:00.000Z",
+      metadata: {
+        skill: "transform",
+        cardId: "transform:doubt:venir-viene",
+        tense: "Subjunctive/Present",
+        mode: "typed",
+        verdict: "wrong",
+        diagnosis: "wrong_tense",
+        sessionKind: "recognition",
+        stage: "initial",
+      },
     }];
     const options = { size: 10, now: "2026-08-09T13:00:00.000Z" };
 

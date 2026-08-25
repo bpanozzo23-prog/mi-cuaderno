@@ -118,7 +118,25 @@ describe("Conjugation Gym performance contracts", () => {
       },
     };
 
-    expect(conjugationPerformance([formEvent, contrastEvent]))
+    const transformEvent = {
+      id: "transform-1",
+      type: "drill_fail",
+      itemKey: null,
+      at: at(3),
+      localDate: "2026-08-07",
+      metadata: {
+        skill: "transform",
+        cardId: "transform:doubt:venir-viene",
+        tense: "Subjunctive/Present",
+        mode: "typed",
+        verdict: "wrong",
+        diagnosis: "wrong_tense",
+        sessionKind: "recognition",
+        stage: "initial",
+      },
+    };
+
+    expect(conjugationPerformance([formEvent, contrastEvent, transformEvent]))
       .toEqual(conjugationPerformance([formEvent]));
   });
 

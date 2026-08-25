@@ -42,7 +42,40 @@ describe("Gym depth performance", () => {
         immediate: { attempted: 1, recovered: 1, accuracy: 1 },
         missed: { attempted: 1, recovered: 1, accuracy: 1 },
       },
+      typedTransform: {
+        firstAttempts: { answered: 0, passed: 0, accuracy: null, exact: 0, accents: 0 },
+        immediate: { attempted: 0, recovered: 0, accuracy: null },
+        missed: { attempted: 0, recovered: 0, accuracy: null },
+        keptIndicative: 0,
+      },
     });
+  });
+
+  it("reports typed Transform separately with how often the indicative was kept", () => {
+    const transform = (overrides) => {
+      const event = depthAnswer({ skill: "transform", mode: "typed", tense: "Subjunctive/Present", ...overrides });
+      if (overrides.diagnosis !== undefined) event.metadata.diagnosis = overrides.diagnosis;
+      return event;
+    };
+    const events = [
+      transform({ passed: true, promptId: "t1", verdict: "exact" }),
+      transform({ passed: true, promptId: "t2", verdict: "accents" }),
+      transform({ passed: false, promptId: "t3", verdict: "wrong", diagnosis: "wrong_tense" }),
+      transform({ passed: true, promptId: "t3", verdict: "exact", stage: "retry" }),
+      transform({ passed: false, promptId: "t4", verdict: "wrong", diagnosis: "wrong_person" }),
+      transform({ passed: false, promptId: "t4", verdict: "wrong", diagnosis: "wrong_tense", stage: "retry" }),
+      transform({ passed: true, promptId: "t4", verdict: "exact", stage: "missed" }),
+      depthAnswer({ passed: true, skill: "endings", mode: "typed", promptId: "e1", verdict: "exact" }),
+    ];
+
+    const stats = gymDepthPerformance(events);
+    expect(stats.typedTransform).toEqual({
+      firstAttempts: { answered: 4, passed: 2, accuracy: 0.5, exact: 1, accents: 1 },
+      immediate: { attempted: 2, recovered: 1, accuracy: 0.5 },
+      missed: { attempted: 1, recovered: 1, accuracy: 1 },
+      keptIndicative: 1,
+    });
+    expect(stats.typedEndings.firstAttempts).toMatchObject({ answered: 1, passed: 1 });
   });
 
   it("applies the shared tense-pack filter before deriving every depth figure", () => {

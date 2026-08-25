@@ -18,7 +18,7 @@ const isPassed = (event) => event.type === "drill_pass";
  * added later that forgets the session kind still fails the second test, and the
  * adversarial contract tests pin each lane individually.
  */
-const RECOGNITION_SKILLS = new Set(["usage", "endings", "contrast"]);
+const RECOGNITION_SKILLS = new Set(["usage", "endings", "contrast", "transform"]);
 const isRecognitionEvent = (event) => (
   event?.metadata?.sessionKind === "recognition" || RECOGNITION_SKILLS.has(event?.metadata?.skill)
 );
