@@ -30,6 +30,7 @@ import {
 } from "../lib/recognitionContent.js";
 import { buildRecognitionDeck, buildUsageRecallDeck } from "../lib/recognitionDeck.js";
 import { buildEndingsProductionDeck } from "../lib/endingsProduction.js";
+import { formChoiceOptions } from "../lib/formChoices.js";
 import { CONTRAST_PAIRS, CONTRAST_PAIR_IDS, contrastCards, contrastOptions } from "../lib/contrastContent.js";
 import ConjugationDrill from "./ConjugationDrill.jsx";
 import ConjugationPerformance from "./ConjugationPerformance.jsx";
@@ -335,20 +336,31 @@ export default function ConjugationGym({
     }
 
     const id = sessionId();
-    const cards = deck.map((card, index) => {
+    const withForms = deck.map((card) => {
       const sourceVerb = deckVerbs.find((verb) => verb.verbKey === card.verbKey && verb.itemKey === card.itemKey) ||
         deckVerbs.find((verb) => verb.verbKey === card.verbKey);
+      const forms = sourceVerb?.conjugation ? conjugationForms(sourceVerb.conjugation) : [];
       return {
         ...card,
-        forms: sourceVerb?.conjugation ? conjugationForms(sourceVerb.conjugation) : [],
+        forms,
         openKey: sourceVerb?.openKey || card.itemKey || card.dictKey,
-        sessionId: id,
-        promptId: `${id}:${index + 1}`,
-        sessionKind,
-        cardIndex: index + 1,
-        deckSize: deck.length,
+        ...(mode === "choice" ? { options: formChoiceOptions(card, forms) } : {}),
       };
     });
+    // Choose needs four distinct forms; a verb whose table cannot supply them is skipped.
+    const playable = mode === "choice" ? withForms.filter((card) => card.options.length === 4) : withForms;
+    if (!playable.length) {
+      setStartError("These verbs have too few forms for four choices.");
+      return;
+    }
+    const cards = playable.map((card, index) => ({
+      ...card,
+      sessionId: id,
+      promptId: `${id}:${index + 1}`,
+      sessionKind,
+      cardIndex: index + 1,
+      deckSize: playable.length,
+    }));
     setStartError("");
     setSession({ deck: cards, mode, kind: sessionKind });
     setView("session");
@@ -754,7 +766,11 @@ export default function ConjugationGym({
           <Segmented
             label="How to answer"
             value={mode}
-            options={[{ value: "typed", label: "Type" }, { value: "reveal", label: "Reveal" }]}
+            options={[
+              { value: "typed", label: "Type" },
+              { value: "reveal", label: "Reveal" },
+              { value: "choice", label: "Choose" },
+            ]}
             onChange={setMode}
           />
 

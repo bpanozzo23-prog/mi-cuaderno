@@ -138,6 +138,25 @@ describe("Conjugation Gym setup", () => {
     expect(screen.getByText("Endings · Production")).toBeTruthy();
   });
 
+  it("offers Choose beside Type and Reveal and starts a Quick session with four form chips", async () => {
+    const user = userEvent.setup();
+    await seedGymDictionary();
+    const saved = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
+    render(<ConjugationGym items={[saved]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+
+    await waitFor(() => expect(screen.getByRole("radio", { name: "Type" }).getAttribute("aria-checked")).toBe("true"));
+    await user.click(screen.getByRole("radio", { name: "Choose" }));
+    expect(screen.getByRole("radio", { name: "Choose" }).getAttribute("aria-checked")).toBe("true");
+    await user.selectOptions(screen.getByLabelText("Verb pool"), "saved");
+    await user.click(screen.getByRole("button", { name: /Start/ }));
+
+    await waitFor(() => expect(screen.getByLabelText("Form choices")).toBeTruthy());
+    const chips = within(screen.getByLabelText("Form choices")).getAllByRole("button");
+    expect(chips).toHaveLength(4);
+    expect(new Set(chips.map((chip) => chip.textContent)).size).toBe(4);
+    expect(screen.queryByLabelText("Type the form")).toBeNull();
+  });
+
   it("keeps performance available when the dictionary is not installed", async () => {
     const user = userEvent.setup();
     render(<ConjugationGym items={[]} events={[]} onBack={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);

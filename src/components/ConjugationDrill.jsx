@@ -4,6 +4,8 @@ import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
 import { qualifiedTenseLabel } from "../lib/conjugation.js";
 import { diagnoseTypedAnswer } from "../lib/drill.js";
 import { verbKeyForLemma } from "../lib/conjugationGym.js";
+import { formCellFor } from "../lib/formChoices.js";
+import { rebuildMissedRecognitionDeck } from "../lib/recognitionDeck.js";
 import { logDrill } from "../db/events.js";
 import SpeakButton from "./SpeakButton.jsx";
 import StudySessionFrame, { StudyCardEyebrow } from "./StudySessionFrame.jsx";
@@ -43,7 +45,7 @@ function weakest(outcomes, field) {
  * the session score. A first miss gets one immediate retry and is still offered once in an
  * optional missed round, so recovery cannot erase the evidence that selected the form.
  */
-export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOpen, onGraded }) {
+export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOpen, onGraded, rng = Math.random }) {
   const [round, setRound] = useState("initial");
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
@@ -67,6 +69,7 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
   const card = activeDeck[index] || null;
   const done = index >= activeDeck.length;
   const isTyped = mode === "typed";
+  const isChoice = mode === "choice";
   const weakTense = useMemo(() => weakest(tally.outcomes, "tense"), [tally.outcomes]);
   const weakSlot = useMemo(() => weakest(tally.outcomes, "slot"), [tally.outcomes]);
 
@@ -95,7 +98,7 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
     if (!passed) setMissedCards((current) => [...current, card]);
   }
 
-  async function persist(passed, verdict, diagnosis, stage) {
+  async function persist(passed, verdict, diagnosis, stage, extra = {}) {
     const lemma = card.lemma || card.term;
     await logDrill(card.itemKey ?? card.itemId ?? null, passed, {
       sessionId: card.sessionId || componentSessionId,
@@ -114,8 +117,30 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
       stage,
       cardIndex: card.cardIndex || index + 1,
       deckSize: card.deckSize || deck.length,
+      ...extra,
     });
     onGraded?.();
+  }
+
+  /**
+   * Choose: one tap on one of four forms of this verb. Objective like typed, diagnosed by the
+   * same ladder (a tapped «fuiste» for él is wrong person), no immediate retry because the
+   * feedback names the answer. The tapped form is a dictionary form, never owner text.
+   */
+  async function chooseForm(chosen) {
+    if (busy || !card || result) return;
+    const stage = round === "missed" ? "missed" : "initial";
+    const passed = chosen === card.answer;
+    const diagnosed = passed ? { passed, verdict: "exact", diagnosis: null } : diagnoseTypedAnswer(chosen, card, card.forms || []);
+    setBusy(true);
+    try {
+      await persist(passed, diagnosed.verdict, diagnosed.diagnosis, stage, passed ? {} : { chosen });
+      if (stage === "initial") recordInitial(passed, diagnosed.verdict);
+      setResult({ ...diagnosed, passed, stage, chosen });
+      setRevealed(true);
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function submitTyped(event) {
@@ -162,6 +187,7 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
   }
 
   function startMissedRound() {
+    if (isChoice) setMissedCards((current) => rebuildMissedRecognitionDeck(current, { rng }));
     setRound("missed");
     setIndex(0);
     resetPrompt();
@@ -230,7 +256,13 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
   }
 
   const formId = "conjugation-drill-answer";
-  const actions = isTyped ? (
+  const actions = isChoice ? (
+    result ? (
+      <Button className="min-h-11 w-full" disabled={busy} onClick={advance}>
+        {index + 1 === activeDeck.length ? "Done" : "Next"}
+      </Button>
+    ) : null
+  ) : isTyped ? (
     !revealed ? (
       <Button
         type="submit"
@@ -279,6 +311,34 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
           </div>
         </div>
 
+        {isChoice && (
+          <div className="mt-5 grid gap-2" aria-label="Form choices">
+            {(card.options || []).map((option) => {
+              const chosen = result?.chosen === option;
+              const correct = result && option === card.answer;
+              const wrong = chosen && !result.passed;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  disabled={busy || Boolean(result)}
+                  onClick={() => chooseForm(option)}
+                  className="min-h-11 rounded-full border px-3 py-2 text-base disabled:opacity-100"
+                  style={{
+                    fontFamily: SERIF,
+                    fontWeight: 600,
+                    color: correct ? C.green : wrong ? C.red : C.ink,
+                    borderColor: correct ? C.green : wrong ? C.red : C.line,
+                    background: correct ? C.greenPale : wrong ? C.redPale : C.paper,
+                  }}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {!revealed && isTyped ? (
           <form id={formId} onSubmit={submitTyped} className="mt-5">
             {awaitingRetry && result && (
@@ -304,9 +364,18 @@ export default function ConjugationDrill({ deck, mode = "reveal", onFinish, onOp
           </form>
         ) : revealed ? (
           <div className="mt-4 space-y-3 border-t pt-4 text-center" style={{ borderColor: C.line }}>
-            {result && (
+            {result && isChoice && !result.passed && (
+              <div className="text-sm" style={{ color: C.red }}>
+                {(() => {
+                  const cell = formCellFor(result.chosen, card, card.forms || []);
+                  const where = cell ? ` — ${cell.slot}, ${qualifiedTenseLabel(cell.tense).toLowerCase()}` : "";
+                  return `That’s «${result.chosen}»${where}. ${DIAGNOSIS_TEXT[result.diagnosis] || DIAGNOSIS_TEXT.wrong}`;
+                })()}
+              </div>
+            )}
+            {result && !(isChoice && !result.passed) && (
               <div className="text-sm" style={{ color: result.passed ? C.green : C.red }}>
-                {DIAGNOSIS_TEXT[result.diagnosis]}
+                {isChoice ? `Right — «${card.answer}».` : DIAGNOSIS_TEXT[result.diagnosis]}
               </div>
             )}
             {result && result.verdict !== "exact" && result.typed && (

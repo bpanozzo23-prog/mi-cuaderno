@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ConjugationDrill from "./ConjugationDrill.jsx";
 import { db, clearAllPersonalData } from "../db/db.js";
@@ -54,6 +54,80 @@ beforeEach(async () => {
 });
 
 afterEach(cleanup);
+
+describe("choose sessions", () => {
+  const choiceCard = (overrides = {}) => card({ options: ["sacaron", "sacamos", "sacan", "saqué"], ...overrides });
+
+  it("offers four forms of the verb, marks objectively, diagnoses the miss, and allows no retry", async () => {
+    const user = userEvent.setup();
+    render(<ConjugationDrill deck={[choiceCard()]} mode="choice" onFinish={vi.fn()} />);
+
+    expect(screen.getByText("Indicative preterite · ustedes/ellos")).toBeTruthy();
+    const chips = within(screen.getByLabelText("Form choices")).getAllByRole("button");
+    expect(chips.map((chip) => chip.textContent)).toEqual(["sacaron", "sacamos", "sacan", "saqué"]);
+    expect(screen.queryByLabelText("Type the form")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Tap to see the form" })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "sacamos" }));
+    await waitFor(() => expect(screen.getByText(/That’s «sacamos» — nosotros, indicative preterite\. That form belongs to another person\./)).toBeTruthy());
+    expect(screen.getByRole("button", { name: "sacamos" }).disabled).toBe(true);
+    expect(screen.queryByLabelText("Try the form again")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Got it" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Done" })).toBeTruthy();
+
+    const [event] = await allEvents();
+    expect(event).toMatchObject({ type: "drill_fail", itemKey: "user:sacar" });
+    expect(event.metadata).toEqual({
+      sessionId: "session-1",
+      promptId: "session-1:1",
+      sessionKind: "focus",
+      source: "saved",
+      curriculum: null,
+      verbKey: "lemma:sacar",
+      lemma: "sacar",
+      dictKey: "dict:wiktionary-es:sacar:verb",
+      tense: "Indicative/Preterite",
+      slot: "ustedes/ellos",
+      mode: "choice",
+      verdict: "wrong",
+      diagnosis: "wrong_person",
+      stage: "initial",
+      cardIndex: 1,
+      deckSize: 1,
+      chosen: "sacamos",
+    });
+  });
+
+  it("diagnoses a wrong tense, omits chosen on a pass, and replays misses with the same four forms reordered", async () => {
+    const user = userEvent.setup();
+    render(<ConjugationDrill deck={[choiceCard()]} mode="choice" onFinish={vi.fn()} rng={() => 0.4} />);
+
+    await user.click(screen.getByRole("button", { name: "sacan" }));
+    await waitFor(() => expect(screen.getByText(/That form belongs to another tense\./)).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    expect(screen.getByText("0/1")).toBeTruthy();
+    expect(screen.queryByText(/exact ·/)).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Practice 1 missed form" }));
+    const again = within(screen.getByLabelText("Form choices")).getAllByRole("button").map((chip) => chip.textContent);
+    expect([...again].sort()).toEqual(["sacamos", "sacan", "sacaron", "saqué"]);
+    expect(again).not.toEqual(["sacaron", "sacamos", "sacan", "saqué"]);
+
+    await user.click(screen.getByRole("button", { name: "sacaron" }));
+    await waitFor(() => expect(screen.getByText("Right — «sacaron».")).toBeTruthy());
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    expect(screen.getByText("Missed round complete")).toBeTruthy();
+
+    const events = await allEvents();
+    expect(events.map((event) => [event.type, event.metadata.stage, event.metadata.diagnosis])).toEqual([
+      ["drill_fail", "initial", "wrong_tense"],
+      ["drill_pass", "missed", null],
+    ]);
+    expect(events[0].metadata.chosen).toBe("sacan");
+    expect(events[1].metadata).not.toHaveProperty("chosen");
+    expect(events[1].metadata.verdict).toBe("exact");
+  });
+});
 
 describe("reveal sessions", () => {
   it("asks one mood-qualified cell and hides the form until tapped", async () => {
