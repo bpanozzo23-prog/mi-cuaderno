@@ -16,8 +16,12 @@ export function recognitionOptions(
   { tenseScope, allTenses = tenseScope, rng = Math.random, previousOptions = null } = {}
 ) {
   const forbidden = new Set([card.answer, ...(card.alsoAcceptable || [])]);
-  const scoped = [...new Set(tenseScope || [])].filter((tense) => !forbidden.has(tense));
-  const fallback = [...new Set(allTenses || [])].filter((tense) => !forbidden.has(tense));
+  // A card may carry its own option vocabulary (Contrasts pairs); the session scope is then
+  // intersected with it so a "both pairs" session never offers a verb form on a preposition card.
+  const vocabulary = card.vocabulary?.length ? new Set(card.vocabulary) : null;
+  const allowed = (value) => !forbidden.has(value) && (!vocabulary || vocabulary.has(value));
+  const scoped = [...new Set(tenseScope || [])].filter(allowed);
+  const fallback = [...new Set(allTenses || [])].filter(allowed);
   const preferred = [
     ...(card.confusables || []).filter((tense) => scoped.includes(tense)),
     ...shuffle(scoped, rng),
