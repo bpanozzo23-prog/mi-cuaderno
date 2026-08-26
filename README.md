@@ -856,6 +856,42 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   as `1316ee2` through Pages run
   [32904787874](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32904787874). See
   the 2026-08-25 entries in [DECISIONS.md](DECISIONS.md).
+- **Pages hub derived grouping — deployed.** The Pages hub browse list was Pinned plus one flat
+  stack, and every control it had narrowed rather than arranged. A fourth Refine control,
+  **Group**, now renders the already-filtered list under headings: **Kind** (Source · Grammar ·
+  Vocabulary · Notes), **Last touched** and **Added** (Today · This week · This month · Earlier),
+  with No grouping as the default. Order still sorts, now within each group; the choice is
+  visit-local like every other hub control and counts toward the Refine badge; grouping stands
+  aside while searching, where §8 relevance stays authoritative, and pinned pages keep their own
+  ungrouped section. Kind files a page under its **primary** role — the rule that already decides
+  its folder tab and colour — so one card has one home even though most pages enable more than
+  one role, which deliberately reads differently from the role chips, whose question is whether a
+  role is enabled at all. Recency buckets are calendar buckets built from the Monday week and
+  month the activity calendar already uses, decided on the owner's local day, which the hub takes
+  as a prop rather than reading from the wall clock. Group-by-tag is deliberately absent: page
+  tags are barely used, and it is the one dimension that would repeat a card, which would answer
+  the parked Tag hubs / Saved views overlap as a side effect. Everything is derived at render:
+  no preference, schema, event or backup field, and `SCHEMA_VERSION` stays 10. The complete
+  serial suite passes 1,721/1,721 across 145 files, the production build transforms 2,142
+  modules, `git diff --check` passes, and four deliberate proofs reddened as intended (filing by
+  the last enabled role; filing under every enabled role, caught as a duplicated card; checking
+  the month before the week; removing the week check). A disposable 375×812 closeout seeded five
+  pages covering all four roles, a multi-role page and all four buckets, and verified the
+  headings, counts, pin behaviour and search suppression by the numbers with a 44px control, zero
+  horizontal overflow and a clean console before returning the origin to zero items. Deployed
+  from `main` at `71e6b17` through Pages run
+  [32918989431](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32918989431), with
+  the live root returning HTTP 200 and serving `assets/index-BPn5Ma0W.js`, the same bundle name
+  as the local build. See the 2026-08-25 entries in [DECISIONS.md](DECISIONS.md).
+- **Copy structure from the page being copied — deployed.** `PageCustomizeSheet` has accepted an
+  `onCopyStructure` prop since Phase 7, but no caller passed it, so its Copy structure button
+  never rendered. A page's customize sheet now supplies it, opening the existing `AddSheet` copy
+  seed for the page in view and landing on the fresh copy; reaching the same copy previously meant
+  leaving for the hub's `+` and finding the page again by title. Copying stays a creation method
+  rather than a page kind, and no schema, event, preference or backup field changed. Committed by
+  a separate session and carried out in the same push as the grouping work above, covered by the
+  same 1,721-test suite run and production build. See the 2026-08-25 entries in
+  [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **10**. Before Dexie opens v10, schema-v1 through schema-v9 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
