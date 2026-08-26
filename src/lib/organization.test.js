@@ -4,6 +4,8 @@ import { pickerMatches } from "./links.js";
 import {
   BROWSE_ORDERS,
   MAINTENANCE_VIEWS,
+  PAGE_GROUPINGS,
+  groupPages,
   maintenanceItems,
   orderItems,
   tagCountsIn,
@@ -262,5 +264,119 @@ describe("Phase 5b contextual tag counts", () => {
 
     expect(countsObject(tagCountsIn(items))).toEqual({ Mexico: 1, mexico: 1, verbs: 2 });
     expect(items[0].tags).toEqual(["Mexico", "verbs", "verbs"]);
+  });
+});
+
+describe("Pages hub grouping", () => {
+  const dayIso = (day) => `2026-08-${String(day).padStart(2, "0")}T10:00:00.000Z`;
+  const TODAY = "2026-08-25";
+
+  const structured = (id, over = {}) => page(id, {
+    pageFocus: "notes",
+    noteSections: [],
+    collection: { enabled: false, groups: [] },
+    source: { enabled: false, format: "", creator: "", scope: "", url: "", context: "", captures: [] },
+    grammar: { enabled: false, keyIdea: "", sections: [] },
+    ...over,
+  });
+
+  const grouped = (rows) => rows.map(({ key, items }) => [key, ids(items)]);
+
+  it("gives a multi-role page exactly one home, under the role its folder tab names", () => {
+    const guide = structured("guide", {
+      pageFocus: "grammar",
+      grammar: { enabled: true, keyIdea: "", sections: [] },
+      collection: { enabled: true, groups: [] },
+    });
+    const collection = structured("collection", {
+      pageFocus: "vocabulary",
+      collection: { enabled: true, groups: [] },
+    });
+    const notes = structured("notes");
+
+    const rows = groupPages([guide, collection, notes], PAGE_GROUPINGS.kind, { today: TODAY });
+
+    expect(grouped(rows)).toEqual([
+      ["grammar", ["guide"]],
+      ["vocabulary", ["collection"]],
+      ["notes", ["notes"]],
+    ]);
+    // The Vocabulary structure the Grammar guide also enables must not put it in a second pile.
+    expect(rows.flatMap(({ items }) => ids(items))).toEqual(["guide", "collection", "notes"]);
+  });
+
+  it("keeps the fixed kind order and the caller's order inside each group", () => {
+    const sourcePage = structured("source-page", {
+      pageFocus: "source",
+      source: { enabled: true, format: "book", creator: "", scope: "", url: "", context: "", captures: [] },
+    });
+
+    const rows = groupPages(
+      [structured("notes-b"), structured("notes-a"), sourcePage],
+      PAGE_GROUPINGS.kind,
+      { today: TODAY }
+    );
+
+    expect(grouped(rows)).toEqual([
+      ["source", ["source-page"]],
+      ["notes", ["notes-b", "notes-a"]],
+    ]);
+  });
+
+  it("buckets last-touched pages by calendar day, Monday week and calendar month", () => {
+    const rows = groupPages(
+      [
+        page("today", { updatedAt: dayIso(25) }),
+        page("monday", { updatedAt: dayIso(24) }),
+        page("sunday", { updatedAt: dayIso(23) }),
+        page("month-start", { updatedAt: dayIso(1) }),
+        page("last-month", { updatedAt: "2026-07-31T10:00:00.000Z" }),
+      ],
+      PAGE_GROUPINGS.touched,
+      { today: TODAY }
+    );
+
+    expect(grouped(rows)).toEqual([
+      ["today", ["today"]],
+      // Monday the 24th starts the week that holds Tuesday the 25th; Sunday the 23rd ended the
+      // previous one, so it falls back to the month rather than reading as "this week".
+      ["week", ["monday"]],
+      ["month", ["sunday", "month-start"]],
+      ["earlier", ["last-month"]],
+    ]);
+  });
+
+  it("reads a week that straddles two months as this week", () => {
+    const rows = groupPages(
+      [page("monday", { updatedAt: "2026-08-31T10:00:00.000Z" })],
+      PAGE_GROUPINGS.touched,
+      { today: "2026-09-01" }
+    );
+
+    expect(grouped(rows)).toEqual([["week", ["monday"]]]);
+  });
+
+  it("groups Added by createdAt while Last touched reads updatedAt", () => {
+    const old = page("old-page", { createdAt: "2026-06-02T10:00:00.000Z", updatedAt: dayIso(25) });
+
+    expect(grouped(groupPages([old], PAGE_GROUPINGS.touched, { today: TODAY })))
+      .toEqual([["today", ["old-page"]]]);
+    expect(grouped(groupPages([old], PAGE_GROUPINGS.added, { today: TODAY })))
+      .toEqual([["earlier", ["old-page"]]]);
+  });
+
+  it("keeps a page with an unusable timestamp in the list rather than dropping it", () => {
+    const rows = groupPages(
+      [page("broken", { updatedAt: "not a date" }), page("missing", { updatedAt: undefined })],
+      PAGE_GROUPINGS.touched,
+      { today: TODAY }
+    );
+
+    expect(grouped(rows)).toEqual([["earlier", ["broken", "missing"]]]);
+  });
+
+  it("returns no groups for the default, so the hub renders its ordinary flat stack", () => {
+    expect(groupPages([page("one")], PAGE_GROUPINGS.none, { today: TODAY })).toEqual([]);
+    expect(groupPages([page("one")], undefined, { today: TODAY })).toEqual([]);
   });
 });

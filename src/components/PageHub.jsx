@@ -10,12 +10,16 @@ import { searchItems } from "../lib/search.js";
 import {
   BROWSE_ORDERS,
   MAINTENANCE_VIEWS,
+  PAGE_GROUPINGS,
+  groupPages,
   maintenanceItems,
   orderItems,
   tagCountsIn,
 } from "../lib/organization.js";
 import { PAGE_FOCUSES, enabledPageRoles } from "../lib/pageKinds.js";
 import { isJournalEntry } from "../lib/journal.js";
+import { localDate } from "../lib/dates.js";
+import { PAGE_ROLE_META } from "./pageRoleMeta.js";
 
 const PAGE_ROLE_FILTERS = {
   all: "all",
@@ -44,6 +48,30 @@ const PAGE_VIEW_OPTIONS = [
   { value: MAINTENANCE_VIEWS.unlinked, label: "No connections" },
 ];
 
+/**
+ * Grouping arranges the browse list; it never narrows it. The two recency choices name their own
+ * timestamp rather than following the Order beside them, so the headings keep their meaning when
+ * the sort changes and Order stays free to sort within each group.
+ */
+const GROUP_OPTIONS = [
+  { value: PAGE_GROUPINGS.none, label: "No grouping" },
+  { value: PAGE_GROUPINGS.kind, label: "Kind" },
+  { value: PAGE_GROUPINGS.touched, label: "Last touched" },
+  { value: PAGE_GROUPINGS.added, label: "Added" },
+];
+
+const RECENCY_LABELS = {
+  today: "Today",
+  week: "This week",
+  month: "This month",
+  earlier: "Earlier",
+};
+
+/** A Kind heading says what the card's own folder tab says; a recency heading names its bucket. */
+const groupLabel = (key) => PAGE_ROLE_META[key]?.label || RECENCY_LABELS[key] || key;
+
+const pageCountLabel = (count) => `${count} ${count === 1 ? "page" : "pages"}`;
+
 function PageSectionHeading({ children, count }) {
   return (
     <div className="mb-2 flex items-baseline justify-between gap-3">
@@ -64,12 +92,14 @@ export default function PageHub({
   onSelect,
   onBack,
   backLabel = "Cuaderno",
+  today = localDate(),
 }) {
   const { items, reload } = notebook;
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [roleFilter, setRoleFilter] = useState(PAGE_ROLE_FILTERS.all);
   const [browseOrder, setBrowseOrder] = useState(BROWSE_ORDERS.touched);
+  const [grouping, setGrouping] = useState(PAGE_GROUPINGS.none);
   const [maintenanceView, setMaintenanceView] = useState(MAINTENANCE_VIEWS.all);
   const [tagFilter, setTagFilter] = useState(null);
   const [refineOpen, setRefineOpen] = useState(false);
@@ -127,9 +157,16 @@ export default function PageHub({
   const pinnedIds = useMemo(() => new Set(pinnedPageIds), [pinnedPageIds]);
   const pinnedPages = orderedPages.filter((page) => pinnedIds.has(page.id));
   const otherPages = orderedPages.filter((page) => !pinnedIds.has(page.id));
+  // A pin is already a group, so grouping arranges what is left, exactly as the Words & phrases
+  // hub's A–Z index applies to its unpinned items.
+  const groups = useMemo(
+    () => searching ? [] : groupPages(otherPages, grouping, { today }),
+    [grouping, otherPages, searching, today]
+  );
   const resultCount = searching ? searchResults.length : orderedPages.length;
   const refineCount = Number(maintenanceView !== MAINTENANCE_VIEWS.all)
     + Number(browseOrder !== BROWSE_ORDERS.touched)
+    + Number(grouping !== PAGE_GROUPINGS.none)
     + Number(Boolean(effectiveTag));
 
   function toggleSearch() {
@@ -260,6 +297,19 @@ export default function PageHub({
             </RefineSelect>
 
             <RefineSelect
+              label="Group"
+              ariaLabel="Page grouping"
+              value={searching ? "ungrouped" : grouping}
+              onChange={setGrouping}
+              disabled={searching}
+            >
+              {searching && <option value="ungrouped">Not while searching</option>}
+              {GROUP_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </RefineSelect>
+
+            <RefineSelect
               label="Tag"
               ariaLabel="Page tag"
               value={effectiveTag || ""}
@@ -295,7 +345,7 @@ export default function PageHub({
             <>
               {pinnedPages.length > 0 && (
                 <section aria-labelledby="pinned-pages-heading">
-                  <PageSectionHeading count={`${pinnedPages.length} ${pinnedPages.length === 1 ? "page" : "pages"}`}>
+                  <PageSectionHeading count={pageCountLabel(pinnedPages.length)}>
                     <span id="pinned-pages-heading">Pinned</span>
                   </PageSectionHeading>
                   <div className="space-y-[9px]">{pinnedPages.map((page) => renderCard(page))}</div>
@@ -303,9 +353,20 @@ export default function PageHub({
               )}
 
               {otherPages.length > 0 && (
-                <section aria-label="All matching pages">
-                  <div className="space-y-[9px]">{otherPages.map((page) => renderCard(page))}</div>
-                </section>
+                groups.length > 0 ? (
+                  groups.map((group) => (
+                    <section key={group.key} aria-labelledby={`page-group-${group.key}-heading`}>
+                      <PageSectionHeading count={pageCountLabel(group.items.length)}>
+                        <span id={`page-group-${group.key}-heading`}>{groupLabel(group.key)}</span>
+                      </PageSectionHeading>
+                      <div className="space-y-[9px]">{group.items.map((page) => renderCard(page))}</div>
+                    </section>
+                  ))
+                ) : (
+                  <section aria-label="All matching pages">
+                    <div className="space-y-[9px]">{otherPages.map((page) => renderCard(page))}</div>
+                  </section>
+                )
               )}
             </>
           ) : (

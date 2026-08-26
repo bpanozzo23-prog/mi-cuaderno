@@ -275,4 +275,83 @@ describe("Pages hub", () => {
     await user.click(within(gallery).getByRole("button", { name: /^Blank/ }));
     expect(screen.getByText("New notes page")).toBeTruthy();
   });
+
+  /**
+   * Grouping arranges the same flat list; it never narrows it and never files a page twice. The
+   * headings follow the page's PRIMARY role — its folder tab — which is deliberately not the rule
+   * the role chips use, so the Grammar guide below stays in one pile despite its Vocabulary.
+   */
+  it("arranges the browse list by kind, one card in one pile, pins untouched", async () => {
+    const user = userEvent.setup();
+    const guide = page("Subjuntivo", {
+      pageFocus: "grammar",
+      grammar: { enabled: true, keyIdea: "", sections: [] },
+      collection: { enabled: true, groups: [] },
+    });
+    const collection = page("Comida", {
+      pageFocus: "vocabulary",
+      collection: { enabled: true, groups: [] },
+    });
+    const podcast = page("Radio Ambulante", {
+      pageFocus: "source",
+      source: { enabled: true, format: "audio", creator: "", scope: "", url: "", context: "", captures: [] },
+    });
+    const notes = page("Restaurant notes");
+
+    render(<PageHub
+      {...propsFor([guide, collection, podcast, notes])}
+      pinnedPageIds={[notes.id]}
+    />);
+
+    await user.click(screen.getByRole("button", { name: "Refine" }));
+    await user.selectOptions(screen.getByRole("combobox", { name: "Page grouping" }), "kind");
+    expect(screen.getByRole("button", { name: "Refine (1)" })).toBeTruthy();
+
+    const heading = (name) => screen.getByRole("heading", { level: 2, name });
+    expectBefore(heading("Source"), heading("Grammar"));
+    expectBefore(heading("Grammar"), heading("Vocabulary"));
+    expect(screen.queryByRole("heading", { level: 2, name: "Notes" })).toBeNull();
+
+    const grammar = screen.getByRole("region", { name: "Grammar" });
+    expect(within(grammar).getByRole("button", { name: "Subjuntivo" })).toBeTruthy();
+    expect(within(grammar).getByText("1 page")).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "Subjuntivo" })).toHaveLength(1);
+    expect(
+      within(screen.getByRole("region", { name: "Vocabulary" })).getByRole("button", { name: "Comida" })
+    ).toBeTruthy();
+
+    // The pinned page is already grouped by its pin, so it stays out of the kind piles.
+    const pinned = screen.getByRole("region", { name: /Pinned/ });
+    expect(within(pinned).getByRole("button", { name: "Restaurant notes" })).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "Restaurant notes" })).toHaveLength(1);
+
+    await user.click(screen.getByRole("button", { name: "Search pages" }));
+    await user.type(screen.getByRole("textbox", { name: "Search pages" }), "Comida");
+    expect(screen.queryByRole("heading", { level: 2, name: "Vocabulary" })).toBeNull();
+    expect(screen.getByRole("combobox", { name: "Page grouping" }).value).toBe("ungrouped");
+  });
+
+  it("buckets the browse list by the injected day, not the wall clock", async () => {
+    const user = userEvent.setup();
+    const fresh = page("Hoy", { updatedAt: at(25) });
+    const monday = page("El lunes", { updatedAt: at(24) });
+    const earlierMonth = page("Este mes", { updatedAt: at(3) });
+    const old = page("Julio", { updatedAt: "2026-07-20T10:00:00.000Z", createdAt: "2026-07-20T10:00:00.000Z" });
+
+    render(<PageHub {...propsFor([fresh, monday, earlierMonth, old])} today="2026-08-25" />);
+
+    await user.click(screen.getByRole("button", { name: "Refine" }));
+    await user.selectOptions(screen.getByRole("combobox", { name: "Page grouping" }), "touched");
+
+    const heading = (name) => screen.getByRole("heading", { level: 2, name });
+    expectBefore(heading("Today"), heading("This week"));
+    expectBefore(heading("This week"), heading("This month"));
+    expectBefore(heading("This month"), heading("Earlier"));
+    expect(
+      within(screen.getByRole("region", { name: "Today" })).getByRole("button", { name: "Hoy" })
+    ).toBeTruthy();
+    expect(
+      within(screen.getByRole("region", { name: "Earlier" })).getByRole("button", { name: "Julio" })
+    ).toBeTruthy();
+  });
 });
