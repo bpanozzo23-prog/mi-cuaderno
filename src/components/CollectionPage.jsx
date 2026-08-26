@@ -38,6 +38,7 @@ import AliasConflictResolver from "./AliasConflictResolver.jsx";
 import TagInput from "./TagInput.jsx";
 import SourceSection from "./SourceSection.jsx";
 import GrammarSection from "./GrammarSection.jsx";
+import AddSheet from "./AddSheet.jsx";
 import PageCustomizeSheet from "./PageCustomizeSheet.jsx";
 import PageSectionDisclosure, { SectionSpineNode } from "./PageSectionDisclosure.jsx";
 import { PAGE_ROLE_META, sectionFamily } from "./pageRoleMeta.js";
@@ -812,6 +813,7 @@ export default function CollectionPage({
   const [startWithNewGroup, setStartWithNewGroup] = useState(false);
   const [deleteArm, setDeleteArm] = useState(false);
   const [customizing, setCustomizing] = useState(false);
+  const [copyingStructure, setCopyingStructure] = useState(false);
   const [focusSaving, setFocusSaving] = useState(false);
   const [linkedEntryLinks, setLinkedEntryLinks] = useState([]);
   const [orphanKeys, setOrphanKeys] = useState([]);
@@ -1225,6 +1227,23 @@ export default function CollectionPage({
           onSaved={async () => {
             setCustomizing(false);
             await onChanged();
+          }}
+          onCopyStructure={() => {
+            setCustomizing(false);
+            setCopyingStructure(true);
+          }}
+        />
+      )}
+      {copyingStructure && (
+        <AddSheet
+          kind="page"
+          pageStarter={{ copySourcePageId: item.id }}
+          items={items}
+          onClose={() => setCopyingStructure(false)}
+          onCreated={async (id) => {
+            setCopyingStructure(false);
+            await onChanged();
+            onOpen(id);
           }}
         />
       )}

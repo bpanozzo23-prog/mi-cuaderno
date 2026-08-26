@@ -716,3 +716,62 @@ describe("lexical Collection placement", () => {
     if (storedPage) expect(storedPage.linkedKeys).toEqual([]);
   });
 });
+
+describe("page structure reuse", () => {
+  it("copies the open page's structure into a fresh page and opens it", async () => {
+    const user = userEvent.setup();
+    const onOpen = vi.fn();
+    const word = await createItem(newLexical({ term: "ojalá" }));
+    const groupId = newPageGroupKey();
+    const section = newGrammarSection({
+      name: "Formation",
+      explanation: "Do not copy this explanation",
+      examples: [newGrammarExample({ es: "Ojalá venga.", en: "I hope he comes." })],
+    });
+    const page = await createItem(newPage({
+      title: "Subjunctive after ojalá",
+      body: "Do not copy this overview",
+      pageFocus: "grammar",
+      tags: ["private"],
+      linkedKeys: [word.id],
+      collection: { enabled: true, groups: [{ id: groupId, name: "Triggers", itemKeys: [word.id] }] },
+      grammar: { enabled: true, keyIdea: "Do not copy this key idea", sections: [section] },
+    }));
+
+    renderDetail(page, await allItems(), onOpen);
+
+    await user.click(screen.getByLabelText("Page actions"));
+    await user.click(screen.getByRole("button", { name: "Customize page" }));
+    await user.click(screen.getByRole("button", { name: "Copy structure" }));
+
+    // The customize sheet steps aside so the two sheets are never stacked on a 375px screen.
+    expect(screen.queryByRole("dialog", { name: "Customize page" })).toBeNull();
+    expect(screen.getByText("Copy page structure")).toBeTruthy();
+
+    await user.type(screen.getByPlaceholderText("Title *"), "Subjunctive after quizás");
+    await user.click(screen.getByRole("button", { name: "Copy page" }));
+
+    await waitFor(() => expect(onOpen).toHaveBeenCalledTimes(1));
+    const copy = await getItem(onOpen.mock.calls[0][0]);
+    expect(copy.id).not.toBe(page.id);
+    expect(copy).toMatchObject({
+      title: "Subjunctive after quizás",
+      body: "",
+      pageFocus: "grammar",
+      tags: [],
+      linkedKeys: [],
+      collection: { enabled: true },
+      grammar: { enabled: true, keyIdea: "" },
+    });
+    expect(copy.collection.groups.map(({ name }) => name)).toEqual(["Triggers"]);
+    expect(copy.collection.groups[0].itemKeys).toEqual([]);
+    expect(copy.grammar.sections.map(({ name }) => name)).toEqual(["Formation"]);
+    expect(copy.grammar.sections[0].id).not.toBe(section.id);
+    expect(copy.grammar.sections[0].explanation).toBe("");
+    expect(copy.grammar.sections[0].examples).toEqual([]);
+
+    // The source page is untouched: copying is a creation method, not an edit.
+    expect(await getItem(page.id)).toMatchObject({ title: "Subjunctive after ojalá", tags: ["private"] });
+    expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(0);
+  });
+});
