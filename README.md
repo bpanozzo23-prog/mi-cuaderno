@@ -893,6 +893,23 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   same 1,721-test suite run and production build. See the 2026-08-25 entries in
   [DECISIONS.md](DECISIONS.md).
 
+- **Exact meaning refinements and match-aware Words & phrases cards — deployed.** Refine now adds
+  single-select **Usage** and **Verb behavior** controls after Part of speech, showing only exact
+  stored values present in the upstream view, in canonical order with entry counts. Usage,
+  behavior and an active POS must agree on one saved meaning; POS alone keeps its established
+  entry-or-override behavior. Cards preview the first qualifying meaning, categorize the active
+  criteria and count additional matches, while free-text search remains generic and Practice
+  still reveals whole entries. The controls remain visit-local; no schema, event, preference,
+  backup, score or migration changed, and `SCHEMA_VERSION` stays 10. The complete serial suite
+  passes 1,735/1,735 across 145 files, the production build transforms 2,142 modules,
+  `git diff --check` passes, both deliberate failure proofs reddened as intended, and a seeded
+  375×812 closeout verified exact substring exclusions, cross-sense rejection, POS overrides,
+  Phrase participation, 44px controls, wrapped criteria, zero horizontal overflow and a clean
+  console. Deployed from `main` at `f5c8e83` through Pages run
+  [33108273404](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33108273404);
+  the live root returned HTTP 200 serving `assets/index-By1Oojz-.js`, the same bundle name as the
+  local production build. See the 2026-08-26 entries in [DECISIONS.md](DECISIONS.md).
+
 `SCHEMA_VERSION` is **10**. Before Dexie opens v10, schema-v1 through schema-v9 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
 relationship, composable-page, Grammar-hierarchy, Structured-Notes, entry-feedback and Apuntes
