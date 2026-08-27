@@ -1,5 +1,5 @@
 import { normalize } from "./normalize.js";
-import { LEXICAL_POS_OPTIONS } from "./meanings.js";
+import { LEXICAL_POS_OPTIONS, USAGE_LABELS, VERB_BEHAVIORS } from "./meanings.js";
 import { activePageContextsForLexical } from "./pageReferences.js";
 
 /**
@@ -152,6 +152,115 @@ export function posCountsIn(items = []) {
   return LEXICAL_POS_OPTIONS
     .filter((pos) => pos && counts.has(pos))
     .map((pos) => ({ pos, count: counts.get(pos) }));
+}
+
+/** Off positions for the two closed, meaning-level refinements. */
+export const LEXICAL_USAGE_ANY = "any";
+export const LEXICAL_VERB_BEHAVIOR_ANY = "any";
+
+const meaningFilterIsActive = (value, anyValue) => Boolean(value) && value !== anyValue;
+
+/**
+ * Meanings satisfying every active semantic refinement, in their saved order. Part of speech is
+ * resolved per meaning: an override wins, otherwise the entry value is inherited. Array-backed
+ * labels use exact membership because their values are closed vocabularies, not search text.
+ */
+export function matchingMeaningsForFilters(item, {
+  pos = LEXICAL_POS_ANY,
+  usage = LEXICAL_USAGE_ANY,
+  verbBehavior = LEXICAL_VERB_BEHAVIOR_ANY,
+} = {}) {
+  const posActive = meaningFilterIsActive(pos, LEXICAL_POS_ANY);
+  const usageActive = meaningFilterIsActive(usage, LEXICAL_USAGE_ANY);
+  const behaviorActive = meaningFilterIsActive(
+    verbBehavior,
+    LEXICAL_VERB_BEHAVIOR_ANY
+  );
+
+  return (item?.meanings || []).filter((meaning) => {
+    const effectivePos = meaning?.posOverride || item?.pos || "";
+    return (!posActive || effectivePos === pos)
+      && (!usageActive || (meaning?.usageLabels || []).includes(usage))
+      && (!behaviorActive || (meaning?.verbBehavior || []).includes(verbBehavior));
+  });
+}
+
+/**
+ * Usage or behavior turns matching into a same-meaning intersection. POS alone deliberately keeps
+ * the hub's established entry-or-override behavior, including entries that have no meanings yet.
+ */
+export function matchesMeaningFilters(item, {
+  pos = LEXICAL_POS_ANY,
+  usage = LEXICAL_USAGE_ANY,
+  verbBehavior = LEXICAL_VERB_BEHAVIOR_ANY,
+} = {}) {
+  const hasMeaningSpecificFilter = meaningFilterIsActive(usage, LEXICAL_USAGE_ANY)
+    || meaningFilterIsActive(verbBehavior, LEXICAL_VERB_BEHAVIOR_ANY);
+  if (!hasMeaningSpecificFilter) return matchesPosFilter(item, pos);
+  return matchingMeaningsForFilters(item, { pos, usage, verbBehavior }).length > 0;
+}
+
+/** Usage choices present after every upstream refinement, in the editor's canonical order. */
+export function usageCountsIn(items = [], { pos = LEXICAL_POS_ANY } = {}) {
+  return USAGE_LABELS
+    .map((usage) => ({
+      usage,
+      count: items.reduce(
+        (total, item) => total + Number(matchesMeaningFilters(item, { pos, usage })),
+        0
+      ),
+    }))
+    .filter(({ count }) => count > 0);
+}
+
+/** Verb-behavior choices present after POS and Usage, in the editor's canonical order. */
+export function verbBehaviorCountsIn(items = [], {
+  pos = LEXICAL_POS_ANY,
+  usage = LEXICAL_USAGE_ANY,
+} = {}) {
+  return VERB_BEHAVIORS
+    .map((verbBehavior) => ({
+      verbBehavior,
+      count: items.reduce(
+        (total, item) => total + Number(matchesMeaningFilters(item, {
+          pos,
+          usage,
+          verbBehavior,
+        })),
+        0
+      ),
+    }))
+    .filter(({ count }) => count > 0);
+}
+
+/**
+ * Presentation-only explanation for a hub card. Search never contributes to this descriptor:
+ * refinements alone choose the preview, and an inactive semantic lens returns no descriptor so
+ * the ordinary card stays unchanged.
+ */
+export function meaningFilterMatch(item, {
+  pos = LEXICAL_POS_ANY,
+  usage = LEXICAL_USAGE_ANY,
+  verbBehavior = LEXICAL_VERB_BEHAVIOR_ANY,
+} = {}) {
+  const criteria = [];
+  if (meaningFilterIsActive(pos, LEXICAL_POS_ANY)) {
+    criteria.push({ label: "Part of speech", value: pos });
+  }
+  if (meaningFilterIsActive(usage, LEXICAL_USAGE_ANY)) {
+    criteria.push({ label: "Usage", value: usage });
+  }
+  if (meaningFilterIsActive(verbBehavior, LEXICAL_VERB_BEHAVIOR_ANY)) {
+    criteria.push({ label: "Verb behavior", value: verbBehavior });
+  }
+  if (criteria.length === 0) return null;
+
+  const meanings = matchingMeaningsForFilters(item, { pos, usage, verbBehavior });
+  return {
+    meaning: meanings[0] || item?.meanings?.[0] || null,
+    criteria,
+    additionalCount: Math.max(0, meanings.length - 1),
+  };
 }
 
 /** Terms that start with a digit or punctuation, and any blank term, share one trailing group. */

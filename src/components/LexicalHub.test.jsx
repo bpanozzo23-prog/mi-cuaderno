@@ -516,6 +516,192 @@ describe("the Words & phrases hub", () => {
     });
   });
 
+  describe("meaning-level refinements and match-aware cards", () => {
+    const meaning = (id, gloss, over = {}) => ({
+      id: `meaning:${id}`,
+      gloss,
+      usageCue: "",
+      regions: [],
+      usageLabels: [],
+      posOverride: "",
+      verbBehavior: [],
+      note: "",
+      examples: [],
+      ...over,
+    });
+
+    const quedar = () => lexical("quedar", {
+      pos: "verb",
+      meanings: [
+        meaning("remain", "to remain"),
+        meaning("meet", "to arrange to meet", {
+          usageLabels: ["informal"],
+          verbBehavior: ["pronominal"],
+        }),
+        meaning("agree", "to agree to meet", {
+          usageLabels: ["informal"],
+          verbBehavior: ["pronominal"],
+        }),
+      ],
+    });
+
+    it("offers exact contextual options, previews the later match and restores the ordinary gloss", async () => {
+      const user = userEvent.setup();
+      render(<LexicalHub {...propsFor([
+        quedar(),
+        lexical("permanecer", {
+          pos: "verb",
+          meanings: [meaning("formal", "to remain", {
+            usageLabels: ["formal"],
+            verbBehavior: ["intransitive"],
+          })],
+        }),
+      ])} />);
+      await openRefine(user);
+
+      expect(within(screen.getByLabelText("Usage")).getAllByRole("option").map((node) => node.textContent)).toEqual([
+        "Any usage",
+        "formal · 1",
+        "informal · 1",
+      ]);
+      await choose(user, "Usage", "informal");
+      expect(within(screen.getByLabelText("Verb behavior")).getAllByRole("option").map((node) => node.textContent)).toEqual([
+        "Any verb behavior",
+        "pronominal · 1",
+      ]);
+      await choose(user, "Verb behavior", "pronominal");
+
+      const shell = cardShell("quedar");
+      expect(within(shell).getByText("to arrange to meet")).toBeTruthy();
+      expect(within(shell).queryByText("to remain")).toBeNull();
+      expect(within(shell).getByText(
+        "Usage: informal · Verb behavior: pronominal · +1 matching meaning"
+      )).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Refine (2)" })).toBeTruthy();
+
+      await choose(user, "Verb behavior", "any");
+      await choose(user, "Usage", "any");
+      expect(within(shell).getByText("to remain")).toBeTruthy();
+      expect(within(shell).queryByText(/Usage: informal/)).toBeNull();
+    });
+
+    it("does not let different meanings satisfy Usage and Verb behavior", async () => {
+      const user = userEvent.setup();
+      const split = lexical("split", {
+        pos: "verb",
+        meanings: [
+          meaning("casual", "casual sense", { usageLabels: ["informal"] }),
+          meaning("self", "self-directed sense", { verbBehavior: ["reflexive"] }),
+        ],
+      });
+      const coherent = lexical("coherent", {
+        pos: "verb",
+        meanings: [meaning("both", "casual self-directed sense", {
+          usageLabels: ["informal"],
+          verbBehavior: ["reflexive"],
+        })],
+      });
+      render(<LexicalHub {...propsFor([split, coherent])} />);
+      await openRefine(user);
+
+      await choose(user, "Usage", "informal");
+      await choose(user, "Verb behavior", "reflexive");
+
+      expect(card("coherent")).toBeTruthy();
+      expect(cardOrNull("split")).toBeNull();
+    });
+
+    it("makes POS describe the same qualifying meaning and clears an impossible downstream choice", async () => {
+      const user = userEvent.setup();
+      const item = lexical("como", {
+        pos: "adverb",
+        meanings: [
+          meaning("connector", "as a connector", {
+            usageLabels: ["informal"],
+            posOverride: "conjunction",
+            verbBehavior: ["pronominal"],
+          }),
+          meaning("adverb", "in an adverbial use", {
+            usageLabels: ["formal"],
+            posOverride: "conjunction",
+          }),
+        ],
+      });
+      render(<LexicalHub {...propsFor([item])} />);
+      await openRefine(user);
+
+      await choose(user, "Part of speech", "conjunction");
+      await choose(user, "Usage", "informal");
+      await choose(user, "Verb behavior", "pronominal");
+      expect(within(cardShell("como")).getByText("as a connector")).toBeTruthy();
+      expect(within(cardShell("como")).getByText(
+        "Part of speech: conjunction · Usage: informal · Verb behavior: pronominal"
+      )).toBeTruthy();
+
+      await choose(user, "Usage", "formal");
+      await waitFor(() => expect(screen.getByLabelText("Verb behavior").value).toBe("any"));
+      expect(within(cardShell("como")).getByText("in an adverbial use")).toBeTruthy();
+    });
+
+    it("keeps match-aware previews on pinned, A–Z and search-result cards", async () => {
+      const user = userEvent.setup();
+      render(<LexicalHub {...propsFor([quedar()], { pinnedLexicalIds: ["user:quedar"] })} />);
+      await openRefine(user);
+      await choose(user, "Usage", "informal");
+
+      expect(within(screen.getByRole("region", { name: "Pinned" })).getByText("to arrange to meet")).toBeTruthy();
+
+      await choose(user, "Vocabulary order", "alphabetical");
+      expect(within(cardShell("quedar")).getByText("to arrange to meet")).toBeTruthy();
+
+      await search(user, "quedar");
+      expect(within(screen.getByRole("region", { name: "Matching vocabulary" })).getByText(
+        "to arrange to meet"
+      )).toBeTruthy();
+    });
+
+    it("keeps search inside the exact subset without letting the query choose the preview", async () => {
+      const user = userEvent.setup();
+      render(<LexicalHub {...propsFor([
+        quedar(),
+        lexical("permanecer", {
+          pos: "verb",
+          meanings: [meaning("formal", "to remain", { usageLabels: ["formal"] })],
+        }),
+      ])} />);
+      await openRefine(user);
+      await choose(user, "Usage", "informal");
+
+      await search(user, "to remain");
+
+      expect(cardOrNull("permanecer")).toBeNull();
+      expect(within(cardShell("quedar")).getByText("to arrange to meet")).toBeTruthy();
+      expect(within(cardShell("quedar")).queryByText("to remain")).toBeNull();
+    });
+
+    it("uses the exact refinement as the Practice source while keeping the whole entry answer", async () => {
+      const user = userEvent.setup();
+      render(<LexicalHub {...propsFor([
+        quedar(),
+        lexical("permanecer", {
+          meanings: [meaning("formal", "to remain", { usageLabels: ["formal"] })],
+        }),
+      ])} />);
+      await openRefine(user);
+      await choose(user, "Usage", "informal");
+
+      expect(screen.getByText("1 answerable card.").classList.contains("sr-only")).toBe(true);
+      await user.click(screen.getByRole("button", { name: "Practice" }));
+      await user.click(screen.getByRole("button", { name: "Hub order" }));
+      await user.click(screen.getByRole("button", { name: "Start 1-card practice" }));
+      await user.click(screen.getByRole("button", { name: "Reveal meanings" }));
+
+      expect(screen.getByText("to remain")).toBeTruthy();
+      expect(screen.getByText("to arrange to meet")).toBeTruthy();
+      expect(screen.queryByText("permanecer")).toBeNull();
+    });
+  });
+
   describe("the A–Z index", () => {
     const items = [lexical("zorro"), lexical("ñoño"), lexical("árbol"), lexical("nube")];
 

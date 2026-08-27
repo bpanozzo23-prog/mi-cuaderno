@@ -7,8 +7,13 @@ import {
   LEXICAL_CONTEXTS,
   LEXICAL_LEARNING,
   LEXICAL_POS_ANY,
+  LEXICAL_USAGE_ANY,
+  LEXICAL_VERB_BEHAVIOR_ANY,
+  meaningFilterMatch,
+  matchingMeaningsForFilters,
   matchesContextFilter,
   matchesLearningFilter,
+  matchesMeaningFilters,
   matchesPageFilter,
   matchesPosFilter,
   OTHER_INITIAL,
@@ -17,6 +22,8 @@ import {
   PINNED_LEXICAL_IDS_PREF,
   posCountsIn,
   posValuesOf,
+  usageCountsIn,
+  verbBehaviorCountsIn,
 } from "./lexicalViews.js";
 import { newMeaning } from "./meanings.js";
 import { newGrammarExample, newGrammarSection, newSourceCapture } from "./pageKinds.js";
@@ -238,6 +245,185 @@ describe("lexical hub derivations", () => {
       ]);
 
       expect(counts).toEqual([{ pos: "adverb", count: 1 }]);
+    });
+  });
+
+  describe("meaning-level refinements", () => {
+    const meaning = (gloss, over = {}) => newMeaning({ gloss, ...over });
+
+    it("matches closed usage and behavior values exactly, never as substrings", () => {
+      const item = makeLexical({
+        term: "quedar",
+        pos: "verb",
+        meanings: [meaning("to remain", {
+          usageLabels: ["informal"],
+          verbBehavior: ["intransitive"],
+        })],
+      });
+
+      expect(matchesMeaningFilters(item, { usage: "informal" })).toBe(true);
+      expect(matchesMeaningFilters(item, { usage: "formal" })).toBe(false);
+      expect(matchesMeaningFilters(item, { verbBehavior: "intransitive" })).toBe(true);
+      expect(matchesMeaningFilters(item, { verbBehavior: "transitive" })).toBe(false);
+    });
+
+    it("requires usage, behavior and POS to agree on one meaning", () => {
+      const split = makeLexical({
+        term: "split",
+        pos: "verb",
+        meanings: [
+          meaning("casual sense", { usageLabels: ["informal"] }),
+          meaning("self-directed sense", { verbBehavior: ["reflexive"] }),
+        ],
+      });
+      const coherent = makeLexical({
+        term: "coherent",
+        pos: "verb",
+        meanings: [
+          meaning("casual self-directed sense", {
+            usageLabels: ["informal"],
+            verbBehavior: ["reflexive"],
+          }),
+        ],
+      });
+
+      expect(matchesMeaningFilters(split, {
+        usage: "informal",
+        verbBehavior: "reflexive",
+      })).toBe(false);
+      expect(matchesMeaningFilters(coherent, {
+        usage: "informal",
+        verbBehavior: "reflexive",
+      })).toBe(true);
+    });
+
+    it("uses the meaning override before inherited entry POS in a combined refinement", () => {
+      const item = makeLexical({
+        term: "como",
+        pos: "adverb",
+        meanings: [
+          meaning("as a connector", {
+            usageLabels: ["informal"],
+            posOverride: "conjunction",
+          }),
+          meaning("in an adverbial use", { usageLabels: ["formal"] }),
+        ],
+      });
+
+      expect(matchesMeaningFilters(item, { pos: "conjunction", usage: "informal" })).toBe(true);
+      expect(matchesMeaningFilters(item, { pos: "adverb", usage: "informal" })).toBe(false);
+      expect(matchesMeaningFilters(item, { pos: "adverb", usage: "formal" })).toBe(true);
+    });
+
+    it("preserves entry-wide OR meaning-override POS behavior when POS is the only refinement", () => {
+      const item = makeLexical({
+        term: "bien",
+        pos: "adverb",
+        meanings: [meaning("good, benefit", { posOverride: "noun" })],
+      });
+
+      expect(matchesMeaningFilters(item, { pos: "adverb" })).toBe(true);
+      expect(matchesMeaningFilters(item, { pos: "noun" })).toBe(true);
+      expect(matchesMeaningFilters(item, {
+        pos: "adverb",
+        usage: LEXICAL_USAGE_ANY,
+        verbBehavior: LEXICAL_VERB_BEHAVIOR_ANY,
+      })).toBe(true);
+    });
+
+    it("counts entries once in canonical option order and respects upstream meaning filters", () => {
+      const doubleFormal = makeLexical({
+        term: "double",
+        pos: "verb",
+        meanings: [
+          meaning("first", { usageLabels: ["formal"], verbBehavior: ["transitive"] }),
+          meaning("second", { usageLabels: ["formal"], verbBehavior: ["transitive"] }),
+        ],
+      });
+      const informal = makeLexical({
+        term: "casual",
+        pos: "verb",
+        meanings: [meaning("casual", {
+          usageLabels: ["informal"],
+          verbBehavior: ["intransitive"],
+        })],
+      });
+      const formalNoun = makeLexical({
+        term: "noun",
+        pos: "noun",
+        meanings: [meaning("formal noun", { usageLabels: ["formal"] })],
+      });
+
+      expect(usageCountsIn([doubleFormal, informal, formalNoun], { pos: "verb" })).toEqual([
+        { usage: "formal", count: 1 },
+        { usage: "informal", count: 1 },
+      ]);
+      expect(verbBehaviorCountsIn([doubleFormal, informal, formalNoun], {
+        pos: "verb",
+        usage: "formal",
+      })).toEqual([{ verbBehavior: "transitive", count: 1 }]);
+    });
+
+    it("returns the first qualifying meaning and an additional-match count for the card", () => {
+      const item = makeLexical({
+        term: "quedar",
+        pos: "verb",
+        meanings: [
+          meaning("to remain"),
+          meaning("to arrange to meet", {
+            usageLabels: ["informal"],
+            verbBehavior: ["pronominal"],
+          }),
+          meaning("to agree to meet", {
+            usageLabels: ["informal"],
+            verbBehavior: ["pronominal"],
+          }),
+        ],
+      });
+      const filters = { pos: "verb", usage: "informal", verbBehavior: "pronominal" };
+
+      expect(matchingMeaningsForFilters(item, filters).map((row) => row.gloss)).toEqual([
+        "to arrange to meet",
+        "to agree to meet",
+      ]);
+      expect(meaningFilterMatch(item, filters)).toEqual({
+        meaning: expect.objectContaining({ gloss: "to arrange to meet" }),
+        criteria: [
+          { label: "Part of speech", value: "verb" },
+          { label: "Usage", value: "informal" },
+          { label: "Verb behavior", value: "pronominal" },
+        ],
+        additionalCount: 1,
+      });
+    });
+
+    it("prefers a POS-qualified meaning but falls back to the ordinary gloss for entry-only POS", () => {
+      const preferred = makeLexical({
+        term: "como",
+        pos: "adverb",
+        meanings: [
+          meaning("in the way that"),
+          meaning("as, while", { posOverride: "conjunction" }),
+        ],
+      });
+      const entryOnly = makeLexical({
+        term: "bien",
+        pos: "adverb",
+        meanings: [meaning("good, benefit", { posOverride: "noun" })],
+      });
+
+      expect(meaningFilterMatch(preferred, { pos: "conjunction" })?.meaning?.gloss)
+        .toBe("as, while");
+      expect(meaningFilterMatch(entryOnly, { pos: "adverb" })?.meaning?.gloss)
+        .toBe("good, benefit");
+    });
+
+    it("returns no descriptor when every semantic refinement is off", () => {
+      expect(meaningFilterMatch(makeLexical(), {
+        pos: LEXICAL_POS_ANY,
+        usage: LEXICAL_USAGE_ANY,
+        verbBehavior: LEXICAL_VERB_BEHAVIOR_ANY,
+      })).toBeNull();
     });
   });
 

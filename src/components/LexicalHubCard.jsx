@@ -18,11 +18,18 @@ export default function LexicalHubCard({
   contexts = [],
   pinned = false,
   reason = null,
+  meaningMatch = null,
   onOpen,
   onPinnedChange,
 }) {
   const suffix = personalHeadingSuffix(item);
-  const gloss = firstMeaningGloss(item);
+  const gloss = meaningMatch?.meaning?.gloss || firstMeaningGloss(item);
+  const matchSummary = meaningMatch?.criteria
+    ?.map(({ label, value }) => `${label}: ${value}`)
+    .join(" · ");
+  const additionalMatchSummary = meaningMatch?.additionalCount > 0
+    ? `+${meaningMatch.additionalCount} matching ${meaningMatch.additionalCount === 1 ? "meaning" : "meanings"}`
+    : "";
   /* The chip row is a sibling of the button, so the button's own bottom padding is the gap above
      it. When chips follow, that padding gives way to their row; with nothing below, the button
      keeps its full padding as the card's own bottom edge. */
@@ -70,6 +77,15 @@ export default function LexicalHubCard({
             style={{ fontFamily: SERIF, color: C.entryMeaning }}
           >
             <span style={{ color: C.entryMeaningDash }}>—</span> {gloss}
+          </div>
+        )}
+
+        {matchSummary && (
+          <div
+            className="mt-1.5 break-words text-xs leading-relaxed"
+            style={{ fontFamily: MONO, color: C.penDark }}
+          >
+            {matchSummary}{additionalMatchSummary && ` · ${additionalMatchSummary}`}
           </div>
         )}
 

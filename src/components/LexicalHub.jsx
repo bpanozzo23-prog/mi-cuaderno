@@ -25,13 +25,18 @@ import {
   LEXICAL_CONTEXTS,
   LEXICAL_LEARNING,
   LEXICAL_POS_ANY,
+  LEXICAL_USAGE_ANY,
+  LEXICAL_VERB_BEHAVIOR_ANY,
+  meaningFilterMatch,
   matchesContextFilter,
   matchesLearningFilter,
+  matchesMeaningFilters,
   matchesPageFilter,
-  matchesPosFilter,
   pageContextIndex,
   pageContextCountsIn,
   posCountsIn,
+  usageCountsIn,
+  verbBehaviorCountsIn,
 } from "../lib/lexicalViews.js";
 import { buildPracticeDeck, isPracticeEligible } from "../lib/practice.js";
 import { preparePracticeCards } from "../lib/practiceCards.js";
@@ -126,6 +131,8 @@ export default function LexicalHub({
   const [browseOrder, setBrowseOrder] = useState(BROWSE_ORDERS.touched);
   const [tagFilter, setTagFilter] = useState(null);
   const [posFilter, setPosFilter] = useState(LEXICAL_POS_ANY);
+  const [usageFilter, setUsageFilter] = useState(LEXICAL_USAGE_ANY);
+  const [verbBehaviorFilter, setVerbBehaviorFilter] = useState(LEXICAL_VERB_BEHAVIOR_ANY);
   const [refineOpen, setRefineOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [practiceSetupOpen, setPracticeSetupOpen] = useState(false);
@@ -223,8 +230,8 @@ export default function LexicalHub({
     [effectiveTag, pageItems]
   );
 
-  // Part of speech is the innermost lens, so its choices describe everything already narrowed —
-  // and, like tags, describe the lens rather than the selection, so the picker stays usable.
+  // Meaning refinements are ordered facets: each choice describes the view established before it,
+  // while its own picker stays usable. Usage and behavior then intersect on one saved meaning.
   const posCounts = useMemo(() => posCountsIn(taggedItems), [taggedItems]);
   const posAvailable = posCounts.some(({ pos }) => pos === posFilter);
   const effectivePos = posAvailable ? posFilter : LEXICAL_POS_ANY;
@@ -233,11 +240,65 @@ export default function LexicalHub({
     if (posFilter !== LEXICAL_POS_ANY && !posAvailable) setPosFilter(LEXICAL_POS_ANY);
   }, [posAvailable, posFilter]);
 
-  const filtered = useMemo(
+  const posItems = useMemo(
     () => effectivePos === LEXICAL_POS_ANY
       ? taggedItems
-      : taggedItems.filter((item) => matchesPosFilter(item, effectivePos)),
+      : taggedItems.filter((item) => matchesMeaningFilters(item, { pos: effectivePos })),
     [effectivePos, taggedItems]
+  );
+
+  const usageCounts = useMemo(
+    () => usageCountsIn(taggedItems, { pos: effectivePos }),
+    [effectivePos, taggedItems]
+  );
+  const usageAvailable = usageCounts.some(({ usage }) => usage === usageFilter);
+  const effectiveUsage = usageAvailable ? usageFilter : LEXICAL_USAGE_ANY;
+
+  useEffect(() => {
+    if (usageFilter !== LEXICAL_USAGE_ANY && !usageAvailable) {
+      setUsageFilter(LEXICAL_USAGE_ANY);
+    }
+  }, [usageAvailable, usageFilter]);
+
+  const usageItems = useMemo(
+    () => effectiveUsage === LEXICAL_USAGE_ANY
+      ? posItems
+      : taggedItems.filter((item) => matchesMeaningFilters(item, {
+        pos: effectivePos,
+        usage: effectiveUsage,
+      })),
+    [effectivePos, effectiveUsage, posItems, taggedItems]
+  );
+
+  const verbBehaviorCounts = useMemo(
+    () => verbBehaviorCountsIn(taggedItems, {
+      pos: effectivePos,
+      usage: effectiveUsage,
+    }),
+    [effectivePos, effectiveUsage, taggedItems]
+  );
+  const verbBehaviorAvailable = verbBehaviorCounts.some(
+    ({ verbBehavior }) => verbBehavior === verbBehaviorFilter
+  );
+  const effectiveVerbBehavior = verbBehaviorAvailable
+    ? verbBehaviorFilter
+    : LEXICAL_VERB_BEHAVIOR_ANY;
+
+  useEffect(() => {
+    if (verbBehaviorFilter !== LEXICAL_VERB_BEHAVIOR_ANY && !verbBehaviorAvailable) {
+      setVerbBehaviorFilter(LEXICAL_VERB_BEHAVIOR_ANY);
+    }
+  }, [verbBehaviorAvailable, verbBehaviorFilter]);
+
+  const filtered = useMemo(
+    () => effectiveVerbBehavior === LEXICAL_VERB_BEHAVIOR_ANY
+      ? usageItems
+      : taggedItems.filter((item) => matchesMeaningFilters(item, {
+        pos: effectivePos,
+        usage: effectiveUsage,
+        verbBehavior: effectiveVerbBehavior,
+      })),
+    [effectivePos, effectiveUsage, effectiveVerbBehavior, taggedItems, usageItems]
   );
 
   const attachmentViewAvailable = dictionaryAvailable && formFilter !== FILTERS.phrase;
@@ -288,7 +349,9 @@ export default function LexicalHub({
     + Number(maintenanceView !== MAINTENANCE_VIEWS.all)
     + Number(browseOrder !== BROWSE_ORDERS.touched)
     + Number(Boolean(effectiveTag))
-    + Number(effectivePos !== LEXICAL_POS_ANY);
+    + Number(effectivePos !== LEXICAL_POS_ANY)
+    + Number(effectiveUsage !== LEXICAL_USAGE_ANY)
+    + Number(effectiveVerbBehavior !== LEXICAL_VERB_BEHAVIOR_ANY);
 
   function toggleSearch() {
     if (!searchOpen) {
@@ -328,6 +391,11 @@ export default function LexicalHub({
       contexts={contextsFor(item)}
       pinned={pinnedIds.has(item.id)}
       reason={reason}
+      meaningMatch={meaningFilterMatch(item, {
+        pos: effectivePos,
+        usage: effectiveUsage,
+        verbBehavior: effectiveVerbBehavior,
+      })}
       onOpen={onSelect}
       onPinnedChange={onLexicalPinnedChange}
     />
@@ -505,6 +573,36 @@ export default function LexicalHub({
               </option>
               {posCounts.map(({ pos, count }) => (
                 <option key={pos} value={pos}>{pos} · {count}</option>
+              ))}
+            </RefineSelect>
+
+            <RefineSelect
+              label="Usage"
+              ariaLabel="Usage"
+              value={effectiveUsage}
+              onChange={setUsageFilter}
+              disabled={usageCounts.length === 0}
+            >
+              <option value={LEXICAL_USAGE_ANY}>
+                {usageCounts.length ? "Any usage" : "None recorded in this view"}
+              </option>
+              {usageCounts.map(({ usage, count }) => (
+                <option key={usage} value={usage}>{usage} · {count}</option>
+              ))}
+            </RefineSelect>
+
+            <RefineSelect
+              label="Verb behavior"
+              ariaLabel="Verb behavior"
+              value={effectiveVerbBehavior}
+              onChange={setVerbBehaviorFilter}
+              disabled={verbBehaviorCounts.length === 0}
+            >
+              <option value={LEXICAL_VERB_BEHAVIOR_ANY}>
+                {verbBehaviorCounts.length ? "Any verb behavior" : "None recorded in this view"}
+              </option>
+              {verbBehaviorCounts.map(({ verbBehavior, count }) => (
+                <option key={verbBehavior} value={verbBehavior}>{verbBehavior} · {count}</option>
               ))}
             </RefineSelect>
 
