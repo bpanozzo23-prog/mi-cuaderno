@@ -584,6 +584,12 @@ export default function App() {
     (stackRoute) => stackRoute.screen === "cuidar"
   )?.visitKey || null;
   const cuadernoRootOpen = tab === "cuaderno" && CUADERNO_ROOT_SCREENS.has(cuadernoRoute.screen);
+  /* An open entry — a page, a word or a phrase, and the biography behind one — gets the header
+     Diario already had: the wordmark alone, at a size that does not compete with the entry's own
+     title (owner-requested 2026-08-28). The notebook totals belong to the browsing screens, where
+     they say how much there is to browse; over a single entry they are just three numbers about
+     everything except the thing being read. */
+  const entryOpen = tab === "cuaderno" && ["detail", "biography"].includes(cuadernoRoute.screen);
 
   return (
     <StudySessionProvider
@@ -598,16 +604,16 @@ export default function App() {
         {!hubOpen && !cuadernoRootOpen && !studySessionActive && (
           <header
             aria-label="App header"
-            className="sticky top-0 z-20 px-4 pt-4 pb-3"
+            className={`sticky top-0 z-20 px-4 ${entryOpen ? "pt-2.5 pb-2" : "pt-4 pb-3"}`}
             style={{ background: C.paper, borderBottom: `1px solid ${C.line}` }}
           >
             <div className="flex items-end justify-between">
               <div>
-                <div className="text-2xl font-bold" style={{ fontFamily: SERIF, color: C.ink }}>
+                <div className={`font-bold ${entryOpen ? "text-lg" : "text-2xl"}`} style={{ fontFamily: SERIF, color: C.ink }}>
                   Mi <Hi>cuaderno</Hi>
                 </div>
               </div>
-              {tab !== "diario" && (
+              {tab !== "diario" && !entryOpen && (
                 <div
                   aria-label="Notebook totals"
                   className="text-right text-xs leading-relaxed"
