@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   archivedJournalYears,
+  currentJournalDays,
   currentJournalEntries,
   isJournalEntry,
   journalEntries,
@@ -152,6 +153,29 @@ describe("journal derivation", () => {
     expect(archivedJournalYears([older, current, lastYear], "2026-08-03")).toEqual([
       { year: "2025", entries: [lastYear] },
       { year: "2024", entries: [older] },
+    ]);
+  });
+
+  it("groups current-year history by date and leaves Today out of the timeline", () => {
+    const today = page({ id: "user:today", pageDate: "2026-08-03" });
+    const recentFirst = page({
+      id: "user:recent-first",
+      pageDate: "2026-08-02",
+      createdAt: "2026-08-02T10:00:00.000Z",
+    });
+    const recentSecond = page({
+      id: "user:recent-second",
+      pageDate: "2026-08-02",
+      createdAt: "2026-08-02T08:00:00.000Z",
+    });
+    const earlier = page({ id: "user:earlier", pageDate: "2026-07-30" });
+    const archived = page({ id: "user:archived", pageDate: "2025-12-31" });
+
+    expect(
+      currentJournalDays([archived, earlier, recentSecond, today, recentFirst], "2026-08-03")
+    ).toEqual([
+      { date: "2026-08-02", entries: [recentFirst, recentSecond] },
+      { date: "2026-07-30", entries: [earlier] },
     ]);
   });
 

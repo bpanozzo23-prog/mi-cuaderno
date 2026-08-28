@@ -3,6 +3,7 @@ import {
   Archive,
   CalendarDays,
   ChevronDown,
+  ChevronRight,
   ChevronUp,
   Clock3,
   Hammer,
@@ -12,11 +13,11 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { Button, C, Card, MONO, SERIF, dotGrid } from "../theme.jsx";
+import { Button, C, Card, IconButton, MONO, SERIF, dotGrid } from "../theme.jsx";
 import { localDate } from "../lib/dates.js";
 import {
   archivedJournalYears,
-  currentJournalEntries,
+  currentJournalDays,
   priorYearMemory,
   sameDayJournalContinuations,
   searchJournalEntries,
@@ -48,9 +49,12 @@ function entryHeading(entry) {
   return firstLine ? firstLine.slice(0, 64) : "Untitled moment";
 }
 
-function EntryCard({ entry, onOpen, eyebrow = null, badge = null }) {
+function EntryCard({ entry, onOpen, eyebrow = null, badge = null, showDate = true }) {
   const titled = Boolean(entry.title?.trim());
   const bodyPreview = markdownPreviewText(entry.body);
+  const lead = eyebrow || (showDate ? journalDateLabel(entry.pageDate) : "");
+  const meta = [lead, badge].filter(Boolean).join(" · ");
+  const hasMeta = Boolean(meta || entry.tags?.length > 0);
   return (
     <button
       type="button"
@@ -59,11 +63,13 @@ function EntryCard({ entry, onOpen, eyebrow = null, badge = null }) {
       className="w-full text-left"
     >
       <Card className="active:opacity-80">
-        <div className="flex items-center justify-between gap-2 text-[11px]" style={{ color: C.mut, fontFamily: MONO }}>
-          <span>{eyebrow || journalDateLabel(entry.pageDate)}{badge ? ` · ${badge}` : ""}</span>
-          {entry.tags?.length > 0 && <span className="truncate">#{entry.tags[0]}</span>}
-        </div>
-        <div className={`${titled ? "mt-1 font-semibold" : "mt-1 text-sm line-clamp-2"}`} style={{ color: C.ink, fontFamily: SERIF }}>
+        {hasMeta && (
+          <div className="flex items-center justify-between gap-2 text-[11px]" style={{ color: C.mut, fontFamily: MONO }}>
+            <span>{meta}</span>
+            {entry.tags?.length > 0 && <span className="truncate">#{entry.tags[0]}</span>}
+          </div>
+        )}
+        <div className={`${titled ? "font-semibold" : "text-sm line-clamp-2"} ${hasMeta ? "mt-1" : ""}`} style={{ color: C.ink, fontFamily: SERIF }}>
           {entryHeading(entry)}
         </div>
         {titled && bodyPreview && (
@@ -97,7 +103,7 @@ export default function JournalHome({
     [entries, todayEntry]
   );
   const memory = useMemo(() => priorYearMemory(entries, today), [entries, today]);
-  const current = useMemo(() => currentJournalEntries(entries, today), [entries, today]);
+  const currentDays = useMemo(() => currentJournalDays(entries, today), [entries, today]);
   const archive = useMemo(() => archivedJournalYears(entries, today), [entries, today]);
   const results = useMemo(() => searchJournalEntries(entries, query), [entries, query]);
   const searching = query.trim() !== "";
@@ -116,12 +122,26 @@ export default function JournalHome({
         <div className="flex items-center gap-2 text-xs font-semibold uppercase" style={{ color: C.diarioInk, letterSpacing: "0.08em" }}>
           <CalendarDays size={14} /> Today
         </div>
-        <div className="mt-2 text-xl font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>
-          {journalDateLabel(today, { weekday: "long", month: "long", year: undefined })}
-        </div>
-        {todayPreview && (
-          <div className="mt-2 text-sm line-clamp-2" style={{ color: C.mut }}>
-            {todayPreview}
+        {todayEntry ? (
+          <button
+            type="button"
+            onClick={() => onOpen(todayEntry.id)}
+            aria-label={`Open ${entryHeading(todayEntry)}`}
+            className="mt-2 w-full text-left active:opacity-80"
+          >
+            <div className="flex items-center justify-between gap-2 text-xl font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>
+              <span>{journalDateLabel(today, { weekday: "long", month: "long", year: undefined })}</span>
+              <ChevronRight size={18} className="shrink-0" aria-hidden="true" style={{ color: C.diario }} />
+            </div>
+            {todayPreview && (
+              <div className="mt-2 text-sm line-clamp-2" style={{ color: C.mut }}>
+                {todayPreview}
+              </div>
+            )}
+          </button>
+        ) : (
+          <div className="mt-2 text-xl font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>
+            {journalDateLabel(today, { weekday: "long", month: "long", year: undefined })}
           </div>
         )}
         <div className="mt-4 flex flex-wrap gap-2">
@@ -154,22 +174,33 @@ export default function JournalHome({
       {continuations.length > 0 && (
         <div className="mt-3 space-y-2">
           {continuations.map((continuation) => (
-            <button
+            <div
               key={continuation.id}
-              type="button"
-              onClick={() => onEdit(continuation.id)}
-              className="w-full rounded-xl border p-3 text-left flex items-center gap-3"
+              className="w-full rounded-xl border p-2 pl-3 flex items-center gap-2"
               style={{ background: C.card, borderColor: C.line }}
             >
-              <Clock3 size={17} className="shrink-0" style={{ color: C.diario }} />
-              <div className="min-w-0 flex-1">
-                <div className="text-[11px] uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>Continue</div>
-                <div className="truncate text-sm font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>
-                  {entryHeading(continuation)}
+              <button
+                type="button"
+                onClick={() => onOpen(continuation.id)}
+                aria-label={`Open ${entryHeading(continuation)}`}
+                className="min-w-0 flex flex-1 items-center gap-3 text-left active:opacity-80"
+              >
+                <Clock3 size={17} className="shrink-0" style={{ color: C.diario }} />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>Moment</div>
+                  <div className="truncate text-sm font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>
+                    {entryHeading(continuation)}
+                  </div>
                 </div>
-              </div>
-              <span className="text-xs shrink-0" style={{ color: C.mut }}>{journalDateLabel(continuation.pageDate, { year: undefined })}</span>
-            </button>
+              </button>
+              <IconButton
+                tone="quiet"
+                aria-label={`Continue ${entryHeading(continuation)}`}
+                onClick={() => onEdit(continuation.id)}
+              >
+                <PenLine size={16} />
+              </IconButton>
+            </div>
           ))}
         </div>
       )}
@@ -213,8 +244,27 @@ export default function JournalHome({
         <>
           <section aria-label="Journal timeline" className="mt-6">
             <h2 className="mb-2 text-xs font-semibold uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>Timeline</h2>
-            {current.length > 0 ? (
-              <div className="space-y-2.5">{current.map((entry) => <EntryCard key={entry.id} entry={entry} onOpen={onOpen} badge={skillByPage.get(entry.id)} />)}</div>
+            {currentDays.length > 0 ? (
+              <div className="space-y-5">
+                {currentDays.map((day) => (
+                  <div key={day.date}>
+                    <h3 className="mb-2 text-xs font-semibold" style={{ color: C.mut, fontFamily: MONO }}>
+                      {journalDateLabel(day.date)}
+                    </h3>
+                    <div className="space-y-2.5">
+                      {day.entries.map((entry) => (
+                        <EntryCard
+                          key={entry.id}
+                          entry={entry}
+                          onOpen={onOpen}
+                          badge={skillByPage.get(entry.id)}
+                          showDate={false}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : (
               <div className="py-7 text-center text-sm italic" style={{ color: C.mut }}>Your first moment can begin with today.</div>
             )}

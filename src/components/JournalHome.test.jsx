@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import JournalHome from "./JournalHome.jsx";
 
@@ -37,7 +37,7 @@ describe("JournalHome", () => {
       />
     );
 
-    expect(screen.getAllByText("A very important memory.")).toHaveLength(2);
+    expect(screen.getAllByText("A very important memory.")).toHaveLength(1);
     expect(document.body.textContent).not.toContain("**");
     expect(document.body.textContent).not.toContain("==");
     expect(document.body.textContent).not.toContain("Notice the day");
@@ -46,6 +46,7 @@ describe("JournalHome", () => {
 
   it("opens the stable Today anchor, every same-day continuation, and a fresh same-day moment", async () => {
     const user = userEvent.setup();
+    const onOpen = vi.fn();
     const onEdit = vi.fn();
     const onStart = vi.fn();
     const first = moment("First today", "2026-08-03", {
@@ -67,7 +68,7 @@ describe("JournalHome", () => {
     render(
       <JournalHome
         entries={[yesterday, third, second, first]}
-        onOpen={vi.fn()}
+        onOpen={onOpen}
         onEdit={onEdit}
         onStart={onStart}
         now={new Date(2026, 7, 3, 12)}
@@ -76,16 +77,58 @@ describe("JournalHome", () => {
 
     await user.click(screen.getByRole("button", { name: "Continue" }));
     expect(onEdit).toHaveBeenLastCalledWith(first.id);
+    await user.click(screen.getByRole("button", { name: "Open First today" }));
+    expect(onOpen).toHaveBeenLastCalledWith(first.id);
     const continuationButtons = screen.getAllByRole("button", { name: /Continue .* today/ });
-    expect(continuationButtons[0].textContent).toContain("Third today");
-    expect(continuationButtons[1].textContent).toContain("Second today");
+    expect(continuationButtons).toHaveLength(2);
+    expect(screen.queryByText("Aug 3")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Open Second today" }));
+    expect(onOpen).toHaveBeenLastCalledWith(second.id);
+    await user.click(screen.getByRole("button", { name: "Open Third today" }));
+    expect(onOpen).toHaveBeenLastCalledWith(third.id);
     await user.click(screen.getByRole("button", { name: /Continue Second today/ }));
     expect(onEdit).toHaveBeenLastCalledWith(second.id);
     await user.click(screen.getByRole("button", { name: /Continue Third today/ }));
     expect(onEdit).toHaveBeenLastCalledWith(third.id);
     expect(screen.queryByRole("button", { name: /Continue Yesterday/ })).toBeNull();
+    const timeline = screen.getByRole("region", { name: "Journal timeline" });
+    expect(within(timeline).queryByRole("button", { name: "Open First today" })).toBeNull();
+    expect(within(timeline).queryByRole("button", { name: "Open Second today" })).toBeNull();
+    expect(within(timeline).queryByRole("button", { name: "Open Third today" })).toBeNull();
+    expect(within(timeline).getByRole("button", { name: "Open Yesterday" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "New" }));
     expect(onStart).toHaveBeenCalledWith({ date: "2026-08-03" });
+  });
+
+  it("groups timeline entries under one date while preserving entry badges and tags", () => {
+    const first = moment("Morning", "2026-08-02", { tags: ["rutina"] });
+    const second = moment("Evening", "2026-08-02");
+    const event = {
+      id: "evt:practice",
+      type: "practice_write",
+      itemKey: second.id,
+      at: "2026-08-02T20:00:00.000Z",
+      localDate: "2026-08-02",
+      metadata: { skill: "narrate", kept: true },
+    };
+
+    render(
+      <JournalHome
+        entries={[second, first]}
+        events={[event]}
+        onOpen={vi.fn()}
+        onEdit={vi.fn()}
+        onStart={vi.fn()}
+        now={new Date(2026, 7, 3, 12)}
+      />
+    );
+
+    const timeline = screen.getByRole("region", { name: "Journal timeline" });
+    expect(within(timeline).getAllByText("Aug 2, 2026")).toHaveLength(1);
+    expect(within(timeline).getByText("#rutina")).toBeTruthy();
+    expect(within(timeline).getByText("Narrate")).toBeTruthy();
+    expect(within(timeline).getByRole("button", { name: "Open Morning" })).toBeTruthy();
+    expect(within(timeline).getByRole("button", { name: "Open Evening" })).toBeTruthy();
   });
 
   it("shows current moments, keeps older years in an explicit archive, and searches every year", async () => {

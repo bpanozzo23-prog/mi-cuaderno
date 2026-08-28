@@ -99,6 +99,17 @@ export function currentJournalEntries(items, today) {
   return sortJournalEntries(items).filter((entry) => String(entry.pageDate).startsWith(`${year}-`));
 }
 
+/** Current-year history before Today, grouped newest date first for the Diario timeline. */
+export function currentJournalDays(items, today) {
+  const groups = new Map();
+  for (const entry of currentJournalEntries(items, today)) {
+    if (entry.pageDate === today) continue;
+    if (!groups.has(entry.pageDate)) groups.set(entry.pageDate, []);
+    groups.get(entry.pageDate).push(entry);
+  }
+  return [...groups.entries()].map(([date, entries]) => ({ date, entries }));
+}
+
 export function archivedJournalYears(items, today) {
   const currentYear = String(today).slice(0, 4);
   const groups = new Map();
