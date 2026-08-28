@@ -238,8 +238,8 @@ describe("Taller drill flow", () => {
   });
 });
 
-describe("Diario timeline badge", () => {
-  it("shows the skill beside a kept practice entry and nothing beside ordinary entries", async () => {
+describe("Diario timeline Taller provenance", () => {
+  it("shows the marker, category and target on a kept practice entry only", async () => {
     const practiced = await createItem(newPage({ title: "Práctica", body: "Texto.", pageDate: "2026-08-18" }));
     const ordinary = await createItem(newPage({ title: "Reflexión", body: "Texto.", pageDate: "2026-08-17" }));
     await logPracticeWrite(practiced.id, { skill: "narrate", promptId: "narrate-scene", tier: "standard", kept: true, offeredWordIds: [], tema: null });
@@ -255,9 +255,14 @@ describe("Diario timeline badge", () => {
       />
     );
 
-    expect(screen.getByText(/· Narrate/)).toBeTruthy();
+    const practicedCard = screen.getByRole("button", { name: "Open Práctica" });
+    expect(practicedCard.textContent).toContain("Narrate");
+    expect(practicedCard.textContent).toContain("Indicative preterite");
+    expect(practicedCard.textContent).not.toContain("Taller");
+    expect(practicedCard.querySelector(".lucide-hammer")).toBeTruthy();
     const ordinaryCard = screen.getByRole("button", { name: "Open Reflexión" });
     expect(ordinaryCard.textContent).not.toContain("Narrate");
+    expect(ordinaryCard.querySelector(".lucide-hammer")).toBeNull();
   });
 });
 
