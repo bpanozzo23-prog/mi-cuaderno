@@ -938,6 +938,31 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   live root returning HTTP 200 and serving `assets/index-A_SBEF3w.js`. See the 2026-08-27 entries
   in [DECISIONS.md](DECISIONS.md).
 
+- **Same-day Diario continuations — deployed.** Compact Continue cards above the Diario timeline
+  now represent only additional entries from Today, newest-activity-first, replacing the global
+  latest-distinct rule that promoted an older entry already visible in the timeline. No storage,
+  event, backup or schema change. Implemented and verified in a separate session, whose record is
+  the 2026-08-28 entries in [DECISIONS.md](DECISIONS.md); it had been committed locally but left
+  unpushed, and rode out with the folder-edge push below. This session did not re-verify it.
+- **Pages hub folder edge and role glyphs — deployed.** The folder tab moves from the card's top
+  edge to a 38px full-height band on its left, carrying the role glyph; the card's top margin falls
+  from 44.5px to 23px because a left band overhangs nothing where a top tab overhung by 30px. The
+  peeking `::before` sheet survives — the top edge is now free — and the die-cut `::after` retires
+  with the top tab. The role name stays in the DOM as `sr-only`, so colour plus icon carries it
+  visually while the accessible name is unchanged. Grammar drops lucide `Braces` for a
+  sentence-diagram branch and Vocabulary drops `Library` for books on a shelf, the latter because
+  four spines with nothing beneath them read as the same bars as `BarChart3` on the Repaso tab. The
+  hub's role chips become one horizontally scrolling row. Both folder surfaces change, per the
+  2026-08-08 rule that a folder says the same thing about itself wherever it appears. No schema,
+  preference, backup or event change. The complete serial suite passes 1,750/1,750 across 145 files,
+  the production build and `git diff --check` pass, and a seeded 375×812 check measured card pitch
+  108px against ~129.5px, five folders fully in view where there were three, a 44px single chip row
+  against ~88px wrapped, every chip still a 44px target, and zero horizontal document overflow
+  before the fixture was returned to zero items. Deployed from `main` at `72ac29d` through Pages run
+  [33190454395](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33190454395), with the
+  live root returning HTTP 200 and serving `assets/index-58ZQclaZ.js`. See the 2026-08-28 Pages hub
+  entries in [DECISIONS.md](DECISIONS.md).
+
 `SCHEMA_VERSION` is **11**. Before Dexie opens v11, schema-v1 through schema-v10 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
 relationship, composable-page, Grammar-hierarchy, Structured-Notes, entry-feedback and Apuntes
