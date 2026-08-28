@@ -107,9 +107,6 @@ export default function JournalHome({
           <PenLine size={20} style={{ color: C.diario }} />
           <h1 className="text-2xl font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>Diario</h1>
         </div>
-        <p className="mt-1 text-sm" style={{ color: C.mut }}>
-          Notice the day, practice your Spanish, remember what mattered.
-        </p>
       </div>
 
       <Card className="p-4" style={{ background: C.diarioPale, borderColor: C.diarioBorder }}>
@@ -126,10 +123,10 @@ export default function JournalHome({
         )}
         <div className="mt-4 flex flex-wrap gap-2">
           <Button onClick={() => todayEntry ? onEdit(todayEntry.id) : onStart({ date: today })}>
-            <PenLine size={15} /> {todayEntry ? "Continue today" : "Write today"}
+            <PenLine size={15} /> {todayEntry ? "Continue" : "Write today"}
           </Button>
           <Button tone="quiet" onClick={() => onStart({ date: today })}>
-            <Plus size={15} /> New moment
+            <Plus size={15} /> New
           </Button>
           <Button tone="quiet" onClick={() => setTallerOpen((open) => !open)} aria-expanded={tallerOpen}>
             <Hammer size={15} /> Taller

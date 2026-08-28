@@ -40,6 +40,7 @@ describe("JournalHome", () => {
     expect(screen.getAllByText("A very important memory.")).toHaveLength(2);
     expect(document.body.textContent).not.toContain("**");
     expect(document.body.textContent).not.toContain("==");
+    expect(document.body.textContent).not.toContain("Notice the day");
   });
 
   it("opens the stable Today anchor, a distinct continuation, and a fresh same-day moment", async () => {
@@ -65,11 +66,11 @@ describe("JournalHome", () => {
       />
     );
 
-    await user.click(screen.getByRole("button", { name: "Continue today" }));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
     expect(onEdit).toHaveBeenLastCalledWith(first.id);
     await user.click(screen.getByRole("button", { name: /Continue Second today/ }));
     expect(onEdit).toHaveBeenLastCalledWith(second.id);
-    await user.click(screen.getByRole("button", { name: "New moment" }));
+    await user.click(screen.getByRole("button", { name: "New" }));
     expect(onStart).toHaveBeenCalledWith({ date: "2026-08-03" });
   });
 
