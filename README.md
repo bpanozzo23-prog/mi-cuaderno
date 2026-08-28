@@ -990,6 +990,16 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   modules, and `git diff --check` passes. Deployed from `main` at `dc696bc` through Pages run
   [33212209269](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33212209269).
   See the final 2026-08-28 Diario and page-workspace entries in [DECISIONS.md](DECISIONS.md).
+- **Folder-tab containing-block fix — deployed.** The page header adopted the hub card's
+  `.page-folder-card` without the `relative` its two existing callers each declared themselves, so
+  `.page-folder-tab` — absolutely positioned with `top: 0; bottom: 0` — resolved against an
+  ancestor and ran the full height of the screen. `position: relative` now belongs to the class,
+  so no caller can omit it, and the `CollectionPage` test pins the tab inside the shared card
+  rather than merely present. Measured at 375px after the fix: a 175px tab inside a 177px card,
+  flush at its left edge. CSS and one assertion only — no storage, event, backup or schema change.
+  Deployed from `main` at `3513e11` through Pages run
+  [33216885561](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33216885561), with the
+  live root returning HTTP 200 and serving `assets/index-b1s51Ddh.js`.
 
 `SCHEMA_VERSION` is **11**. Before Dexie opens v11, schema-v1 through schema-v10 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
