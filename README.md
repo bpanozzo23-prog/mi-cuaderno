@@ -856,6 +856,19 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   as `1316ee2` through Pages run
   [32904787874](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32904787874). See
   the 2026-08-25 entries in [DECISIONS.md](DECISIONS.md).
+- **Additional Taller skill coverage — implemented locally, not deployed.** The static library
+  grows 47 → 52 with affirmative and negative commands, present-perfect subjunctive reactions,
+  accidental/impersonal `se`, and indicative-versus-subjunctive relative clauses. Each addition
+  carries bilingual base/easier/harder text and a Spanish-only example. Commands are separate
+  prompts so each can use its exact affirmative or negative dictionary table; present-perfect
+  subjunctive reuses its regular-endings scaffold. The existing object-pronoun prompt already
+  covers `se lo`, `me la` and `te los`, so it was not duplicated. Prompt counts are now Narrate 8,
+  Imagine 11 and Connect 9. No storage, event, preference, backup or schema change;
+  `SCHEMA_VERSION` stays 11. Focused coverage passes 62/62, the complete serial suite passes
+  1,759/1,759 across 145 files, the production build transforms 2,144 modules, and `git diff
+  --check` passes. A fresh isolated 375×812 browser pass rendered all five additions with no
+  horizontal overflow or console warnings/errors and opened the new example behind its 44px
+  disclosure. See the 2026-08-28 Taller entries in [DECISIONS.md](DECISIONS.md).
 - **Pages hub derived grouping — deployed.** The Pages hub browse list was Pinned plus one flat
   stack, and every control it had narrowed rather than arranged. A fourth Refine control,
   **Group**, now renders the already-filtered list under headings: **Kind** (Source · Grammar ·

@@ -106,6 +106,14 @@ export const JOURNAL_PROMPTS = Object.freeze([
     harder: { es: "Cuenta un momento de hoy y tres cosas que ya habían pasado antes de ese momento, en orden.", en: "Tell one moment of today and three things that had already happened before it, in order." },
     example: "Cuando llegué a la oficina, mi compañera ya había hecho café. La reunión ya había empezado, y alguien ya había abierto las ventanas porque hacía calor.",
   },
+  {
+    id: "narrate-accidental-se", category: "narrate", focus: "Accidental and impersonal se",
+    es: "Cuenta un pequeño contratiempo usando «se me...», «se te...» o «se nos...».",
+    en: "Tell about a small mishap using an accidental se construction.",
+    easier: { es: "Completa una frase: «Hoy se me olvidó...» o «Hoy se me cayó...».", en: "Complete one sentence about forgetting or dropping something." },
+    harder: { es: "Cuenta un contratiempo con «se» accidental y luego explica una costumbre relacionada usando «se» impersonal.", en: "Tell about a mishap with accidental se, then explain a related custom using impersonal se." },
+    example: "Esta mañana se me cayó la taza de café cuando salía de casa. Por suerte, no se me manchó la camisa. En mi oficina se prepara más café a media mañana, así que pronto conseguí otra taza.",
+  },
 
   {
     id: "imagine-emotions", category: "imagine", tense: "Subjunctive/Present",
@@ -171,6 +179,30 @@ export const JOURNAL_PROMPTS = Object.freeze([
     harder: { es: "Elige dos momentos de hoy y cuenta qué habría pasado si cada uno hubiera sido diferente.", en: "Pick two moments of today and tell what would have happened if each one had been different." },
     example: "Si hubiera salido cinco minutos antes, no habría perdido el autobús. Habría llegado con calma y habría tenido tiempo para un café.",
   },
+  {
+    id: "imagine-recent-reactions", category: "imagine", tense: "Subjunctive/Present Perfect",
+    es: "Reacciona a tres cosas recientes con «me alegra que hayas...», «dudo que haya...» o «es posible que hayan...».",
+    en: "React to three recent events using the present perfect subjunctive after emotion, doubt, or possibility.",
+    easier: { es: "Completa: «Me alegra que hayas...» o «Dudo que haya...».", en: "Complete one sentence expressing happiness or doubt about something that has happened." },
+    harder: { es: "Cuenta qué ha ocurrido esta semana y reacciona a cada hecho con una expresión que exija el pretérito perfecto de subjuntivo.", en: "Tell what has happened this week and react to each event with an expression requiring the present perfect subjunctive." },
+    example: "Me alegra que mi hermana haya encontrado un trabajo nuevo. Dudo que mis vecinos hayan terminado la mudanza, y es posible que el paquete ya haya llegado.",
+  },
+  {
+    id: "imagine-give-instructions", category: "imagine", tense: "Imperative Affirmative/Present",
+    es: "Enséñale a alguien a hacer una tarea conocida usando al menos tres mandatos afirmativos.",
+    en: "Teach someone how to do a familiar task using at least three affirmative commands.",
+    easier: { es: "Escribe tres pasos que empiecen con mandatos como «abre», «pon» o «haz».", en: "Write three steps beginning with commands such as \"open,\" \"put,\" or \"do.\"" },
+    harder: { es: "Da instrucciones completas para una tarea: ordena los pasos y añade pronombres a algunos mandatos, como «mézclalo» o «dámelo».", en: "Give complete instructions for a task: order the steps and attach pronouns to some commands, such as \"mix it\" or \"give it to me.\"" },
+    example: "Primero, abre la aplicación y busca la receta. Después, pon los ingredientes sobre la mesa y mézclalos en un tazón. Hazlo despacio y prueba la salsa antes de servirla.",
+  },
+  {
+    id: "imagine-give-warnings", category: "imagine", tense: "Imperative Negative/Present",
+    es: "Advierte a alguien sobre una tarea o situación usando al menos tres mandatos negativos.",
+    en: "Warn someone about a task or situation using at least three negative commands.",
+    easier: { es: "Escribe tres advertencias que empiecen con «no».", en: "Write three warnings beginning with \"don't.\"" },
+    harder: { es: "Explica cómo evitar un problema: da tres mandatos negativos y ofrece una alternativa afirmativa después de cada uno.", en: "Explain how to avoid a problem: give three negative commands and offer an affirmative alternative after each one." },
+    example: "No salgas sin revisar el pronóstico. No lleves zapatos nuevos; ponte unos cómodos. No olvides el agua y guarda también algo de comer en la mochila.",
+  },
 
   {
     id: "connect-person", category: "connect", focus: "Ser vs. estar", offersWords: true,
@@ -235,5 +267,13 @@ export const JOURNAL_PROMPTS = Object.freeze([
     easier: { es: "Completa: «Llevo mucho tiempo...» o «Acabo de...».", en: "Complete: \"Llevo mucho tiempo...\" or \"Acabo de...\"" },
     harder: { es: "Cuenta tres costumbres tuyas con «desde hace», «llevo + gerundio» y «acabar de», y di cómo empezó cada una.", en: "Tell three habits of yours with \"desde hace,\" \"llevo + gerundio,\" and \"acabar de,\" and say how each one began." },
     example: "Llevo dos años escribiendo un poco cada noche. Estudio español desde hace seis meses, y hoy acabo de aprender una palabra nueva que quiero usar mañana.",
+  },
+  {
+    id: "connect-relative-clauses", category: "connect", focus: "Indicative vs. subjunctive in relative clauses", offersWords: true,
+    es: "Describe algo que ya tienes y algo que buscas: usa «Tengo algo que...» y «Busco algo que...».",
+    en: "Describe something you already have and something you are looking for, using indicative and subjunctive relative clauses.",
+    easier: { es: "Completa: «Tengo un lugar que...» y «Busco un lugar que...».", en: "Complete one sentence about a place you have and another about a place you are looking for." },
+    harder: { es: "Contrasta tres personas, lugares o cosas conocidos con otros que buscas o de cuya existencia dudas, eligiendo indicativo o subjuntivo en cada oración.", en: "Contrast three known people, places, or things with others you seek or doubt exist, choosing indicative or subjunctive in each sentence." },
+    example: "Tengo un café que abre temprano y sirve buen pan. Ahora busco otro que tenga una terraza tranquila. No conozco ningún lugar que cierre tan tarde como necesito.",
   },
 ]);

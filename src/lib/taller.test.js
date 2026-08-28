@@ -181,8 +181,14 @@ describe("endingsForTense", () => {
     const preterite = endingsForTense("Indicative/Preterite");
     expect(preterite.length).toBeGreaterThan(0);
     expect(preterite.every((row) => row.answer === "Indicative/Preterite")).toBe(true);
+    const presentPerfectSubjunctive = endingsForTense("Subjunctive/Present Perfect");
+    expect(presentPerfectSubjunctive.length).toBeGreaterThan(0);
+    expect(presentPerfectSubjunctive.every((row) => row.answer === "Subjunctive/Present Perfect")).toBe(true);
     expect(endingsForTense(null)).toEqual([]);
+    // Commands use the exact dictionary lookup; the shared recognition content deliberately
+    // carries no generic regular-endings row for either imperative polarity.
     expect(endingsForTense("Imperative Affirmative/Present")).toEqual([]);
+    expect(endingsForTense("Imperative Negative/Present")).toEqual([]);
   });
 });
 
@@ -229,6 +235,12 @@ describe("practiceSkillByPage", () => {
       .toBe("Indicative preterite");
     expect(practiceTargetLabel(JOURNAL_PROMPTS.find((prompt) => prompt.id === "imagine-hope")))
       .toBe("Present subjunctive");
+    expect(practiceTargetLabel(JOURNAL_PROMPTS.find((prompt) => prompt.id === "imagine-recent-reactions")))
+      .toBe("Present perfect subjunctive");
+    expect(practiceTargetLabel(JOURNAL_PROMPTS.find((prompt) => prompt.id === "imagine-give-instructions")))
+      .toBe("Affirmative commands");
+    expect(practiceTargetLabel(JOURNAL_PROMPTS.find((prompt) => prompt.id === "imagine-give-warnings")))
+      .toBe("Negative commands");
     expect(practiceTargetLabel(JOURNAL_PROMPTS.find((prompt) => prompt.id === "connect-porpara")))
       .toBe("Por vs. para");
   });

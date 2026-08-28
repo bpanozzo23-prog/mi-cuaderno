@@ -186,8 +186,11 @@ const PRACTICE_TARGET_LABELS = Object.freeze({
   "Indicative/Conditional": "Conditional",
   "Indicative/Future": "Future",
   "Subjunctive/Present": "Present subjunctive",
+  "Subjunctive/Present Perfect": "Present perfect subjunctive",
   "Subjunctive/Imperfect": "Imperfect subjunctive",
   "Subjunctive/Past Perfect": "Past perfect subjunctive",
+  "Imperative Affirmative/Present": "Affirmative commands",
+  "Imperative Negative/Present": "Negative commands",
 });
 
 /** A concise timeline label for the grammar or language target a prompt practices. */

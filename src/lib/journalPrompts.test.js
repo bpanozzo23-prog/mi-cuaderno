@@ -6,13 +6,13 @@ import { TALLER_SCAFFOLDS, scaffoldForCategory } from "./tallerScaffolds.js";
 const SKILL_CATEGORY_IDS = ["narrate", "imagine", "connect"];
 
 // Reflective categories stay at their original six; skill categories grow by
-// owner-directed coverage expansion (2026-08-25) and pin their exact counts here.
-const CATEGORY_COUNTS = { notice: 6, reflect: 6, spanish: 6, grow: 6, narrate: 7, imagine: 8, connect: 8 };
+// owner-directed coverage expansions (2026-08-25 and 2026-08-28) and pin their exact counts here.
+const CATEGORY_COUNTS = { notice: 6, reflect: 6, spanish: 6, grow: 6, narrate: 8, imagine: 11, connect: 9 };
 const TOTAL_PROMPTS = Object.values(CATEGORY_COUNTS).reduce((sum, count) => sum + count, 0);
 
 describe("journal prompt library", () => {
-  it("contains 47 unique, bilingual prompts in the pinned per-category counts", () => {
-    expect(TOTAL_PROMPTS).toBe(47);
+  it("contains 52 unique, bilingual prompts in the pinned per-category counts", () => {
+    expect(TOTAL_PROMPTS).toBe(52);
     expect(JOURNAL_PROMPTS).toHaveLength(TOTAL_PROMPTS);
     expect(new Set(JOURNAL_PROMPTS.map((prompt) => prompt.id)).size).toBe(TOTAL_PROMPTS);
     expect(new Set(JOURNAL_PROMPTS.map((prompt) => prompt.es)).size).toBe(TOTAL_PROMPTS);
@@ -45,6 +45,21 @@ describe("journal prompt library", () => {
         expect(variant.es.trim()).not.toBe("");
         expect(typeof variant.en, `${prompt.id}.${tier}.en`).toBe("string");
         expect(variant.en.trim()).not.toBe("");
+      }
+    }
+  });
+
+  it("keeps every displayed prompt string trimmed", () => {
+    for (const prompt of JOURNAL_PROMPTS) {
+      for (const field of ["es", "en", "example"]) {
+        if (prompt[field] === undefined) continue;
+        expect(prompt[field], `${prompt.id}.${field}`).toBe(prompt[field].trim());
+      }
+      for (const tier of ["easier", "harder"]) {
+        if (!prompt[tier]) continue;
+        for (const field of ["es", "en"]) {
+          expect(prompt[tier][field], `${prompt.id}.${tier}.${field}`).toBe(prompt[tier][field].trim());
+        }
       }
     }
   });

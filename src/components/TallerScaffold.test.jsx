@@ -22,6 +22,7 @@ afterEach(async () => {
 });
 
 const preteritePrompt = JOURNAL_PROMPTS.find((prompt) => prompt.tense === "Indicative/Preterite");
+const negativeCommandPrompt = JOURNAL_PROMPTS.find((prompt) => prompt.tense === "Imperative Negative/Present");
 const untensedPrompt = JOURNAL_PROMPTS.find((prompt) => prompt.category === "connect" && !prompt.tense);
 
 describe("TallerScaffold", () => {
@@ -63,6 +64,23 @@ describe("TallerScaffold", () => {
     await waitFor(() => expect(screen.getByText("saqué")).toBeTruthy());
     expect(screen.getByText("sacaste")).toBeTruthy();
     expect(screen.getByText(/sacar · /)).toBeTruthy();
+  });
+
+  it("uses the exact imperative table for a command prompt", async () => {
+    installFetchStub(await buildFixtureDictionary());
+    await installDictionary(await fetchManifest());
+
+    const user = userEvent.setup();
+    render(<TallerScaffold prompt={negativeCommandPrompt} />);
+    expect(screen.queryByLabelText("Regular endings")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Apoyos" }));
+
+    const input = await screen.findByLabelText("Look up a verb");
+    await user.type(input, "quejarse");
+    await user.click(screen.getByRole("button", { name: "Search verb" }));
+
+    await waitFor(() => expect(screen.getByText("no te quejes")).toBeTruthy());
+    expect(screen.getByText(/quejarse · negative command/i)).toBeTruthy();
   });
 
   it("says plainly when a verb is not in the installed dictionary", async () => {
