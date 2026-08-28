@@ -188,13 +188,24 @@ describe("composable page workspace", () => {
     expect(appearsBefore(source, vocabulary)).toBe(true);
     expect(appearsBefore(vocabulary, grammar)).toBe(true);
     expect(screen.getByText(/These notes explain how the speaker/)).toBeTruthy();
-    expect(screen.getAllByRole("button", { name: /^(Notes|Vocabulary|Source|Grammar)$/ })).toHaveLength(4);
     const grammarSectionHeading = screen.getByRole("heading", { name: "Subjunctive after expressions of doubt and uncertainty" });
     expect(grammarSectionHeading.classList.contains("truncate")).toBe(false);
     expect(grammarSectionHeading.classList.contains("break-words")).toBe(true);
 
-    await user.click(screen.getByRole("button", { name: "Grammar", pressed: false }));
+    /* The leading focus lives inside the Page actions menu since 2026-08-28. Scoping the choices to
+       that menu, and asserting the old permanent row is gone, is what makes this fail if they ever
+       leak back out under the header — a plain document-wide query passes either way, because a
+       closed <details> keeps its children in the DOM. */
+    const actionsMenu = screen.getByLabelText("Page actions").closest("details");
+    expect(screen.queryByLabelText("Leading page focus")).toBeNull();
+    await user.click(screen.getByLabelText("Page actions"));
+    expect(actionsMenu.open).toBe(true);
+    expect(within(actionsMenu).getAllByRole("button", { name: /^(Notes|Vocabulary|Source|Grammar)$/ })).toHaveLength(4);
+
+    await user.click(within(actionsMenu).getByRole("button", { name: "Grammar", pressed: false }));
     await waitFor(async () => expect((await getItem(fixture.page.id)).pageFocus).toBe("grammar"));
+    /* Every other item in the menu unmounts the header; this one does not, so it closes it itself. */
+    await waitFor(() => expect(actionsMenu.open).toBe(false));
     await waitFor(() => expect(appearsBefore(
       screen.getByRole("heading", { name: "Grammar guide" }),
       screen.getByRole("heading", { name: "Vocabulary" })

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bookmark, BookmarkCheck, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink,
   Goal, Link2, ListTree, MoreHorizontal, Pencil, Play, Plus, Settings2, Tag as TagIcon, Trash2, X,
@@ -859,6 +859,11 @@ export default function CollectionPage({
      saying the family a second time. */
   const kickerMeta = PAGE_ROLE_META[item.pageFocus] || PAGE_ROLE_META[PAGE_FOCUSES.notes];
   const KickerIcon = kickerMeta.icon;
+  /* The actions menu is an uncontrolled <details>, which stays open after a click. Every other
+     item in it unmounts the header (a sheet, a mode change, a delete); the focus choice leaves it
+     mounted, so that one has to close the menu itself. */
+  const actionsRef = useRef(null);
+  const closeActions = () => { if (actionsRef.current) actionsRef.current.open = false; };
   /* The same trio the page's folder card wears in the hub — only the outline is used here. */
   const headerFolder = pageFolderColors(item.pageFocus);
 
@@ -1082,10 +1087,47 @@ export default function CollectionPage({
                 >
                   {pagePinned ? <BookmarkCheck size={18} style={{ color: C.pen }} /> : <Bookmark size={18} style={{ color: C.mut }} />}
                 </button>
-                <details className="relative">
+                <details className="relative" ref={actionsRef}>
                   <summary aria-label="Page actions" className="cursor-pointer list-none p-2"><MoreHorizontal size={19} style={{ color: C.mut }} /></summary>
                   <div className="absolute right-0 z-20 mt-1 w-52 rounded-xl border p-1 shadow-lg" style={{ background: C.card, borderColor: C.line }}>
                     <button type="button" onClick={() => setEditingDetails(true)} className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-gray-50"><Pencil size={14} className="mr-2 inline" />Edit details</button>
+
+                    {/* The leading focus moved in here from a pill row under the header (owner-picked
+                        2026-08-28). It is chosen once and then read from the folder edge and the
+                        glyph beside the title, so a permanent row of 44px pills was spending the
+                        header's height on a control that is rarely touched. */}
+                    <div className="px-3 pb-1 pt-2 text-[11px] uppercase" style={{ color: C.mut, fontFamily: MONO, letterSpacing: "0.1em" }}>Leads with</div>
+                    {focusChoices.map((focus) => {
+                      const active = item.pageFocus === focus;
+                      return (
+                        <button
+                          key={focus}
+                          type="button"
+                          aria-pressed={active}
+                          disabled={focusSaving}
+                          onClick={async () => {
+                            if (active || focusSaving) return;
+                            setFocusSaving(true);
+                            try {
+                              await savePageFocus(item.id, focus);
+                              closeActions();
+                              await onChanged();
+                            } finally {
+                              setFocusSaving(false);
+                            }
+                          }}
+                          className="flex min-h-11 w-full items-center gap-1 rounded-lg px-3 py-2 text-left text-sm hover:bg-gray-50 disabled:opacity-60"
+                          style={{ color: C.ink, fontWeight: active ? 600 : 400 }}
+                        >
+                          <span className="inline-flex w-5 shrink-0 justify-center">
+                            {active && <Check size={14} style={{ color: C.pen }} />}
+                          </span>
+                          {FOCUS_LABELS[focus]}
+                        </button>
+                      );
+                    })}
+                    <div className="my-1 h-px" style={{ background: C.line }} />
+
                     {item.collection?.enabled && <button type="button" onClick={() => enterMode("organize")} className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-gray-50">Organize vocabulary</button>}
                     <button type="button" onClick={() => setCustomizing(true)} className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-gray-50"><Settings2 size={14} className="mr-2 inline" />Customize page</button>
                     <button
@@ -1108,32 +1150,6 @@ export default function CollectionPage({
                   </div>
                 </details>
               </div>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2" aria-label="Leading page focus">
-              {focusChoices.map((focus) => (
-                <button
-                  type="button"
-                  key={focus}
-                  aria-pressed={item.pageFocus === focus}
-                  disabled={focusSaving}
-                  onClick={async () => {
-                    if (focus === item.pageFocus || focusSaving) return;
-                    setFocusSaving(true);
-                    try {
-                      await savePageFocus(item.id, focus);
-                      await onChanged();
-                    } finally {
-                      setFocusSaving(false);
-                    }
-                  }}
-                  className="min-h-11 rounded-full border px-3 py-1 text-xs font-semibold disabled:opacity-60"
-                  style={item.pageFocus === focus
-                    ? { background: C.pen, borderColor: C.pen, color: C.onAccent }
-                    : { background: C.card, borderColor: C.line, color: C.mut }}
-                >
-                  {FOCUS_LABELS[focus]}
-                </button>
-              ))}
             </div>
           </div>
 
