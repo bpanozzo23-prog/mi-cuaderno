@@ -1,5 +1,6 @@
-import { BookOpen, Braces, FileText, Library } from "lucide-react";
+import { BookOpen, FileText } from "lucide-react";
 import { C } from "../theme.jsx";
+import { SentenceTree, Shelf } from "./roleIcons.jsx";
 import { deriveCollection } from "../lib/collections.js";
 import {
   enabledPageRoles,
@@ -22,14 +23,14 @@ export const PAGE_ROLE_META = {
   [PAGE_FOCUSES.notes]: { label: "Notes", icon: FileText, background: C.penPale, color: C.penDark },
   [PAGE_FOCUSES.vocabulary]: {
     label: "Vocabulary",
-    icon: Library,
+    icon: Shelf,
     background: C.roleVocabularyPale,
     color: C.roleVocabularyInk,
   },
   [PAGE_FOCUSES.source]: { label: "Source", icon: BookOpen, background: C.roleSourcePale, color: C.roleSourceInk },
   [PAGE_FOCUSES.grammar]: {
     label: "Grammar",
-    icon: Braces,
+    icon: SentenceTree,
     background: C.roleGrammarPale,
     color: C.roleGrammarInk,
   },
