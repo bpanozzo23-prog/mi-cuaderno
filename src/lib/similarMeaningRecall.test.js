@@ -74,6 +74,28 @@ describe("confirmed similar-meaning prompt graph", () => {
     expect(prompts[0].neighbors).toEqual([second]);
     expect(prompts[1].neighbors).toEqual([first]);
   });
+
+  it("creates oriented sense prompts with only the exact connected gloss", () => {
+    const bank = lexical("banco");
+    bank.meanings = [{ id: "meaning:seat", gloss: "bench" }, { id: "meaning:finance", gloss: "bank" }];
+    const institution = lexical("entidad");
+    institution.meanings = [{ id: "meaning:institution", gloss: "institution" }];
+    bank.linkedKeys.push(institution.id);
+    bank.linkAnnotations.push({
+      targetKey: institution.id, type: "similar_meaning", subject: "owner", note: "",
+      ownerMeaningId: "meaning:finance", targetMeaningId: "meaning:institution",
+    });
+    const prompts = deriveSimilarMeaningPrompts([bank, institution]);
+    expect(prompts).toHaveLength(2);
+    expect(prompts[0]).toMatchObject({
+      focalMeaning: { id: "meaning:finance", gloss: "bank" },
+      answers: [{ meaning: { id: "meaning:institution", gloss: "institution" } }],
+    });
+    expect(prompts[1]).toMatchObject({
+      focalMeaning: { id: "meaning:institution" },
+      answers: [{ meaning: { id: "meaning:finance", gloss: "bank" } }],
+    });
+  });
 });
 
 describe("similar-meaning recall deck selection", () => {

@@ -892,13 +892,17 @@ describe("same-meaning proposals", () => {
       type: "similar_meaning",
       subject: "owner",
       note: "",
+      ownerMeaningId: focal.meanings[0].id,
+      targetMeaningId: candidate.meanings[0].id,
     }]);
     expect((await getItem(candidate.id)).linkedKeys).toEqual([]);
     expect(await allEvents()).toEqual(detailEvents);
     await waitFor(() => {
       expect(screen.queryByRole("button", { name: "Link molesto as Similar meaning" })).toBeNull();
     });
-    expect(screen.getByText("Similar meaning")).toBeTruthy();
+    expect(screen.getByText("Meaning: to be angry")).toBeTruthy();
+    expect(screen.getByText("— angry")).toBeTruthy();
+    expect(screen.queryByText(/Nothing linked yet/)).toBeNull();
   });
 });
 

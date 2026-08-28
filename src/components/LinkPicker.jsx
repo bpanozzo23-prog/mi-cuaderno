@@ -12,6 +12,7 @@ import { installedMeta } from "../db/ref/entries.js";
 import { meaningGlossText } from "../lib/meanings.js";
 import { isImplicitRelationship, normalizeRelationship } from "../lib/relationships.js";
 import RelationshipSelect from "./RelationshipSelect.jsx";
+import MeaningPairSelector from "./MeaningPairSelector.jsx";
 import { markdownPreviewText } from "../lib/noteMarkdown.js";
 import { lexicalNotePreview } from "../lib/lexicalNotes.js";
 
@@ -138,6 +139,8 @@ export default function LinkPicker({
   const [dictResults, setDictResults] = useState([]);
   const [dictionaryMeta, setDictionaryMeta] = useState(null);
   const [relationship, setRelationship] = useState(() => normalizeRelationship());
+  const [pendingTarget, setPendingTarget] = useState(null);
+  const [meaningPair, setMeaningPair] = useState(null);
   const typed = query.trim();
   const connectionByKey = useMemo(
     () => new Map(connections.map((connection) => [connection.key, connection])),
@@ -198,18 +201,59 @@ export default function LinkPicker({
     [personal, dictResults, personalCandidates, dictionaryMeta]
   );
 
-  const pick = (key) => isImplicitRelationship(relationship)
-    ? onPick(key)
-    : onPick(key, relationship);
+  const commitPick = async (key, pair = undefined) => {
+    if (isImplicitRelationship(relationship)) await onPick(key);
+    else if (!pair) await onPick(key, relationship);
+    else await onPick(key, relationship, {
+      fromMeaningId: pair.focalMeaningId,
+      toMeaningId: pair.targetMeaningId,
+    });
+    setPendingTarget(null);
+  };
+  const pick = (target) => {
+    if (relationship.type !== "similar_meaning" || item.type !== "lexical" || target.type !== "lexical") {
+      commitPick(target.id);
+      return;
+    }
+    const available = item.meanings?.length > 0 && target.meanings?.length > 0;
+    setPendingTarget(target);
+    setMeaningPair(available ? {
+      focalMeaningId: item.meanings.length === 1 ? item.meanings[0].id : "",
+      targetMeaningId: target.meanings.length === 1 ? target.meanings[0].id : "",
+    } : null);
+  };
   const create = (kind) => isImplicitRelationship(relationship)
     ? onCreate(kind, typed)
     : onCreate(kind, typed, relationship);
 
   return (
     <Card className="mt-2" style={{ borderColor: C.pen }}>
-      <RelationshipSelect relationship={relationship} onChange={setRelationship} />
+      <RelationshipSelect relationship={relationship} onChange={(next) => {
+        setRelationship(next);
+        setPendingTarget(null);
+      }} />
 
-      <div className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1.5 border" style={{ borderColor: C.line }}>
+      {pendingTarget && (
+        <div>
+          <MeaningPairSelector focal={item} target={pendingTarget} value={meaningPair} onChange={setMeaningPair} />
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={Boolean(meaningPair) && (!meaningPair.focalMeaningId || !meaningPair.targetMeaningId)}
+              onClick={() => commitPick(pendingTarget.id, meaningPair)}
+              className="min-h-11 rounded-lg border px-3 py-2 text-sm font-medium"
+              style={{ background: C.penPale, borderColor: C.pen, color: C.penDark }}
+            >
+              Link {pendingTarget.term}
+            </button>
+            <button type="button" onClick={() => setPendingTarget(null)} className="min-h-11 px-3 text-sm" style={{ color: C.mut }}>
+              Back
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!pendingTarget && <div className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1.5 border" style={{ borderColor: C.line }}>
         <Search size={14} style={{ color: C.mut }} />
         <input
           autoFocus
@@ -222,9 +266,9 @@ export default function LinkPicker({
         <button onClick={onCancel} aria-label="Cancel">
           <X size={14} style={{ color: C.mut }} />
         </button>
-      </div>
+      </div>}
 
-      <div className="mt-2 space-y-1">
+      {!pendingTarget && <div className="mt-2 space-y-1">
         {rows.length === 0 && (
           <div className="text-xs py-2" style={{ color: C.mut }}>
             {typed ? "Nothing matches that yet." : "Nothing else in the cuaderno to link to yet."}
@@ -244,7 +288,7 @@ export default function LinkPicker({
               linkedLabel={unresolvedKeys.has(row.entry.id)
                 ? "Needs resolution"
                 : connectionByKey.get(row.entry.id)?.label}
-              onPick={() => pick(row.entry.id)}
+              onPick={() => commitPick(row.entry.id)}
             />
           ) : (
             <Row
@@ -256,13 +300,13 @@ export default function LinkPicker({
               reason={row.reason}
               linked={linkedKeys.has(row.item.id)}
               linkedLabel={connectionByKey.get(row.item.id)?.label}
-              onPick={() => pick(row.item.id)}
+              onPick={() => pick(row.item)}
             />
           )
         )}
-      </div>
+      </div>}
 
-      {typed && (allowCreateLexical || allowCreatePage) && (
+      {!pendingTarget && typed && (allowCreateLexical || allowCreatePage) && (
         <div className="mt-2 pt-2 space-y-1 border-t" style={{ borderColor: C.line }}>
           {allowCreateLexical && (
             <div className="space-y-1">

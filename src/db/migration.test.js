@@ -58,6 +58,7 @@ function declareCurrentSchema(database) {
   database.version(8).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV8);
   database.version(9).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV9);
   database.version(10).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV10);
+  database.version(11).stores(PERSONAL_STORES);
 }
 
 const upgradedNotesPage = (page, { linkAnnotations = [], groups = [] } = {}) => ({
@@ -603,6 +604,33 @@ describe("personal-data schema v10 migrations", () => {
       expect(await upgraded.items.get(lexical.id)).toEqual({ ...lexical, noteSections: [] });
       expect((await upgraded.items.get(lexical.id)).notes).toBe(lexical.notes);
       expect(await upgraded.items.get(page.id)).toEqual(page);
+    } finally {
+      upgraded.close();
+      await Dexie.delete(name);
+    }
+  });
+});
+
+describe("personal-data schema v11 migration", () => {
+  it("opens v10 data at v11 without changing any row", async () => {
+    const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
+    const lexical = {
+      id: "user:banco", type: "lexical", dictKey: null, form: "word", term: "banco",
+      meanings: [{ id: "meaning:bank", gloss: "bank", usageCue: "", regions: [], usageLabels: [], posOverride: "", verbBehavior: [], note: "", examples: [] }],
+      pos: "noun", notes: "", noteSections: [], myExamples: [], tags: [], linkedKeys: [],
+      linkAnnotations: [], mediaLinks: [], createdAt: at, updatedAt: at,
+    };
+    const legacy = new Dexie(name);
+    legacy.version(10).stores(PERSONAL_STORES);
+    await legacy.open();
+    await legacy.items.add(lexical);
+    legacy.close();
+    const upgraded = new Dexie(name);
+    declareCurrentSchema(upgraded);
+    try {
+      await upgraded.open();
+      expect(await upgraded.items.get(lexical.id)).toEqual(lexical);
+      expect(upgraded.verno).toBe(11);
     } finally {
       upgraded.close();
       await Dexie.delete(name);

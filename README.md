@@ -910,11 +910,25 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   the live root returned HTTP 200 serving `assets/index-By1Oojz-.js`, the same bundle name as the
   local production build. See the 2026-08-26 entries in [DECISIONS.md](DECISIONS.md).
 
-`SCHEMA_VERSION` is **10**. Before Dexie opens v10, schema-v1 through schema-v9 owners must save and
+- **Per-meaning Similar relationships v1 — implemented locally; not pushed or deployed.** New
+  personal lexical Similar links can target one exact meaning on each entry, while existing links
+  remain explicitly whole-entry. Suggestions preserve their already-derived meaning pair; manual
+  linking and connection editing offer Individual meanings / Whole entry scope. Lexical Detail
+  groups anchored links under the focal gloss and shows only the connected gloss from either
+  endpoint; Similar recall creates sense-level prompts and retains legacy whole-entry behavior.
+  Schema v11 adds only the optional paired annotation IDs, with no IndexedDB index change and a
+  no-op v10→v11 migration; backup validation enforces both endpoints and meaning deletion is
+  blocked while anchored. Other relationships, Wander, Historia, Repaso, Gym, statistics and
+  automatic connections remain entry-wide and unchanged. The complete serial suite passes
+  1,747/1,747 across 145 files, the production build transforms 2,143 modules, and the seeded
+  375×812 closeout verified exact creation, backlink orientation, protected deletion, exact recall,
+  44px controls, zero horizontal overflow and a clean console.
+
+`SCHEMA_VERSION` is **11**. Before Dexie opens v11, schema-v1 through schema-v10 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
 relationship, composable-page, Grammar-hierarchy, Structured-Notes, entry-feedback and Apuntes
-migrations, followed by Lexical Structured Notes, in order. Backup schemas 1 through 10 are
-accepted, upgraded sequentially in memory, deeply validated as v10, and only then offered for
+migrations, followed by Lexical Structured Notes and the no-op meaning-anchor migration, in order.
+Backup schemas 1 through 11 are accepted, upgraded sequentially in memory, deeply validated as v11, and only then offered for
 replace-and-restore; newer versions remain blocked.
 
 ## Testing

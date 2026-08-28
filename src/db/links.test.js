@@ -8,6 +8,7 @@ import {
   deleteItem,
   linkItems,
   setLinkRelationship,
+  updateItem,
   unlinkItems,
   backlinksFor,
 } from "./items.js";
@@ -117,6 +118,49 @@ describe("links are stored once and read in both directions", () => {
       }],
     });
     expect((await getItem(page.id)).linkedKeys).toEqual([]);
+  });
+
+  it("stores and edits an exact meaning pair from either endpoint", async () => {
+    const first = await createItem(newLexical({ term: "banco", meanings: [
+      newMeaning({ id: "meaning:seat", gloss: "bench" }),
+      newMeaning({ id: "meaning:finance", gloss: "bank" }),
+    ] }));
+    const second = await createItem(newLexical({ term: "entidad", meanings: [
+      newMeaning({ id: "meaning:institution", gloss: "institution" }),
+    ] }));
+    await linkItems(first.id, second.id, { type: "similar_meaning" }, {
+      fromMeaningId: "meaning:finance", toMeaningId: "meaning:institution",
+    });
+    expect((await getItem(first.id)).linkAnnotations[0]).toMatchObject({
+      ownerMeaningId: "meaning:finance", targetMeaningId: "meaning:institution",
+    });
+    await setLinkRelationship(second.id, first.id, { type: "similar_meaning" }, {
+      aMeaningId: "meaning:institution", bMeaningId: "meaning:seat",
+    });
+    expect((await getItem(first.id)).linkAnnotations[0]).toMatchObject({
+      ownerMeaningId: "meaning:seat", targetMeaningId: "meaning:institution",
+    });
+    await setLinkRelationship(first.id, second.id, { type: "contrast" });
+    expect((await getItem(first.id)).linkAnnotations[0]).toEqual({
+      targetKey: second.id, type: "contrast", subject: "owner", note: "",
+    });
+  });
+
+  it("rejects invalid anchors and protects anchored meanings from removal", async () => {
+    const firstMeaning = newMeaning({ gloss: "angry" });
+    const secondMeaning = newMeaning({ gloss: "annoyed" });
+    const first = await createItem(newLexical({ term: "enojado", meanings: [firstMeaning] }));
+    const second = await createItem(newLexical({ term: "molesto", meanings: [secondMeaning] }));
+    await expect(linkItems(first.id, second.id, { type: "contrast" }, {
+      fromMeaningId: firstMeaning.id, toMeaningId: secondMeaning.id,
+    })).rejects.toThrow(/Similar meaning/);
+    await linkItems(first.id, second.id, { type: "similar_meaning" }, {
+      fromMeaningId: firstMeaning.id, toMeaningId: secondMeaning.id,
+    });
+    await expect(updateItem(second.id, { meanings: [] })).rejects.toThrow(/meaning-specific connection/);
+    await expect(updateItem(first.id, { meanings: [{ ...firstMeaning, gloss: "mad" }] })).resolves.toMatchObject({
+      meanings: [{ id: firstMeaning.id, gloss: "mad" }],
+    });
   });
 
   it("edits through a backlink without reciprocal storage, timestamps or events", async () => {

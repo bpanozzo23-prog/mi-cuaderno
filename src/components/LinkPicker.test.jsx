@@ -121,6 +121,54 @@ describe("LinkPicker duplicate guard", () => {
     });
   });
 
+  it("closes the scope panel after an explicit Whole entry Similar link", async () => {
+    const user = userEvent.setup();
+    const source = { ...lexical("source", "banco"), meanings: [
+      { id: "meaning:seat", gloss: "bench" },
+      { id: "meaning:finance", gloss: "bank" },
+    ] };
+    const target = { ...lexical("target", "entidad"), meanings: [
+      { id: "meaning:institution", gloss: "institution" },
+    ] };
+    const onPick = vi.fn();
+    render(<LinkPicker {...pickerProps(source, [source, target], { onPick })} />);
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Relationship" }), "similar_meaning:owner");
+    await user.click(screen.getByRole("button", { name: /^entidad/ }));
+    await user.click(screen.getByRole("radio", { name: "Whole entry" }));
+    await user.click(screen.getByRole("button", { name: "Link entidad" }));
+
+    expect(onPick).toHaveBeenCalledWith("target", { type: "similar_meaning", subject: "owner", note: "" });
+    expect(screen.queryByRole("button", { name: "Link entidad" })).toBeNull();
+    expect(screen.getByPlaceholderText("Link a word, phrase, page or dictionary entry…")).toBeTruthy();
+  });
+
+  it("requires an exact pair for polysemous Similar links and allows Whole entry explicitly", async () => {
+    const user = userEvent.setup();
+    const source = { ...lexical("source", "banco"), meanings: [
+      { id: "meaning:seat", gloss: "bench" },
+      { id: "meaning:finance", gloss: "bank" },
+    ] };
+    const target = { ...lexical("target", "entidad"), meanings: [
+      { id: "meaning:institution", gloss: "institution" },
+    ] };
+    const onPick = vi.fn();
+    render(<LinkPicker {...pickerProps(source, [source, target], { onPick })} />);
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Relationship" }), "similar_meaning:owner");
+    await user.click(screen.getByRole("button", { name: /^entidad/ }));
+    expect(onPick).not.toHaveBeenCalled();
+    const commit = screen.getByRole("button", { name: "Link entidad" });
+    expect(commit.disabled).toBe(true);
+    await user.selectOptions(screen.getByRole("combobox", { name: "banco: meaning" }), "meaning:finance");
+    expect(commit.disabled).toBe(false);
+    await user.click(commit);
+    expect(onPick).toHaveBeenCalledWith("target", expect.objectContaining({ type: "similar_meaning" }), {
+      fromMeaningId: "meaning:finance", toMeaningId: "meaning:institution",
+    });
+    expect(screen.queryByRole("button", { name: "Link entidad" })).toBeNull();
+  });
+
   it("shows the current relationship instead of a generic linked label", () => {
     const source = page("source", "Source");
     const target = lexical("target", "estar");

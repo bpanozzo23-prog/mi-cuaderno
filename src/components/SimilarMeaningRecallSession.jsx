@@ -6,8 +6,8 @@ import { shufflePracticeItems } from "../lib/practice.js";
 import { SelfAssessmentStrip } from "./PracticeCard.jsx";
 import StudySessionFrame, { StudyCardEyebrow } from "./StudySessionFrame.jsx";
 
-function AnswerRow({ item }) {
-  const glosses = meaningGlosses(item);
+function AnswerRow({ item, meaning }) {
+  const glosses = meaning ? [meaning.gloss].filter(Boolean) : meaningGlosses(item);
   return (
     <div className="rounded-xl border p-3 text-left" style={{ background: C.paper, borderColor: C.line }}>
       <div className="break-words text-base font-semibold" style={{ fontFamily: SERIF, color: C.ink }}>
@@ -126,6 +126,11 @@ export default function SimilarMeaningRecallSession({
         <div className="mt-2 break-words text-3xl font-bold" style={{ fontFamily: SERIF, color: C.ink }}>
           {prompt.focal.term}
         </div>
+        {prompt.focalMeaning?.gloss && (
+          <div className="mt-2 break-words text-sm" style={{ color: C.mut }}>
+            — {prompt.focalMeaning.gloss}
+          </div>
+        )}
 
         {revealed && (
           <div className="mt-5 border-t pt-4" style={{ borderColor: C.line }}>
@@ -133,7 +138,9 @@ export default function SimilarMeaningRecallSession({
               Your confirmed connections
             </div>
             <div className="space-y-2">
-              {prompt.neighbors.map((neighbor) => <AnswerRow key={neighbor.id} item={neighbor} />)}
+              {(prompt.answers || prompt.neighbors.map((item) => ({ item, meaning: null }))).map(({ item, meaning }) => (
+                <AnswerRow key={`${item.id}:${meaning?.id || "entry"}`} item={item} meaning={meaning} />
+              ))}
             </div>
           </div>
         )}

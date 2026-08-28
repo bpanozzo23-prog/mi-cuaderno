@@ -75,4 +75,28 @@ describe("confirmed similar-meaning recall", () => {
     expect(onFinish).toHaveBeenCalledTimes(1);
     expect(await allEvents()).toEqual([]);
   });
+
+  it("cues and reveals only the anchored meanings", async () => {
+    const user = userEvent.setup();
+    const focal = { ...lexical("banco", null), meanings: [
+      newMeaning({ id: "meaning:seat", gloss: "bench" }),
+      newMeaning({ id: "meaning:finance", gloss: "bank" }),
+    ] };
+    const answer = { ...lexical("entidad", null), meanings: [
+      newMeaning({ id: "meaning:being", gloss: "being" }),
+      newMeaning({ id: "meaning:institution", gloss: "institution" }),
+    ] };
+    render(<SimilarMeaningRecallSession prompts={[{
+      id: "sense-prompt",
+      focal,
+      focalMeaning: focal.meanings[1],
+      answers: [{ item: answer, meaning: answer.meanings[1] }],
+    }]} onFinish={vi.fn()} />);
+
+    expect(screen.getByText("— bank")).toBeTruthy();
+    expect(screen.queryByText("bench")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Reveal connected words" }));
+    expect(screen.getByText("institution")).toBeTruthy();
+    expect(screen.queryByText("being")).toBeNull();
+  });
 });

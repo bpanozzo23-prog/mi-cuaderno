@@ -121,10 +121,25 @@ export const isImplicitRelationship = (relationship) => {
 };
 
 /** Returns null for the implicit Related/blank representation so annotations stay sparse. */
-export function makeLinkAnnotation(targetKey, relationship) {
+export function normalizeMeaningAnchors(anchors = undefined) {
+  const ownerMeaningId = anchors?.ownerMeaningId;
+  const targetMeaningId = anchors?.targetMeaningId;
+  if (ownerMeaningId == null && targetMeaningId == null) return null;
+  if (typeof ownerMeaningId !== "string" || !ownerMeaningId.startsWith("meaning:") ||
+      typeof targetMeaningId !== "string" || !targetMeaningId.startsWith("meaning:")) {
+    throw new Error("A meaning-specific connection needs two valid meaning IDs.");
+  }
+  return { ownerMeaningId, targetMeaningId };
+}
+
+export function makeLinkAnnotation(targetKey, relationship, anchors = undefined) {
   const normalized = normalizeRelationship(relationship);
-  if (isImplicitRelationship(normalized)) return null;
-  return { targetKey, ...normalized };
+  const normalizedAnchors = normalizeMeaningAnchors(anchors);
+  if (normalizedAnchors && normalized.type !== "similar_meaning") {
+    throw new Error("Only Similar meaning connections can target individual meanings.");
+  }
+  if (isImplicitRelationship(normalized) && !normalizedAnchors) return null;
+  return { targetKey, ...normalized, ...(normalizedAnchors || {}) };
 }
 
 export function annotationForTarget(item, targetKey) {
@@ -188,6 +203,7 @@ const edgeCandidates = (subjectKey, otherKey, byId) => {
 };
 
 const connectionRow = ({ subjectKey, edge, kind, item = null, entry = null }) => {
+  const annotation = annotationForTarget(edge.owner, edge.targetKey);
   const stored = relationshipForTarget(edge.owner, edge.targetKey);
   const perspective = edge.owner.id === subjectKey ? "owner" : "target";
   const relationship = perspective === "owner" ? stored : reorientRelationship(stored);
@@ -204,8 +220,31 @@ const connectionRow = ({ subjectKey, edge, kind, item = null, entry = null }) =>
     note: relationship.note,
     label: relationshipLabel(relationship, "owner"),
     relationship,
+    ...(annotation?.ownerMeaningId && annotation?.targetMeaningId ? {
+      focalMeaningId: perspective === "owner"
+        ? annotation.ownerMeaningId
+        : annotation.targetMeaningId,
+      connectedMeaningId: perspective === "owner"
+        ? annotation.targetMeaningId
+        : annotation.ownerMeaningId,
+    } : {}),
   };
 };
+
+export const meaningById = (item, meaningId) =>
+  (item?.meanings || []).find((meaning) => meaning?.id === meaningId) || null;
+
+/** Anchored Similar rows in focal meaning order, followed by all entry-wide connections. */
+export function groupConnectionsByMeaning(focal, connections = []) {
+  const anchored = connections.filter((connection) => connection.focalMeaningId);
+  const entryWide = connections.filter((connection) => !connection.focalMeaningId);
+  const groups = (focal?.meanings || []).map((meaning) => ({
+    key: meaning.id,
+    meaning,
+    rows: anchored.filter((connection) => connection.focalMeaningId === meaning.id),
+  })).filter((group) => group.rows.length);
+  return { meaningGroups: groups, entryWide };
+}
 
 /**
  * Derives one conceptual connection per target from either endpoint. `subject` may be a personal

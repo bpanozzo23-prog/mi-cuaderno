@@ -217,7 +217,25 @@ export async function allItems() {
 export async function updateItem(id, patch, { logEdit = true } = {}) {
   const next = { ...patch, updatedAt: nowIso() };
   if (next.tags) next.tags = cleanTags(next.tags);
-  if (next.meanings) next.meanings = cleanMeanings(next.meanings);
+  if (next.meanings) {
+    next.meanings = cleanMeanings(next.meanings);
+    const retained = new Set(next.meanings.map((meaning) => meaning.id));
+    const all = await db.items.toArray();
+    const blocked = [];
+    for (const candidate of all) {
+      for (const annotation of candidate.linkAnnotations || []) {
+        if (candidate.id === id && annotation.ownerMeaningId && !retained.has(annotation.ownerMeaningId)) {
+          blocked.push(annotation.ownerMeaningId);
+        }
+        if (annotation.targetKey === id && annotation.targetMeaningId && !retained.has(annotation.targetMeaningId)) {
+          blocked.push(annotation.targetMeaningId);
+        }
+      }
+    }
+    if (blocked.length) {
+      throw new Error("This meaning is used by a meaning-specific connection. Make that connection whole-entry, reassign it, or remove it first.");
+    }
+  }
   await db.items.update(id, next);
   if (logEdit) await logEvent(EVENT_TYPES.edit, id);
   return db.items.get(id);
@@ -314,9 +332,9 @@ export async function saveEntryFeedback(id, feedback) {
 const annotationsWithoutTarget = (item, targetKey) =>
   (item?.linkAnnotations || []).filter((annotation) => annotation?.targetKey !== targetKey);
 
-const annotationsWithRelationship = (item, targetKey, relationship) => {
+const annotationsWithRelationship = (item, targetKey, relationship, anchors = undefined) => {
   const annotations = annotationsWithoutTarget(item, targetKey);
-  const annotation = makeLinkAnnotation(targetKey, relationship);
+  const annotation = makeLinkAnnotation(targetKey, relationship, anchors);
   if (annotation) annotations.push(annotation);
   return annotations;
 };
@@ -344,7 +362,7 @@ const storedEdgeCandidates = (aKey, bKey, a, b) => {
  * `relationship.subject` is expressed from `fromId`'s perspective. Since a newly created edge is
  * physically owned there, it is also the stored subject without conversion.
  */
-export async function linkItems(fromId, toKey, relationship = undefined) {
+export async function linkItems(fromId, toKey, relationship = undefined, meaningPair = undefined) {
   if (isDictKey(toKey)) {
     const source = await db.items.get(fromId);
     if (!source) return source;
@@ -374,17 +392,29 @@ export async function linkItems(fromId, toKey, relationship = undefined) {
     const linkedKeys = item.linkedKeys || [];
     if (linkedKeys.includes(toKey)) return;
 
+    let other;
     if (isUserKey(toKey)) {
-      const other = await db.items.get(toKey);
+      other = await db.items.get(toKey);
       if (!other) return;
       if ((other.linkedKeys || []).includes(fromId)) return;
     }
 
     const normalized = normalizeRelationship(relationship);
+    let anchors;
+    if (meaningPair) {
+      if (item.type !== "lexical" || other?.type !== "lexical" || normalized.type !== "similar_meaning") {
+        throw new Error("Meaning-specific connections require two personal lexical entries and Similar meaning.");
+      }
+      if (!(item.meanings || []).some(({ id }) => id === meaningPair.fromMeaningId) ||
+          !(other.meanings || []).some(({ id }) => id === meaningPair.toMeaningId)) {
+        throw new Error("A selected meaning no longer exists on its entry.");
+      }
+      anchors = { ownerMeaningId: meaningPair.fromMeaningId, targetMeaningId: meaningPair.toMeaningId };
+    }
     const next = {
       ...item,
       linkedKeys: [...linkedKeys, toKey],
-      linkAnnotations: annotationsWithRelationship(item, toKey, normalized),
+      linkAnnotations: annotationsWithRelationship(item, toKey, normalized, anchors),
       updatedAt: nowIso(),
     };
     await db.items.put(next);
@@ -398,7 +428,7 @@ export async function linkItems(fromId, toKey, relationship = undefined) {
  * perspective the editor is showing, so a backlink save is reoriented before it is written to the
  * other row. No timestamp or activity event changes.
  */
-export async function setLinkRelationship(aKey, bKey, relationship) {
+export async function setLinkRelationship(aKey, bKey, relationship, meaningPair = undefined) {
   const normalized = normalizeRelationship(relationship);
   let result;
 
@@ -418,11 +448,24 @@ export async function setLinkRelationship(aKey, bKey, relationship) {
     const chosen = candidates.find(({ owner, targetKey }) => annotationForTarget(owner, targetKey))
       || candidates[0];
     const stored = chosen.owner.id === aKey ? normalized : reorientRelationship(normalized);
+    let anchors;
+    if (meaningPair) {
+      if (a?.type !== "lexical" || b?.type !== "lexical" || normalized.type !== "similar_meaning") {
+        throw new Error("Meaning-specific connections require two personal lexical entries and Similar meaning.");
+      }
+      if (!(a.meanings || []).some(({ id }) => id === meaningPair.aMeaningId) ||
+          !(b.meanings || []).some(({ id }) => id === meaningPair.bMeaningId)) {
+        throw new Error("A selected meaning no longer exists on its entry.");
+      }
+      anchors = chosen.owner.id === aKey
+        ? { ownerMeaningId: meaningPair.aMeaningId, targetMeaningId: meaningPair.bMeaningId }
+        : { ownerMeaningId: meaningPair.bMeaningId, targetMeaningId: meaningPair.aMeaningId };
+    }
 
     for (const candidate of candidates) {
       const base = await db.items.get(candidate.owner.id);
       const nextAnnotations = candidate === chosen
-        ? annotationsWithRelationship(base, candidate.targetKey, stored)
+        ? annotationsWithRelationship(base, candidate.targetKey, stored, anchors)
         : annotationsWithoutTarget(base, candidate.targetKey);
       if (JSON.stringify(nextAnnotations) === JSON.stringify(base.linkAnnotations || [])) continue;
       await db.items.update(base.id, { linkAnnotations: nextAnnotations });

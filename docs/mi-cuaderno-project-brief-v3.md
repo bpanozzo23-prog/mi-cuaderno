@@ -69,6 +69,13 @@ preserves every Word and Phrase `notes` string as its General note and adds mand
 `noteSections[]` with exactly one subsection level. Pages and lexical entries share stable Notes
 section identities, hierarchy rules and safe Markdown behavior; meaning-level notes remain plain.
 
+**Per-meaning Similar relationships amendment, 2026-08-27 — §§5, 7, 8, 10 and 12:** schema v11
+allows a personal lexical-to-lexical `similar_meaning` annotation to carry an optional exact pair
+of stable meaning IDs. Both IDs are present or neither is; old connections remain whole-entry and
+no migration guesses intent. Detail and Similar recall use exact anchored glosses from either
+endpoint. Removing an anchored meaning is blocked until the connection is reassigned, made
+whole-entry, or removed. Other relationship types and every non-Similar consumer remain entry-wide.
+
 **Contrasts lane amendment, 2026-08-24 — §§7 and 12:** the Conjugation Gym adds an owner-started
 Contrasts lane (ser/estar, por/para) of four-choice cloze over curated original sentences, reusing
 `drill_pass` / `drill_fail` with additive `skill: "contrast"`, `pair` and `answer` metadata and no
@@ -211,7 +218,8 @@ UserItem    { id, type: lexical | page,
               linkAnnotations[{ targetKey,
                                 type: related | similar_meaning | contrast |
                                       often_confused | variant | found_in | explained_by,
-                                subject: owner | target, note }],
+                                subject: owner | target, note,
+                                ownerMeaningId?, targetMeaningId? }],
               createdAt, updatedAt,
               // lexical only:
               dictKey?, form: word | phrase, term, pos?,
@@ -334,6 +342,12 @@ Symmetric types normalize `subject` to `owner`. Fixed display order is **Similar
 **Contrast**, **Often confused**, **Variant**, **Explained by/Explains**, **Found in/Contains**, then
 **Related**. Relationship notes remain outside search, filters, Repaso, and the event-derived
 learning model.
+
+**Schema-v11 meaning-anchor amendment, 2026-08-27:** `ownerMeaningId` and `targetMeaningId` are
+optional as a pair and valid only on `similar_meaning` annotations between two personal lexical
+items. Each ID must exist on its physical endpoint. The one-annotation-per-entry-pair invariant
+means v1 can describe at most one exact sense pair between a pair of entries. Reordering and
+editing a meaning preserve its stable ID; deleting or merging away an anchored ID is refused.
 
 **Meaning-block amendment, 2026-08-02.** `meanings[]` is the owner's small personal vocabulary,
 not a copy of the dictionary's taxonomy. `gloss` is the English meaning and `usageCue` is an
@@ -991,9 +1005,9 @@ becomes a Similar meaning connection only after an explicit owner action through
 ordinary-link writer.
 
 The Words & phrases hub separately offers history-free Similar-meaning recall once at least one
-confirmed edge exists. One prompt asks for a direct neighbor of its focal lexical item, reveals
-only direct confirmed neighbors and self-grades Again/Got it with one missed round. Raw proposals
-and transitive graph neighbors never become answers. `SCHEMA_VERSION` remains 8; no personal field,
+confirmed edge exists. Whole-entry links retain one entry prompt and reveal all saved glosses;
+schema-v11 anchored links make one prompt per focal meaning and reveal only exact connected
+glosses. Raw proposals and transitive graph neighbors never become answers. No
 preference, backup shape, event type, reference package, score, schedule, or automatic queue is
 added. The approved contract lives in `docs/PHASE-22-DIRECTION.md`.
 *Done when:* containment, ambiguity, optional-dictionary fallback, gloss scoring, sparse-POS,

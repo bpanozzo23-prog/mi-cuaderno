@@ -127,7 +127,7 @@ function SuggestionRows({ rows, onOpen, onAccept, acceptingId, error }) {
               type="button"
               aria-label={`Link ${row.item.term} as Similar meaning`}
               disabled={Boolean(acceptingId)}
-              onClick={() => onAccept(row.item.id)}
+              onClick={() => onAccept(row.item.id, row.evidence)}
               className="mt-2 min-h-11 w-full rounded-lg border px-3 py-2 text-sm font-medium"
               style={{ background: C.penPale, borderColor: C.pen, color: C.penDark }}
             >
@@ -205,12 +205,12 @@ export default function KnowledgeConsolidation({
     setCandidateError("");
   }, [item.id]);
 
-  async function acceptSimilar(targetId) {
+  async function acceptSimilar(targetId, evidence) {
     if (!onAcceptSimilar || acceptingId) return;
     setAcceptingId(targetId);
     setSuggestionError("");
     try {
-      await onAcceptSimilar(targetId);
+      await onAcceptSimilar(targetId, evidence);
     } catch (caught) {
       setSuggestionError(caught?.message || "Could not create this connection.");
     } finally {

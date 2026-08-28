@@ -1,5 +1,6 @@
 import { shufflePracticeItems } from "./practice.js";
 import { connectionsFor } from "./relationships.js";
+import { meaningById } from "./relationships.js";
 
 /**
  * One prompt per personal lexical endpoint with at least one direct, confirmed Similar meaning
@@ -10,13 +11,15 @@ export function deriveSimilarMeaningPrompts(items = []) {
   const prompts = [];
   for (const focal of items) {
     if (focal?.type !== "lexical") continue;
-    const seen = new Set();
-    const neighbors = connectionsFor(focal, items)
+    const similar = connectionsFor(focal, items)
       .filter((connection) =>
         connection.kind === "item"
         && connection.item?.type === "lexical"
         && connection.type === "similar_meaning"
-      )
+      );
+    const seen = new Set();
+    const neighbors = similar
+      .filter((connection) => !connection.focalMeaningId)
       .map((connection) => connection.item)
       .filter((neighbor) => {
         if (seen.has(neighbor.id)) return false;
@@ -25,6 +28,23 @@ export function deriveSimilarMeaningPrompts(items = []) {
       });
     if (neighbors.length > 0) {
       prompts.push({ id: focal.id, focal, neighbors });
+    }
+    for (const focalMeaning of focal.meanings || []) {
+      const answers = similar
+        .filter((connection) => connection.focalMeaningId === focalMeaning.id)
+        .map((connection) => ({
+          item: connection.item,
+          meaning: meaningById(connection.item, connection.connectedMeaningId),
+        }))
+        .filter(({ meaning }) => meaning);
+      if (answers.length) {
+        prompts.push({
+          id: `${focal.id}:${focalMeaning.id}`,
+          focal,
+          focalMeaning,
+          answers,
+        });
+      }
     }
   }
   return prompts;

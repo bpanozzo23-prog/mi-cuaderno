@@ -23,6 +23,8 @@ import { emptyItemState } from "../useNotebook.js";
 import {
   connectionsFor,
   groupConnections,
+  groupConnectionsByMeaning,
+  meaningById,
   relationshipForTarget,
   relationshipLabel,
 } from "../lib/relationships.js";
@@ -326,10 +328,11 @@ function StandardDetail({
     }),
     [item, orphanKeys]
   );
-  const groups = useMemo(
-    () => groupConnections([...connections, ...orphanConnections]),
-    [connections, orphanConnections]
+  const { meaningGroups, entryWide } = useMemo(
+    () => groupConnectionsByMeaning(item, [...connections, ...orphanConnections]),
+    [item, connections, orphanConnections]
   );
+  const groups = useMemo(() => groupConnections(entryWide), [entryWide]);
 
   async function unlink(key) {
     await unlinkItems(item.id, key);
@@ -1135,8 +1138,11 @@ function StandardDetail({
           item={item}
           items={items}
           onOpen={onOpen}
-          onAcceptSimilar={async (targetId) => {
-            await linkItems(item.id, targetId, { type: "similar_meaning" });
+          onAcceptSimilar={async (targetId, evidence) => {
+            await linkItems(item.id, targetId, { type: "similar_meaning" }, {
+              fromMeaningId: evidence.focalMeaningId,
+              toMeaningId: evidence.candidateMeaningId,
+            });
             await onChanged();
           }}
           onAcceptContainment={async (targetId) => {
@@ -1153,7 +1159,7 @@ function StandardDetail({
 
       <SectionTitle>Connections</SectionTitle>
 
-      {groups.length === 0 && linkConflicts.length === 0 && !picking && (
+      {groups.length === 0 && meaningGroups.length === 0 && linkConflicts.length === 0 && !picking && (
         <div className="text-xs mb-2" style={{ color: C.mut }}>
           {isPage
             ? "Nothing linked yet. Link the words and phrases this page is about."
@@ -1173,6 +1179,35 @@ function StandardDetail({
           ))}
         </div>
       )}
+
+      {meaningGroups.map(({ meaning, rows }) => (
+        <div key={meaning.id} className="mb-3">
+          <div className="mb-1.5 break-words text-xs font-semibold" style={{ color: C.ink }}>
+            Meaning: {meaning.gloss}
+          </div>
+          <div className="space-y-1.5">
+            {rows.map((row) => (
+              <ItemLinkCard
+                key={row.key}
+                item={row.item}
+                focalItem={item}
+                attached={Boolean(row.item.dictKey)}
+                connection={row}
+                glossOverride={meaningById(row.item, row.connectedMeaningId)?.gloss || ""}
+                onOpen={onOpen}
+                onSaveRelationship={async (relationship, pair) => {
+                  await setLinkRelationship(item.id, row.key, relationship, pair ? {
+                    aMeaningId: pair.focalMeaningId,
+                    bMeaningId: pair.targetMeaningId,
+                  } : undefined);
+                  await onChanged();
+                }}
+                onRemove={() => unlink(row.key)}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
 
       {groups.map((group) => (
         <div key={group.name} className="mb-3">
@@ -1216,9 +1251,13 @@ function StandardDetail({
                   item={row.item}
                   attached={Boolean(row.item.dictKey)}
                   connection={row}
+                  focalItem={item}
                   onOpen={onOpen}
-                  onSaveRelationship={async (relationship) => {
-                    await setLinkRelationship(item.id, row.key, relationship);
+                  onSaveRelationship={async (relationship, pair) => {
+                    await setLinkRelationship(item.id, row.key, relationship, pair ? {
+                      aMeaningId: pair.focalMeaningId,
+                      bMeaningId: pair.targetMeaningId,
+                    } : undefined);
                     await onChanged();
                   }}
                   onRemove={() => unlink(row.key)}
@@ -1250,8 +1289,8 @@ function StandardDetail({
           unresolvedKeys={unresolvedKeys}
           connections={connections}
           onCancel={() => setPicking(false)}
-          onPick={async (key, relationship) => {
-            await linkItems(item.id, key, relationship);
+          onPick={async (key, relationship, meaningPair) => {
+            await linkItems(item.id, key, relationship, meaningPair);
             onChanged();
           }}
           onCreate={async (kind, text, relationship) => {

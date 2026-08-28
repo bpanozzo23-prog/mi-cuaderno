@@ -26,7 +26,9 @@ async function seedLegacyDatabase(schemaVersion) {
 
   const current = makeLexical({ id: "user:sacar", term: "sacar", linkedKeys: ["user:page"] });
   const { noteSections: _lexicalNoteSections, ...currentBeforeLexicalNotes } = current;
-  const currentForSchema = schemaVersion < 4
+  const currentForSchema = schemaVersion >= 10
+    ? current
+    : schemaVersion < 4
     ? (({ linkAnnotations: _linkAnnotations, ...legacyItem }) => legacyItem)(currentBeforeLexicalNotes)
     : currentBeforeLexicalNotes;
   const lexical = schemaVersion === 1
@@ -115,7 +117,7 @@ describe("export-first schema gate", () => {
     });
   });
 
-  it.each([1, 2, 3, 4, 5, 6, 7, 8, 9])("exports the untouched schema-v%s envelope before v10 can open", async (schemaVersion) => {
+  it.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])("exports the untouched schema-v%s envelope before v11 can open", async (schemaVersion) => {
     const { lexical, page } = await seedLegacyDatabase(schemaVersion);
 
     expect(await preupgradeStatus()).toMatchObject({
@@ -156,7 +158,11 @@ describe("export-first schema gate", () => {
     } else {
       expect(backup.userItems.find((item) => item.id === page.id).apuntes).toBeNull();
     }
-    expect(backup.userItems.find((item) => item.id === lexical.id)).not.toHaveProperty("noteSections");
+    if (schemaVersion < 10) {
+      expect(backup.userItems.find((item) => item.id === lexical.id)).not.toHaveProperty("noteSections");
+    } else {
+      expect(backup.userItems.find((item) => item.id === lexical.id).noteSections).toEqual([]);
+    }
     if (schemaVersion === 1) {
       expect(backup.userItems.find((item) => item.id === lexical.id).translation).toBe("take out\nwithdraw");
       expect(backup.userItems.find((item) => item.id === lexical.id)).not.toHaveProperty("meanings");

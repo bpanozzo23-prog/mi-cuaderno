@@ -17,6 +17,36 @@ const page = {
 };
 
 describe("connection cards", () => {
+  it("edits an anchored Similar connection back to Whole entry", async () => {
+    const user = userEvent.setup();
+    const focal = { id: "user:a", type: "lexical", term: "banco", meanings: [
+      { id: "meaning:bank", gloss: "bank" },
+    ] };
+    const target = { id: "user:b", type: "lexical", term: "entidad", meanings: [
+      { id: "meaning:institution", gloss: "institution" },
+    ], linkedKeys: [], linkAnnotations: [], updatedAt: "2026-08-01T00:00:00.000Z" };
+    const onSaveRelationship = vi.fn();
+    render(<ItemLinkCard
+      item={target}
+      focalItem={focal}
+      connection={{
+        type: "similar_meaning", subject: "owner", note: "",
+        relationship: { type: "similar_meaning", subject: "owner", note: "" },
+        focalMeaningId: "meaning:bank", connectedMeaningId: "meaning:institution",
+      }}
+      onOpen={vi.fn()}
+      onSaveRelationship={onSaveRelationship}
+    />);
+
+    await user.click(screen.getByRole("button", { name: "Edit connection to entidad" }));
+    expect(screen.getByRole("radio", { name: "Individual meanings" }).checked).toBe(true);
+    await user.click(screen.getByRole("radio", { name: "Whole entry" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSaveRelationship).toHaveBeenCalledWith({
+      type: "similar_meaning", subject: "owner", note: "",
+    }, null);
+  });
+
   it("falls through a blank General note to the first canonical named lexical note", () => {
     render(
       <ItemLinkCard

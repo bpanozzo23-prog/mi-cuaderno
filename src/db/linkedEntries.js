@@ -62,9 +62,17 @@ function replaceKeys(linkedKeys, rawKeys, canonicalKey) {
   return next;
 }
 
-function replaceAnnotations(linkAnnotations, rawKeys, canonicalKey, relationship) {
+/** Meaning anchors from a stored annotation, optionally swapped into the other row's perspective. */
+const anchorsFrom = (annotation, swap = false) =>
+  annotation?.ownerMeaningId && annotation?.targetMeaningId
+    ? (swap
+      ? { ownerMeaningId: annotation.targetMeaningId, targetMeaningId: annotation.ownerMeaningId }
+      : { ownerMeaningId: annotation.ownerMeaningId, targetMeaningId: annotation.targetMeaningId })
+    : null;
+
+function replaceAnnotations(linkAnnotations, rawKeys, canonicalKey, relationship, anchors = undefined) {
   const raw = new Set(rawKeys);
-  const replacement = makeLinkAnnotation(canonicalKey, relationship);
+  const replacement = makeLinkAnnotation(canonicalKey, relationship, anchors);
   let inserted = false;
   const next = [];
 
@@ -320,9 +328,9 @@ export async function mergeLinkedEntryIntoTwin(itemId, canonicalKey, twinId, rel
     // Every stored description of the conceptual connection, in the ITEM's perspective: the
     // dictionary raw keys plus the existing personal edge from whichever row physically owns it.
     const candidates = stillLinked.map((key) => candidateFor(current, key));
+    const outgoingAnnotation = outgoing ? annotationForTarget(current, twinId) : null;
+    const incomingAnnotation = incoming ? annotationForTarget(twinRow, itemId) : null;
     if (outgoing || incoming) {
-      const outgoingAnnotation = outgoing ? annotationForTarget(current, twinId) : null;
-      const incomingAnnotation = incoming ? annotationForTarget(twinRow, itemId) : null;
       const stored = outgoingAnnotation
         || (incomingAnnotation && reorientRelationship(incomingAnnotation))
         || null;
@@ -343,6 +351,9 @@ export async function mergeLinkedEntryIntoTwin(itemId, canonicalKey, twinId, rel
     const survivor = relationship
       ? normalizeRelationship(relationship)
       : explicit[0] || normalizeRelationship();
+    // An anchored Similar edge keeps its exact meaning pair through the merge; any other
+    // surviving relationship cannot carry anchors, so they are deliberately dropped.
+    const keepAnchors = survivor.type === "similar_meaning";
 
     if (!outgoing && !incoming) {
       await db.items.update(itemId, {
@@ -360,7 +371,8 @@ export async function mergeLinkedEntryIntoTwin(itemId, canonicalKey, twinId, rel
         linkedKeys: (current.linkedKeys || []).filter((key) => !stillLinked.includes(key)),
         linkAnnotations: replaceAnnotations(
           (current.linkAnnotations || []).filter((annotation) => annotation?.targetKey !== twinId),
-          stillLinked, twinId, survivor
+          stillLinked, twinId, survivor,
+          keepAnchors ? anchorsFrom(outgoingAnnotation) || anchorsFrom(incomingAnnotation, true) : null
         ),
       });
       if (incoming && annotationForTarget(twinRow, itemId)) {
@@ -377,7 +389,11 @@ export async function mergeLinkedEntryIntoTwin(itemId, canonicalKey, twinId, rel
         linkAnnotations: (current.linkAnnotations || [])
           .filter((annotation) => !stillLinked.includes(annotation?.targetKey)),
       });
-      const twinAnnotation = makeLinkAnnotation(itemId, reorientRelationship(survivor));
+      const twinAnnotation = makeLinkAnnotation(
+        itemId,
+        reorientRelationship(survivor),
+        keepAnchors ? anchorsFrom(incomingAnnotation) : null
+      );
       await db.items.update(twinId, {
         linkAnnotations: [
           ...(twinRow.linkAnnotations || []).filter((annotation) => annotation?.targetKey !== itemId),

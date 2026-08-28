@@ -781,7 +781,7 @@ describe("import: replace and restore", () => {
     expect(checked.summary.willUpgrade).toBe(true);
   });
 
-  it("round-trips exact schema-v10 lexical and Page Notes hierarchies", () => {
+  it("upgrades exact schema-v10 lexical and Page Notes hierarchies without changing items", () => {
     const pageRootId = "note-section:66666666-6666-4666-8666-666666666666";
     const lexicalRootId = "note-section:88888888-8888-4888-8888-888888888888";
     const word = makeLexical({
@@ -803,7 +803,7 @@ describe("import: replace and restore", () => {
     });
     const v10 = {
       format: BACKUP_FORMAT,
-      schemaVersion: SCHEMA_VERSION,
+      schemaVersion: 10,
       exportedAt: "2026-08-21T11:00:00.000Z",
       appVersion: "0.1.0",
       userItems: [word, page],
@@ -814,8 +814,8 @@ describe("import: replace and restore", () => {
     const checked = validateBackup(JSON.stringify(v10));
 
     expect(checked.ok).toBe(true);
-    expect(checked.envelope).toEqual(v10);
-    expect(checked.summary.willUpgrade).toBe(false);
+    expect(checked.envelope).toEqual({ ...v10, schemaVersion: SCHEMA_VERSION });
+    expect(checked.summary.willUpgrade).toBe(true);
   });
 
   it("skips duplicate event ids rather than failing", async () => {
@@ -879,6 +879,35 @@ describe("validation happens before anything is written", () => {
     const target = makeLexical({ id: "user:target", term: "estar" });
     return { ...baseline(), userItems: includeTarget ? [owner, target] : [owner] };
   };
+
+  it("accepts exact schema-v11 meaning anchors and rejects broken pairs or dangling meanings", () => {
+    const owner = makeLexical({ id: "user:owner", linkedKeys: ["user:target"] });
+    const target = makeLexical({ id: "user:target", term: "estar" });
+    owner.linkAnnotations = [{
+      targetKey: target.id, type: "similar_meaning", subject: "owner", note: "",
+      ownerMeaningId: owner.meanings[0].id, targetMeaningId: target.meanings[0].id,
+    }];
+    expect(validateBackup({ ...baseline(), userItems: [owner, target] }).ok).toBe(true);
+
+    const half = structuredClone(owner);
+    delete half.linkAnnotations[0].targetMeaningId;
+    expect(validateBackup({ ...baseline(), userItems: [half, target] }).errors.join(" "))
+      .toMatch(/both meaning anchors/);
+
+    const dangling = structuredClone(owner);
+    dangling.linkAnnotations[0].targetMeaningId = "meaning:missing";
+    expect(validateBackup({ ...baseline(), userItems: [dangling, target] }).errors.join(" "))
+      .toMatch(/missing target meaning/);
+  });
+
+  it("rejects meaning anchors in a schema-v10 envelope", () => {
+    const input = relationshipInput([{
+      targetKey: "user:target", type: "similar_meaning", subject: "owner", note: "",
+      ownerMeaningId: "meaning:a", targetMeaningId: "meaning:b",
+    }]);
+    expect(validateBackup({ ...input, schemaVersion: 10 }).errors.join(" "))
+      .toMatch(/before schema v11/);
+  });
 
   const contextualInput = ({ includeSourceLink = true, captureId = CAPTURE_ONE } = {}) => {
     const word = makeLexical({ id: "user:context-word", term: "nomás" });

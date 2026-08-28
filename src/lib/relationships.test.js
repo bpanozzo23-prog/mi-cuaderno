@@ -5,6 +5,7 @@ import {
   RELATIONSHIP_TYPES,
   connectionsFor,
   groupConnections,
+  groupConnectionsByMeaning,
   isDirectionalRelationshipType,
   makeLinkAnnotation,
   normalizeRelationship,
@@ -81,6 +82,34 @@ describe("relationship registry and normalization", () => {
     });
     expect(isDirectionalRelationshipType("found_in")).toBe(true);
     expect(isDirectionalRelationshipType("variant")).toBe(false);
+  });
+});
+
+describe("meaning-specific Similar connections", () => {
+  it("maps physical anchors into each endpoint's perspective and groups in focal order", () => {
+    const first = item("user:first", {
+      meanings: [{ id: "meaning:first-a", gloss: "first A" }, { id: "meaning:first-b", gloss: "first B" }],
+      linkedKeys: ["user:second"],
+      linkAnnotations: [{
+        targetKey: "user:second", type: "similar_meaning", subject: "owner", note: "",
+        ownerMeaningId: "meaning:first-b", targetMeaningId: "meaning:second-a",
+      }],
+    });
+    const second = item("user:second", { meanings: [{ id: "meaning:second-a", gloss: "second A" }] });
+    const forward = connectionsFor(first, [first, second])[0];
+    const backward = connectionsFor(second, [first, second])[0];
+    expect([forward.focalMeaningId, forward.connectedMeaningId]).toEqual(["meaning:first-b", "meaning:second-a"]);
+    expect([backward.focalMeaningId, backward.connectedMeaningId]).toEqual(["meaning:second-a", "meaning:first-b"]);
+    expect(groupConnectionsByMeaning(first, [forward]).meaningGroups.map((group) => group.meaning.id))
+      .toEqual(["meaning:first-b"]);
+  });
+
+  it("requires both anchors and limits them to Similar meaning", () => {
+    expect(() => makeLinkAnnotation("user:b", { type: "similar_meaning" }, { ownerMeaningId: "meaning:a" }))
+      .toThrow(/two valid meaning IDs/);
+    expect(() => makeLinkAnnotation("user:b", { type: "contrast" }, {
+      ownerMeaningId: "meaning:a", targetMeaningId: "meaning:b",
+    })).toThrow(/Only Similar meaning/);
   });
 });
 

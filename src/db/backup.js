@@ -185,7 +185,7 @@ function validateCollection(collection, where, errors, seenGroupIds) {
   });
 }
 
-function validateLinkAnnotations(value, where, errors) {
+function validateLinkAnnotations(value, where, errors, schemaVersion) {
   if (!Array.isArray(value)) return errors.push(`${where} must be an array`);
 
   const seenTargets = new Set();
@@ -223,6 +223,29 @@ function validateLinkAnnotations(value, where, errors) {
         errors.push(`${annotationWhere} must be omitted when Related has no note`);
       }
     }
+
+    const hasOwnerMeaning = annotation.ownerMeaningId !== undefined;
+    const hasTargetMeaning = annotation.targetMeaningId !== undefined;
+    if (schemaVersion < 11 && (hasOwnerMeaning || hasTargetMeaning)) {
+      errors.push(`${annotationWhere} contains meaning anchors before schema v11`);
+    } else if (schemaVersion >= 11) {
+      if (hasOwnerMeaning !== hasTargetMeaning) {
+        errors.push(`${annotationWhere} must contain both meaning anchors or neither`);
+      } else if (hasOwnerMeaning) {
+        if (!isNonEmptyString(annotation.ownerMeaningId) || !annotation.ownerMeaningId.startsWith("meaning:")) {
+          errors.push(`${annotationWhere}.ownerMeaningId must be a meaning id`);
+        }
+        if (!isNonEmptyString(annotation.targetMeaningId) || !annotation.targetMeaningId.startsWith("meaning:")) {
+          errors.push(`${annotationWhere}.targetMeaningId must be a meaning id`);
+        }
+        if (annotation.type !== "similar_meaning") {
+          errors.push(`${annotationWhere} meaning anchors require Similar meaning`);
+        }
+        if (isDictKey(annotation.targetKey)) {
+          errors.push(`${annotationWhere} meaning anchors require a personal target`);
+        }
+      }
+    }
   });
 }
 
@@ -248,7 +271,7 @@ function validateItem(
   if (!isString(item.updatedAt)) errors.push(`${where}.updatedAt is missing`);
   validateStringArray(item.tags, `${where}.tags`, errors);
   validateStringArray(item.linkedKeys, `${where}.linkedKeys`, errors);
-  if (schemaVersion >= 4) validateLinkAnnotations(item.linkAnnotations, `${where}.linkAnnotations`, errors);
+  if (schemaVersion >= 4) validateLinkAnnotations(item.linkAnnotations, `${where}.linkAnnotations`, errors, schemaVersion);
   validateMediaLinks(item.mediaLinks, `${where}.mediaLinks`, errors);
   if (item.type === "lexical") {
     if (!isNonEmptyString(item.term)) errors.push(`${where}.term is missing`);
@@ -376,6 +399,28 @@ function validateV4References(userItems, errors) {
         errors.push(`${annotationWhere} duplicates the personal connection annotation at ${firstWhere}`);
       } else {
         seenPersonalPairs.set(pairKey, annotationWhere);
+      }
+    });
+  });
+}
+
+function validateV11MeaningReferences(userItems, errors) {
+  const itemsById = new Map(userItems.map((item) => [item?.id, item]));
+  userItems.forEach((owner, itemIndex) => {
+    if (!Array.isArray(owner?.linkAnnotations)) return;
+    owner.linkAnnotations.forEach((annotation, annotationIndex) => {
+      if (!annotation?.ownerMeaningId || !annotation?.targetMeaningId) return;
+      const where = `userItems[${itemIndex}].linkAnnotations[${annotationIndex}]`;
+      const target = itemsById.get(annotation.targetKey);
+      if (owner.type !== "lexical" || target?.type !== "lexical") {
+        errors.push(`${where} meaning anchors require two lexical items`);
+        return;
+      }
+      if (!(owner.meanings || []).some(({ id }) => id === annotation.ownerMeaningId)) {
+        errors.push(`${where}.ownerMeaningId points to a missing owner meaning`);
+      }
+      if (!(target.meanings || []).some(({ id }) => id === annotation.targetMeaningId)) {
+        errors.push(`${where}.targetMeaningId points to a missing target meaning`);
       }
     });
   });
@@ -648,6 +693,7 @@ function validateSchemaState(userItems, events, preferences, schemaVersion, erro
   if (schemaVersion >= 3) validateV3References(userItems, preferences, errors);
   if (schemaVersion >= 4) validateV4References(userItems, errors);
   if (schemaVersion >= 5) validateV5References(userItems, errors);
+  if (schemaVersion >= 11) validateV11MeaningReferences(userItems, errors);
 }
 
 function upgradeItemsV1ToV2(userItems) {
@@ -667,6 +713,7 @@ const upgradeItemsV6ToV7 = (userItems) => userItems.map((item) => upgradePageIte
 const upgradeItemsV7ToV8 = (userItems) => userItems.map((item) => upgradePageItemV7(item));
 const upgradeItemsV8ToV9 = (userItems) => userItems.map((item) => upgradePageItemV8(item));
 const upgradeItemsV9ToV10 = (userItems) => userItems.map((item) => upgradeLexicalItemV9(item));
+const upgradeItemsV10ToV11 = (userItems) => userItems.map((item) => ({ ...item }));
 
 function validateEvent(event, index, errors) {
   const where = `events[${index}]`;
@@ -707,7 +754,7 @@ export function validateBackup(raw) {
     errors.push(
       `This backup is schema version ${parsed.schemaVersion}, newer than this app understands (${SCHEMA_VERSION}). Update the app first.`
     );
-  } else if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].includes(parsed.schemaVersion)) {
+  } else if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].includes(parsed.schemaVersion)) {
     errors.push(`Schema version ${parsed.schemaVersion} is not supported.`);
   }
   if (!Array.isArray(parsed.userItems)) errors.push("userItems must be an array.");
@@ -786,6 +833,13 @@ export function validateBackup(raw) {
   if (upgradedSchemaVersion === 9) {
     upgradedItems = upgradeItemsV9ToV10(upgradedItems);
     upgradedSchemaVersion = 10;
+    validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
+  }
+  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
+
+  if (upgradedSchemaVersion === 10) {
+    upgradedItems = upgradeItemsV10ToV11(upgradedItems);
+    upgradedSchemaVersion = 11;
     validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
   }
   if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };

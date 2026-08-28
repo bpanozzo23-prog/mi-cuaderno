@@ -8,6 +8,7 @@ import { installDictionary, fetchManifest, removeDictionary } from "./ref/instal
 import { buildFixtureDictionary, installFetchStub } from "../test/dictFixture.js";
 import { db } from "./db.js";
 import { createItem, newLexical, newPage, getItem, linkItems } from "./items.js";
+import { newMeaning } from "../lib/meanings.js";
 import { allEvents, EVENT_TYPES } from "./events.js";
 
 /**
@@ -459,6 +460,54 @@ describe("merging a dictionary connection into its attached personal twin", () =
     expect(saved.linkedKeys).toEqual([CASA, twin.id]);
     // The dictionary side's explicit annotation survives over the implicit personal edge.
     expect(saved.linkAnnotations).toEqual([{ targetKey: twin.id, ...relationship }]);
+  });
+
+  it("keeps an anchored Similar meaning pair when the item owns the personal edge", async () => {
+    await install();
+    const twin = await createItem(newLexical({ term: "sacar", dictKey: SACAR, meanings: [
+      newMeaning({ id: "meaning:remove", gloss: "to take out" }),
+    ] }));
+    const item = await createItem(newLexical({ term: "quitar", meanings: [
+      newMeaning({ id: "meaning:strip", gloss: "to take away" }),
+    ], linkedKeys: [SACAR, twin.id], linkAnnotations: [{
+      targetKey: twin.id, type: "similar_meaning", subject: "owner", note: "",
+      ownerMeaningId: "meaning:strip", targetMeaningId: "meaning:remove",
+    }] }));
+
+    const result = await mergeLinkedEntryIntoTwin(item.id, SACAR, twin.id);
+    const saved = await getItem(item.id);
+
+    expect(result.merged).toBe(true);
+    expect(saved.linkedKeys).toEqual([twin.id]);
+    expect(saved.linkAnnotations).toEqual([{
+      targetKey: twin.id, type: "similar_meaning", subject: "owner", note: "",
+      ownerMeaningId: "meaning:strip", targetMeaningId: "meaning:remove",
+    }]);
+  });
+
+  it("keeps an anchored Similar meaning pair on the twin's row when the twin owns the edge", async () => {
+    await install();
+    const item = await createItem(newLexical({ term: "quitar", meanings: [
+      newMeaning({ id: "meaning:strip", gloss: "to take away" }),
+    ], linkedKeys: [SACAR] }));
+    const twin = await createItem(newLexical({ term: "sacar", dictKey: SACAR, meanings: [
+      newMeaning({ id: "meaning:remove", gloss: "to take out" }),
+    ], linkedKeys: [item.id], linkAnnotations: [{
+      targetKey: item.id, type: "similar_meaning", subject: "owner", note: "",
+      ownerMeaningId: "meaning:remove", targetMeaningId: "meaning:strip",
+    }] }));
+
+    const result = await mergeLinkedEntryIntoTwin(item.id, SACAR, twin.id);
+    const savedItem = await getItem(item.id);
+    const savedTwin = await getItem(twin.id);
+
+    expect(result.merged).toBe(true);
+    expect(savedItem.linkedKeys).toEqual([]);
+    expect(savedItem.linkAnnotations).toEqual([]);
+    expect(savedTwin.linkAnnotations).toEqual([{
+      targetKey: item.id, type: "similar_meaning", subject: "owner", note: "",
+      ownerMeaningId: "meaning:remove", targetMeaningId: "meaning:strip",
+    }]);
   });
 
   it("returns conflicting explicit descriptions untouched instead of picking one", async () => {

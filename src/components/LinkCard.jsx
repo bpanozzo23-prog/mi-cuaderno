@@ -8,6 +8,7 @@ import { meaningGlossText } from "../lib/meanings.js";
 import { normalizeRelationship } from "../lib/relationships.js";
 import RelationshipSelect from "./RelationshipSelect.jsx";
 import TwinMergeResolver from "./TwinMergeResolver.jsx";
+import MeaningPairSelector from "./MeaningPairSelector.jsx";
 import { markdownPreviewText } from "../lib/noteMarkdown.js";
 import { isJournalPage } from "../lib/pageKinds.js";
 import { lexicalNotePreview } from "../lib/lexicalNotes.js";
@@ -32,17 +33,26 @@ const previewOf = (item) => {
   }).slice(0, 80);
 };
 
-function ConnectionEditor({ connection, onSave, onCancel, onRemove }) {
+function ConnectionEditor({ connection, focalItem, targetItem, onSave, onCancel, onRemove }) {
   const [draft, setDraft] = useState(() => normalizeRelationship(connection?.relationship || connection));
+  const [meaningPair, setMeaningPair] = useState(() => connection?.focalMeaningId ? {
+    focalMeaningId: connection.focalMeaningId,
+    targetMeaningId: connection.connectedMeaningId,
+  } : null);
 
   useEffect(() => {
     setDraft(normalizeRelationship(connection?.relationship || connection));
   }, [connection?.type, connection?.subject, connection?.note]);
 
+  const canScope = focalItem?.type === "lexical" && targetItem?.type === "lexical" && draft.type === "similar_meaning";
+
   return (
     <div className="mt-2 border-t pt-3" style={{ borderColor: C.line }}>
       <div className="mb-2 text-sm font-semibold" style={{ color: C.ink }}>Edit connection</div>
       <RelationshipSelect relationship={draft} onChange={setDraft} />
+      {canScope && (
+        <MeaningPairSelector focal={focalItem} target={targetItem} value={meaningPair} onChange={setMeaningPair} />
+      )}
       <label className="mt-3 block text-xs" style={{ color: C.mut }}>
         <span className="mb-1 block" style={{ fontFamily: MONO }}>Shared note (optional)</span>
         <textarea
@@ -55,7 +65,14 @@ function ConnectionEditor({ connection, onSave, onCancel, onRemove }) {
         />
       </label>
       <div className="mt-3 flex flex-wrap gap-2">
-        <Button onClick={async () => { await onSave(draft); onCancel(); }}>Save</Button>
+        <Button
+          disabled={canScope && Boolean(meaningPair) && (!meaningPair.focalMeaningId || !meaningPair.targetMeaningId)}
+          onClick={async () => {
+            if (canScope) await onSave(draft, meaningPair);
+            else await onSave(draft);
+            onCancel();
+          }}
+        >Save</Button>
         <Button tone="quiet" onClick={onCancel}>Cancel</Button>
         {onRemove && (
           <Button tone="danger" onClick={onRemove}>
@@ -106,12 +123,14 @@ export function ItemLinkCard({
   displayHeading,
   displayMeta,
   suppressPreview = false,
+  focalItem,
+  glossOverride,
   editLabel,
 }) {
   const isPage = item.type === "page";
   const preview = previewOf(item);
   const headingSuffix = isPage ? "" : personalHeadingSuffix(item);
-  const glosses = isPage ? "" : meaningGlossText(item);
+  const glosses = isPage ? "" : (glossOverride ?? meaningGlossText(item));
   const relationship = normalizeRelationship(connection?.relationship || connection);
   const [editing, setEditing] = useState(false);
   const fallbackHeading = isPage ? item.title || "Untitled page" : item.term;
@@ -128,7 +147,9 @@ export function ItemLinkCard({
       editLabel={accessibleEditLabel}
       editor={editing ? (
         <ConnectionEditor
-          connection={relationship}
+          connection={connection || relationship}
+          focalItem={focalItem}
+          targetItem={item}
           onSave={onSaveRelationship}
           onCancel={() => setEditing(false)}
           onRemove={onRemove}

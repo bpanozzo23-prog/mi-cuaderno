@@ -254,6 +254,9 @@ db.version(10)
   .stores(PERSONAL_STORES)
   .upgrade(migratePersonalDataToV10);
 
+/** Schema v11 permits optional meaning anchors on Similar meaning annotations. */
+db.version(11).stores(PERSONAL_STORES);
+
 export async function getPref(key, fallback = null) {
   const row = await db.prefs.get(key);
   return row === undefined ? fallback : row.value;
