@@ -176,6 +176,7 @@ describe("JournalHome", () => {
       />
     );
 
+    expect(screen.queryByRole("button", { name: "New" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "Write today" }));
     expect(onStart).toHaveBeenCalledWith({ date: "2026-08-03" });
     expect(screen.getByText("Your first moment can begin with today.")).toBeTruthy();

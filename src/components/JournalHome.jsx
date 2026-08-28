@@ -174,9 +174,11 @@ export default function JournalHome({
           <Button onClick={() => todayEntry ? onEdit(todayEntry.id) : onStart({ date: today })}>
             <PenLine size={15} /> {todayEntry ? "Continue" : "Write today"}
           </Button>
-          <Button tone="quiet" onClick={() => onStart({ date: today })}>
-            <Plus size={15} /> New
-          </Button>
+          {todayEntry && (
+            <Button tone="quiet" onClick={() => onStart({ date: today })}>
+              <Plus size={15} /> New
+            </Button>
+          )}
           <Button tone="quiet" onClick={() => setTallerOpen((open) => !open)} aria-expanded={tallerOpen}>
             <Hammer size={15} /> Taller
           </Button>

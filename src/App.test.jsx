@@ -874,7 +874,7 @@ describe("Phase 4r journal capture", () => {
     const navigation = await screen.findByRole("navigation", { name: "Primary" });
     await screen.findByRole("textbox", { name: "Search notebook" });
     await user.click(within(navigation).getByRole("button", { name: "Diario" }));
-    await user.click(screen.getByRole("button", { name: "New" }));
+    await user.click(screen.getByRole("button", { name: "Write today" }));
 
     fireEvent.change(screen.getByLabelText("Journal date"), { target: { value: "" } });
     await user.type(screen.getByRole("textbox", { name: "Journal body" }), "No se pierde.");
@@ -916,13 +916,13 @@ describe("Phase 4r journal capture", () => {
     expect(await screen.findByRole("heading", { name: "Refreshable moment" })).toBeTruthy();
     expect(screen.getByText("Todavía aquí.")).toBeTruthy();
     window.history.back();
-    await screen.findByRole("button", { name: "New" });
-    await user.click(screen.getByRole("button", { name: "New" }));
+    await screen.findByRole("button", { name: "Write today" });
+    await user.click(screen.getByRole("button", { name: "Write today" }));
     expect(await screen.findByLabelText("Journal date")).toBeTruthy();
 
     mounted.unmount();
     render(<App />);
-    expect(await screen.findByRole("button", { name: "New" })).toBeTruthy();
+    expect(await screen.findByRole("button", { name: "Write today" })).toBeTruthy();
     expect(screen.queryByLabelText("Journal date")).toBeNull();
   });
 });
