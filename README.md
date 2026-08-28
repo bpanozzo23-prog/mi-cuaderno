@@ -927,6 +927,17 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   44px controls, zero horizontal overflow and a clean console. Deployed from `main` at `4432465`;
   see the 2026-08-27 entries in [DECISIONS.md](DECISIONS.md).
 
+- **Diario home and role-color polish — deployed.** Diario drops its familiar-screen subtitle,
+  shortens the populated Today actions to **Continue** and **New**, and takes the existing dusty-
+  mauve accent family while Grammar takes Diario's former warm-clay family. This is copy and
+  centralized palette only: navigation, storage, events, backup and schema remain unchanged. The
+  affected Diario flows pass 50/50 tests, the production build transforms 2,143 modules, and a
+  disposable 375×812 browser check verified the exact resolved token values, zero horizontal
+  overflow and a clean console. Deployed from `main` at `0627b18` through Pages run
+  [33140753545](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33140753545), with the
+  live root returning HTTP 200 and serving `assets/index-A_SBEF3w.js`. See the 2026-08-27 entries
+  in [DECISIONS.md](DECISIONS.md).
+
 `SCHEMA_VERSION` is **11**. Before Dexie opens v11, schema-v1 through schema-v10 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
 relationship, composable-page, Grammar-hierarchy, Structured-Notes, entry-feedback and Apuntes
