@@ -980,15 +980,16 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   [33206718849](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33206718849)
   deployed the application commit `d277208` successfully. See the 2026-08-28 Diario and page-workspace
   entries in [DECISIONS.md](DECISIONS.md).
-- **Today-action and open-entry density follow-up — verified locally; deployment pending.** Before
+- **Today-action and open-entry density follow-up — deployed.** Before
   today's first entry, Diario now offers only **Write today** and **Taller**; **New** appears once a
   Today entry exists beside **Continue**, where it represents a genuinely different action. Open
   pages restore filled role-colour section bands without counts, hide Notes actions with collapsed
   content, reuse the full hub-style folder tab on the page header, and use the compact app header
   without notebook totals over an entry. No storage, event, backup or schema shape changes. The
   complete serial suite passes 1,757/1,757 across 145 files, the production build transforms 2,144
-  modules, and `git diff --check` passes. See the final 2026-08-28 Diario and page-workspace entries
-  in [DECISIONS.md](DECISIONS.md).
+  modules, and `git diff --check` passes. Deployed from `main` at `dc696bc` through Pages run
+  [33212209269](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33212209269).
+  See the final 2026-08-28 Diario and page-workspace entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **11**. Before Dexie opens v11, schema-v1 through schema-v10 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
