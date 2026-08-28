@@ -92,11 +92,11 @@ export const JOURNAL_PROMPTS = Object.freeze([
   },
   {
     id: "narrate-perfect", category: "narrate", tense: "Indicative/Present Perfect",
-    es: "¿Qué has hecho hoy que nunca habías hecho antes?",
-    en: "What have you done today that you had never done before?",
-    easier: { es: "Escribe tres frases que empiecen con «Hoy he...».", en: "Write three sentences starting with \"Today I have...\"" },
-    harder: { es: "¿Qué has hecho hoy que nunca habías hecho, y qué habías hecho ya muchas veces? Compara.", en: "What have you done today that you had never done, and what had you already done many times? Compare." },
-    example: "Hoy he cocinado un plato que nunca había probado. He seguido la receta paso a paso y me ha salido bastante bien. También he aprendido que la paciencia importa más que la prisa.",
+    es: "¿Qué has hecho últimamente que nunca habías hecho antes?",
+    en: "What have you done lately that you had never done before?",
+    easier: { es: "Escribe tres frases que empiecen con «Últimamente he...».", en: "Write three sentences starting with \"Lately I have...\"" },
+    harder: { es: "¿Qué has hecho últimamente por primera vez y qué has seguido haciendo como siempre? Compara.", en: "What have you done lately for the first time, and what have you continued doing as always? Compare." },
+    example: "Últimamente he cocinado platos que nunca había preparado. He seguido las recetas con calma y me han salido bastante bien. También he aprendido que la paciencia importa más que la prisa.",
   },
   {
     id: "narrate-already", category: "narrate", tense: "Indicative/Past Perfect",
@@ -133,10 +133,10 @@ export const JOURNAL_PROMPTS = Object.freeze([
   },
   {
     id: "imagine-advice", category: "imagine", tense: "Indicative/Conditional",
-    es: "¿Qué le recomendarías a alguien que viviera tu día de hoy?",
-    en: "What would you recommend to someone living your day today?",
+    es: "¿Qué le recomendarías a alguien que tuviera que vivir un día como el tuyo?",
+    en: "What would you recommend to someone who had to live a day like yours?",
     easier: { es: "Completa: «Yo le recomendaría...».", en: "Complete: \"I would recommend...\"" },
-    harder: { es: "Dale tres consejos a alguien que fuera a vivir tu día: qué haría bien, qué evitaría y qué cambiaría.", en: "Give three pieces of advice to someone about to live your day: what they would do well, what they would avoid, and what they would change." },
+    harder: { es: "Dale tres consejos a alguien que tuviera que vivir un día como el tuyo: qué le convendría hacer, qué debería evitar y qué podría hacer de otra manera.", en: "Give three pieces of advice to someone who had to live a day like yours: what they should do, what they should avoid, and what they could do differently." },
     example: "Yo le recomendaría desayunar con calma y salir a caminar temprano. Le diría que la tarde sería larga, así que guardaría algo de energía para el final.",
   },
   {
@@ -234,7 +234,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     en: "What did you do today for someone, or what purpose drove what you did?",
     easier: { es: "Escribe dos frases sobre hoy: una con «por» y otra con «para».", en: "Write two sentences about today: one with \"por\" and one with \"para.\"" },
     harder: { es: "Cuenta un momento de hoy usando «por» y «para» al menos dos veces cada uno, con sentidos distintos.", en: "Tell one moment of today using \"por\" and \"para\" at least twice each, with different senses." },
-    example: "Hoy compré pan para el desayuno de mañana. Después pasé por casa de mi abuela por su cumpleaños y le llevé flores para alegrarle el día.",
+    example: "Hoy compré pan para el desayuno de mañana. Después pasé por la casa de mi abuela por su cumpleaños y le llevé flores para alegrarle el día.",
   },
   {
     id: "connect-pronouns", category: "connect", focus: "Object pronouns",
@@ -261,11 +261,11 @@ export const JOURNAL_PROMPTS = Object.freeze([
     example: "Me encanta el silencio de la casa por la mañana. Hoy me costó concentrarme después del almuerzo, y me faltó tiempo para todo lo que quería hacer.",
   },
   {
-    id: "connect-duration", category: "connect", focus: "Duration expressions",
-    es: "¿Desde cuándo haces algo que hiciste hoy? Usa «desde hace», «llevo» o «acabo de».",
-    en: "How long have you been doing something you did today? Use \"desde hace,\" \"llevo,\" or \"acabo de.\"",
-    easier: { es: "Completa: «Llevo mucho tiempo...» o «Acabo de...».", en: "Complete: \"Llevo mucho tiempo...\" or \"Acabo de...\"" },
-    harder: { es: "Cuenta tres costumbres tuyas con «desde hace», «llevo + gerundio» y «acabar de», y di cómo empezó cada una.", en: "Tell three habits of yours with \"desde hace,\" \"llevo + gerundio,\" and \"acabar de,\" and say how each one began." },
+    id: "connect-duration", category: "connect", focus: "Time and duration expressions",
+    es: "Habla de algo que haces desde hace tiempo y de algo que acabas de hacer. Usa «desde hace», «llevo» y «acabo de».",
+    en: "Talk about something you have done for a while and something you have just done. Use \"desde hace,\" \"llevo,\" and \"acabo de.\"",
+    easier: { es: "Completa: «Llevo mucho tiempo...» o «Acabo de...».", en: "Complete: \"I have been... for a long time\" or \"I just...\"" },
+    harder: { es: "Cuenta dos costumbres tuyas con «desde hace» y «llevo + gerundio»; después añade algo que acabas de hacer con «acabar de».", en: "Tell two of your habits with \"desde hace\" and \"llevo + gerundio\"; then add something you have just done with \"acabar de.\"" },
     example: "Llevo dos años escribiendo un poco cada noche. Estudio español desde hace seis meses, y hoy acabo de aprender una palabra nueva que quiero usar mañana.",
   },
   {

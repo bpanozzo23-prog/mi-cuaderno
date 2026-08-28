@@ -64,6 +64,26 @@ describe("journal prompt library", () => {
     }
   });
 
+  it("keeps the Mexican-Spanish and time-expression polish explicit", () => {
+    const byId = new Map(JOURNAL_PROMPTS.map((prompt) => [prompt.id, prompt]));
+    const presentPerfect = byId.get("narrate-perfect");
+    expect(presentPerfect.es).toContain("últimamente");
+    expect([presentPerfect.es, presentPerfect.easier.es, presentPerfect.harder.es, presentPerfect.example].join(" "))
+      .not.toMatch(/hoy he/i);
+
+    expect(byId.get("connect-porpara").example).toContain("por la casa de mi abuela");
+
+    const advice = byId.get("imagine-advice");
+    expect(advice.harder.es).toContain("qué le convendría hacer");
+    expect(advice.harder.es).not.toContain("qué haría bien");
+
+    const duration = byId.get("connect-duration");
+    expect(duration.focus).toBe("Time and duration expressions");
+    expect(duration.es).toMatch(/desde hace tiempo.*acabas de hacer/);
+    expect(duration.easier.en).toMatch(/I have been.*I just/);
+    expect(duration.harder.es).toMatch(/dos costumbres.*después añade algo que acabas de hacer/);
+  });
+
   it("keeps drill fields on skill prompts only", () => {
     for (const prompt of JOURNAL_PROMPTS) {
       if (SKILL_CATEGORY_IDS.includes(prompt.category)) continue;
