@@ -963,6 +963,24 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   live root returning HTTP 200 and serving `assets/index-58ZQclaZ.js`. See the 2026-08-28 Pages hub
   entries in [DECISIONS.md](DECISIONS.md).
 
+- **Diario daily cluster and Taller provenance — deployed.** Today now lives only in its shaded
+  anchor and same-day Continue cards, while the Timeline begins with earlier days and groups each
+  date under one heading. Reader and editor paths remain separate throughout the Today cluster.
+  Kept Taller entries use one shared Diario-purple hammer medallion plus their category and concise
+  prompt target, such as `Imagine · Present subjunctive`; ordinary entries remain unmarked and the
+  visible card does not say Taller. All of this is render-time organization over the existing pages,
+  prompts and practice events, with no schema, backup or stored-record change.
+- **Open-page hierarchy polish — deployed.** Page sections replace filled heading bands with their
+  role glyph, family-colour rule and aligned spine; the open-page header carries a narrow folder
+  edge; and populated Vocabulary actions move to the foot of the list. The leading page focus moves
+  into the existing actions menu, an unwritten Notes overview stays absent until requested and then
+  folds like a named section, and Grammar's Key idea becomes a collapsible sibling of its guide
+  sections rather than their apparent parent. The complete combined serial suite passes 1,756/1,756
+  across 145 files, the production build transforms 2,144 modules, and Pages run
+  [33206718849](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33206718849)
+  deployed the application commit `d277208` successfully. See the 2026-08-28 Diario and page-workspace
+  entries in [DECISIONS.md](DECISIONS.md).
+
 `SCHEMA_VERSION` is **11**. Before Dexie opens v11, schema-v1 through schema-v10 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
 relationship, composable-page, Grammar-hierarchy, Structured-Notes, entry-feedback and Apuntes
