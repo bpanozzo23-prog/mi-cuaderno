@@ -1348,3 +1348,7 @@ One line per meaningful choice: date — decision — reason.
 # Diario home copy polish (2026-08-27)
 
 - 2026-08-27 — **OWNER-REQUESTED: Diario drops its explanatory subtitle and shortens the populated Today actions to “Continue” and “New”.** — The screen is already familiar in daily use, and the shorter labels reduce visual noise on the phone without changing either action, navigation, storage, events, or schema.
+
+## Grammar and Diario accent swap (2026-08-27)
+
+- 2026-08-27 — **OWNER-REQUESTED: Grammar takes the warm-clay accent family and Diario takes the dusty-mauve family.** — This is a direct swap of the two existing token families: Grammar role badges and folder tabs become clay, while Diario identity surfaces become mauve. The centralized palette changes only appearance; layout, navigation, storage, events and schema are unchanged.

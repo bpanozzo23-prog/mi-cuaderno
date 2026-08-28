@@ -84,7 +84,7 @@
   --color-disabled: #B9C2D8;
 
   /* The desert-families palette (owner-picked 2026-08-10): the four page families retint to
-     southwest earth tones — marigold Vocabulary, sage Source, dusty-mauve Grammar — while Notes
+     southwest earth tones — marigold Vocabulary, sage Source, warm-clay Grammar — while Notes
      keeps its denim blue and the base layer (paper, ink, pen) stays untouched. Vocabulary is
      still the anchor trio: body close to paper, pastel tab, family outline. */
   --color-page-folder: #FFF9EC;
@@ -98,8 +98,8 @@
   --color-role-vocabulary-ink: #6E520E;
   --color-role-source-pale: #EBF1DF;
   --color-role-source-ink: #4E6132;
-  --color-role-grammar-pale: #F2EAF0;
-  --color-role-grammar-ink: #64425C;
+  --color-role-grammar-pale: #F7EADF;
+  --color-role-grammar-ink: #7C4A28;
 
   /* Each page type's folder wears its family — near-paper body, pastel tab, family outline
      (structure owner-picked 2026-08-08; desert values 2026-08-10). Vocabulary keeps the anchor
@@ -112,8 +112,8 @@
   --color-page-folder-source-tab: #DCE5CE;
   --color-page-folder-source-line: #8CA06B;
   --color-page-folder-grammar: #FDFBFC;
-  --color-page-folder-grammar-tab: #E7D7E1;
-  --color-page-folder-grammar-line: #AB86A4;
+  --color-page-folder-grammar-tab: #EBD3C4;
+  --color-page-folder-grammar-line: #B27049;
 
   /* Neutral page sections — Connections, Media links, Tags — are chrome, not a fifth family
      (owner-picked 2026-08-10, replacing the borrowed error red): a driftwood-gray band and spine
@@ -122,13 +122,13 @@
   --color-section-neutral-band: #F1EFE7;
   --color-section-neutral-spine: #B0AB99;
 
-  /* Diario's own accent (owner-picked 2026-08-10): warm clay for the diary-identity surfaces —
+  /* Diario's own accent (owner-swapped 2026-08-27): dusty mauve for the diary-identity surfaces —
      the Today card, the screen's icon accents, the writing-prompt card. Navigation and buttons on
-     those screens stay pen blue; clay marks the diary, not the app. */
-  --color-diario: #B27049;
-  --color-diario-pale: #F7EADF;
-  --color-diario-border: #EBD3C4;
-  --color-diario-ink: #7C4A28;
+     those screens stay pen blue; mauve marks the diary, not the app. */
+  --color-diario: #AB86A4;
+  --color-diario-pale: #F2EAF0;
+  --color-diario-border: #E7D7E1;
+  --color-diario-ink: #64425C;
 
   /* The activity calendar's five intensity steps (Phase 11), walking from an empty day to
      a busy one. Ink rather than the usual green: this is a page of the notebook filling up.
