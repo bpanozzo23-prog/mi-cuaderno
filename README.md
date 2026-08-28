@@ -910,7 +910,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   the live root returned HTTP 200 serving `assets/index-By1Oojz-.js`, the same bundle name as the
   local production build. See the 2026-08-26 entries in [DECISIONS.md](DECISIONS.md).
 
-- **Per-meaning Similar relationships v1 — implemented locally; not pushed or deployed.** New
+- **Per-meaning Similar relationships v1 — deployed.** New
   personal lexical Similar links can target one exact meaning on each entry, while existing links
   remain explicitly whole-entry. Suggestions preserve their already-derived meaning pair; manual
   linking and connection editing offer Individual meanings / Whole entry scope. Lexical Detail
@@ -919,10 +919,13 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   Schema v11 adds only the optional paired annotation IDs, with no IndexedDB index change and a
   no-op v10→v11 migration; backup validation enforces both endpoints and meaning deletion is
   blocked while anchored. Other relationships, Wander, Historia, Repaso, Gym, statistics and
-  automatic connections remain entry-wide and unchanged. The complete serial suite passes
-  1,747/1,747 across 145 files, the production build transforms 2,143 modules, and the seeded
+  automatic connections remain entry-wide and unchanged. A pre-commit review added two fixes
+  (the picker's scope panel closes after a whole-entry commit; a twin merge preserves an anchored
+  pair) with tests proven to fail against the reinstated bugs. The complete serial suite passes
+  1,750/1,750 across 145 files, the production build transforms 2,143 modules, and the seeded
   375×812 closeout verified exact creation, backlink orientation, protected deletion, exact recall,
-  44px controls, zero horizontal overflow and a clean console.
+  44px controls, zero horizontal overflow and a clean console. Deployed from `main` at `4432465`;
+  see the 2026-08-27 entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **11**. Before Dexie opens v11, schema-v1 through schema-v10 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
