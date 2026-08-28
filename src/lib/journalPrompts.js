@@ -13,8 +13,9 @@ export const JOURNAL_PROMPT_CATEGORIES = Object.freeze([
  *
  * Skill prompts may carry optional Taller drill data: `easier`/`harder` `{es, en}` tier
  * variants, a `tense` naming the targeted conjugation table key (exact `"Mood/Tense"` from
- * `conjugation.js`, so stats and endings scaffolds need no mapping), and `offersWords` marking
- * prompts where the drill may show a few of the owner's own saved words.
+ * `conjugation.js`, so stats and endings scaffolds need no mapping), a human-readable `focus`
+ * for non-tense grammar/vocabulary targets, and `offersWords` marking prompts where the drill
+ * may show a few of the owner's own saved words.
  *
  * Skill prompts also carry an `example`: a short Spanish-only model answer to the base prompt
  * (deliberately no English — reading it is comprehension practice). It is transient display
@@ -172,7 +173,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
   },
 
   {
-    id: "connect-person", category: "connect", offersWords: true,
+    id: "connect-person", category: "connect", focus: "Ser vs. estar", offersWords: true,
     es: "Describe a una persona que viste hoy: cómo es y cómo estaba.",
     en: "Describe a person you saw today: what they are like, and how they were.",
     easier: { es: "Describe a una persona de hoy con dos frases: una con «es» y otra con «estaba».", en: "Describe a person from today in two sentences: one with \"es\" and one with \"estaba.\"" },
@@ -180,7 +181,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     example: "Mi vecino es alto y un poco callado, pero es muy amable. Hoy estaba cansado porque había trabajado toda la noche, y aun así me saludó con una sonrisa.",
   },
   {
-    id: "connect-mood", category: "connect", offersWords: true,
+    id: "connect-mood", category: "connect", focus: "Descriptive vocabulary", offersWords: true,
     es: "Describe tu estado de ánimo ahora mismo sin usar «bien» ni «mal».",
     en: "Describe your mood right now without using \"bien\" or \"mal.\"",
     easier: { es: "Escribe una frase: «Ahora mismo estoy...» con una palabra nueva.", en: "Write one sentence: \"Right now I am...\" with a new word." },
@@ -188,7 +189,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     example: "Ahora mismo estoy tranquilo y un poco soñoliento. El día fue largo, pero me siento satisfecho, como cuando terminas una lista de tareas.",
   },
   {
-    id: "connect-opinion", category: "connect",
+    id: "connect-opinion", category: "connect", focus: "Connectors",
     es: "Escribe una opinión sobre algo de hoy usando «aunque», «sin embargo» o «por eso».",
     en: "Write an opinion about something today using \"although,\" \"however,\" or \"that's why.\"",
     easier: { es: "Escribe una opinión sobre hoy usando «pero».", en: "Write an opinion about today using \"but.\"" },
@@ -196,7 +197,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     example: "Aunque llovió toda la tarde, el día fue bueno. El tráfico estuvo terrible; sin embargo, llegué a tiempo, y por eso decidí no quejarme.",
   },
   {
-    id: "connect-porpara", category: "connect",
+    id: "connect-porpara", category: "connect", focus: "Por vs. para",
     es: "¿Qué hiciste hoy por alguien, o para qué hiciste lo que hiciste?",
     en: "What did you do today for someone, or what purpose drove what you did?",
     easier: { es: "Escribe dos frases sobre hoy: una con «por» y otra con «para».", en: "Write two sentences about today: one with \"por\" and one with \"para.\"" },
@@ -204,7 +205,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     example: "Hoy compré pan para el desayuno de mañana. Después pasé por casa de mi abuela por su cumpleaños y le llevé flores para alegrarle el día.",
   },
   {
-    id: "connect-pronouns", category: "connect",
+    id: "connect-pronouns", category: "connect", focus: "Object pronouns",
     es: "¿Quién te dijo, te dio o te pidió algo hoy? Cuéntalo.",
     en: "Who told you, gave you, or asked you for something today? Tell it.",
     easier: { es: "Completa: «Hoy alguien me dijo...».", en: "Complete: \"Today someone told me...\"" },
@@ -212,7 +213,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     example: "Hoy mi jefa me pidió un favor y se lo hice sin problema. Después mi hermano me mandó una foto del perro y yo le contesté con otra.",
   },
   {
-    id: "connect-compare", category: "connect", offersWords: true,
+    id: "connect-compare", category: "connect", focus: "Comparisons", offersWords: true,
     es: "Compara dos momentos de hoy usando «más... que», «menos... que» o «tan... como».",
     en: "Compare two moments of today using \"more... than,\" \"less... than,\" or \"as... as.\"",
     easier: { es: "Compara hoy con ayer en una frase con «más... que».", en: "Compare today with yesterday in one sentence with \"more... than.\"" },
@@ -220,7 +221,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     example: "La mañana fue más tranquila que la tarde. El almuerzo estuvo tan rico como el de ayer, y la reunión fue menos larga que la de la semana pasada.",
   },
   {
-    id: "connect-gustar", category: "connect", offersWords: true,
+    id: "connect-gustar", category: "connect", focus: "Gustar patterns", offersWords: true,
     es: "Cuenta tu día con «me encanta», «me molesta», «me cuesta» o «me falta».",
     en: "Tell your day with \"I love,\" \"it bothers me,\" \"it's hard for me,\" or \"I'm missing.\"",
     easier: { es: "Escribe dos frases: una con «me gusta» y otra con «me molesta».", en: "Write two sentences: one with \"I like\" and one with \"it bothers me.\"" },
@@ -228,7 +229,7 @@ export const JOURNAL_PROMPTS = Object.freeze([
     example: "Me encanta el silencio de la casa por la mañana. Hoy me costó concentrarme después del almuerzo, y me faltó tiempo para todo lo que quería hacer.",
   },
   {
-    id: "connect-duration", category: "connect",
+    id: "connect-duration", category: "connect", focus: "Duration expressions",
     es: "¿Desde cuándo haces algo que hiciste hoy? Usa «desde hace», «llevo» o «acabo de».",
     en: "How long have you been doing something you did today? Use \"desde hace,\" \"llevo,\" or \"acabo de.\"",
     easier: { es: "Completa: «Llevo mucho tiempo...» o «Acabo de...».", en: "Complete: \"Llevo mucho tiempo...\" or \"Acabo de...\"" },

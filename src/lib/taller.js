@@ -178,17 +178,51 @@ export function bodyWithIncludedPrompt(promptEs, body) {
   return `> ${promptEs}\n\n${body}`;
 }
 
+const PRACTICE_TARGET_LABELS = Object.freeze({
+  "Indicative/Preterite": "Indicative preterite",
+  "Indicative/Imperfect": "Indicative imperfect",
+  "Indicative/Present Perfect": "Present perfect",
+  "Indicative/Past Perfect": "Past perfect",
+  "Indicative/Conditional": "Conditional",
+  "Indicative/Future": "Future",
+  "Subjunctive/Present": "Present subjunctive",
+  "Subjunctive/Imperfect": "Imperfect subjunctive",
+  "Subjunctive/Past Perfect": "Past perfect subjunctive",
+});
+
+/** A concise timeline label for the grammar or language target a prompt practices. */
+export function practiceTargetLabel(prompt) {
+  if (!prompt) return null;
+  if (prompt.focus) return prompt.focus;
+  return PRACTICE_TARGET_LABELS[prompt.tense] || null;
+}
+
 /**
- * Timeline badges: kept practice events mapped page id → skill label, derived at render.
- * Entries whose events are gone, or that predate Taller, simply produce no badge.
+ * Timeline provenance: kept practice events mapped page id → category and practice target,
+ * derived at render by joining the stored prompt id to the shipped prompt library. Entries whose
+ * events are gone, or that predate Taller, simply produce no marker.
  */
-export function practiceSkillByPage(events) {
-  const labelById = new Map(JOURNAL_PROMPT_CATEGORIES.map((category) => [category.id, category.label]));
+export function practiceDetailsByPage(events) {
+  const categoryById = new Map(JOURNAL_PROMPT_CATEGORIES.map((category) => [category.id, category]));
+  const promptById = new Map(JOURNAL_PROMPTS.map((prompt) => [prompt.id, prompt]));
   const byPage = new Map();
   for (const event of practiceEvents(events)) {
     if (!event.itemKey) continue;
-    const label = labelById.get(event.metadata?.skill);
-    if (label) byPage.set(event.itemKey, label);
+    const category = categoryById.get(event.metadata?.skill);
+    if (!category) continue;
+    const prompt = promptById.get(event.metadata?.promptId);
+    byPage.set(event.itemKey, {
+      categoryId: category.id,
+      categoryLabel: category.label,
+      targetLabel: prompt?.category === category.id ? practiceTargetLabel(prompt) : null,
+    });
   }
   return byPage;
+}
+
+/** Kept for callers that need only the broad category label. */
+export function practiceSkillByPage(events) {
+  return new Map(
+    [...practiceDetailsByPage(events)].map(([pageId, details]) => [pageId, details.categoryLabel])
+  );
 }

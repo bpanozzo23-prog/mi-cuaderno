@@ -6,7 +6,9 @@ import {
   drawDrillPrompt,
   drawTema,
   endingsForTense,
+  practiceDetailsByPage,
   practiceSkillByPage,
+  practiceTargetLabel,
   promptHasTiers,
   promptTextForTier,
   proposeTallerSkill,
@@ -196,5 +198,38 @@ describe("practiceSkillByPage", () => {
     expect(byPage.get("user:p1")).toBe("Narrate");
     expect(byPage.has("user:p2")).toBe(false);
     expect(byPage.size).toBe(1);
+  });
+
+  it("derives category and target labels from a kept drill's prompt id", () => {
+    const events = [
+      event("practice_write", "user:imagine", "2026-08-19T10:00:00.000Z", {
+        skill: "imagine", promptId: "imagine-hope", kept: true,
+      }),
+      event("practice_write", "user:connect", "2026-08-19T11:00:00.000Z", {
+        skill: "connect", promptId: "connect-porpara", kept: true,
+      }),
+    ];
+
+    expect(practiceDetailsByPage(events)).toEqual(new Map([
+      ["user:imagine", {
+        categoryId: "imagine",
+        categoryLabel: "Imagine",
+        targetLabel: "Present subjunctive",
+      }],
+      ["user:connect", {
+        categoryId: "connect",
+        categoryLabel: "Connect",
+        targetLabel: "Por vs. para",
+      }],
+    ]));
+  });
+
+  it("names all current tense and non-tense practice targets concisely", () => {
+    expect(practiceTargetLabel(JOURNAL_PROMPTS.find((prompt) => prompt.id === "narrate-scene")))
+      .toBe("Indicative preterite");
+    expect(practiceTargetLabel(JOURNAL_PROMPTS.find((prompt) => prompt.id === "imagine-hope")))
+      .toBe("Present subjunctive");
+    expect(practiceTargetLabel(JOURNAL_PROMPTS.find((prompt) => prompt.id === "connect-porpara")))
+      .toBe("Por vs. para");
   });
 });

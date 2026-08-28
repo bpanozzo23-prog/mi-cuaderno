@@ -100,7 +100,7 @@ describe("JournalHome", () => {
     expect(onStart).toHaveBeenCalledWith({ date: "2026-08-03" });
   });
 
-  it("groups timeline entries under one date while preserving entry badges and tags", () => {
+  it("groups timeline entries under one date while showing derived Taller provenance and targets", () => {
     const first = moment("Morning", "2026-08-02", { tags: ["rutina"] });
     const second = moment("Evening", "2026-08-02");
     const event = {
@@ -109,7 +109,7 @@ describe("JournalHome", () => {
       itemKey: second.id,
       at: "2026-08-02T20:00:00.000Z",
       localDate: "2026-08-02",
-      metadata: { skill: "narrate", kept: true },
+      metadata: { skill: "narrate", promptId: "narrate-scene", kept: true },
     };
 
     render(
@@ -127,8 +127,12 @@ describe("JournalHome", () => {
     expect(within(timeline).getAllByText("Aug 2, 2026")).toHaveLength(1);
     expect(within(timeline).getByText("#rutina")).toBeTruthy();
     expect(within(timeline).getByText("Narrate")).toBeTruthy();
-    expect(within(timeline).getByRole("button", { name: "Open Morning" })).toBeTruthy();
-    expect(within(timeline).getByRole("button", { name: "Open Evening" })).toBeTruthy();
+    expect(within(timeline).getByText(/Indicative preterite/)).toBeTruthy();
+    expect(within(timeline).queryByText("Taller")).toBeNull();
+    const morningCard = within(timeline).getByRole("button", { name: "Open Morning" });
+    const eveningCard = within(timeline).getByRole("button", { name: "Open Evening" });
+    expect(morningCard.querySelector(".lucide-hammer")).toBeNull();
+    expect(eveningCard.querySelector(".lucide-hammer")).toBeTruthy();
   });
 
   it("shows current moments, keeps older years in an explicit archive, and searches every year", async () => {

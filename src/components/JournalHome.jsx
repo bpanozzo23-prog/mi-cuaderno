@@ -23,7 +23,7 @@ import {
   searchJournalEntries,
   todayJournalEntry,
 } from "../lib/journal.js";
-import { practiceSkillByPage } from "../lib/taller.js";
+import { practiceDetailsByPage } from "../lib/taller.js";
 import { markdownPreviewText, plainTextFromMarkdown } from "../lib/noteMarkdown.js";
 import TallerPanel from "./TallerPanel.jsx";
 
@@ -49,12 +49,11 @@ function entryHeading(entry) {
   return firstLine ? firstLine.slice(0, 64) : "Untitled moment";
 }
 
-function EntryCard({ entry, onOpen, eyebrow = null, badge = null, showDate = true }) {
+function EntryCard({ entry, onOpen, eyebrow = null, practice = null, showDate = true }) {
   const titled = Boolean(entry.title?.trim());
   const bodyPreview = markdownPreviewText(entry.body);
   const lead = eyebrow || (showDate ? journalDateLabel(entry.pageDate) : "");
-  const meta = [lead, badge].filter(Boolean).join(" · ");
-  const hasMeta = Boolean(meta || entry.tags?.length > 0);
+  const hasMeta = Boolean(lead || practice || entry.tags?.length > 0);
   return (
     <button
       type="button"
@@ -63,20 +62,47 @@ function EntryCard({ entry, onOpen, eyebrow = null, badge = null, showDate = tru
       className="w-full text-left"
     >
       <Card className="active:opacity-80">
-        {hasMeta && (
-          <div className="flex items-center justify-between gap-2 text-[11px]" style={{ color: C.mut, fontFamily: MONO }}>
-            <span>{meta}</span>
-            {entry.tags?.length > 0 && <span className="truncate">#{entry.tags[0]}</span>}
+        <div className={practice ? "flex items-start gap-3" : ""}>
+          {practice && (
+            <span
+              className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border"
+              style={{ background: C.diarioPale, borderColor: C.diarioBorder, color: C.diarioInk }}
+              aria-hidden="true"
+            >
+              <Hammer size={18} />
+            </span>
+          )}
+          <div className="min-w-0 flex-1">
+            {hasMeta && (
+              <div className="flex items-center justify-between gap-2 text-[11px]" style={{ color: C.mut, fontFamily: MONO }}>
+                <span className="min-w-0 truncate">
+                  {lead && <span>{lead}</span>}
+                  {lead && practice && <span aria-hidden="true"> · </span>}
+                  {practice && (
+                    <>
+                      <span
+                        className="font-semibold uppercase"
+                        style={{ color: C.diarioInk, letterSpacing: "0.06em" }}
+                      >
+                        {practice.categoryLabel}
+                      </span>
+                      {practice.targetLabel && <span> · {practice.targetLabel}</span>}
+                    </>
+                  )}
+                </span>
+                {entry.tags?.length > 0 && <span className="max-w-[35%] shrink-0 truncate">#{entry.tags[0]}</span>}
+              </div>
+            )}
+            <div className={`${titled ? "font-semibold" : "text-sm line-clamp-2"} ${hasMeta ? "mt-1" : ""}`} style={{ color: C.ink, fontFamily: SERIF }}>
+              {entryHeading(entry)}
+            </div>
+            {titled && bodyPreview && (
+              <div className="mt-1 text-sm line-clamp-2" style={{ color: C.mut }}>
+                {bodyPreview}
+              </div>
+            )}
           </div>
-        )}
-        <div className={`${titled ? "font-semibold" : "text-sm line-clamp-2"} ${hasMeta ? "mt-1" : ""}`} style={{ color: C.ink, fontFamily: SERIF }}>
-          {entryHeading(entry)}
         </div>
-        {titled && bodyPreview && (
-          <div className="mt-1 text-sm line-clamp-2" style={{ color: C.mut }}>
-            {bodyPreview}
-          </div>
-        )}
       </Card>
     </button>
   );
@@ -96,7 +122,7 @@ export default function JournalHome({
   const [query, setQuery] = useState("");
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [tallerOpen, setTallerOpen] = useState(false);
-  const skillByPage = useMemo(() => practiceSkillByPage(events), [events]);
+  const practiceByPage = useMemo(() => practiceDetailsByPage(events), [events]);
   const todayEntry = useMemo(() => todayJournalEntry(entries, today), [entries, today]);
   const continuations = useMemo(
     () => sameDayJournalContinuations(entries, todayEntry),
@@ -235,7 +261,7 @@ export default function JournalHome({
         <section aria-label="Journal search results" className="mt-5">
           <h2 className="mb-2 text-xs font-semibold uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>Search</h2>
           {results.length > 0 ? (
-            <div className="space-y-2.5">{results.map((entry) => <EntryCard key={entry.id} entry={entry} onOpen={onOpen} badge={skillByPage.get(entry.id)} />)}</div>
+            <div className="space-y-2.5">{results.map((entry) => <EntryCard key={entry.id} entry={entry} onOpen={onOpen} practice={practiceByPage.get(entry.id)} />)}</div>
           ) : (
             <div className="py-7 text-center text-sm italic" style={{ color: C.mut }}>No moments match that.</div>
           )}
@@ -257,7 +283,7 @@ export default function JournalHome({
                           key={entry.id}
                           entry={entry}
                           onOpen={onOpen}
-                          badge={skillByPage.get(entry.id)}
+                          practice={practiceByPage.get(entry.id)}
                           showDate={false}
                         />
                       ))}
@@ -287,7 +313,7 @@ export default function JournalHome({
                   {archive.map((group) => (
                     <div key={group.year}>
                       <h3 className="mb-2 text-sm font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>{group.year}</h3>
-                      <div className="space-y-2.5">{group.entries.map((entry) => <EntryCard key={entry.id} entry={entry} onOpen={onOpen} badge={skillByPage.get(entry.id)} />)}</div>
+                      <div className="space-y-2.5">{group.entries.map((entry) => <EntryCard key={entry.id} entry={entry} onOpen={onOpen} practice={practiceByPage.get(entry.id)} />)}</div>
                     </div>
                   ))}
                 </div>

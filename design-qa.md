@@ -39,3 +39,50 @@
 - [P3] If the owner wants a still closer ornamental match later, add purpose-made raster stationery accents behind Recent and a ticket/bookmark treatment behind Wander. The current versions keep the same hierarchy with less decorative density.
 
 final result: passed
+
+---
+
+# Diario Taller provenance — design QA
+
+## Evidence
+
+- Reference: `C:\Users\bpano\.codex\generated_images\01a0467f-78d0-7693-a633-305781a2e06c\exec-d6cb2404-3bca-4f90-b294-3a0ad23928c8.png`
+- Rendered implementation: `C:\Users\bpano\.codex\visualizations\2026\08\28\01a0467f-78d0-7693-a633-305781a2e06c\diario-taller-implementation-cdp.png`
+- Side-by-side comparison: `C:\Users\bpano\.codex\visualizations\2026\08\28\01a0467f-78d0-7693-a633-305781a2e06c\diario-taller-comparison-cdp.png`
+- Viewport: 375 × 812 CSS pixels at 2× device scale.
+- Fixture state: a normal journal entry plus kept Imagine and Connect Taller entries on August 27, 2026.
+
+The reference was normalized to the rendered implementation's 750-pixel screenshot width for comparison. The browser's ordinary screenshot path produced a compositor-scaled capture, so the final implementation evidence was recaptured through Chrome DevTools at the exact viewport and device scale.
+
+## Comparison
+
+### Overall hierarchy
+
+- Passed. Taller provenance remains secondary to the entry text and does not compete with the shared date heading.
+- Passed. Ordinary journal entries remain visually unmarked, so the treatment communicates provenance without adding noise to every card.
+
+### Marker and color
+
+- Passed. Each Taller entry has a 40 × 40 pixel circular hammer medallion with the established pale Diario fill, border, and ink.
+- Passed. Imagine and Connect use the same Diario-purple category color (`rgb(100, 66, 92)`); category color is not being used as a legend.
+- Passed. The hammer, category name, and target provide redundant non-color cues.
+
+### Content and density
+
+- Passed. The cards show `IMAGINE · Present subjunctive` and `CONNECT · Por vs. para` without displaying the word `Taller`.
+- Passed. The target is derived from the original prompt metadata and remains concise enough for the phone layout.
+- Passed. The implementation keeps the established production card spacing rather than copying the image-generated mock's exaggerated vertical rhythm.
+
+### Responsive and interaction checks
+
+- Passed. Document, body, and app content widths remain within the 375-pixel viewport with no horizontal overflow.
+- Passed. The entire card remains the entry-opening control; the decorative hammer is hidden from the accessibility tree.
+- Passed. Tags retain a bounded width and both the provenance line and tag truncate safely when space is constrained.
+
+## Findings
+
+No actionable P0, P1, or P2 differences remain. The only visual difference worth noting is the reference mock's larger card padding; preserving the app's current compact rhythm is intentional and keeps more of the timeline visible on a phone.
+
+## Result
+
+Passed.

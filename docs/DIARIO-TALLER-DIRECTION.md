@@ -123,9 +123,14 @@ implementation:
 
 ## Timeline presentation
 
-Kept practice entries get a **quiet derived badge** in the Diario timeline — the skill name in
-muted text, derived at render from the practice event, nothing stored on the page. Entries whose
-events are gone (or that predate Taller) simply show no badge. No filter, no separate timeline;
+~~Kept practice entries get a quiet derived badge in the Diario timeline — the skill name in
+muted text.~~ **Amended 2026-08-28:** kept practice entries use one shared Diario-purple hammer
+medallion plus the category and, when the prompt declares one, its concise tense or language focus
+(`Imagine · Present subjunctive`, `Connect · Por vs. para`). The word Taller stays off the visible
+card: the hammer carries provenance, the category and target carry meaning, and every Taller
+category uses the same purple rather than introducing a color legend. All of it is derived at
+render from the practice event and shipped prompt library; nothing is stored on the page. Entries whose
+events are gone (or that predate Taller) simply show no marker. No filter, no separate timeline;
 the contingent separate classroom space stays a captured idea gated on real mixed use chafing.
 
 ## Explicit non-goals for v1
