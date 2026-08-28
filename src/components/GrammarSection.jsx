@@ -17,7 +17,6 @@ import {
   canonicalGrammarSections,
   grammarSectionBreadcrumb,
   grammarSectionHierarchy,
-  grammarStructureCounts,
   newGrammarSection,
   pageStructureNameKey,
 } from "../lib/pageKinds.js";
@@ -875,7 +874,6 @@ export default function GrammarSection({
   const itemsById = useMemo(() => new Map((items || []).map((item) => [item.id, item])), [items]);
   const captureOptions = useMemo(() => sourceCaptureOptions(page, items), [page, items]);
   const hierarchy = useMemo(() => grammarSectionHierarchy(sections), [sections]);
-  const structureCounts = grammarStructureCounts(sections);
   const hasContent = Boolean(grammar?.keyIdea?.trim()) || sections.some(grammarSectionHasContent);
 
   useEffect(() => {
@@ -890,18 +888,6 @@ export default function GrammarSection({
   async function changed() {
     await onChanged?.();
   }
-
-  const structureSummary = [
-    ...(structureCounts.sections
-      ? [`${structureCounts.sections} ${structureCounts.sections === 1 ? "section" : "sections"}`]
-      : []),
-    ...(structureCounts.subsections
-      ? [`${structureCounts.subsections} ${structureCounts.subsections === 1 ? "subsection" : "subsections"}`]
-      : []),
-    ...(structureCounts.examples
-      ? [`${structureCounts.examples} ${structureCounts.examples === 1 ? "example" : "examples"}`]
-      : []),
-  ].join(" · ");
 
   function openSectionEditor(section) {
     setSectionDraft(section);
@@ -1107,9 +1093,6 @@ export default function GrammarSection({
       id="page-grammar"
       family="grammar"
       title="Grammar guide"
-      summary={structureSummary || (grammar?.keyIdea?.trim() ? "Key idea" : "Empty")}
-      /* Three levels of counts beside a two-word title overflow 375px; Grammar keeps its own line. */
-      summaryLayout="block"
       defaultCollapsed={!hasContent}
       resetKey={page.id}
       actions={({ collapsed }) => !organizing && (

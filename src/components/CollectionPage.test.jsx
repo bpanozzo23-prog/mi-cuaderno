@@ -112,8 +112,11 @@ describe("Collection reading and practice", () => {
     const fixture = await collectionFixture();
     renderDetail(fixture.page, await allItems());
 
-    expect(screen.getByText("Vocabulary collection")).toBeTruthy();
-    expect(screen.getByText("3 items · 2 groups")).toBeTruthy();
+    /* The page's role used to be a kicker pill above the title and a count beside the section
+       heading; since 2026-08-28 the folder tab carries it, and its label is what reaches assistive
+       technology. The per-group counts below are where the numbers live now. */
+    expect(screen.getByText("Vocabulary", { selector: ".sr-only" })).toBeTruthy();
+    expect(screen.queryByText("3 items · 2 groups")).toBeNull();
     expect(screen.getByRole("heading", { name: "Questions" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Responses" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Expand group Responses" }).getAttribute("aria-expanded")).toBe("false");

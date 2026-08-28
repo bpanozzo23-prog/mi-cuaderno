@@ -750,7 +750,6 @@ export default function SourceSection({
       id="page-source"
       family="source"
       title="Source notebook"
-      summary={empty ? "Empty" : `${captures.length} ${captures.length === 1 ? "capture" : "captures"}`}
       defaultCollapsed={empty}
       resetKey={page.id}
       actions={({ collapsed }) => !organizing && !captureDraft && (

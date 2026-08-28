@@ -148,7 +148,9 @@ describe("Structured Notes", () => {
     await user.type(screen.getByRole("textbox", { name: "Notes section body" }), "> Mostly conversational.");
     await user.click(screen.getByRole("button", { name: "Save section" }));
 
-    await waitFor(() => expect(screen.getByText("1 section · 1 subsection")).toBeTruthy());
+    /* The heading carries no counts since 2026-08-28, so what proves the subsection landed is the
+       subsection itself. */
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Register" })).toBeTruthy());
     const stored = await getItem(page.id);
     expect(stored.noteSections).toHaveLength(2);
     expect(stored.noteSections[1].parentId).toBe(stored.noteSections[0].id);
@@ -254,7 +256,9 @@ describe("lexical Structured Notes", () => {
     await user.type(screen.getByRole("textbox", { name: "Notes section body" }), "Mostly informal.");
     await user.click(screen.getByRole("button", { name: "Save section" }));
 
-    await waitFor(() => expect(screen.getByText("1 section · 1 subsection")).toBeTruthy());
+    /* The heading carries no counts since 2026-08-28, so what proves the subsection landed is the
+       subsection itself. */
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Register" })).toBeTruthy());
     const saved = await getItem(item.id);
     expect(saved.notes).toBe("General note kept exactly.\n");
     expect(saved.noteSections).toHaveLength(2);

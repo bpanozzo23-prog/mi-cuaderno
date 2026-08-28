@@ -546,7 +546,6 @@ describe("GrammarSection organization", () => {
     const user = userEvent.setup();
     const { container } = render(<GrammarSection {...baseProps({ page: hierarchicalPage() })} />);
 
-    expect(screen.getByText("2 sections · 1 subsection · 2 examples")).toBeTruthy();
     const childHeading = screen.getByRole("heading", { name: "SPOCK" });
     const childNode = childHeading.closest(".grammar-guide-subsection");
     expect(childNode).toBeTruthy();
@@ -561,7 +560,8 @@ describe("GrammarSection organization", () => {
     expect(screen.getByRole("button", { name: "Expand grammar subsection SPOCK" }).getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("summarizes named empty structure instead of hiding it behind Empty", () => {
+  it("keeps named empty structure real instead of writing it off as Empty", async () => {
+    const user = userEvent.setup();
     const emptyStructure = hierarchicalPage();
     emptyStructure.grammar = {
       ...emptyStructure.grammar,
@@ -576,9 +576,16 @@ describe("GrammarSection organization", () => {
 
     render(<GrammarSection {...baseProps({ page: emptyStructure })} />);
 
-    expect(screen.getByText("2 sections · 1 subsection")).toBeTruthy();
-    expect(screen.queryByText(/0 examples/)).toBeNull();
-    expect(screen.getByRole("button", { name: "Expand Grammar guide section" })).toBeTruthy();
+    /* The heading stopped carrying counts on 2026-08-28, so what this now pins is the behaviour
+       the counts were standing in for: named-but-empty structure is still real structure. The
+       section starts collapsed because nothing in it has content, and its named sections are
+       there once it is opened rather than being written off as "Empty". */
+    const expand = screen.getByRole("button", { name: "Expand Grammar guide section" });
+    expect(expand).toBeTruthy();
+    await user.click(expand);
+    expect(screen.getByRole("heading", { name: "Formation" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Comparison" })).toBeTruthy();
+    expect(screen.queryByText(/Empty/)).toBeNull();
   });
 
   it("adds a subsection from a root and never offers a third level", async () => {

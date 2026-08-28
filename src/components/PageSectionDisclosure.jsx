@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { C, MONO, SERIF } from "../theme.jsx";
+import { C, SERIF } from "../theme.jsx";
 import { sectionFamily } from "./pageRoleMeta.js";
 
 /**
  * The spine's geometry, in one place so the line and the nodes hung on it cannot drift apart.
- * The line now sits on the heading's own left edge (owner-picked 2026-08-28), which is where the
- * rule under the heading starts too, so a section reads as one bracket down the page. It was
- * inset 10px while the heading wore a filled band and had no left edge of its own to meet.
+ * The line sits on the heading band's own left edge (owner-requested 2026-08-28), so the band and
+ * everything under it share one left margin and the section reads as a single bracket down the
+ * page. It was inset 10px before that, which left the spine floating inside the band above it.
  * The gap between line and content is unchanged.
  */
 const SPINE_LEFT = "ml-0";
@@ -39,21 +39,20 @@ export function SectionSpineNode({ className = "top-[10px]", family = "notes" })
  * Collapse is visit-local presentation state; children stay mounted so an in-progress editor is
  * not discarded if the owner briefly closes its section.
  *
- * The heading is a glyph, the family's ink and a rule in the family's colour — the filled band it
- * wore until 2026-08-28 is gone (owner-picked). Four filled bars down a page read as four
- * containers competing with their own contents; the rule says the same thing and lets the sections
- * sit closer together, which is why `CollectionPage` now spaces them 36px apart rather than 48px.
+ * The heading is a filled band in the family's colour carrying its glyph and its name, and nothing
+ * else (owner-picked 2026-08-28). It briefly wore a rule instead, and briefly carried the section's
+ * counts beside the title; the owner missed the band and did not miss the counts, so both went back
+ * the way they came. What a section holds is legible once it is open, and the sections sit 48px
+ * apart so the bands read as chapter markers rather than as a stack of boxes.
  *
  * `empty` quiets the heading while the section has nothing in it (owner-picked 2026-08-10):
- * the glyph's fill drains to a dashed outline, the rule goes dashed with it and the title drops to
- * muted grey, so a section with no content stops competing with the ones that have some. The
- * family ink returns with the first item — the quiet state deliberately uses none.
+ * the family fill drains to a dashed outline and the title drops to muted grey, so a section with
+ * no content stops competing with the ones that have some. The family ink returns with the first
+ * item — the quiet state deliberately uses none.
  */
 export default function PageSectionDisclosure({
   id,
   title,
-  summary = "",
-  summaryLayout = "inline",
   icon = null,
   defaultCollapsed = false,
   resetKey,
@@ -64,14 +63,6 @@ export default function PageSectionDisclosure({
 }) {
   const colors = sectionFamily(family);
   const Glyph = icon || colors.icon;
-  /* Inline is the rule: a count belongs on the title's own line, which saves every section a
-     second one (owner-picked 2026-08-28). Source and Grammar opt out because what sits there is
-     identity and structure rather than a count — "Book · Gabriel García Márquez", three levels of
-     guide counts — and neither survives being squeezed beside the title at 375px. */
-  const blockSummary = Boolean(summary) && summaryLayout === "block";
-  const inlineSummary = Boolean(summary) && !blockSummary;
-  /* The trailing sections recede on a hairline; the four typed families get the 2px family rule. */
-  const thinRule = family === "neutral";
   const [localState, setLocalState] = useState(() => ({ resetKey, collapsed: null }));
   const localCollapsed = Object.is(localState.resetKey, resetKey) ? localState.collapsed : null;
   const collapsed = localCollapsed ?? defaultCollapsed;
@@ -94,8 +85,8 @@ export default function PageSectionDisclosure({
   return (
     <section id={id} aria-labelledby={headingId}>
       <div
-        className={`flex flex-wrap justify-between gap-2 pb-[7px] ${blockSummary ? "items-start" : "items-center"} ${thinRule ? "border-b" : "border-b-2"}${empty ? " border-dashed" : ""}`}
-        style={{ borderColor: colors.rule }}
+        className={`flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3 py-2${empty ? " border-dashed" : ""}`}
+        style={{ background: empty ? "transparent" : colors.band, borderColor: colors.line }}
       >
         <button
           type="button"
@@ -103,33 +94,19 @@ export default function PageSectionDisclosure({
           aria-expanded={!collapsed}
           aria-controls={contentId}
           onClick={() => setCollapsed((closed) => !closed)}
-          className={`min-h-11 min-w-40 flex-1 rounded-lg text-left flex gap-2.5 ${blockSummary ? "items-start" : "items-center"}`}
+          className="min-h-11 min-w-40 flex-1 rounded-lg px-1 text-left flex items-center gap-2.5"
         >
-          <span
-            aria-hidden="true"
-            className={`flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[7px] border${empty ? " border-dashed" : ""}${blockSummary ? " mt-px" : ""}`}
-            style={{
-              background: empty ? "transparent" : colors.band,
-              borderColor: colors.rule,
-              color: empty ? C.mut : colors.ink,
-            }}
-          >
-            {Glyph && <Glyph size={15} />}
-          </span>
-          <span className="shrink-0">
-            <h2 id={headingId} className={`break-words text-lg leading-tight ${empty ? "font-normal" : "font-bold"}`} style={{ color: empty ? C.mut : colors.ink, fontFamily: SERIF }}>
-              {title}
-            </h2>
-            {blockSummary && <span className="mt-0.5 block break-words text-xs" style={{ color: C.mut }}>{summary}</span>}
-          </span>
-          <span className={`ml-auto flex min-w-0 items-center gap-2 ${blockSummary ? "mt-1.5" : ""}`}>
-            {inlineSummary && (
-              <span className="truncate text-[11px]" style={{ color: C.mut, fontFamily: MONO }}>{summary}</span>
-            )}
-            {collapsed
-              ? <ChevronRight size={16} className="shrink-0" style={{ color: C.mut }} />
-              : <ChevronDown size={16} className="shrink-0" style={{ color: C.mut }} />}
-          </span>
+          {collapsed
+            ? <ChevronRight size={17} className="shrink-0" style={{ color: C.mut }} />
+            : <ChevronDown size={17} className="shrink-0" style={{ color: C.mut }} />}
+          {Glyph && (
+            <span aria-hidden="true" className="flex shrink-0 items-center" style={{ color: empty ? C.mut : colors.ink }}>
+              <Glyph size={16} />
+            </span>
+          )}
+          <h2 id={headingId} className={`min-w-0 break-words text-lg leading-tight ${empty ? "font-normal" : "font-bold"}`} style={{ color: empty ? C.mut : colors.ink, fontFamily: SERIF }}>
+            {title}
+          </h2>
         </button>
         {actionContent && (
           <div className="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2" onClickCapture={() => setCollapsed(false)}>

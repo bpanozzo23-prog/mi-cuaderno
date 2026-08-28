@@ -41,7 +41,8 @@ import GrammarSection from "./GrammarSection.jsx";
 import AddSheet from "./AddSheet.jsx";
 import PageCustomizeSheet from "./PageCustomizeSheet.jsx";
 import PageSectionDisclosure, { SectionSpineNode } from "./PageSectionDisclosure.jsx";
-import { PAGE_ROLE_META, pageFolderColors, sectionFamily } from "./pageRoleMeta.js";
+import PageFolderTab from "./PageFolderTab.jsx";
+import { pageFolderStyle, primaryPageRole, sectionFamily } from "./pageRoleMeta.js";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
 import StructuredNotesSection from "./StructuredNotesSection.jsx";
 import PracticeSession from "./PracticeSession.jsx";
@@ -59,13 +60,6 @@ const FOCUS_LABELS = {
   [PAGE_FOCUSES.vocabulary]: "Vocabulary",
   [PAGE_FOCUSES.source]: "Source",
   [PAGE_FOCUSES.grammar]: "Grammar",
-};
-
-const FOCUS_HEADINGS = {
-  [PAGE_FOCUSES.notes]: "Notes page",
-  [PAGE_FOCUSES.vocabulary]: "Vocabulary collection",
-  [PAGE_FOCUSES.source]: "Source notebook",
-  [PAGE_FOCUSES.grammar]: "Grammar guide",
 };
 
 const SECTION_ORDERS = {
@@ -310,7 +304,6 @@ function ConnectionsSection({
       family="neutral"
       icon={Link2}
       title="Connections"
-      summary={empty ? "" : `${connectionCount} ${connectionCount === 1 ? "connection" : "connections"}`}
       defaultCollapsed={empty}
       empty={empty}
       resetKey={item.id}
@@ -472,7 +465,6 @@ function PageMediaSection({ page, items, onOpen, onChanged }) {
       family="neutral"
       icon={ExternalLink}
       title="Media links"
-      summary={empty ? "" : `${page.mediaLinks.length} ${page.mediaLinks.length === 1 ? "link" : "links"}`}
       defaultCollapsed={empty}
       empty={empty}
       resetKey={page.id}
@@ -667,7 +659,6 @@ function VocabularySection({
       id="page-vocabulary"
       family="vocabulary"
       title="Vocabulary"
-      summary={`${collection.itemCount} ${collection.itemCount === 1 ? "item" : "items"} · ${collection.groupCount} ${collection.groupCount === 1 ? "group" : "groups"}`}
       defaultCollapsed={collection.itemCount === 0}
       resetKey={page.id}
       actions={({ collapsed }) => collection.itemCount === 0 ? (
@@ -854,18 +845,11 @@ export default function CollectionPage({
   const focusChoices = useMemo(() => availableFocusChoices(item), [item]);
   const roles = useMemo(() => enabledPageRoles(item), [item]);
   const sectionOrder = SECTION_ORDERS[item.pageFocus] || SECTION_ORDERS[PAGE_FOCUSES.notes];
-  /* The kicker wears its focus family's ink and glyph, same fallback as the heading text. It was a
-     filled pill until 2026-08-28; the folder edge beside it now carries the colour, so the pill was
-     saying the family a second time. */
-  const kickerMeta = PAGE_ROLE_META[item.pageFocus] || PAGE_ROLE_META[PAGE_FOCUSES.notes];
-  const KickerIcon = kickerMeta.icon;
   /* The actions menu is an uncontrolled <details>, which stays open after a click. Every other
      item in it unmounts the header (a sheet, a mode change, a delete); the focus choice leaves it
      mounted, so that one has to close the menu itself. */
   const actionsRef = useRef(null);
   const closeActions = () => { if (actionsRef.current) actionsRef.current.open = false; };
-  /* The same trio the page's folder card wears in the hub — only the outline is used here. */
-  const headerFolder = pageFolderColors(item.pageFocus);
 
   useEffect(() => {
     setMode("read");
@@ -1048,24 +1032,18 @@ export default function CollectionPage({
         <>
           {/* The open page wears its folder's own edge (owner-picked 2026-08-28): the die-cut
               silhouette and seven pixels of the family's outline, so the screen continues the card
-              that was tapped in the hub instead of replacing it with a plain white one. Seven
-              rather than the hub card's 38px tab, which would have cost the title that much width
-              at 375px; the glyph moves in beside the family's name instead. */}
+              that was tapped in the hub instead of replacing it with a plain white one. It wears
+              the hub card's own declarations — `.page-folder-card`, `pageFolderStyle` and
+              `PageFolderTab` — rather than a second copy of them, so the two surfaces cannot drift
+              the way they had before the 2026-08-08 folder rule. The full 38px tab carries the
+              glyph, which is why the kicker line it used to need is gone. */}
           <div
-            className="p-4"
-            style={{
-              background: C.card,
-              border: `1px solid ${headerFolder.line}`,
-              borderLeftWidth: 7,
-              borderRadius: "4px 15px 15px 4px",
-            }}
+            className="page-folder-card border py-4 pl-[54px] pr-3"
+            style={pageFolderStyle(primaryPageRole(item) || item.pageFocus)}
           >
+            <PageFolderTab role={primaryPageRole(item) || item.pageFocus} />
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <div className="mb-1.5 flex items-center gap-[7px] text-[11px] uppercase" style={{ color: kickerMeta.color, fontFamily: MONO, letterSpacing: "0.1em" }}>
-                  <KickerIcon size={15} />
-                  {FOCUS_HEADINGS[item.pageFocus] || "Notes page"}
-                </div>
                 <h1 className="break-words text-2xl" style={{ color: C.ink, fontFamily: SERIF, fontWeight: 700 }}><span>{item.title || "Untitled page"}</span></h1>
                 {/* Three stacked mono lines became one wrapped run: the same facts, four fewer
                     leading gaps, and the header stops out-measuring the content below it. */}
@@ -1153,7 +1131,7 @@ export default function CollectionPage({
             </div>
           </div>
 
-          <div className="mt-9">
+          <div className="mt-12">
             <StructuredNotesSection
               page={item}
               items={items}
@@ -1163,7 +1141,7 @@ export default function CollectionPage({
             />
           </div>
 
-          <div className="mt-9 space-y-9">
+          <div className="mt-12 space-y-12">
             {sectionOrder.map((sectionKind) => {
               if (sectionKind === "source" && item.source?.enabled) {
                 return (
@@ -1225,9 +1203,9 @@ export default function CollectionPage({
 
           {/* The page's trailing sections sit apart from its content, behind a short hairline,
               and tuck close to one another (owner-picked 2026-08-10). */}
-          <hr aria-hidden="true" className="mx-auto mt-10 w-[120px] border-t" style={{ borderColor: C.line }} />
+          <hr aria-hidden="true" className="mx-auto mt-11 w-[120px] border-t" style={{ borderColor: C.line }} />
 
-          <div className="mt-8">
+          <div className="mt-11">
             <ConnectionsSection
               item={item}
               items={items}
@@ -1248,7 +1226,6 @@ export default function CollectionPage({
                 family="neutral"
                 icon={TagIcon}
                 title="Tags"
-                summary={`${item.tags.length} ${item.tags.length === 1 ? "tag" : "tags"}`}
                 resetKey={item.id}
               >
                 <div className="mt-3 flex flex-wrap gap-1.5">

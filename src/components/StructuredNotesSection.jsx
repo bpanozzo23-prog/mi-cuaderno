@@ -16,7 +16,6 @@ import {
   canonicalNoteSections,
   hasEnabledStructuredCapability,
   noteSectionHierarchy,
-  noteStructureCounts,
   newNoteSection,
   pageStructureNameKey,
 } from "../lib/pageKinds.js";
@@ -370,7 +369,6 @@ export default function StructuredNotesSection({
   const lexical = owner?.type === "lexical";
   const sections = owner?.noteSections || [];
   const hierarchy = useMemo(() => noteSectionHierarchy(sections), [sections]);
-  const counts = noteStructureCounts(sections);
   const [sectionDraft, setSectionDraft] = useState(null);
   const [organizing, setOrganizing] = useState(false);
   const [overviewEditing, setOverviewEditing] = useState(false);
@@ -391,10 +389,6 @@ export default function StructuredNotesSection({
 
   if (!owner || (owner.type !== "page" && owner.type !== "lexical")) return null;
 
-  const summary = [
-    ...(counts.sections ? [`${counts.sections} ${counts.sections === 1 ? "section" : "sections"}`] : []),
-    ...(counts.subsections ? [`${counts.subsections} ${counts.subsections === 1 ? "subsection" : "subsections"}`] : []),
-  ].join(" · ") || (hasOverview ? (lexical ? "General note" : "Overview") : "Empty");
   const movesToJournal = !lexical && Boolean(owner.pageDate)
     && sections.length === 1
     && !hasEnabledStructuredCapability(owner);
@@ -509,7 +503,6 @@ export default function StructuredNotesSection({
       id={lexical ? "lexical-notes" : "page-notes"}
       family="notes"
       title="Notes"
-      summary={summary}
       defaultCollapsed={lexical ? false : !hasContent}
       resetKey={owner.id}
       /* Notes was the one section that kept its buttons while collapsed (owner-picked 2026-08-28).
