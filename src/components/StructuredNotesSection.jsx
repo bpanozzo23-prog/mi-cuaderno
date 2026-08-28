@@ -512,9 +512,14 @@ export default function StructuredNotesSection({
       summary={summary}
       defaultCollapsed={lexical ? false : !hasContent}
       resetKey={owner.id}
-      actions={!organizing ? (
+      /* Notes was the one section that kept its buttons while collapsed (owner-picked 2026-08-28).
+         Source, Grammar and Vocabulary all take the collapsed flag and follow the same rule, which
+         this now matches: Organize goes away with the content it organizes, and the add button
+         survives collapse only while the section is empty — an empty Notes opens collapsed, so
+         without that escape hatch it would offer nothing at all. */
+      actions={({ collapsed }) => !organizing && (
         <>
-          {sections.length > 0 && (
+          {!collapsed && sections.length > 0 && (
             <button
               type="button"
               aria-label="Organize Notes"
@@ -528,17 +533,19 @@ export default function StructuredNotesSection({
               <ListTree size={15} />
             </button>
           )}
-          <button
-            type="button"
-            aria-label="Add Notes section"
-            onClick={() => openEditor({ parentId: null })}
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border p-2"
-            style={{ background: NOTES_FAMILY.band, borderColor: NOTES_FAMILY.line, color: NOTES_FAMILY.ink }}
-          >
-            <Plus size={15} />
-          </button>
+          {(!collapsed || !hasContent) && (
+            <button
+              type="button"
+              aria-label="Add Notes section"
+              onClick={() => openEditor({ parentId: null })}
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border p-2"
+              style={{ background: NOTES_FAMILY.band, borderColor: NOTES_FAMILY.line, color: NOTES_FAMILY.ink }}
+            >
+              <Plus size={15} />
+            </button>
+          )}
         </>
-      ) : null}
+      )}
     >
       {/* On a page, no card while there is nothing in it (owner-requested 2026-08-28): a named
           subsection was the usual reason to open Notes, and the empty overview stood permanently

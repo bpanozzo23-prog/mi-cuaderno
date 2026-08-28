@@ -74,6 +74,33 @@ describe("Structured Notes", () => {
     expect((await getItem(page.id)).noteSections).toEqual([]);
   });
 
+  it("takes its section buttons away while collapsed, as every other section does", async () => {
+    const user = userEvent.setup();
+    const page = await createItem(newPage({
+      title: "Collection explanation",
+      body: "Why these words belong together.",
+      noteSections: [newNoteSection({ name: "Register", body: "Mostly conversational." })],
+    }));
+    renderNotes(page);
+
+    expect(screen.getByRole("button", { name: "Organize Notes" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Add Notes section" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Collapse Notes section" }));
+
+    /* Organize goes away with the content it organizes; so does the add button, because this
+       section has something in it. An empty Notes keeps its add button — the case below. */
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Organize Notes" })).toBeNull());
+    expect(screen.queryByRole("button", { name: "Add Notes section" })).toBeNull();
+
+    cleanup();
+    const empty = await createItem(newPage({ title: "Blank page" }));
+    renderNotes(empty);
+    expect(screen.getByRole("button", { name: "Expand Notes section" }).getAttribute("aria-expanded")).toBe("false");
+    expect(screen.getByRole("button", { name: "Add Notes section" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Organize Notes" })).toBeNull();
+  });
+
   it("folds a written Overview away exactly as a named section folds", async () => {
     const user = userEvent.setup();
     const page = await createItem(newPage({
