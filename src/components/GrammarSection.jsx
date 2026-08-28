@@ -35,12 +35,19 @@ import {
 import CollectionAddVocabularySheet from "./CollectionAddVocabularySheet.jsx";
 import MarkdownText from "./MarkdownText.jsx";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
-import PageSectionDisclosure from "./PageSectionDisclosure.jsx";
+import PageSectionDisclosure, { SectionSpineNode } from "./PageSectionDisclosure.jsx";
 import MentionedHere from "./MentionedHere.jsx";
 import { sectionFamily } from "./pageRoleMeta.js";
 import OutlineOrganizerFields from "./OutlineOrganizerFields.jsx";
 
 const GRAMMAR_FAMILY = sectionFamily("grammar");
+
+/**
+ * The key idea's handle in the same collapsed-set the guide sections use, now that it folds like
+ * one. Safe as a bare word for the same reason the Notes overview's is: every other member is a
+ * `grammar-section:<uuid>` from `newGrammarSectionKey` (`src/lib/ids.js`, brief §6).
+ */
+const KEY_IDEA_COLLAPSE_KEY = "key-idea";
 
 const fieldStyle = { background: C.card, borderColor: C.line, color: C.ink };
 
@@ -196,22 +203,26 @@ function sourceReferenceStatus(ref, page, items) {
   };
 }
 
-function KeyIdeaCard({ keyIdea, onSaved }) {
-  const [editing, setEditing] = useState(false);
+/**
+ * The key idea, wearing the same card as a guide section (owner-requested 2026-08-28).
+ *
+ * It used to sit above the guide's own vertical rule with every section hanging off that rule,
+ * which said on screen that the sections were inside the key idea. They are siblings: one states
+ * the rule, the others explain it. So this now renders as the first member of the same list, with
+ * the same chevron, and the guide's second spine is gone — only a real subsection is indented.
+ *
+ * `editing` belongs to the parent because the card does not render at all until there is a key
+ * idea; the "+ Key idea" offer that replaces it lives outside this component.
+ */
+function KeyIdeaCard({ keyIdea, onSaved, editing, onEditingChange, collapsed, onToggle }) {
   const [draft, setDraft] = useState(keyIdea || "");
   const [saving, setSaving] = useState(false);
   const [problem, setProblem] = useState("");
-  const hasKeyIdea = Boolean(keyIdea?.trim());
-
-  function openEditor() {
-    setDraft(keyIdea || "");
-    setProblem("");
-    setEditing(true);
-  }
+  const contentId = "grammar-key-idea-content";
 
   if (editing) {
     return (
-      <Card className="mt-3" style={{ borderColor: C.pen }}>
+      <Card style={{ borderColor: C.pen }}>
         <form
           onSubmit={async (event) => {
             event.preventDefault();
@@ -219,7 +230,7 @@ function KeyIdeaCard({ keyIdea, onSaved }) {
             setProblem("");
             try {
               await onSaved(draft.trim());
-              setEditing(false);
+              onEditingChange(false);
             } catch (error) {
               setProblem(problemMessage(error, "The key idea could not be saved."));
             } finally {
@@ -246,13 +257,13 @@ function KeyIdeaCard({ keyIdea, onSaved }) {
               tone="quiet"
               disabled={saving}
               onClick={() => {
-                setEditing(false);
+                onEditingChange(false);
                 setProblem("");
               }}
             >
               Cancel
             </Button>
-            {hasKeyIdea && (
+            {Boolean(keyIdea?.trim()) && (
               <EditorDeleteAction
                 label="Remove key idea"
                 description="Remove the Key idea from this Grammar guide? You can add it again later."
@@ -269,33 +280,42 @@ function KeyIdeaCard({ keyIdea, onSaved }) {
     );
   }
 
-  if (!hasKeyIdea) {
-    return (
-      <Button tone="quiet" className="mt-3 min-h-11" onClick={openEditor}>
-        <Plus size={14} /> Key idea
-      </Button>
-    );
-  }
-
   return (
-    <Card className="mt-3">
+    <Card>
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: C.ink }}>
-            <Languages size={15} style={{ color: C.pen }} /> Key idea
-          </div>
-          <div className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed" style={{ color: C.ink }}>
-            {keyIdea}
-          </div>
-        </div>
         <button
           type="button"
-          onClick={openEditor}
+          aria-label={`${collapsed ? "Expand" : "Collapse"} grammar Key idea`}
+          aria-expanded={!collapsed}
+          aria-controls={contentId}
+          onClick={onToggle}
+          className="-ml-2 min-h-11 min-w-0 flex-1 rounded-lg px-2 text-left flex items-center gap-2"
+        >
+          {collapsed
+            ? <ChevronRight size={16} className="shrink-0" style={{ color: C.mut }} />
+            : <ChevronDown size={16} className="shrink-0" style={{ color: C.mut }} />}
+          <span className="flex min-w-0 items-center gap-2">
+            <Languages size={15} className="shrink-0" style={{ color: C.pen }} />
+            <h3 className="min-w-0 break-words text-base font-bold leading-snug" style={{ color: C.ink, fontFamily: SERIF }}>Key idea</h3>
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setDraft(keyIdea || "");
+            setProblem("");
+            onEditingChange(true);
+          }}
           aria-label="Edit grammar key idea"
           className="flex min-h-11 min-w-11 shrink-0 items-center justify-center"
         >
           <Pencil size={15} style={{ color: C.pen }} />
         </button>
+      </div>
+      <div id={contentId} hidden={collapsed}>
+        <div className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed" style={{ color: C.ink }}>
+          {keyIdea}
+        </div>
       </div>
     </Card>
   );
@@ -850,6 +870,8 @@ export default function GrammarSection({
     sections.filter((section) => !grammarSectionHasContent(section)).map((section) => section.id)
   ));
   const [vocabularyTarget, setVocabularyTarget] = useState(null);
+  const [keyIdeaEditing, setKeyIdeaEditing] = useState(false);
+  const hasKeyIdea = Boolean(grammar?.keyIdea?.trim());
   const itemsById = useMemo(() => new Map((items || []).map((item) => [item.id, item])), [items]);
   const captureOptions = useMemo(() => sourceCaptureOptions(page, items), [page, items]);
   const hierarchy = useMemo(() => grammarSectionHierarchy(sections), [sections]);
@@ -857,6 +879,7 @@ export default function GrammarSection({
   const hasContent = Boolean(grammar?.keyIdea?.trim()) || sections.some(grammarSectionHasContent);
 
   useEffect(() => {
+    setKeyIdeaEditing(false);
     setCollapsedSections(new Set(
       sections.filter((section) => !grammarSectionHasContent(section)).map((section) => section.id)
     ));
@@ -1071,7 +1094,12 @@ export default function GrammarSection({
     if (isSubsection) {
       return <div key={section.id} className="grammar-guide-subsection">{node}</div>;
     }
-    return <Card key={section.id} className="grammar-guide-root">{node}</Card>;
+    return (
+      <div key={section.id} className="relative">
+        <SectionSpineNode className="top-[24px]" family="grammar" />
+        <Card>{node}</Card>
+      </div>
+    );
   }
 
   return (
@@ -1121,15 +1149,6 @@ export default function GrammarSection({
       )}
     >
 
-      <KeyIdeaCard
-        key={`${page.id}:${grammar.keyIdea}`}
-        keyIdea={grammar.keyIdea}
-        onSaved={async (keyIdea) => {
-          await saveGrammarDetails(page.id, { keyIdea });
-          await changed();
-        }}
-      />
-
       {sectionDraft && (
         <SectionEditor
           key={sectionDraft.id || `new-section:${sectionDraft.parentId || "root"}`}
@@ -1162,9 +1181,32 @@ export default function GrammarSection({
       )}
 
       {!organizing && (
-        <div className="grammar-guide-spine mt-4 space-y-4">
+        <div className="mt-4 space-y-4">
+          {(hasKeyIdea || keyIdeaEditing) && (
+            <div className="relative">
+              <SectionSpineNode className="top-[24px]" family="grammar" />
+              <KeyIdeaCard
+                key={`${page.id}:${grammar.keyIdea}`}
+                keyIdea={grammar.keyIdea}
+                editing={keyIdeaEditing}
+                onEditingChange={setKeyIdeaEditing}
+                collapsed={collapsedSections.has(KEY_IDEA_COLLAPSE_KEY)}
+                onToggle={() => toggleSection(KEY_IDEA_COLLAPSE_KEY)}
+                onSaved={async (keyIdea) => {
+                  await saveGrammarDetails(page.id, { keyIdea });
+                  await changed();
+                }}
+              />
+            </div>
+          )}
           {hierarchy.roots.map((section) => renderSectionNode(section))}
         </div>
+      )}
+
+      {!hasKeyIdea && !keyIdeaEditing && !organizing && (
+        <Button tone="quiet" className="mt-3 min-h-11" onClick={() => setKeyIdeaEditing(true)}>
+          <Plus size={14} /> Key idea
+        </Button>
       )}
 
       {sections.length === 0 && !sectionDraft && !organizing && (

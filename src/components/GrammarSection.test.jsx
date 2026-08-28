@@ -517,6 +517,31 @@ describe("GrammarSection organization", () => {
     expect(screen.getByRole("button", { name: "Save organization" }).disabled).toBe(true);
   });
 
+  it("places Key idea beside the guide sections, not above them", async () => {
+    const user = userEvent.setup();
+    render(<GrammarSection {...baseProps({ page: hierarchicalPage() })} />);
+
+    const cardOf = (button) => button.closest(".rounded-xl");
+    const keyIdea = screen.getByRole("button", { name: "Collapse grammar Key idea" });
+    const root = screen.getByRole("button", { name: "Collapse grammar section Formation" });
+    const subsection = screen.getByRole("button", { name: "Collapse grammar subsection SPOCK" });
+
+    /* Siblings: each card sits in its own spine wrapper, and those wrappers share one list. Before
+       2026-08-28 the key idea sat outside the guide's container entirely, with the sections hanging
+       off a second rule inside it — which read as "the sections are part of the key idea". */
+    expect(cardOf(keyIdea).parentElement.parentElement)
+      .toBe(cardOf(root).parentElement.parentElement);
+
+    /* And the one genuine level of nesting is still nested. */
+    expect(cardOf(root).contains(subsection)).toBe(true);
+    expect(cardOf(root).contains(keyIdea)).toBe(false);
+
+    /* It folds like its siblings do, which is the other half of being one of them. */
+    await user.click(keyIdea);
+    const expand = await screen.findByRole("button", { name: "Expand grammar Key idea" });
+    expect(document.getElementById(expand.getAttribute("aria-controls")).hidden).toBe(true);
+  });
+
   it("renders root-owned subtrees with independent subsection disclosure", async () => {
     const user = userEvent.setup();
     const { container } = render(<GrammarSection {...baseProps({ page: hierarchicalPage() })} />);

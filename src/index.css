@@ -426,26 +426,12 @@
   max-height: 40vh;
 }
 
-.grammar-guide-spine {
-  position: relative;
-  margin-left: 0;
-  border-left: 2px solid var(--color-page-folder-grammar-line);
-  padding-left: 0.45rem;
-}
-
-.grammar-guide-root {
-  position: relative;
-}
-
-.grammar-guide-root::before {
-  position: absolute;
-  top: 1.35rem;
-  left: -0.5rem;
-  width: 0.5rem;
-  border-top: 2px solid var(--color-page-folder-grammar-line);
-  content: "";
-}
-
+/* The guide's own spine and its per-root connector stub retired on 2026-08-28. They drew a second
+   vertical rule inside the section's, with Key idea sitting above it and every guide section
+   hanging off it — which said the sections were inside the key idea rather than beside it. Key idea
+   is now the first card in the same list, and both it and the roots hang off the section spine on a
+   `SectionSpineNode`, exactly as Notes sections already did. Only `.grammar-guide-subsections`
+   survives, because that level is real. */
 .grammar-guide-subsections {
   margin-top: 1rem;
   margin-left: 0.1rem;
