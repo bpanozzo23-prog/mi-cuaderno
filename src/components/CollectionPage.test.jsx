@@ -187,8 +187,11 @@ describe("Collection reading and practice", () => {
 
     const practice = screen.getByRole("button", { name: "Practice" });
     const organize = screen.getByRole("button", { name: "Organize" });
-    expect(practice.textContent).toBe("");
-    expect(organize.textContent).toBe("");
+    /* Both were icon-only while they sat in the section heading; at the foot of the list they have
+       room to say what they are (owner-picked 2026-08-28). The accessible name is unchanged, which
+       is what the queries above are asserting. */
+    expect(practice.textContent.trim()).toBe("Practice");
+    expect(organize.textContent.trim()).toBe("Organize");
     await user.click(practice);
     expect(screen.getByText("Practice collection")).toBeTruthy();
     expect(screen.getByText("Add a meaning before practicing this entry.")).toBeTruthy();

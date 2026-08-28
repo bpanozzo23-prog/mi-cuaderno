@@ -57,7 +57,10 @@ describe("labels shared by lexical items and pages", () => {
 
     renderDetail(page, vi.fn(), { views: 2, lastViewedAt: null, tricky: false });
 
-    expect(screen.getByText("opened 2×")).toBeTruthy();
+    /* The count shares one wrapped mono line with the page's roles and date since 2026-08-28, so
+       this matches inside that line rather than expecting a node of its own. The claim under test
+       is unchanged: a page is opened, never looked up. */
+    expect(screen.getByText(/opened 2×/)).toBeTruthy();
     expect(screen.queryByText(/lookups?/i)).toBeNull();
   });
 });

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Bookmark, BookmarkCheck, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink,
-  Goal, ListTree, MoreHorizontal, Pencil, Play, Plus, Settings2, Trash2, X,
+  Bookmark, BookmarkCheck, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink,
+  Goal, Link2, ListTree, MoreHorizontal, Pencil, Play, Plus, Settings2, Tag as TagIcon, Trash2, X,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Card, Button, IconButton } from "../theme.jsx";
 import { allTagsIn } from "../lib/tags.js";
@@ -41,7 +41,7 @@ import GrammarSection from "./GrammarSection.jsx";
 import AddSheet from "./AddSheet.jsx";
 import PageCustomizeSheet from "./PageCustomizeSheet.jsx";
 import PageSectionDisclosure, { SectionSpineNode } from "./PageSectionDisclosure.jsx";
-import { PAGE_ROLE_META, sectionFamily } from "./pageRoleMeta.js";
+import { PAGE_ROLE_META, pageFolderColors, sectionFamily } from "./pageRoleMeta.js";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
 import StructuredNotesSection from "./StructuredNotesSection.jsx";
 import PracticeSession from "./PracticeSession.jsx";
@@ -308,6 +308,7 @@ function ConnectionsSection({
     <PageSectionDisclosure
       id="page-connections"
       family="neutral"
+      icon={Link2}
       title="Connections"
       summary={empty ? "" : `${connectionCount} ${connectionCount === 1 ? "connection" : "connections"}`}
       defaultCollapsed={empty}
@@ -469,6 +470,7 @@ function PageMediaSection({ page, items, onOpen, onChanged }) {
     <PageSectionDisclosure
       id="page-media"
       family="neutral"
+      icon={ExternalLink}
       title="Media links"
       summary={empty ? "" : `${page.mediaLinks.length} ${page.mediaLinks.length === 1 ? "link" : "links"}`}
       defaultCollapsed={empty}
@@ -691,24 +693,6 @@ function VocabularySection({
             </button>
           )}
         </>
-      ) : !collapsed ? (
-        <>
-          <IconButton tone="quiet" aria-label="Practice" onClick={onPractice} disabled={!collection.practiceEligible}>
-            <Goal size={18} />
-          </IconButton>
-          <IconButton tone="primary" aria-label="Start practice session" onClick={onPracticeSession} disabled={!collection.practiceEligible}>
-            <Play size={18} />
-          </IconButton>
-          <button
-            type="button"
-            aria-label="Organize"
-            onClick={() => onOrganize(false)}
-            className="inline-flex items-center justify-center rounded-lg border p-2"
-            style={{ background: VOCABULARY_FAMILY.band, borderColor: VOCABULARY_FAMILY.line, color: VOCABULARY_FAMILY.ink }}
-          >
-            <ListTree size={15} />
-          </button>
-        </>
       ) : null}
     >
       <div className="mt-4 space-y-5">
@@ -792,6 +776,24 @@ function VocabularySection({
       )}
 
       <Button tone="quiet" className="mt-4" aria-label="Add group" onClick={() => onOrganize(true)}><Plus size={14} /> Group</Button>
+
+      {/* Practice sits at the foot of the list rather than in the heading (owner-picked
+          2026-08-28): it is what you do once you have read the words, and three controls beside
+          the title were crowding out the section's own name. An empty collection keeps its
+          add-and-organize pair in the heading, where a section with nothing in it is looked at. */}
+      {collection.itemCount > 0 && (
+        <div className="mt-5 flex flex-wrap gap-2 border-t pt-4" style={{ borderColor: C.line }}>
+          <Button className="min-h-11" aria-label="Start practice session" onClick={onPracticeSession} disabled={!collection.practiceEligible}>
+            <Play size={15} /> Session
+          </Button>
+          <Button tone="quiet" className="min-h-11" aria-label="Practice" onClick={onPractice} disabled={!collection.practiceEligible}>
+            <Goal size={15} /> Practice
+          </Button>
+          <Button tone="quiet" className="min-h-11" aria-label="Organize" onClick={() => onOrganize(false)}>
+            <ListTree size={15} /> Organize
+          </Button>
+        </div>
+      )}
     </PageSectionDisclosure>
   );
 }
@@ -852,8 +854,13 @@ export default function CollectionPage({
   const focusChoices = useMemo(() => availableFocusChoices(item), [item]);
   const roles = useMemo(() => enabledPageRoles(item), [item]);
   const sectionOrder = SECTION_ORDERS[item.pageFocus] || SECTION_ORDERS[PAGE_FOCUSES.notes];
-  /* The kicker pill wears its focus family's pale/ink pair, same fallback as the heading text. */
+  /* The kicker wears its focus family's ink and glyph, same fallback as the heading text. It was a
+     filled pill until 2026-08-28; the folder edge beside it now carries the colour, so the pill was
+     saying the family a second time. */
   const kickerMeta = PAGE_ROLE_META[item.pageFocus] || PAGE_ROLE_META[PAGE_FOCUSES.notes];
+  const KickerIcon = kickerMeta.icon;
+  /* The same trio the page's folder card wears in the hub — only the outline is used here. */
+  const headerFolder = pageFolderColors(item.pageFocus);
 
   useEffect(() => {
     setMode("read");
@@ -1034,16 +1041,36 @@ export default function CollectionPage({
         }} />
       ) : (
         <>
-          <Card className="p-4">
+          {/* The open page wears its folder's own edge (owner-picked 2026-08-28): the die-cut
+              silhouette and seven pixels of the family's outline, so the screen continues the card
+              that was tapped in the hub instead of replacing it with a plain white one. Seven
+              rather than the hub card's 38px tab, which would have cost the title that much width
+              at 375px; the glyph moves in beside the family's name instead. */}
+          <div
+            className="p-4"
+            style={{
+              background: C.card,
+              border: `1px solid ${headerFolder.line}`,
+              borderLeftWidth: 7,
+              borderRadius: "4px 15px 15px 4px",
+            }}
+          >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <div className="inline-block rounded-full px-2.5 py-[3px] text-[11px] uppercase" style={{ background: kickerMeta.background, color: kickerMeta.color, fontFamily: MONO, letterSpacing: "0.1em" }}>{FOCUS_HEADINGS[item.pageFocus] || "Notes page"}</div>
-                <h1 className="mt-1 break-words text-2xl" style={{ color: C.ink, fontFamily: SERIF, fontWeight: 700 }}><span>{item.title || "Untitled page"}</span></h1>
-                {item.pageDate && <div className="mt-1 inline-flex items-center gap-1 text-xs" style={{ color: C.mut, fontFamily: MONO }}><CalendarDays size={12} /> {item.pageDate}</div>}
-                <div className="mt-2 text-xs" style={{ color: C.mut, fontFamily: MONO }}>
-                  {roles.map((role) => FOCUS_LABELS[role]).join(" · ") || "Notes"}
+                <div className="mb-1.5 flex items-center gap-[7px] text-[11px] uppercase" style={{ color: kickerMeta.color, fontFamily: MONO, letterSpacing: "0.1em" }}>
+                  <KickerIcon size={15} />
+                  {FOCUS_HEADINGS[item.pageFocus] || "Notes page"}
                 </div>
-                <div className="mt-1 text-xs" style={{ color: C.mut, fontFamily: MONO }}>opened {state?.views || 0}×</div>
+                <h1 className="break-words text-2xl" style={{ color: C.ink, fontFamily: SERIF, fontWeight: 700 }}><span>{item.title || "Untitled page"}</span></h1>
+                {/* Three stacked mono lines became one wrapped run: the same facts, four fewer
+                    leading gaps, and the header stops out-measuring the content below it. */}
+                <div className="mt-2 text-xs leading-relaxed" style={{ color: C.mut, fontFamily: MONO }}>
+                  {[
+                    roles.map((role) => FOCUS_LABELS[role]).join(", ") || "Notes",
+                    `opened ${state?.views || 0}×`,
+                    item.pageDate || null,
+                  ].filter(Boolean).join(" · ")}
+                </div>
               </div>
               <div className="flex shrink-0 items-center gap-1">
                 <button
@@ -1108,9 +1135,9 @@ export default function CollectionPage({
                 </button>
               ))}
             </div>
-          </Card>
+          </div>
 
-          <div className="mt-12">
+          <div className="mt-9">
             <StructuredNotesSection
               page={item}
               items={items}
@@ -1120,7 +1147,7 @@ export default function CollectionPage({
             />
           </div>
 
-          <div className="mt-12 space-y-12">
+          <div className="mt-9 space-y-9">
             {sectionOrder.map((sectionKind) => {
               if (sectionKind === "source" && item.source?.enabled) {
                 return (
@@ -1182,9 +1209,9 @@ export default function CollectionPage({
 
           {/* The page's trailing sections sit apart from its content, behind a short hairline,
               and tuck close to one another (owner-picked 2026-08-10). */}
-          <hr aria-hidden="true" className="mx-auto mt-11 w-[120px] border-t" style={{ borderColor: C.line }} />
+          <hr aria-hidden="true" className="mx-auto mt-10 w-[120px] border-t" style={{ borderColor: C.line }} />
 
-          <div className="mt-11">
+          <div className="mt-8">
             <ConnectionsSection
               item={item}
               items={items}
@@ -1203,6 +1230,7 @@ export default function CollectionPage({
               <PageSectionDisclosure
                 id="page-tags"
                 family="neutral"
+                icon={TagIcon}
                 title="Tags"
                 summary={`${item.tags.length} ${item.tags.length === 1 ? "tag" : "tags"}`}
                 resetKey={item.id}

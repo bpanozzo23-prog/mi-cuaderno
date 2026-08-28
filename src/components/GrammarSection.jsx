@@ -1080,6 +1080,8 @@ export default function GrammarSection({
       family="grammar"
       title="Grammar guide"
       summary={structureSummary || (grammar?.keyIdea?.trim() ? "Key idea" : "Empty")}
+      /* Three levels of counts beside a two-word title overflow 375px; Grammar keeps its own line. */
+      summaryLayout="block"
       defaultCollapsed={!hasContent}
       resetKey={page.id}
       actions={({ collapsed }) => !organizing && (

@@ -102,8 +102,8 @@ export function pageContextChipStyle(page) {
 }
 
 /**
- * What a section inside an open page wears: its heading band, that band's outline, the heading ink
- * and the spine hung beneath it (owner-requested 2026-08-08).
+ * What a section inside an open page wears: its glyph, its heading ink, the rule under the heading
+ * and the spine hung beneath that (owner-requested 2026-08-08, restyled 2026-08-28).
  *
  * Keyed by section rather than by page, because one page shows several: a Vocabulary page with
  * Notes turned on has a gold Vocabulary section and a blue Notes section, and each should say which
@@ -112,23 +112,55 @@ export function pageContextChipStyle(page) {
  * two mauves. `neutral` covers the sections that belong to no page type — Media links, Connections
  * and Tags — in driftwood gray (owner-picked 2026-08-10, replacing the borrowed error red):
  * chrome that recedes rather than a fifth family.
+ *
+ * `band` is now only the glyph chip's fill — the heading's filled bar is gone (owner-picked
+ * 2026-08-28), replaced by `rule`, a 2px line under the heading in the family's own colour. It is
+ * the spine value rather than `line` for the four typed families: `line` is Notes' pale chip border,
+ * which disappears at 2px. Neutral rules stay 1px in `line`, so the trailing sections keep
+ * receding. `icon` is the family's glyph, the same one its folder tab carries; `neutral` has none
+ * and its callers pass their own.
  */
 const SECTION_FAMILIES = {
-  notes: { band: C.penPale, line: C.chipBorder, ink: C.penDark, spine: C.pageFolderNotesLine },
+  notes: {
+    band: C.penPale,
+    line: C.chipBorder,
+    ink: C.penDark,
+    spine: C.pageFolderNotesLine,
+    rule: C.pageFolderNotesLine,
+    icon: FileText,
+  },
   vocabulary: {
     band: C.roleVocabularyPale,
     line: C.pageFolderLine,
     ink: C.roleVocabularyInk,
     spine: C.pageFolderLine,
+    rule: C.pageFolderLine,
+    icon: Shelf,
   },
-  source: { band: C.roleSourcePale, line: C.pageFolderSourceLine, ink: C.roleSourceInk, spine: C.pageFolderSourceLine },
+  source: {
+    band: C.roleSourcePale,
+    line: C.pageFolderSourceLine,
+    ink: C.roleSourceInk,
+    spine: C.pageFolderSourceLine,
+    rule: C.pageFolderSourceLine,
+    icon: BookOpen,
+  },
   grammar: {
     band: C.roleGrammarPale,
     line: C.pageFolderGrammarLine,
     ink: C.roleGrammarInk,
     spine: C.pageFolderGrammarLine,
+    rule: C.pageFolderGrammarLine,
+    icon: SentenceTree,
   },
-  neutral: { band: C.sectionNeutralBand, line: C.line, ink: C.mut, spine: C.sectionNeutralSpine },
+  neutral: {
+    band: C.sectionNeutralBand,
+    line: C.line,
+    ink: C.mut,
+    spine: C.sectionNeutralSpine,
+    rule: C.line,
+    icon: null,
+  },
 };
 
 /** Falls back to Notes blue, which is what every section wore before families existed. */
