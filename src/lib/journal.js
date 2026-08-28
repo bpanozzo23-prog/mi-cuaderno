@@ -77,16 +77,21 @@ export function todayJournalEntry(items, today) {
     )[0] || null;
 }
 
-/** Continue never duplicates the Today card; it is the latest other writing touch. */
-export function continueJournalEntry(items, todayAnchor = null) {
+/** Same-day continuations never duplicate the stable Today anchor. */
+export function sameDayJournalContinuations(items, todayAnchor = null) {
+  if (!todayAnchor) return [];
   return journalEntries(items)
-    .filter((entry) => entry.id !== todayAnchor?.id)
+    .filter(
+      (entry) =>
+        entry.id !== todayAnchor.id &&
+        entry.pageDate === todayAnchor.pageDate
+    )
     .sort(
       (a, b) =>
         timeValue(b.updatedAt) - timeValue(a.updatedAt) ||
         timeValue(b.createdAt) - timeValue(a.createdAt) ||
         String(a.id).localeCompare(String(b.id))
-    )[0] || null;
+    );
 }
 
 export function currentJournalEntries(items, today) {

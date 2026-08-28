@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   archivedJournalYears,
-  continueJournalEntry,
   currentJournalEntries,
   isJournalEntry,
   journalEntries,
   priorYearMemory,
+  sameDayJournalContinuations,
   searchJournalEntries,
   sortJournalEntries,
   todayJournalEntry,
@@ -110,7 +110,7 @@ describe("journal derivation", () => {
     ]);
   });
 
-  it("keeps the earliest-created same-day moment as Today and continues the latest other touch", () => {
+  it("keeps the earliest-created same-day moment as Today and lists only its same-day continuations", () => {
     const first = page({
       id: "user:first",
       pageDate: "2026-08-03",
@@ -123,14 +123,24 @@ describe("journal derivation", () => {
       createdAt: "2026-08-03T10:00:00.000Z",
       updatedAt: "2026-08-03T12:00:00.000Z",
     });
+    const third = page({
+      id: "user:third",
+      pageDate: "2026-08-03",
+      createdAt: "2026-08-03T11:00:00.000Z",
+      updatedAt: "2026-08-03T13:00:00.000Z",
+    });
     const yesterday = page({
       id: "user:yesterday",
       pageDate: "2026-08-02",
-      updatedAt: "2026-08-03T11:00:00.000Z",
+      updatedAt: "2026-08-03T14:00:00.000Z",
     });
 
-    expect(todayJournalEntry([second, first], "2026-08-03")).toBe(first);
-    expect(continueJournalEntry([yesterday, first, second], first)).toBe(second);
+    expect(todayJournalEntry([third, second, first], "2026-08-03")).toBe(first);
+    expect(sameDayJournalContinuations([yesterday, first, second, third], first)).toEqual([
+      third,
+      second,
+    ]);
+    expect(sameDayJournalContinuations([yesterday], null)).toEqual([]);
   });
 
   it("separates the current year from a newest-year-first archive", () => {

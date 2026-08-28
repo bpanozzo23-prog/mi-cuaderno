@@ -54,8 +54,10 @@ sections. Diario remains a dated General page rather than gaining a richer store
 ### 4q — home, retrieval and memory
 
 - Today opens the earliest-created entry for the local day, or a nonmaterialized draft if none
-  exists. New moment always starts another same-day draft. Continue offers the most recently
-  touched entry when it is not the Today anchor.
+  exists. New always starts another same-day draft. ~~Continue offers the most recently
+  touched entry when it is not the Today anchor.~~ **Amended 2026-08-28:** compact Continue cards
+  list every additional entry from Today, newest activity first; entries from earlier dates stay
+  in the timeline instead of being promoted above it.
 - Show a newest-first timeline for the current year, an explicit archive for earlier years, and
   journal-only search over title, body and tags. An empty journal search never logs `search_miss`.
 - A memory is the entry closest to today's month/day within ±7 calendar days in the most recent

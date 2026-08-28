@@ -41,9 +41,10 @@ describe("JournalHome", () => {
     expect(document.body.textContent).not.toContain("**");
     expect(document.body.textContent).not.toContain("==");
     expect(document.body.textContent).not.toContain("Notice the day");
+    expect(screen.queryByRole("button", { name: /Continue Formatted/ })).toBeNull();
   });
 
-  it("opens the stable Today anchor, a distinct continuation, and a fresh same-day moment", async () => {
+  it("opens the stable Today anchor, every same-day continuation, and a fresh same-day moment", async () => {
     const user = userEvent.setup();
     const onEdit = vi.fn();
     const onStart = vi.fn();
@@ -55,10 +56,17 @@ describe("JournalHome", () => {
       createdAt: "2026-08-03T10:00:00.000Z",
       updatedAt: "2026-08-03T12:00:00.000Z",
     });
+    const third = moment("Third today", "2026-08-03", {
+      createdAt: "2026-08-03T11:00:00.000Z",
+      updatedAt: "2026-08-03T13:00:00.000Z",
+    });
+    const yesterday = moment("Yesterday", "2026-08-02", {
+      updatedAt: "2026-08-03T14:00:00.000Z",
+    });
 
     render(
       <JournalHome
-        entries={[second, first]}
+        entries={[yesterday, third, second, first]}
         onOpen={vi.fn()}
         onEdit={onEdit}
         onStart={onStart}
@@ -68,8 +76,14 @@ describe("JournalHome", () => {
 
     await user.click(screen.getByRole("button", { name: "Continue" }));
     expect(onEdit).toHaveBeenLastCalledWith(first.id);
+    const continuationButtons = screen.getAllByRole("button", { name: /Continue .* today/ });
+    expect(continuationButtons[0].textContent).toContain("Third today");
+    expect(continuationButtons[1].textContent).toContain("Second today");
     await user.click(screen.getByRole("button", { name: /Continue Second today/ }));
     expect(onEdit).toHaveBeenLastCalledWith(second.id);
+    await user.click(screen.getByRole("button", { name: /Continue Third today/ }));
+    expect(onEdit).toHaveBeenLastCalledWith(third.id);
+    expect(screen.queryByRole("button", { name: /Continue Yesterday/ })).toBeNull();
     await user.click(screen.getByRole("button", { name: "New" }));
     expect(onStart).toHaveBeenCalledWith({ date: "2026-08-03" });
   });

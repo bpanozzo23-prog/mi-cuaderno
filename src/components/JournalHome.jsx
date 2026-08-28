@@ -16,9 +16,9 @@ import { Button, C, Card, MONO, SERIF, dotGrid } from "../theme.jsx";
 import { localDate } from "../lib/dates.js";
 import {
   archivedJournalYears,
-  continueJournalEntry,
   currentJournalEntries,
   priorYearMemory,
+  sameDayJournalContinuations,
   searchJournalEntries,
   todayJournalEntry,
 } from "../lib/journal.js";
@@ -92,7 +92,10 @@ export default function JournalHome({
   const [tallerOpen, setTallerOpen] = useState(false);
   const skillByPage = useMemo(() => practiceSkillByPage(events), [events]);
   const todayEntry = useMemo(() => todayJournalEntry(entries, today), [entries, today]);
-  const continuation = useMemo(() => continueJournalEntry(entries, todayEntry), [entries, todayEntry]);
+  const continuations = useMemo(
+    () => sameDayJournalContinuations(entries, todayEntry),
+    [entries, todayEntry]
+  );
   const memory = useMemo(() => priorYearMemory(entries, today), [entries, today]);
   const current = useMemo(() => currentJournalEntries(entries, today), [entries, today]);
   const archive = useMemo(() => archivedJournalYears(entries, today), [entries, today]);
@@ -148,23 +151,26 @@ export default function JournalHome({
         />
       )}
 
-      {continuation && (
-        <div className="mt-3">
-          <button
-            type="button"
-            onClick={() => onEdit(continuation.id)}
-            className="w-full rounded-xl border p-3 text-left flex items-center gap-3"
-            style={{ background: C.card, borderColor: C.line }}
-          >
-            <Clock3 size={17} className="shrink-0" style={{ color: C.diario }} />
-            <div className="min-w-0 flex-1">
-              <div className="text-[11px] uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>Continue</div>
-              <div className="truncate text-sm font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>
-                {entryHeading(continuation)}
+      {continuations.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {continuations.map((continuation) => (
+            <button
+              key={continuation.id}
+              type="button"
+              onClick={() => onEdit(continuation.id)}
+              className="w-full rounded-xl border p-3 text-left flex items-center gap-3"
+              style={{ background: C.card, borderColor: C.line }}
+            >
+              <Clock3 size={17} className="shrink-0" style={{ color: C.diario }} />
+              <div className="min-w-0 flex-1">
+                <div className="text-[11px] uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>Continue</div>
+                <div className="truncate text-sm font-semibold" style={{ color: C.ink, fontFamily: SERIF }}>
+                  {entryHeading(continuation)}
+                </div>
               </div>
-            </div>
-            <span className="text-xs shrink-0" style={{ color: C.mut }}>{journalDateLabel(continuation.pageDate, { year: undefined })}</span>
-          </button>
+              <span className="text-xs shrink-0" style={{ color: C.mut }}>{journalDateLabel(continuation.pageDate, { year: undefined })}</span>
+            </button>
+          ))}
         </div>
       )}
 
