@@ -51,6 +51,12 @@ describe("Structured Notes", () => {
     await user.click(screen.getByRole("button", { name: "Expand Notes section" }));
     expect(screen.getByRole("button", { name: "Write Notes overview" })).toBeTruthy();
 
+    /* An unwritten overview has no card at all (owner-requested 2026-08-28) — the offer above is
+       the whole of it. Without this, a page opened to add one named subsection still had a
+       permanent empty Overview standing over it. */
+    expect(screen.queryByRole("heading", { name: "Overview" })).toBeNull();
+    expect(screen.queryByText("Add context for the page as a whole.")).toBeNull();
+
     await user.click(screen.getByRole("button", { name: "Write Notes overview" }));
     const overview = screen.getByRole("textbox", { name: "Notes overview" });
     await user.type(overview, "Why these words belong together.");
@@ -66,6 +72,35 @@ describe("Structured Notes", () => {
     expect(screen.getByRole("note", { name: "Tip" }).textContent).toContain("Why these words belong together.");
     expect((await getItem(page.id)).body).toBe("> [!TIP]\n> Why these words belong together.");
     expect((await getItem(page.id)).noteSections).toEqual([]);
+  });
+
+  it("folds a written Overview away exactly as a named section folds", async () => {
+    const user = userEvent.setup();
+    const page = await createItem(newPage({
+      title: "Collection explanation",
+      body: "Why these words belong together.",
+    }));
+    renderNotes(page);
+
+    const overviewHeading = screen.getByRole("heading", { name: "Overview" });
+    const card = overviewHeading.closest("div.rounded-xl");
+    expect(within(card).getByText("Why these words belong together.")).toBeTruthy();
+
+    const collapse = screen.getByRole("button", { name: "Collapse Notes Overview" });
+    expect(collapse.getAttribute("aria-expanded")).toBe("true");
+    await user.click(collapse);
+
+    const expand = await screen.findByRole("button", { name: "Expand Notes Overview" });
+    expect(expand.getAttribute("aria-expanded")).toBe("false");
+    /* Collapsed, not unmounted — the same contract every named section keeps, so an editor left
+       open inside it survives being folded away. */
+    expect(document.getElementById(expand.getAttribute("aria-controls")).hidden).toBe(true);
+    expect(screen.getByText("Why these words belong together.")).toBeTruthy();
+
+    await user.click(expand);
+    await waitFor(() => expect(
+      document.getElementById(collapse.getAttribute("aria-controls")).hidden
+    ).toBe(false));
   });
 
   it("creates a root and one subsection with Markdown bodies and ordinary block quotes", async () => {

@@ -31,6 +31,14 @@ import { sectionFamily } from "./pageRoleMeta.js";
 const fieldStyle = { background: C.card, borderColor: C.line, color: C.ink };
 const NOTES_FAMILY = sectionFamily("notes");
 
+/**
+ * The overview's handle in the same collapsed-set the named sections use, so it folds and resets
+ * exactly as they do. Safe as a bare word: every other member of that set is a note section's id,
+ * and `newNoteSectionKey` makes those `note-section:<uuid>` — a namespaced key can never collide
+ * with an unnamespaced one (`src/lib/ids.js`, brief §6).
+ */
+const OVERVIEW_COLLAPSE_KEY = "overview";
+
 const problemMessage = (error, fallback) =>
   error instanceof Error && error.message ? error.message : fallback;
 
@@ -78,8 +86,18 @@ function DeleteSectionAction({ description, onDelete }) {
   );
 }
 
-function NotesOverview({ owner, lexical, items, onOpen, onAddMention, onChanged }) {
-  const [editing, setEditing] = useState(false);
+/**
+ * The overview, wearing exactly the card a named section wears: chevron, heading, pencil, and a
+ * body that collapses (owner-requested 2026-08-28). It was the one note on the page that could not
+ * be folded away, which made it the loudest thing in the section rather than the first thing in it.
+ *
+ * `editing` is the parent's, not this component's, because the card no longer renders at all while
+ * the overview is empty — something outside it has to be able to summon the editor.
+ */
+function NotesOverview({
+  owner, lexical, items, onOpen, onAddMention, onChanged,
+  collapsed, onToggle, editing, onEditingChange,
+}) {
   const saved = lexical ? owner.notes || "" : owner.body || "";
   const [draft, setDraft] = useState(saved);
   const [saving, setSaving] = useState(false);
@@ -89,24 +107,26 @@ function NotesOverview({ owner, lexical, items, onOpen, onAddMention, onChanged 
   const editLabel = lexical
     ? (saved.trim() ? "Edit note" : "Add note")
     : (saved.trim() ? "Edit Notes overview" : "Write Notes overview");
+  const contentId = `notes-overview-content-${owner.id}`;
 
   return (
     <div className="relative mt-3">
       <SectionSpineNode className="top-[24px]" family="notes" />
       <Card>
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <h3 className="text-sm font-bold" style={{ color: C.ink, fontFamily: SERIF }}>{overviewName}</h3>
-            {!editing && (saved.trim() ? (
-              <MarkdownText blankLines explicitNoteCallouts compact className="mt-2 break-words text-sm leading-relaxed" style={{ color: C.ink }}>
-                {saved}
-              </MarkdownText>
-            ) : (
-              <div className="mt-1 text-xs" style={{ color: C.mut }}>
-                {lexical ? "No notes yet." : "Add context for the page as a whole."}
-              </div>
-            ))}
-          </div>
+          <button
+            type="button"
+            aria-label={`${collapsed ? "Expand" : "Collapse"} Notes ${overviewName}`}
+            aria-expanded={!collapsed}
+            aria-controls={contentId}
+            onClick={onToggle}
+            className="-ml-2 min-h-11 min-w-0 flex-1 rounded-lg px-2 text-left flex items-center gap-2"
+          >
+            {collapsed
+              ? <ChevronRight size={16} className="shrink-0" style={{ color: C.mut }} />
+              : <ChevronDown size={16} className="shrink-0" style={{ color: C.mut }} />}
+            <h3 className="min-w-0 break-words text-base font-bold leading-snug" style={{ color: C.ink, fontFamily: SERIF }}>{overviewName}</h3>
+          </button>
           {!editing && (
             <button
               type="button"
@@ -114,7 +134,7 @@ function NotesOverview({ owner, lexical, items, onOpen, onAddMention, onChanged 
               onClick={() => {
                 setDraft(saved);
                 setProblem("");
-                setEditing(true);
+                onEditingChange(true);
               }}
               className="flex min-h-11 min-w-11 shrink-0 items-center justify-center"
             >
@@ -122,6 +142,17 @@ function NotesOverview({ owner, lexical, items, onOpen, onAddMention, onChanged 
             </button>
           )}
         </div>
+
+        <div id={contentId} hidden={collapsed}>
+        {!editing && (saved.trim() ? (
+          <MarkdownText blankLines explicitNoteCallouts compact className="mt-3 break-words text-sm leading-relaxed" style={{ color: C.ink }}>
+            {saved}
+          </MarkdownText>
+        ) : (
+          <div className="mt-2 text-xs" style={{ color: C.mut }}>
+            {lexical ? "No notes yet." : "Add context for the page as a whole."}
+          </div>
+        ))}
 
         {editing && (
           <div className="mt-3">
@@ -144,7 +175,7 @@ function NotesOverview({ owner, lexical, items, onOpen, onAddMention, onChanged 
                 setProblem("");
                 try {
                   await updateItem(owner.id, lexical ? { notes: draft } : { body: draft });
-                  setEditing(false);
+                  onEditingChange(false);
                   await onChanged?.();
                 } catch (error) {
                   setProblem(problemMessage(error, "The Notes overview could not be saved."));
@@ -154,7 +185,7 @@ function NotesOverview({ owner, lexical, items, onOpen, onAddMention, onChanged 
               }}>{saving ? "Saving…" : lexical ? "Save note" : "Save overview"}</Button>
               <Button tone="quiet" className="min-h-11" disabled={saving} onClick={() => {
                 setDraft(saved);
-                setEditing(false);
+                onEditingChange(false);
                 setProblem("");
               }}>Cancel</Button>
             </div>
@@ -169,6 +200,7 @@ function NotesOverview({ owner, lexical, items, onOpen, onAddMention, onChanged 
             onAdd={onAddMention}
           />
         )}
+        </div>
       </Card>
     </div>
   );
@@ -341,6 +373,7 @@ export default function StructuredNotesSection({
   const counts = noteStructureCounts(sections);
   const [sectionDraft, setSectionDraft] = useState(null);
   const [organizing, setOrganizing] = useState(false);
+  const [overviewEditing, setOverviewEditing] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState(() => new Set(
     sections.filter((section) => !section.body?.trim()).map((section) => section.id)
   ));
@@ -350,6 +383,7 @@ export default function StructuredNotesSection({
   useEffect(() => {
     setSectionDraft(null);
     setOrganizing(false);
+    setOverviewEditing(false);
     setCollapsedSections(new Set(
       sections.filter((section) => !section.body?.trim()).map((section) => section.id)
     ));
@@ -506,15 +540,26 @@ export default function StructuredNotesSection({
         </>
       ) : null}
     >
-      <NotesOverview
-        key={`${owner.id}:${lexical ? owner.notes || "" : owner.body || ""}`}
-        owner={owner}
-        lexical={lexical}
-        items={items}
-        onOpen={onOpen}
-        onAddMention={onAddMention}
-        onChanged={changed}
-      />
+      {/* On a page, no card while there is nothing in it (owner-requested 2026-08-28): a named
+          subsection was the usual reason to open Notes, and the empty overview stood permanently
+          above it asking to be written. Writing one is an offer at the foot of the section instead.
+          A lexical entry's General note keeps its empty card: the request was about pages, and that
+          card is the whole of a Word's Notes section rather than one member of a list. */}
+      {(lexical || hasOverview || overviewEditing) && (
+        <NotesOverview
+          key={`${owner.id}:${lexical ? owner.notes || "" : owner.body || ""}`}
+          owner={owner}
+          lexical={lexical}
+          items={items}
+          onOpen={onOpen}
+          onAddMention={onAddMention}
+          onChanged={changed}
+          collapsed={collapsedSections.has(OVERVIEW_COLLAPSE_KEY)}
+          onToggle={() => toggleSection(OVERVIEW_COLLAPSE_KEY)}
+          editing={overviewEditing}
+          onEditingChange={setOverviewEditing}
+        />
+      )}
 
       {sectionDraft && (
         <NoteSectionEditor
@@ -555,6 +600,17 @@ export default function StructuredNotesSection({
         <div className="mt-4 space-y-4">
           {hierarchy.roots.map((section) => renderSectionNode(section))}
         </div>
+      )}
+
+      {!lexical && !hasOverview && !overviewEditing && !organizing && (
+        <Button
+          tone="quiet"
+          className="mt-3 min-h-11"
+          aria-label="Write Notes overview"
+          onClick={() => setOverviewEditing(true)}
+        >
+          <Plus size={14} /> Overview
+        </Button>
       )}
 
       {sections.length === 0 && !sectionDraft && !organizing && (
