@@ -115,8 +115,15 @@ describe("Collection reading and practice", () => {
     /* The page's role used to be a kicker pill above the title and a count beside the section
        heading; since 2026-08-28 the folder tab carries it, and its label is what reaches assistive
        technology. The per-group counts below are where the numbers live now. */
-    expect(screen.getByText("Vocabulary", { selector: ".sr-only" })).toBeTruthy();
+    const roleLabel = screen.getByText("Vocabulary", { selector: ".sr-only" });
+    expect(roleLabel).toBeTruthy();
     expect(screen.queryByText("3 items · 2 groups")).toBeNull();
+    /* The tab must be inside the shared `.page-folder-card`, not merely on the page: that class is
+       what carries `position: relative`, and the tab's `top: 0; bottom: 0` only makes a left edge
+       while the card is its containing block. Rendered outside one it ran the whole screen. */
+    const tab = roleLabel.closest(".page-folder-tab");
+    expect(tab).toBeTruthy();
+    expect(tab.closest(".page-folder-card")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Questions" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Responses" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Expand group Responses" }).getAttribute("aria-expanded")).toBe("false");
