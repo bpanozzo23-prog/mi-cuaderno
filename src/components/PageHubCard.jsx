@@ -28,7 +28,7 @@ export default function PageHubCard({
         type="button"
         onClick={() => onOpen(page.id)}
         aria-label={title}
-        className="relative w-full text-left px-4 py-4 pr-14 active:opacity-80"
+        className="relative w-full text-left py-4 pl-[54px] pr-14 active:opacity-80"
       >
         <PageFolderTab role={primaryRole} />
 

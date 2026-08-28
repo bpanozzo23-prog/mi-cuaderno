@@ -98,8 +98,11 @@ export default function ItemCard({
       <button
         onClick={() => onOpen(item.id)}
         aria-label={isPage ? title : undefined}
-        className={`relative w-full text-left px-4 py-3 active:opacity-80 ${
-          isPage && onPinnedChange ? "pr-14" : ""
+        /* A page's left padding clears the folder's role band; a lexical card has none to clear.
+           Resolved to one padding class per side rather than letting `pr-4` and `pr-14` both land
+           and depend on which Tailwind emits last. */
+        className={`relative w-full text-left py-3 active:opacity-80 ${
+          isPage ? `pl-[54px] ${onPinnedChange ? "pr-14" : "pr-4"}` : "px-4"
         }`}
       >
         {isPage && <PageFolderTab role={primaryRole} />}

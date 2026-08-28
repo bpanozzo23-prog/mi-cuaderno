@@ -221,13 +221,20 @@ export default function PageHub({
       </header>
 
       <main className="px-4 pb-28 pt-4" style={{ background: C.paper }}>
-        <div className="flex flex-wrap gap-2" aria-label="Page roles">
+        {/* One row that scrolls, not two that wrap: five chips need 88px of wrapped height, and
+            the second row carried a single chip. The row bleeds to both screen edges so the chip
+            that overflows is sliced by the edge rather than hidden behind a clean margin — that
+            cut is the only thing saying there is more to the right. */}
+        <div
+          className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          aria-label="Page roles"
+        >
           {PAGE_ROLE_OPTIONS.map((option) => (
             <Chip
               key={option.value}
               active={roleFilter === option.value}
               onClick={() => setRoleFilter(option.value)}
-              className="min-h-11 px-3"
+              className="min-h-11 shrink-0 px-3"
             >
               {option.label}
               {roleFilter === option.value && (
