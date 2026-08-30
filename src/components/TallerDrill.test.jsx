@@ -183,6 +183,21 @@ describe("Taller drill flow", () => {
     expect(screen.queryByRole("button", { name: "Más difícil" })).toBeNull();
   });
 
+  it("updates the composite grammar scaffold with the selected tier", async () => {
+    const user = userEvent.setup();
+    const redo = JOURNAL_PROMPTS.find((prompt) => prompt.id === "imagine-redo");
+    render(<JournalEditor {...drillProps(drillSeed({ skill: "imagine", prompt: redo }))} />);
+
+    let endings = screen.getByLabelText("Regular endings");
+    expect(endings.textContent.toLowerCase()).toContain("subjunctive imperfect");
+    expect(endings.textContent.toLowerCase()).toContain("indicative conditional");
+
+    await user.click(screen.getByRole("button", { name: "Más difícil" }));
+    endings = screen.getByLabelText("Regular endings");
+    expect(endings.textContent.toLowerCase()).toContain("subjunctive past perfect");
+    expect(endings.textContent.toLowerCase()).toContain("indicative conditional perfect");
+  });
+
   it("keeps the example hidden until asked and omits the button without one", async () => {
     const user = userEvent.setup();
     render(<JournalEditor {...drillProps(drillSeed())} />);
@@ -257,7 +272,7 @@ describe("Diario timeline Taller provenance", () => {
 
     const practicedCard = screen.getByRole("button", { name: "Open Práctica" });
     expect(practicedCard.textContent).toContain("Narrate");
-    expect(practicedCard.textContent).toContain("Indicative preterite");
+    expect(practicedCard.textContent).toContain("Preterite + imperfect");
     expect(practicedCard.textContent).not.toContain("Taller");
     expect(practicedCard.querySelector(".lucide-hammer")).toBeTruthy();
     const ordinaryCard = screen.getByRole("button", { name: "Open Reflexión" });

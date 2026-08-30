@@ -32,6 +32,21 @@ describe("journal prompt library", () => {
     for (const prompt of tagged) {
       expect(known.has(prompt.tense), `${prompt.id} tense "${prompt.tense}"`).toBe(true);
     }
+
+    const composite = JOURNAL_PROMPTS.filter((prompt) => prompt.targets);
+    expect(composite).toHaveLength(7);
+    for (const prompt of composite) {
+      expect(Object.keys(prompt.targets).every((tier) => ["standard", "easier", "harder"].includes(tier)), prompt.id)
+        .toBe(true);
+      expect(prompt.targets.standard, `${prompt.id}.targets.standard`).toBeDefined();
+      expect(prompt.targets.standard.tenses, prompt.id).toContain(prompt.tense);
+      for (const [tier, target] of Object.entries(prompt.targets)) {
+        expect(target.tenses.length, `${prompt.id}.${tier}.tenses`).toBeGreaterThan(0);
+        expect(new Set(target.tenses).size, `${prompt.id}.${tier}.tenses`).toBe(target.tenses.length);
+        expect(target.tenses.every((tense) => known.has(tense)), `${prompt.id}.${tier}.tenses`).toBe(true);
+        expect(target.label.trim(), `${prompt.id}.${tier}.label`).not.toBe("");
+      }
+    }
   });
 
   it("shapes every tier variant as bilingual {es, en}", () => {
@@ -88,6 +103,7 @@ describe("journal prompt library", () => {
     for (const prompt of JOURNAL_PROMPTS) {
       if (SKILL_CATEGORY_IDS.includes(prompt.category)) continue;
       expect(prompt.tense, prompt.id).toBeUndefined();
+      expect(prompt.targets, prompt.id).toBeUndefined();
       expect(prompt.easier, prompt.id).toBeUndefined();
       expect(prompt.harder, prompt.id).toBeUndefined();
       expect(prompt.offersWords, prompt.id).toBeUndefined();

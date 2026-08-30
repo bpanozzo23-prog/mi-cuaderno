@@ -10,6 +10,7 @@ import {
   practiceSkillByPage,
   practiceTargetLabel,
   promptHasTiers,
+  promptTargetsForTier,
   promptTextForTier,
   proposeTallerSkill,
   sampleOfferedWords,
@@ -93,6 +94,21 @@ describe("drawDrillPrompt", () => {
     expect(drawn.category).toBe("connect");
     expect(drawDrillPrompt("nonsense", { events: [], items: [] })).toBeNull();
   });
+
+  it("can prefer a composite prompt through its secondary standard target", () => {
+    const events = [];
+    for (let i = 0; i < 3; i += 1) {
+      events.push(event("drill_fail", null, `2026-08-2${i}T10:00:00.000Z`, {
+        mode: "typed",
+        stage: "initial",
+        tense: "Indicative/Conditional Perfect",
+        slot: "yo",
+        verbKey: "lemma:hablar",
+      }));
+    }
+    expect(drawDrillPrompt("imagine", { events, items: [], random: () => 0 }).id)
+      .toBe("imagine-regret");
+  });
 });
 
 describe("sampleOfferedWords", () => {
@@ -148,6 +164,23 @@ describe("prompt tiers", () => {
     expect(promptTextForTier(untiered, "easier")).toEqual({ es: untiered.es, en: untiered.en });
     expect(promptHasTiers(tiered)).toBe(true);
     expect(promptHasTiers(untiered)).toBe(false);
+  });
+
+  it("resolves simple and tier-specific composite grammar targets", () => {
+    const simple = JOURNAL_PROMPTS.find((prompt) => prompt.id === "narrate-routine");
+    const redo = JOURNAL_PROMPTS.find((prompt) => prompt.id === "imagine-redo");
+    expect(promptTargetsForTier(simple)).toEqual({
+      tenses: ["Indicative/Preterite"],
+      label: "Indicative preterite",
+    });
+    expect(promptTargetsForTier(redo, "standard")).toEqual({
+      tenses: ["Subjunctive/Imperfect", "Indicative/Conditional"],
+      label: "Present unreal condition",
+    });
+    expect(promptTargetsForTier(redo, "harder")).toEqual({
+      tenses: ["Subjunctive/Past Perfect", "Indicative/Conditional Perfect"],
+      label: "Past unreal condition",
+    });
   });
 });
 
@@ -230,9 +263,24 @@ describe("practiceSkillByPage", () => {
     ]));
   });
 
+  it("uses the kept tier when deriving a composite target label", () => {
+    const events = [
+      event("practice_write", "user:standard", "2026-08-19T10:00:00.000Z", {
+        skill: "imagine", promptId: "imagine-redo", tier: "standard", kept: true,
+      }),
+      event("practice_write", "user:harder", "2026-08-19T11:00:00.000Z", {
+        skill: "imagine", promptId: "imagine-redo", tier: "harder", kept: true,
+      }),
+    ];
+    expect(practiceDetailsByPage(events).get("user:standard").targetLabel)
+      .toBe("Present unreal condition");
+    expect(practiceDetailsByPage(events).get("user:harder").targetLabel)
+      .toBe("Past unreal condition");
+  });
+
   it("names all current tense and non-tense practice targets concisely", () => {
     expect(practiceTargetLabel(JOURNAL_PROMPTS.find((prompt) => prompt.id === "narrate-scene")))
-      .toBe("Indicative preterite");
+      .toBe("Preterite + imperfect");
     expect(practiceTargetLabel(JOURNAL_PROMPTS.find((prompt) => prompt.id === "imagine-hope")))
       .toBe("Present subjunctive");
     expect(practiceTargetLabel(JOURNAL_PROMPTS.find((prompt) => prompt.id === "imagine-recent-reactions")))

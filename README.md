@@ -869,6 +869,19 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   --check` passes. A fresh isolated 375×812 browser pass rendered all five additions with no
   horizontal overflow or console warnings/errors and opened the new example behind its 44px
   disclosure. See the 2026-08-28 Taller entries in [DECISIONS.md](DECISIONS.md).
+- **Taller language polish and composite grammar targets — implemented locally, not deployed.**
+  Four prompts now follow the app's Mexican-Spanish preference and distinguish duration from the
+  immediate past accurately. Seven prompts whose clauses genuinely combine structures now carry
+  tier-aware target sets without changing their legacy single-tense metadata: weak-tense draws
+  recognize secondary targets, the scaffold shows every active ending card, installed-dictionary
+  lookup can choose among them, and kept Diario entries use the practiced tier's concise label.
+  There is no storage, event, backup or schema change; `SCHEMA_VERSION` stays 11. Focused coverage
+  passes 50/50 plus the updated JournalHome file at 5/5. The complete serial run passes
+  1,765/1,766 with one unrelated five-second JournalEditor timeout that passes 19/19 in isolation;
+  the production build transforms 2,144 modules and `git diff --check` passes. A fresh 375×812
+  origin verified two standard and three harder interrupted-past ending cards, 44px tier controls,
+  no horizontal overflow and a clean console. See the 2026-08-28/30 Taller entries in
+  [DECISIONS.md](DECISIONS.md).
 - **Pages hub derived grouping — deployed.** The Pages hub browse list was Pinned plus one flat
   stack, and every control it had narrowed rather than arranged. A fourth Refine control,
   **Group**, now renders the already-filtered list under headings: **Kind** (Source · Grammar ·

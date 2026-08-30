@@ -52,6 +52,11 @@ export const JOURNAL_PROMPTS = Object.freeze([
 
   {
     id: "narrate-scene", category: "narrate", tense: "Indicative/Preterite", offersWords: true,
+    targets: {
+      standard: { tenses: ["Indicative/Imperfect", "Indicative/Preterite"], label: "Preterite + imperfect" },
+      easier: { tenses: ["Indicative/Imperfect", "Indicative/Preterite"], label: "Preterite + imperfect" },
+      harder: { tenses: ["Indicative/Imperfect", "Indicative/Preterite"], label: "Preterite + imperfect" },
+    },
     es: "Cuenta algo que pasó hoy: usa el imperfecto para la escena y el pretérito para lo que ocurrió.",
     en: "Tell something that happened today: imperfect for the scene, preterite for what occurred.",
     easier: { es: "Cuenta algo que pasó hoy en dos frases: primero cómo era el momento, luego qué ocurrió.", en: "Tell something that happened today in two sentences: first what the moment was like, then what occurred." },
@@ -60,6 +65,11 @@ export const JOURNAL_PROMPTS = Object.freeze([
   },
   {
     id: "narrate-interrupted", category: "narrate", tense: "Indicative/Imperfect",
+    targets: {
+      standard: { tenses: ["Indicative/Imperfect", "Indicative/Preterite"], label: "Interrupted past" },
+      easier: { tenses: ["Indicative/Imperfect", "Indicative/Preterite"], label: "Interrupted past" },
+      harder: { tenses: ["Indicative/Imperfect", "Indicative/Preterite", "Indicative/Past Perfect"], label: "Interrupted past + prior plan" },
+    },
     es: "¿Qué estabas haciendo cuando algo te interrumpió hoy?",
     en: "What were you doing when something interrupted you today?",
     easier: { es: "Completa: «Yo estaba... cuando...».", en: "Complete: \"I was... when...\"" },
@@ -68,6 +78,11 @@ export const JOURNAL_PROMPTS = Object.freeze([
   },
   {
     id: "narrate-before", category: "narrate", tense: "Indicative/Imperfect",
+    targets: {
+      standard: { tenses: ["Indicative/Imperfect", "Indicative/Preterite"], label: "Past routine vs. event" },
+      easier: { tenses: ["Indicative/Imperfect", "Indicative/Preterite"], label: "Past routine vs. event" },
+      harder: { tenses: ["Indicative/Imperfect", "Indicative/Preterite"], label: "Past routine vs. event" },
+    },
     es: "Compara cómo era tu mañana típica antes con lo que hiciste esta mañana.",
     en: "Compare what your typical morning used to be like with what you did this morning.",
     easier: { es: "Escribe dos frases: «Antes yo siempre...» y «Hoy yo...».", en: "Write two sentences: \"Before, I always...\" and \"Today I...\"" },
@@ -92,6 +107,11 @@ export const JOURNAL_PROMPTS = Object.freeze([
   },
   {
     id: "narrate-perfect", category: "narrate", tense: "Indicative/Present Perfect",
+    targets: {
+      standard: { tenses: ["Indicative/Present Perfect", "Indicative/Past Perfect"], label: "Present perfect + past perfect" },
+      easier: { tenses: ["Indicative/Present Perfect"], label: "Present perfect" },
+      harder: { tenses: ["Indicative/Present Perfect"], label: "Present perfect" },
+    },
     es: "¿Qué has hecho últimamente que nunca habías hecho antes?",
     en: "What have you done lately that you had never done before?",
     easier: { es: "Escribe tres frases que empiecen con «Últimamente he...».", en: "Write three sentences starting with \"Lately I have...\"" },
@@ -149,6 +169,11 @@ export const JOURNAL_PROMPTS = Object.freeze([
   },
   {
     id: "imagine-redo", category: "imagine", tense: "Indicative/Conditional",
+    targets: {
+      standard: { tenses: ["Subjunctive/Imperfect", "Indicative/Conditional"], label: "Present unreal condition" },
+      easier: { tenses: ["Subjunctive/Imperfect", "Indicative/Conditional"], label: "Present unreal condition" },
+      harder: { tenses: ["Subjunctive/Past Perfect", "Indicative/Conditional Perfect"], label: "Past unreal condition" },
+    },
     es: "Si pudieras repetir un momento de hoy, ¿qué cambiarías?",
     en: "If you could repeat one moment of today, what would you change?",
     easier: { es: "Completa: «Si pudiera repetir hoy, yo...».", en: "Complete: \"If I could repeat today, I...\"" },
@@ -165,6 +190,11 @@ export const JOURNAL_PROMPTS = Object.freeze([
   },
   {
     id: "imagine-hypothetical", category: "imagine", tense: "Subjunctive/Imperfect",
+    targets: {
+      standard: { tenses: ["Subjunctive/Imperfect", "Indicative/Conditional"], label: "Present unreal condition" },
+      easier: { tenses: ["Subjunctive/Imperfect", "Indicative/Conditional"], label: "Present unreal condition" },
+      harder: { tenses: ["Subjunctive/Imperfect", "Indicative/Conditional"], label: "Present unreal condition" },
+    },
     es: "Si tuvieras un día libre mañana, sin obligaciones, ¿qué harías?",
     en: "If you had a free day tomorrow, with no obligations, what would you do?",
     easier: { es: "Completa: «Si tuviera tiempo mañana, yo...».", en: "Complete: \"If I had time tomorrow, I...\"" },
@@ -173,6 +203,11 @@ export const JOURNAL_PROMPTS = Object.freeze([
   },
   {
     id: "imagine-regret", category: "imagine", tense: "Subjunctive/Past Perfect",
+    targets: {
+      standard: { tenses: ["Subjunctive/Past Perfect", "Indicative/Conditional Perfect"], label: "Past unreal condition" },
+      easier: { tenses: ["Subjunctive/Past Perfect", "Indicative/Conditional Perfect"], label: "Past unreal condition" },
+      harder: { tenses: ["Subjunctive/Past Perfect", "Indicative/Conditional Perfect"], label: "Past unreal condition" },
+    },
     es: "Si un momento de hoy hubiera sido diferente, ¿qué habría pasado después?",
     en: "If one moment of today had been different, what would have happened next?",
     easier: { es: "Completa: «Si hubiera salido más temprano, yo...».", en: "Complete: \"If I had left earlier, I...\"" },

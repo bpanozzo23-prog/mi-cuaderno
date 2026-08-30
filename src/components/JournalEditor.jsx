@@ -445,7 +445,7 @@ export default function JournalEditor({
                 </div>
               </div>
             )}
-            <TallerScaffold prompt={drill.prompt} />
+            <TallerScaffold prompt={drill.prompt} tier={tier} />
           </Card>
         )}
 

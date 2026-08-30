@@ -4,7 +4,7 @@ import { C, SERIF } from "../theme.jsx";
 import { dictionaryInstalled, getVerbTablesByLemma } from "../db/ref/entries.js";
 import { GYM_SLOTS } from "../lib/conjugationGym.js";
 import { qualifiedTenseLabel } from "../lib/conjugation.js";
-import { endingsForTense } from "../lib/taller.js";
+import { endingsForTense, promptTargetsForTier } from "../lib/taller.js";
 import { scaffoldForCategory } from "../lib/tallerScaffolds.js";
 
 const FALLBACK_TENSE = "Indicative/Present";
@@ -17,16 +17,26 @@ const FALLBACK_TENSE = "Indicative/Present";
  * orphan path can never be needed; with no dictionary installed the lookup simply is not
  * offered, because "not installed" is not "orphaned".
  */
-export default function TallerScaffold({ prompt }) {
+export default function TallerScaffold({ prompt, tier = "standard" }) {
+  const target = promptTargetsForTier(prompt, tier);
+  const targetKey = target.tenses.join("|");
+  const primaryTargetTense = target.tenses[0] || FALLBACK_TENSE;
   const [open, setOpen] = useState(false);
   const [dictReady, setDictReady] = useState(false);
   const [lookupDraft, setLookupDraft] = useState("");
   const [lookup, setLookup] = useState(null);
   const [searching, setSearching] = useState(false);
+  const [lookupTense, setLookupTense] = useState(primaryTargetTense);
 
-  const endings = endingsForTense(prompt?.tense);
+  const endingGroups = target.tenses
+    .map((tense) => ({ tense, rows: endingsForTense(tense) }))
+    .filter((group) => group.rows.length > 0);
   const bank = scaffoldForCategory(prompt?.category);
-  const targetTense = prompt?.tense || FALLBACK_TENSE;
+
+  useEffect(() => {
+    setLookupTense(primaryTargetTense);
+    setLookup(null);
+  }, [primaryTargetTense, targetKey]);
 
   useEffect(() => {
     let live = true;
@@ -50,7 +60,7 @@ export default function TallerScaffold({ prompt }) {
         setLookup({ lemma, forms: null });
         return;
       }
-      const tense = result.conjugation.tenses?.[targetTense] ? targetTense : FALLBACK_TENSE;
+      const tense = result.conjugation.tenses?.[lookupTense] ? lookupTense : FALLBACK_TENSE;
       const table = result.conjugation.tenses?.[tense] || {};
       setLookup({
         lemma: result.entry.lemma || lemma,
@@ -68,14 +78,18 @@ export default function TallerScaffold({ prompt }) {
 
   return (
     <div className="mt-3">
-      {endings.length > 0 && (
-        <div aria-label="Regular endings" className="rounded-lg border p-2" style={{ background: C.paper, borderColor: C.line }}>
-          <div className="text-[11px] uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>
-            {qualifiedTenseLabel(prompt.tense)}
-          </div>
-          {endings.map((row) => (
-            <div key={row.id} className="mt-1 text-xs" style={{ color: C.ink }}>
-              {row.prompt}
+      {endingGroups.length > 0 && (
+        <div aria-label="Regular endings" className="space-y-2">
+          {endingGroups.map((group) => (
+            <div key={group.tense} className="rounded-lg border p-2" style={{ background: C.paper, borderColor: C.line }}>
+              <div className="text-[11px] uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>
+                {qualifiedTenseLabel(group.tense)}
+              </div>
+              {group.rows.map((row) => (
+                <div key={row.id} className="mt-1 text-xs" style={{ color: C.ink }}>
+                  {row.prompt}
+                </div>
+              ))}
             </div>
           ))}
         </div>
@@ -113,6 +127,25 @@ export default function TallerScaffold({ prompt }) {
 
           {dictReady && (
             <div aria-label="Verb lookup">
+              {target.tenses.length > 1 && (
+                <label className="mb-2 block text-xs" style={{ color: C.mut }}>
+                  Verb lookup tense
+                  <select
+                    aria-label="Verb lookup tense"
+                    value={lookupTense}
+                    onChange={(event) => {
+                      setLookupTense(event.target.value);
+                      setLookup(null);
+                    }}
+                    className="mt-1 min-h-11 w-full rounded-xl border px-3 py-2 text-sm"
+                    style={{ background: C.card, borderColor: C.line, color: C.ink }}
+                  >
+                    {target.tenses.map((tense) => (
+                      <option key={tense} value={tense}>{qualifiedTenseLabel(tense)}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <div className="flex gap-2">
                 <input
                   aria-label="Look up a verb"

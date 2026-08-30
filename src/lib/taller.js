@@ -72,7 +72,9 @@ export function drawDrillPrompt(categoryId, { events = [], items = [], random = 
   const pool = JOURNAL_PROMPTS.filter((prompt) => prompt.category === categoryId);
   if (pool.length === 0) return null;
   const weak = weakTenses(events, items);
-  const preferred = pool.filter((prompt) => prompt.tense && weak.has(prompt.tense));
+  const preferred = pool.filter((prompt) =>
+    promptTargetsForTier(prompt, "standard").tenses.some((tense) => weak.has(tense))
+  );
   const candidates = preferred.length > 0 && random() < WEAK_TENSE_PREFERENCE ? preferred : pool;
   return candidates[Math.floor(random() * candidates.length)];
 }
@@ -184,6 +186,7 @@ const PRACTICE_TARGET_LABELS = Object.freeze({
   "Indicative/Present Perfect": "Present perfect",
   "Indicative/Past Perfect": "Past perfect",
   "Indicative/Conditional": "Conditional",
+  "Indicative/Conditional Perfect": "Conditional perfect",
   "Indicative/Future": "Future",
   "Subjunctive/Present": "Present subjunctive",
   "Subjunctive/Present Perfect": "Present perfect subjunctive",
@@ -193,11 +196,22 @@ const PRACTICE_TARGET_LABELS = Object.freeze({
   "Imperative Negative/Present": "Negative commands",
 });
 
+/** The tier-aware grammar targets for a prompt, preserving the legacy single-tense fallback. */
+export function promptTargetsForTier(prompt, tier = "standard") {
+  if (!prompt) return { tenses: [], label: null };
+  const selected = prompt.targets?.[tier] || prompt.targets?.standard;
+  const tenses = selected?.tenses?.length
+    ? [...new Set(selected.tenses)]
+    : prompt.tense ? [prompt.tense] : [];
+  const label = selected?.label
+    || prompt.focus
+    || (tenses.length === 1 ? PRACTICE_TARGET_LABELS[tenses[0]] : null);
+  return { tenses, label };
+}
+
 /** A concise timeline label for the grammar or language target a prompt practices. */
-export function practiceTargetLabel(prompt) {
-  if (!prompt) return null;
-  if (prompt.focus) return prompt.focus;
-  return PRACTICE_TARGET_LABELS[prompt.tense] || null;
+export function practiceTargetLabel(prompt, tier = "standard") {
+  return promptTargetsForTier(prompt, tier).label;
 }
 
 /**
@@ -217,7 +231,9 @@ export function practiceDetailsByPage(events) {
     byPage.set(event.itemKey, {
       categoryId: category.id,
       categoryLabel: category.label,
-      targetLabel: prompt?.category === category.id ? practiceTargetLabel(prompt) : null,
+      targetLabel: prompt?.category === category.id
+        ? practiceTargetLabel(prompt, event.metadata?.tier || "standard")
+        : null,
     });
   }
   return byPage;

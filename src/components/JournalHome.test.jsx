@@ -127,7 +127,7 @@ describe("JournalHome", () => {
     expect(within(timeline).getAllByText("Aug 2, 2026")).toHaveLength(1);
     expect(within(timeline).getByText("#rutina")).toBeTruthy();
     expect(within(timeline).getByText("Narrate")).toBeTruthy();
-    expect(within(timeline).getByText(/Indicative preterite/)).toBeTruthy();
+    expect(within(timeline).getByText(/Preterite \+ imperfect/)).toBeTruthy();
     expect(within(timeline).queryByText("Taller")).toBeNull();
     const morningCard = within(timeline).getByRole("button", { name: "Open Morning" });
     const eveningCard = within(timeline).getByRole("button", { name: "Open Evening" });
