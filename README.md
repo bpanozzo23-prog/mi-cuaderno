@@ -856,7 +856,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   as `1316ee2` through Pages run
   [32904787874](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32904787874). See
   the 2026-08-25 entries in [DECISIONS.md](DECISIONS.md).
-- **Additional Taller skill coverage — implemented locally, not deployed.** The static library
+- **Additional Taller skill coverage — deployed.** The static library
   grows 47 → 52 with affirmative and negative commands, present-perfect subjunctive reactions,
   accidental/impersonal `se`, and indicative-versus-subjunctive relative clauses. Each addition
   carries bilingual base/easier/harder text and a Spanish-only example. Commands are separate
@@ -869,7 +869,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   --check` passes. A fresh isolated 375×812 browser pass rendered all five additions with no
   horizontal overflow or console warnings/errors and opened the new example behind its 44px
   disclosure. See the 2026-08-28 Taller entries in [DECISIONS.md](DECISIONS.md).
-- **Taller language polish and composite grammar targets — implemented locally, not deployed.**
+- **Taller language polish and composite grammar targets — deployed.**
   Four prompts now follow the app's Mexican-Spanish preference and distinguish duration from the
   immediate past accurately. Seven prompts whose clauses genuinely combine structures now carry
   tier-aware target sets without changing their legacy single-tense metadata: weak-tense draws
@@ -881,7 +881,9 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   the production build transforms 2,144 modules and `git diff --check` passes. A fresh 375×812
   origin verified two standard and three harder interrupted-past ending cards, 44px tier controls,
   no horizontal overflow and a clean console. See the 2026-08-28/30 Taller entries in
-  [DECISIONS.md](DECISIONS.md).
+  [DECISIONS.md](DECISIONS.md). The three application commits were pushed through `e8603a7`, and
+  GitHub Pages run [33338694755](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33338694755)
+  completed successfully.
 - **Pages hub derived grouping — deployed.** The Pages hub browse list was Pinned plus one flat
   stack, and every control it had narrowed rather than arranged. A fourth Refine control,
   **Group**, now renders the already-filtered list under headings: **Kind** (Source · Grammar ·
