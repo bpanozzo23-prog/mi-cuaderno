@@ -1029,6 +1029,16 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   [33216885561](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33216885561), with the
   live root returning HTTP 200 and serving `assets/index-b1s51Ddh.js`.
 
+- **Test reliability hardening — locally verified, not pushed.**
+  Readiness checks now distinguish loading from settled absence, grading waits for its event,
+  and editor tests finish saves before teardown. Controlled promises retain real database
+  integration, paired positive controls defend negative assertions, and failure-safe cleanup
+  waits for tracked work. Nine deliberate behavior breaks were detected. Ten focused repetitions
+  passed 73/73 each, and three complete serial repetitions passed 1,787/1,787 across 147 files
+  each, with no unhandled errors or failure retries. The production build and diff check passed.
+  No production behavior, schema, timeout or deployment workflow change.
+  See the [test reliability report](docs/TEST-RELIABILITY-REPORT.md).
+
 `SCHEMA_VERSION` is **11**. Before Dexie opens v11, schema-v1 through schema-v10 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
 relationship, composable-page, Grammar-hierarchy, Structured-Notes, entry-feedback and Apuntes

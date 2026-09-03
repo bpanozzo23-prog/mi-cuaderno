@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
 import JournalEditor from "./JournalEditor.jsx";
@@ -9,26 +9,58 @@ import { allItems, createItem, getItem, newPage, saveEntryFeedback } from "../db
 import { allEvents, EVENT_TYPES } from "../db/events.js";
 import { makeStoredFeedback } from "../lib/diarioReview.js";
 import { JOURNAL_PROMPTS } from "../lib/journalPrompts.js";
+import * as itemApi from "../db/items.js";
+import * as eventApi from "../db/events.js";
+import { deferred, settleAsyncCalls } from "../test/async.js";
+
+const realCreateItem = itemApi.createItem;
+let creating;
+let updating;
+let viewing;
+let editors;
+let saveGate;
 
 beforeEach(async () => {
   await db.open();
   await clearAllPersonalData();
+  creating = vi.spyOn(itemApi, "createItem");
+  updating = vi.spyOn(itemApi, "updateItem");
+  viewing = vi.spyOn(eventApi, "logView");
+  editors = [];
+  saveGate = null;
 });
 
-afterEach(() => {
-  cleanup();
-  vi.restoreAllMocks();
+afterEach(async () => {
+  try {
+    saveGate?.resolve();
+    cleanup();
+    await act(async () => {
+      // Cleanup can enqueue an unmount save before a write spy sees it. The captured public
+      // navigation promises are queue-tail barriers, not a guess that one microtask means idle.
+      await Promise.all(editors.map((editor) => editor.current?.flushForTabSwitch()));
+      await settleAsyncCalls(creating, updating, viewing);
+    });
+  } finally {
+    vi.restoreAllMocks();
+  }
 });
 
-const baseProps = (overrides = {}) => ({
-  entry: null,
-  seed: { date: "2026-08-03" },
-  onBack: vi.fn(),
-  onChanged: vi.fn(),
-  onMaterialized: vi.fn(),
-  autosaveMs: 15,
-  ...overrides,
-});
+const baseProps = (overrides = {}) => {
+  const editor = { current: null };
+  editors.push(editor);
+  return {
+    entry: null,
+    seed: { date: "2026-08-03" },
+    onBack: vi.fn(),
+    onChanged: vi.fn(),
+    onMaterialized: vi.fn(),
+    registerNavigationHandlers: (handlers) => { if (handlers) editor.current = handlers; },
+    autosaveMs: 15,
+    ...overrides,
+  };
+};
+
+const waitForSaved = () => waitFor(() => expect(screen.getByRole("status").textContent).toBe("Saved"));
 
 describe("JournalEditor stored feedback", () => {
   const review = {
@@ -49,6 +81,7 @@ describe("JournalEditor stored feedback", () => {
     const entry = await reviewedEntry();
     render(<JournalEditor {...baseProps({ entry })} />);
 
+    expect(screen.getByRole("region", { name: "Feedback on this entry" })).toBeTruthy();
     expect(screen.getByText("Mostly clear")).toBeTruthy();
     expect(screen.getByText("agradecido para")).toBeTruthy();
     expect(screen.getByText(/→ agradecido por/)).toBeTruthy();
@@ -62,11 +95,11 @@ describe("JournalEditor stored feedback", () => {
   it("renders no panel for an entry without feedback or a brand-new draft", async () => {
     const entry = await createItem(newPage({ title: "Sin review", body: "Texto.", pageDate: "2026-08-03" }));
     render(<JournalEditor {...baseProps({ entry })} />);
-    expect(screen.queryByText(/Margin notes/i)).toBeNull();
+    expect(screen.queryByRole("region", { name: "Feedback on this entry" })).toBeNull();
     cleanup();
 
     render(<JournalEditor {...baseProps()} />);
-    expect(screen.queryByText(/Margin notes/i)).toBeNull();
+    expect(screen.queryByRole("region", { name: "Feedback on this entry" })).toBeNull();
   });
 
   it("marks the review stale as the text changes, but not for formatting-only edits", async () => {
@@ -85,6 +118,8 @@ describe("JournalEditor stored feedback", () => {
     await user.type(body, " mucho");
 
     expect(screen.getByText(/From before your last edit/i)).toBeTruthy();
+    await waitForSaved();
+    expect((await getItem(entry.id)).body).toBe("Esto ==importa== mucho");
   });
 
   it("autosaves around the stored review without touching it", async () => {
@@ -160,20 +195,27 @@ describe("JournalEditor autosave", () => {
     expect(screen.getByRole("status").textContent).toMatch(/start writing/i);
     cleanup();
 
-    await new Promise((resolve) => setTimeout(resolve, 30));
+    await act(async () => {
+      await Promise.all(editors.map((editor) => editor.current?.flushForTabSwitch()));
+      await settleAsyncCalls(creating, updating, viewing);
+    });
+    expect(creating).not.toHaveBeenCalled();
     expect(await allItems()).toEqual([]);
     expect(await allEvents()).toEqual([]);
   });
 
   it("cancels a pending creation when the first writing is erased", async () => {
-    const user = userEvent.setup();
     render(<JournalEditor {...baseProps({ autosaveMs: 50 })} />);
 
     const body = screen.getByRole("textbox", { name: "Journal body" });
-    await user.type(body, "Temporary");
-    await user.clear(body);
+    // No timer task can run between these synchronous changes. Slow character-by-character
+    // typing could legitimately autosave before the test got around to clearing the field.
+    fireEvent.change(body, { target: { value: "Temporary" } });
+    fireEvent.change(body, { target: { value: "" } });
     expect(screen.getByRole("status").textContent).toMatch(/start writing/i);
-    await new Promise((resolve) => setTimeout(resolve, 80));
+    // Here elapsed time IS the behavior: the canceled 50ms debounce must never create a row.
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 80)); });
+    expect(creating).not.toHaveBeenCalled();
     expect(await allItems()).toEqual([]);
   });
 
@@ -188,6 +230,7 @@ describe("JournalEditor autosave", () => {
     // The page materializes from an early keystroke's autosave, so a length-only wait can
     // observe a partial body; wait for the final text, as the update wait below already does.
     await waitFor(async () => expect((await allItems())[0]?.body).toBe("Hoy caminé."));
+    await waitForSaved();
     const [created] = await allItems();
     expect(created.title).toBe("Morning");
     expect(created.pageDate).toBe("2026-08-03");
@@ -198,6 +241,7 @@ describe("JournalEditor autosave", () => {
       const [updated] = await allItems();
       expect(updated.body).toBe("Hoy caminé. Después descansé.");
     });
+    await waitForSaved();
 
     const events = await allEvents();
     expect(events.filter((event) => event.type === EVENT_TYPES.create)).toHaveLength(1);
@@ -228,10 +272,45 @@ describe("JournalEditor autosave", () => {
     await user.type(screen.getByRole("textbox", { name: "Journal body" }), "Un momento rápido.");
     cleanup();
 
-    await waitFor(async () => expect(await allItems()).toHaveLength(1));
+    await waitFor(() => expect(props.onChanged).toHaveBeenCalledTimes(1));
+    expect((await allItems()).map((item) => item.body)).toEqual(["Un momento rápido."]);
     expect(props.onMaterialized).not.toHaveBeenCalled();
     const events = await allEvents();
     expect(events.map((event) => event.type)).toEqual([EVENT_TYPES.create]);
+  });
+
+  it("finishes the latest draft when unmounted during initial materialization", async () => {
+    const committed = deferred();
+    saveGate = deferred();
+    creating.mockImplementationOnce(async (...args) => {
+      const created = await realCreateItem(...args);
+      committed.resolve(created);
+      // Hold the API return outside the transaction: a database row alone does not mean
+      // the editor has observed completion, called onChanged, or finished its save queue.
+      await saveGate.promise;
+      return created;
+    });
+    const props = baseProps();
+    render(<JournalEditor {...props} />);
+    const body = screen.getByRole("textbox", { name: "Journal body" });
+    fireEvent.change(body, { target: { value: "First draft." } });
+    let created;
+    await act(async () => { created = await committed.promise; });
+    expect((await getItem(created.id)).body).toBe("First draft.");
+    expect(props.onChanged).not.toHaveBeenCalled();
+    expect(props.onMaterialized).not.toHaveBeenCalled();
+
+    fireEvent.change(body, { target: { value: "Latest draft." } });
+    cleanup();
+    await act(async () => { saveGate.resolve(); });
+    // Do not use the teardown flush barrier here: this assertion must prove that unmount
+    // itself queued the latest text, not have a test helper save it on the component's behalf.
+    await waitFor(() => expect(props.onChanged).toHaveBeenCalledTimes(2));
+    expect((await getItem(created.id)).body).toBe("Latest draft.");
+    expect(await allItems()).toHaveLength(1);
+    expect((await allEvents()).map((event) => event.type)).toEqual([EVENT_TYPES.create]);
+    expect(props.onMaterialized).not.toHaveBeenCalled();
+    expect(props.onBack).not.toHaveBeenCalled();
   });
 
   it("logs at most one edit while an existing entry autosaves more than once", async () => {
@@ -248,6 +327,7 @@ describe("JournalEditor autosave", () => {
       const [updated] = await allItems();
       expect(updated.body).toBe("Primera versión. Más.");
     });
+    await waitForSaved();
 
     const title = screen.getByRole("textbox", { name: "Journal title" });
     await user.clear(title);
@@ -256,12 +336,13 @@ describe("JournalEditor autosave", () => {
       const [updated] = await allItems();
       expect(updated.title).toBe("After");
     });
+    await waitForSaved();
 
     const events = await allEvents();
     expect(events.filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(1);
   });
 
-  it("flushes eligible writing before Back and refuses to leave an existing entry without a date", async () => {
+  it("flushes eligible writing before Back", async () => {
     const user = userEvent.setup();
     const entry = await createItem(newPage({ body: "Antes.", pageDate: "2026-08-03" }));
     const props = baseProps({ entry, seed: null, autosaveMs: 5000 });
@@ -272,14 +353,24 @@ describe("JournalEditor autosave", () => {
     await waitFor(() => expect(props.onBack).toHaveBeenCalledTimes(1));
     expect((await allItems())[0].body).toBe("Antes. Ahora.");
 
-    cleanup();
-    const secondProps = baseProps({ entry: (await allItems())[0], seed: null });
-    render(<JournalEditor {...secondProps} />);
+  });
+
+  it("refuses Back without a date, then flushes unmount writing with the last valid date", async () => {
+    const user = userEvent.setup();
+    const entry = await createItem(newPage({ body: "Antes.", pageDate: "2026-08-03" }));
+    const props = baseProps({ entry, seed: null });
+    render(<JournalEditor {...props} />);
+    await act(async () => { await settleAsyncCalls(viewing); });
+    props.onChanged.mockClear();
     await user.clear(screen.getByLabelText("Journal date"));
     await user.type(screen.getByRole("textbox", { name: "Journal body" }), " Sin fecha.");
     await user.click(screen.getByRole("button", { name: "Back to Diario" }));
-    expect(secondProps.onBack).not.toHaveBeenCalled();
+    expect(props.onBack).not.toHaveBeenCalled();
     expect(screen.getByRole("status").textContent).toMatch(/choose a date/i);
+    cleanup();
+    await waitFor(() => expect(props.onChanged).toHaveBeenCalledTimes(1));
+    expect(await getItem(entry.id)).toMatchObject({ body: "Antes. Sin fecha.", pageDate: "2026-08-03" });
+    expect(props.onBack).not.toHaveBeenCalled();
   });
 
   it("autosaves Apuntes typed in the collapsible box and trims a blanked box back to null", async () => {
@@ -295,10 +386,12 @@ describe("JournalEditor autosave", () => {
 
     await user.type(screen.getByRole("textbox", { name: "Apuntes" }), "recopilar > juntar");
     await waitFor(async () => expect((await allItems())[0].apuntes).toBe("recopilar > juntar"));
+    await waitForSaved();
     expect((await allItems())[0].body).toBe("Cuerpo.");
 
     await user.clear(screen.getByRole("textbox", { name: "Apuntes" }));
     await waitFor(async () => expect((await allItems())[0].apuntes).toBeNull());
+    await waitForSaved();
   });
 
   it("keeps the Apuntes box mounted while collapsed so its draft survives", async () => {
@@ -335,6 +428,7 @@ describe("JournalEditor autosave", () => {
 
     // Same partial-save seam as above: the page exists after the first Apuntes keystroke.
     await waitFor(async () => expect((await allItems())[0]?.apuntes).toBe("Feedback de Gemini."));
+    await waitForSaved();
     const [created] = await allItems();
     expect(created.body).toBe("");
     expect(created.pageDate).toBe("2026-08-03");
@@ -353,6 +447,7 @@ describe("JournalEditor autosave", () => {
     await user.type(screen.getByRole("textbox", { name: "Journal body" }), "Escuché la palabra sobremesa.");
     // Same partial-save seam as above — this is the flake seen at line ~354/356 in full runs.
     await waitFor(async () => expect((await allItems())[0]?.body).toBe("Escuché la palabra sobremesa."));
+    await waitForSaved();
     const [created] = await allItems();
     expect(created.promptId).toBeUndefined();
     expect(created.prompt).toBeUndefined();

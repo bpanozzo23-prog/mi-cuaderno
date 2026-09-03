@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import JournalReader from "./JournalReader.jsx";
 import { clearAllPersonalData, db, setPref } from "../db/db.js";
@@ -12,20 +12,45 @@ import { META_KEYS, refDb, setActiveSlot } from "../db/ref/refdb.js";
 import { FIXTURE_ENTRIES } from "../test/dictFixture.js";
 import { newMeaning } from "../lib/meanings.js";
 import { journalDateLabel } from "./JournalHome.jsx";
+import * as aiPrefs from "../lib/aiPrefs.js";
+import * as linkedEntries from "../db/linkedEntries.js";
+import * as referenceEntries from "../db/ref/entries.js";
+import * as eventApi from "../db/events.js";
+import * as contextConnections from "../lib/contextConnections.js";
+import { deferred, settleAsyncCalls } from "../test/async.js";
 
 const CASA = "dict:wiktionary-es:casa:noun";
+const realAiFeedbackReady = aiPrefs.aiFeedbackReady;
+let readiness;
+let mountWork;
+let readinessGate;
 
 beforeEach(async () => {
   await removeDictionary();
   localStorage.clear();
   await db.open();
   await clearAllPersonalData();
+  readiness = vi.spyOn(aiPrefs, "aiFeedbackReady");
+  mountWork = [
+    readiness,
+    vi.spyOn(linkedEntries, "resolveLinkedKeys"),
+    vi.spyOn(referenceEntries, "installedMeta"),
+    vi.spyOn(eventApi, "logView"),
+    vi.spyOn(contextConnections, "prepareContextIndex"),
+  ];
+  readinessGate = null;
 });
 
 afterEach(async () => {
-  cleanup();
-  await removeDictionary();
-  vi.restoreAllMocks();
+  try {
+    readinessGate?.resolve();
+    cleanup();
+    await act(async () => { await settleAsyncCalls(...mountWork); });
+    await removeDictionary();
+  } finally {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  }
 });
 
 async function seedDictionary(previousIds = {}) {
@@ -420,20 +445,35 @@ describe("JournalReader", () => {
     })).toBeTruthy();
   });
 
-  it("offers no Feedback button until the AI feature is on with a key", async () => {
+  it.each([
+    ["disabled", false, "fixture-key", false],
+    ["enabled but keyless", true, undefined, false],
+    ["enabled with a key", true, "fixture-key", true],
+  ])("settles Feedback availability after real preference reads: %s", async (_label, enabled, key, expected) => {
+    await setPref(AI_ENABLED_PREF, enabled);
+    if (key !== undefined) await setPref(AI_API_KEY_PREF, key);
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    readinessGate = deferred();
+    readiness.mockImplementationOnce(async () => {
+      const result = await realAiFeedbackReady();
+      await readinessGate.promise;
+      return result;
+    });
     const entry = await createItem(newPage({ body: "Hoy escribí un poco.", pageDate: "2026-08-03" }));
     render(<JournalReader {...propsFor(entry, [entry])} />);
 
-    // The mount-time preference read has to settle before absence means anything.
-    await waitFor(() => expect(screen.getByText(/Hoy escribí un poco/)).toBeTruthy());
+    expect(readiness).toHaveBeenCalledTimes(1);
+    // Body text is already present while preference readiness is still held back.
+    expect(screen.getByText(/Hoy escribí un poco/)).toBeTruthy();
     expect(screen.queryByRole("button", { name: /Feedback/i })).toBeNull();
-
-    // Enabled but keyless is what a restored backup leaves behind, and must not offer the button.
-    await setPref(AI_ENABLED_PREF, true);
-    cleanup();
-    render(<JournalReader {...propsFor(entry, [entry])} />);
-    await waitFor(() => expect(screen.getByText(/Hoy escribí un poco/)).toBeTruthy());
-    expect(screen.queryByRole("button", { name: /Feedback/i })).toBeNull();
+    await act(async () => {
+      readinessGate.resolve();
+      await settleAsyncCalls(...mountWork);
+    });
+    if (expected) expect(screen.getByRole("button", { name: "Feedback" })).toBeTruthy();
+    else expect(screen.queryByRole("button", { name: /Feedback/i })).toBeNull();
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it("keeps a stored review reachable and readable even when the AI feature is off", async () => {
@@ -452,6 +492,8 @@ describe("JournalReader", () => {
     const fetchSpy = vi.fn();
     vi.stubGlobal("fetch", fetchSpy);
     render(<JournalReader {...propsFor(withFeedback, [withFeedback])} />);
+    expect(readiness).toHaveBeenCalledTimes(1);
+    await act(async () => { await settleAsyncCalls(...mountWork); });
 
     // The collapsed trigger announces that a review exists and when it happened, so the reader
     // reads as a dated section to expand rather than an action to take.
@@ -464,7 +506,6 @@ describe("JournalReader", () => {
     expect(screen.queryByRole("button", { name: /Ask again/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /Send and review/i })).toBeNull();
     expect(fetchSpy).not.toHaveBeenCalled();
-    vi.unstubAllGlobals();
   });
 
   it("opens the feedback panel once the feature is on, disclosing what would be sent", async () => {

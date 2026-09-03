@@ -1,24 +1,38 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import TallerScaffold from "./TallerScaffold.jsx";
 import { fetchManifest, installDictionary, removeDictionary } from "../db/ref/install.js";
 import { buildFixtureDictionary, installFetchStub } from "../test/dictFixture.js";
 import { JOURNAL_PROMPTS } from "../lib/journalPrompts.js";
+import * as referenceEntries from "../db/ref/entries.js";
+import { deferred, settleAsyncCalls } from "../test/async.js";
 
 const realFetch = globalThis.fetch;
+const realDictionaryInstalled = referenceEntries.dictionaryInstalled;
+let readiness;
+let referenceWork;
+let readinessGate;
 
 beforeEach(async () => {
   await removeDictionary();
   localStorage.clear();
+  readiness = vi.spyOn(referenceEntries, "dictionaryInstalled");
+  referenceWork = [readiness, vi.spyOn(referenceEntries, "getVerbTablesByLemma")];
+  readinessGate = null;
 });
 
 afterEach(async () => {
-  cleanup();
-  globalThis.fetch = realFetch;
-  await removeDictionary();
-  vi.restoreAllMocks();
+  try {
+    readinessGate?.resolve();
+    cleanup();
+    await act(async () => { await settleAsyncCalls(...referenceWork); });
+    await removeDictionary();
+  } finally {
+    globalThis.fetch = realFetch;
+    vi.restoreAllMocks();
+  }
 });
 
 const preteritePrompt = JOURNAL_PROMPTS.find((prompt) => prompt.id === "narrate-routine");
@@ -58,16 +72,31 @@ describe("TallerScaffold", () => {
     expect(endings.textContent.toLowerCase()).toContain("indicative conditional perfect");
   });
 
-  it("discloses the category word bank, and offers no verb lookup without a dictionary", async () => {
+  it.each([false, true])("settles verb lookup availability without hiding the word bank: installed=%s", async (installed) => {
+    if (installed) {
+      installFetchStub(await buildFixtureDictionary());
+      await installDictionary(await fetchManifest());
+    }
+    readinessGate = deferred();
+    readiness.mockImplementationOnce(async () => {
+      const result = await realDictionaryInstalled();
+      await readinessGate.promise;
+      return result;
+    });
     const user = userEvent.setup();
     render(<TallerScaffold prompt={untensedPrompt} />);
 
     await user.click(screen.getByRole("button", { name: "Apoyos" }));
     expect(screen.getByText("aunque")).toBeTruthy();
     expect(screen.getByText("sin embargo")).toBeTruthy();
-    // "Not installed" is not "orphaned": the lookup is simply absent.
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(readiness).toHaveBeenCalledTimes(1);
     expect(screen.queryByLabelText("Look up a verb")).toBeNull();
+    await act(async () => {
+      readinessGate.resolve();
+      await settleAsyncCalls(readiness);
+    });
+    if (installed) expect(screen.getByLabelText("Look up a verb")).toBeTruthy();
+    else expect(screen.queryByLabelText("Look up a verb")).toBeNull();
   });
 
   it("looks up a shipped verb's exact forms for the target tense, read-only", async () => {

@@ -121,10 +121,14 @@ this summary.
 - `npm test` — Vitest. Node is the default test environment; component tests opt into `jsdom`
   with a per-file `@vitest-environment` pragma. There is no lint or type-check script.
   **The suite runs one file at a time** (`fileParallelism: false`, set in `vitest.config.js` so
-  every invocation gets it). That is the "complete serial suite" this project's reports have
-  always cited, and it costs roughly 225s on the Windows laptop (about 360s on the Ubuntu server)
-  rather than 68s. Run it whole before claiming a phase; a red `App.test.jsx` navigation timeout
-  under parallel load is contention, not a regression.
+  every invocation gets it). Run the complete serial suite before claiming a phase; parallel
+  runs are not the project's acceptance gate.
+- **A passing verification run exits zero with no failing tests or unhandled errors.** Capture
+  the exact failing test and error before rerunning. Passing in isolation does not establish
+  harmless contention: unfinished work can leak into a later test. Wait for the operation's
+  final saved state or completion callback, and finish pending work before clearing databases.
+  For a timing fix, force the problematic ordering with controlled promises and prove the test
+  detects broken behavior; retain real database integration and the existing timeout policy.
 - **No fake timers.** This suite uses none anywhere, deliberately: the app's async paths run
   through Dexie and the browser's own scheduling, which `vi.useFakeTimers()` does not advance, so
   a test that awaits one hangs until the runner kills it rather than failing usefully. Wait for
@@ -187,11 +191,9 @@ spellings for each machine; everything else in this guide applies on both. What 
   copy with `mkdir -p .claude && cp -r .agents/skills .claude/skills` and keep
   `diff -r .agents/skills .claude/skills` silent. `.claude/launch.json` only matters to a tool
   with a browser pane; the CLI on the XPS has none (see below).
-- **The suite is slower there and exposes a teardown race.** Expect about 360s for the serial
-  run. One known unhandled rejection — `DatabaseClosedError` after `App.test.jsx`'s "routes tag
-  twins to Ajustes" test — fires on the slow CPU without failing any test (`DECISIONS.md`,
-  2026-08-22). It makes `npm test` exit non-zero, so read the pass/fail counts rather than the
-  exit code until it is fixed, and do not report it as a regression of whatever you changed.
+- **The slower CPU exposes timing assumptions.** Apply the same verification gate above on
+  both machines. The historical App `DatabaseClosedError` was fixed on 2026-08-22
+  (`DECISIONS.md`); it is not an exception for ignoring a new nonzero exit.
 - **No browser pane from the CLI.** Verification on the XPS is tests plus the owner looking:
   start the dev server with `--host` (`node node_modules/vite/bin/vite.js --host`; port 5173 is
   open on the Tailscale interface only) and report the URL for the owner to open on the phone:

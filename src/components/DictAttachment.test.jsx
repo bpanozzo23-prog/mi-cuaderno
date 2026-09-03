@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import DictAttachment from "./DictAttachment.jsx";
 import { clearAllPersonalData, db } from "../db/db.js";
@@ -9,6 +9,14 @@ import { allEvents, EVENT_TYPES } from "../db/events.js";
 import { removeDictionary } from "../db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "../db/ref/refdb.js";
 import { FIXTURE_ENTRIES, FIXTURE_FORM_SHARDS } from "../test/dictFixture.js";
+import * as referenceEntries from "../db/ref/entries.js";
+import * as referenceSearch from "../db/ref/search.js";
+import { deferred, settleAsyncCalls } from "../test/async.js";
+
+const realDictionaryInstalled = referenceEntries.dictionaryInstalled;
+let readiness;
+let referenceWork;
+let readinessGate;
 
 /**
  * Attach-later for the §5 seam: a word created without its dictionary entry can gain the
@@ -23,11 +31,20 @@ beforeEach(async () => {
   localStorage.clear();
   await db.open();
   await clearAllPersonalData();
+  readiness = vi.spyOn(referenceEntries, "dictionaryInstalled");
+  referenceWork = [readiness, vi.spyOn(referenceEntries, "resolveEntry"), vi.spyOn(referenceSearch, "searchDictionary")];
+  readinessGate = null;
 });
 
 afterEach(async () => {
-  cleanup();
-  await removeDictionary();
+  try {
+    readinessGate?.resolve();
+    cleanup();
+    await act(async () => { await settleAsyncCalls(...referenceWork); });
+    await removeDictionary();
+  } finally {
+    vi.restoreAllMocks();
+  }
 });
 
 async function seedDictionary() {
@@ -56,24 +73,40 @@ describe("DictAttachment attach-later", () => {
     const resultGloss = await screen.findByText("house");
     await user.click(resultGloss.closest("button"));
 
-    await waitFor(async () => {
-      expect((await getItem(word.id)).dictKey).toBe(CASA);
-    });
-    expect(onChanged).toHaveBeenCalled();
+    await waitFor(() => expect(onChanged).toHaveBeenCalledTimes(1));
+    expect((await getItem(word.id)).dictKey).toBe(CASA);
     // Attachment is bookkeeping, the same as re-attach and forget: no edit event.
     expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toEqual([]);
   });
 
-  it("renders nothing for an unattached word when no dictionary is installed", async () => {
+  it.each([false, true])("settles attachment availability after dictionary readiness: installed=%s", async (installed) => {
+    if (installed) await seedDictionary();
     const word = await createItem(newLexical({ term: "casa" }));
+    readinessGate = deferred();
+    readiness.mockImplementationOnce(async () => {
+      const result = await realDictionaryInstalled();
+      await readinessGate.promise;
+      return result;
+    });
 
     const { container } = render(
       <DictAttachment item={word} onOpen={vi.fn()} onChanged={vi.fn()} />
     );
 
-    // Not installed is not attachable; the state must settle to silence, not a dead control.
-    await waitFor(() => expect(container.innerHTML).toBe(""));
+    expect(readiness).toHaveBeenCalledTimes(1);
+    // This was the old oracle: loading is also empty, even if the eventual state is wrong.
+    expect(container.innerHTML).toBe("");
     expect(screen.queryByRole("button", { name: /Attach dictionary entry/ })).toBeNull();
+    await act(async () => {
+      readinessGate.resolve();
+      await settleAsyncCalls(readiness);
+    });
+    if (installed) {
+      expect(screen.getByRole("button", { name: /Attach dictionary entry/ })).toBeTruthy();
+    } else {
+      expect(container.innerHTML).toBe("");
+      expect(screen.queryByRole("button", { name: /Attach dictionary entry/ })).toBeNull();
+    }
   });
 
   it("still renders the attached entry row, not the attach control, once attached", async () => {
