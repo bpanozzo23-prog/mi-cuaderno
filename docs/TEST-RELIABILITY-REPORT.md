@@ -74,6 +74,14 @@ SpeakButton's test fixture. Neither is an unhandled rejection; both are outside 
 The historical five-second JournalEditor timeout did not reproduce in the baseline. Confirmed
 race weaknesses were corrected, but they are not claimed as its proven cause.
 
-Verification is local Windows only. There is no new visible app behavior requiring browser
-acceptance. Linux verification, push and deployment have not been performed. Repeated green
-runs increase confidence; they do not prove that every test in the repository is deterministic.
+Test-suite verification is local Windows only. There is no new visible app behavior requiring
+browser acceptance. The Linux test suite was not run. Repeated green runs increase confidence;
+they do not prove that every test in the repository is deterministic.
+
+## Publication
+
+At the owner's request, `b04c171` was pushed to `main` on 2026-09-03, with local HEAD and
+`origin/main` confirmed equal. The Ubuntu production build and Pages deployment both succeeded
+in [run 33800415895](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33800415895).
+The deployment workflow builds the app; it does not run the test suite. The pre-existing
+CollectionPage modification remains local and was not included.
