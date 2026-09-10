@@ -1040,6 +1040,20 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   Published from `main` at `b04c171`; Pages build and deploy succeeded in
   [run 33800415895](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33800415895).
   See the [test reliability report](docs/TEST-RELIABILITY-REPORT.md).
+- **Same-heading dictionary meanings — deployed.** When a dictionary entry has the same
+  accent-sensitive heading as a personal word or phrase, Dictionary Detail now offers to append
+  selected senses to an existing entry or create a genuinely separate entry. Copied senses stay
+  independent personal meanings and carry the source part of speech as a meaning override when
+  needed; existing meanings, order and dictionary attachment are preserved. Repaso routes the
+  same collision through this choice instead of creating immediately. No stored field, event type,
+  backup rule or migration changed, and `SCHEMA_VERSION` stays 11. The focused suite passes
+  103/103, the complete serial suite passes 1,798/1,798 across 147 files, the production build
+  transforms 2,144 modules, and two deliberate breaks reddened as intended. Published from `main`
+  at `1f4ffdc`; Pages build and deploy succeeded in
+  [run 34425595454](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/34425595454),
+  and the live site serves the verified local `index-BO04VLMC.js` bundle. The agent ran on the
+  headless XPS and did not see the app, so the owner-side 375px phone check remains pending.
+  See the 2026-09-09 entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **11**. Before Dexie opens v11, schema-v1 through schema-v10 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
