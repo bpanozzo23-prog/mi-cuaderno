@@ -242,6 +242,33 @@ export async function updateItem(id, patch, { logEdit = true } = {}) {
 }
 
 /**
+ * Appends owner-selected one-time copies from a dictionary entry to an existing personal item.
+ * The fresh read and edit event share one transaction, so a failed save cannot leave content and
+ * history disagreeing. An unattached target may adopt the current canonical dictionary key; an
+ * existing attachment is never replaced and a second one is never stored.
+ */
+export async function addDictionaryMeaningsToItem(id, meanings, dictKey = null) {
+  return db.transaction("rw", db.items, db.events, async () => {
+    const item = await db.items.get(id);
+    if (!item || item.type !== "lexical") {
+      throw new Error("Dictionary meanings need an existing personal word or phrase.");
+    }
+    const imported = cleanMeanings(meanings);
+    if (!imported.length) throw new Error("Choose at least one dictionary meaning to add.");
+
+    const existingIds = new Set((item.meanings || []).map((meaning) => meaning.id));
+    if (imported.some((meaning) => existingIds.has(meaning.id))) {
+      throw new Error("An imported meaning must have a fresh personal ID.");
+    }
+
+    return updateItem(id, {
+      meanings: [...(item.meanings || []), ...imported],
+      ...(!item.dictKey && isDictKey(dictKey) ? { dictKey } : {}),
+    });
+  });
+}
+
+/**
  * Hard-delete plus a `delete` event — the append-only log is the tombstone
  * (brief section 7). Links pointing at the item are removed; its historical
  * events stay in the log but are excluded from queues and statistics.

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   cleanMeanings,
   firstMeaningGloss,
+  meaningsFromEntryForItem,
   meaningsFromSenses,
   meaningsFromTranslation,
   newMeaning,
@@ -169,6 +170,66 @@ describe("personal meaning model", () => {
     it("survives an entry with no senses at all", () => {
       expect(meaningsFromSenses(undefined, [])).toEqual([]);
       expect(meaningsFromSenses([], undefined)).toEqual([]);
+    });
+
+    it("copies a different dictionary entry's part of speech onto its meanings", () => {
+      const rows = meaningsFromEntryForItem(
+        { pos: "adv", senses: [{ gloss: "badly" }, { gloss: "bad" }] },
+        {
+          pos: "adjective",
+          meanings: [newMeaning({ gloss: "bad", posOverride: "adjective" })],
+        },
+        ids()
+      );
+
+      expect(rows.map((row) => ({
+        gloss: row.meaning.gloss,
+        posOverride: row.meaning.posOverride,
+        duplicate: row.duplicate,
+      }))).toEqual([
+        { gloss: "badly", posOverride: "adverb", duplicate: false },
+        { gloss: "bad", posOverride: "adverb", duplicate: false },
+      ]);
+    });
+
+    it("suppresses only an existing gloss with the same effective part of speech", () => {
+      const rows = meaningsFromEntryForItem(
+        { pos: "adv", senses: [{ gloss: "bad" }, { gloss: "poorly" }] },
+        {
+          pos: "adjective",
+          meanings: [
+            newMeaning({ gloss: "bad" }),
+            newMeaning({ gloss: "poorly", posOverride: "adverb" }),
+          ],
+        },
+        ids()
+      );
+
+      expect(rows.map((row) => row.duplicate)).toEqual([false, true]);
+    });
+
+    it("inherits the target entry part of speech instead of storing a redundant override", () => {
+      const [row] = meaningsFromEntryForItem(
+        { pos: "adj", senses: [{ gloss: "evil" }] },
+        { pos: "adjective", meanings: [] },
+        ids()
+      );
+
+      expect(row.meaning.posOverride).toBe("");
+    });
+
+    it("uses gloss-only duplicate detection when the dictionary role is unknown", () => {
+      const [row] = meaningsFromEntryForItem(
+        { pos: "unmapped-role", senses: [{ gloss: "bad" }] },
+        {
+          pos: "adjective",
+          meanings: [newMeaning({ gloss: "bad", posOverride: "adverb" })],
+        },
+        ids()
+      );
+
+      expect(row.meaning.posOverride).toBe("");
+      expect(row.duplicate).toBe(true);
     });
   });
 });

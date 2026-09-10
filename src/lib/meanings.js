@@ -1,4 +1,5 @@
 import { newMeaningKey } from "./ids.js";
+import { personalPosForEntryPos } from "./partOfSpeech.js";
 
 export const USAGE_LABELS = [
   "formal",
@@ -220,6 +221,39 @@ export function meaningsFromSenses(senses = [], existingMeanings = [], idFactory
     .map((sense, index) => ({ key: `sense-${index}`, ...meaningFromSense(sense, idFactory) }))
     .filter((row) => row.meaning.gloss)
     .map((row) => ({ ...row, duplicate: taken.has(glossKey(row.meaning.gloss)) }));
+}
+
+/**
+ * Dictionary senses copied from a DIFFERENT entry than the target's attachment.
+ *
+ * A dictionary splits one spelling by part of speech, while the personal notebook may keep one
+ * item whose meanings carry those roles. The source entry's mapped part of speech therefore
+ * becomes a meaning override when it differs from the target entry's own value. Duplicate
+ * detection uses gloss + effective part of speech when the source provides one, so `bad`
+ * (adjective) never suppresses `bad` (adverb); an unknown source part of speech retains the
+ * established safer gloss-only rule.
+ *
+ * Like `meaningsFromSenses`, this mints independent personal IDs and stores no source identity,
+ * ordering or provenance. It is a one-time copy, not a second dictionary attachment.
+ */
+export function meaningsFromEntryForItem(entry, item, idFactory = newMeaningKey) {
+  const sourcePos = personalPosForEntryPos(entry?.pos);
+  const targetPos = personalPosForEntryPos(item?.pos) || String(item?.pos || "");
+  const posOverride = sourcePos && sourcePos !== targetPos ? sourcePos : "";
+
+  return (entry?.senses || [])
+    .map((sense, index) => ({ key: `sense-${index}`, ...meaningFromSense(sense, idFactory) }))
+    .filter((row) => row.meaning.gloss)
+    .map((row) => {
+      const meaning = { ...row.meaning, posOverride };
+      const duplicate = (item?.meanings || []).some((existing) => {
+        if (glossKey(existing?.gloss) !== glossKey(meaning.gloss)) return false;
+        if (!sourcePos) return true;
+        const existingEffectivePos = existing?.posOverride || targetPos;
+        return existingEffectivePos === sourcePos;
+      });
+      return { ...row, meaning, duplicate };
+    });
 }
 
 /** Conservative schema-v1 rule: one trimmed nonblank line, including any marker, per meaning. */

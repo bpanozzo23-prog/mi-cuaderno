@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import DictDetail from "./DictDetail.jsx";
 import { removeDictionary } from "../db/ref/install.js";
@@ -8,9 +8,22 @@ import { META_KEYS, refDb, setActiveSlot } from "../db/ref/refdb.js";
 import { FIXTURE_ENTRIES, FIXTURE_PATTERN_CONJUGATIONS } from "../test/dictFixture.js";
 import { clearAllPersonalData, db } from "../db/db.js";
 import { createItem, getItem, newLexical, newPage } from "../db/items.js";
+import { allEvents, EVENT_TYPES } from "../db/events.js";
+import { newMeaning } from "../lib/meanings.js";
 
 const CASA = "dict:wiktionary-es:casa:noun";
 const SACAR = "dict:wiktionary-es:sacar:verb";
+const MALO_ADJ = "dict:wiktionary-es:malo:adj";
+const MALO_ADV = "dict:wiktionary-es:malo:adv";
+const MALO_ADV_ENTRY = {
+  id: MALO_ADV,
+  lemma: "malo",
+  pos: "adv",
+  senses: [
+    { gloss: "badly", regionLabels: [], labels: [] },
+    { gloss: "bad", regionLabels: [], labels: [] },
+  ],
+};
 
 beforeEach(async () => {
   await removeDictionary();
@@ -224,6 +237,130 @@ describe("Phase 5a dictionary detail continuity", () => {
     expect(stored.linkedKeys).toEqual([oldCasa, CASA]);
     expect(stored.linkAnnotations).toEqual(originalAnnotations);
     expect(stored.updatedAt).toBe("2026-06-07T08:09:10.000Z");
+  });
+});
+
+describe("adding a dictionary part of speech to an existing personal entry", () => {
+  it("appends selected meanings with their part of speech and keeps the original attachment", async () => {
+    const user = userEvent.setup();
+    await seedDictionary([MALO_ADV_ENTRY]);
+    const existing = await createItem(newLexical({
+      term: "malo",
+      pos: "adjective",
+      dictKey: MALO_ADJ,
+      meanings: [newMeaning({ id: "meaning:malo-adj", gloss: "bad" })],
+    }));
+    const onOpen = vi.fn();
+    const onChanged = vi.fn();
+
+    render(
+      <DictDetail
+        entryId={MALO_ADV}
+        items={[existing]}
+        onBack={vi.fn()}
+        onOpen={onOpen}
+        onChanged={onChanged}
+      />
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Add meanings to existing…" }));
+    expect(screen.getByRole("button", { name: /malo.*bad/ }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getAllByText("adverb")).toHaveLength(2);
+    const sameGlossDifferentPos = screen.getByRole("checkbox", { name: "Import bad" });
+    expect(sameGlossDifferentPos.disabled).toBe(false);
+
+    await user.click(screen.getByRole("checkbox", { name: "Import badly" }));
+    await user.click(screen.getByRole("button", { name: "Add 1 meaning" }));
+
+    await waitFor(async () => {
+      const saved = await getItem(existing.id);
+      expect(saved.dictKey).toBe(MALO_ADJ);
+      expect(saved.meanings.map(({ gloss, posOverride }) => ({ gloss, posOverride }))).toEqual([
+        { gloss: "bad", posOverride: "" },
+        { gloss: "badly", posOverride: "adverb" },
+      ]);
+    });
+    expect(onOpen).toHaveBeenCalledWith(existing.id);
+    expect(onChanged).toHaveBeenCalled();
+    const events = await allEvents();
+    expect(events.filter((event) => event.type === EVENT_TYPES.create)).toHaveLength(1);
+    expect(events.filter((event) => event.type === EVENT_TYPES.edit)).toHaveLength(1);
+  });
+
+  it("retains an explicit path for a genuinely separate entry", async () => {
+    const user = userEvent.setup();
+    await seedDictionary([MALO_ADV_ENTRY]);
+    const existing = await createItem(newLexical({ term: "malo", pos: "adjective" }));
+    const onOpen = vi.fn();
+
+    render(
+      <DictDetail
+        entryId={MALO_ADV}
+        items={[existing]}
+        onBack={vi.fn()}
+        onOpen={onOpen}
+        onChanged={vi.fn()}
+      />
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Create separate entry" }));
+
+    await waitFor(async () => expect(await db.items.count()).toBe(2));
+    const created = (await db.items.toArray()).find((item) => item.id !== existing.id);
+    expect(created).toMatchObject({ term: "malo", pos: "adverb", dictKey: MALO_ADV });
+    expect(onOpen).toHaveBeenCalledWith(created.id);
+  });
+
+  it("requires an explicit target when several same-heading entries already exist", async () => {
+    const user = userEvent.setup();
+    await seedDictionary([MALO_ADV_ENTRY]);
+    const adjective = await createItem(newLexical({
+      term: "malo",
+      pos: "adjective",
+      meanings: [newMeaning({ gloss: "bad" })],
+    }));
+    const other = await createItem(newLexical({
+      term: "malo",
+      pos: "other",
+      meanings: [newMeaning({ gloss: "an evil thing" })],
+    }));
+
+    render(
+      <DictDetail
+        entryId={MALO_ADV}
+        items={[adjective, other]}
+        onBack={vi.fn()}
+        onOpen={vi.fn()}
+        onChanged={vi.fn()}
+      />
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Add meanings to existing…" }));
+    expect(screen.queryByRole("checkbox", { name: "Import badly" })).toBeNull();
+
+    const candidates = within(screen.getByRole("group", { name: "Existing entries" }));
+    await user.click(candidates.getByRole("button", { name: /an evil thing/ }));
+    expect(screen.getByRole("checkbox", { name: "Import badly" })).toBeTruthy();
+    expect(candidates.getByRole("button", { name: /an evil thing/ }).getAttribute("aria-pressed")).toBe("true");
+    expect(candidates.getByRole("button", { name: /bad$/ }).getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("keeps accent-distinct headings out of the existing-entry choice", async () => {
+    await seedDictionary([MALO_ADV_ENTRY]);
+    const accentDistinct = newLexical({ term: "maló", pos: "adjective" });
+
+    render(
+      <DictDetail
+        entryId={MALO_ADV}
+        items={[accentDistinct]}
+        onBack={vi.fn()}
+        onOpen={vi.fn()}
+        onChanged={vi.fn()}
+      />
+    );
+
+    expect(await screen.findByRole("button", { name: "Add to my cuaderno" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Add meanings to existing…" })).toBeNull();
   });
 });
 

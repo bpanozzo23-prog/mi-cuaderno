@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { BookMarked, Check } from "lucide-react";
 import { C, SERIF, Card, Button } from "../theme.jsx";
 import { dictionaryInstalled, resolveEntry } from "../db/ref/entries.js";
-import { meaningsFromSenses } from "../lib/meanings.js";
+import { meaningsFromEntryForItem, meaningsFromSenses } from "../lib/meanings.js";
 
 /**
  * Copying senses out of the attached dictionary entry, once.
@@ -16,34 +16,31 @@ import { meaningsFromSenses } from "../lib/meanings.js";
  * story to tell, and this component reads the entry without ever rewriting an aliased `dictKey`:
  * two components racing the same rewrite is a bug waiting for a rebuild to trigger it.
  */
-export default function DictMeaningImport({ item, onImport }) {
-  const [entry, setEntry] = useState(null);
-  const [open, setOpen] = useState(false);
+export function DictionaryMeaningImportPanel({
+  entry,
+  item,
+  onImport,
+  onCancel,
+  onComplete,
+  entryAware = false,
+  title = `Import meanings from ${entry?.lemma || "the dictionary"}`,
+  actionVerb = "Import",
+}) {
   const [chosen, setChosen] = useState(() => new Set());
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    let alive = true;
-    setEntry(null);
-    setOpen(false);
-    if (!item.dictKey) return () => { alive = false; };
-    (async () => {
-      if (!(await dictionaryInstalled())) return;
-      const { entry: found } = await resolveEntry(item.dictKey);
-      if (alive) setEntry(found);
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [item.id, item.dictKey]);
-
   // Ids are minted here, so the rows the owner previews are the rows that get saved.
   const rows = useMemo(
-    () => meaningsFromSenses(entry?.senses, item.meanings),
-    [entry, item.meanings]
+    () => entryAware
+      ? meaningsFromEntryForItem(entry, item)
+      : meaningsFromSenses(entry?.senses, item.meanings),
+    [entry, entryAware, item.id, item.meanings, item.pos]
   );
 
-  if (!entry || !rows.length) return null;
+  useEffect(() => {
+    setChosen(new Set());
+    setError("");
+  }, [entry?.id, item?.id]);
 
   function toggle(key) {
     const next = new Set(chosen);
@@ -53,34 +50,33 @@ export default function DictMeaningImport({ item, onImport }) {
     setError("");
   }
 
-  function start() {
-    setChosen(new Set());
-    setError("");
-    setOpen(true);
-  }
-
   async function confirm() {
     try {
       await onImport(rows.filter((row) => chosen.has(row.key)).map((row) => row.meaning));
-      setOpen(false);
       setChosen(new Set());
+      onComplete?.();
     } catch (problem) {
-      setError(problem.message);
+      setError(problem instanceof Error ? problem.message : "Those meanings could not be added.");
     }
   }
 
-  if (!open) {
+  if (!entry) return null;
+
+  if (!rows.length) {
     return (
-      <Button tone="quiet" className="mt-2" onClick={start}>
-        <BookMarked size={14} /> Import from the dictionary
-      </Button>
+      <Card className="mt-2" style={{ borderColor: C.line }}>
+        <div className="text-xs" style={{ color: C.mut }}>
+          This dictionary entry has no meanings available to copy.
+        </div>
+        <Button tone="quiet" className="mt-2" onClick={onCancel}>Cancel</Button>
+      </Card>
     );
   }
 
   return (
     <Card className="mt-2" style={{ borderColor: C.pen }}>
       <div className="font-semibold" style={{ fontFamily: SERIF }}>
-        Import meanings from {entry.lemma}
+        {title}
       </div>
       <div className="text-xs mt-1" style={{ color: C.mut }}>
         Copies become your own meanings. Editing one later changes only this entry — the
@@ -90,7 +86,12 @@ export default function DictMeaningImport({ item, onImport }) {
       <div className="mt-3 space-y-2">
         {rows.map((row) => {
           const { meaning } = row;
-          const labels = [...meaning.regions, ...meaning.usageLabels, ...meaning.verbBehavior];
+          const labels = [
+            ...meaning.regions,
+            ...meaning.usageLabels,
+            ...(meaning.posOverride ? [meaning.posOverride] : []),
+            ...meaning.verbBehavior,
+          ];
           return (
             <label
               key={row.key}
@@ -143,10 +144,52 @@ export default function DictMeaningImport({ item, onImport }) {
       <div className="flex gap-2 mt-3 pt-3 border-t" style={{ borderColor: C.line }}>
         <Button onClick={confirm} disabled={chosen.size === 0}>
           <Check size={14} />
-          {chosen.size === 1 ? "Import 1 meaning" : `Import ${chosen.size} meanings`}
+          {chosen.size === 1 ? `${actionVerb} 1 meaning` : `${actionVerb} ${chosen.size} meanings`}
         </Button>
-        <Button tone="quiet" onClick={() => setOpen(false)}>Cancel</Button>
+        <Button tone="quiet" onClick={onCancel}>Cancel</Button>
       </div>
     </Card>
+  );
+}
+
+export default function DictMeaningImport({ item, onImport }) {
+  const [entry, setEntry] = useState(null);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    setEntry(null);
+    setOpen(false);
+    if (!item.dictKey) return () => { alive = false; };
+    (async () => {
+      if (!(await dictionaryInstalled())) return;
+      const { entry: found } = await resolveEntry(item.dictKey);
+      if (alive) setEntry(found);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [item.id, item.dictKey]);
+
+  if (!entry || !(entry.senses || []).some((sense) => String(sense?.gloss || "").trim())) {
+    return null;
+  }
+
+  if (!open) {
+    return (
+      <Button tone="quiet" className="mt-2" onClick={() => setOpen(true)}>
+        <BookMarked size={14} /> Import from the dictionary
+      </Button>
+    );
+  }
+
+  return (
+    <DictionaryMeaningImportPanel
+      entry={entry}
+      item={item}
+      onImport={onImport}
+      onCancel={() => setOpen(false)}
+      onComplete={() => setOpen(false)}
+    />
   );
 }

@@ -19,6 +19,7 @@ import { deriveReviewState, deriveDictSuggestions } from "../lib/review.js";
 import { activityByDay, streakFrom, boxDistribution } from "../lib/stats.js";
 import { PRACTICE_LIMITS } from "../lib/practice.js";
 import { preparePracticeCards } from "../lib/practiceCards.js";
+import { findPersonalHeadingDuplicates } from "../lib/duplicateGuard.js";
 
 /**
  * Every number here is derived from the event log at render time — there are no
@@ -552,37 +553,48 @@ export default function Repaso({
 
       {dictSuggestions.length > 0 && (
         <div className="mt-2 space-y-1.5">
-          {dictSuggestions.map((s) => (
-            <div
-              key={s.dictKey}
-              className="flex items-center justify-between gap-2 rounded-xl border px-3 py-2"
-              style={{ background: C.card, borderColor: C.line }}
-            >
-              <div className="min-w-0 flex items-center gap-1.5 text-sm">
-                <Eye size={12} style={{ color: C.mut }} className="shrink-0" />
-                <span className="truncate" style={{ color: C.ink }}>
-                  You keep looking up{" "}
-                  <button
-                    onClick={() => onSelect(s.dictKey)}
-                    style={{ fontFamily: SERIF, fontWeight: 700, color: C.pen }}
-                  >
-                    {s.entry.lemma}
-                  </button>
-                </span>
-                <span className="text-xs shrink-0" style={{ fontFamily: MONO, color: C.mut }}>
-                  ×{s.views}
-                </span>
-              </div>
-              <button
-                onClick={() => addSuggestion(s)}
-                disabled={adding === s.dictKey}
-                className="text-xs px-2.5 py-1 rounded-full text-white shrink-0"
-                style={{ background: C.pen, opacity: adding === s.dictKey ? 0.6 : 1 }}
+          {dictSuggestions.map((s) => {
+            const hasSameHeading = findPersonalHeadingDuplicates(
+              items,
+              "lexical",
+              s.entry.lemma
+            ).length > 0;
+            return (
+              <div
+                key={s.dictKey}
+                className="flex items-center justify-between gap-2 rounded-xl border px-3 py-2"
+                style={{ background: C.card, borderColor: C.line }}
               >
-                Add
-              </button>
-            </div>
-          ))}
+                <div className="min-w-0 flex items-center gap-1.5 text-sm">
+                  <Eye size={12} style={{ color: C.mut }} className="shrink-0" />
+                  <span className="truncate" style={{ color: C.ink }}>
+                    You keep looking up{" "}
+                    <button
+                      onClick={() => onSelect(s.dictKey)}
+                      style={{ fontFamily: SERIF, fontWeight: 700, color: C.pen }}
+                    >
+                      {s.entry.lemma}
+                    </button>
+                  </span>
+                  <span className="text-xs shrink-0" style={{ fontFamily: MONO, color: C.mut }}>
+                    ×{s.views}
+                  </span>
+                </div>
+                <button
+                  onClick={() => hasSameHeading ? onSelect(s.dictKey) : addSuggestion(s)}
+                  disabled={!hasSameHeading && adding === s.dictKey}
+                  aria-label={hasSameHeading ? `Choose how to add ${s.entry.lemma}` : undefined}
+                  className="text-xs px-2.5 py-1 rounded-full text-white shrink-0"
+                  style={{
+                    background: C.pen,
+                    opacity: !hasSameHeading && adding === s.dictKey ? 0.6 : 1,
+                  }}
+                >
+                  {hasSameHeading ? "Choose" : "Add"}
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
 

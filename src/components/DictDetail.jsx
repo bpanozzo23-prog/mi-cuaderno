@@ -2,6 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, BookMarked, Plus, ExternalLink, ChevronDown, ChevronRight } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, SectionTitle, Card, Button } from "../theme.jsx";
 import { grammarAbbreviations } from "../lib/partOfSpeech.js";
+import { meaningGlossText } from "../lib/meanings.js";
+import { findPersonalHeadingDuplicates } from "../lib/duplicateGuard.js";
+import { personalHeadingSuffix } from "./ItemCard.jsx";
+import { DictionaryMeaningImportPanel } from "./DictMeaningImport.jsx";
 import { ItemLinkCard } from "./LinkCard.jsx";
 import ConjugationNotices from "./ConjugationNotices.jsx";
 import {
@@ -11,7 +15,12 @@ import {
   exampleAttribution,
 } from "../db/ref/entries.js";
 import { resolveLinkedKeys } from "../db/linkedEntries.js";
-import { createItem, newLexicalFromEntry, displayTitle } from "../db/items.js";
+import {
+  addDictionaryMeaningsToItem,
+  createItem,
+  newLexicalFromEntry,
+  displayTitle,
+} from "../db/items.js";
 import { logView } from "../db/events.js";
 import { groupConnections, normalizeRelationship, relationshipLabel } from "../lib/relationships.js";
 import { connectionsFromResolvedEntryLinks } from "../lib/resolvedConnections.js";
@@ -196,10 +205,14 @@ export default function DictDetail({
   const [patternFamilies, setPatternFamilies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [resolvedPersonalLinks, setResolvedPersonalLinks] = useState([]);
+  const [existingImportOpen, setExistingImportOpen] = useState(false);
+  const [existingTargetId, setExistingTargetId] = useState("");
 
   useEffect(() => {
     let alive = true;
     setLoading(true);
+    setExistingImportOpen(false);
+    setExistingTargetId("");
     (async () => {
       const [found, installed] = await Promise.all([getEntryWithConjugation(entryId), installedMeta()]);
       const analysis = found?.conjugation
@@ -295,11 +308,31 @@ export default function DictDetail({
     [resolvedPersonalLinks]
   );
   const groups = useMemo(() => groupConnections(connections), [connections]);
+  const sameHeadingItems = useMemo(
+    () => entry
+      ? findPersonalHeadingDuplicates(items, "lexical", entry.lemma)
+      : [],
+    [entry, items]
+  );
+  const existingTarget = sameHeadingItems.find((item) => item.id === existingTargetId) || null;
 
   async function addToCuaderno() {
     const created = await createItem(newLexicalFromEntry(entry));
     onChanged?.();
     onOpen(created.id);
+  }
+
+  function startExistingImport() {
+    setExistingTargetId(sameHeadingItems.length === 1 ? sameHeadingItems[0].id : "");
+    setExistingImportOpen(true);
+  }
+
+  async function addToExisting(meanings) {
+    const saved = await addDictionaryMeaningsToItem(existingTarget.id, meanings, entry.id);
+    setExistingImportOpen(false);
+    setExistingTargetId("");
+    await onChanged?.();
+    onOpen(saved.id);
   }
 
   if (loading) {
@@ -365,6 +398,15 @@ export default function DictDetail({
                 </span>
               ))}
             </div>
+          ) : sameHeadingItems.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={startExistingImport}>
+                <Plus size={15} /> Add meanings to existing…
+              </Button>
+              <Button tone="quiet" onClick={addToCuaderno}>
+                Create separate entry
+              </Button>
+            </div>
           ) : (
             <Button onClick={addToCuaderno}>
               <Plus size={15} /> Add to my cuaderno
@@ -372,6 +414,76 @@ export default function DictDetail({
           )}
         </div>
       </Card>
+
+      {attachments.length === 0 && existingImportOpen && sameHeadingItems.length > 0 && (
+        <Card className="mt-3" style={{ borderColor: C.pen }}>
+          <div className="font-semibold" style={{ fontFamily: SERIF, color: C.ink }}>
+            Add to an existing entry
+          </div>
+          <div className="mt-1 text-xs" style={{ color: C.mut }}>
+            Choose where these dictionary meanings belong. Creating a separate entry remains
+            available for a genuinely different word.
+          </div>
+
+          <div className="mt-3 space-y-2" role="group" aria-label="Existing entries">
+            {sameHeadingItems.map((candidate) => {
+              const selected = candidate.id === existingTargetId;
+              const suffix = personalHeadingSuffix(candidate);
+              const glosses = meaningGlossText(candidate, " · ");
+              return (
+                <button
+                  key={candidate.id}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => setExistingTargetId(candidate.id)}
+                  className="w-full min-h-11 rounded-lg border px-3 py-2 text-left"
+                  style={{
+                    background: selected ? C.penPale : C.paper,
+                    borderColor: selected ? C.pen : C.line,
+                    color: C.ink,
+                  }}
+                >
+                  <span className="font-semibold" style={{ fontFamily: SERIF }}>
+                    {candidate.term}
+                  </span>
+                  {suffix && (
+                    <span className="ml-1.5 text-xs italic" style={{ color: C.mut }}>
+                      {suffix}
+                    </span>
+                  )}
+                  {glosses && (
+                    <span className="mt-0.5 block truncate text-xs" style={{ color: C.mut }}>
+                      {glosses}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {existingTarget ? (
+            <DictionaryMeaningImportPanel
+              key={`${entry.id}:${existingTarget.id}`}
+              entry={entry}
+              item={existingTarget}
+              entryAware
+              title={["Add meanings from", entry.lemma, grammarAbbreviations(entry.pos, entry.gender)]
+                .filter(Boolean)
+                .join(" ")}
+              actionVerb="Add"
+              onImport={addToExisting}
+              onCancel={() => {
+                setExistingImportOpen(false);
+                setExistingTargetId("");
+              }}
+            />
+          ) : (
+            <div className="mt-3 flex justify-end">
+              <Button tone="quiet" onClick={() => setExistingImportOpen(false)}>Cancel</Button>
+            </div>
+          )}
+        </Card>
+      )}
 
       <SectionTitle>Meanings</SectionTitle>
       <Card>

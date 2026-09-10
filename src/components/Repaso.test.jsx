@@ -173,6 +173,28 @@ describe("Phase 5d actionable activity", () => {
     expect(screen.getByText("word-0")).toBeTruthy();
     expect(screen.queryByText(/future_event_type/)).toBeNull();
   });
+
+  it("routes a dictionary suggestion through Detail when that spelling already exists", async () => {
+    const user = userEvent.setup();
+    await seedDictionary();
+    const existing = makeLexical({
+      id: "user:casa-adverb",
+      term: "casa",
+      dictKey: "dict:wiktionary-es:casa:other-pos",
+    });
+    const events = Array.from({ length: 3 }, () => makeEvent({
+      type: EVENT_TYPES.view,
+      itemKey: CASA,
+    }));
+    const onSelect = vi.fn();
+    const notebook = notebookFor([existing], events);
+
+    render(<Repaso notebook={notebook} onSelect={onSelect} />);
+
+    await user.click(await screen.findByRole("button", { name: "Choose how to add casa" }));
+    expect(onSelect).toHaveBeenCalledWith(CASA);
+    expect(notebook.reload).not.toHaveBeenCalled();
+  });
 });
 
 describe("Phase 10a/10b: how a session is set up", () => {

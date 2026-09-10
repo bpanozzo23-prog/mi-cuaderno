@@ -7,6 +7,7 @@ import {
   createItem,
   getItem,
   updateItem,
+  addDictionaryMeaningsToItem,
   deleteItem,
   allItems,
   displayTitle,
@@ -277,6 +278,43 @@ describe("updating", () => {
     const item = await createItem(newLexical({ term: "sacar" }));
     await updateItem(item.id, { linkedKeys: ["user:other"] }, { logEdit: false });
     expect(await typesOf()).toEqual([EVENT_TYPES.create]);
+  });
+
+  it("appends dictionary meanings to a fresh target and records one edit", async () => {
+    const original = newMeaning({ id: "meaning:original", gloss: "bad", note: "Keep me" });
+    const imported = newMeaning({ id: "meaning:adverb", gloss: "badly", posOverride: "adverb" });
+    const item = await createItem(newLexical({
+      term: "malo",
+      pos: "adjective",
+      meanings: [original],
+    }));
+
+    const saved = await addDictionaryMeaningsToItem(
+      item.id,
+      [imported],
+      "dict:wiktionary-es:malo:adv"
+    );
+
+    expect(saved.meanings).toEqual([original, imported]);
+    expect(saved.dictKey).toBe("dict:wiktionary-es:malo:adv");
+    expect(await typesOf()).toEqual([EVENT_TYPES.create, EVENT_TYPES.edit]);
+  });
+
+  it("never replaces an existing dictionary attachment while adding meanings", async () => {
+    const item = await createItem(newLexical({
+      term: "malo",
+      dictKey: "dict:wiktionary-es:malo:adj",
+      meanings: [newMeaning({ id: "meaning:adjective", gloss: "bad" })],
+    }));
+
+    const saved = await addDictionaryMeaningsToItem(
+      item.id,
+      [newMeaning({ id: "meaning:adverb", gloss: "badly", posOverride: "adverb" })],
+      "dict:wiktionary-es:malo:adv"
+    );
+
+    expect(saved.dictKey).toBe("dict:wiktionary-es:malo:adj");
+    expect(saved.meanings.map((meaning) => meaning.gloss)).toEqual(["bad", "badly"]);
   });
 });
 
