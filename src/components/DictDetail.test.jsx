@@ -136,6 +136,27 @@ describe("Phase 5a dictionary detail continuity", () => {
     expect(screen.queryByRole("button", { name: "Edit connection to Home lesson" })).toBeNull();
   });
 
+  it("recognizes a personal entry through a later dictionary attachment", async () => {
+    await seedDictionary(FIXTURE_ENTRIES.filter((entry) => entry.id === CASA));
+    const attached = newLexical({
+      term: "mi casa",
+      dictKeys: ["dict:wiktionary-es:casa:adjective", CASA],
+    });
+
+    render(
+      <DictDetail
+        entryId={CASA}
+        items={[attached]}
+        onBack={vi.fn()}
+        onOpen={vi.fn()}
+        onChanged={vi.fn()}
+      />
+    );
+
+    expect(await screen.findByText(/In your cuaderno as/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "mi casa" })).toBeTruthy();
+  });
+
   it("shows preserved metadata immediately while an unambiguous alias canonicalizes", async () => {
     const oldCasa = "dict:wiktionary-es:casa:old";
     await seedDictionary(
@@ -274,7 +295,7 @@ describe("adding a dictionary part of speech to an existing personal entry", () 
 
     await waitFor(async () => {
       const saved = await getItem(existing.id);
-      expect(saved.dictKey).toBe(MALO_ADJ);
+      expect(saved.dictKeys).toEqual([MALO_ADJ, MALO_ADV]);
       expect(saved.meanings.map(({ gloss, posOverride }) => ({ gloss, posOverride }))).toEqual([
         { gloss: "bad", posOverride: "" },
         { gloss: "badly", posOverride: "adverb" },
@@ -307,7 +328,7 @@ describe("adding a dictionary part of speech to an existing personal entry", () 
 
     await waitFor(async () => expect(await db.items.count()).toBe(2));
     const created = (await db.items.toArray()).find((item) => item.id !== existing.id);
-    expect(created).toMatchObject({ term: "malo", pos: "adverb", dictKey: MALO_ADV });
+    expect(created).toMatchObject({ term: "malo", pos: "adverb", dictKeys: [MALO_ADV] });
     expect(onOpen).toHaveBeenCalledWith(created.id);
   });
 

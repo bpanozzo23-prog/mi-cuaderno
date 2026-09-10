@@ -9,6 +9,7 @@ import {
 import { activePageVocabularyKeys } from "./pageReferences.js";
 import { isJournalPage } from "./pageKinds.js";
 import { lexicalNotesPlainText } from "./lexicalNotes.js";
+import { canonicalDictionaryKey, dictionaryKeysForItem } from "./dictionaryAttachments.js";
 
 /**
  * Search over the personal layer, per brief section 8.
@@ -228,10 +229,11 @@ export function searchItems(items, query, options = {}) {
 export function mergeResults(personal, dictionary, items = [], { previousIds = {} } = {}) {
   const byDictKey = new Map();
   for (const item of items) {
-    if (!item.dictKey) continue;
-    if (!byDictKey.has(item.dictKey)) byDictKey.set(item.dictKey, item);
-    const canonicalKey = previousIds?.[item.dictKey];
-    if (canonicalKey && !byDictKey.has(canonicalKey)) byDictKey.set(canonicalKey, item);
+    for (const key of dictionaryKeysForItem(item)) {
+      if (!byDictKey.has(key)) byDictKey.set(key, item);
+      const canonicalKey = canonicalDictionaryKey(key, previousIds);
+      if (!byDictKey.has(canonicalKey)) byDictKey.set(canonicalKey, item);
+    }
   }
 
   const rows = personal.map((r) => ({ ...r, kind: "item", key: r.item.id, source: 0 }));

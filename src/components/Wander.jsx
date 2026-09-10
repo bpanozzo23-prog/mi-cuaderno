@@ -19,6 +19,7 @@ import { firstMeaningGloss } from "../lib/meanings.js";
 import { prepareProseContainment } from "../lib/proseContainment.js";
 import { deriveWanderConnections, sampleWanderNext } from "../lib/wander.js";
 import { prepareSavedConjugationFamily } from "../lib/wordFamilies.js";
+import { hasDictionaryAttachments } from "../lib/dictionaryAttachments.js";
 import ConjugationFamilyRows from "./ConjugationFamilyRows.jsx";
 
 const headingFor = (item) => item?.type === "page"
@@ -96,7 +97,7 @@ export default function Wander({
   useEffect(() => {
     let alive = true;
     setFamily(null);
-    if (!isLexical || !item.dictKey) return () => {
+    if (!isLexical || !hasDictionaryAttachments(item)) return () => {
       alive = false;
     };
 

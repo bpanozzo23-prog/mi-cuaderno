@@ -18,6 +18,7 @@ import {
   reorientRelationship,
 } from "../lib/relationships.js";
 import { installedMeta } from "./ref/entries.js";
+import { dictionaryKeysForItem } from "../lib/dictionaryAttachments.js";
 
 export { PINNED_PAGE_IDS_PREF } from "../lib/pageKinds.js";
 
@@ -181,10 +182,11 @@ export async function commitPageVocabularyAdd(
     const byId = new Map(all.map((item) => [item.id, item]));
     const attachedByDictKey = new Map();
     for (const item of all) {
-      if (item.type !== "lexical" || !item.dictKey) continue;
-      if (!attachedByDictKey.has(item.dictKey)) attachedByDictKey.set(item.dictKey, item);
-      const canonicalKey = canonicalDictKey(item.dictKey);
-      if (!attachedByDictKey.has(canonicalKey)) attachedByDictKey.set(canonicalKey, item);
+      for (const key of dictionaryKeysForItem(item)) {
+        if (!attachedByDictKey.has(key)) attachedByDictKey.set(key, item);
+        const canonicalKey = canonicalDictKey(key);
+        if (!attachedByDictKey.has(canonicalKey)) attachedByDictKey.set(canonicalKey, item);
+      }
     }
     const memberIds = [];
     const selected = new Set();
@@ -222,7 +224,7 @@ export async function commitPageVocabularyAdd(
         await db.items.add(lexical);
         await logEvent(EVENT_TYPES.create, lexical.id);
         byId.set(lexical.id, lexical);
-        if (lexical.dictKey) attachedByDictKey.set(lexical.dictKey, lexical);
+        for (const key of dictionaryKeysForItem(lexical)) attachedByDictKey.set(key, lexical);
         createdItems.push(lexical);
       }
 

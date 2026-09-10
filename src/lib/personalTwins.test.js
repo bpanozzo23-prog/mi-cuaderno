@@ -6,15 +6,18 @@ const OLD_ENTRY_KEY = "dict:wiktionary-es:casa-old-7";
 
 const entry = { id: ENTRY_KEY, lemma: "casa", pos: "noun" };
 
-const lexical = (id, overrides = {}) => ({
-  id: `user:${id}`,
-  type: "lexical",
-  term: "casa",
-  dictKey: null,
-  linkedKeys: [],
-  linkAnnotations: [],
-  ...overrides,
-});
+const lexical = (id, overrides = {}) => {
+  const { dictKey = null, dictKeys, ...rest } = overrides;
+  return {
+    id: `user:${id}`,
+    type: "lexical",
+    term: "casa",
+    dictKeys: dictKeys ?? (dictKey ? [dictKey] : []),
+    linkedKeys: [],
+    linkAnnotations: [],
+    ...rest,
+  };
+};
 
 const page = (id, overrides = {}) => ({
   id: `user:${id}`,
@@ -45,6 +48,11 @@ describe("attachedTwinsFor", () => {
       [OLD_ENTRY_KEY]: ENTRY_KEY,
     })).toEqual([exact, aliased]);
     expect(attachedTwinsFor(ENTRY_KEY, [aliased], {})).toEqual([]);
+  });
+
+  it("finds a twin through a later attachment", () => {
+    const twin = lexical("plural", { dictKeys: ["dict:other", ENTRY_KEY] });
+    expect(attachedTwinsFor(ENTRY_KEY, [twin], {})).toEqual([twin]);
   });
 
   it("ignores pages even when they carry a stray dictKey field", () => {

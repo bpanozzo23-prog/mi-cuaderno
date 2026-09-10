@@ -257,6 +257,34 @@ db.version(10)
 /** Schema v11 permits optional meaning anchors on Similar meaning annotations. */
 db.version(11).stores(PERSONAL_STORES);
 
+/**
+ * Schema v12 replaces the single optional dictionary attachment with one ordered list. The old
+ * key, when present, remains first; no heading, meaning, alias, or reference data is consulted.
+ */
+export function upgradeLexicalItemV11(item) {
+  if (!item || item.type !== "lexical") return { ...item };
+  const { dictKey, ...withoutLegacyAttachment } = item;
+  return {
+    ...withoutLegacyAttachment,
+    dictKeys: dictKey === null || dictKey === undefined ? [] : [dictKey],
+  };
+}
+
+export async function migratePersonalDataToV12(transaction) {
+  await transaction
+    .table("items")
+    .where("type")
+    .equals("lexical")
+    .modify((item) => {
+      Object.assign(item, upgradeLexicalItemV11(item));
+      delete item.dictKey;
+    });
+}
+
+db.version(12)
+  .stores(PERSONAL_STORES)
+  .upgrade(migratePersonalDataToV12);
+
 export async function getPref(key, fallback = null) {
   const row = await db.prefs.get(key);
   return row === undefined ? fallback : row.value;

@@ -28,6 +28,9 @@ export default function SchemaUpgradeGate({ fromVersion = null, onContinue }) {
   if (knownVersion === null || knownVersion < 10) {
     changes.push("adds an empty structured Notes outline to every Word and Phrase while leaving every existing note unchanged");
   }
+  if (knownVersion === null || knownVersion < 12) {
+    changes.push("turns each Word or Phrase's optional dictionary reference into an ordered attachment list so one entry can cite more than one dictionary source");
+  }
   const upgradeDescription = changes.length
     ? `It ${changes.join(" and ")}. IDs, prose, links, timestamps, events, and preferences are unchanged.`
     : "It brings the notebook up to the current personal-data format without changing owner content.";

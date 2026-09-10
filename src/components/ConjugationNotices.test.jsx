@@ -93,7 +93,10 @@ describe("What to notice", () => {
             { ...entry(1), id: "dict:fixture:duplicate-verb-01", lemma: "VERB 01" },
           ],
         }]}
-        items={[{ dictKey: direct.id }, { dictKey: "dict:fixture:old-verb-08" }]}
+        items={[
+          { type: "lexical", dictKeys: [direct.id] },
+          { type: "lexical", dictKeys: ["dict:fixture:old-verb-08"] },
+        ]}
         previousIds={{ "dict:fixture:old-verb-08": aliased.id }}
         onOpen={onOpen}
       />

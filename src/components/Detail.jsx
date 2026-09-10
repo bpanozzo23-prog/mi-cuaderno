@@ -33,6 +33,8 @@ import { allTagsIn } from "../lib/tags.js";
 import { localDate, timeAgo } from "../lib/dates.js";
 import { emptyReviewState } from "../lib/review.js";
 import { cloneMeanings } from "../lib/meanings.js";
+import { hasDictionaryAttachments } from "../lib/dictionaryAttachments.js";
+import { personalPosForEntryPos } from "../lib/partOfSpeech.js";
 import MeaningsSection from "./MeaningsSection.jsx";
 import SpeakButton from "./SpeakButton.jsx";
 import CollectionPage from "./CollectionPage.jsx";
@@ -215,12 +217,15 @@ function StandardDetail({
   const [statsExpanded, setStatsExpanded] = useState(false);
   const [view, setView] = useState("detail");
   const activeView = destinationScreen === "biography" ? "biography" : view;
-  const [resolvedAttachment, setResolvedAttachment] = useState({ itemId: null, entry: null });
-  const attachedEntry = resolvedAttachment.itemId === item.id ? resolvedAttachment.entry : null;
+  const [resolvedAttachments, setResolvedAttachments] = useState({ itemId: null, entries: [] });
+  const attachedEntries = resolvedAttachments.itemId === item.id ? resolvedAttachments.entries : [];
+  const attachedEntry = attachedEntries.find((entry) => personalPosForEntryPos(entry.pos) === item.pos)
+    || attachedEntries[0]
+    || null;
   const headingSuffix = isPage ? "" : personalHeadingSuffix(item, attachedEntry);
   const statsId = `entry-stats-${item.id}`;
-  const handleEntryResolved = useCallback((entry) => {
-    setResolvedAttachment({ itemId: item.id, entry });
+  const handleEntriesResolved = useCallback((entries) => {
+    setResolvedAttachments({ itemId: item.id, entries });
   }, [item.id]);
 
   // The tag vocabulary already in use, derived from the notebook in memory (§7) — what makes
@@ -796,7 +801,7 @@ function StandardDetail({
                 item={item}
                 onOpen={onOpen}
                 onChanged={onChanged}
-                onEntryResolved={handleEntryResolved}
+                onEntriesResolved={handleEntriesResolved}
               />
             )}
           </>
@@ -1191,7 +1196,7 @@ function StandardDetail({
                 key={row.key}
                 item={row.item}
                 focalItem={item}
-                attached={Boolean(row.item.dictKey)}
+                attached={hasDictionaryAttachments(row.item)}
                 connection={row}
                 glossOverride={meaningById(row.item, row.connectedMeaningId)?.gloss || ""}
                 onOpen={onOpen}
@@ -1249,7 +1254,7 @@ function StandardDetail({
                 <ItemLinkCard
                   key={row.key}
                   item={row.item}
-                  attached={Boolean(row.item.dictKey)}
+                  attached={hasDictionaryAttachments(row.item)}
                   connection={row}
                   focalItem={item}
                   onOpen={onOpen}

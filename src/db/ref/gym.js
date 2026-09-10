@@ -5,6 +5,7 @@ import {
   resolveEntry,
 } from "./entries.js";
 import { CURATED_GYM_LEMMAS, verbKeyForLemma } from "../../lib/conjugationGym.js";
+import { dictionaryKeysForItem, hasDictionaryAttachments } from "../../lib/dictionaryAttachments.js";
 
 /**
  * Loads the Gym's optional dictionary-backed library after the owner opens it.
@@ -16,10 +17,13 @@ export async function loadGymLibrary(items) {
   }
 
   const attached = (items || [])
-    .filter((item) => item.type === "lexical" && item.dictKey)
-    .map((item) => ({ item, dictKey: item.dictKey }));
+    .filter((item) => item.type === "lexical" && hasDictionaryAttachments(item));
   const resolvedSaved = await Promise.all(
-    attached.map(async (row) => ({ ...row, entry: (await resolveEntry(row.dictKey)).entry }))
+    attached.map(async (item) => {
+      const resolved = await Promise.all(dictionaryKeysForItem(item).map((key) => resolveEntry(key)));
+      const entries = resolved.map((row) => row.entry).filter(Boolean);
+      return { item, entries, entry: entries.find((candidate) => candidate.conjugationId) || null };
+    })
   );
   const conjugableSaved = resolvedSaved.filter((row) => row.entry?.conjugationId);
   const savedTables = await getConjugations(conjugableSaved.map((row) => row.entry.conjugationId));
@@ -42,11 +46,13 @@ export async function loadGymLibrary(items) {
   // Core answers attach to a personal item only when exactly one surviving lexical item
   // resolves to that same current entry. Zero or several is deliberately `null`.
   const personalByEntry = new Map();
-  for (const { item, entry } of resolvedSaved) {
-    if (!entry?.id) continue;
-    const list = personalByEntry.get(entry.id) || [];
-    list.push(item.id);
-    personalByEntry.set(entry.id, list);
+  for (const { item, entries } of resolvedSaved) {
+    for (const entry of entries) {
+      if (!entry?.id) continue;
+      const list = personalByEntry.get(entry.id) || [];
+      list.push(item.id);
+      personalByEntry.set(entry.id, list);
+    }
   }
 
   const resolvedCore = await getVerbTablesByLemma(CURATED_GYM_LEMMAS);

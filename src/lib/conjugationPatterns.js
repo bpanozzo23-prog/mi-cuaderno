@@ -1,4 +1,5 @@
 import { COLLAPSED_SLOTS, SIMPLE_TENSES, SLOTS } from "./conjugation.js";
+import { itemAttachesDictionaryEntry } from "./dictionaryAttachments.js";
 
 /**
  * Teaching-oriented conjugation-pattern analysis.
@@ -774,13 +775,11 @@ export function isValidConjugationEvidence(item) {
 
 /**
  * Personal familiarity is a read-only presentation hint. A package rebuild may have moved
- * a dictionary id, so the manifest's old-id alias is treated exactly like a direct dictKey;
+ * a dictionary id, so the manifest's old-id alias is treated exactly like a direct attachment;
  * no personal row is rewritten merely to sort or badge a family suggestion.
  */
 export function isConjugationFamilyMemberFamiliar(entryId, items = [], previousIds = {}) {
-  return items.some((item) =>
-    item?.dictKey === entryId || previousIds?.[item?.dictKey] === entryId
-  );
+  return items.some((item) => itemAttachesDictionaryEntry(item, entryId, previousIds));
 }
 
 /**

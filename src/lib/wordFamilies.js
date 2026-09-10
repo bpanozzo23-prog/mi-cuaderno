@@ -5,6 +5,11 @@ import {
   resolveEntry,
 } from "../db/ref/entries.js";
 import { analyzeConjugationPatterns } from "./conjugationPatterns.js";
+import {
+  dictionaryKeysForItem,
+  hasDictionaryAttachments,
+  itemAttachesDictionaryEntry,
+} from "./dictionaryAttachments.js";
 
 /** Saved personal items attached to any loaded Phase 21 member, preserving notebook order. */
 export function deriveSavedFamilySiblings(item, items = [], familyRows = [], previousIds = {}) {
@@ -13,11 +18,10 @@ export function deriveSavedFamilySiblings(item, items = [], familyRows = [], pre
   );
   if (!memberIds.size) return [];
   return items.filter((candidate) => {
-    if (candidate?.type !== "lexical" || candidate.form !== "word" || candidate.id === item?.id || !candidate.dictKey) {
+    if (candidate?.type !== "lexical" || candidate.form !== "word" || candidate.id === item?.id || !hasDictionaryAttachments(candidate)) {
       return false;
     }
-    const canonical = previousIds?.[candidate.dictKey] || candidate.dictKey;
-    return memberIds.has(canonical);
+    return [...memberIds].some((memberId) => itemAttachesDictionaryEntry(candidate, memberId, previousIds));
   });
 }
 
@@ -39,11 +43,11 @@ export async function prepareSavedConjugationFamily(
     loadMeta = installedMeta,
   } = {}
 ) {
-  if (item?.type !== "lexical" || item.form !== "word" || !item.dictKey) return null;
+  if (item?.type !== "lexical" || item.form !== "word" || !hasDictionaryAttachments(item)) return null;
 
   try {
-    const resolved = await resolveReference(item.dictKey);
-    const entry = resolved?.entry;
+    const resolved = await Promise.all(dictionaryKeysForItem(item).map((key) => resolveReference(key)));
+    const entry = resolved.map((row) => row?.entry).find((candidate) => candidate?.conjugationId);
     if (!entry?.conjugationId) return null;
 
     const [conjugation] = await loadConjugations([entry.conjugationId]);

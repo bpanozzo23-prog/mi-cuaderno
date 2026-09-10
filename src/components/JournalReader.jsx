@@ -17,6 +17,7 @@ import {
 } from "../lib/relationships.js";
 import { connectionsFromResolvedEntryLinks } from "../lib/resolvedConnections.js";
 import { emptyItemState } from "../useNotebook.js";
+import { hasDictionaryAttachments } from "../lib/dictionaryAttachments.js";
 import { EntryLinkCard, ItemLinkCard } from "./LinkCard.jsx";
 import JournalLinkPicker from "./JournalLinkPicker.jsx";
 import JournalMore from "./JournalMore.jsx";
@@ -362,7 +363,7 @@ export default function JournalReader({
                 <ItemLinkCard
                   key={connection.key}
                   item={connection.item}
-                  attached={Boolean(connection.item.dictKey)}
+                  attached={hasDictionaryAttachments(connection.item)}
                   connection={connection}
                   onOpen={onOpen}
                   onSaveRelationship={(relationship) => saveRelationship(connection.key, relationship)}

@@ -10,6 +10,7 @@ import {
   upgradePageItemV7,
   upgradePageItemV8,
   upgradeLexicalItemV9,
+  upgradeLexicalItemV11,
 } from "./db.js";
 import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
 import { nowIso } from "../lib/dates.js";
@@ -278,8 +279,31 @@ function validateItem(
     if (item.form !== "word" && item.form !== "phrase") {
       errors.push(`${where}.form must be "word" or "phrase"`);
     }
-    if (item.dictKey !== null && item.dictKey !== undefined && !isString(item.dictKey)) {
-      errors.push(`${where}.dictKey must be a string or null`);
+    if (schemaVersion < 12) {
+      if (Object.prototype.hasOwnProperty.call(item, "dictKeys")) {
+        errors.push(`${where}.dictKeys is not part of schema v${schemaVersion}`);
+      }
+      if (item.dictKey !== null && item.dictKey !== undefined && !isString(item.dictKey)) {
+        errors.push(`${where}.dictKey must be a string or null`);
+      }
+    } else {
+      if (Object.prototype.hasOwnProperty.call(item, "dictKey")) {
+        errors.push(`${where}.dictKey is not part of schema v${schemaVersion}`);
+      }
+      if (!Array.isArray(item.dictKeys)) {
+        errors.push(`${where}.dictKeys must be an array`);
+      } else {
+        const seenDictKeys = new Set();
+        item.dictKeys.forEach((key, keyIndex) => {
+          if (!isNonEmptyString(key)) {
+            errors.push(`${where}.dictKeys[${keyIndex}] must be a nonblank string`);
+          } else if (seenDictKeys.has(key)) {
+            errors.push(`${where}.dictKeys must not contain duplicates`);
+          } else {
+            seenDictKeys.add(key);
+          }
+        });
+      }
     }
     // `pos` is any string, never an enum. The pos editor offers a fixed list, but
     // `newLexicalFromEntry` has always copied the dictionary's own part-of-speech vocabulary
@@ -714,6 +738,7 @@ const upgradeItemsV7ToV8 = (userItems) => userItems.map((item) => upgradePageIte
 const upgradeItemsV8ToV9 = (userItems) => userItems.map((item) => upgradePageItemV8(item));
 const upgradeItemsV9ToV10 = (userItems) => userItems.map((item) => upgradeLexicalItemV9(item));
 const upgradeItemsV10ToV11 = (userItems) => userItems.map((item) => ({ ...item }));
+const upgradeItemsV11ToV12 = (userItems) => userItems.map((item) => upgradeLexicalItemV11(item));
 
 function validateEvent(event, index, errors) {
   const where = `events[${index}]`;
@@ -754,7 +779,7 @@ export function validateBackup(raw) {
     errors.push(
       `This backup is schema version ${parsed.schemaVersion}, newer than this app understands (${SCHEMA_VERSION}). Update the app first.`
     );
-  } else if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].includes(parsed.schemaVersion)) {
+  } else if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].includes(parsed.schemaVersion)) {
     errors.push(`Schema version ${parsed.schemaVersion} is not supported.`);
   }
   if (!Array.isArray(parsed.userItems)) errors.push("userItems must be an array.");
@@ -840,6 +865,13 @@ export function validateBackup(raw) {
   if (upgradedSchemaVersion === 10) {
     upgradedItems = upgradeItemsV10ToV11(upgradedItems);
     upgradedSchemaVersion = 11;
+    validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
+  }
+  if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };
+
+  if (upgradedSchemaVersion === 11) {
+    upgradedItems = upgradeItemsV11ToV12(upgradedItems);
+    upgradedSchemaVersion = 12;
     validateSchemaState(upgradedItems, parsed.events, preferences, upgradedSchemaVersion, errors);
   }
   if (errors.length > 0) return { ok: false, errors, envelope: null, summary: null };

@@ -25,6 +25,7 @@ let readinessGate;
  */
 
 const CASA = "dict:wiktionary-es:casa:noun";
+const SACAR = "dict:wiktionary-es:sacar:verb";
 
 beforeEach(async () => {
   await removeDictionary();
@@ -47,13 +48,13 @@ afterEach(async () => {
   }
 });
 
-async function seedDictionary() {
+async function seedDictionary(entryIds = [CASA], previousIds = {}) {
   const reference = refDb("a");
-  await reference.entries.put(FIXTURE_ENTRIES.find((entry) => entry.id === CASA));
-  await reference.formShards.bulkPut(FIXTURE_FORM_SHARDS.filter((row) => row.id === "ca"));
+  await reference.entries.bulkPut(FIXTURE_ENTRIES.filter((entry) => entryIds.includes(entry.id)));
+  await reference.formShards.bulkPut(FIXTURE_FORM_SHARDS);
   await reference.meta.put({
     key: META_KEYS.dataset,
-    value: { datasetVersion: "attach-later-fixture", counts: { entries: 1 }, previousIds: {} },
+    value: { datasetVersion: "attach-later-fixture", counts: { entries: entryIds.length }, previousIds },
   });
   setActiveSlot("a");
 }
@@ -74,7 +75,7 @@ describe("DictAttachment attach-later", () => {
     await user.click(resultGloss.closest("button"));
 
     await waitFor(() => expect(onChanged).toHaveBeenCalledTimes(1));
-    expect((await getItem(word.id)).dictKey).toBe(CASA);
+    expect((await getItem(word.id)).dictKeys).toEqual([CASA]);
     // Attachment is bookkeeping, the same as re-attach and forget: no edit event.
     expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toEqual([]);
   });
@@ -117,5 +118,21 @@ describe("DictAttachment attach-later", () => {
 
     expect(await screen.findByText("house")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /Attach dictionary entry/ })).toBeNull();
+  });
+
+  it("shows every attached dictionary entry and removes only the chosen attachment", async () => {
+    const user = userEvent.setup();
+    await seedDictionary([CASA, SACAR]);
+    const word = await createItem(newLexical({ term: "casa", dictKeys: [CASA, SACAR] }));
+    const onOpen = vi.fn();
+
+    render(<DictAttachment item={word} onOpen={onOpen} onChanged={vi.fn()} />);
+
+    expect(await screen.findByText("house")).toBeTruthy();
+    expect(screen.getByText("to take out (e.g. the trash)")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: /Remove dictionary attachment casa/ }));
+
+    await waitFor(async () => expect((await getItem(word.id)).dictKeys).toEqual([SACAR]));
+    expect((await getItem(word.id)).meanings).toEqual(word.meanings);
   });
 });

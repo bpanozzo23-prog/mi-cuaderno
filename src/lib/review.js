@@ -1,4 +1,5 @@
 import { localDate, addDaysToLocalDate } from "./dates.js";
+import { dictionaryKeysForItem } from "./dictionaryAttachments.js";
 
 /**
  * The Phase 3 review queue (brief section 12), derived — like everything else in
@@ -180,7 +181,7 @@ export const emptyReviewState = {
  * a page has no answer side to test yourself against, and section 12 says words. They
  * keep their place in Repaso's tricky list.
  *
- * Views logged under an item's attached dictKey count as lookups of that item. This is
+ * Views logged under any of an item's attached dictionary keys count as lookups of that item. This is
  * the section 5 seam applied to events — the same move Phase 2e made in search, where a
  * dictionary result whose entry is attached becomes the owner's own item. It is what
  * lets a word the owner kept looking up in the dictionary arrive in the queue already
@@ -197,9 +198,10 @@ export function deriveReviewState(items, events, today = localDate()) {
   // that entry is a lookup of each of them.
   const byDictKey = new Map();
   for (const item of lexical) {
-    if (!item.dictKey) continue;
-    if (!byDictKey.has(item.dictKey)) byDictKey.set(item.dictKey, []);
-    byDictKey.get(item.dictKey).push(item.id);
+    for (const key of dictionaryKeysForItem(item)) {
+      if (!byDictKey.has(key)) byDictKey.set(key, []);
+      byDictKey.get(key).push(item.id);
+    }
   }
 
   const windowStart = lookupWindowStart(today);
@@ -317,7 +319,7 @@ export function deriveReviewState(items, events, today = localDate()) {
 export function deriveDictSuggestions(items, events, today = localDate()) {
   const claimed = new Set();
   for (const item of items) {
-    if (item.dictKey) claimed.add(item.dictKey);
+    for (const key of dictionaryKeysForItem(item)) claimed.add(key);
     for (const key of item.linkedKeys || []) if (isDictKey(key)) claimed.add(key);
   }
 

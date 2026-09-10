@@ -126,6 +126,17 @@ describe("the seam: one list across both layers (§8)", () => {
     expect(merged).toHaveLength(1);
   });
 
+  it("promotes a personal item through any one of its dictionary attachments", async () => {
+    const attached = [newLexical({
+      term: "mi entrada",
+      dictKeys: ["dict:wiktionary-es:sacar:verb", "dict:wiktionary-es:casa:noun"],
+    })];
+    const merged = mergeResults([], await searchDictionary("casa"), attached);
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0]).toMatchObject({ kind: "item", item: { id: attached[0].id } });
+  });
+
   it("reuses an attachment through a dictionary alias after a dataset rename", async () => {
     const oldKey = "dict:wiktionary-es:sacar:verb:1";
     const currentKey = "dict:wiktionary-es:sacar:verb";

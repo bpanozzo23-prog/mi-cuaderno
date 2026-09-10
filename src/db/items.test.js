@@ -55,7 +55,7 @@ describe("lexical items", () => {
     expect(stored.meanings[0].id).toMatch(/^meaning:/);
     expect(stored.form).toBe("word");
     expect(stored.tags).toEqual(["verbs"]); // trimmed, deduplicated, blanks dropped
-    expect(stored.dictKey).toBeNull();
+    expect(stored.dictKeys).toEqual([]);
     expect(stored.createdAt).toBe(stored.updatedAt);
 
     const events = await allEvents();
@@ -75,7 +75,7 @@ describe("lexical items", () => {
 });
 
 describe("newLexicalFromEntry", () => {
-  it("carries the lemma, first gloss and dictKey over, attached", () => {
+  it("carries the lemma, first gloss and dictionary key over, attached", () => {
     const entry = {
       id: "dict:wiktionary-es:chamba-noun-1",
       lemma: "chamba",
@@ -90,7 +90,7 @@ describe("newLexicalFromEntry", () => {
     expect(item.meanings[0].gloss).toBe("job, work (Mexico)");
     expect(item.meanings[0]).not.toHaveProperty("senseId");
     expect(item.pos).toBe("noun");
-    expect(item.dictKey).toBe(entry.id);
+    expect(item.dictKeys).toEqual([entry.id]);
   });
 
   it("maps the dictionary's abbreviated pos tags to the cuaderno's own labels", () => {
@@ -280,6 +280,16 @@ describe("updating", () => {
     expect(await typesOf()).toEqual([EVENT_TYPES.create]);
   });
 
+  it("normalizes plural attachments and refuses the retired scalar writer", async () => {
+    const item = await createItem(newLexical({ term: "mal" }));
+    const key = "dict:wiktionary-es:mal:adverb";
+
+    await updateItem(item.id, { dictKeys: [key, key] }, { logEdit: false });
+    expect((await getItem(item.id)).dictKeys).toEqual([key]);
+    await expect(updateItem(item.id, { dictKey: key }, { logEdit: false }))
+      .rejects.toThrow(/Schema v12/);
+  });
+
   it("appends dictionary meanings to a fresh target and records one edit", async () => {
     const original = newMeaning({ id: "meaning:original", gloss: "bad", note: "Keep me" });
     const imported = newMeaning({ id: "meaning:adverb", gloss: "badly", posOverride: "adverb" });
@@ -296,11 +306,11 @@ describe("updating", () => {
     );
 
     expect(saved.meanings).toEqual([original, imported]);
-    expect(saved.dictKey).toBe("dict:wiktionary-es:malo:adv");
+    expect(saved.dictKeys).toEqual(["dict:wiktionary-es:malo:adv"]);
     expect(await typesOf()).toEqual([EVENT_TYPES.create, EVENT_TYPES.edit]);
   });
 
-  it("never replaces an existing dictionary attachment while adding meanings", async () => {
+  it("retains the existing attachment and appends the imported meaning's source", async () => {
     const item = await createItem(newLexical({
       term: "malo",
       dictKey: "dict:wiktionary-es:malo:adj",
@@ -313,7 +323,10 @@ describe("updating", () => {
       "dict:wiktionary-es:malo:adv"
     );
 
-    expect(saved.dictKey).toBe("dict:wiktionary-es:malo:adj");
+    expect(saved.dictKeys).toEqual([
+      "dict:wiktionary-es:malo:adj",
+      "dict:wiktionary-es:malo:adv",
+    ]);
     expect(saved.meanings.map((meaning) => meaning.gloss)).toEqual(["bad", "badly"]);
   });
 });

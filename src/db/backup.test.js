@@ -57,6 +57,14 @@ const withoutApuntes = (page) => {
   const { apuntes: _apuntes, ...legacy } = page;
   return legacy;
 };
+const makeLegacyLexical = (overrides = {}) => {
+  const { dictKeys, ...legacy } = makeLexical(overrides);
+  return { ...legacy, dictKey: dictKeys[0] ?? null };
+};
+const withV12Attachments = (legacy) => {
+  const { dictKey, ...current } = legacy;
+  return { ...current, dictKeys: dictKey === null || dictKey === undefined ? [] : [dictKey] };
+};
 const upgradedGeneralPage = (legacyPage, linkAnnotations = []) => ({
   ...legacyPage,
   linkAnnotations,
@@ -392,7 +400,7 @@ describe("import: replace and restore", () => {
   });
 
   it("validates and upgrades a schema-v1 backup before restoring it", async () => {
-    const current = makeLexical({
+    const current = makeLegacyLexical({
       term: "sacar",
       notes: "Entry note",
       myExamples: [{ es: "Saca la basura.", en: "Take out the trash." }],
@@ -433,7 +441,7 @@ describe("import: replace and restore", () => {
   });
 
   it("validates and upgrades a schema-v2 backup before restoring it", async () => {
-    const lexical = withoutNoteSections(withoutAnnotations(makeLexical({ id: "user:v2-word", term: "pensar" })));
+    const lexical = withoutNoteSections(withoutAnnotations(makeLegacyLexical({ id: "user:v2-word", term: "pensar" })));
     const page = makeLegacyPage({ id: "user:v2-page", title: "Thinking", linkedKeys: [lexical.id] });
     const v2 = {
       format: BACKUP_FORMAT,
@@ -450,13 +458,13 @@ describe("import: replace and restore", () => {
     expect(checked.ok).toBe(true);
     expect(checked.summary).toMatchObject({ schemaVersion: 2, targetSchemaVersion: SCHEMA_VERSION, willUpgrade: true });
     expect(checked.envelope.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(checked.envelope.userItems[0]).toEqual({ ...lexical, linkAnnotations: [], noteSections: [] });
+    expect(checked.envelope.userItems[0]).toEqual(withV12Attachments({ ...lexical, linkAnnotations: [], noteSections: [] }));
     expect(checked.envelope.userItems[1]).toEqual(upgradedGeneralPage(page));
     expect(checked.envelope.preferences.pinnedPageIds).toEqual([page.id]);
   });
 
   it("validates and upgrades schema v3 through annotations and composable page structures", () => {
-    const lexical = withoutNoteSections(withoutAnnotations(makeLexical({
+    const lexical = withoutNoteSections(withoutAnnotations(makeLegacyLexical({
       id: "user:v3-word",
       term: "pensar",
       linkedKeys: ["user:v3-page", "user:v3-page", "user:v3-word"],
@@ -481,7 +489,7 @@ describe("import: replace and restore", () => {
     expect(checked.ok).toBe(true);
     expect(checked.summary).toMatchObject({ schemaVersion: 3, targetSchemaVersion: SCHEMA_VERSION, willUpgrade: true });
     expect(checked.envelope.userItems).toEqual([
-      { ...lexical, linkAnnotations: [], noteSections: [] },
+      withV12Attachments({ ...lexical, linkAnnotations: [], noteSections: [] }),
       upgradedGeneralPage((({ pageProfile: _pageProfile, collection: _collection, ...rest }) => rest)(page)),
     ]);
     expect(checked.envelope.userItems[0].linkedKeys).toEqual(lexical.linkedKeys);
@@ -491,7 +499,7 @@ describe("import: replace and restore", () => {
   it("upgrades schema v4 while preserving dictionary alias conflicts and orphans", () => {
     const oldKey = "dict:wiktionary-es:chamba:noun:old";
     const canonicalKey = "dict:wiktionary-es:chamba:noun";
-    const item = withoutNoteSections(makeLexical({
+    const item = withoutNoteSections(makeLegacyLexical({
       id: "user:chamba",
       term: "chamba",
       linkedKeys: [oldKey, canonicalKey, "dict:wiktionary-es:installed-orphan"],
@@ -522,13 +530,13 @@ describe("import: replace and restore", () => {
     expect(checked.envelope).toEqual({
       ...v4,
       schemaVersion: SCHEMA_VERSION,
-      userItems: [{ ...item, noteSections: [] }],
+      userItems: [withV12Attachments({ ...item, noteSections: [] })],
     });
     expect(checked.summary).toMatchObject({ schemaVersion: 4, targetSchemaVersion: SCHEMA_VERSION, willUpgrade: true });
   });
 
   it("upgrades schema-v5 Source and Grammar structures without mutating the legacy envelope", () => {
-    const word = withoutNoteSections(makeLexical({ id: "user:word", term: "nomás" }));
+    const word = withoutNoteSections(makeLegacyLexical({ id: "user:word", term: "nomás" }));
     const sourcePage = makePage({
       id: "user:source",
       title: "Radio Ambulante — El hilo",
@@ -602,7 +610,7 @@ describe("import: replace and restore", () => {
     expect(checked.envelope).toEqual({
       ...v5,
       schemaVersion: SCHEMA_VERSION,
-      userItems: [{ ...word, noteSections: [] }, sourcePage, grammarPage],
+      userItems: [withV12Attachments({ ...word, noteSections: [] }), sourcePage, grammarPage],
     });
     expect(checked.summary).toMatchObject({
       schemaVersion: 5,
@@ -657,7 +665,7 @@ describe("import: replace and restore", () => {
       body: "Hoy fui al mercado.",
       pageDate: "2026-08-10",
     });
-    const word = withoutNoteSections(makeLexical({ id: "user:word", term: "mercado" }));
+    const word = withoutNoteSections(makeLegacyLexical({ id: "user:word", term: "mercado" }));
     const v7 = {
       format: BACKUP_FORMAT,
       schemaVersion: 7,
@@ -676,7 +684,7 @@ describe("import: replace and restore", () => {
     expect(checked.envelope).toEqual({
       ...v7,
       schemaVersion: SCHEMA_VERSION,
-      userItems: [{ ...word, noteSections: [] }, page],
+      userItems: [withV12Attachments({ ...word, noteSections: [] }), page],
     });
     expect(checked.summary).toMatchObject({
       schemaVersion: 7,
@@ -698,7 +706,7 @@ describe("import: replace and restore", () => {
         reviewedHash: "abc123",
       },
     });
-    const word = withoutNoteSections(makeLexical({ id: "user:word", term: "mercado" }));
+    const word = withoutNoteSections(makeLegacyLexical({ id: "user:word", term: "mercado" }));
     const v8 = {
       format: BACKUP_FORMAT,
       schemaVersion: 8,
@@ -717,7 +725,7 @@ describe("import: replace and restore", () => {
     expect(checked.envelope).toEqual({
       ...v8,
       schemaVersion: SCHEMA_VERSION,
-      userItems: [{ ...word, noteSections: [] }, page],
+      userItems: [withV12Attachments({ ...word, noteSections: [] }), page],
     });
     expect(checked.summary).toMatchObject({
       schemaVersion: 8,
@@ -755,7 +763,7 @@ describe("import: replace and restore", () => {
       },
       apuntes: "## Google follow up\n\n- Use **recopilar** instead of juntar.",
     });
-    const lexical = withoutNoteSections(makeLexical({
+    const lexical = withoutNoteSections(makeLegacyLexical({
       id: "user:legacy-word",
       term: "sacar",
       notes: "General note with **exact** Markdown.\r\n",
@@ -776,7 +784,7 @@ describe("import: replace and restore", () => {
     expect(checked.envelope).toEqual({
       ...v9,
       schemaVersion: SCHEMA_VERSION,
-      userItems: [{ ...lexical, noteSections: [] }, notesPage, reviewedPage],
+      userItems: [withV12Attachments({ ...lexical, noteSections: [] }), notesPage, reviewedPage],
     });
     expect(checked.summary.willUpgrade).toBe(true);
   });
@@ -784,7 +792,7 @@ describe("import: replace and restore", () => {
   it("upgrades exact schema-v10 lexical and Page Notes hierarchies without changing items", () => {
     const pageRootId = "note-section:66666666-6666-4666-8666-666666666666";
     const lexicalRootId = "note-section:88888888-8888-4888-8888-888888888888";
-    const word = makeLexical({
+    const word = makeLegacyLexical({
       id: "user:structured-word",
       notes: "General note",
       noteSections: [
@@ -814,8 +822,40 @@ describe("import: replace and restore", () => {
     const checked = validateBackup(JSON.stringify(v10));
 
     expect(checked.ok).toBe(true);
-    expect(checked.envelope).toEqual({ ...v10, schemaVersion: SCHEMA_VERSION });
+    expect(checked.envelope).toEqual({
+      ...v10,
+      schemaVersion: SCHEMA_VERSION,
+      userItems: [withV12Attachments(word), page],
+    });
     expect(checked.summary.willUpgrade).toBe(true);
+  });
+
+  it("upgrades schema v11 by replacing only the scalar dictionary attachment", () => {
+    const attached = makeLegacyLexical({
+      id: "user:mal",
+      term: "mal",
+      dictKey: "dict:wiktionary-es:mal:adjective",
+    });
+    const detached = makeLegacyLexical({ id: "user:bien", term: "bien", dictKey: null });
+    const v11 = {
+      format: BACKUP_FORMAT,
+      schemaVersion: 11,
+      exportedAt: "2026-09-10T10:00:00.000Z",
+      appVersion: "0.1.0",
+      userItems: [attached, detached],
+      events: [],
+      preferences: {},
+    };
+
+    const checked = validateBackup(v11);
+
+    expect(checked.ok).toBe(true);
+    expect(checked.envelope).toEqual({
+      ...v11,
+      schemaVersion: SCHEMA_VERSION,
+      userItems: [withV12Attachments(attached), withV12Attachments(detached)],
+    });
+    expect(v11.userItems).toEqual([attached, detached]);
   });
 
   it("skips duplicate event ids rather than failing", async () => {
@@ -880,7 +920,7 @@ describe("validation happens before anything is written", () => {
     return { ...baseline(), userItems: includeTarget ? [owner, target] : [owner] };
   };
 
-  it("accepts exact schema-v11 meaning anchors and rejects broken pairs or dangling meanings", () => {
+  it("accepts current meaning anchors and rejects broken pairs or dangling meanings", () => {
     const owner = makeLexical({ id: "user:owner", linkedKeys: ["user:target"] });
     const target = makeLexical({ id: "user:target", term: "estar" });
     owner.linkAnnotations = [{
@@ -898,6 +938,25 @@ describe("validation happens before anything is written", () => {
     dangling.linkAnnotations[0].targetMeaningId = "meaning:missing";
     expect(validateBackup({ ...baseline(), userItems: [dangling, target] }).errors.join(" "))
       .toMatch(/missing target meaning/);
+  });
+
+  it("enforces the v12 dictionary attachment shape without tightening migrated legacy keys", () => {
+    const accepted = makeLexical({ dictKeys: ["legacy-but-nonblank", "dict:wiktionary-es:mal:adverb"] });
+    expect(validateBackup({ ...baseline(), userItems: [accepted] }).ok).toBe(true);
+
+    for (const broken of [
+      { ...makeLexical(), dictKeys: undefined },
+      { ...makeLexical(), dictKeys: ["dict:one", "dict:one"] },
+      { ...makeLexical(), dictKeys: [" "] },
+      { ...makeLexical(), dictKey: "dict:legacy" },
+    ]) {
+      expect(validateBackup({ ...baseline(), userItems: [broken] }).ok).toBe(false);
+    }
+
+    const premature = makeLegacyLexical({ dictKey: null });
+    premature.dictKeys = [];
+    expect(validateBackup({ ...baseline(), schemaVersion: 11, userItems: [premature] }).errors.join(" "))
+      .toMatch(/dictKeys is not part of schema v11/);
   });
 
   it("rejects meaning anchors in a schema-v10 envelope", () => {

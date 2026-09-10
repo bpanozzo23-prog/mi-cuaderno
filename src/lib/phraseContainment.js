@@ -2,6 +2,7 @@ import { getConjugations, getEntriesForForms, resolveEntry } from "../db/ref/ent
 import { matchTermInText, verbForms } from "./cloze.js";
 import { normalize } from "./normalize.js";
 import { connectionsFor } from "./relationships.js";
+import { dictionaryKeysForItem, hasDictionaryAttachments } from "./dictionaryAttachments.js";
 
 /** Fixed v1 noise rule from the approved Phase 22 direction. */
 export const CONTAINMENT_STOP_WORDS = new Set([
@@ -70,12 +71,26 @@ async function runFormProfileSequence(
     getFormEntries = getEntriesForForms,
   } = {}
 ) {
-  const attached = words.filter((word) => word.dictKey);
+  const attached = words.filter(hasDictionaryAttachments);
   if (!attached.length) return exactOnlyOutcome(derive(new Map()));
 
   try {
-    const resolved = await resolveEntries(attached.map((word) => word.dictKey));
-    const enriched = attached.map((word, index) => ({ word, entry: resolved[index]?.entry || null }));
+    const attachments = attached.flatMap((word) =>
+      dictionaryKeysForItem(word).map((key) => ({ word, key }))
+    );
+    const resolved = await resolveEntries(attachments.map((row) => row.key));
+    const entriesByWord = new Map();
+    attachments.forEach(({ word }, index) => {
+      const entry = resolved[index]?.entry;
+      if (!entry) return;
+      const list = entriesByWord.get(word.id) || [];
+      list.push(entry);
+      entriesByWord.set(word.id, list);
+    });
+    const enriched = attached.map((word) => ({
+      word,
+      entry: (entriesByWord.get(word.id) || []).find((entry) => entry.conjugationId) || null,
+    }));
     const conjugationIds = enriched.map(({ entry }) => entry?.conjugationId || null);
     const tables = await loadConjugations(conjugationIds);
     const profiles = new Map();

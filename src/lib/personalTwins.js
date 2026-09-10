@@ -4,6 +4,7 @@ import {
   normalizeRelationship,
   reorientRelationship,
 } from "./relationships.js";
+import { itemAttachesDictionaryEntry } from "./dictionaryAttachments.js";
 
 /**
  * "Personal twin" derivation: an ordinary dictionary connection whose entry the owner has since
@@ -11,7 +12,7 @@ import {
  * the start (mergeResults replaces an attached entry with the owner's item), but a link made
  * BEFORE the personal entry existed still points at the dictionary. This module only detects the
  * situation; the owner-triggered rewrite lives in src/db/linkedEntries.js, and nothing automatic
- * ever merges — a dictKey attachment stays deliberately separate from an ordinary connection.
+ * ever merges — dictionary attachments stay deliberately separate from ordinary connections.
  *
  * Pure and database-free: callers supply the notebook rows, the resolved entryLinks from
  * resolveLinkedKeys, and the installed dataset's previousIds alias map.
@@ -23,7 +24,7 @@ const relationshipSignature = (relationship) => {
 };
 
 /**
- * Personal lexical items whose reversible dictKey attachment names this canonical entry. Alias
+ * Personal lexical items whose reversible dictionary attachments name this canonical entry. Alias
  * awareness mirrors the DictDetail attachments memo: an old attachment key counts when the
  * installed dataset's previousIds map says it now names the same entry.
  */
@@ -31,8 +32,7 @@ export function attachedTwinsFor(canonicalKey, items = [], previousIds = {}) {
   if (!canonicalKey) return [];
   return items.filter((item) =>
     item?.type === "lexical" &&
-    item.dictKey &&
-    (item.dictKey === canonicalKey || previousIds?.[item.dictKey] === canonicalKey)
+    itemAttachesDictionaryEntry(item, canonicalKey, previousIds)
   );
 }
 

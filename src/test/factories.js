@@ -10,10 +10,11 @@ import {
 
 export function makeLexical(overrides = {}) {
   const at = nowIso();
-  const { translation, meanings, ...rest } = overrides;
+  const { translation, meanings, dictKey, dictKeys, ...rest } = overrides;
   return {
     id: newUserKey(),
     type: "lexical",
+    dictKeys: dictKeys ?? (dictKey === null || dictKey === undefined ? [] : [dictKey]),
     form: "word",
     term: "sacar",
     meanings: meanings ?? (translation !== undefined

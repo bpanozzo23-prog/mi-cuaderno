@@ -1,6 +1,7 @@
 import { resolveEntry, isDictKey, dictionaryInstalled, installedMeta } from "./ref/entries.js";
 import { db } from "./db.js";
 import { isUserKey } from "../lib/ids.js";
+import { itemAttachesDictionaryEntry } from "../lib/dictionaryAttachments.js";
 import {
   annotationForTarget,
   isImplicitRelationship,
@@ -10,7 +11,7 @@ import {
 } from "../lib/relationships.js";
 
 /**
- * The section 5 seam for ordinary dictionary LINKS. `dictKey` attachments deliberately do not
+ * The section 5 seam for ordinary dictionary LINKS. `dictKeys[]` attachments deliberately do not
  * pass through here: an attachment and a typed ordinary connection remain separate concepts.
  *
  * An alias normally rewrites the physical key and its sparse annotation together. A rebuild can,
@@ -274,7 +275,7 @@ export async function resolveLinkedEntryConflict(itemId, canonicalKey, relations
 /**
  * Owner-triggered "personal twin" merge: re-points one ordinary dictionary connection at the
  * personal item attached to the same entry. Nothing automatic calls this — resolveLinkedKeys
- * still never treats a dictKey attachment as an ordinary link — and it keeps the same manners as
+ * still never treats a dictionary attachment as an ordinary link — and it keeps the same manners as
  * resolveLinkedEntryConflict: only `linkedKeys`/`linkAnnotations` change, inside one personal
  * transaction, with no `updatedAt` stamp and no event. The twin's attachment is untouched.
  *
@@ -297,8 +298,8 @@ export async function mergeLinkedEntryIntoTwin(itemId, canonicalKey, twinId, rel
   const item = await db.items.get(itemId);
   if (!item) throw new Error("The item containing this connection no longer exists.");
   const [twin, meta] = await Promise.all([db.items.get(twinId), installedMeta()]);
-  const attached = twin?.type === "lexical" && twin.dictKey &&
-    (twin.dictKey === canonicalKey || meta?.previousIds?.[twin.dictKey] === canonicalKey);
+  const attached = twin?.type === "lexical" &&
+    itemAttachesDictionaryEntry(twin, canonicalKey, meta?.previousIds);
   if (!attached) throw new Error("That personal item is not attached to this dictionary entry.");
 
   // Reference reads stay outside the personal write transaction (the linkItems pattern).

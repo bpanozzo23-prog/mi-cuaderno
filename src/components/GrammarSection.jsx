@@ -23,6 +23,7 @@ import {
 import {
   outlineNamesValid,
 } from "../lib/oneLevelOutline.js";
+import { dictionaryKeysForItem } from "../lib/dictionaryAttachments.js";
 import {
   deleteGrammarExample,
   deleteGrammarSection,
@@ -746,8 +747,9 @@ function ExampleCard({
     const result = new Map();
     for (const id of example.itemKeys || []) {
       result.set(id, "this example");
-      const dictKey = itemsById.get(id)?.dictKey;
-      if (dictKey) result.set(dictKey, "this example");
+      for (const dictKey of dictionaryKeysForItem(itemsById.get(id))) {
+        result.set(dictKey, "this example");
+      }
     }
     return result;
   }, [example.itemKeys, itemsById]);

@@ -10,12 +10,14 @@ import {
   migratePersonalDataToV8,
   migratePersonalDataToV9,
   migratePersonalDataToV10,
+  migratePersonalDataToV12,
   PERSONAL_STORES,
   upgradePageItemV5,
   upgradePageItemV6,
   upgradePageItemV7,
   upgradePageItemV8,
   upgradeLexicalItemV9,
+  upgradeLexicalItemV11,
 } from "./db.js";
 import { emptyGrammar, emptySource } from "../lib/pageKinds.js";
 
@@ -59,6 +61,7 @@ function declareCurrentSchema(database) {
   database.version(9).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV9);
   database.version(10).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV10);
   database.version(11).stores(PERSONAL_STORES);
+  database.version(12).stores(PERSONAL_STORES).upgrade(migratePersonalDataToV12);
 }
 
 const upgradedNotesPage = (page, { linkAnnotations = [], groups = [] } = {}) => ({
@@ -73,7 +76,8 @@ const upgradedNotesPage = (page, { linkAnnotations = [], groups = [] } = {}) => 
   grammar: emptyGrammar(),
 });
 
-const upgradedLexical = (lexical, extra = {}) => ({ ...lexical, ...extra, noteSections: [] });
+const upgradedLexical = (lexical, extra = {}) =>
+  upgradeLexicalItemV11({ ...lexical, ...extra, noteSections: [] });
 
 describe("personal-data schema v10 migrations", () => {
   it("runs v1 → v2 → v3 → v4 → v5 → v6 → v7 → v8 → v9 → v10 in order without touching unrelated data", async () => {
@@ -601,7 +605,7 @@ describe("personal-data schema v10 migrations", () => {
     declareCurrentSchema(upgraded);
     try {
       await upgraded.open();
-      expect(await upgraded.items.get(lexical.id)).toEqual({ ...lexical, noteSections: [] });
+      expect(await upgraded.items.get(lexical.id)).toEqual(upgradeLexicalItemV11({ ...lexical, noteSections: [] }));
       expect((await upgraded.items.get(lexical.id)).notes).toBe(lexical.notes);
       expect(await upgraded.items.get(page.id)).toEqual(page);
     } finally {
@@ -611,11 +615,11 @@ describe("personal-data schema v10 migrations", () => {
   });
 });
 
-describe("personal-data schema v11 migration", () => {
-  it("opens v10 data at v11 without changing any row", async () => {
+describe("personal-data schema v12 migration", () => {
+  it("opens legacy data with its one attachment converted and every other field untouched", async () => {
     const name = `mi-cuaderno-migration-${crypto.randomUUID()}`;
     const lexical = {
-      id: "user:banco", type: "lexical", dictKey: null, form: "word", term: "banco",
+      id: "user:banco", type: "lexical", dictKey: "dict:wiktionary-es:banco:noun", form: "word", term: "banco",
       meanings: [{ id: "meaning:bank", gloss: "bank", usageCue: "", regions: [], usageLabels: [], posOverride: "", verbBehavior: [], note: "", examples: [] }],
       pos: "noun", notes: "", noteSections: [], myExamples: [], tags: [], linkedKeys: [],
       linkAnnotations: [], mediaLinks: [], createdAt: at, updatedAt: at,
@@ -629,11 +633,22 @@ describe("personal-data schema v11 migration", () => {
     declareCurrentSchema(upgraded);
     try {
       await upgraded.open();
-      expect(await upgraded.items.get(lexical.id)).toEqual(lexical);
-      expect(upgraded.verno).toBe(11);
+      const { dictKey, ...unchanged } = lexical;
+      expect(await upgraded.items.get(lexical.id)).toEqual({ ...unchanged, dictKeys: [dictKey] });
+      expect(upgraded.verno).toBe(12);
     } finally {
       upgraded.close();
       await Dexie.delete(name);
     }
+  });
+
+  it("turns a null legacy attachment into an empty ordered list", () => {
+    const lexical = { id: "user:mal", type: "lexical", dictKey: null, term: "mal" };
+    expect(upgradeLexicalItemV11(lexical)).toEqual({
+      id: "user:mal",
+      type: "lexical",
+      term: "mal",
+      dictKeys: [],
+    });
   });
 });

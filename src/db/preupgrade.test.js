@@ -24,7 +24,9 @@ async function seedLegacyDatabase(schemaVersion) {
   legacy.version(schemaVersion).stores(PERSONAL_STORES);
   await legacy.open();
 
-  const current = makeLexical({ id: "user:sacar", term: "sacar", linkedKeys: ["user:page"] });
+  const currentShape = makeLexical({ id: "user:sacar", term: "sacar", linkedKeys: ["user:page"] });
+  const { dictKeys, ...withoutCurrentAttachments } = currentShape;
+  const current = { ...withoutCurrentAttachments, dictKey: dictKeys[0] ?? null };
   const { noteSections: _lexicalNoteSections, ...currentBeforeLexicalNotes } = current;
   const currentForSchema = schemaVersion >= 10
     ? current
@@ -117,7 +119,7 @@ describe("export-first schema gate", () => {
     });
   });
 
-  it.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])("exports the untouched schema-v%s envelope before v11 can open", async (schemaVersion) => {
+  it.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])("exports the untouched schema-v%s envelope before v12 can open", async (schemaVersion) => {
     const { lexical, page } = await seedLegacyDatabase(schemaVersion);
 
     expect(await preupgradeStatus()).toMatchObject({

@@ -3,6 +3,8 @@ import { BookMarked, Check } from "lucide-react";
 import { C, SERIF, Card, Button } from "../theme.jsx";
 import { dictionaryInstalled, resolveEntry } from "../db/ref/entries.js";
 import { meaningsFromEntryForItem, meaningsFromSenses } from "../lib/meanings.js";
+import { dictionaryKeysForItem } from "../lib/dictionaryAttachments.js";
+import { grammarAbbreviations } from "../lib/partOfSpeech.js";
 
 /**
  * Copying senses out of the attached dictionary entry, once.
@@ -13,7 +15,7 @@ import { meaningsFromEntryForItem, meaningsFromSenses } from "../lib/meanings.js
  * become after that is the owner's business, and a dataset rebuild cannot reach them.
  *
  * It appears only when the attachment actually resolves. An orphaned key is `DictAttachment`'s
- * story to tell, and this component reads the entry without ever rewriting an aliased `dictKey`:
+ * story to tell, and this component reads entries without ever rewriting aliased attachment keys:
  * two components racing the same rewrite is a bug waiting for a rebuild to trigger it.
  */
 export function DictionaryMeaningImportPanel({
@@ -153,27 +155,41 @@ export function DictionaryMeaningImportPanel({
 }
 
 export default function DictMeaningImport({ item, onImport }) {
-  const [entry, setEntry] = useState(null);
+  const [entries, setEntries] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
   const [open, setOpen] = useState(false);
+  const keys = dictionaryKeysForItem(item);
 
   useEffect(() => {
     let alive = true;
-    setEntry(null);
+    setEntries([]);
+    setSelectedId(null);
     setOpen(false);
-    if (!item.dictKey) return () => { alive = false; };
+    if (!keys.length) return () => { alive = false; };
     (async () => {
       if (!(await dictionaryInstalled())) return;
-      const { entry: found } = await resolveEntry(item.dictKey);
-      if (alive) setEntry(found);
+      const resolved = await Promise.all(keys.map(async (key) => {
+        try {
+          return await resolveEntry(key);
+        } catch {
+          return { entry: null };
+        }
+      }));
+      const found = [...new Map(resolved
+        .map((row) => row.entry)
+        .filter((entry) => entry && (entry.senses || []).some((sense) => String(sense?.gloss || "").trim()))
+        .map((entry) => [entry.id, entry])).values()];
+      if (alive) {
+        setEntries(found);
+        setSelectedId(found.length === 1 ? found[0].id : null);
+      }
     })();
     return () => {
       alive = false;
     };
-  }, [item.id, item.dictKey]);
+  }, [item.id, item.dictKeys]);
 
-  if (!entry || !(entry.senses || []).some((sense) => String(sense?.gloss || "").trim())) {
-    return null;
-  }
+  if (!entries.length) return null;
 
   if (!open) {
     return (
@@ -183,13 +199,46 @@ export default function DictMeaningImport({ item, onImport }) {
     );
   }
 
+  const selectedEntry = entries.find((entry) => entry.id === selectedId) || null;
+  if (!selectedEntry) {
+    return (
+      <Card className="mt-2" style={{ borderColor: C.pen }}>
+        <div className="font-semibold" style={{ fontFamily: SERIF }}>Choose a dictionary entry</div>
+        <div className="mt-1 text-xs" style={{ color: C.mut }}>
+          This personal entry is attached to more than one dictionary entry.
+        </div>
+        <div className="mt-3 space-y-2">
+          {entries.map((entry) => (
+            <button
+              type="button"
+              key={entry.id}
+              aria-label={`${entry.lemma} ${grammarAbbreviations(entry.pos, entry.gender)}`}
+              onClick={() => setSelectedId(entry.id)}
+              className="flex min-h-11 w-full items-center justify-between rounded-lg border px-3 py-2 text-left"
+              style={{ background: C.paper, borderColor: C.line, color: C.ink }}
+            >
+              <span style={{ fontFamily: SERIF, fontWeight: 600 }}>{entry.lemma}</span>
+              <span className="ml-2 text-xs italic" style={{ color: C.mut }}>
+                {grammarAbbreviations(entry.pos, entry.gender)}
+              </span>
+            </button>
+          ))}
+        </div>
+        <Button tone="quiet" className="mt-2" onClick={() => setOpen(false)}>Cancel</Button>
+      </Card>
+    );
+  }
+
   return (
     <DictionaryMeaningImportPanel
-      entry={entry}
+      entry={selectedEntry}
       item={item}
       onImport={onImport}
-      onCancel={() => setOpen(false)}
-      onComplete={() => setOpen(false)}
+      onCancel={() => entries.length > 1 ? setSelectedId(null) : setOpen(false)}
+      onComplete={() => {
+        setOpen(false);
+        setSelectedId(entries.length === 1 ? entries[0].id : null);
+      }}
     />
   );
 }

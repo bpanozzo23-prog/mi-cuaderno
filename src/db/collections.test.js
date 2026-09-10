@@ -160,9 +160,10 @@ describe("commitCollectionAdd", () => {
 
   it("reuses an attached personal entry and materializes dictionary/new selections only at commit", async () => {
     const page = await createItem(collectionPage());
-    const attached = await createItem(
-      newLexical({ term: "hola", dictKey: "dict:wiktionary-es:hola:noun:1" })
-    );
+    const attached = await createItem(newLexical({
+      term: "hola",
+      dictKeys: ["dict:wiktionary-es:hola:interjection:1", "dict:wiktionary-es:hola:noun:1"],
+    }));
     const beforeCreates = (await allEvents()).filter((event) => event.type === EVENT_TYPES.create).length;
 
     const result = await commitCollectionAdd(page.id, {
@@ -192,7 +193,7 @@ describe("commitCollectionAdd", () => {
     expect(result.memberIds[0]).toBe(attached.id);
     expect(result.createdItems).toHaveLength(2);
     expect(result.createdItems.map((item) => item.type)).toEqual(["lexical", "lexical"]);
-    expect(result.createdItems[0].dictKey).toBe("dict:wiktionary-es:gracias:interjection:1");
+    expect(result.createdItems[0].dictKeys).toEqual(["dict:wiktionary-es:gracias:interjection:1"]);
     expect(result.createdItems[1]).toMatchObject({ term: "por supuesto", form: "phrase" });
     const afterCreates = (await allEvents()).filter((event) => event.type === EVENT_TYPES.create).length;
     expect(afterCreates - beforeCreates).toBe(2);

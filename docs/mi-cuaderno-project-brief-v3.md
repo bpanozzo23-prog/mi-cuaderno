@@ -5,7 +5,7 @@
 **Owner:** The sole builder and only user of this app.
 **Companion file:** `mi-cuaderno.jsx` — a working single-file prototype of the notebook layer. It is the reference for features, interaction patterns, and visual design of **lexical entries**. Pages (§7) do not exist in the prototype and are new in v3. Where this brief contradicts the prototype's *implementation* (ID scheme, search normalization, the `struggling` field, event rules), **this brief wins** — the prototype shows what the app should feel like, not how it must be built.
 **Version:** v3 — revised after lock-in review. Product contract last amended
-~~August 3, 2026~~ ~~August 4, 2026~~ ~~August 5, 2026~~ ~~August 9, 2026~~ ~~August 10, 2026~~ ~~August 12, 2026~~ ~~August 13, 2026~~ ~~August 17, 2026~~ ~~August 18, 2026~~ ~~August 21, 2026~~ **August 24, 2026**; agent-facing framing refreshed August 2, 2026.
+~~August 3, 2026~~ ~~August 4, 2026~~ ~~August 5, 2026~~ ~~August 9, 2026~~ ~~August 10, 2026~~ ~~August 12, 2026~~ ~~August 13, 2026~~ ~~August 17, 2026~~ ~~August 18, 2026~~ ~~August 21, 2026~~ ~~August 24, 2026~~ **September 10, 2026**; agent-facing framing refreshed August 2, 2026.
 **Amendments since v3:** §4 *Conjugations* — 2026-07-31, Phase 2: Jehle demoted from bundled source to build-time validation reference, removing the noncommercial restriction from the dataset. §§3, 9 and 12 — 2026-08-02: organizational improvements became Phase 5 and the AI assistant moved to Phase 6. §12 — 2026-08-02: independently scoped phases may proceed concurrently under explicit coordination rules. §§5, 7, 8, 10, 12 and 14 — 2026-08-02: personal lexical meanings became stable, structured annotations in schema v2 while review remains entry-level and dictionary senses remain replaceable reference data. **§§5, 7, 10, 12 and 14 — 2026-08-03: schema v3 adds durable `general | collection` page profiles and the first specialized profile, Vocabulary Collection, while dated General pages remain Journal entries and richer profiles stay deferred.** **§§5, 7, 10, 12 and 14 — 2026-08-04: schema v4 adds sparse typed and explained ordinary-connection annotations while `linkedKeys[]` remains authoritative for connection existence and Collection membership.** **§§5, 7, 8, 10, 12 and 14 — 2026-08-04: Phase 7 approves schema v5 composable pages with one leading focus, independently enabled Vocabulary, Source and Grammar structures, contextual retrieval, and sequential legacy backup upgrades.** **§§7, 12 and 14 — 2026-08-05: Phase 9 approves filtered, session-only free practice from the Words & phrases hub while Repaso remains the sole scheduled and event-backed review flow.** **§§7, 12 and 14 — 2026-08-07: Phase 14 approves an owner-started, event-backed Conjugation Gym with curated reference-only verb pools, richer derived performance, and optional history-ranked sessions that never create a due date or alter Leitner review.** **§§7, 12 and 14 — 2026-08-09: Phase 16 approves four-grade scheduled review, objective typed vocabulary recall, queue chunking, one event-free recovery pass, a shared vocabulary-card engine and history-free hub/Collection sessions.** **§§7, 12 and 14 — 2026-08-09: Phase 17 adds owner-started, event-backed Tense usage and Endings recognition lanes whose results remain isolated from form Adaptive, form statistics and Leitner review.** **§§7, 12 and 14 — 2026-08-10: Phase 18 adds the recall/production reverse of those lanes, balanced Regular and Spelling-change packs, exact Saved tag/page targeting and mode-separated depth reporting without changing schema, scheduling or choice evidence.** Amendments are marked inline with strikethrough plus the replacement, so the original contract stays readable.
 
 **Meaning-block amendment, 2026-08-13 — §7:** meaning-level part-of-speech overrides add
@@ -27,6 +27,11 @@ remain quotations. This changes rendering and visible-text projection only; sche
 explicit-Notes-callout editor adds `[!TIP]` and `[!OJO]` beside `[!NOTE]`; every Markdown toolbar
 adds inline code and an explicit HTTPS Link action. Grammar keeps its fixed blockquote-as-Note
 behavior, fenced code remains plain readable text, and schema stays v9.
+
+**Plural dictionary-attachment amendment, 2026-09-10 — §§5, 7, 10, 12 and 14:** schema v12
+replaces a lexical item's optional scalar `dictKey` with mandatory ordered, unique `dictKeys[]`.
+One personal Word or Phrase can cite every dictionary entry whose meanings it contains, while
+ordinary semantic Connections and copied personal meanings remain separate.
 
 **Phase 20 amendment, 2026-08-10 — §§7 and 12:** Ajustes gains exact global tag rename, merge and
 removal across personal items. Each changed item keeps its timestamp but receives one ordinary
@@ -172,13 +177,19 @@ The app code and the bundled reference data are licensed separately. Reference-d
   personal attachment through the existing seam; raw `dict:` keys remain ordinary Connections and
   never become contextual vocabulary.
 - **Relationship-annotation seam amendment, 2026-08-04:** an ordinary typed dictionary connection
-  stays separate from a lexical item's reversible `dictKey` attachment. Alias resolution rewrites
+  ~~stays separate from a lexical item's reversible `dictKey` attachment.~~ **Schema-v12
+  replacement, 2026-09-10:** stays separate from a lexical item's reversible `dictKeys[]`
+  attachments. Alias resolution rewrites
   an ordinary linked key and its annotation together only when that rewrite is unambiguous. If old
   and canonical keys carry conflicting explicit annotations, neither key nor annotation is changed
   until a resolver shows both values and the owner chooses or edits the survivor. An installed
   orphan retains its type and note; an uninstalled dictionary remains hidden rather than being
   described as orphaned.
 - **Orphan behavior:** if a dataset update removes a referenced dictionary entry and the alias map (§6) cannot resolve it, the personal item keeps working as a standalone lexical item, is subtly marked "reference unlinked," and can be re-attached later. Personal data never breaks because reference data changed.
+- **Schema-v12 attachment amendment, 2026-09-10:** every lexical item stores an ordered, unique
+  `dictKeys[]`; all attachments are equal and order exists only for stable display and deterministic
+  fallback. Alias healing and removal operate per key, collapse canonical duplicates while keeping
+  the earliest position, and never delete or rewrite copied personal meanings.
 
 ## 6. Identity and keys
 
@@ -195,7 +206,7 @@ The app code and the bundled reference data are licensed separately. Reference-d
 |---|---|
 | Personal content scope | Two types: **lexical** items and **pages**. ~~A dated page is a journal entry; a page can be a grammar topic or a source (film, podcast, book).~~ ~~**Amended 2026-08-03:** every page stores `pageProfile: general \| collection`. Collection wins over `pageDate`; a dated General page remains a Journal entry. Grammar topics and sources remain General pages in this release.~~ ~~**Amended 2026-08-04 (Phase 7):** every page stores one leading `pageFocus: notes \| vocabulary \| source \| grammar` and independently enabled Vocabulary, Source and Grammar structures. Notes remain the permanent body-based foundation. A dated page is a Journal entry only when no structured capability is enabled; dated enhanced pages remain Pages.~~ **Amended 2026-08-10 (Phase 19 Structured Notes):** Notes remain the permanent body-based foundation and gain optional named organization through mandatory `noteSections[]` storage. A dated page is Diario only when Vocabulary, Source and Grammar are disabled and `noteSections` is empty; body length never decides. A nonempty outline is durable Page organization, so dated outlined Pages remain Pages. No third top-level type without a brief amendment |
 | Identity | UUIDs for all personal records, independent of dictionary records; namespaced keys per §6 |
-| Reference attachment | Optional and reversible (§5 seam rule); orphan-safe |
+| Reference attachment | ~~Optional scalar and reversible (§5 seam rule); orphan-safe~~ **Schema v12: mandatory ordered unique `dictKeys[]` container, with zero or more equal, reversible, independently orphan-safe attachments** |
 | Lexical form | `form: word \| phrase` |
 | Annotation level | ~~Entry-level only. **Do not add a `senseId` field** — imported sense IDs are not stable across dataset updates; sense-level notes stay deferred until that's solved.~~ **Amended 2026-08-02:** personal lexical entries contain ordered meaning-level annotations with stable, locally generated IDs. Do not add a dictionary `senseId`: personal meaning identity remains independent of replaceable dictionary sense IDs and ordering. Review scheduling and activity remain entry-level. |
 | Links | Any personal item can link to any item in either layer |
@@ -237,6 +248,12 @@ Event       { id, type: view | create | edit | delete | tricky_on | tricky_off |
               review_pass | review_fail | search_miss | drill_pass | drill_fail,
               itemKey?, at, localDate, metadata? }
 ```
+
+**Current lexical attachment shape, schema v12 (2026-09-10):** the historical `dictKey?` field
+above is replaced only on lexical items by `dictKeys: string[]`. The array does not make dictionary
+entries personal identity, does not create ordinary Connections, and stores no dictionary-sense
+provenance. A same-heading “Add meanings to existing…” action appends its source key and selected
+personal meanings atomically; duplicate attachment keys are never stored.
 
 ~~Through schema v4, the page fragment above ended with exclusive `pageProfile: general |
 collection` plus dormant Collection groups.~~ **Schema-v5 page-shape replacement, 2026-08-04:**
@@ -624,6 +641,16 @@ Backup envelope:
   v10 requires it and deeply validates globally unique IDs, same-item one-level parents, cycles,
   sibling names and string bodies across both personal item types. Current v10 exports round-trip
   exactly and newer versions remain blocked.
+- **Schema-v12 amendment, 2026-09-10:** lexical `dictKey: null` migrates to `dictKeys: []`, and a
+  non-null key migrates to the one-element ordered list `[dictKey]`; the scalar field is removed.
+  Pages and every ID, meaning/order, note, link, annotation, timestamp, event and preference remain
+  unchanged, and no heading, sense or alias inference runs during migration. Stores and indexes do
+  not change. Before v12 opens, schema-v1 through v11 owners must save and acknowledge an untouched
+  validated export. Backup schemas 1 through 12 upgrade sequentially in memory and are deeply
+  validated as v12 before any write; newer versions remain blocked. V12 requires a unique array of
+  nonblank strings and rejects the scalar, while schemas through v11 reject a premature array.
+  Migration validation deliberately accepts every nonblank legacy key that v11 accepted, even if
+  a current runtime writer would require the `dict:` namespace.
 - On first meaningful use, request persistent storage (`navigator.storage.persist()`), surface whether it was granted, and tell the owner plainly that clearing browser data, uninstalling, or losing the device destroys local data — which is why export is one tap away and the settings screen shows "last backup: N days ago".
 
 ## Secrets
@@ -1051,6 +1078,20 @@ case-sensitive trimmed equality; deliberate failure proofs redden; the complete 
 production build and diff check pass; and a seeded 375×812 flow proves all three slices without
 overflow, console warnings/errors, automatic writes or owner-data access.
 
+**Amended 2026-09-10 — plural dictionary attachments.** A personal Word or Phrase may retain every
+dictionary entry used as a source for its meanings. Personal Detail renders each attachment with
+its lemma and part of speech, opens each dictionary entry independently, permits adding another,
+and permits removing or reattaching one without changing meanings. Each attached Dictionary Detail
+recognizes the same personal item. Meaning import asks the owner which source to use when several
+resolve. Search, Repaso, Collections, twin detection, Grammar placement and optional conjugation or
+cloze enrichment quantify over all keys; a capability-specific consumer chooses an appropriate
+entry instead of blindly choosing array position zero. No general personal-item merge, dictionary-
+sense provenance, synchronization or inferred semantic Connection is introduced.
+*Done when:* the v11→v12 database and backup migrations, strict versioned validation, atomic
+same-heading append, plural rendering/removal/alias healing, source choice, reverse dictionary
+recognition and all-key consumer behavior are pinned by tests; the complete serial suite,
+production build and diff check pass; and the owner verifies the seeded narrow-phone flow.
+
 ## 13. Non-goals
 
 No accounts, no server, no analytics (yet), no multi-user, no native Android build, no cloud sync (yet), no merge-mode import (yet), no file attachments (yet — model reserved).
@@ -1092,6 +1133,11 @@ write no history or schedule. Phase 22 extends the same history-free boundary to
 Similar-meaning recall over direct confirmed connections. Durable suggestion-dismissal memory,
 automatic synonym authority, transitive synonym clusters, persistent semantic-recall history,
 scores, grading, or scheduling remain deferred.**
+
+Dictionary-sense provenance and synchronization, automatic attachment inference from matching
+headings or glosses, and a general merge-two-personal-items workflow remain deferred. `dictKeys[]`
+records source-entry relationships only; it does not turn attached entries into Similar, Variant
+or any other ordinary Connection.
 
 ## 15. How to use this brief now
 

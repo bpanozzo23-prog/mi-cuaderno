@@ -26,6 +26,7 @@ import { groupConnections, normalizeRelationship, relationshipLabel } from "../l
 import { connectionsFromResolvedEntryLinks } from "../lib/resolvedConnections.js";
 import { SLOTS, COLLAPSED_SLOTS, SIMPLE_TENSES, PERFECT_TENSES, tenseHeading } from "../lib/conjugation.js";
 import { analyzeConjugationPatterns } from "../lib/conjugationPatterns.js";
+import { itemAttachesDictionaryEntry } from "../lib/dictionaryAttachments.js";
 
 /**
  * A dictionary entry. Read-only by definition (§5) — the one action is "add to my
@@ -241,13 +242,11 @@ export default function DictDetail({
     });
   }, [entryId]);
 
-  // A reversible dictKey attachment says "this is my copy of this dictionary entry"; it is
+  // A reversible dictionary attachment says "this is one source for my copy"; it is
   // deliberately separate from an ordinary connection. Include an old key when the installed
   // dataset's alias map says it now names this entry.
   const attachments = useMemo(
-    () => items.filter((item) =>
-      item.dictKey === entryId || meta?.previousIds?.[item.dictKey] === entryId
-    ),
+    () => items.filter((item) => itemAttachesDictionaryEntry(item, entryId, meta?.previousIds)),
     [entryId, items, meta]
   );
   const attachedIds = useMemo(

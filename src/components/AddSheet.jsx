@@ -26,6 +26,7 @@ import { pageSeedFromRecipe } from "../lib/pageStarters.js";
 import MeaningEditor from "./MeaningEditor.jsx";
 import MarkdownTextarea from "./MarkdownTextarea.jsx";
 import { DictionaryResultRows, useDictionarySearch } from "./DictionarySearch.jsx";
+import { dictionaryKeysForItem } from "../lib/dictionaryAttachments.js";
 
 const inputStyle = { background: C.card, borderColor: C.line, color: C.ink };
 const DICTIONARY_SUGGESTION_LIMIT = 4;
@@ -162,9 +163,10 @@ export default function AddSheet({
   const attachedDictionaryIds = useMemo(() => {
     const ids = new Set();
     for (const item of items) {
-      if (item?.type !== "lexical" || !item.dictKey) continue;
-      ids.add(item.dictKey);
-      ids.add(dictionaryMeta?.previousIds?.[item.dictKey] || item.dictKey);
+      for (const key of dictionaryKeysForItem(item)) {
+        ids.add(key);
+        ids.add(dictionaryMeta?.previousIds?.[key] || key);
+      }
     }
     return ids;
   }, [dictionaryMeta, items]);
@@ -282,7 +284,7 @@ export default function AddSheet({
           notes,
           tags,
           mediaLinks: seedMediaLinks,
-          dictKey: selectedDictionaryEntry?.id || null,
+          dictKeys: selectedDictionaryEntry ? [selectedDictionaryEntry.id] : [],
         });
         await createItem(item);
       }

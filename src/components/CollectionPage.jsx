@@ -27,6 +27,7 @@ import { logView } from "../db/events.js";
 import { PAGE_FOCUSES, enabledPageRoles } from "../lib/pageKinds.js";
 import { savePageFocus } from "../db/pageStructures.js";
 import { vocabularyRemovalImpact } from "../lib/pageReferences.js";
+import { hasDictionaryAttachments } from "../lib/dictionaryAttachments.js";
 import { ItemLinkCard, EntryLinkCard, OrphanLinkCard } from "./LinkCard.jsx";
 import MediaImage from "./MediaImage.jsx";
 import { isDirectImageUrl } from "../lib/mediaUrls.js";
@@ -374,7 +375,7 @@ function ConnectionsSection({
               <ItemLinkCard
                 key={row.key}
                 item={row.item}
-                attached={Boolean(row.item.dictKey)}
+                attached={hasDictionaryAttachments(row.item)}
                 connection={row}
                 onOpen={onOpen}
                 onSaveRelationship={async (relationship) => {

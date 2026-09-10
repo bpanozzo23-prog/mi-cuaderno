@@ -1052,14 +1052,28 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   at `1f4ffdc`; Pages build and deploy succeeded in
   [run 34425595454](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/34425595454),
   and the live site serves the verified local `index-BO04VLMC.js` bundle. The agent ran on the
-  headless XPS and did not see the app, so the owner-side 375px phone check remains pending.
+  headless XPS and did not see the app; the owner subsequently reported that the phone visual check
+  passed.
   See the 2026-09-09 entries in [DECISIONS.md](DECISIONS.md).
+- **Plural dictionary attachments — implemented locally, owner phone check pending.** A personal
+  Word or Phrase can now retain and show every dictionary entry that supplied its meanings, so a
+  combined *mal* entry can open both its adjective and adverb sources. Attachments can be added,
+  removed or reattached individually without changing personal meanings; multi-source meaning
+  import asks which entry to use, and Dictionary Detail recognizes the personal item from either
+  source. Schema v12 mechanically migrates the old nullable scalar into ordered unique
+  `dictKeys[]`, behind the untouched export-first gate, with no index change. Search, Repaso,
+  Collections, twins, Grammar placement and conjugation/cloze enrichment inspect all attachments.
+  The final serial suite passes 1,816/1,816 across 148 files in 354 seconds, the production build
+  transforms 2,145 modules, `git diff --check` passes, and three deliberate failures reddened the
+  source-append, all-key lookup and migration-preservation contracts before restoration. Nothing
+  has been pushed or deployed. See the 2026-09-10 entries in [DECISIONS.md](DECISIONS.md).
 
-`SCHEMA_VERSION` is **11**. Before Dexie opens v11, schema-v1 through schema-v10 owners must save and
+`SCHEMA_VERSION` is **12**. Before Dexie opens v12, schema-v1 through schema-v11 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
 relationship, composable-page, Grammar-hierarchy, Structured-Notes, entry-feedback and Apuntes
-migrations, followed by Lexical Structured Notes and the no-op meaning-anchor migration, in order.
-Backup schemas 1 through 11 are accepted, upgraded sequentially in memory, deeply validated as v11, and only then offered for
+migrations, followed by Lexical Structured Notes, the no-op meaning-anchor migration, and the
+scalar-to-list dictionary-attachment migration, in order. Backup schemas 1 through 12 are accepted,
+upgraded sequentially in memory, deeply validated as v12, and only then offered for
 replace-and-restore; newer versions remain blocked.
 
 ## Testing

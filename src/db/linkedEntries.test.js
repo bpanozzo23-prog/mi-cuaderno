@@ -382,7 +382,7 @@ describe("resolving the dictionary entries an item links to", () => {
     const result = await resolveLinkedKeys(await getItem(lexical.id));
 
     expect(result.entries).toEqual([]);
-    expect((await getItem(lexical.id)).dictKey).toBe(oldKey);
+    expect((await getItem(lexical.id)).dictKeys).toEqual([oldKey]);
   });
 
   it("never logs an edit event: the dataset changed, the owner did not", async () => {
@@ -420,7 +420,7 @@ describe("merging a dictionary connection into its attached personal twin", () =
     expect(saved.linkedKeys).toEqual([twin.id]);
     expect(saved.linkAnnotations).toEqual([{ targetKey: twin.id, ...relationship }]);
     expect(saved.updatedAt).toBe("2026-01-02T03:04:05.000Z");
-    expect((await getItem(twin.id)).dictKey).toBe(SACAR);
+    expect((await getItem(twin.id)).dictKeys).toEqual([SACAR]);
     expect(await editEvents()).toEqual([]);
 
     // The merged row is ordinary v8 data: one key, one matching sparse annotation.

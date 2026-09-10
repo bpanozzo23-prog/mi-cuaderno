@@ -47,7 +47,7 @@ describe("a personal item whose dictionary entry vanishes", () => {
     const stored = await db.items.get(item.id);
     expect(stored.term).toBe("sacar");
     expect(stored.meanings[0].gloss).toBe("to take out");
-    expect((await resolveEntry(stored.dictKey)).entry).toBeNull();
+    expect((await resolveEntry(stored.dictKeys[0])).entry).toBeNull();
   });
 
   it("is silently migrated when the alias map knows the entry's new id (§6)", async () => {
@@ -56,7 +56,7 @@ describe("a personal item whose dictionary entry vanishes", () => {
 
     await install({ previousIds: { "dict:wiktionary-es:sacar:verb:1": SACAR } });
 
-    const { entry, resolvedFrom } = await resolveEntry(item.dictKey);
+    const { entry, resolvedFrom } = await resolveEntry(item.dictKeys[0]);
     expect(entry.lemma).toBe("sacar");
     expect(resolvedFrom).toBe("dict:wiktionary-es:sacar:verb:1");
   });
@@ -64,12 +64,12 @@ describe("a personal item whose dictionary entry vanishes", () => {
   it("can be re-attached to a different entry", async () => {
     await install();
     const item = await createItem(newLexical({ term: "sacar", dictKey: "dict:wiktionary-es:gone:verb" }));
-    expect((await resolveEntry(item.dictKey)).entry).toBeNull();
+    expect((await resolveEntry(item.dictKeys[0])).entry).toBeNull();
 
-    await updateItem(item.id, { dictKey: SACAR }, { logEdit: false });
+    await updateItem(item.id, { dictKeys: [SACAR] }, { logEdit: false });
 
     const stored = await db.items.get(item.id);
-    expect((await resolveEntry(stored.dictKey)).entry.lemma).toBe("sacar");
+    expect((await resolveEntry(stored.dictKeys[0])).entry.lemma).toBe("sacar");
   });
 
   it("reports no dictionary rather than an orphan when none is installed", async () => {
@@ -85,7 +85,7 @@ describe("a personal item whose dictionary entry vanishes", () => {
     const item = await createItem(newLexical({ term: "sacar", dictKey: SACAR }));
     const before = await db.events.count();
 
-    await updateItem(item.id, { dictKey: SACAR }, { logEdit: false });
+    await updateItem(item.id, { dictKeys: [SACAR] }, { logEdit: false });
 
     // The owner changed nothing — the dataset did. §7 keeps `edit` for real edits.
     expect(await db.events.count()).toBe(before);

@@ -340,7 +340,7 @@ describe("the seam between the layers (§5)", () => {
     expect(await getEntry("dict:wiktionary-es:sacar:verb")).toBeNull();
     const survivor = await personalDb.items.get(item.id);
     expect(survivor.term).toBe("sacar");
-    expect(survivor.dictKey).toBe("dict:wiktionary-es:sacar:verb");
+    expect(survivor.dictKeys).toEqual(["dict:wiktionary-es:sacar:verb"]);
   });
 
   it("installing a dictionary does not touch personal data", async () => {

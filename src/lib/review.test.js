@@ -93,8 +93,8 @@ describe("enrollment: what gets into the queue at all", () => {
     // and it does not matter that two of those were before they wrote it down.
     const word = makeLexical({ term: "chamba", dictKey: "dict:wiktionary-es:chamba-noun-1" });
     const events = [
-      view(word.dictKey, "2026-07-20"),
-      view(word.dictKey, "2026-07-25"),
+      view(word.dictKeys[0], "2026-07-20"),
+      view(word.dictKeys[0], "2026-07-25"),
       view(word.id, "2026-07-30"),
     ];
 
@@ -460,6 +460,14 @@ describe("dictionary words the owner keeps looking up", () => {
 
   it("says nothing about a word already in the cuaderno", () => {
     const word = makeLexical({ term: "chamba", dictKey: KEY });
+    const events = [view(KEY, "2026-07-20"), view(KEY, "2026-07-25"), view(KEY, "2026-07-30")];
+
+    expect(deriveDictSuggestions([word], events, TODAY)).toEqual([]);
+  });
+
+  it("claims a dictionary suggestion through any attachment on the personal item", () => {
+    const other = "dict:wiktionary-es:chamba-adjective-1";
+    const word = makeLexical({ term: "chamba", dictKeys: [other, KEY] });
     const events = [view(KEY, "2026-07-20"), view(KEY, "2026-07-25"), view(KEY, "2026-07-30")];
 
     expect(deriveDictSuggestions([word], events, TODAY)).toEqual([]);

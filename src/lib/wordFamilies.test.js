@@ -46,7 +46,7 @@ describe("saved conjugation families", () => {
     );
 
     expect(result).toEqual({ entry, siblings: [direct, aliased] });
-    expect(deps.resolveReference).toHaveBeenCalledWith(center.dictKey);
+    expect(deps.resolveReference).toHaveBeenCalledWith(center.dictKeys[0]);
     expect(deps.loadConjugations).toHaveBeenCalledWith([entry.conjugationId]);
     expect(deps.analyzePatterns).toHaveBeenCalledWith({
       lemma: entry.lemma,

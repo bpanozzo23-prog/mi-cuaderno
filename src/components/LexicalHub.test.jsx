@@ -13,7 +13,9 @@ vi.mock("../db/ref/entries.js", async (importOriginal) => ({
 
 const at = (day) => `2026-08-${String(day).padStart(2, "0")}T10:00:00.000Z`;
 
-const lexical = (term, over = {}) => ({
+const lexical = (term, over = {}) => {
+  const { dictKey = null, dictKeys, ...rest } = over;
+  return ({
   id: `user:${term}`,
   type: "lexical",
   form: "word",
@@ -36,10 +38,12 @@ const lexical = (term, over = {}) => ({
   tags: [],
   linkedKeys: [],
   linkAnnotations: [],
+  dictKeys: dictKeys ?? (dictKey ? [dictKey] : []),
   createdAt: at(1),
   updatedAt: at(1),
-  ...over,
-});
+  ...rest,
+  });
+};
 
 const page = (title, over = {}) => ({
   id: `user:${title.toLowerCase().replaceAll(" ", "-")}`,

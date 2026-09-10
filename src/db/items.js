@@ -27,6 +27,11 @@ import {
 import { resolveLinkedKeys } from "./linkedEntries.js";
 import { resolveEntry } from "./ref/entries.js";
 import {
+  appendDictionaryKey,
+  dictionaryKeysForItem,
+  uniqueDictionaryKeys,
+} from "../lib/dictionaryAttachments.js";
+import {
   clearSourcePageReferences,
   prunePageVocabularyReferences,
 } from "../lib/pageReferences.js";
@@ -36,7 +41,7 @@ import {
  * the log — not any field on the record — is what statistics and state are read from.
  *
  * The seam rule (section 5): a lexical item always stores its own `term` and personal
- * `meanings`, even when `dictKey` attaches it to a dictionary entry, so it stays meaningful
+ * `meanings`, even when `dictKeys[]` attaches it to dictionary entries, so it stays meaningful
  * on its own if that entry ever disappears. Meaning IDs never come from dictionary senses.
  */
 
@@ -55,16 +60,24 @@ export function newLexical({
   mediaLinks = [],
   linkedKeys = [],
   linkAnnotations = [],
+  dictKeys = undefined,
+  // Input-only compatibility for callers being migrated; schema-v12 records never store it.
   dictKey = null,
 } = {}) {
   const at = nowIso();
   const normalizedNoteSections = normalizeNoteSections(noteSections);
   const noteErrors = validateNoteSections(normalizedNoteSections, { where: "lexical.noteSections" });
   if (noteErrors.length) throw new Error(noteErrors[0]);
+  const attachmentKeys = uniqueDictionaryKeys(
+    dictKeys ?? (dictKey === null || dictKey === undefined ? [] : [dictKey])
+  );
+  if (attachmentKeys.some((key) => !isDictKey(key))) {
+    throw new Error("Dictionary attachments need dictionary entry keys.");
+  }
   return {
     id: newUserKey(),
     type: "lexical",
-    dictKey,
+    dictKeys: attachmentKeys,
     form: form === "phrase" ? "phrase" : "word",
     term: String(term || "").trim(),
     meanings: cleanMeanings(meanings),
@@ -83,7 +96,7 @@ export function newLexical({
 
 /**
  * Builds a lexical item attached to a dictionary entry — term, first gloss and part of
- * speech carried over, dictKey set. Pure: takes a plain entry object, no reference-layer
+ * speech carried over, one dictionary attachment set. Pure: takes a plain entry object, no reference-layer
  * import, so it can be reused wherever an entry needs a one-tap way into the cuaderno
  * (the entry's own "Add to my cuaderno" button, and the Repaso "keep looking these up"
  * rail alike). The seam rule (section 5) is why this only ever seeds the item — term and
@@ -94,7 +107,7 @@ export function lexicalSeedFromEntry(entry) {
     term: entry.lemma,
     meanings: entry.senses?.[0]?.gloss ? [newMeaning({ gloss: entry.senses[0].gloss })] : [],
     pos: personalPosForEntryPos(entry.pos),
-    dictKey: entry.id,
+    dictKeys: [entry.id],
   };
 }
 
@@ -215,8 +228,17 @@ export async function allItems() {
  * so the log records deliberate edits rather than keystrokes.
  */
 export async function updateItem(id, patch, { logEdit = true } = {}) {
+  if (Object.prototype.hasOwnProperty.call(patch, "dictKey")) {
+    throw new Error("Schema v12 stores dictionary attachments in dictKeys.");
+  }
   const next = { ...patch, updatedAt: nowIso() };
   if (next.tags) next.tags = cleanTags(next.tags);
+  if (Object.prototype.hasOwnProperty.call(next, "dictKeys")) {
+    if (!Array.isArray(next.dictKeys) || next.dictKeys.some((key) => !isDictKey(key))) {
+      throw new Error("Dictionary attachments need dictionary entry keys.");
+    }
+    next.dictKeys = uniqueDictionaryKeys(next.dictKeys);
+  }
   if (next.meanings) {
     next.meanings = cleanMeanings(next.meanings);
     const retained = new Set(next.meanings.map((meaning) => meaning.id));
@@ -244,8 +266,8 @@ export async function updateItem(id, patch, { logEdit = true } = {}) {
 /**
  * Appends owner-selected one-time copies from a dictionary entry to an existing personal item.
  * The fresh read and edit event share one transaction, so a failed save cannot leave content and
- * history disagreeing. An unattached target may adopt the current canonical dictionary key; an
- * existing attachment is never replaced and a second one is never stored.
+ * history disagreeing. The current canonical dictionary key joins the target's attachment list
+ * without replacing or duplicating anything already there.
  */
 export async function addDictionaryMeaningsToItem(id, meanings, dictKey = null) {
   return db.transaction("rw", db.items, db.events, async () => {
@@ -261,9 +283,13 @@ export async function addDictionaryMeaningsToItem(id, meanings, dictKey = null) 
       throw new Error("An imported meaning must have a fresh personal ID.");
     }
 
+    const currentKeys = dictionaryKeysForItem(item);
+    const dictKeys = isDictKey(dictKey)
+      ? appendDictionaryKey(currentKeys, dictKey)
+      : currentKeys;
     return updateItem(id, {
       meanings: [...(item.meanings || []), ...imported],
-      ...(!item.dictKey && isDictKey(dictKey) ? { dictKey } : {}),
+      dictKeys,
     });
   });
 }

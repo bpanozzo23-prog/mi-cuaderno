@@ -87,7 +87,7 @@ describe("Detail personal-twin merge", () => {
     });
     expect((await allEvents()).filter((event) => event.type === EVENT_TYPES.edit)).toEqual([]);
     // The twin's Detail now derives this page as an incoming connection — the point of merging.
-    expect((await getItem(twin.id)).dictKey).toBe(CASA);
+    expect((await getItem(twin.id)).dictKeys).toEqual([CASA]);
   });
 
   it("routes conflicting explicit descriptions through the resolver, storing the edited survivor", async () => {

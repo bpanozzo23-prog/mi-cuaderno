@@ -9,6 +9,7 @@ import { META_KEYS, refDb, setActiveSlot } from "../db/ref/refdb.js";
 import { newMeaning } from "../lib/meanings.js";
 
 const CASA = "dict:wiktionary-es:casa:noun";
+const CASA_ADV = "dict:wiktionary-es:casa:adv";
 
 const ENTRY = {
   id: CASA,
@@ -20,6 +21,12 @@ const ENTRY = {
     { gloss: "home", regionLabels: ["Mexico"], labels: ["colloquial", "obsolete"] },
     { gloss: "household", regionLabels: [], labels: [] },
   ],
+};
+const ADVERB_ENTRY = {
+  id: CASA_ADV,
+  lemma: "casa",
+  pos: "adv",
+  senses: [{ gloss: "homeward", regionLabels: [], labels: [] }],
 };
 
 beforeEach(async () => {
@@ -43,15 +50,16 @@ async function seedDictionary(entries = [ENTRY], previousIds = {}) {
 }
 
 function item(overrides = {}) {
+  const { dictKey = CASA, dictKeys, ...rest } = overrides;
   return {
     id: "user:casa",
     type: "lexical",
     term: "casa",
     notes: "",
     myExamples: [],
-    dictKey: CASA,
+    dictKeys: dictKeys ?? (dictKey ? [dictKey] : []),
     meanings: [newMeaning({ id: "meaning:mine", gloss: "house", note: "My own note" })],
-    ...overrides,
+    ...rest,
   };
 }
 
@@ -74,6 +82,18 @@ async function importDecisionSettled(key = CASA) {
 }
 
 describe("importing meanings from the attached dictionary entry", () => {
+  it("asks which attached dictionary entry should supply meanings", async () => {
+    const user = userEvent.setup();
+    await seedDictionary([ENTRY, ADVERB_ENTRY]);
+    render(<MeaningsSection item={item({ dictKeys: [CASA, CASA_ADV] })} onPatch={vi.fn()} />);
+
+    await openSheet(user);
+    expect(screen.getByText("Choose a dictionary entry")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: /casa adv\./i }));
+    expect(screen.getByRole("checkbox", { name: "Import homeward" })).toBeTruthy();
+    expect(screen.queryByRole("checkbox", { name: "Import household" })).toBeNull();
+  });
+
   it("offers nothing when the item is attached to no entry", async () => {
     await seedDictionary();
     render(<MeaningsSection item={item({ dictKey: null })} onPatch={vi.fn()} />);

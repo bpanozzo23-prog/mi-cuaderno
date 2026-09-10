@@ -2,6 +2,7 @@ import { getConjugation, resolveEntry } from "../db/ref/entries.js";
 import { pickCloze, verbForms } from "./cloze.js";
 import { firstImageLink } from "./mediaUrls.js";
 import { cardDirection } from "./review.js";
+import { dictionaryKeysForItem } from "./dictionaryAttachments.js";
 
 /**
  * Snapshots the question face of every vocabulary card for one session.
@@ -36,7 +37,7 @@ export async function preparePracticeCards(
     ...new Set(
       cards
         .filter((card) => card.direction !== "reverse" && card.face !== "image")
-        .map((card) => card.dictKey)
+        .flatMap((card) => dictionaryKeysForItem(card))
         .filter(Boolean)
     ),
   ];
@@ -67,9 +68,13 @@ export async function preparePracticeCards(
     // Reverse shows the meanings and asks for the term. A sentence containing that term
     // would expose the answer, so reverse and cloze are deliberately mutually exclusive.
     if (card.direction === "reverse" || card.face === "image") return card;
-    const entry = card.dictKey ? entries.get(card.dictKey) || null : null;
+    const attachedEntries = dictionaryKeysForItem(card).map((key) => entries.get(key)).filter(Boolean);
+    const entry = attachedEntries.find((candidate) => candidate.conjugationId) || attachedEntries[0] || null;
     const table = entry?.conjugationId ? tables.get(entry.conjugationId) : null;
-    const cloze = pickCloze(card, entry, {
+    const clozeEntry = entry
+      ? { ...entry, examples: attachedEntries.flatMap((candidate) => candidate.examples || []) }
+      : null;
+    const cloze = pickCloze(card, clozeEntry, {
       forms: table ? verbForms(table) : null,
       rng: random,
     });

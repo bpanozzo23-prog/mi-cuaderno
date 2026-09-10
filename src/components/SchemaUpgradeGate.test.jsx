@@ -59,6 +59,13 @@ describe("pre-open schema upgrade gate", () => {
     expect(screen.queryByText(/adds one level of Grammar subsections/i)).toBeNull();
   });
 
+  it("explains the plural dictionary-attachment migration from v11", () => {
+    render(<SchemaUpgradeGate fromVersion={11} onContinue={vi.fn()} />);
+
+    expect(screen.getByText(/ordered attachment list/i)).toBeTruthy();
+    expect(screen.queryByText(/structured Notes outline/i)).toBeNull();
+  });
+
   it("keeps the upgrade blocked when backup preparation fails", async () => {
     const user = userEvent.setup();
     buildPreupgradeBackup.mockRejectedValue(new Error("validation failed"));

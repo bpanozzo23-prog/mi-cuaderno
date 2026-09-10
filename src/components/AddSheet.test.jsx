@@ -76,7 +76,7 @@ describe("AddSheet", () => {
       term: "casa",
       form: "word",
       pos: "noun",
-      dictKey: CASA,
+      dictKeys: [CASA],
       mediaLinks: [{ url: "https://vm.tiktok.com/casa", label: "Casa" }],
     });
     expect(created.meanings.map((meaning) => meaning.gloss)).toEqual(["house"]);
@@ -147,7 +147,7 @@ describe("AddSheet", () => {
     await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));
 
     const created = await db.items.get(onCreated.mock.calls[0][0]);
-    expect(created.dictKey).toBeNull();
+    expect(created.dictKeys).toEqual([]);
     expect(created.meanings.map((meaning) => meaning.gloss)).toEqual(["house"]);
   });
 

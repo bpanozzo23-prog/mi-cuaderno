@@ -16,7 +16,7 @@ const at = (day) => `2026-07-${String(day).padStart(2, "0")}T10:00:00.000Z`;
 
 const word = (id, over = {}) => {
   const hasTranslation = Object.prototype.hasOwnProperty.call(over, "translation");
-  const { translation, meanings, ...rest } = over;
+  const { translation, meanings, dictKey = null, dictKeys, ...rest } = over;
   return {
     id,
     type: "lexical",
@@ -26,6 +26,7 @@ const word = (id, over = {}) => {
     myExamples: [{ es: "ejemplo", en: "example" }],
     tags: [],
     linkedKeys: [],
+    dictKeys: dictKeys ?? (dictKey ? [dictKey] : []),
     createdAt: at(1),
     updatedAt: at(1),
     ...rest,

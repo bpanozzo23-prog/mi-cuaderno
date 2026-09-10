@@ -1314,7 +1314,7 @@ describe("Android share target arrival", () => {
     await waitFor(async () => {
       const created = (await allItems()).find((item) => item.term === "casa");
       expect(created.form).toBe("word");
-      expect(created.dictKey).toBe(CASA);
+      expect(created.dictKeys).toEqual([CASA]);
       expect(created.meanings.map((meaning) => meaning.gloss)).toEqual(["house"]);
       expect(created.mediaLinks).toEqual([{ url: "https://vm.tiktok.com/casa", label: "Casa" }]);
     });

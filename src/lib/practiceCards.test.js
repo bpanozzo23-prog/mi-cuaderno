@@ -1,19 +1,23 @@
 import { describe, expect, it, vi } from "vitest";
 import { preparePracticeCards } from "./practiceCards.js";
 
-const word = (over = {}) => ({
-  id: "user:sacar",
-  type: "lexical",
-  form: "word",
-  term: "sacar",
-  meanings: [{
-    id: "meaning:sacar",
-    gloss: "take out",
-    examples: [{ es: "Tengo que sacar la basura.", en: "I have to take out the trash." }],
-  }],
-  myExamples: [],
-  ...over,
-});
+const word = (over = {}) => {
+  const { dictKey = null, dictKeys, ...rest } = over;
+  return {
+    id: "user:sacar",
+    type: "lexical",
+    form: "word",
+    term: "sacar",
+    meanings: [{
+      id: "meaning:sacar",
+      gloss: "take out",
+      examples: [{ es: "Tengo que sacar la basura.", en: "I have to take out the trash." }],
+    }],
+    myExamples: [],
+    dictKeys: dictKeys ?? (dictKey ? [dictKey] : []),
+    ...rest,
+  };
+};
 
 describe("shared vocabulary-card preparation", () => {
   it("makes a forward cloze from a personal example without consulting the dictionary", async () => {
@@ -74,5 +78,27 @@ describe("shared vocabulary-card preparation", () => {
 
     expect(card).toMatchObject({ id: attached.id, direction: "forward", term: "sacar" });
     expect(card.cloze).toBeUndefined();
+  });
+
+  it("uses a later conjugable attachment and stock examples from every attachment", async () => {
+    const adjective = { id: "dict:sacar:adj", lemma: "sacar", examples: [["Un uso sacar.", "An adjective use."]] };
+    const verb = {
+      id: "dict:sacar:verb",
+      lemma: "sacar",
+      conjugationId: "conj:sacar",
+      examples: [["Ayer saqué la basura.", "Yesterday I took out the trash."]],
+    };
+    const attached = word({
+      dictKeys: [adjective.id, verb.id],
+      meanings: [{ id: "meaning:sacar", gloss: "take out", examples: [] }],
+    });
+    const resolve = vi.fn(async (key) => ({ entry: key === adjective.id ? adjective : verb }));
+    const loadConjugation = vi.fn(async () => ({ tenses: { "Indicative/Preterite": { yo: "saqué" } } }));
+
+    const [card] = await preparePracticeCards([attached], { random: () => 0.99, resolve, loadConjugation });
+
+    expect(resolve.mock.calls.map(([key]) => key)).toEqual([adjective.id, verb.id]);
+    expect(loadConjugation).toHaveBeenCalledWith("conj:sacar");
+    expect(card.cloze).toMatchObject({ answer: "saqué", before: "Ayer " });
   });
 });

@@ -20,6 +20,7 @@ import { prepareProseContainment } from "../lib/proseContainment.js";
 import { groupConnections } from "../lib/relationships.js";
 import { prepareSavedConjugationFamily } from "../lib/wordFamilies.js";
 import { prepareContextNeighborhoods } from "../lib/contextConnections.js";
+import { hasDictionaryAttachments } from "../lib/dictionaryAttachments.js";
 import ConjugationFamilyRows from "./ConjugationFamilyRows.jsx";
 
 const datePart = (at) => String(at || "").slice(0, 10);
@@ -178,7 +179,7 @@ export default function Biography({
   useEffect(() => {
     let alive = true;
     setFamily(null);
-    if (item?.type !== "lexical" || item.form !== "word" || !item.dictKey) {
+    if (item?.type !== "lexical" || item.form !== "word" || !hasDictionaryAttachments(item)) {
       return () => {
         alive = false;
       };

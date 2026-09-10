@@ -73,4 +73,18 @@ describe("loading the Conjugation Gym library", () => {
     expect(coreSer.itemKey).toBeNull();
     expect(coreSer.openKey).toBe(SER);
   });
+
+  it("uses a conjugable attachment even when it is not first", async () => {
+    await seed();
+    const item = makeLexical({
+      id: "user:mixed",
+      term: "ser",
+      dictKeys: ["dict:wiktionary-es:casa:noun", SER],
+    });
+
+    const library = await loadGymLibrary([item]);
+
+    expect(library.saved).toHaveLength(1);
+    expect(library.saved[0]).toMatchObject({ itemKey: item.id, lemma: "ser" });
+  });
 });

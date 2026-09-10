@@ -3,6 +3,7 @@ import { allTagsIn } from "./tags.js";
 import { allPersonalExamples } from "./meanings.js";
 import { localDate, mondayWeekStart, monthOfDate } from "./dates.js";
 import { enabledPageRoles, PAGE_FOCUSES } from "./pageKinds.js";
+import { hasDictionaryAttachments } from "./dictionaryAttachments.js";
 
 /**
  * Phase 5b's organizational views are render-time derivations over the notebook already in
@@ -59,8 +60,8 @@ export function orderItems(items = [], order = BROWSE_ORDERS.touched) {
  * otherwise empty word is still linked when a page points to it, even if the active UI type is
  * `palabras` and that page will later be hidden.
  *
- * A dictionary key in `linkedKeys[]` is a stored link and counts. `dictKey`, by contrast, is the
- * separate reference attachment defined by the personal/reference seam, not an item link.
+ * A dictionary key in `linkedKeys[]` is a stored link and counts. `dictKeys[]`, by contrast, is
+ * the separate reference attachment list defined by the personal/reference seam, not item links.
  */
 export function maintenanceItems(items = [], view = MAINTENANCE_VIEWS.all, now = new Date()) {
   const candidates = [...items];
@@ -98,7 +99,7 @@ export function maintenanceItems(items = [], view = MAINTENANCE_VIEWS.all, now =
 
   if (view === MAINTENANCE_VIEWS.unattachedWord) {
     return candidates.filter(
-      (item) => item.type === "lexical" && item.form === "word" && !item.dictKey
+      (item) => item.type === "lexical" && item.form === "word" && !hasDictionaryAttachments(item)
     );
   }
 
