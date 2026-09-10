@@ -1055,7 +1055,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   headless XPS and did not see the app; the owner subsequently reported that the phone visual check
   passed.
   See the 2026-09-09 entries in [DECISIONS.md](DECISIONS.md).
-- **Plural dictionary attachments — implemented locally, owner phone check pending.** A personal
+- **Plural dictionary attachments — deployed, owner phone check pending.** A personal
   Word or Phrase can now retain and show every dictionary entry that supplied its meanings, so a
   combined *mal* entry can open both its adjective and adverb sources. Attachments can be added,
   removed or reattached individually without changing personal meanings; multi-source meaning
@@ -1065,8 +1065,11 @@ installable web app (PWA). Private tool for one person; the code is public, the 
   Collections, twins, Grammar placement and conjugation/cloze enrichment inspect all attachments.
   The final serial suite passes 1,816/1,816 across 148 files in 354 seconds, the production build
   transforms 2,145 modules, `git diff --check` passes, and three deliberate failures reddened the
-  source-append, all-key lookup and migration-preservation contracts before restoration. Nothing
-  has been pushed or deployed. See the 2026-09-10 entries in [DECISIONS.md](DECISIONS.md).
+  source-append, all-key lookup and migration-preservation contracts before restoration. Published
+  from `main` at `3c92a0f`; Pages build and deploy succeeded in
+  [run 34529040809](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/34529040809),
+  and the live site serves the verified local `index-I6wc1D7J.js` bundle. See the 2026-09-10
+  entries in [DECISIONS.md](DECISIONS.md).
 
 `SCHEMA_VERSION` is **12**. Before Dexie opens v12, schema-v1 through schema-v11 owners must save and
 acknowledge an untouched validated export. Direct legacy upgrades run meanings, page-profile,
