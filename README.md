@@ -20,8 +20,9 @@ citations are refused before changing either page. Failed backup validation now 
 API-key-free rescue file in Settings and the upgrade gate, while restore and upgrade still require
 a validated backup. Current and legacy exports read one consistent snapshot. The complete serial
 suite passes **1,849/1,849 tests across 150 files**, the production build and whitespace check
-pass, and 11 deliberate failure checks were detected. Schema remains v12. The owner’s 375px phone
-check is pending; the agent did not see the app on the headless XPS. See
+pass, and 11 deliberate failure checks were detected. Schema remains v12. The disposable preview
+now passes all four flows in headless Chromium at 375px with no horizontal overflow; screenshots
+were inspected. The owner’s phone recheck is pending. See
 [Step 1, item 2](docs/reviews/2026-10-17/STEP-1.md#item-2--backup-safety).
 
 **Guided lessons — planning only (2026-10-17).** The [feature plan and 1917 chapter drafts](docs/guided-lessons/README.md)

@@ -40,7 +40,7 @@ shows no message at all (item 2b), so "nothing happened" is the symptom to look 
 | Item | What | Size | Needs an owner decision | Done |
 |---|---|---|---|---|
 | 1 | Run the tests before every deploy | Hours | Decided: pull-request testing deferred | 2026-10-17: `401bc74`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39057987662) |
-| 2 | Backup safety: mutual-reference bug, rescue export, silent export failure, consistent snapshot | 2–4 days | Decided: Option A, block the second citation | 2026-10-17: `6d59e76`; local checks passed, phone check and push pending |
+| 2 | Backup safety: mutual-reference bug, rescue export, silent export failure, consistent snapshot | 2–4 days | Decided: Option A, block the second citation | 2026-10-17: `6d59e76`; local and browser checks passed, owner phone recheck and push pending |
 | 3 | All-or-nothing saves | 1–2 days | No | |
 | 4 | Small fixes: overnight queue, English stopwords, load error, persistence flag, ñ helper | 1–2 days, plus a possible dictionary rebuild for 4e | 4e only, if a rebuild is needed | |
 
@@ -124,14 +124,25 @@ The transaction proof queues a real competing write between reads and catches mi
 records in both current and legacy exports when the transaction is removed. Rescue tests cover
 source schemas 1–12 and prove the key remains stored while absent from the file.
 
-**Phone check and publication pending.** The agent ran on the headless XPS and did not see the app;
-the browser tool reported that the in-app browser was unavailable. A disposable preview using
-in-memory sample data was prepared outside the repository, and its HTML, Settings module and
-stylesheet were checked over localhost. Automatic approval review blocked exposing that preview
-beyond localhost without explicit network authorization. At 375px, check citation refusal and
-retained drafts, the Settings rescue download and unchanged last-backup date, rejection when
-importing a rescue file, and the legacy gate continuing to withhold upgrade after a rescue download.
-Nothing was pushed, and no owner browser data or private notebook snapshot was accessed.
+**Browser verification (2026-10-17); owner phone recheck and publication pending.** The owner
+approved the disposable preview on the private Tailscale address after automatic approval review
+initially blocked network access. The first phone screenshot exposed a preview-only setup failure:
+the HTTP origin lacks `crypto.randomUUID`, and the scratch page did not display setup errors. A
+random-byte UUID fallback, visible setup failures, duplicate-load protection, explicit app style
+sources, and an initially expanded Grammar fixture were added outside the repository. Application
+source is unchanged.
+
+Although the in-app browser was unavailable, an installed headless Chromium with a fresh disposable
+profile could run the preview. All four fixtures passed at 375×812: normal export updated the backup
+date; Settings rescue preserved the malformed row, excluded the key, left the date unchanged and
+was refused by restore; the schema-11 gate downloaded a rescue without authorizing upgrade; and
+opposing citation refusal retained all draft fields, followed by a successful retry without the
+citation. Actual downloaded JSON files were checked. Five screen states had no horizontal overflow,
+there were no uncaught browser exceptions, and the agent inspected screenshots. Deliberately removing
+the preview UUID fallback also confirmed that setup errors are now visible and fixture buttons
+become usable again. Dictionary files are not served by this backup-only preview; its unrelated
+dictionary-unavailable notice is expected. The owner still needs to recheck the repaired page on the
+phone. Nothing was pushed, and no owner browser data or private notebook snapshot was accessed.
 
 The original finding and options follow for context.
 
