@@ -8,35 +8,40 @@ import { getPref, setPref } from "../db/db.js";
 export const PERSISTENCE_PREF = "storagePersisted";
 
 export async function requestPersistence() {
-  if (!navigator?.storage?.persist) return null;
-  const alreadyAsked = await getPref(PERSISTENCE_PREF, null);
-  if (alreadyAsked === true) return true;
-  const granted = await navigator.storage.persist();
+  const storage = globalThis.navigator?.storage;
+  if (!storage?.persist) return null;
+  let persisted = false;
+  try {
+    persisted = storage.persisted ? await storage.persisted() : false;
+  } catch {
+    // A failed status check must not let an imported preference suppress the request.
+  }
+  const granted = persisted === true || await storage.persist();
   await setPref(PERSISTENCE_PREF, granted);
   return granted;
 }
 
 /**
- * `requested` distinguishes "we have never asked" from "we asked and were refused" —
- * on a fresh install persisted() is false simply because nothing has been requested yet,
- * and telling the owner their storage was denied would be wrong.
+ * The saved answer may come from another browser through a backup. It is historical
+ * information only: current protection is unknown unless this browser confirms it.
  */
 export async function storageStatus() {
   const recorded = await getPref(PERSISTENCE_PREF, null);
-  let persisted = recorded;
+  const storage = globalThis.navigator?.storage;
+  let persisted = null;
   let usageBytes = null;
   let quotaBytes = null;
 
-  if (navigator?.storage?.persisted) {
+  if (storage?.persisted) {
     try {
-      persisted = await navigator.storage.persisted();
+      persisted = await storage.persisted();
     } catch {
-      /* keep the recorded answer */
+      /* unknown on this browser */
     }
   }
-  if (navigator?.storage?.estimate) {
+  if (storage?.estimate) {
     try {
-      const est = await navigator.storage.estimate();
+      const est = await storage.estimate();
       usageBytes = est.usage ?? null;
       quotaBytes = est.quota ?? null;
     } catch {
@@ -46,7 +51,7 @@ export async function storageStatus() {
   return {
     persisted,
     requested: recorded !== null,
-    supported: Boolean(navigator?.storage?.persist),
+    supported: Boolean(storage?.persist),
     usageBytes,
     quotaBytes,
   };

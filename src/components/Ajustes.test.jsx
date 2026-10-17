@@ -5,6 +5,8 @@ import userEvent from "@testing-library/user-event";
 import Ajustes from "./Ajustes.jsx";
 import { TagColorProvider } from "./TagChip.jsx";
 import { TAG_SWATCHES } from "../lib/tagColors.js";
+import { db, getPref } from "../db/db.js";
+import { storageStatus } from "../lib/persistence.js";
 
 vi.mock("../db/db.js", () => ({
   db: {
@@ -75,6 +77,22 @@ function settings(items, {
 const visibleSwatchButtons = () => TAG_SWATCHES.flatMap((swatch) =>
   screen.queryAllByRole("button", { name: new RegExp(`^${swatch.label} for `) })
 );
+
+describe("Ajustes current browser storage status", () => {
+  it.each([
+    [{ persisted: false, supported: true, requested: true }, /This browser has not granted persistent storage/],
+    [{ persisted: null, supported: true, requested: true }, /Couldn’t confirm this browser’s storage protection/],
+    [{ persisted: null, supported: false, requested: true }, /does not support requesting persistent storage/],
+  ])("does not call imported history a current grant or refusal (%j)", async (status, message) => {
+    storageStatus.mockResolvedValueOnce(status);
+    getPref.mockResolvedValueOnce(null);
+    db.items.count.mockResolvedValueOnce(0);
+    db.events.count.mockResolvedValueOnce(0);
+    render(settings([]));
+    expect(await screen.findByText(message)).toBeTruthy();
+    expect(screen.queryByText(/browser refused|persistent storage granted/)).toBeNull();
+  });
+});
 
 describe("Ajustes tag colours", () => {
   it("keeps 15 palettes collapsed and mounts only the selected tag's 11 swatches", async () => {

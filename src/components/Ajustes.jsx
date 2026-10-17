@@ -345,7 +345,7 @@ export default function Ajustes({
   }
 
   const persisted = storage?.persisted === true;
-  const refused = storage?.requested && storage?.persisted === false;
+  const unprotected = storage?.persisted === false;
   // Derived at render from the notebook already in memory, the same way tag suggestions are: a tag
   // becomes colourable the moment it is used anywhere, and stops being listed when it is not.
   const tags = tagCountsIn(notebook?.items || []);
@@ -461,13 +461,16 @@ export default function Ajustes({
           {persisted ? (
             <ShieldCheck size={16} style={{ color: C.green, marginTop: 2 }} />
           ) : (
-            <ShieldAlert size={16} style={{ color: refused ? C.red : C.mut, marginTop: 2 }} />
+            <ShieldAlert size={16} style={{ color: unprotected ? C.red : C.mut, marginTop: 2 }} />
           )}
           <div className="text-sm" style={{ color: C.ink }}>
             {persisted && "The browser has agreed to keep this data (persistent storage granted)."}
-            {refused &&
-              "The browser refused persistent storage — it may evict this data if the device runs low on space. Export more often."}
-            {!persisted && !refused && "Persistent storage will be requested when you add your first item."}
+            {!persisted && !storage && "Checking this browser’s storage protection…"}
+            {!persisted && storage && !storage.supported &&
+              "This browser does not support requesting persistent storage. Export regularly."}
+            {!persisted && storage?.supported && (unprotected
+              ? "This browser has not granted persistent storage. It will be requested when you next add an item. Export regularly."
+              : "Couldn’t confirm this browser’s storage protection. It will be requested when you next add an item. Export regularly.")}
           </div>
         </div>
         <div className="mt-3 text-xs leading-relaxed" style={{ color: C.mut }}>
