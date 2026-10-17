@@ -1,7 +1,6 @@
 # Step 1 — safety fixes (work order)
 
-**Status (2026-10-17): items 1–3 done and deployed; item 4 implemented and verified locally,
-awaiting a separately requested push.** This lists the first batch of fixes from the
+**Status (2026-10-17): all four items are complete and deployed.** This lists the first batch of fixes from the
 [2026-10-17 reassessment](REASSESSMENT.md) so that a new session can pick one up without
 re-reading the whole review. Every item still goes through the normal working agreement in
 [`docs/AGENT-GUIDE.md`](../../AGENT-GUIDE.md): confirm the finding, propose a plan in plain
@@ -41,7 +40,7 @@ validation failures show a message and offer a separate rescue file for repair.
 | 1 | Run the tests before every deploy | Hours | Decided: pull-request testing deferred | 2026-10-17: `401bc74`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39057987662) |
 | 2 | Backup safety: mutual-reference bug, rescue export, silent export failure, consistent snapshot | 2–4 days | Decided: Option A, block the second citation | 2026-10-17: `6d59e76`, deployed via `bca7f22`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39070596526); browser and owner phone checks complete |
 | 3 | All-or-nothing saves | 1–2 days | No | 2026-10-17: `0311096`, deployed via `aa9db7d`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39076885631) |
-| 4 | Small fixes: overnight queue, English stopwords, load error, persistence flag, ñ helper | Five small fixes; no dictionary rebuild needed | Approved after current-main confirmation and dictionary audit | 2026-10-17: `f545deb`, `7c9ef42`, `5ca4a2e`, `3bce6ef`, `5c38a7b`; verified locally, unpushed |
+| 4 | Small fixes: overnight queue, English stopwords, load error, persistence flag, ñ helper | Five small fixes; no dictionary rebuild needed | Approved after current-main confirmation and dictionary audit | 2026-10-17: deployed via `6d92bab`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39079960584) |
 
 ---
 
@@ -350,8 +349,8 @@ remote `main` at `67f5fec`, following the deployment of items 1–3. The owner a
 the dictionary audit established that 4e requires no rebuild. Work is confined to item 4; schema
 remains v12, with no migration or reference-dataset revision.
 
-**Implementation.** The five fixes are separate local commits: 4a `f545deb`, 4b `7c9ef42`,
-4c `5ca4a2e`, 4d `3bce6ef`, and 4e `5c38a7b`. Nothing has been pushed or deployed.
+**Implementation.** The five fixes are separate commits: 4a `f545deb`, 4b `7c9ef42`,
+4c `5ca4a2e`, 4d `3bce6ef`, and 4e `5c38a7b`, published via `6d92bab`.
 
 - **4a:** Repaso passes an explicit local day to the queue, daily review count, suggestions and
   streak calculations. A hook refreshes at local midnight, on focus and on becoming visible.
@@ -397,6 +396,15 @@ storage flag could not suppress a new request, while a current grant prevented a
 All seven screen states had no horizontal overflow, their screenshots were inspected, and there
 were no browser warnings or uncaught exceptions. The preview server was stopped. No owner browser
 data or private notebook snapshot was accessed.
+
+**Deployment verified (2026-10-17).** The owner requested publication. Fetching found no remote
+changes; the push advanced `main` from `67f5fec` to `6d92bab`, and local `HEAD` matched `origin/main`.
+[GitHub Actions](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39079960584)
+passed **1,913/1,913 tests across 155 files** in 171.86 seconds with no unhandled errors, built all
+2,149 modules and deployed to Pages successfully. The live index and application assets return
+HTTP 200, with JavaScript and CSS matching the verified local build byte for byte. README Status
+records publication in the same session. Step 1 is complete; the next proposed work is Step 2,
+the documentation reset in the reassessment, subject to its own plan and approval.
 
 **How to check the changes.** Leave Repaso open across a local date change, or return to it the
 next day; search for “the house” and “in front of”; and inspect **Ajustes → Storage** for this
