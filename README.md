@@ -15,6 +15,15 @@ installable web app (PWA). Private tool for one person; the code is public, the 
 
 **Live at <https://bpanozzo23-prog.github.io/mi-cuaderno/>** — installable from Chrome on Android.
 
+**All-or-nothing saves — complete locally, not pushed (2026-10-17).** Item saves now commit
+their content and history together. Quick-create also includes its connection, and keeping Taller
+writing includes its create and practice events. Failed saves retain drafts for retry; a failure
+to refresh after a successful save is reported separately. Implementation commit `0311096` passes
+**1,883/1,883 tests across 151 files**, the production build, and the whitespace check. Sixteen
+deliberate failure checks were detected; seven disposable fixture states passed in headless
+Chromium at 375px with inspected screenshots and no horizontal overflow. Schema remains v12.
+See [Step 1, item 3](docs/reviews/2026-10-17/STEP-1.md#item-3--all-or-nothing-saves).
+
 **Backup safety — deployed (2026-10-17).** Opposing Source-capture
 citations are refused before changing either page. Failed backup validation now offers a separate
 API-key-free rescue file in Settings and the upgrade gate, while restore and upgrade still require

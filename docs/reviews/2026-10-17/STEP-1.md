@@ -1,6 +1,7 @@
 # Step 1 — safety fixes (work order)
 
-**Status (2026-10-17): items 1–2 done and deployed; items 3–4 remain open and unapproved.** This
+**Status (2026-10-17): items 1–2 done and deployed; item 3 done locally at `0311096`, not pushed;
+item 4 remains open and unapproved.** This
 lists the first batch of fixes from the
 [2026-10-17 reassessment](REASSESSMENT.md) so that a new session can pick one up without
 re-reading the whole review. Every item still goes through the normal working agreement in
@@ -40,7 +41,7 @@ validation failures show a message and offer a separate rescue file for repair.
 |---|---|---|---|---|
 | 1 | Run the tests before every deploy | Hours | Decided: pull-request testing deferred | 2026-10-17: `401bc74`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39057987662) |
 | 2 | Backup safety: mutual-reference bug, rescue export, silent export failure, consistent snapshot | 2–4 days | Decided: Option A, block the second citation | 2026-10-17: `6d59e76`, deployed via `bca7f22`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39070596526); browser and owner phone checks complete |
-| 3 | All-or-nothing saves | 1–2 days | No | |
+| 3 | All-or-nothing saves | 1–2 days | No | 2026-10-17: `0311096`; verified locally, not pushed |
 | 4 | Small fixes: overnight queue, English stopwords, load error, persistence flag, ñ helper | 1–2 days, plus a possible dictionary rebuild for 4e | 4e only, if a rebuild is needed | |
 
 ---
@@ -151,7 +152,7 @@ After fetching, the remote had no new commits; the push advanced `main` to `bca7
 passed **1,849/1,849 tests across 150 files** in 155.03 seconds, built all 2,147 modules, and
 deployed to Pages successfully. The live index and entry assets return HTTP 200 and match the
 verified build's asset names. README Status records publication in the same session. Item 2 is
-complete; item 3 is the next separate, unapproved work item.
+complete; at that release, item 3 remained the next separate, unapproved work item.
 
 The original finding and options follow for context.
 
@@ -259,6 +260,55 @@ save in the middle cannot produce a mixed snapshot. Small; do it alongside 2a/2b
 ---
 
 ## Item 3 — All-or-nothing saves
+
+**Implementation (2026-10-17, `0311096`; local, not pushed).** The findings still held on current
+local and remote `main` at `a81b001`, after items 1–2 were deployed. The owner approved the plan.
+`createItem` and `updateItem` now commit fresh reads, validation, content and history in one
+transaction. Updates reject missing targets, and meaning-connection validation shares the write
+transaction. Existing dictionary-meaning imports remain compatible. Browser storage protection
+runs outside the transaction after its outermost parent commits; aborted saves never request it.
+
+Page and lexical quick-create now save the new item, its create event and its connection together.
+Keeping Taller writing saves the dated page plus the create and practice events together, retaining
+the selected prompt tier, tema and prompt-inclusion choice. Diario has an explicit Retry save
+action; failed picker and Taller saves preserve their drafts and choices. Pending actions reject
+immediate repeat taps. Refresh/navigation callbacks are separate from the committed save, so a
+callback failure reports that the entry was saved and does not invite another creation. Taller
+controls stay disabled after such a committed save and become editable again after a database
+failure. Existing link direction, link event rules, Diario edit frequency and event shapes remain
+unchanged. Schema remains v12; no migration, dictionary change or item-4 fix is included.
+
+**Local verification.** The complete serial suite passes **1,883/1,883 tests across 151 files**
+in 382.21 seconds, exit zero with no failures or unhandled errors. Focused coverage passes 169/169
+across seven files. The production build transforms 2,147 modules and generates the service worker;
+its existing chunk-size warning remains. `git diff --check` passes. Sixteen deliberate breaks were
+detected and restored: create/update/quick-create/practice rollback, missing update/link sources,
+parent import tables, persistence timing/parent commit/rejection, repeated picker submissions,
+retained meaning choices, picker/Diario/Taller refresh isolation, and the Taller draft freeze.
+The update-transaction break also failed both tests that queue a real competing connection after
+the meaning guard's read. All 34 added test cases were exercised by these deliberate failures;
+the final complete suite ran after restoration.
+
+**Browser verification.** A fresh disposable headless Chromium profile exercised the real
+components at 375×812. New and edited Diario entries rolled back failed event writes and retried
+without duplicate entries or edit events. Page and lexical quick-create retained the surrounding
+unsaved note, query and relationship after a failed link, then saved exactly once without leaving
+the current entry. A quick-create refresh failure reported the committed save and disabled repeat
+creation. Taller retained writing and choices after a practice-event failure, then saved one page
+and both events; a navigation failure after commit left the saved draft disabled and showed where
+to find it. All seven screen states had no horizontal overflow, screenshots were inspected, and
+the browser reported no warnings or uncaught exceptions. The preview server was stopped. No owner
+browser data or private notebook snapshot was accessed.
+
+**Owner check.** In the local app, create and edit a Diario entry, use “Create … and link it”
+from a page and a word, and keep a Taller response with “Guardar en el Diario”. The regression
+suites inject the write and callback failures; run the focused checks with:
+
+```sh
+npm test -- src/db/itemSaves.test.js src/components/JournalEditor.test.jsx src/components/Detail.test.jsx src/components/LinkPicker.test.jsx src/components/TallerDrill.test.jsx
+```
+
+The original finding follows for context.
 
 **Problem.** `createItem` and `updateItem` ([`src/db/items.js`](../../../src/db/items.js#L210),
 [line 230](../../../src/db/items.js#L230)) write the item, then write its `create`/`edit` event as
