@@ -1,7 +1,6 @@
 # Step 1 — safety fixes (work order)
 
-**Status (2026-10-17): items 1–2 done and deployed; item 3 done locally at `0311096`, not pushed;
-item 4 remains open and unapproved.** This
+**Status (2026-10-17): items 1–3 done and deployed; item 4 remains open and unapproved.** This
 lists the first batch of fixes from the
 [2026-10-17 reassessment](REASSESSMENT.md) so that a new session can pick one up without
 re-reading the whole review. Every item still goes through the normal working agreement in
@@ -41,7 +40,7 @@ validation failures show a message and offer a separate rescue file for repair.
 |---|---|---|---|---|
 | 1 | Run the tests before every deploy | Hours | Decided: pull-request testing deferred | 2026-10-17: `401bc74`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39057987662) |
 | 2 | Backup safety: mutual-reference bug, rescue export, silent export failure, consistent snapshot | 2–4 days | Decided: Option A, block the second citation | 2026-10-17: `6d59e76`, deployed via `bca7f22`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39070596526); browser and owner phone checks complete |
-| 3 | All-or-nothing saves | 1–2 days | No | 2026-10-17: `0311096`; verified locally, not pushed |
+| 3 | All-or-nothing saves | 1–2 days | No | 2026-10-17: `0311096`, deployed via `aa9db7d`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39076885631) |
 | 4 | Small fixes: overnight queue, English stopwords, load error, persistence flag, ñ helper | 1–2 days, plus a possible dictionary rebuild for 4e | 4e only, if a rebuild is needed | |
 
 ---
@@ -261,7 +260,7 @@ save in the middle cannot produce a mixed snapshot. Small; do it alongside 2a/2b
 
 ## Item 3 — All-or-nothing saves
 
-**Implementation (2026-10-17, `0311096`; local, not pushed).** The findings still held on current
+**Implementation (2026-10-17, `0311096`).** The findings still held on current
 local and remote `main` at `a81b001`, after items 1–2 were deployed. The owner approved the plan.
 `createItem` and `updateItem` now commit fresh reads, validation, content and history in one
 transaction. Updates reject missing targets, and meaning-connection validation shares the write
@@ -300,7 +299,16 @@ to find it. All seven screen states had no horizontal overflow, screenshots were
 the browser reported no warnings or uncaught exceptions. The preview server was stopped. No owner
 browser data or private notebook snapshot was accessed.
 
-**Owner check.** In the local app, create and edit a Diario entry, use “Create … and link it”
+**Deployment verified (2026-10-17).** The owner requested the push. After fetching with no remote
+changes, `main` advanced from `a81b001` to `aa9db7d`, and local `HEAD` matched `origin/main`.
+[GitHub Actions](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39076885631)
+passed **1,883/1,883 tests across 151 files** in 206.95 seconds with no unhandled errors, built
+2,147 modules and deployed to Pages successfully. The live index and application assets return
+HTTP 200; the entry JavaScript, application JavaScript and CSS match the verified local build byte
+for byte. README Status records deployment in the same publication session. Item 3 is complete;
+item 4 remains unapproved.
+
+**Owner check.** In the app, create and edit a Diario entry, use “Create … and link it”
 from a page and a word, and keep a Taller response with “Guardar en el Diario”. The regression
 suites inject the write and callback failures; run the focused checks with:
 
