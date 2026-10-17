@@ -1,6 +1,7 @@
 # Step 1 — safety fixes (work order)
 
-**Status: open, not approved for implementation.** This lists the first batch of fixes from the
+**Status: item 1 implemented and verified locally, first GitHub Actions run pending; items 2–4
+remain open and unapproved.** This lists the first batch of fixes from the
 [2026-10-17 reassessment](REASSESSMENT.md) so that a new session can pick one up without
 re-reading the whole review. Every item still goes through the normal working agreement in
 [`docs/AGENT-GUIDE.md`](../../AGENT-GUIDE.md): confirm the finding, propose a plan in plain
@@ -37,7 +38,7 @@ shows no message at all (item 2b), so "nothing happened" is the symptom to look 
 
 | Item | What | Size | Needs an owner decision | Done |
 |---|---|---|---|---|
-| 1 | Run the tests before every deploy | Hours | Whether to also test pull requests | |
+| 1 | Run the tests before every deploy | Hours | Decided: pull-request testing deferred | 2026-10-17: local checks pass; GitHub verification pending |
 | 2 | Backup safety: mutual-reference bug, rescue export, silent export failure, consistent snapshot | 2–4 days | Yes, for 2a (see options) | |
 | 3 | All-or-nothing saves | 1–2 days | No | |
 | 4 | Small fixes: overnight queue, English stopwords, load error, persistence flag, ñ helper | 1–2 days, plus a possible dictionary rebuild for 4e | 4e only, if a rebuild is needed | |
@@ -46,7 +47,21 @@ shows no message at all (item 2b), so "nothing happened" is the symptom to look 
 
 ## Item 1 — Run the tests before every deploy
 
-**Problem.** [`.github/workflows/deploy.yml`](../../../.github/workflows/deploy.yml) runs
+**Progress (2026-10-17).** The finding was confirmed on local `main` at `79e95b5`; after fetching,
+`origin/main` was still the reviewed `35cda8e`, and the intervening local commit changed only
+documentation. The owner approved item 1 with pull-request testing deferred. The workflow now runs
+`npm test` immediately after `npm ci`, with the existing serial configuration and failure-blocking
+deployment dependency.
+
+Local verification passes: `npm test` reports **1,816/1,816 tests across 148 files** in 381.09
+seconds, exit zero with no unhandled errors; `npm run build` passes with 2,145 modules transformed;
+and `git diff --check` passes. A one-off YAML structure check rejects the committed workflow
+without the test step and passes the updated workflow, including command order, the deployment
+dependency and the absence of failure bypasses. No test files or dependencies were added. This
+checks local configuration, not execution in GitHub Actions. No push has been requested; the first
+GitHub Actions run and README deployment-status update remain pending before item 1 is marked done.
+
+**Original problem.** [`.github/workflows/deploy.yml`](../../../.github/workflows/deploy.yml) runs
 `npm ci`, then `npm run build`, then publishes. It never runs `npm test`. The complete serial
 suite is the project's acceptance gate, but nothing enforces it. A push from either machine, or an
 edit made after the last local test run, can publish code the suite would reject.
