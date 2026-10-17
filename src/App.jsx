@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { BookOpen, BarChart3, Settings, Loader2, PenLine } from "lucide-react";
-import { C, SERIF, MONO, Hi } from "./theme.jsx";
+import { C, SERIF, MONO, Hi, Button } from "./theme.jsx";
 import Cuaderno from "./components/Cuaderno.jsx";
 import PageHub from "./components/PageHub.jsx";
 import LexicalHub from "./components/LexicalHub.jsx";
@@ -117,6 +117,17 @@ function prunedMissingPersonalRoutes(navigation, items, pendingIds) {
     return [tab, filtered.length > 0 ? filtered : [stack[0]]];
   }));
   return changed ? { ...navigation, stacks } : navigation;
+}
+
+function NotebookLoadProblem({ notebook }) {
+  return (
+    <div role="alert" className="m-4 rounded-xl border p-4 space-y-3 text-sm" style={{ borderColor: C.line, background: C.card, color: C.ink }}>
+      <p>{notebook.hasLoaded
+        ? "Couldn’t refresh your cuaderno. You’re still seeing the last loaded version; your open drafts are kept."
+        : "Couldn’t open your cuaderno. Your saved data hasn’t been changed."}</p>
+      <Button className="min-h-11" onClick={notebook.reload}>Retry loading</Button>
+    </div>
+  );
 }
 
 export default function App() {
@@ -472,7 +483,7 @@ export default function App() {
   // every earlier browser entry and both remembered stacks keep their chronology.
   useEffect(() => {
     const current = activeRoute(navigationRef.current);
-    if (notebook.loading || !current?.id || isDictKey(current.id)) return;
+    if (!notebook.hasLoaded || notebook.refreshing || notebook.error || !current?.id || isDictKey(current.id)) return;
     const item = notebook.items.find((candidate) => candidate.id === current.id);
     if (!item) return;
     pendingPersonalIdsRef.current.delete(current.id);
@@ -483,15 +494,15 @@ export default function App() {
       screen: canonicalTab === "diario" ? "read" : "detail",
       id: current.id,
     });
-  }, [notebook.items, notebook.loading, route?.id, route?.tab]);
+  }, [notebook.items, notebook.hasLoaded, notebook.refreshing, notebook.error, route?.id, route?.tab]);
 
   // Deleted personal items cannot strand refresh or Forward on an empty detail surface.
   useEffect(() => {
-    if (notebook.loading) return;
+    if (!notebook.hasLoaded || notebook.refreshing || notebook.error) return;
     const current = navigationRef.current;
     const pruned = prunedMissingPersonalRoutes(current, notebook.items, pendingPersonalIdsRef.current);
     if (pruned !== current) commitNavigation(pruned, { replace: true, captureScroll: false });
-  }, [commitNavigation, notebook.items, notebook.loading]);
+  }, [commitNavigation, notebook.items, notebook.hasLoaded, notebook.refreshing, notebook.error]);
 
   const lexical = notebook.items.filter((item) => item.type === "lexical");
   const phraseCount = lexical.filter((item) => item.form === "phrase").length;
@@ -630,12 +641,13 @@ export default function App() {
           </header>
         )}
 
-        {notebook.loading ? (
+        {!notebook.hasLoaded ? (notebook.loading ? (
           <div className="flex items-center justify-center gap-2 text-sm py-24" style={{ color: C.mut }}>
             <Loader2 size={16} className="animate-spin" /> Opening your cuaderno…
           </div>
-        ) : (
+        ) : <NotebookLoadProblem notebook={notebook} />) : (
           <>
+            {notebook.error && <NotebookLoadProblem notebook={notebook} />}
             {visitedTabs.has("cuaderno") && (
               <section hidden={tab !== "cuaderno"} aria-label="Cuaderno surface">
                 <div hidden={["pages", "lexical", "wander", "cuidar"].includes(cuadernoRoute.screen)}>
