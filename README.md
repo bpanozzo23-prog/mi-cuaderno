@@ -19,6 +19,13 @@ installable web app (PWA). Private tool for one person; the code is public, the 
 are grouped in `docs/guided-lessons/`. The lesson player and integration are not implemented;
 this documentation-only update changes no application behavior or personal schema.
 
+**Deployment test gate — deployed (2026-10-17).** The Pages workflow now runs the complete
+serial test suite after `npm ci` and before the production build, so a test failure prevents
+publication. The first [GitHub Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39057987662)
+at `401bc74` passed **1,816/1,816 tests across 148 files**, then built and deployed successfully.
+Pull-request testing remains deferred; application behavior and schema v12 are unchanged. See
+[Step 1, item 1](docs/reviews/2026-10-17/STEP-1.md#item-1--run-the-tests-before-every-deploy).
+
 - **Phase 0 — done.** Installable PWA shell, auto-deployed on every push to `main`.
 - **Phase 0.5 — done, reviewed.** Data pipeline proven end to end on all four sources;
   see [docs/PHASE-0.5-SPIKE-REPORT.md](docs/PHASE-0.5-SPIKE-REPORT.md) and the 20 generated records in
