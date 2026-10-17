@@ -1,6 +1,7 @@
 # Step 1 — safety fixes (work order)
 
-**Status: item 1 done and deployed (2026-10-17); items 2–4 remain open and unapproved.** This
+**Status (2026-10-17): item 1 done and deployed; item 2 implemented and verified locally, with
+the owner phone check and publication pending; items 3–4 remain open and unapproved.** This
 lists the first batch of fixes from the
 [2026-10-17 reassessment](REASSESSMENT.md) so that a new session can pick one up without
 re-reading the whole review. Every item still goes through the normal working agreement in
@@ -39,7 +40,7 @@ shows no message at all (item 2b), so "nothing happened" is the symptom to look 
 | Item | What | Size | Needs an owner decision | Done |
 |---|---|---|---|---|
 | 1 | Run the tests before every deploy | Hours | Decided: pull-request testing deferred | 2026-10-17: `401bc74`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39057987662) |
-| 2 | Backup safety: mutual-reference bug, rescue export, silent export failure, consistent snapshot | 2–4 days | Yes, for 2a (see options) | |
+| 2 | Backup safety: mutual-reference bug, rescue export, silent export failure, consistent snapshot | 2–4 days | Decided: Option A, block the second citation | 2026-10-17: `6d59e76`; local checks passed, phone check and push pending |
 | 3 | All-or-nothing saves | 1–2 days | No | |
 | 4 | Small fixes: overnight queue, English stopwords, load error, persistence flag, ñ helper | 1–2 days, plus a possible dictionary rebuild for 4e | 4e only, if a rebuild is needed | |
 
@@ -96,6 +97,43 @@ same session as the push, as the guide requires.
 
 Backups are the owner's disaster recovery (brief §10). Four related problems, best fixed together
 because they touch the same files.
+
+**Implementation (2026-10-17).** Confirmed against current application code, unchanged since
+`35cda8e`; the mutual-citation failure was reproduced with disposable in-memory pages. The owner
+approved Option A and the backup-safety plan. Implementation commit `6d59e76` refuses the opposing
+citation before any write, including hidden Grammar and legacy reciprocal edges, while retaining
+the editor draft. It does not automatically repair already-invalid notebooks.
+
+Ordinary and pre-upgrade exports now capture items, events and raw preference rows in one read-only
+transaction, remove the API-key preference, and validate a separate copy. Failed validation or a
+checker exception retains that snapshot for a distinct `mi-cuaderno-RESCUE-…json` download with
+the source schema and diagnostics. Settings, its pre-restore safety export, and the upgrade gate
+show failures; tag management still receives failed-export rejections. Rescue files are explicitly
+refused by restore, never update the last-backup date, and never authorize restore or upgrade.
+Successful normal exports and untouched legacy exports retain their existing formats. Schema
+remains v12; no migration, dictionary change or item-3 save work is included.
+
+**Local verification.** The complete serial suite passes **1,849/1,849 across 150 files** in
+360.31 seconds, exit zero with no failures or unhandled errors. The production build transforms
+2,147 modules and generates the service worker; its existing chunk-size warning remains.
+`git diff --check` passes. Eleven deliberate breaks were detected and restored: the citation guard,
+snapshot transaction, secret redaction, validation-failure rescue, checker-exception rescue,
+snapshot isolation from checker mutation, rescue-import rejection, upgrade retry reset,
+tag-export rejection, post-export refresh isolation, and preservation of the captured rescue rows.
+The transaction proof queues a real competing write between reads and catches mixed old/new
+records in both current and legacy exports when the transaction is removed. Rescue tests cover
+source schemas 1–12 and prove the key remains stored while absent from the file.
+
+**Phone check and publication pending.** The agent ran on the headless XPS and did not see the app;
+the browser tool reported that the in-app browser was unavailable. A disposable preview using
+in-memory sample data was prepared outside the repository, and its HTML, Settings module and
+stylesheet were checked over localhost. Automatic approval review blocked exposing that preview
+beyond localhost without explicit network authorization. At 375px, check citation refusal and
+retained drafts, the Settings rescue download and unchanged last-backup date, rejection when
+importing a rescue file, and the legacy gate continuing to withhold upgrade after a rescue download.
+Nothing was pushed, and no owner browser data or private notebook snapshot was accessed.
+
+The original finding and options follow for context.
 
 ### 2a. Two pages that cite each other's Source captures can no longer be backed up
 

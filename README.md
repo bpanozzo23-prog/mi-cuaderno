@@ -15,6 +15,15 @@ installable web app (PWA). Private tool for one person; the code is public, the 
 
 **Live at <https://bpanozzo23-prog.github.io/mi-cuaderno/>** — installable from Chrome on Android.
 
+**Backup safety — implemented locally, not pushed (2026-10-17).** Opposing Source-capture
+citations are refused before changing either page. Failed backup validation now offers a separate
+API-key-free rescue file in Settings and the upgrade gate, while restore and upgrade still require
+a validated backup. Current and legacy exports read one consistent snapshot. The complete serial
+suite passes **1,849/1,849 tests across 150 files**, the production build and whitespace check
+pass, and 11 deliberate failure checks were detected. Schema remains v12. The owner’s 375px phone
+check is pending; the agent did not see the app on the headless XPS. See
+[Step 1, item 2](docs/reviews/2026-10-17/STEP-1.md#item-2--backup-safety).
+
 **Guided lessons — planning only (2026-10-17).** The [feature plan and 1917 chapter drafts](docs/guided-lessons/README.md)
 are grouped in `docs/guided-lessons/`. The lesson player and integration are not implemented;
 this documentation-only update changes no application behavior or personal schema.
