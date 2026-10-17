@@ -1,7 +1,6 @@
 # Step 1 — safety fixes (work order)
 
-**Status (2026-10-17): item 1 done and deployed; item 2 implemented and verified locally, including
-the owner phone recheck, with publication pending; items 3–4 remain open and unapproved.** This
+**Status (2026-10-17): items 1–2 done and deployed; items 3–4 remain open and unapproved.** This
 lists the first batch of fixes from the
 [2026-10-17 reassessment](REASSESSMENT.md) so that a new session can pick one up without
 re-reading the whole review. Every item still goes through the normal working agreement in
@@ -33,14 +32,14 @@ Suggested starter prompt for a new session (Claude Code or Codex):
 
 ## Owner check before starting
 
-Try **Ajustes → export a backup** on the phone. If no file appears, the notebook may already be
-in the state described in item 2a, and item 2 becomes urgent. Today a failed export in Ajustes
-shows no message at all (item 2b), so "nothing happened" is the symptom to look for.
+Try **Ajustes → export a backup** on the phone. At review commit `35cda8e`, a failed export showed
+no message (item 2b), so "nothing happened" was the symptom to look for. Item 2 is now deployed:
+validation failures show a message and offer a separate rescue file for repair.
 
 | Item | What | Size | Needs an owner decision | Done |
 |---|---|---|---|---|
 | 1 | Run the tests before every deploy | Hours | Decided: pull-request testing deferred | 2026-10-17: `401bc74`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39057987662) |
-| 2 | Backup safety: mutual-reference bug, rescue export, silent export failure, consistent snapshot | 2–4 days | Decided: Option A, block the second citation | 2026-10-17: `6d59e76`; local and browser checks passed, owner confirmed four fixture buttons; push pending |
+| 2 | Backup safety: mutual-reference bug, rescue export, silent export failure, consistent snapshot | 2–4 days | Decided: Option A, block the second citation | 2026-10-17: `6d59e76`, deployed via `bca7f22`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39070596526); browser and owner phone checks complete |
 | 3 | All-or-nothing saves | 1–2 days | No | |
 | 4 | Small fixes: overnight queue, English stopwords, load error, persistence flag, ñ helper | 1–2 days, plus a possible dictionary rebuild for 4e | 4e only, if a rebuild is needed | |
 
@@ -124,7 +123,7 @@ The transaction proof queues a real competing write between reads and catches mi
 records in both current and legacy exports when the transaction is removed. Rescue tests cover
 source schemas 1–12 and prove the key remains stored while absent from the file.
 
-**Browser verification and owner phone recheck (2026-10-17); publication pending.** The owner
+**Browser verification and owner phone recheck (2026-10-17).** The owner
 approved the disposable preview on the private Tailscale address after automatic approval review
 initially blocked network access. The first phone screenshot exposed a preview-only setup failure:
 the HTTP origin lacks `crypto.randomUUID`, and the scratch page did not display setup errors. A
@@ -142,8 +141,17 @@ there were no uncaught browser exceptions, and the agent inspected screenshots. 
 the preview UUID fallback also confirmed that setup errors are now visible and fixture buttons
 become usable again. Dictionary files are not served by this backup-only preview; its unrelated
 dictionary-unavailable notice is expected. After reopening the repaired page on the phone, the owner
-reported, “All 4 buttons work.” The temporary preview server was then stopped. Nothing was pushed,
-and no owner browser data or private notebook snapshot was accessed.
+reported, “All 4 buttons work.” The temporary preview server was then stopped. No owner browser
+data or private notebook snapshot was accessed.
+
+**Deployment verified (2026-10-17).** The owner requested publication after the phone recheck.
+After fetching, the remote had no new commits; the push advanced `main` to `bca7f22`, and local
+`HEAD` and `origin/main` matched. The
+[GitHub Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39070596526)
+passed **1,849/1,849 tests across 150 files** in 155.03 seconds, built all 2,147 modules, and
+deployed to Pages successfully. The live index and entry assets return HTTP 200 and match the
+verified build's asset names. README Status records publication in the same session. Item 2 is
+complete; item 3 is the next separate, unapproved work item.
 
 The original finding and options follow for context.
 

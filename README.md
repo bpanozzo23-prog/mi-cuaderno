@@ -15,15 +15,17 @@ installable web app (PWA). Private tool for one person; the code is public, the 
 
 **Live at <https://bpanozzo23-prog.github.io/mi-cuaderno/>** — installable from Chrome on Android.
 
-**Backup safety — implemented locally, not pushed (2026-10-17).** Opposing Source-capture
+**Backup safety — deployed (2026-10-17).** Opposing Source-capture
 citations are refused before changing either page. Failed backup validation now offers a separate
 API-key-free rescue file in Settings and the upgrade gate, while restore and upgrade still require
 a validated backup. Current and legacy exports read one consistent snapshot. The complete serial
 suite passes **1,849/1,849 tests across 150 files**, the production build and whitespace check
 pass, and 11 deliberate failure checks were detected. Schema remains v12. The disposable preview
 now passes all four flows in headless Chromium at 375px with no horizontal overflow; screenshots
-were inspected. The owner confirmed all four fixture buttons work on the phone. Publication is
-pending. See
+were inspected. The owner confirmed all four fixture buttons work on the phone.
+[GitHub Actions](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39070596526)
+passed the full suite, built and deployed from `bca7f22`; the live entry assets match the verified
+production build. See
 [Step 1, item 2](docs/reviews/2026-10-17/STEP-1.md#item-2--backup-safety).
 
 **Guided lessons — planning only (2026-10-17).** The [feature plan and 1917 chapter drafts](docs/guided-lessons/README.md)
