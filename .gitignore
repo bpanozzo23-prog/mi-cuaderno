@@ -14,6 +14,8 @@ pipeline/raw/
 /private-data/
 mi-cuaderno-backup-*.json
 before-import-*.json
+mi-cuaderno-RESCUE-*.json
+before-schema-v*-upgrade-*.json
 
 # local junk
 *.local

@@ -87,6 +87,15 @@ const withoutAnnotation = (item, targetKey) =>
 async function ensureOutgoingPageConnection(page, sourcePageId) {
   if (sourcePageId === page.id) return page;
   const sourcePage = assertPage(await db.items.get(sourcePageId), sourcePageId);
+  // Hidden structures and legacy reciprocal links still depend on their outgoing authority.
+  // Reject before any writes; promoting this edge must not strand the other page's citation.
+  if ((sourcePage.grammar?.sections || []).some((section) =>
+    (section.examples || []).some((example) => example.sourceCaptureRef?.pageId === page.id)
+  )) {
+    throw new Error(
+      `“${sourcePage.title}” already cites a Source capture on this page. Pages cannot cite each other's Source captures. Save without this citation, or remove the earlier citation first.`
+    );
+  }
   const alreadyOutgoing = (page.linkedKeys || []).includes(sourcePageId);
   let annotation = null;
 

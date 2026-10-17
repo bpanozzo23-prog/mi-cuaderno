@@ -29,6 +29,7 @@ import {
 } from "../lib/pageKinds.js";
 import { newPageGroup } from "../lib/collections.js";
 import { annotationForTarget } from "../lib/relationships.js";
+import { buildBackup } from "./backup.js";
 
 beforeEach(async () => {
   vi.restoreAllMocks();
@@ -39,6 +40,62 @@ beforeEach(async () => {
 const editEventsFor = async (id) => (await allEvents()).filter(
   (event) => event.itemKey === id && event.type === EVENT_TYPES.edit
 );
+
+describe("opposing Source citations", () => {
+  it.each([
+    ["new example", {}],
+    ["editing an example", { editing: true }],
+    ["hidden Grammar subsection", { hidden: true }],
+    ["legacy reciprocal edges", { reciprocal: true }],
+    ["already-missing authority", { missing: true }],
+  ])("refuses the second citation without changing either page: %s", async (_label, options) => {
+    const makePage = async (title) => {
+      const root = newGrammarSection({ name: "Root" });
+      const child = newGrammarSection({ name: "Child", parentId: root.id });
+      return createItem(newPage({
+        title,
+        source: emptySource({ enabled: true, captures: [newSourceCapture({ text: `${title} passage` })] }),
+        grammar: emptyGrammar({ enabled: true, sections: [root, child] }),
+      }));
+    };
+    const a = await makePage("Page A");
+    const b = await makePage("Page B");
+    await linkItems(a.id, b.id, { type: "found_in", subject: "owner", note: "Keep this annotation" });
+    const sectionA = a.grammar.sections[options.hidden ? 1 : 0].id;
+    const first = await saveGrammarExample(a.id, sectionA, {
+      es: "Ejemplo A", sourceCaptureRef: { pageId: b.id, captureId: b.source.captures[0].id },
+    });
+    let draft = { es: "Ejemplo B" };
+    if (options.editing) {
+      draft = (await saveGrammarExample(b.id, b.grammar.sections[0].id, draft)).example;
+    }
+    if (options.hidden) await savePageConfiguration(a.id, { grammarEnabled: false });
+    if (options.reciprocal) await db.items.update(b.id, { linkedKeys: [a.id] });
+    if (options.missing) await db.items.update(a.id, { linkedKeys: [], linkAnnotations: [] });
+    const beforeItems = await db.items.toArray();
+    const beforeEvents = await allEvents();
+    const opposingDraft = {
+      ...draft,
+      sourceCaptureRef: { pageId: a.id, captureId: a.source.captures[0].id },
+    };
+
+    await expect(saveGrammarExample(b.id, b.grammar.sections[0].id, opposingDraft))
+      .rejects.toThrow(/Page A.*Pages cannot cite each other's Source captures/);
+    expect(await db.items.toArray()).toEqual(beforeItems);
+    expect(await allEvents()).toEqual(beforeEvents);
+    if (options.missing) {
+      const failure = await buildBackup().catch((error) => error);
+      expect(failure.rescue.stores.items).toEqual(beforeItems);
+    } else {
+      await expect(buildBackup()).resolves.toMatchObject({ format: "mi-cuaderno-backup" });
+    }
+    if (Object.keys(options).length === 0) {
+      await deleteGrammarExample(a.id, sectionA, first.example.id);
+      await saveGrammarExample(b.id, b.grammar.sections[0].id, opposingDraft);
+      await expect(buildBackup()).resolves.toMatchObject({ format: "mi-cuaderno-backup" });
+    }
+  });
+});
 
 describe("page configuration and structure copying", () => {
   it("preserves hidden content, falls back to Notes, and reports a dated move to Diario", async () => {

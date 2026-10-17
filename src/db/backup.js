@@ -1,6 +1,5 @@
 import {
   db,
-  allPrefs,
   setPref,
   upgradeItemV3,
   upgradePageItemV2,
@@ -12,7 +11,7 @@ import {
   upgradeLexicalItemV9,
   upgradeLexicalItemV11,
 } from "./db.js";
-import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
+import { SCHEMA_VERSION } from "../version.js";
 import { nowIso } from "../lib/dates.js";
 import {
   MEANING_POS_OPTIONS,
@@ -41,38 +40,20 @@ import {
   RELATIONSHIP_SUBJECTS,
   RELATIONSHIP_TYPES,
 } from "../lib/relationships.js";
+import { BACKUP_FORMAT, RESCUE_FORMAT, readBackupSnapshot, validateBackupSnapshot } from "./backupSnapshot.js";
 
 /**
  * Backup is the disaster-recovery mechanism, not a convenience (brief section 10).
  * The envelope excludes the reference dictionary (replaceable) and, from Phase 6,
  * the API key (never exported).
  */
-export const BACKUP_FORMAT = "mi-cuaderno-backup";
+export { BACKUP_FORMAT };
 export const LAST_BACKUP_PREF = "lastBackupAt";
 export { PINNED_PAGE_IDS_PREF, PINNED_LEXICAL_IDS_PREF };
 
 export async function buildBackup() {
-  const [userItems, events, storedPrefs] = await Promise.all([
-    db.items.toArray(),
-    db.events.toArray(),
-    allPrefs(),
-  ]);
-  // §10: the API key is never exported. Dropped here rather than at the call sites so the
-  // pre-import safety export gets the same treatment, and so validateBackup below — which refuses
-  // any envelope carrying the key — checks this envelope too.
-  const { [AI_API_KEY_PREF]: _neverExported, ...preferences } = storedPrefs;
-  const candidate = {
-    format: BACKUP_FORMAT,
-    schemaVersion: SCHEMA_VERSION,
-    exportedAt: nowIso(),
-    appVersion: APP_VERSION,
-    userItems,
-    events,
-    preferences,
-  };
-  const checked = validateBackup(candidate);
-  if (!checked.ok) throw new Error(`The current notebook could not be backed up: ${checked.errors.join(" ")}`);
-  return checked.envelope;
+  const snapshot = await readBackupSnapshot(db, SCHEMA_VERSION);
+  return validateBackupSnapshot(snapshot, validateBackup);
 }
 
 export function backupFilename(envelope) {
@@ -769,6 +750,14 @@ export function validateBackup(raw) {
   }
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
     return { ok: false, errors: ["The file is not a backup envelope."], envelope: null, summary: null };
+  }
+  if (parsed.format === RESCUE_FORMAT) {
+    return {
+      ok: false,
+      errors: ["This is a rescue export, not a validated backup. It needs repair before it can be restored."],
+      envelope: null,
+      summary: null,
+    };
   }
   if (parsed.format !== BACKUP_FORMAT) {
     errors.push(`Not a Mi cuaderno backup (format is "${parsed.format ?? "missing"}").`);

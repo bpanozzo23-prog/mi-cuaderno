@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Download, ShieldAlert, Check } from "lucide-react";
 import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
 import { buildPreupgradeBackup } from "../db/preupgrade.js";
 import { backupFilename } from "../db/backup.js";
 import { downloadJson } from "../lib/file.js";
 import { SCHEMA_VERSION } from "../version.js";
+import BackupExportProblem from "./BackupExportProblem.jsx";
 
 function legacyVersionLabel() {
   const versions = Array.from({ length: SCHEMA_VERSION - 1 }, (_, index) => String(index + 1));
@@ -15,7 +16,8 @@ function legacyVersionLabel() {
 export default function SchemaUpgradeGate({ fromVersion = null, onContinue }) {
   const [downloaded, setDownloaded] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
+  const downloading = useRef(false);
   const sourceVersion = fromVersion ?? legacyVersionLabel();
   const knownVersion = Number.isInteger(fromVersion) ? fromVersion : null;
   const changes = [];
@@ -36,15 +38,19 @@ export default function SchemaUpgradeGate({ fromVersion = null, onContinue }) {
     : "It brings the notebook up to the current personal-data format without changing owner content.";
 
   async function downloadBackup() {
+    if (downloading.current) return;
+    downloading.current = true;
     setBusy(true);
-    setError("");
+    setDownloaded(false);
+    setError(null);
     try {
       const envelope = await buildPreupgradeBackup();
       downloadJson(`before-schema-v${SCHEMA_VERSION}-upgrade-${backupFilename(envelope)}`, envelope);
       setDownloaded(true);
     } catch (problem) {
-      setError(problem instanceof Error ? problem.message : "The backup could not be created.");
+      setError(problem);
     } finally {
+      downloading.current = false;
       setBusy(false);
     }
   }
@@ -77,9 +83,7 @@ export default function SchemaUpgradeGate({ fromVersion = null, onContinue }) {
               </div>
             )}
             {error && (
-              <div className="text-xs rounded-lg p-2.5" style={{ background: C.redPale, color: C.red }}>
-                {error} Nothing was upgraded.
-              </div>
+              <BackupExportProblem problem={error} disabled={busy} />
             )}
           </div>
 
@@ -89,7 +93,7 @@ export default function SchemaUpgradeGate({ fromVersion = null, onContinue }) {
                 Continue only after confirming the file was saved. The upgrade itself is automatic and keeps your
                 entry IDs, notes, vocabulary groups, examples, links and review history.
               </p>
-              <Button onClick={onContinue}>I saved it — upgrade my notebook</Button>
+              <Button onClick={onContinue} disabled={busy}>I saved it — upgrade my notebook</Button>
             </div>
           )}
 

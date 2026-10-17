@@ -351,6 +351,32 @@ The **indicative mood** describes what the speaker treats as certain.
     expect(props.onChanged).toHaveBeenCalledTimes(1);
   });
 
+  it("retains a refused citation draft and lets the owner save without that citation", async () => {
+    const user = userEvent.setup();
+    const props = baseProps();
+    saveGrammarExample.mockRejectedValueOnce(new Error("Audio source already cites this page. Pages cannot cite each other's Source captures."));
+    render(<GrammarSection {...props} />);
+    await user.click(screen.getAllByRole("button", { name: "Add example" })[0]);
+    await user.type(screen.getByRole("textbox", { name: "Spanish example" }), "Llegó Ana.");
+    await user.type(screen.getByRole("textbox", { name: "English example" }), "Ana arrived.");
+    await user.type(screen.getByRole("textbox", { name: "Example explanation" }), "Keep my note.");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Related Source capture" }), `${externalSource.id}|${EXTERNAL_CAPTURE}`);
+    await user.click(screen.getByRole("button", { name: "Save example" }));
+    expect(await screen.findByText(/Pages cannot cite each other/)).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Spanish example" }).value).toBe("Llegó Ana.");
+    expect(screen.getByRole("textbox", { name: "English example" }).value).toBe("Ana arrived.");
+    expect(screen.getByRole("textbox", { name: "Example explanation" }).value).toBe("Keep my note.");
+    expect(screen.getByRole("combobox", { name: "Related Source capture" }).value).toBe(`${externalSource.id}|${EXTERNAL_CAPTURE}`);
+    expect(props.onChanged).not.toHaveBeenCalled();
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Related Source capture" }), "");
+    await user.click(screen.getByRole("button", { name: "Save example" }));
+    await waitFor(() => expect(props.onChanged).toHaveBeenCalledTimes(1));
+    expect(saveGrammarExample).toHaveBeenLastCalledWith("user:grammar-page", SECTION_ONE,
+      expect.objectContaining({ es: "Llegó Ana.", en: "Ana arrived.", note: "Keep my note.", sourceCaptureRef: null }));
+    expect(screen.queryByRole("button", { name: "Save example" })).toBeNull();
+  });
+
   it("shows a hidden exact Source reference without exposing its capture", async () => {
     const user = userEvent.setup();
     const onOpen = vi.fn();

@@ -31,6 +31,7 @@ import { tagCountsIn } from "../lib/organization.js";
 import { caseVariantGroups } from "../lib/tags.js";
 import { TAG_SWATCHES, swatchById, tagSwatchId } from "../lib/tagColors.js";
 import TagManagementSheet from "./TagManagementSheet.jsx";
+import BackupExportProblem from "./BackupExportProblem.jsx";
 
 function backupAgeLabel(iso) {
   if (!iso) return "never";
@@ -201,6 +202,9 @@ export default function Ajustes({
   const [safetyReady, setSafetyReady] = useState(false);
   const [problems, setProblems] = useState([]);
   const [note, setNote] = useState("");
+  const [exportProblem, setExportProblem] = useState(null);
+  const [exportBusy, setExportBusy] = useState(false);
+  const exporting = useRef(false);
   const [dictionary, setDictionary] = useState(null);
   const [managedTag, setManagedTag] = useState(null);
   const [tagNote, setTagNote] = useState("");
@@ -243,12 +247,40 @@ export default function Ajustes({
     refreshDictionary();
   }, [refreshDictionary]);
 
-  async function handleExport() {
-    const envelope = await buildBackup();
-    downloadJson(backupFilename(envelope), envelope);
-    await recordBackupTaken(envelope.exportedAt);
-    setNote("Backup downloaded. Keep it somewhere off this phone.");
-    refresh();
+  async function exportBackup(beforeImport = false) {
+    if (exporting.current) throw new Error("A backup is already being prepared. Please wait.");
+    exporting.current = true;
+    setExportBusy(true);
+    setExportProblem(null);
+    setNote("");
+    setSafetyReady(false);
+    try {
+      const envelope = await buildBackup();
+      downloadJson(`${beforeImport ? "before-import-" : ""}${backupFilename(envelope)}`, envelope);
+      if (beforeImport) {
+        setSafetyReady(true);
+      } else {
+        await recordBackupTaken(envelope.exportedAt);
+        setLastBackup(envelope.exportedAt);
+        setNote("Backup downloaded. Keep it somewhere off this phone.");
+        // Refreshing counts is separate from the completed export; a display-read failure
+        // must not tell Settings or the tag sheet that the downloaded backup failed.
+        await refresh().catch(() => {});
+      }
+    } catch (problem) {
+      setExportProblem(problem);
+      // TagManagementSheet awaits this callback and must still receive a rejection.
+      throw problem;
+    } finally {
+      exporting.current = false;
+      setExportBusy(false);
+    }
+  }
+
+  const handleExport = () => exportBackup();
+
+  async function handleExportClick() {
+    try { await handleExport(); } catch { /* Shown by BackupExportProblem. */ }
   }
 
   function openTagManagement(source, initialDestination = "") {
@@ -285,6 +317,7 @@ export default function Ajustes({
     setProblems([]);
     setPending(null);
     setSafetyReady(false);
+    setExportProblem(null);
 
     const text = await readFileAsText(file);
     const { ok, errors, envelope, summary } = validateBackup(text);
@@ -296,9 +329,7 @@ export default function Ajustes({
   }
 
   async function prepareImportSafetyBackup() {
-    const safety = await buildBackup();
-    downloadJson(`before-import-${backupFilename(safety)}`, safety);
-    setSafetyReady(true);
+    try { await exportBackup(true); } catch { /* Keep restore blocked; offer rescue instead. */ }
   }
 
   async function confirmImport() {
@@ -342,11 +373,11 @@ export default function Ajustes({
           {counts.items} items · {counts.events} events · last backup: {backupAgeLabel(lastBackup)}
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
-          <Button onClick={handleExport}>
-            <Download size={15} /> Export backup
+          <Button onClick={handleExportClick} disabled={exportBusy}>
+            <Download size={15} /> {exportBusy ? "Preparing…" : "Export backup"}
           </Button>
           <label>
-            <input type="file" accept="application/json,.json" className="hidden" onChange={handleFilePicked} />
+            <input type="file" accept="application/json,.json" className="hidden" disabled={exportBusy} onChange={handleFilePicked} />
             <span
               className="inline-flex items-center justify-center gap-2 text-sm px-3 py-2 rounded-lg border font-medium cursor-pointer"
               style={{ background: C.card, color: C.ink, borderColor: C.line }}
@@ -360,6 +391,7 @@ export default function Ajustes({
             {note}
           </div>
         )}
+        {exportProblem && <BackupExportProblem problem={exportProblem} disabled={exportBusy} />}
       </Card>
 
       {problems.length > 0 && (
@@ -407,11 +439,11 @@ export default function Ajustes({
           </div>
           <div className="mt-3 flex gap-2">
             {!safetyReady ? (
-              <Button onClick={prepareImportSafetyBackup}><Download size={15} /> Download current backup</Button>
+              <Button onClick={prepareImportSafetyBackup} disabled={exportBusy}><Download size={15} /> Download current backup</Button>
             ) : (
-              <Button onClick={confirmImport}>I saved it — replace and restore</Button>
+              <Button onClick={confirmImport} disabled={exportBusy}>I saved it — replace and restore</Button>
             )}
-            <Button tone="quiet" onClick={() => { setPending(null); setSafetyReady(false); }}>
+            <Button tone="quiet" disabled={exportBusy} onClick={() => { setPending(null); setSafetyReady(false); setExportProblem(null); }}>
               Cancel
             </Button>
           </div>

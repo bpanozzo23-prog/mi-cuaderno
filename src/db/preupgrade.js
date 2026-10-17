@@ -1,8 +1,7 @@
 import Dexie from "dexie";
-import { APP_VERSION, SCHEMA_VERSION } from "../version.js";
-import { nowIso } from "../lib/dates.js";
-import { BACKUP_FORMAT, LAST_BACKUP_PREF, validateBackup } from "./backup.js";
-import { AI_API_KEY_PREF } from "../lib/aiPrefs.js";
+import { SCHEMA_VERSION } from "../version.js";
+import { LAST_BACKUP_PREF, validateBackup } from "./backup.js";
+import { readBackupSnapshot, validateBackupSnapshot } from "./backupSnapshot.js";
 
 const DATABASE_NAME = "mi-cuaderno";
 const LEGACY_STORES = {
@@ -80,28 +79,8 @@ export async function buildPreupgradeBackup() {
     if (legacy.verno !== sourceVersion) {
       throw new Error(`Expected schema ${sourceVersion} but found schema ${legacy.verno}.`);
     }
-    const [userItems, events, prefRows] = await Promise.all([
-      legacy.table("items").toArray(),
-      legacy.table("events").toArray(),
-      legacy.table("prefs").toArray(),
-    ]);
-    // §10: the API key is never exported. buildBackup strips it for ordinary exports; this
-    // path reads the prefs table raw through the legacy connection, so it must strip it too —
-    // the validator below refuses any envelope carrying the key. The key stays in the
-    // database itself and survives the migration; only the downloaded file omits it.
-    const { [AI_API_KEY_PREF]: _neverExported, ...preferences } =
-      Object.fromEntries(prefRows.map((row) => [row.key, row.value]));
-    const envelope = {
-      format: BACKUP_FORMAT,
-      schemaVersion: sourceVersion,
-      exportedAt: nowIso(),
-      appVersion: APP_VERSION,
-      userItems,
-      events,
-      preferences,
-    };
-    const validation = validateBackup(envelope);
-    if (!validation.ok) throw new Error(`The pre-upgrade backup did not validate: ${validation.errors.join(" ")}`);
+    const snapshot = await readBackupSnapshot(legacy, sourceVersion);
+    const envelope = validateBackupSnapshot(snapshot, validateBackup, { preserveSourceSchema: true });
     await legacy.table("prefs").put({ key: LAST_BACKUP_PREF, value: envelope.exportedAt });
     return envelope;
   } finally {
