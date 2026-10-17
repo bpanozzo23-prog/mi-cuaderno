@@ -178,6 +178,26 @@ describe("corpus teaching gates", () => {
 });
 
 describe("pronominal conjugation teaching", () => {
+  it.each(["NFC", "NFD"])("preserves ñ in pronominal commands and gerunds (%s)", (unicode) => {
+    // No pronominal ñ verb ships yet. Use the complete regular quejarse paradigm
+    // with the bañar stem, including báñate, bañémonos and bañándose.
+    const { table } = verb("quejarse");
+    const fixture = JSON.parse(
+      JSON.stringify(table).replaceAll("quej", "bañ").replaceAll("quéj", "báñ"),
+      (_key, value) => typeof value === "string" ? value.normalize(unicode) : value
+    );
+    const args = { lemma: "bañarse".normalize(unicode), conjugation: fixture };
+    expect(analyzeConjugationPatterns(args)).toEqual({
+      regular: { class: "ar", anchor: "hablar" }, notices: [], patternIds: [],
+    });
+    // An n is not an alternative spelling of ñ, in either branch.
+    const wrongGerund = { ...fixture, gerund: "banándose" };
+    expect(analyzeConjugationPatterns({ ...args, conjugation: wrongGerund }).regular).toBeNull();
+    const wrongCommand = structuredClone(fixture);
+    wrongCommand.tenses["Imperative Affirmative/Present"]["tú"] = "bánate";
+    expect(analyzeConjugationPatterns({ ...args, conjugation: wrongCommand }).regular).toBeNull();
+  });
+
   it("recognizes regular pronominal paradigms", () => {
     for (const lemma of ["personarse", "quejarse", "entrometerse"]) {
       expect(analyze(lemma), lemma).toEqual({

@@ -269,7 +269,7 @@ function infinitiveInfo(lemma) {
 
 const cell = (table, tense, slot) => String(table?.tenses?.[tense]?.[slot] || "").normalize("NFC");
 
-const withoutWrittenAccents = (form) => form.normalize("NFD").replace(/\p{M}/gu, "").normalize("NFC");
+const withoutWrittenAccents = (form) => form.normalize("NFD").replace(/\u0301/gu, "").normalize("NFC");
 
 function normalizePronominalFinite(form, tense, slot) {
   const clitic = PRONOMINAL_CLITICS[slot];
