@@ -15,6 +15,18 @@ installable web app (PWA). Private tool for one person; the code is public, the 
 
 **Live at <https://bpanozzo23-prog.github.io/mi-cuaderno/>** — installable from Chrome on Android.
 
+**Step 1 small fixes — complete locally, unpushed (2026-10-17).** Repaso refreshes when the local
+day changes; English searches ignore the index's stopwords; notebook read failures offer retry
+while preserving loaded data and open drafts; storage protection is checked on the current
+browser; and conjugation analysis preserves ñ. All five findings were confirmed on `67f5fec`
+before the owner approved implementation. The complete serial suite passes **1,913/1,913 tests
+across 155 files**, the production build and whitespace check pass, and 18 deliberate breaks
+were detected. Seven disposable browser states passed at 375px with inspected screenshots, no
+horizontal overflow and no browser warnings or uncaught errors. The dictionary verifier passes
+47/47 checks; no rebuild is needed, and schema remains v12. The five fixes are committed locally
+but are not deployed. See [Step 1, item 4](docs/reviews/2026-10-17/STEP-1.md#item-4--small-fixes)
+for commits, verification and manual checks.
+
 **All-or-nothing saves — deployed (2026-10-17).** Item saves now commit
 their content and history together. Quick-create also includes its connection, and keeping Taller
 writing includes its create and practice events. Failed saves retain drafts for retry; a failure

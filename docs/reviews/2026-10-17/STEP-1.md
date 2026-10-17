@@ -1,7 +1,7 @@
 # Step 1 — safety fixes (work order)
 
-**Status (2026-10-17): items 1–3 done and deployed; item 4 remains open and unapproved.** This
-lists the first batch of fixes from the
+**Status (2026-10-17): items 1–3 done and deployed; item 4 implemented and verified locally,
+awaiting a separately requested push.** This lists the first batch of fixes from the
 [2026-10-17 reassessment](REASSESSMENT.md) so that a new session can pick one up without
 re-reading the whole review. Every item still goes through the normal working agreement in
 [`docs/AGENT-GUIDE.md`](../../AGENT-GUIDE.md): confirm the finding, propose a plan in plain
@@ -41,7 +41,7 @@ validation failures show a message and offer a separate rescue file for repair.
 | 1 | Run the tests before every deploy | Hours | Decided: pull-request testing deferred | 2026-10-17: `401bc74`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39057987662) |
 | 2 | Backup safety: mutual-reference bug, rescue export, silent export failure, consistent snapshot | 2–4 days | Decided: Option A, block the second citation | 2026-10-17: `6d59e76`, deployed via `bca7f22`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39070596526); browser and owner phone checks complete |
 | 3 | All-or-nothing saves | 1–2 days | No | 2026-10-17: `0311096`, deployed via `aa9db7d`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39076885631) |
-| 4 | Small fixes: overnight queue, English stopwords, load error, persistence flag, ñ helper | 1–2 days, plus a possible dictionary rebuild for 4e | 4e only, if a rebuild is needed | |
+| 4 | Small fixes: overnight queue, English stopwords, load error, persistence flag, ñ helper | Five small fixes; no dictionary rebuild needed | Approved after current-main confirmation and dictionary audit | 2026-10-17: `f545deb`, `7c9ef42`, `5ca4a2e`, `3bce6ef`, `5c38a7b`; verified locally, unpushed |
 
 ---
 
@@ -345,7 +345,66 @@ rollback test in `src/db/pageStructures.test.js` (around line 680) is a model.
 
 ## Item 4 — Small fixes
 
-Each is hours of work. They can go in one session as separate commits, or be split.
+**Reconfirmation and approval (2026-10-17).** All five findings still held on local and fetched
+remote `main` at `67f5fec`, following the deployment of items 1–3. The owner approved the plan after
+the dictionary audit established that 4e requires no rebuild. Work is confined to item 4; schema
+remains v12, with no migration or reference-dataset revision.
+
+**Implementation.** The five fixes are separate local commits: 4a `f545deb`, 4b `7c9ef42`,
+4c `5ca4a2e`, 4d `3bce6ef`, and 4e `5c38a7b`. Nothing has been pushed or deployed.
+
+- **4a:** Repaso passes an explicit local day to the queue, daily review count, suggestions and
+  streak calculations. A hook refreshes at local midnight, on focus and on becoming visible.
+  Existing review sessions keep their current card and reveal state.
+- **4b:** The pipeline and English queries share the existing 42-word stopword list and tokenizer.
+  Queries omit those stopwords, still require every remaining word and retain full-phrase
+  ranking. Stopword-only queries contribute no English results; Spanish and personal matching
+  remain available.
+- **4c:** Initial read failures show a message and **Retry loading**. A failed refresh keeps the
+  last complete notebook snapshot and mounted editors. Failed or pending reads cannot prune a
+  restored or newly created destination; superseded requests cannot overwrite newer results.
+- **4d:** Storage requests check this browser's current grant instead of trusting a preference
+  restored from backup. Missing or rejected status checks still permit the request. Settings
+  describes current protection, unavailable status or unsupported APIs without inferring that a
+  restored preference means this browser granted or refused protection. The existing request
+  trigger after item creation remains in place.
+- **4e:** The conjugation helper removes only the combining acute accent, preserving ñ. Tests use
+  a full synthetic *bañarse* paradigm in composed and decomposed Unicode, including commands and
+  the gerund, and reject forms that substitute n for ñ. Shared `normalize.js` is unchanged.
+
+**Dictionary audit: no rebuild required.** On shipped dataset `kaikki-es-2026-07-25-r4`, all
+1,795 entries with conjugations produce identical complete analysis before and after 4e. The
+1,771 shipped tables include 23 verbs containing ñ; none is pronominal, so the faulty branch has
+not changed a shipped classification or family assignment. For 4b, all 21,680 shipped glosses
+produce exactly the same index tokens after extracting the shared helper. The existing package
+passes all 47 verifier checks, including the two new English-query checks. No dictionary files
+were rebuilt or modified.
+
+**Verification.** The complete serial suite passes **1,913/1,913 tests across 155 files** in
+388.86 seconds, exit zero with no failures or unhandled errors. The production build transforms
+2,149 modules and generates the service worker; only the existing chunk-size warning remains.
+`git diff --check` passes. Eighteen deliberate breaks were detected and restored, including frozen
+day state, phrase ranking, restored storage grants, accent stripping, failed-load handling,
+stale responses, draft loss and premature
+route pruning. Removing load-error handling also reproduces an unhandled rejection after unmount.
+Controlled promises and injected dates exercise timing without fake timers.
+
+A fresh disposable headless Chromium profile exercised the actual components at 375×812: an
+initial load failure retried to the restored detail; a failed refresh and retry retained the same
+unsaved note editor; midnight updated the queue and suggestion expiry, and waking updated the
+streak; English searches found *casa* for “the house” and *enfrente* for “in front of”; and a restored
+storage flag could not suppress a new request, while a current grant prevented a duplicate request.
+All seven screen states had no horizontal overflow, their screenshots were inspected, and there
+were no browser warnings or uncaught exceptions. The preview server was stopped. No owner browser
+data or private notebook snapshot was accessed.
+
+**How to check the changes.** Leave Repaso open across a local date change, or return to it the
+next day; search for “the house” and “in front of”; and inspect **Ajustes → Storage** for this
+browser's protection status. The failure/retry cases are reproducible with
+`npm test -- src/useNotebook.test.jsx src/App.load.test.jsx`; storage failures and ñ forms are
+covered by `npm test -- src/lib/persistence.test.js src/lib/conjugationPatterns.test.js`.
+
+The original findings follow for context.
 
 ### 4a. Repaso shows yesterday's queue after midnight
 
