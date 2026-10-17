@@ -300,7 +300,9 @@ These came out of the same review but belong later:
 - Dictionary changes in Ajustes not refreshing an open Cuaderno search, and the missing
   `dictionary` dependency in `Cuaderno.jsx` (line 325): reported by Codex, not yet checked; fits the
   lint and code tidy-up work (reassessment Step 5).
-- Documentation reset, brief replacement, usage review and refactors: reassessment Steps 2–5.
+- Documentation reset, brief replacement and refactors: reassessment Steps 2, 3 and 5. The owner
+  withdrew the usage review (Step 4); see
+  [section 15 of the report](REASSESSMENT.md#15-owner-response-2026-10-17).
 
 ## Evidence
 

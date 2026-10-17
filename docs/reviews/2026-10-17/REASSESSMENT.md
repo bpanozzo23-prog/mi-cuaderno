@@ -10,6 +10,11 @@ through the normal plan-first agreement in [`docs/AGENT-GUIDE.md`](../../AGENT-G
 first batch of fixes is written up as a work order in [`STEP-1.md`](STEP-1.md). Line numbers refer
 to `35cda8e`; check the current code before acting.
 
+**Owner response, 2026-10-17.** The owner replied on feature growth and on the ideas file.
+[Section 15](#15-owner-response-2026-10-17) records the reply. It withdraws the usage review and
+the friction-first advice, and those places are marked below. Where the report and section 15
+differ, section 15 wins.
+
 The app is in better shape than most first projects. The architecture is sound, all 1,816 tests
 pass, and the data-safety rules have done their job. What has not scaled is the writing around the
 code. The brief, the README and the decision log have each turned into a running history that every
@@ -36,6 +41,8 @@ steering the product more than the owner is.
 5. **After mid-August, most new features came from agent-written idea lists** rather than from
    friction met while using the app. Many were built to leave no trace, so nothing shows which ones
    are used. Worth checking before guided lessons adds another large area.
+   *Owner response: growth by experiment is intended, and checking usage is low priority. See
+   section 15.*
 6. **Several bugs are confirmed. The most serious one was reproduced:** two ordinary Grammar edits
    can leave the notebook unable to export a backup. None of the fixes needs a schema change.
 7. **Cheapest high-value fixes:** make the deploy run the tests, fix the backup-blocking bug, add
@@ -103,7 +110,7 @@ document agents write for other agents.
 | **Every personal schema change: migration, version bump, export-first gate** (§5, amended 2026-08-04) | An owner-approved amendment, not agent drift. Result: 12 versions in six weeks. Several only add an empty field (`noteSections: []`, `feedback: null`, `apuntes: null`) and one changes nothing. Each still costs a migration, a backup upgrade step, a validator, tests, a brief amendment and an export on the phone. | **Keep, narrow it.** Full ceremony for changes that transform data; a lighter path for purely additive fields. |
 | **Propose a plan per phase and wait** (§2) | The guide broadened this to every code change and says so. Each phase also got a Direction and a Report document: 42 files, 432 KB. | **Keep, narrow it.** Approve a bounded scope once; small fixes inside it go ahead. Archive phase docs when done. |
 | **DECISIONS.md: one line, date, reason** (§2) | 958 entries, median 76 words, many with test counts, CI run numbers and deploy confirmations. 322 of 472 commits touch it. | **Keep, narrow it.** Decisions only; release evidence goes elsewhere. |
-| **Phase 4: polish driven by friction from daily use** (§12) | Most later phases started from agent-written idea lists instead (section 6). | **Bring it back** |
+| **Phase 4: polish driven by friction from daily use** (§12) | Most later phases started from agent-written idea lists instead (section 6). | **Withdrawn by the owner** (section 15). Was "Bring it back." |
 | **Each phase ends usable, with "Done when" criteria** (§12) | Grew into a fixed closing ritual: full suite, build, diff check, phone-width browser check, push, and a separate "record deployment" commit. | **Keep, automate it** |
 | **The prototype is the reference for look and feel** (brief header) | The guide and README call it historical. The brief's header still calls it the reference. Two authorities disagree. | **Archive it** |
 | **No router** (Phase 5 direction, owner-approved) | Partly reversed on 2026-08-18. Navigation is now hand-built in `App.jsx` and `navigation.js`. Not wrong, but an example of a short-term simplification becoming a long-term constraint. | **Label limits like this** "temporary, revisit when…" |
@@ -217,6 +224,9 @@ Conjugation Gym with Forms, Usage, Endings, Contrasts, Transform and Choose, Tal
 Diario, Historia, Pasear, "Mentioned here," "Seen together," and more. Each one adds rules the code
 has to protect. Many were specified to write no events, so the app cannot tell the owner which ones
 are used. Meanwhile the guide's opening line says "simplicity and durability beat features."
+
+*Owner response: the owner prefers to add features, try them and remove them later if needed,
+rather than wait for friction. The usage review below is withdrawn as a step. See section 15.*
 
 Before guided lessons adds another large area, do a usage review. The owner enjoys brainstorming,
 and the brief says so; this is not a reason to stop. It is a reason to check what is used. The
@@ -364,7 +374,7 @@ separate from content versions. To keep it from repeating the main project's doc
 | 1 | **Safety.** Run tests in the deploy workflow. Fix bug 1 and add the rescue export. Make saves all-or-nothing. Fix the overnight queue, the ñ helper and the English stopwords. See [`STEP-1.md`](STEP-1.md). | About a week of agent time |
 | 2 | **Documentation reset.** Create `CURRENT.md` and `docs/README.md`. Slim the README. Move phase docs, the prototype and design QA into history. Fix the contradictions in section 4. Add an index to the decision log and a separate release log. Move machine recipes out of the guide. | 2–4 days |
 | 3 | **Contract reset, with the owner.** Write `PRODUCT.md` in plain language, and `ARCHITECTURE.md` describing the app as it is. Decide the questions in section 13. Freeze brief v3 unchanged. | 2–3 sessions |
-| 4 | **Usage review.** Mark each feature keep, hide or retire before starting lessons. | One session |
+| 4 | **Usage review.** Mark each feature keep, hide or retire before starting lessons. *Withdrawn by the owner (section 15).* | — |
 | 5 | **Code tidy-up as files are touched.** Add a lint check. Remove dead compatibility code. Split the five large files. Group files by feature, starting with lessons. Make `reload()` awaitable. | Ongoing |
 | 6 | **Guided lessons,** using the lighter document structure from the start. | — |
 
@@ -379,7 +389,9 @@ Effort figures are rough, for agent-driven work.
 3. Should a purely additive optional field still require a version bump and an export on the phone?
 4. What size of change needs a written plan first, and what can go ahead inside an approved scope?
 5. Should there be a local "opened this feature" event, so the app can show what is used?
-6. Which features are used? Which should be hidden or retired?
+   *Low priority for the owner (section 15).*
+6. Which features are used? Which should be hidden or retired? *Low priority for the owner
+   (section 15).*
 7. Which license, if any, for the code?
 
 Steps 1 and 2 are safe to start without any of these answers.
@@ -410,3 +422,78 @@ Steps 1 and 2 are safe to start without any of these answers.
 - README: 1,113 lines, Status 1,073 of them.
 - DECISIONS: 83,552 words, 958 entries, median 76 words each.
 - 42 phase documents (432 KB) plus 6 other direction docs at the top of `docs/`.
+
+## 15. Owner response (2026-10-17)
+
+The owner read the report and commented on two points. This section records what they said and
+how it changes the report. Where the two differ, this section wins.
+
+### Feature growth and friction
+
+In the owner's words:
+
+> I am ok with feature growth. I would rather add features, use them, experiment, and if needed
+> remove later than wait until a friction proves they are needed. The friction requirement was an
+> agent item added to the brief (and worth tracking), but is not an absolute requirement for me.
+> Since this is only a personal app, I see it more as experimental than something that needs to be
+> safe/steady and only growing if necessary because I think that would be too limiting for me to
+> explore potential new features that may not come up by always waiting for a friction. So the
+> friction stuff and tracking/removing features is not a big concern for me. I'm not against it, but
+> its not a high priority at this point.
+
+What this changes:
+
+- **Withdrawn:** the usage review (step 4 in section 12), the advice to check usage before guided
+  lessons (section 6 and point 5 of the short version), and the "Bring it back" verdict on
+  friction-driven polish (section 3). Friction from real use is one source of ideas, not a
+  condition for building something.
+- **Low priority:** questions 5 and 6 in section 13. A local "opened this feature" event stays
+  available if the owner ever wants one.
+- **Still applies:** every feature adds rules the code has to keep correct. Trying a feature and
+  removing it later works best when removal is cheap. Two parts of the report help with that: the
+  test gate (Step 1, item 1, now done) and grouping files by feature (section 7 and step 5).
+- **Wording that still points the other way:** brief §12 says Phase 4 is "driven by a running list
+  of friction the owner collects while using the app daily," and the agent guide opens with
+  "Simplicity and durability beat features." Agents read both and may resist new features because
+  of them. Until the contract reset (step 3), this section and its `DECISIONS.md` entry record the
+  owner's position. `PRODUCT.md` should then state it in the owner's own words.
+
+### The ideas file
+
+In the owner's words, about [`docs/IMPROVEMENT-IDEAS.md`](../../IMPROVEMENT-IDEAS.md):
+
+> The ideas log was meant to record feature ideas, the reasoning behind them, the potential
+> benefit/use, and an estimate of what it would take to do. So it was the idea + context +
+> additional context if the agent and I discussed an idea further.
+
+Measured against that purpose, it should stay one file. Its entry format already fits: each idea
+has its description and context, expected value, risks, evidence, timing and later discussion.
+What needs work is around the entries. These are suggestions, not approved work, and they replace
+the `ideas/` line in the structure proposed in section 4.
+
+- **Move the history out.** Of the file's 145 KB, 79 KB is active ideas. The file's own "Document
+  history" takes 30 KB and repeats what git and `DECISIONS.md` hold. The bodies of implemented
+  ideas take 23 KB. Move both to history, and keep one index row for each implemented idea with its
+  link.
+- **Add the missing effort estimate.** The template has no field for what an idea would take, and
+  only a few entries mention cost in passing. Add two lines to each idea: *Size* (small: an
+  afternoon; medium: a session or two; large: a phase) and *Touches* (screen only, a new setting,
+  a new event, or a schema change). Agents can draft both for the owner to check.
+- **Add the owner's interest to the index.** 28 of the 35 active ideas have an "Owner interest"
+  line, but 18 of those record how the idea got onto the list ("Requested with the rest of the
+  consolidation batch," "Asked to retain for later"), not how much the owner wants it. An index
+  column with three values (want soon, curious, someday), set only by the owner, gives the ranking
+  section 4 had in mind: by the owner's interest, not by evidence.
+- **Move out the entries that are not ideas.** "Candidate future data sources (survey)" is
+  reference research, and "Phase 19/20 review nits (edge polish)" is a polish list.
+- **Keep status simple:** idea, in progress, or done with a link. Deploy status belongs in the
+  single current-state file (section 4). The file still lists Taller as "Ready to plan" and the
+  Contrasts lane as "not yet deployed," and both have shipped.
+- **Treat evidence notes as notes, not gates.** The file's rule "Add real-use evidence before
+  promoting a data-dependent idea into a phase," and the six discussion points in its index that
+  wait for real use or real data, should hold only where a feature needs data to work at all. For
+  example, a time-boxed session of the "weakest" words needs enough review history to pick them.
+- **Keep the graduation path.** When an idea is worked out in detail, it already moves to its own
+  direction document, as Taller did.
+
+Moving the history out fits step 2 (documentation reset). The interest column needs the owner.
