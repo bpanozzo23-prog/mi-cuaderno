@@ -8,6 +8,7 @@ installable web app (PWA). Private tool for one person; the code is public, the 
 - **Decision log:** [DECISIONS.md](DECISIONS.md)
 - **Improvement ideas:** [docs/IMPROVEMENT-IDEAS.md](docs/IMPROVEMENT-IDEAS.md) (captured
   possibilities, not an approved roadmap)
+- **Guided lessons:** [Planning and chapter drafts](docs/guided-lessons/README.md) (feature in planning, not yet implemented)
 - **Agent workflow:** [docs/AGENT-GUIDE.md](docs/AGENT-GUIDE.md) (shared by Claude Code and Codex)
 
 ## Status
