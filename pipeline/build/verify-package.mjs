@@ -13,6 +13,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { repo, readJson, mb, step, PIPELINE_DIR } from "../lib/io.mjs";
 import { normalize } from "../lib/ids.mjs";
+import { englishSearchWords } from "../../src/lib/englishSearch.js";
 import { allTenses, HABER_CONJUGATION_ID } from "../../src/lib/conjugation.js";
 import {
   analyzeConjugationPatterns,
@@ -78,7 +79,7 @@ check('"saco" finds sacar and "sacó" both (§12)',
 
 // English → Spanish, the way the app will do it: intersect the words' postings.
 const englishLookup = (phrase) => {
-  const words = phrase.toLowerCase().split(/[^a-z0-9']+/).filter(Boolean);
+  const words = englishSearchWords(phrase);
   let ids = null;
   for (const w of words) {
     const posting = new Set(english.get(w) || []);
@@ -90,6 +91,10 @@ const takeOut = englishLookup("take out");
 check('"take out" surfaces sacar as an English-meaning match (§12)',
   takeOut.some((e) => e.lemma === "sacar"),
   `${takeOut.length} entries, incl. ${takeOut.slice(0, 5).map((e) => e.lemma).join(", ")}`);
+check('"the house" surfaces casa despite the omitted stopword',
+  englishLookup("the house").some((entry) => entry.lemma === "casa"));
+check('"in front of" has English matches and stopword-only queries have none',
+  englishLookup("in front of").length > 0 && englishLookup("the of in").length === 0);
 
 // ---- conjugations ---------------------------------------------------------
 const haber = conjById.get(HABER_CONJUGATION_ID);

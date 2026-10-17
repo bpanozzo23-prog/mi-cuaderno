@@ -27,6 +27,7 @@ import crypto from "node:crypto";
 import { raw, out, repo, readJson, writeJson, gzipSize, mb, kb, step, done, PIPELINE_DIR } from "../lib/io.mjs";
 import { normalize } from "../lib/ids.mjs";
 import { CURATED_GYM_LEMMAS } from "../../src/lib/conjugationGym.js";
+import { englishSearchWords } from "../../src/lib/englishSearch.js";
 
 const started = step("07 · package for delivery");
 
@@ -175,20 +176,13 @@ console.log(`    ${formToIds.size.toLocaleString()} forms in ${formShards.length
  * indexed read per word, and the app intersects the words' postings.
  */
 console.log("  building the english index …");
-const STOPWORDS = new Set([
-  "a", "an", "the", "of", "or", "and", "is", "are", "be", "was", "were", "as", "at",
-  "by", "for", "from", "in", "into", "on", "onto", "that", "this", "these", "those",
-  "with", "which", "who", "whom", "whose", "it", "its", "his", "her", "their", "one",
-  "esp", "especially", "used", "usually", "something", "someone", "etc",
-]);
-
 const englishToIds = new Map();
 const rankOfEntry = new Map(entries.map((e) => [e.id, e.freqRank ?? 1e9]));
 for (const e of entries) {
   const seen = new Set();
   for (const sense of e.senses) {
-    for (const token of sense.gloss.toLowerCase().split(/[^a-z0-9']+/i)) {
-      if (token.length < 2 || STOPWORDS.has(token) || seen.has(token)) continue;
+    for (const token of englishSearchWords(sense.gloss)) {
+      if (seen.has(token)) continue;
       seen.add(token);
       let ids = englishToIds.get(token);
       if (!ids) englishToIds.set(token, (ids = new Set()));

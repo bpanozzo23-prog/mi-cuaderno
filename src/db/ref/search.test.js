@@ -6,6 +6,8 @@ import { searchItems, mergeResults, TIER } from "../../lib/search.js";
 import { newLexical, newPage } from "../items.js";
 import { newMeaning } from "../../lib/meanings.js";
 import { getEntriesForForms } from "./entries.js";
+import { activeDb } from "./refdb.js";
+import { englishSearchWords } from "../../lib/englishSearch.js";
 
 const realFetch = globalThis.fetch;
 
@@ -25,6 +27,39 @@ const reasonFor = async (query, lemma) =>
   (await searchDictionary(query)).find((r) => r.entry.lemma === lemma)?.reason;
 
 describe("the brief §12 dictionary searches", () => {
+  it("ignores index stopwords while still requiring every content word", async () => {
+    expect(await lemmas("house")).toContain("casa");
+    expect(await lemmas("ThE house")).toContain("casa");
+    expect(await lemmas("the house year")).toEqual([]);
+    expect(englishSearchWords("To take-out someone's 2nd item, in the house"))
+      .toEqual(["to", "take", "out", "someone's", "2nd", "item", "house"]);
+  });
+
+  it("ranks the complete original phrase above scattered content words", async () => {
+    const reference = activeDb();
+    const exact = { id: "dict:fixture:enfrente", lemma: "enfrente", senses: [{ gloss: "in front of" }], freqRank: 9000 };
+    const scattered = { id: "dict:fixture:frente", lemma: "frente", senses: [{ gloss: "front, facade" }], freqRank: 1 };
+    await reference.entries.bulkPut([exact, scattered]);
+    await reference.englishShards.put({ id: "fr", terms: { front: [scattered.id, exact.id] } });
+    const results = await searchDictionary("in front of");
+    expect(results.map((row) => row.entry.id)).toEqual([exact.id, scattered.id]);
+    expect(results.map((row) => row.offset)).toEqual([0, 1]);
+  });
+
+  it("omits a stopword-only English tier without hiding Spanish or personal matches", async () => {
+    const reference = activeDb();
+    const ace = { id: "dict:fixture:as", lemma: "as", senses: [{ gloss: "ace" }] };
+    await reference.entries.put(ace);
+    await reference.formShards.put({ id: "as", terms: { as: [ace.id] } });
+    // Even an older/inconsistent index cannot turn a stopword-only query into an English hit.
+    await reference.englishShards.put({ id: "as", terms: { as: ["dict:wiktionary-es:casa:noun"] } });
+    expect((await searchDictionary("as")).map((row) => [row.entry.lemma, row.tier]))
+      .toEqual([["as", TIER.exactTerm]]);
+    expect(await lemmas("the of in")).toEqual([]);
+    const personal = newLexical({ term: "the house", form: "phrase" });
+    expect(searchItems([personal], "the house")[0].item.id).toBe(personal.id);
+  });
+
   it("returns exact form postings in request-aligned groups for ambiguity checks", async () => {
     const postings = await getEntriesForForms(["fui", "casas", "fui"]);
     expect(postings.get("fui").map((entry) => entry.lemma).sort()).toEqual(["ir", "ser"]);

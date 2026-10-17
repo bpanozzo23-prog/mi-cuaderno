@@ -1,5 +1,6 @@
 import { activeDb } from "./refdb.js";
 import { normalize } from "../../lib/normalize.js";
+import { englishSearchWords } from "../../lib/englishSearch.js";
 import { TIER } from "../../lib/search.js";
 
 /**
@@ -89,12 +90,12 @@ async function matchByPrefix(db, query) {
 }
 
 /**
- * Entries whose English gloss contains every word of the query (brief §8 tier 4).
+ * Entries whose English gloss contains every indexed word of the query (brief §8 tier 4).
  * Intersecting the words' postings is what makes "take out" find *sacar* rather than
  * everything that means "take" or "out".
  */
 async function matchByEnglish(db, query) {
-  const words = query.toLowerCase().split(/[^a-z0-9']+/i).filter((w) => w.length >= 2);
+  const words = englishSearchWords(query);
   if (!words.length) return [];
 
   let ids = null;
