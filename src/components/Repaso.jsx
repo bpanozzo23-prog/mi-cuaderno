@@ -14,6 +14,7 @@ import {
   resolveEntry,
 } from "../db/ref/entries.js";
 import { emptyItemState } from "../useNotebook.js";
+import { useLocalDay } from "../useLocalDay.js";
 import { timeAgo } from "../lib/dates.js";
 import { deriveReviewState, deriveDictSuggestions } from "../lib/review.js";
 import { activityByDay, streakFrom, boxDistribution } from "../lib/stats.js";
@@ -187,8 +188,10 @@ export default function Repaso({
   onNavigate = null,
   onBack = null,
   backLabel = "Repaso",
+  clock,
 }) {
   const { items, events, itemState, reload } = notebook;
+  const today = useLocalDay(clock);
   const [view, setView] = useState("home");
   const [gymInitialView, setGymInitialView] = useState("setup");
   const majorView = route?.screen || view;
@@ -203,11 +206,11 @@ export default function Repaso({
   // The whole Leitner schedule, replayed from the log — the same derive-at-render-time
   // approach as itemState above (brief section 7). Recomputed on every notebook change,
   // so grading a card during a session updates this without any separate bookkeeping.
-  const review = useMemo(() => deriveReviewState(items, events), [items, events]);
+  const review = useMemo(() => deriveReviewState(items, events, today), [items, events, today]);
 
   // Phase 11. Both replay the same log the schedule above does; neither stores anything.
   const activity = useMemo(() => activityByDay(events), [events]);
-  const streak = useMemo(() => streakFrom(activity), [activity]);
+  const streak = useMemo(() => streakFrom(activity, today), [activity, today]);
   const ladder = useMemo(() => boxDistribution(review.states), [review.states]);
   const ladderMax = useMemo(
     () => Math.max(ladder.graduated, ...ladder.boxes.map((b) => b.count)),
@@ -244,7 +247,7 @@ export default function Repaso({
    * DictAttachment's orphan handling: a suggestion with nothing to act on just doesn't
    * show.
    */
-  const dictCandidates = useMemo(() => deriveDictSuggestions(items, events), [items, events]);
+  const dictCandidates = useMemo(() => deriveDictSuggestions(items, events, today), [items, events, today]);
   const [dictSuggestions, setDictSuggestions] = useState([]);
   const [adding, setAdding] = useState(null);
 

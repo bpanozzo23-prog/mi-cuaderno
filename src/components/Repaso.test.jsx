@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Repaso from "./Repaso.jsx";
 import { EVENT_TYPES } from "../db/events.js";
@@ -432,6 +432,56 @@ describe("Phase 10c: the conjugation drill", () => {
 });
 
 describe("Phase 11 stats on the daily screen", () => {
+  it("refreshes the due queue, daily count, suggestions and streak without a notebook edit", async () => {
+    await seedDictionary();
+    let date = new Date(2030, 9, 17, 23, 59);
+    const scheduled = [];
+    const clock = { now: () => date, schedule: (callback) => scheduled.push(callback), cancel: vi.fn() };
+    const word = makeLexical({ id: "user:midnight", term: "madrugar" });
+    const events = [
+      makeEvent({ type: EVENT_TYPES.reviewFail, itemKey: word.id, localDate: "2030-10-17", at: "2030-10-17T12:00:00Z", metadata: { grade: 0 } }),
+      ...[18, 19, 20].map((day) => makeEvent({ itemKey: CASA, localDate: `2030-09-${day}`, at: `2030-09-${day}T12:00:00Z` })),
+    ];
+    const notebook = notebookFor([word], events);
+    render(<Repaso notebook={notebook} clock={clock} onSelect={vi.fn()} />);
+    expect(screen.getByText("Nothing left for today. Come back tomorrow.")).toBeTruthy();
+    expect(await screen.findByText(/You keep looking up/)).toBeTruthy();
+    expect(screen.getByText("day streak").parentElement.textContent).toContain("1");
+    date = new Date(2030, 9, 18, 0, 0);
+    act(() => scheduled.at(-1)());
+    expect(screen.getByText("word due")).toBeTruthy();
+    await waitFor(() => expect(screen.queryByText(/You keep looking up/)).toBeNull());
+    expect(screen.queryByText(/done today/)).toBeNull();
+    date = new Date(2030, 9, 19, 12);
+    act(() => window.dispatchEvent(new Event("focus")));
+    expect(screen.getByText("day streak").parentElement.textContent).toContain("0");
+    expect(notebook.reload).not.toHaveBeenCalled();
+  });
+
+  it("keeps an active review card and reveal state when midnight adds another due word", async () => {
+    const user = userEvent.setup();
+    let date = new Date(2030, 9, 17, 23, 59);
+    const clock = { now: () => date, schedule: vi.fn(), cancel: vi.fn() };
+    const first = makeLexical({ id: "user:first", term: "primero" });
+    const later = makeLexical({ id: "user:later", term: "después" });
+    const notebook = notebookFor([first, later], [
+      makeEvent({ type: EVENT_TYPES.trickyOn, itemKey: first.id, localDate: "2030-10-17", at: "2030-10-17T12:00:00Z" }),
+      makeEvent({ type: EVENT_TYPES.reviewFail, itemKey: later.id, localDate: "2030-10-17", at: "2030-10-17T12:00:00Z", metadata: { grade: 0 } }),
+    ]);
+    render(<Repaso notebook={notebook} clock={clock} onSelect={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "Start" }));
+    await user.click(await screen.findByRole("button", { name: "Tap to see the meaning" }));
+    expect(screen.getByRole("button", { name: /Good/ })).toBeTruthy();
+    expect(screen.getByLabelText("Session progress").getAttribute("aria-valuemax")).toBe("1");
+    date = new Date(2030, 9, 18);
+    act(() => window.dispatchEvent(new Event("focus")));
+    expect(screen.getByText("primero")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Good/ })).toBeTruthy();
+    expect(screen.getByLabelText("Session progress").getAttribute("aria-valuemax")).toBe("1");
+    await user.click(screen.getByRole("button", { name: "Finish" }));
+    expect(screen.getByText("words due").previousElementSibling.textContent).toBe("2");
+  });
+
   // These derivations read the real clock, so fixtures are built relative to it rather
   // than from fixed dates that would silently rot as the calendar moves past them.
   const today = localDate();
