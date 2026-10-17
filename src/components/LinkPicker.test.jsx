@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import LinkPicker from "./LinkPicker.jsx";
 import { removeDictionary } from "../db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "../db/ref/refdb.js";
 import { FIXTURE_ENTRIES, FIXTURE_FORM_SHARDS } from "../test/dictFixture.js";
+import { deferred } from "../test/async.js";
 
 const lexical = (id, term, form = "word") => ({
   id,
@@ -72,6 +73,48 @@ afterEach(async () => {
 });
 
 describe("LinkPicker duplicate guard", () => {
+  it("allows only one pending creation, including repeated taps before a render", async () => {
+    const source = page("source", "Source");
+    const gate = deferred();
+    const onCreate = vi.fn(() => gate.promise);
+    const onSaved = vi.fn();
+    render(<LinkPicker {...pickerProps(source, [source], { onCreate, onSaved })} />);
+    fireEvent.change(screen.getByPlaceholderText(/Link a word, phrase, page or dictionary entry/), { target: { value: "madrugar" } });
+    const create = screen.getByRole("button", { name: /Create word/ });
+    try {
+      act(() => { create.click(); create.click(); });
+      expect(create.disabled).toBe(true);
+      fireEvent.click(create);
+      expect(onCreate).toHaveBeenCalledTimes(1);
+      expect(onSaved).not.toHaveBeenCalled();
+    } finally {
+      await act(async () => { gate.resolve(); await gate.promise; });
+    }
+    await waitFor(() => expect(create.disabled).toBe(false));
+    expect(onSaved).toHaveBeenCalledTimes(1);
+  });
+
+  it("retains an exact meaning selection when linking fails and retries with the same pair", async () => {
+    const user = userEvent.setup();
+    const source = { ...lexical("source", "banco"), meanings: [{ id: "meaning:bank", gloss: "bank" }] };
+    const target = { ...lexical("target", "entidad"), meanings: [{ id: "meaning:institution", gloss: "institution" }] };
+    const onPick = vi.fn().mockRejectedValueOnce(new Error("Link failed"));
+    const onSaved = vi.fn();
+    render(<LinkPicker {...pickerProps(source, [source, target], { onPick, onSaved })} />);
+    await user.selectOptions(screen.getByRole("combobox", { name: "Relationship" }), "similar_meaning:owner");
+    await user.click(screen.getByRole("button", { name: /^entidad/ }));
+    await user.click(screen.getByRole("button", { name: "Link entidad" }));
+    expect((await screen.findByRole("alert")).textContent).toMatch(/Couldn’t save/);
+    expect(screen.getByRole("button", { name: "Link entidad" })).toBeTruthy();
+    expect(onSaved).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Link entidad" }));
+    await waitFor(() => expect(onSaved).toHaveBeenCalledTimes(1));
+    expect(onPick).toHaveBeenCalledTimes(2);
+    expect(onPick.mock.calls[0]).toEqual(onPick.mock.calls[1]);
+    expect(onPick.mock.calls[1][2]).toEqual({ fromMeaningId: "meaning:bank", toMeaningId: "meaning:institution" });
+    expect(screen.queryByRole("button", { name: "Link entidad" })).toBeNull();
+  });
+
   it("uses a named note section as lexical context when no meaning or General note exists", () => {
     const source = page("source", "Source");
     const target = {

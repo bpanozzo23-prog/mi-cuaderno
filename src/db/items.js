@@ -1,5 +1,6 @@
+import Dexie from "dexie";
 import { db, getPref } from "./db.js";
-import { logEvent, EVENT_TYPES } from "./events.js";
+import { logEvent, logPracticeWrite, EVENT_TYPES } from "./events.js";
 import { isDictKey, isUserKey, newUserKey } from "../lib/ids.js";
 import { nowIso } from "../lib/dates.js";
 import { requestPersistence } from "../lib/persistence.js";
@@ -207,12 +208,50 @@ export function newPage({
   return page;
 }
 
-export async function createItem(item) {
+// Only called inside the complete operation's items/events transaction.
+async function insertItemWithEvent(item) {
   await db.items.add(item);
   await logEvent(EVENT_TYPES.create, item.id);
-  // First meaningful use — this is the moment to ask the browser to keep the data.
-  requestPersistence().catch(() => {});
   return item;
+}
+
+function requestPersistenceAfterCommit() {
+  const request = () => Dexie.ignoreTransaction(() => requestPersistence().catch(() => {}));
+  // Most callers own the outer transaction. A nested caller must not ask the browser
+  // or access prefs until its parent has also committed; an abort never fires complete.
+  let transaction = Dexie.currentTransaction;
+  if (!transaction) return request();
+  while (transaction.parent) transaction = transaction.parent;
+  transaction.on("complete", request);
+}
+
+export async function createItem(item) {
+  await db.transaction("rw", db.items, db.events, () => insertItemWithEvent(item));
+  requestPersistenceAfterCommit();
+  return item;
+}
+
+/** Quick-create is one save: the new item, its history and its ordinary connection. */
+export async function createAndLinkItem(sourceId, item, relationship = undefined) {
+  await db.transaction("rw", db.items, db.events, async () => {
+    if (!await db.items.get(sourceId)) {
+      throw new Error("The item you were linking from no longer exists.");
+    }
+    await insertItemWithEvent(item);
+    await linkItems(sourceId, item.id, relationship);
+  });
+  requestPersistenceAfterCommit();
+  return item;
+}
+
+/** The caller prepares the dated page, including the prompt only when requested. */
+export async function createKeptPracticeEntry(page, details) {
+  await db.transaction("rw", db.items, db.events, async () => {
+    await insertItemWithEvent(page);
+    await logPracticeWrite(page.id, { ...details, kept: true });
+  });
+  requestPersistenceAfterCommit();
+  return page;
 }
 
 export async function getItem(id) {
@@ -224,43 +263,46 @@ export async function allItems() {
 }
 
 /**
- * `logEdit` is false for changes the owner did not explicitly save (none today),
- * so the log records deliberate edits rather than keystrokes.
+ * Diario suppresses later edit events within one editor visit. The content still
+ * commits as one save, including the fresh meaning-connection protection check.
  */
 export async function updateItem(id, patch, { logEdit = true } = {}) {
-  if (Object.prototype.hasOwnProperty.call(patch, "dictKey")) {
-    throw new Error("Schema v12 stores dictionary attachments in dictKeys.");
-  }
-  const next = { ...patch, updatedAt: nowIso() };
-  if (next.tags) next.tags = cleanTags(next.tags);
-  if (Object.prototype.hasOwnProperty.call(next, "dictKeys")) {
-    if (!Array.isArray(next.dictKeys) || next.dictKeys.some((key) => !isDictKey(key))) {
-      throw new Error("Dictionary attachments need dictionary entry keys.");
+  return db.transaction("rw", db.items, db.events, async () => {
+    if (!await db.items.get(id)) throw new Error("This item no longer exists.");
+    if (Object.prototype.hasOwnProperty.call(patch, "dictKey")) {
+      throw new Error("Schema v12 stores dictionary attachments in dictKeys.");
     }
-    next.dictKeys = uniqueDictionaryKeys(next.dictKeys);
-  }
-  if (next.meanings) {
-    next.meanings = cleanMeanings(next.meanings);
-    const retained = new Set(next.meanings.map((meaning) => meaning.id));
-    const all = await db.items.toArray();
-    const blocked = [];
-    for (const candidate of all) {
-      for (const annotation of candidate.linkAnnotations || []) {
-        if (candidate.id === id && annotation.ownerMeaningId && !retained.has(annotation.ownerMeaningId)) {
-          blocked.push(annotation.ownerMeaningId);
-        }
-        if (annotation.targetKey === id && annotation.targetMeaningId && !retained.has(annotation.targetMeaningId)) {
-          blocked.push(annotation.targetMeaningId);
+    const next = { ...patch, updatedAt: nowIso() };
+    if (next.tags) next.tags = cleanTags(next.tags);
+    if (Object.prototype.hasOwnProperty.call(next, "dictKeys")) {
+      if (!Array.isArray(next.dictKeys) || next.dictKeys.some((key) => !isDictKey(key))) {
+        throw new Error("Dictionary attachments need dictionary entry keys.");
+      }
+      next.dictKeys = uniqueDictionaryKeys(next.dictKeys);
+    }
+    if (next.meanings) {
+      next.meanings = cleanMeanings(next.meanings);
+      const retained = new Set(next.meanings.map((meaning) => meaning.id));
+      const all = await db.items.toArray();
+      const blocked = [];
+      for (const candidate of all) {
+        for (const annotation of candidate.linkAnnotations || []) {
+          if (candidate.id === id && annotation.ownerMeaningId && !retained.has(annotation.ownerMeaningId)) {
+            blocked.push(annotation.ownerMeaningId);
+          }
+          if (annotation.targetKey === id && annotation.targetMeaningId && !retained.has(annotation.targetMeaningId)) {
+            blocked.push(annotation.targetMeaningId);
+          }
         }
       }
+      if (blocked.length) {
+        throw new Error("This meaning is used by a meaning-specific connection. Make that connection whole-entry, reassign it, or remove it first.");
+      }
     }
-    if (blocked.length) {
-      throw new Error("This meaning is used by a meaning-specific connection. Make that connection whole-entry, reassign it, or remove it first.");
-    }
-  }
-  await db.items.update(id, next);
-  if (logEdit) await logEvent(EVENT_TYPES.edit, id);
-  return db.items.get(id);
+    await db.items.update(id, next);
+    if (logEdit) await logEvent(EVENT_TYPES.edit, id);
+    return db.items.get(id);
+  });
 }
 
 /**

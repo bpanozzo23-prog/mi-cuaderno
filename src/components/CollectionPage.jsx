@@ -21,7 +21,7 @@ import {
   commitCollectionAdd, commitPageVocabularyAdd, saveCollectionOrganization,
 } from "../db/collections.js";
 import {
-  updateItem, deleteItem, linkItems, unlinkItems, setLinkRelationship, createItem, newLexical, newPage,
+  updateItem, deleteItem, linkItems, unlinkItems, setLinkRelationship, createAndLinkItem, newLexical, newPage,
 } from "../db/items.js";
 import { logView } from "../db/events.js";
 import { PAGE_FOCUSES, enabledPageRoles } from "../lib/pageKinds.js";
@@ -404,19 +404,15 @@ function ConnectionsSection({
             candidateFilter={(candidate) => vocabularyEnabled ? candidate.type === "page" : true}
             allowCreateLexical={!vocabularyEnabled}
             onCancel={() => setPicking(false)}
-            onPick={async (key, relationship) => {
-              await linkItems(item.id, key, relationship);
-              await onChanged();
-            }}
-            onCreate={async (kind, text, relationship) => {
-              const created = await createItem(
+            onSaved={onChanged}
+            onPick={(key, relationship) => linkItems(item.id, key, relationship)}
+            onCreate={(kind, text, relationship) => createAndLinkItem(
+                item.id,
                 kind === "page"
                   ? newPage({ title: text })
-                  : newLexical({ term: text, form: text.includes(" ") ? "phrase" : "word" })
-              );
-              await linkItems(item.id, created.id, relationship);
-              await onChanged();
-            }}
+                  : newLexical({ term: text, form: text.includes(" ") ? "phrase" : "word" }),
+                relationship
+              )}
           />
           {vocabularyEnabled && <div className="mt-2 text-[11px]" style={{ color: C.mut }}>Use the + Vocabulary action inside an enabled section to attach words and phrases in context.</div>}
         </>

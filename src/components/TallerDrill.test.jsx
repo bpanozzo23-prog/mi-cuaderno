@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import JournalEditor from "./JournalEditor.jsx";
 import JournalHome from "./JournalHome.jsx";
@@ -9,14 +9,28 @@ import { TALLER_TEMAS_PREF } from "../lib/taller.js";
 import { allItems, createItem, newLexical, newPage } from "../db/items.js";
 import { allEvents, EVENT_TYPES, logPracticeWrite } from "../db/events.js";
 import { JOURNAL_PROMPTS } from "../lib/journalPrompts.js";
+import * as itemApi from "../db/items.js";
+import { deferred } from "../test/async.js";
+
+const realKeep = itemApi.createKeptPracticeEntry;
+let keeping;
+let keepGate;
 
 beforeEach(async () => {
   await db.open();
   await clearAllPersonalData();
+  keeping = vi.spyOn(itemApi, "createKeptPracticeEntry");
+  keepGate = null;
 });
 
-afterEach(() => {
+afterEach(async () => {
+  keepGate?.resolve();
   cleanup();
+  // Keep has no autosave queue. Await every started public save, including the
+  // intentionally rejected calls whose error state the component handles.
+  await act(async () => {
+    await Promise.allSettled(keeping.mock.results.map(({ value }) => value));
+  });
   vi.restoreAllMocks();
 });
 
@@ -48,6 +62,93 @@ const practiceEvents = async () =>
   (await allEvents()).filter((event) => event.type === EVENT_TYPES.practiceWrite);
 
 describe("Taller drill flow", () => {
+  it("keeps the full draft and choices after a practice-event failure, then retries once", async () => {
+    const user = userEvent.setup();
+    const props = drillProps(drillSeed({ tema: "cocina" }));
+    const add = db.events.add.bind(db.events);
+    let fail = true;
+    vi.spyOn(db.events, "add").mockImplementation((event) => {
+      if (fail && event.type === EVENT_TYPES.practiceWrite) {
+        fail = false;
+        throw new Error("Injected practice event failure");
+      }
+      return add(event);
+    });
+    render(<JournalEditor {...props} />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Journal title" }), { target: { value: "En la cocina" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "Journal body" }), { target: { value: "Ayer cociné." } });
+    await user.click(screen.getByRole("button", { name: "Más fácil" }));
+    await user.click(screen.getByRole("button", { name: "Incluir la pregunta al guardar" }));
+    await user.click(screen.getByRole("button", { name: "Guardar en el Diario" }));
+    expect((await screen.findByRole("alert")).textContent).toMatch(/Couldn’t save/);
+    expect(await allItems()).toEqual([]);
+    expect(await allEvents()).toEqual([]);
+    expect(props.onDrillKept).not.toHaveBeenCalled();
+    expect(props.onChanged).not.toHaveBeenCalled();
+    expect(screen.getByRole("textbox", { name: "Journal body" }).value).toBe("Ayer cociné.");
+    expect(screen.getByRole("textbox", { name: "Journal body" }).matches(":disabled")).toBe(false);
+    expect(screen.getByRole("textbox", { name: "Journal title" }).value).toBe("En la cocina");
+    expect(screen.getByRole("button", { name: "Más fácil" }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByRole("button", { name: "Incluir la pregunta al guardar" }).getAttribute("aria-pressed")).toBe("true");
+    await user.click(screen.getByRole("button", { name: "Guardar en el Diario" }));
+    await waitFor(() => expect(props.onDrillKept).toHaveBeenCalledTimes(1));
+    expect(await allItems()).toEqual([expect.objectContaining({
+      title: "En la cocina", body: `> ${tieredPrompt.easier.es}\n\nAyer cociné.`, pageDate: "2026-08-20",
+    })]);
+    const [page] = await allItems();
+    expect(await db.events.count()).toBe(2);
+    expect((await practiceEvents())[0]).toMatchObject({
+      itemKey: page.id,
+      metadata: { kept: true, tier: "easier", tema: "cocina", promptId: tieredPrompt.id, offeredWordIds: [] },
+    });
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("accepts only one Keep while the committed save is still returning", async () => {
+    const committed = deferred();
+    keepGate = deferred();
+    keeping.mockImplementationOnce(async (...args) => {
+      const saved = await realKeep(...args);
+      committed.resolve();
+      await keepGate.promise;
+      return saved;
+    });
+    const props = drillProps(drillSeed());
+    render(<JournalEditor {...props} />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Journal body" }), { target: { value: "Una práctica." } });
+    const keep = screen.getByRole("button", { name: "Guardar en el Diario" });
+    act(() => { keep.click(); keep.click(); });
+    await act(async () => { await committed.promise; });
+    expect(keep.disabled).toBe(true);
+    expect(screen.getByRole("textbox", { name: "Journal title" }).matches(":disabled")).toBe(true);
+    expect(screen.getByRole("textbox", { name: "Journal body" }).matches(":disabled")).toBe(true);
+    expect(screen.getByRole("button", { name: "Más fácil" }).matches(":disabled")).toBe(true);
+    fireEvent.click(keep);
+    expect(keeping).toHaveBeenCalledTimes(1);
+    expect(props.onDrillKept).not.toHaveBeenCalled();
+    await act(async () => { keepGate.resolve(); });
+    await waitFor(() => expect(props.onDrillKept).toHaveBeenCalledTimes(1));
+    expect(await allItems()).toHaveLength(1);
+    expect(await db.events.count()).toBe(2);
+  });
+
+  it.each(["onChanged", "onDrillKept"])("reports a saved entry if %s fails and prevents another Keep", async (callback) => {
+    const props = drillProps(drillSeed(), { [callback]: vi.fn().mockRejectedValueOnce(new Error("Display failed")) });
+    render(<JournalEditor {...props} />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Journal body" }), { target: { value: "Una práctica." } });
+    fireEvent.click(screen.getByRole("button", { name: "Guardar en el Diario" }));
+    expect((await screen.findByRole("alert")).textContent).toMatch(/^Saved in Diario/);
+    expect(screen.getByRole("textbox", { name: "Journal title" }).matches(":disabled")).toBe(true);
+    expect(screen.getByRole("textbox", { name: "Journal body" }).matches(":disabled")).toBe(true);
+    expect(screen.getByRole("button", { name: "Más fácil" }).matches(":disabled")).toBe(true);
+    const keep = screen.getByRole("button", { name: "Guardar en el Diario" });
+    expect(keep.disabled).toBe(true);
+    fireEvent.click(keep);
+    expect(keeping).toHaveBeenCalledTimes(1);
+    expect(await allItems()).toHaveLength(1);
+    expect(await db.events.count()).toBe(2);
+  });
+
   it("persists nothing while writing: no page, no events, past the autosave window", async () => {
     const user = userEvent.setup();
     render(<JournalEditor {...drillProps(drillSeed())} />);

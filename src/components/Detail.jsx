@@ -13,7 +13,7 @@ import TagInput from "./TagInput.jsx";
 import { ItemLinkCard, EntryLinkCard, OrphanLinkCard } from "./LinkCard.jsx";
 import {
   updateItem, deleteItem, linkItems, unlinkItems, setLinkRelationship,
-  createItem, newLexical, newPage,
+  createAndLinkItem, newLexical, newPage,
 } from "../db/items.js";
 import { logView, toggleTricky } from "../db/events.js";
 import { mergeLinkedEntryIntoTwin, resolveLinkedKeys } from "../db/linkedEntries.js";
@@ -1294,21 +1294,19 @@ function StandardDetail({
           unresolvedKeys={unresolvedKeys}
           connections={connections}
           onCancel={() => setPicking(false)}
-          onPick={async (key, relationship, meaningPair) => {
-            await linkItems(item.id, key, relationship, meaningPair);
-            onChanged();
-          }}
-          onCreate={async (kind, text, relationship) => {
+          onSaved={onChanged}
+          onPick={(key, relationship, meaningPair) => linkItems(item.id, key, relationship, meaningPair)}
+          onCreate={(kind, text, relationship) => {
             // Deliberately NOT onOpen(created.id): the whole point of quick-create is that
             // the owner stays on the item they were writing. Detail resets its draft only
             // when item.id changes, so staying put is what keeps unsaved work alive.
-            const created = await createItem(
+            return createAndLinkItem(
+              item.id,
               kind === "page"
                 ? newPage({ title: text })
-                : newLexical({ term: text, form: text.includes(" ") ? "phrase" : "word" })
+                : newLexical({ term: text, form: text.includes(" ") ? "phrase" : "word" }),
+              relationship
             );
-            await linkItems(item.id, created.id, relationship);
-            onChanged();
           }}
         />
       )}

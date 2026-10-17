@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, ChevronLeft, Hammer, Lightbulb, Shuffle, X } from "lucide-react";
 import { Button, C, Card, SERIF, dotGrid } from "../theme.jsx";
-import { createItem, newPage, updateItem } from "../db/items.js";
+import { createItem, createKeptPracticeEntry, newPage, updateItem } from "../db/items.js";
 import { logPracticeWrite, logView } from "../db/events.js";
 import { localDate } from "../lib/dates.js";
 import { isFeedbackStale } from "../lib/diarioReview.js";
@@ -75,6 +75,8 @@ export default function JournalEditor({
   const [includePrompt, setIncludePrompt] = useState(false);
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const [drillBusy, setDrillBusy] = useState(false);
+  const drillBusyRef = useRef(false);
+  const [drillError, setDrillError] = useState("");
   const drillDoneRef = useRef(false);
 
   const bodyRef = useRef(null);
@@ -108,8 +110,8 @@ export default function JournalEditor({
       return currentId;
     }
 
+    let itemId = currentId;
     try {
-      let itemId = currentId;
       if (!itemId) {
         const created = await createItem(newPage({
           title: requestedDraft.title,
@@ -121,8 +123,6 @@ export default function JournalEditor({
         itemId = created.id;
         materializedIdRef.current = itemId;
         createdThisVisitRef.current = true;
-        // A late unmount flush must not rewrite whatever tab the owner has already chosen.
-        if (!quiet && mountedRef.current) onMaterialized(itemId);
       } else {
         const logEdit = !createdThisVisitRef.current && !editLoggedRef.current;
         await updateItem(
@@ -138,8 +138,16 @@ export default function JournalEditor({
         if (logEdit) editLoggedRef.current = true;
       }
 
-      lastSavedRef.current = requestedDraft;
-      onChanged();
+    } catch {
+      if (!quiet && mountedRef.current) setStatus("Couldn’t save — try again");
+      return null;
+    }
+
+    lastSavedRef.current = requestedDraft;
+    try {
+      // A late unmount flush must not rewrite whatever tab the owner has already chosen.
+      if (!currentId && !quiet && mountedRef.current) await onMaterialized(itemId);
+      await onChanged();
       if (!quiet && mountedRef.current) {
         setStatus(
           version === versionRef.current && sameDraft(latestDraftRef.current, requestedDraft)
@@ -147,11 +155,12 @@ export default function JournalEditor({
             : "Saving…"
         );
       }
-      return itemId;
     } catch {
-      if (!quiet && mountedRef.current) setStatus("Couldn’t save — try again");
-      return null;
+      if (!quiet && mountedRef.current) {
+        setStatus("Saved, but the screen couldn’t refresh. Reopen this entry.");
+      }
     }
+    return itemId;
   }
 
   function enqueueSave(requestedDraft, version, options) {
@@ -284,36 +293,62 @@ export default function JournalEditor({
 
   async function keepDrill() {
     const requested = latestDraftRef.current;
-    if (drillBusy || drillDoneRef.current || !requested.body.trim()) return;
+    if (drillBusyRef.current || drillDoneRef.current || !requested.body.trim()) return;
+    drillBusyRef.current = true;
     setDrillBusy(true);
+    setDrillError("");
+    let created;
     try {
       const body = includePrompt
         ? bodyWithIncludedPrompt(drillPromptText.es, requested.body)
         : requested.body;
-      const created = await createItem(newPage({
+      created = await createKeptPracticeEntry(newPage({
         title: requested.title,
         body,
         pageDate: requested.pageDate || localDate(),
-      }));
-      await logPracticeWrite(created.id, { ...drillEventDetails(), kept: true });
-      drillDoneRef.current = true;
-      onChanged();
-      onDrillKept?.(created.id);
+      }), drillEventDetails());
     } catch {
-      if (mountedRef.current) setDrillBusy(false);
+      drillBusyRef.current = false;
+      if (mountedRef.current) {
+        setDrillBusy(false);
+        setDrillError("Couldn’t save — try again. Your writing is still here.");
+      }
+      return;
+    }
+    drillDoneRef.current = true;
+    try {
+      await onChanged();
+      await onDrillKept?.(created.id);
+    } catch {
+      if (mountedRef.current) {
+        setDrillError("Saved in Diario, but the screen couldn’t refresh. Reopen Diario to see your entry.");
+      }
     }
   }
 
   async function discardDrill() {
-    if (drillBusy || drillDoneRef.current) return;
+    if (drillBusyRef.current || drillDoneRef.current) return;
+    drillBusyRef.current = true;
     setDrillBusy(true);
+    setDrillError("");
     try {
       await logPracticeWrite(null, { ...drillEventDetails(), kept: false });
-      drillDoneRef.current = true;
-      onChanged();
-      onBack({ editorPrepared: true });
     } catch {
-      if (mountedRef.current) setDrillBusy(false);
+      drillBusyRef.current = false;
+      if (mountedRef.current) {
+        setDrillBusy(false);
+        setDrillError("Couldn’t finish — try again. Your writing is still here.");
+      }
+      return;
+    }
+    drillDoneRef.current = true;
+    try {
+      await onChanged();
+      await onBack({ editorPrepared: true });
+    } catch {
+      if (mountedRef.current) {
+        setDrillError("Practice recorded, but the screen couldn’t refresh. Reopen Diario.");
+      }
     }
   }
 
@@ -340,11 +375,20 @@ export default function JournalEditor({
           <ChevronLeft size={16} /> {backLabel}
         </button>
         <span role="status" className="text-xs text-right" style={{ color: !drill && status === "Saved" ? C.green : C.mut }}>
-          {drill ? "Nada se guarda hasta que decidas" : status}
+          {drill ? (drillDoneRef.current ? "Práctica terminada" : "Nada se guarda hasta que decidas") : status}
         </span>
       </div>
 
-      <div className="space-y-3">
+      <fieldset disabled={Boolean(drill && drillBusy)} className="min-w-0 space-y-3">
+        {!drill && status === "Couldn’t save — try again" && (
+          <Button tone="quiet" onClick={async () => {
+            clearTimeout(timerRef.current);
+            setStatus("Saving…");
+            await enqueueSave(latestDraftRef.current, ++versionRef.current);
+          }}>
+            Retry save
+          </Button>
+        )}
         {!drill && (
           <input
             type="date"
@@ -480,9 +524,11 @@ export default function JournalEditor({
 
         {drill && (
           <section aria-label="Keep or discard this practice" className="space-y-3">
+            {drillError && <div role="alert" className="text-sm" style={{ color: C.red }}>{drillError}</div>}
             <button
               type="button"
               onClick={() => setIncludePrompt((current) => !current)}
+              disabled={drillBusy}
               aria-pressed={includePrompt}
               className="flex min-h-11 items-center gap-2 text-sm"
               style={{ color: C.ink }}
@@ -586,7 +632,7 @@ export default function JournalEditor({
             )}
           </>
         )}
-      </div>
+      </fieldset>
     </div>
   );
 }

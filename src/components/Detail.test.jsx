@@ -26,7 +26,10 @@ beforeEach(async () => {
   await clearAllPersonalData();
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 /**
  * Mounts Detail the way Cuaderno does, and — like Cuaderno — re-reads items from the
@@ -644,6 +647,75 @@ describe("media link previews", () => {
 });
 
 describe("quick-create-and-link keeps the owner where they are", () => {
+  it.each([
+    ["page", "event"], ["page", "link"], ["lexical", "event"], ["lexical", "link"],
+  ])("retains the %s draft and picker after a failed %s write, then retries once", async (kind, failure) => {
+    const user = userEvent.setup();
+    const source = await createItem(kind === "page"
+      ? newPage({ title: "Grammar notes" })
+      : newLexical({ term: "recordar", notes: "Original note" }));
+    const onOpen = vi.fn();
+    renderDetail(source, onOpen);
+    await waitFor(async () => expect(await db.events.where("type").equals(EVENT_TYPES.view).count()).toBe(1));
+    if (kind === "page") {
+      await user.click(screen.getByRole("button", { name: "Expand Notes section" }));
+      await user.click(screen.getByRole("button", { name: "Write Notes overview" }));
+    } else {
+      await user.click(screen.getByRole("button", { name: "Edit note" }));
+    }
+    const draft = screen.getByRole("textbox", { name: kind === "page" ? "Notes overview" : "Note" });
+    fireEvent.change(draft, { target: { value: "Un borrador sin guardar." } });
+    await user.click(screen.getByRole("button", { name: kind === "page" ? "link something" : "link" }));
+    const query = screen.getByPlaceholderText(/Link a word, phrase, page or dictionary entry/);
+    fireEvent.change(query, { target: { value: "de repente" } });
+    await user.selectOptions(screen.getByRole("combobox", { name: "Relationship" }), "often_confused:owner");
+    const before = { items: await db.items.toArray(), events: await db.events.toArray() };
+    if (failure === "event") vi.spyOn(db.events, "add").mockRejectedValueOnce(new Error("Injected create failure"));
+    else vi.spyOn(db.items, "put").mockRejectedValueOnce(new Error("Injected link failure"));
+    const create = screen.getByRole("button", { name: /Create phrase .*de repente.* and link it/ });
+    await user.click(create);
+    expect((await screen.findByRole("alert")).textContent).toMatch(/Couldn’t save/);
+    expect({ items: await db.items.toArray(), events: await db.events.toArray() }).toEqual(before);
+    expect(draft.value).toBe("Un borrador sin guardar.");
+    expect(query.value).toBe("de repente");
+    expect(screen.getByRole("combobox", { name: "Relationship" }).value).toBe("often_confused:owner");
+    expect(onOpen).not.toHaveBeenCalled();
+    await user.click(create);
+    await waitFor(() => expect(screen.getAllByRole("button", { name: /^de repente/ }).length).toBeGreaterThan(1));
+    await waitFor(() => expect(create.disabled).toBe(false));
+    const items = await allItems();
+    expect(items).toHaveLength(2);
+    const created = items.find(({ id }) => id !== source.id);
+    expect((await getItem(source.id)).linkedKeys).toEqual([created.id]);
+    expect(created.linkedKeys).toEqual([]);
+    expect(await db.events.where("type").equals(EVENT_TYPES.create).count()).toBe(2);
+    expect(await db.events.where("type").equals(EVENT_TYPES.edit).count()).toBe(0);
+    expect(draft.value).toBe("Un borrador sin guardar.");
+    expect(onOpen).not.toHaveBeenCalled();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it.each(["page", "lexical"])("reports a committed %s quick-create when its refresh fails", async (kind) => {
+    const user = userEvent.setup();
+    const source = await createItem(kind === "page" ? newPage({ title: "Notes" }) : newLexical({ term: "recordar" }));
+    const onChanged = vi.fn().mockResolvedValue(undefined);
+    renderDetail(source, vi.fn(), undefined, [source], { onChanged });
+    await waitFor(() => expect(onChanged).toHaveBeenCalledTimes(1));
+    onChanged.mockClear();
+    onChanged.mockRejectedValueOnce(new Error("Refresh failed"));
+    await user.click(screen.getByRole("button", { name: kind === "page" ? "link something" : "link" }));
+    fireEvent.change(screen.getByPlaceholderText(/Link a word, phrase, page or dictionary entry/), { target: { value: "madrugar" } });
+    const create = screen.getByRole("button", { name: /Create word .*madrugar.* and link it/ });
+    await user.click(create);
+    expect((await screen.findByRole("alert")).textContent).toMatch(/^Saved, but/);
+    expect(create.disabled).toBe(true);
+    fireEvent.click(create);
+    const items = await allItems();
+    expect(items).toHaveLength(2);
+    expect((await getItem(source.id)).linkedKeys).toEqual([items.find(({ id }) => id !== source.id).id]);
+    expect(onChanged).toHaveBeenCalledTimes(1);
+  });
+
   it("warns about a homograph but still creates and links it without losing the draft", async () => {
     const user = userEvent.setup();
     const page = await createItem(newPage({ title: "Grammar notes" }));

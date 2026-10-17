@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, X, Check, FileText, BookMarked, CalendarDays, Type, Plus } from "lucide-react";
 import { C, SERIF, MONO, Card } from "../theme.jsx";
 import { personalHeadingSuffix } from "./ItemCard.jsx";
@@ -56,11 +56,11 @@ function contextLine(item) {
     : lexicalNotePreview(item, 60);
 }
 
-function Row({ icon: Icon, heading, suffix, context, reason, linked, linkedLabel, onPick }) {
+function Row({ icon: Icon, heading, suffix, context, reason, linked, linkedLabel, onPick, disabled }) {
   return (
     <button
       onClick={linked ? undefined : onPick}
-      disabled={linked}
+      disabled={linked || disabled}
       className="w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-lg"
       style={{ background: C.paper, opacity: linked ? 0.55 : 1 }}
     >
@@ -109,10 +109,11 @@ function Row({ icon: Icon, heading, suffix, context, reason, linked, linkedLabel
  * A query with a space in it becomes a `phrase` rather than a `word` — brief §7 makes both
  * first-class, and "de repente" is not a word.
  */
-function CreateRow({ icon: Icon, label, onClick }) {
+function CreateRow({ icon: Icon, label, onClick, disabled }) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       className="w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-lg"
       style={{ background: C.penPale, color: C.penDark }}
     >
@@ -134,6 +135,7 @@ export default function LinkPicker({
   onPick,
   onCancel,
   onCreate,
+  onSaved,
 }) {
   const [query, setQuery] = useState("");
   const [dictResults, setDictResults] = useState([]);
@@ -141,6 +143,11 @@ export default function LinkPicker({
   const [relationship, setRelationship] = useState(() => normalizeRelationship());
   const [pendingTarget, setPendingTarget] = useState(null);
   const [meaningPair, setMeaningPair] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false);
+  const [error, setError] = useState("");
+  const [refreshFailed, setRefreshFailed] = useState(false);
+  const saveDisabled = busy || refreshFailed;
   const typed = query.trim();
   const connectionByKey = useMemo(
     () => new Map(connections.map((connection) => [connection.key, connection])),
@@ -201,16 +208,42 @@ export default function LinkPicker({
     [personal, dictResults, personalCandidates, dictionaryMeta]
   );
 
-  const commitPick = async (key, pair = undefined) => {
+  const save = async (action) => {
+    if (busyRef.current || refreshFailed) return;
+    busyRef.current = true;
+    setBusy(true);
+    setError("");
+    try {
+      try {
+        await action();
+      } catch {
+        setError("Couldn’t save — try again. Your choices are still here.");
+        return;
+      }
+      setPendingTarget(null);
+      // A refresh is outside the committed save. Do not invite a second creation
+      // if the database succeeded but the parent could not refresh its display.
+      try {
+        await onSaved?.();
+      } catch {
+        setRefreshFailed(true);
+        setError("Saved, but the screen couldn’t refresh. Close and reopen this entry.");
+      }
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
+  };
+  const commitPick = (key, pair = undefined) => save(async () => {
     if (isImplicitRelationship(relationship)) await onPick(key);
     else if (!pair) await onPick(key, relationship);
     else await onPick(key, relationship, {
       fromMeaningId: pair.focalMeaningId,
       toMeaningId: pair.targetMeaningId,
     });
-    setPendingTarget(null);
-  };
+  });
   const pick = (target) => {
+    if (busyRef.current || refreshFailed) return;
     if (relationship.type !== "similar_meaning" || item.type !== "lexical" || target.type !== "lexical") {
       commitPick(target.id);
       return;
@@ -222,12 +255,14 @@ export default function LinkPicker({
       targetMeaningId: target.meanings.length === 1 ? target.meanings[0].id : "",
     } : null);
   };
-  const create = (kind) => isImplicitRelationship(relationship)
+  const create = (kind) => save(() => isImplicitRelationship(relationship)
     ? onCreate(kind, typed)
-    : onCreate(kind, typed, relationship);
+    : onCreate(kind, typed, relationship));
 
   return (
     <Card className="mt-2" style={{ borderColor: C.pen }}>
+      {error && <div role="alert" className="mb-2 text-sm" style={{ color: C.red }}>{error}</div>}
+      <fieldset disabled={busy} className="min-w-0">
       <RelationshipSelect relationship={relationship} onChange={(next) => {
         setRelationship(next);
         setPendingTarget(null);
@@ -239,7 +274,7 @@ export default function LinkPicker({
           <div className="mt-2 flex flex-wrap gap-2">
             <button
               type="button"
-              disabled={Boolean(meaningPair) && (!meaningPair.focalMeaningId || !meaningPair.targetMeaningId)}
+              disabled={saveDisabled || (Boolean(meaningPair) && (!meaningPair.focalMeaningId || !meaningPair.targetMeaningId))}
               onClick={() => commitPick(pendingTarget.id, meaningPair)}
               className="min-h-11 rounded-lg border px-3 py-2 text-sm font-medium"
               style={{ background: C.penPale, borderColor: C.pen, color: C.penDark }}
@@ -289,6 +324,7 @@ export default function LinkPicker({
                 ? "Needs resolution"
                 : connectionByKey.get(row.entry.id)?.label}
               onPick={() => commitPick(row.entry.id)}
+              disabled={saveDisabled}
             />
           ) : (
             <Row
@@ -301,6 +337,7 @@ export default function LinkPicker({
               linked={linkedKeys.has(row.item.id)}
               linkedLabel={connectionByKey.get(row.item.id)?.label}
               onPick={() => pick(row.item)}
+              disabled={saveDisabled}
             />
           )
         )}
@@ -315,6 +352,7 @@ export default function LinkPicker({
                 icon={Plus}
                 label={`Create ${typed.includes(" ") ? "phrase" : "word"} “${typed}” and link it`}
                 onClick={() => create("lexical")}
+                disabled={saveDisabled}
               />
             </div>
           )}
@@ -325,11 +363,13 @@ export default function LinkPicker({
                 icon={Plus}
                 label={`Create page “${typed}” and link it`}
                 onClick={() => create("page")}
+                disabled={saveDisabled}
               />
             </div>
           )}
         </div>
       )}
+      </fieldset>
     </Card>
   );
 }

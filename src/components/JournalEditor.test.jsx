@@ -62,6 +62,81 @@ const baseProps = (overrides = {}) => {
 
 const waitForSaved = () => waitFor(() => expect(screen.getByRole("status").textContent).toBe("Saved"));
 
+describe("JournalEditor failed saves", () => {
+  it("retains the entire new draft after an event failure and retries to one entry", async () => {
+    const props = baseProps();
+    vi.spyOn(db.events, "add").mockRejectedValueOnce(new Error("Injected create event failure"));
+    render(<JournalEditor {...props} />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Journal title" }), { target: { value: "Mi día" } });
+    fireEvent.change(screen.getByLabelText("Journal date"), { target: { value: "2026-10-16" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "Journal body" }), { target: { value: "Hoy aprendí algo." } });
+    fireEvent.click(screen.getByRole("button", { name: "Apuntes" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Apuntes" }), { target: { value: "Una nota privada." } });
+
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe("Couldn’t save — try again"));
+    expect(await allItems()).toEqual([]);
+    expect(await allEvents()).toEqual([]);
+    expect(props.onMaterialized).not.toHaveBeenCalled();
+    expect(props.onChanged).not.toHaveBeenCalled();
+    expect(screen.getByRole("textbox", { name: "Journal title" }).value).toBe("Mi día");
+    expect(screen.getByLabelText("Journal date").value).toBe("2026-10-16");
+    expect(screen.getByRole("textbox", { name: "Journal body" }).value).toBe("Hoy aprendí algo.");
+    expect(screen.getByRole("textbox", { name: "Apuntes" }).value).toBe("Una nota privada.");
+    // The UI has handled this intentional rejection; exclude it from the generic
+    // teardown's unexpected-rejection check, after observing its completed error state.
+    await expect(creating.mock.results[0].value).rejects.toThrow("Injected create event failure");
+    creating.mockClear();
+    fireEvent.click(screen.getByRole("button", { name: "Retry save" }));
+    await waitForSaved();
+    expect(await allItems()).toEqual([expect.objectContaining({
+      title: "Mi día", pageDate: "2026-10-16", body: "Hoy aprendí algo.", apuntes: "Una nota privada.",
+    })]);
+    expect((await allEvents()).map(({ type }) => type)).toEqual([EVENT_TYPES.create]);
+    expect(props.onMaterialized).toHaveBeenCalledTimes(1);
+    expect(props.onChanged).toHaveBeenCalledTimes(1);
+    expect(props.onBack).not.toHaveBeenCalled();
+  });
+
+  it("rolls back a failed autosave and logs only one edit after retry and more typing", async () => {
+    const original = await createItem(newPage({ title: "Before", body: "Original.", pageDate: "2026-10-17" }));
+    await db.items.update(original.id, { updatedAt: "2026-01-01T00:00:00.000Z" });
+    const entry = await getItem(original.id);
+    const props = baseProps({ entry });
+    render(<JournalEditor {...props} />);
+    await waitFor(() => expect(props.onChanged).toHaveBeenCalledTimes(1));
+    const eventsBefore = await allEvents();
+    vi.spyOn(db.events, "add").mockRejectedValueOnce(new Error("Injected edit event failure"));
+    fireEvent.change(screen.getByRole("textbox", { name: "Journal body" }), { target: { value: "My changed draft." } });
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe("Couldn’t save — try again"));
+    expect(await getItem(entry.id)).toEqual(entry);
+    expect(await allEvents()).toEqual(eventsBefore);
+    expect(screen.getByRole("textbox", { name: "Journal body" }).value).toBe("My changed draft.");
+    await expect(updating.mock.results[0].value).rejects.toThrow("Injected edit event failure");
+    updating.mockClear();
+    fireEvent.click(screen.getByRole("button", { name: "Retry save" }));
+    await waitForSaved();
+    fireEvent.change(screen.getByRole("textbox", { name: "Journal body" }), { target: { value: "My final draft." } });
+    await waitForSaved();
+    expect((await getItem(entry.id)).body).toBe("My final draft.");
+    expect(await db.events.where("type").equals(EVENT_TYPES.edit).count()).toBe(1);
+    expect(await allItems()).toHaveLength(1);
+  });
+
+  it.each(["onChanged", "onMaterialized"])("does not treat a rejected %s callback as a failed save", async (callback) => {
+    const props = baseProps({ [callback]: vi.fn().mockRejectedValueOnce(new Error("Display failed")) });
+    render(<JournalEditor {...props} />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Journal body" }), { target: { value: "Saved writing." } });
+    await waitFor(() => expect(screen.getByRole("status").textContent).toMatch(/^Saved, but/));
+    expect(screen.queryByRole("button", { name: "Retry save" })).toBeNull();
+    expect(await allItems()).toHaveLength(1);
+    fireEvent.change(screen.getByRole("textbox", { name: "Journal body" }), { target: { value: "Saved writing, continued." } });
+    await waitForSaved();
+    expect((await allItems()).map(({ body }) => body)).toEqual(["Saved writing, continued."]);
+    expect((await allEvents()).map(({ type }) => type)).toEqual([EVENT_TYPES.create]);
+    expect(creating).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("JournalEditor stored feedback", () => {
   const review = {
     verdict: "mostly_clear",
