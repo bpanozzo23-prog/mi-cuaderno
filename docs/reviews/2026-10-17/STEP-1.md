@@ -1,7 +1,7 @@
 # Step 1 — safety fixes (work order)
 
-**Status (2026-10-17): item 1 done and deployed; item 2 implemented and verified locally, with
-the owner phone check and publication pending; items 3–4 remain open and unapproved.** This
+**Status (2026-10-17): item 1 done and deployed; item 2 implemented and verified locally, including
+the owner phone recheck, with publication pending; items 3–4 remain open and unapproved.** This
 lists the first batch of fixes from the
 [2026-10-17 reassessment](REASSESSMENT.md) so that a new session can pick one up without
 re-reading the whole review. Every item still goes through the normal working agreement in
@@ -40,7 +40,7 @@ shows no message at all (item 2b), so "nothing happened" is the symptom to look 
 | Item | What | Size | Needs an owner decision | Done |
 |---|---|---|---|---|
 | 1 | Run the tests before every deploy | Hours | Decided: pull-request testing deferred | 2026-10-17: `401bc74`; [Actions passed](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39057987662) |
-| 2 | Backup safety: mutual-reference bug, rescue export, silent export failure, consistent snapshot | 2–4 days | Decided: Option A, block the second citation | 2026-10-17: `6d59e76`; local and browser checks passed, owner phone recheck and push pending |
+| 2 | Backup safety: mutual-reference bug, rescue export, silent export failure, consistent snapshot | 2–4 days | Decided: Option A, block the second citation | 2026-10-17: `6d59e76`; local and browser checks passed, owner confirmed four fixture buttons; push pending |
 | 3 | All-or-nothing saves | 1–2 days | No | |
 | 4 | Small fixes: overnight queue, English stopwords, load error, persistence flag, ñ helper | 1–2 days, plus a possible dictionary rebuild for 4e | 4e only, if a rebuild is needed | |
 
@@ -124,7 +124,7 @@ The transaction proof queues a real competing write between reads and catches mi
 records in both current and legacy exports when the transaction is removed. Rescue tests cover
 source schemas 1–12 and prove the key remains stored while absent from the file.
 
-**Browser verification (2026-10-17); owner phone recheck and publication pending.** The owner
+**Browser verification and owner phone recheck (2026-10-17); publication pending.** The owner
 approved the disposable preview on the private Tailscale address after automatic approval review
 initially blocked network access. The first phone screenshot exposed a preview-only setup failure:
 the HTTP origin lacks `crypto.randomUUID`, and the scratch page did not display setup errors. A
@@ -141,8 +141,9 @@ citation. Actual downloaded JSON files were checked. Five screen states had no h
 there were no uncaught browser exceptions, and the agent inspected screenshots. Deliberately removing
 the preview UUID fallback also confirmed that setup errors are now visible and fixture buttons
 become usable again. Dictionary files are not served by this backup-only preview; its unrelated
-dictionary-unavailable notice is expected. The owner still needs to recheck the repaired page on the
-phone. Nothing was pushed, and no owner browser data or private notebook snapshot was accessed.
+dictionary-unavailable notice is expected. After reopening the repaired page on the phone, the owner
+reported, “All 4 buttons work.” The temporary preview server was then stopped. Nothing was pushed,
+and no owner browser data or private notebook snapshot was accessed.
 
 The original finding and options follow for context.
 
