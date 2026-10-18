@@ -155,6 +155,8 @@ export default function App() {
   const [studySessionActive, setStudySessionActive] = useState(false);
   const [ajustesDuplicatesRequest, setAjustesDuplicatesRequest] = useState(null);
   const notebook = useNotebook();
+  const committedItemsRef = useRef(notebook.items);
+  useLayoutEffect(() => { committedItemsRef.current = notebook.items; }, [notebook.items]);
 
   navigationRef.current = navigation;
   const route = activeRoute(navigation);
@@ -395,7 +397,9 @@ export default function App() {
 
   function openItem(id) {
     if (!id) return;
-    const item = notebook.items.find((candidate) => candidate.id === id);
+    // A caller may hold this handler across an awaited refresh. Read the committed
+    // snapshot so a newly saved Journal entry opens in Diario even from that handler.
+    const item = committedItemsRef.current.find((candidate) => candidate.id === id);
     const targetTab = !isDictKey(id) && isJournalEntry(item) ? "diario" : "cuaderno";
     pushRoute({ tab: targetTab, screen: targetTab === "diario" ? "read" : "detail", id });
   }
@@ -463,9 +467,16 @@ export default function App() {
   // A kept Taller drill lands on its new entry's reader, where the existing vocabulary
   // affordances live; Back then returns to the Diario home the drill was opened from.
   function journalDrillKept(id) {
-    if (!id) return;
+    if (!id || activeRoute(navigationRef.current)?.visitKey !== diarioRoute.visitKey) return;
     pendingPersonalIdsRef.current.add(id);
     replaceRoute({ tab: "diario", screen: "read", id });
+  }
+
+  function journalBack(options) {
+    // Diario can stay mounted while hidden. A delayed save must not navigate from
+    // a different visit the owner selected while its refresh was pending.
+    if (activeRoute(navigationRef.current)?.visitKey !== diarioRoute.visitKey) return;
+    navigateBack(options);
   }
 
   function openBiography() {
@@ -728,7 +739,7 @@ export default function App() {
                   notebook={notebook}
                   route={{ ...diarioRoute, seed: diarioPayload.seed || null }}
                   onSelect={openItem}
-                  onBack={navigateBack}
+                  onBack={journalBack}
                   backLabel={backLabel}
                   onEdit={editJournal}
                   onStart={startJournal}

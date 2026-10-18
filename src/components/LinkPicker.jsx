@@ -224,7 +224,8 @@ export default function LinkPicker({
       // A refresh is outside the committed save. Do not invite a second creation
       // if the database succeeded but the parent could not refresh its display.
       try {
-        await onSaved?.();
+        const refresh = await onSaved?.();
+        if (refresh?.status === "failed") throw refresh.error;
       } catch {
         setRefreshFailed(true);
         setError("Saved, but the screen couldn’t refresh. Close and reopen this entry.");

@@ -147,7 +147,9 @@ export default function JournalEditor({
     try {
       // A late unmount flush must not rewrite whatever tab the owner has already chosen.
       if (!currentId && !quiet && mountedRef.current) await onMaterialized(itemId);
-      await onChanged();
+      const refresh = await onChanged();
+      if (refresh?.status === "cancelled") return itemId;
+      if (refresh?.status === "failed") throw refresh.error;
       if (!quiet && mountedRef.current) {
         setStatus(
           version === versionRef.current && sameDraft(latestDraftRef.current, requestedDraft)
@@ -321,7 +323,9 @@ export default function JournalEditor({
     }
     drillDoneRef.current = true;
     try {
-      await onChanged();
+      const refresh = await onChanged();
+      if (refresh?.status === "cancelled" || !mountedRef.current) return;
+      if (refresh?.status === "failed") throw refresh.error;
       await onDrillKept?.(created.id);
     } catch {
       if (mountedRef.current) {
@@ -347,7 +351,9 @@ export default function JournalEditor({
     }
     drillDoneRef.current = true;
     try {
-      await onChanged();
+      const refresh = await onChanged();
+      if (refresh?.status === "cancelled" || !mountedRef.current) return;
+      if (refresh?.status === "failed") throw refresh.error;
       await onBack({ editorPrepared: true });
     } catch {
       if (mountedRef.current) {
