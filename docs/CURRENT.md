@@ -1,16 +1,16 @@
 # Current state
 
-The app is deployed; reassessment Steps 1–3 and Step 5’s bounded lint and awaitable-refresh tasks
-are published.
+The app is deployed; reassessment Steps 1–3 and the bounded lint, awaitable-refresh and
+documentation-only CI filtering tasks are published.
 This is the starting point for current status, not a release diary.
 
 ## Verified release
 
-- **Published revision:** `4b7d47d`, 2026-10-18 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39099125670)
-  passed lint, all **1,932 tests across 157 files** in 169.29 seconds, the production build and
+- **Published revision:** `ac527a0`, 2026-10-18 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39134092760)
+  passed lint, all **1,932 tests across 157 files** in 162.26 seconds, the production build and
   deployment. Seven live app files returned HTTP 200 and matched the verified local build byte
   for byte. Detailed publication evidence lives in [release history](history/RELEASES.md).
-- **Delivered work:** the bounded Step 5 lint setup and awaitable notebook refresh, on top of completed
+- **Delivered work:** documentation-only CI filtering, the bounded Step 5 lint setup and awaitable notebook refresh, on top of completed
   [Step 1 safety work](reviews/2026-10-17/STEP-1.md), [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md)
   and [Step 3 contract reset](reviews/2026-10-17/STEP-3.md). JavaScript/React Hooks lint runs locally
   and in CI. Refresh now reports committed completion without misclassifying saved writes;
@@ -50,16 +50,16 @@ This is the starting point for current status, not a release diary.
   deliberate regressions, 375×812 browser fixtures and live-file comparisons are recorded in
   [release history](history/RELEASES.md#2026-10-18--awaitable-notebook-refresh).
 - **Separate, unapproved follow-ups:** other executable tooling changes and feature/code reorganization.
-- **Complete locally; not pushed:** bounded documentation-only CI filtering (`abad2e4`). The
+- **Complete and published:** bounded documentation-only CI filtering (`abad2e4`), through `ac527a0`. The
   [workflow](../.github/workflows/deploy.yml) skips pushes whose changed paths all match its
   explicit documentation exclusions; mixed pushes retain every check and deployment, and manual
   dispatch remains available. Local verification on 2026-10-18 passed YAML parsing/unchanged-job
   checks, 29 changed-path cases, zero-warning lint, all **1,932 tests across 157 files** serially
-  in 410.57 seconds (no unhandled errors), the production build and diff checks. The existing
-  build chunk-size warning remains. Application, schema, dependencies and Node configuration
-  are unchanged. After a separately requested push, verify that the workflow change triggers
-  deployment and that its documentation-only publication-record follow-up skips it. Native
-  GitHub diff generation and trigger behavior are not established by the local path checks.
+  in 410.57 seconds (no unhandled errors), the production build and diff checks. The mixed
+  workflow/documentation push triggered CI and deployed successfully; publication evidence and
+  remaining warnings are in [release history](history/RELEASES.md#2026-10-18--documentation-only-ci-filtering).
+  Application, schema, dependencies and Node configuration are unchanged. GitHub's native
+  large-diff limitations still apply; publication-record-only pushes normally skip deployment.
 - **Owner direction:** [reassessment §15](reviews/2026-10-17/REASSESSMENT.md#15-owner-response-2026-10-17)
   takes precedence on experimental feature growth and the ideas file. The usage review is
   withdrawn. Friction is an input to ideas, not a condition for building features.

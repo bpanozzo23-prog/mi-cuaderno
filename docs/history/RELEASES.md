@@ -6,6 +6,24 @@ Documentation-only follow-ups covered by the [workflow exclusions](../../.github
 normally skip deployment. Keep the last verified published revision; the
 [agent guide](../AGENT-GUIDE.md#environment-and-checks) covers publication checks and filter limits.
 
+## 2026-10-18 — Documentation-only CI filtering
+
+| Date | Published revision | Work | CI and checks |
+|---|---|---|---|
+| 2026-10-18 | `ac527a0` | Documentation-only push exclusions (`abad2e4`) and deployment guidance | [39134092760](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39134092760): lint, 1,932 tests / 157 files in 162.26 s, build and deployment passed; seven live files returned HTTP 200 and matched local build bytes |
+
+The mixed workflow/documentation push triggered the existing full gate. Manual dispatch, jobs,
+permissions and concurrency are unchanged. Local verification passed YAML parsing and structural
+comparison, 29 changed-path cases, zero-warning lint, the complete serial suite (1,932/1,932 across
+157 files in 410.57 s, no unhandled errors), production build and diff checks. Path cases include
+code, assets, configuration, mixed changes, deletions and old/new rename paths; local checks do
+not emulate GitHub's large-diff limits. Documentation-only publication records use the exclusions.
+
+Live comparison covered index HTML, manifest, service-worker registration, service worker,
+entry/application JavaScript and CSS. Application behavior, personal schema, dependencies and
+Node configuration are unchanged. The existing build chunk-size warning and SpeakButton test
+fixture's nested-button warning remain; CI reports no failing tests or unhandled errors.
+
 ## 2026-10-18 — Awaitable notebook refresh
 
 | Date | Published revision | Work | CI and checks |
