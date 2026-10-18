@@ -74,6 +74,23 @@ This is the starting point for current status, not a release diary.
   (2 moderate, 5 high) remain. Application, dictionary, schema and machine installations are
   unchanged. Windows commands were not executed on the owner's laptop; CI's actual version-file
   resolution awaits a separately requested push.
+- **Complete locally; not pushed:** Journal tab navigation ordering (`2c18404`). A delayed
+  save/refresh can no longer let an older tab choice overwrite a newer choice or a different
+  active visit. Back/Forward and App unmount cancel pending choices; saving a new entry within
+  its current visit still permits the intended navigation. Save policy, refresh waiting,
+  stored data and schema v12 are unchanged. Verification on 2026-10-18 passed zero-warning lint,
+  all **1,942 tests across 157 files** serially in 405.69 seconds (no unhandled errors), the
+  production build and diff checks. Ten added integration cases cover competing requests and
+  saves, read success/failure, refused reselection, materialization, Back/Forward, unmount and
+  another in-app visit. Seven cases failed against the original implementation; independently
+  removing the visit check failed the different-visit case. A focused read-only Claude CLI
+  review found no actionable defects introduced by the fix; its refused-request coverage
+  suggestion was added and passed. Fresh Chromium fixtures at 375×812 verified delayed success,
+  delayed failure/retry and Back/Forward, with one saved entry, inspected screenshots, no
+  horizontal overflow and no browser warnings or uncaught errors. The fixture profile was
+  removed and preview stopped. The existing build chunk-size warning remains. CI/deployment
+  and physical Android Back await separate publication/device checks; broader popstate races
+  and refresh-latency changes remain separate, unverified follow-ups.
 
 ## Unresolved verification
 

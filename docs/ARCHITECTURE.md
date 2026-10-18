@@ -193,6 +193,9 @@ the general streak; keeping writing can count through its separate create event.
 [App](../src/App.jsx) has four tabs. [Navigation](../src/lib/navigation.js) validates shallow
 route stacks in `history.state`; visit-specific drafts, filters, study payloads and scroll
 positions remain transient. Editor and study handlers protect save and exit flows.
+A tab choice waiting for a Journal save/refresh applies only while it remains the newest tab
+request and its originating visit is active. Back/Forward and App unmount cancel pending tab
+choices; materializing a saved entry within the same visit does not.
 [Share-target parsing](../src/lib/shareTarget.js) consumes shared URL/text parameters into an
 explicit flow. Opening a route or receiving shared text never itself authorizes a content save.
 
