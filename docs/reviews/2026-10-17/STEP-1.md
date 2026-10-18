@@ -6,6 +6,10 @@ re-reading the whole review. Every item still goes through the normal working ag
 [`docs/AGENT-GUIDE.md`](../../AGENT-GUIDE.md): confirm the finding, propose a plan in plain
 language, wait for the owner's approval, then implement.
 
+**Historical work order:** the instructions and findings below retain the original task context.
+For the next session, start with [CURRENT](../../CURRENT.md); completion does not authorize
+repeating these fixes or starting later steps. [Step 2](STEP-2.md) records the documentation reset.
+
 Written 2026-10-17 by Claude Code (XPS, CLI) against `main` at `35cda8e`. Line numbers refer to
 that commit.
 

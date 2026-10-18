@@ -87,10 +87,10 @@ Recompute checksums after downloads and retain a small, tracked input-provenance
 | Artifact | Evidence and assessment | Recommended treatment |
 |---|---|---|
 | Three root `design-qa*.jpg` files | About 275 KiB combined; introduced by `65200bf` | Retain selected evidence under dated design history. |
-| Root `docs/history/design-qa/design-qa.md` | Combines landing-page and Taller QA; references local Windows paths at [lines 5](https://github.com/bpanozzo23-prog/mi-cuaderno/blob/35cda8e/design-qa.md#L5) and [49](https://github.com/bpanozzo23-prog/mi-cuaderno/blob/35cda8e/design-qa.md#L49) | Split or archive by feature/date; use relative links for retained evidence. |
+| Root `design-qa.md` | Combines landing-page and Taller QA; references local Windows paths at [lines 5](https://github.com/bpanozzo23-prog/mi-cuaderno/blob/35cda8e/design-qa.md#L5) and [49](https://github.com/bpanozzo23-prog/mi-cuaderno/blob/35cda8e/design-qa.md#L49) | Split or archive by feature/date; use relative links for retained evidence. |
 | `pipeline/spike/out/` | Eleven files, 1.15 MiB; all introduced in `f20222a` | Preserve the feasibility report and representative evidence; mark remaining outputs historical. |
 | `pipeline/out/` | Eight files, approximately 112 KiB; nine commits touch this directory | Keep. These are small release reports, deliberately committed according to [pipeline/README.md:15](https://github.com/bpanozzo23-prog/mi-cuaderno/blob/35cda8e/pipeline/README.md#L15). |
-| `docs/history/prototype/mi-cuaderno.jsx` | Approximately 38 KiB; unchanged since `0077fc1` | Archive as a historical prototype and resolve conflicting authority descriptions. |
+| `docs/mi-cuaderno.jsx` | Approximately 38 KiB; unchanged since `0077fc1` | Archive as a historical prototype and resolve conflicting authority descriptions. |
 | `.agents/skills/` | Eleven files, approximately 17 KiB | Keep useful project adaptations; fix synchronization. |
 | `skills-lock.json` | Records origin and upstream content hashes | Keep provenance, but clarify that locally modified skills are not fully described by upstream hashes. |
 

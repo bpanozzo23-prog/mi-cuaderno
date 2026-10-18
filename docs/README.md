@@ -24,6 +24,8 @@ for the task. Historical status describes its own date, not today's app.
 - [Guided lessons](guided-lessons/README.md): planning and chapter drafts, not implementation.
 - [2026-10-17 reassessment](reviews/2026-10-17/README.md): findings and owner response;
   [Step 1](reviews/2026-10-17/STEP-1.md) retains its completed work and verification evidence.
+- [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md): approved scope, changed homes and
+  verification evidence; consult CURRENT for publication status.
 
 ## Historical records
 

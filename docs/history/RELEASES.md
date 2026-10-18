@@ -25,91 +25,92 @@ This index carries the revisions and CI links named in the
 [preserved README status](README-STATUS-2026-10-17.md#status). Some narratives name multiple
 implementation/publication commits; those references are retained without labelling all of them
 as separate deployments. Dates and detailed checks remain in that snapshot and the linked reports.
-Missing CI links or revisions mean the snapshot did not identify them, not that verification failed.
+This index extracts references from each README narrative; archived reports and decisions may
+contain further publication details. An unlisted reference does not mean verification failed.
 
 | Historical release narrative | Recorded revision references | Recorded CI evidence |
 |---|---|---|
-| Phase 0 — done | Not identified in snapshot | See snapshot narrative |
-| Phase 4 — ongoing maintenance | Not identified in snapshot | See snapshot narrative |
-| Phase 6 — first slice deployed | Not identified in snapshot | See snapshot narrative |
-| Phase 7 — shipped | Not identified in snapshot | See snapshot narrative |
-| Phase 8 — shipped | Not identified in snapshot | See snapshot narrative |
-| Phase 9 — shipped | Not identified in snapshot | See snapshot narrative |
-| Phase 10 — deployed | Not identified in snapshot | See snapshot narrative |
-| Phase 11 — deployed | Not identified in snapshot | See snapshot narrative |
-| Phase 12 — deployed | Not identified in snapshot | See snapshot narrative |
-| Phase 13 — deployed | Not identified in snapshot | See snapshot narrative |
-| Phase 14 — deployed | Not identified in snapshot | See snapshot narrative |
-| Phase 15 — deployed | Not identified in snapshot | See snapshot narrative |
-| Phase 16 — deployed | Not identified in snapshot | See snapshot narrative |
-| Phase 17 — deployed | Not identified in snapshot | See snapshot narrative |
-| Phase 18 — deployed | Not identified in snapshot | See snapshot narrative |
-| Phase 19 — deployed | `4f73a45` | See snapshot narrative |
-| Phase 20 — deployed | Not identified in snapshot | See snapshot narrative |
-| Phase 21 — deployed | Not identified in snapshot | See snapshot narrative |
-| Phase 22 — deployed | Not identified in snapshot | See snapshot narrative |
-| Phase 23 — deployed | Not identified in snapshot | See snapshot narrative |
-| Phase 24 — deployed | Not identified in snapshot | See snapshot narrative |
-| Phase 25 — safe slice deployed | `1432dd1` | See snapshot narrative |
-| Phase 26 — deployed | `6780961` | See snapshot narrative |
-| Editable media links — deployed | Not identified in snapshot | See snapshot narrative |
-| Collection bulk capture — deployed | Not identified in snapshot | See snapshot narrative |
-| Vocabulary group collapse — deployed | Not identified in snapshot | See snapshot narrative |
-| Compact page sections — deployed | Not identified in snapshot | See snapshot narrative |
-| Notebook formatting — deployed | Not identified in snapshot | See snapshot narrative |
-| Page hierarchy and icon actions — deployed | Not identified in snapshot | See snapshot narrative |
-| Optional Grammar key idea — deployed | Not identified in snapshot | See snapshot narrative |
-| Persisted Diario feedback (Phase 6, second slice) — deployed | Not identified in snapshot | See snapshot narrative |
-| Inline media rendering — deployed | Not identified in snapshot | See snapshot narrative |
-| Picture-front flashcards — deployed | Not identified in snapshot | See snapshot narrative |
-| Editor writing comfort — deployed | Not identified in snapshot | See snapshot narrative |
-| Meaning-level interjection override — deployed | Not identified in snapshot | See snapshot narrative |
-| Android share target — deployed | Not identified in snapshot | See snapshot narrative |
-| Share arrival destination chooser — deployed | Not identified in snapshot | See snapshot narrative |
-| Continue-with-this-video — deployed | Not identified in snapshot | See snapshot narrative |
-| New word/phrase share destination — deployed | Not identified in snapshot | See snapshot narrative |
-| Example-to-phrase bridge — deployed | Not identified in snapshot | See snapshot narrative |
-| Personal twin merge — deployed | Not identified in snapshot | See snapshot narrative |
-| Apuntes — deployed | `29c3840` | See snapshot narrative |
-| Attach-later for unattached words — deployed | Not identified in snapshot | See snapshot narrative |
-| Backup pos validation widened — deployed | Not identified in snapshot | See snapshot narrative |
-| Creation-time dictionary suggestions — deployed | Not identified in snapshot | See snapshot narrative |
-| Meaning-example reading polish — deployed | Not identified in snapshot | See snapshot narrative |
-| Additional Refine views — deployed | `c97ed20` | See snapshot narrative |
-| Suppressed-containment confirmation — deployed | `39c0e90` | See snapshot narrative |
-| Broader parts of speech — deployed | `0de63dd` | See snapshot narrative |
-| Lexical-note Markdown parity and meaning-example editing — deployed | `de89791` | See snapshot narrative |
-| General-example reading polish and editing — deployed | `b77d809` | See snapshot narrative |
-| Typography: Literata entry face — deployed | `d459d64` | See snapshot narrative |
-| Typography: small-caps grammar labels — deployed | `51f21c3` | See snapshot narrative |
-| Markdown callout variants and inline actions — deployed | `1869593` | See snapshot narrative |
-| Cuaderno landing foyer — deployed | `65200bf` | See snapshot narrative |
-| Repaso search-miss display removal — deployed | Not identified in snapshot | See snapshot narrative |
-| Compact tag settings and duplicate review — deployed | Not identified in snapshot | See snapshot narrative |
+| Phase 0 — done | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 4 — ongoing maintenance | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 6 — first slice deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 7 — shipped | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 8 — shipped | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 9 — shipped | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 10 — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 11 — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 12 — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 13 — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 14 — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 15 — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 16 — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 17 — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 18 — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 19 — deployed | `4f73a45` | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 20 — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 21 — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 22 — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 23 — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Phase 24 — deployed | Not identified in snapshot | [run 31723115634](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/31723115634) |
+| Phase 25 — safe slice deployed | `1432dd1` | [run 31749800168](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/31749800168) |
+| Phase 26 — deployed | `6780961` | [run 31812821165](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/31812821165) |
+| Editable media links — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Collection bulk capture — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Vocabulary group collapse — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Compact page sections — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Notebook formatting — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Page hierarchy and icon actions — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Optional Grammar key idea — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Persisted Diario feedback (Phase 6, second slice) — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Inline media rendering — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Picture-front flashcards — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Editor writing comfort — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Meaning-level interjection override — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Android share target — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Share arrival destination chooser — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Continue-with-this-video — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| New word/phrase share destination — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Example-to-phrase bridge — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Personal twin merge — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Apuntes — deployed | `29c3840` | [run 31835260852](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/31835260852) |
+| Attach-later for unattached words — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Backup pos validation widened — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Creation-time dictionary suggestions — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Meaning-example reading polish — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Additional Refine views — deployed | `c97ed20` | [run 31897874543](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/31897874543) |
+| Suppressed-containment confirmation — deployed | `39c0e90` | [run 31917078425](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/31917078425) |
+| Broader parts of speech — deployed | `0de63dd` | [run 31918541094](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/31918541094) |
+| Lexical-note Markdown parity and meaning-example editing — deployed | `de89791` | [run 31972144810](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/31972144810) |
+| General-example reading polish and editing — deployed | `b77d809` | [run 31993261452](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/31993261452) |
+| Typography: Literata entry face — deployed | `d459d64` | [run 31995019703](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/31995019703) |
+| Typography: small-caps grammar labels — deployed | `51f21c3` | [run 32049318652](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32049318652) |
+| Markdown callout variants and inline actions — deployed | `1869593` | [run 32081320262](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32081320262) |
+| Cuaderno landing foyer — deployed | `65200bf` | [run 32194741780](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32194741780) |
+| Repaso search-miss display removal — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Compact tag settings and duplicate review — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
 | Browser-backed navigation continuity — deployed | `3b4e717` | [run 32208156024](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32208156024) |
 | Cuidar mi cuaderno hub — deployed | `f6f5f04` | [run 32213861769](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32213861769) |
 | Compact Cuidar and Pasear landing doors — deployed | `3dc1ecf` | [run 32215040409](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32215040409) |
 | Global-search creation bridge — deployed | `4968878` | [run 32279564126](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32279564126) |
-| Share page-kind chooser — deployed | Not identified in snapshot | See snapshot narrative |
+| Share page-kind chooser — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
 | Diario skill-focused prompts — deployed | `7ed9aca` | [run 32292697167](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32292697167) |
 | Pasear random continuation — deployed | `976d9c0` | [run 32420448459](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32420448459) |
 | Taller — Diario writing practice — deployed | `6d7dd34` | [run 32437421316](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32437421316) |
-| Lexical Structured Notes — deployed | `2b8fabd`, `6195ee8` | See snapshot narrative |
-| Recent list expansion — deployed | Not identified in snapshot | See snapshot narrative |
-| Contrasts lane — deployed | `bc5c053` | See snapshot narrative |
-| Forms Choose — deployed | `f3e4d03` | See snapshot narrative |
-| Transform lane — deployed | `939e48f` | See snapshot narrative |
+| Lexical Structured Notes — deployed | `2b8fabd`, `6195ee8` | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Recent list expansion — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Contrasts lane — deployed | `bc5c053` | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Forms Choose — deployed | `f3e4d03` | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
+| Transform lane — deployed | `939e48f` | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
 | Diario skill-prompt examples and coverage expansion — deployed | `1316ee2` | [run 32904787874](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32904787874) |
-| Additional Taller skill coverage — deployed | Not identified in snapshot | See snapshot narrative |
+| Additional Taller skill coverage — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
 | Taller language polish and composite grammar targets — deployed | `e8603a7` | [run 33338694755](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33338694755) |
 | Pages hub derived grouping — deployed | `71e6b17` | [run 32918989431](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32918989431) |
-| Copy structure from the page being copied — deployed | Not identified in snapshot | See snapshot narrative |
+| Copy structure from the page being copied — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
 | Exact meaning refinements and match-aware Words & phrases cards — deployed | `f5c8e83` | [run 33108273404](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33108273404) |
-| Per-meaning Similar relationships v1 — deployed | `4432465` | See snapshot narrative |
+| Per-meaning Similar relationships v1 — deployed | `4432465` | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
 | Diario home and role-color polish — deployed | `0627b18` | [run 33140753545](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33140753545) |
-| Same-day Diario continuations — deployed | Not identified in snapshot | See snapshot narrative |
+| Same-day Diario continuations — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
 | Pages hub folder edge and role glyphs — deployed | `72ac29d` | [run 33190454395](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33190454395) |
-| Diario daily cluster and Taller provenance — deployed | Not identified in snapshot | See snapshot narrative |
+| Diario daily cluster and Taller provenance — deployed | Not identified in snapshot | [See snapshot narrative](README-STATUS-2026-10-17.md#status) |
 | Open-page hierarchy polish — deployed | `d277208` | [run 33206718849](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33206718849) |
 | Today-action and open-entry density follow-up — deployed | `dc696bc` | [run 33212209269](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33212209269) |
 | Folder-tab containing-block fix — deployed | `3513e11` | [run 33216885561](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33216885561) |

@@ -5,6 +5,12 @@ independent Codex reviews ([`codex/`](codex)). Requested by the owner: assess th
 organization now that it has grown, and check whether following the brief has led anywhere that
 should be reconsidered.
 
+**Follow-through, 2026-10-17:** Step 1 items 1–4 are complete and deployed; the missing
+CI test gate and listed safety bugs are findings at the review revision, not current claims.
+The owner separately approved [Step 2's documentation reset](STEP-2.md). Section 15 still
+controls the report's recommendations. See [CURRENT](../../CURRENT.md) for current work and
+pending checks; the original assessment follows unchanged in substance.
+
 **Status: findings, not approved work.** Nothing here authorizes implementation. Each change goes
 through the normal plan-first agreement in [`docs/AGENT-GUIDE.md`](../../AGENT-GUIDE.md). The
 first batch of fixes is written up as a work order in [`STEP-1.md`](STEP-1.md). Line numbers refer

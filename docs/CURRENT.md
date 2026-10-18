@@ -1,7 +1,7 @@
 # Current state
 
-The app is deployed; Step 1 safety work is complete. Step 2 is an approved documentation
-reset in progress. This is the starting point for current status, not a release diary.
+The app is deployed; Step 1 safety work is complete. Step 2 is complete locally; its documentation
+commits are unpushed. This is the starting point for current status, not a release diary.
 
 ## Verified release
 
@@ -20,10 +20,11 @@ reset in progress. This is the starting point for current status, not a release 
 
 ## Work and boundaries
 
-- **Approved, in progress:** Step 2 documentation reset from the
-  [reassessment](reviews/2026-10-17/REASSESSMENT.md#12-suggested-order-of-work).
-  Consolidate current status, preserve history, keep open ideas together and separate recipes.
-  No application, schema, CI or tooling behavior changes; no push requested.
+- **Complete locally, unpushed:** [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md).
+  Current status is consolidated, historical records preserved, active idea context kept together,
+  and machine/browser recipes separated. Documentation and preservation checks pass.
+  No application, schema, CI or tooling behavior changes; no push requested. No next implementation
+  step is approved.
 - **Planning only:** [guided lessons](guided-lessons/README.md), including the 1917 drafts.
   The player and integration are not implemented or approved by this documentation work.
 - **Separate, unapproved follow-ups:** Step 3's contract reset; executable tooling changes;

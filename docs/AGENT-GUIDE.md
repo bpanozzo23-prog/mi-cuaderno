@@ -6,10 +6,14 @@ everything shared — if a rule here disagrees with a tool file, fix the discrep
 picking a side silently.
 
 A personal Spanish notebook (PWA) built on a bundled offline dictionary. One owner, one device,
-no server. Simplicity and durability beat features.
+no server. The owner welcomes adding features, trying them and removing them later if useful.
+[Reassessment §15](reviews/2026-10-17/REASSESSMENT.md#15-owner-response-2026-10-17) and its
+[decision entry](../DECISIONS.md#reassessment-owner-response-2026-10-17) take precedence over older
+friction-first wording. Friction is one input, not a feature gate; the usage review is withdrawn.
+Data-safety and explicit approval boundaries still apply.
 
-**Current state deliberately lives elsewhere.** This guide states no phase status, because a
-file that restates it is a copy that goes stale between commits.
+**Current state lives in [CURRENT](CURRENT.md).** This guide keeps durable rules and points to
+references when the task needs them.
 
 ## Read order
 
@@ -61,34 +65,26 @@ this summary.
 - **The event log is the single source of truth** (§7). No stored counters, no state flags.
   Tricky state, lookup counts, review box and due date are all *derived at render*
   (`src/lib/review.js`, `src/db/events.js`).
-- **`SCHEMA_VERSION` is 12.** Phase 4i introduced v1→v2 structured meanings, Phase 4j–4o added
-  v2→v3 page profiles, Phase 4t added v3→v4 sparse link annotations, Phase 7 added v4→v5
-  composable pages, Phase 19 added v5→v6 Grammar hierarchy followed by v6→v7 Structured Notes,
-  the 2026-08-11 Diario amendment added v7→v8 persisted entry feedback (`feedback: null` on
-  every page), the 2026-08-14 Apuntes amendment added v8→v9 owner notes beside a Diario
-  entry (`apuntes: null` on every page), and the 2026-08-21 Lexical Structured Notes amendment
-  added v9→v10 `noteSections: []` to every Word and Phrase while preserving `notes` as its
-  General note. The 2026-08-27 meaning-specific Similar amendment added v10→v11 optional paired
-  meaning anchors without rewriting existing rows. The 2026-09-10 plural dictionary-attachment
-  amendment added v11→v12 mandatory ordered `dictKeys[]` on lexical items, converting the former
-  nullable scalar without changing stores or indexes. Startup requires an untouched validated
-  schema-1 through schema-11 export before Dexie opens; direct legacy upgrades run every migration
-  in order. Backup schemas 1 through 12 upgrade sequentially in memory and are deeply validated as
-  v12 before any write; versions newer than 12 remain blocked. Any further personal schema change
-  still triggers §5 in full: migration plan, export-first safety, version bump and matching
-  backup validation. **If you conclude another is needed, stop and raise it.**
+- **Personal schema changes trigger brief §5 in full:** migration plan, export-first safety,
+  version bump and matching backup validation. **If you conclude one is needed, stop and raise it.**
+  [CURRENT](CURRENT.md) identifies the current schema and accepted backup versions; inspect
+  [the version constant](../src/version.js), [database migrations](../src/db/db.js),
+  [pre-upgrade gate](../src/db/preupgrade.js) and [backup path](../src/db/backup.js) for exact behavior.
+  Preserve untouched validated legacy exports, sequential upgrades and validation before writes.
 - **`src/lib/normalize.js` preserves ñ** — "año" must never match "ano", anywhere new. All
   matching goes through it. **Do not change it:** the pipeline imports the same file, so it also
-  decides what the 10,278 shipped dictionary entries match.
+  decides what the shipped dictionary entries match.
 - **Personal content has exactly two types** — lexical items and pages (§7 forbids a third
   without a brief amendment). Words and phrases are both lexical, told apart by `form`. Pages store
   one `pageFocus: notes | vocabulary | source | grammar`; Notes are the permanent body-based
   foundation, while complete `collection`, `source`, and `grammar` structures enable independently.
-  A dated page is a Journal entry only when none of those structures is enabled. `pageProfile` is
-  legacy migration/input compatibility, not current page identity.
+  A dated page is a Journal entry only when none of those structures is enabled and its Notes
+  outline (`noteSections`) is empty. `pageProfile` is legacy migration/input compatibility,
+  not current page identity.
 - **Identity:** personal IDs are `user:<uuid>`; dictionary IDs are namespaced `dict:` keys. A
-  lexical item's optional `dictKey` is a reversible attachment, never its identity — the item
-  keeps its own `term` and owns stable `meaning:<uuid>` records that never reference dictionary
+  lexical item's ordered `dictKeys[]` list holds reversible attachments, never its identity. An
+  empty list means no attachment; the item keeps its own `term` and owns stable `meaning:<uuid>`
+  records that never reference dictionary
   sense IDs or ordering, so it stays meaningful alone.
 - **Links are stored once**, in `linkedKeys[]` on the item where the link was made; backlinks
   are derived from the `*linkedKeys` index. Never store a reciprocal copy. **Linking and
