@@ -1,192 +1,130 @@
 # Improvement ideas
 
-This document captures planning-level product ideas that may be worth discussing later. It is a
-handoff aid for future chats, not an approved roadmap or permission to implement anything.
-
-Before acting on an idea, a future coding agent must read `docs/AGENT-GUIDE.md`, confirm the current
-project state in `README.md`, inspect the relevant implementation, and read the governing brief and
-decision-log entries. The application's design may have changed since an idea was recorded.
+Open ideas live here with their reasoning, potential benefits, tradeoffs and later discussion.
+They are possibilities, not an approved roadmap. Before planning, read the [agent guide](AGENT-GUIDE.md),
+[CURRENT](CURRENT.md), governing brief and relevant decisions, and inspect the implementation.
 
 ## How to use this document
 
-- The document is organized into three bands: **Active ideas** (open captures worth future
-  discussion), **Deferred ideas** (owner-declined until a stated condition changes), and
-  **Implemented ideas (history)** (compressed summaries of shipped work). Keep entries in their
-  band and move them when their status changes.
-- Add the date when an idea is first recorded and update **Last reviewed** when new evidence or a
-  decision materially changes it.
-- Keep **Status** explicit. Suggested values are `Captured`, `Exploring`, `Ready to plan`, `Planned`,
-  `Deferred`, `Implemented`, and `Closed`.
-- Record the owner's stated disposition in an **Owner interest** line whenever the owner has
-  reviewed the idea. It is the difference between "recorded so it is not forgotten", "expects to
-  pursue", and "declined unless something changes" — distinctions that would otherwise flatten
-  into identical statuses.
-- Distinguish an observed problem from a possible future benefit. An idea can be valuable without
-  being a current problem.
-- Record lightweight and structured options separately. They can have very different storage,
-  migration, backup, and interface costs.
-- Add real-use evidence before promoting a data-dependent idea into a phase. Synthetic data can
-  test capability, but it cannot establish the owner's habits.
-- When an idea becomes approved work, link its phase or implementation document here and move the
-  entry to the Implemented band. ~~Keep the idea entry as history rather than silently rewriting
-  the original reasoning.~~ **Amended 2026-08-12 (owner-approved):** an implemented entry is
-  compressed to a summary plus links to its authoritative records (`DECISIONS.md`, the phase
-  direction/report), keeping any still-open evidence or questions intact. The original full
-  reasoning stays available in this file's git history; the Document history entries below are
-  never rewritten.
-
-Useful information to retain for each idea:
-
-- description and current application context;
-- potential options;
-- expected owner value;
-- risks and tradeoffs;
-- architecture, storage, backup, or phase dependencies;
-- evidence needed before deciding;
-- rough timing or sequencing, when known;
-- open questions and later decisions.
+- Keep active and owner-deferred ideas with their full context in this file. Detailed approved
+  work may graduate to a direction/work document; link it here. Approval alone changes status to
+  **in progress**, not **done**. Completed work keeps a linked index row; archive its body only
+  after preserving every still-open possibility here.
+- Use **idea**, **in progress**, or **done**. The Deferred group preserves explicit owner choices
+  without turning them into implementation approval. Historical statuses live in the archive.
+- Retain description, context, options, expected value, risks, technical dependencies and later
+  discussion. Date new captures and substantive reviews; keep owner statements distinct from agent estimates.
+- **Size** and **Touches** are provisional agent estimates for owner review. Small means an
+  afternoon, medium a session or two, large a phase. Estimate lightweight and durable variants
+  separately. A schema or new-event estimate is a design possibility, not authorization.
+- **Owner interest** in the index is **Not set** until the owner chooses **want soon**, **curious**
+  or **someday**. Existing interest prose remains useful context and is not silently converted
+  into a rank. Rank is separate from status and owner deferral.
+- The [owner response, section 15](reviews/2026-10-17/REASSESSMENT.md#15-owner-response-2026-10-17)
+  welcomes experiments. Evidence notes inform choices; real use is not a general gate. Preserve
+  technical input/quality requirements where an idea needs data to work, and explicit owner choices.
+  The usage review is withdrawn. Deployment status belongs in CURRENT.
 
 ## Idea index
 
 ### Active
 
-| Idea | Date added | Status | Earliest sensible discussion point |
-|---|---|---|---|
-| Diario skill-practice prompting suite | 2026-08-20 | Ready to plan — direction approved as Taller | Now; `docs/history/phases/DIARIO-TALLER-DIRECTION.md` is the workshopped contract awaiting an implementation plan |
-| Separate classroom-diario space | 2026-08-20 | Captured | Owner chose one-Diario-two-doors for v1; revisit only if real mixed use shows the single timeline chafing |
-| In-app AI prompt drafting | 2026-08-20 | Captured | After the ad hoc prompt-workshop practice proves what good personalized prompts look like |
-| Personal prompt store | 2026-08-20 | Captured | If workshopped prompts ever get too personal for the public repo; shipped-in-code is the deliberate start |
-| Historia word families | 2026-08-13 | Phase 25a deployed; Phase 25b rejected at gate | Closed for now; any derivational revival needs redesigned reference data |
-| Diario follow-up AI requests | 2026-08-14 | Captured | After the Apuntes box (schema v9) has real-use history showing the Gemini round-trip still chafes |
-| Edge-kind visual vocabulary | 2026-08-13 | Captured | Any time; mostly the lighter visual loop — side-by-side variants, colours through theme tokens |
-| Wander constellation (one-hop map) | 2026-08-13 | Captured | After the edge-kind vocabulary settles; lives or dies on a 375px variant pass with worst-case terms |
-| Connection cluster browsing | 2026-08-13 | Captured | Once the confirmed graph has real clusters (Graph texture can show this); resolve the Tag hubs / Saved views overlap first |
-| Graph texture in Estadísticas | 2026-08-13 | Captured | Any time; a small derived Estadísticas addition that doubles as evidence for the other visualization ideas |
-| Moment-of-learning micro-visuals | 2026-08-13 | Captured | Whenever the Similar-meaning recall or Historia surfaces are next touched |
-| Global graph visualization | 2026-08-13 | Captured | Only after the smaller connection visuals prove value in real use; excluded from Phase 23 by name |
-| Evidence-backed synonym/antonym proposals | 2026-08-13 | Captured | After a target-identity/sense quality gate over r4 relation strings; never through rejected `relatedWords` |
-| Evidence-backed Page-to-Page proposals | 2026-08-13 | Captured | After Phase 26 exact-context and exact-URL evidence has real-use history |
-| Optional AI connection review | 2026-08-13 | Captured | After local derivations prove their value; Phase 6 disclosure and provenance decisions govern it |
-| Candidate future data sources (survey) | 2026-08-13 | Captured | When a need each serves becomes real (monolingual mode, audio, drill content); every license re-verified at adoption |
-| Conjugation catalog extensions | 2026-08-12 | Captured | When Phase 21's classifier next reopens; required-cell coverage must be swept before accepting either family |
-| Monolingual recall (Spanish usage cues) | 2026-08-12 | Captured | After checking how many real meanings carry a usage cue |
-| Retired-word spot checks | 2026-08-12 | Captured | Once a meaningful number of words are Retired; the demotion question needs an owner decision |
-| Near-duplicate consolidation view | 2026-08-12 | Captured | Any time; view only — entry merging is a separate, larger decision |
-| Dictionary word-family explorer | 2026-08-12 | Captured | R4 is deployed but Phase 25's audit rejected it for family claims; reopen only with relation provenance and target-entry identity |
-| Select text to look up | 2026-08-12 | Captured | Any time; read-only navigation glue over existing search |
-| Paste a vocabulary list | 2026-08-12 | Captured | Needs a design discussion first: parsing, per-row meanings, event honesty |
-| PWA app shortcuts | 2026-08-12 | Captured | Any time; manifest-only, recorded so it is not forgotten |
-| "Did you mean" search suggestions | 2026-08-12 | Captured | Any time; a suggestion layer that leaves `normalize.js` untouched |
-| Tag hubs | 2026-08-12 | Captured | Revisit when the owner has more tags and uses them more |
-| Review→writing bridge | 2026-08-12 | Captured | Worth considering once Diario AI feedback and review volume coexist |
-| Time-boxed mixed session | 2026-08-12 | Captured | After enough real data exists for "weakest" selections to mean something |
-| Review forecast | 2026-08-12 | Captured | Low priority per owner; a small derived Estadísticas addition |
-| Confusion-pair drills | 2026-08-12 | Captured | Any time; the annotations are already curated (promoted out of Learning depth history) |
-| Dictation cards | 2026-08-11 | Captured | After real use of the picture face settles the face-priority pattern |
-| Frequency coverage | 2026-08-11 | Captured | Any time; a derived Estadísticas view over existing `freqRank` data |
-| Phase 19/20 review nits (edge polish) | 2026-08-10 | Captured | Whenever a related area is next touched; none is urgent |
-| Saved views | 2026-08-02 | Captured | Now discussable: Phase 8's lenses have been in daily use, so the owner can name repeated combinations |
-| Personal-content provenance | 2026-08-02 | Captured | Before AI-proposed content is designed; the Phase 6 feedback field set a first precedent |
+| Idea | Status | Owner interest |
+|---|---|---|
+| [Separate classroom-diario space](#separate-classroom-diario-space) | idea | Not set |
+| [In-app AI prompt drafting](#in-app-ai-prompt-drafting) | idea | Not set |
+| [Personal prompt store](#personal-prompt-store) | idea | Not set |
+| [Diario follow-up AI requests](#diario-follow-up-ai-requests) | idea | Not set |
+| [Edge-kind visual vocabulary](#edge-kind-visual-vocabulary) | idea | Not set |
+| [Wander constellation (one-hop map)](#wander-constellation-one-hop-map) | idea | Not set |
+| [Connection cluster browsing](#connection-cluster-browsing) | idea | Not set |
+| [Graph texture in Estadísticas](#graph-texture-in-estadísticas) | idea | Not set |
+| [Moment-of-learning micro-visuals](#moment-of-learning-micro-visuals) | idea | Not set |
+| [Global graph visualization](#global-graph-visualization) | idea | Not set |
+| [Evidence-backed synonym/antonym proposals](#evidence-backed-synonymantonym-proposals) | idea | Not set |
+| [Evidence-backed Page-to-Page proposals](#evidence-backed-page-to-page-proposals) | idea | Not set |
+| [Optional AI connection review](#optional-ai-connection-review) | idea | Not set |
+| [Conjugation catalog extensions](#conjugation-catalog-extensions) | idea | Not set |
+| [Monolingual recall (Spanish usage cues)](#monolingual-recall-spanish-usage-cues) | idea | Not set |
+| [Retired-word spot checks](#retired-word-spot-checks) | idea | Not set |
+| [Near-duplicate consolidation view](#near-duplicate-consolidation-view) | idea | Not set |
+| [Dictionary word-family explorer](#dictionary-word-family-explorer) | idea | Not set |
+| [Select text to look up](#select-text-to-look-up) | idea | Not set |
+| [Paste a vocabulary list](#paste-a-vocabulary-list) | idea | Not set |
+| [PWA app shortcuts](#pwa-app-shortcuts) | idea | Not set |
+| ["Did you mean" search suggestions](#did-you-mean-search-suggestions) | idea | Not set |
+| [Tag hubs](#tag-hubs) | idea | Not set |
+| [Review→writing bridge](#reviewwriting-bridge) | idea | Not set |
+| [Time-boxed mixed session](#time-boxed-mixed-session) | idea | Not set |
+| [Review forecast](#review-forecast) | idea | Not set |
+| [Confusion-pair drills](#confusion-pair-drills) | idea | Not set |
+| [Dictation cards](#dictation-cards) | idea | Not set |
+| [Frequency coverage](#frequency-coverage) | idea | Not set |
+| [Saved views](#saved-views) | idea | Not set |
+| [Personal-content provenance](#personal-content-provenance) | idea | Not set |
+| [Taller follow-ups](#taller-follow-ups) | idea | Not set |
+| [Non-verb drill extensions and practice home](#non-verb-drill-extensions-and-practice-home) | idea | Not set |
+| [Containment and Similar proposal follow-ups](#containment-and-similar-proposal-follow-ups) | idea | Not set |
+| [Share post-attach quick actions](#share-post-attach-quick-actions) | idea | Not set |
+| [Historia performance and thin-biography lens](#historia-performance-and-thin-biography-lens) | idea | Not set |
+| [Neighborhood browsing follow-ups](#neighborhood-browsing-follow-ups) | idea | Not set |
+| [Tag maintenance follow-ups](#tag-maintenance-follow-ups) | idea | Not set |
+| [Retention and direction statistics](#retention-and-direction-statistics) | idea | Not set |
+| [Review direction and Diario cloze](#review-direction-and-diario-cloze) | idea | Not set |
+| [Richer Diario and page possibilities](#richer-diario-and-page-possibilities) | idea | Not set |
+| [Source templates and reading follow-ups](#source-templates-and-reading-follow-ups) | idea | Not set |
 
 ### Deferred
 
-| Idea | Date added | Reopen when |
+| Idea | Status | Owner interest |
 |---|---|---|
-| Accent bar for typed inputs | 2026-08-12 | The owner's keyboard situation changes, or accent entry is observed slowing a typed session |
+| [Accent bar for typed inputs](#accent-bar-for-typed-inputs) | idea — owner-deferred | Not set |
 
 ### Implemented (history)
 
-| Idea | Date added | Implemented as | Full records |
-|---|---|---|---|
-| Non-verb grammar drills | 2026-08-11 | Contrasts Gym lane, implemented locally 2026-08-24 (not yet deployed) | `docs/history/phases/CONTRAST-LANE-DIRECTION.md`; 2026-08-24 entries in `DECISIONS.md` |
-| Suppressed-containment confirmation | 2026-08-15 | Same-day increment, deployed | 2026-08-15 entries in `DECISIONS.md` |
-| Unused dictionary fields (shipped-lemma census) | 2026-08-13 | Phase 24 r4 enrichment, deployed | `PHASE-24-DIRECTION.md`, `PHASE-24-REPORT.md` |
-| The word's biography | 2026-08-12 | Phase 23a, deployed | `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md` |
-| Neighborhood browsing | 2026-08-12 | Phase 23b, deployed | `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md` |
-| Phrase↔word containment links | 2026-08-12 | Phase 22a, deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
-| Same-meaning clustering | 2026-08-12 | Phase 22b–22c, deployed | `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md` |
-| "Conjugates like" verb families | 2026-08-12 | Phase 21, deployed | `PHASE-21-DIRECTION.md`, `PHASE-21-REPORT.md` |
-| Android share target | 2026-08-11 | 2026-08-13 increment, deployed | 2026-08-13 entries in `DECISIONS.md` |
-| English→Spanish lookup | 2026-08-12 | Phase 2e, deployed (predated the capture) | `PHASE-2-REPORT.md`, 2026-07-31 entries in `DECISIONS.md` |
-| Global tag management | 2026-08-10 | Phase 20, deployed | `PHASE-20-DIRECTION.md`, `PHASE-20-REPORT.md` |
-| Markdown blank-line spacing | 2026-08-10 | Phase 19 plus lexical-note follow-up, deployed | Phase 19 and 2026-08-16 entries in `DECISIONS.md` |
-| Explicit Notes callouts | 2026-08-10 | Phase 19 plus lexical-note follow-up, deployed | Phase 19 and 2026-08-16 entries in `DECISIONS.md` |
-| Structured Notes outlines | 2026-08-10 | Phase 19 schema-v7 increment, deployed | `PHASE-19-DIRECTION.md`, `PHASE-19-REPORT.md` |
-| Grammar guide depth and callouts | 2026-08-10 | Phase 19 first release, deployed | `PHASE-19-DIRECTION.md`, `PHASE-19-REPORT.md` |
-| Owner-centric stats | 2026-08-06 | Phase 11, deployed | `PHASE-11-DIRECTION.md`, Phase 11 entries in `DECISIONS.md` |
-| Learning depth (cloze, reverse, drill, audio) | 2026-08-06 | Phase 10a–10d, deployed | Phase 10 entries in `DECISIONS.md` |
-| Typed or explained relationships | 2026-08-02 | Phase 4t–4x, deployed | Phase 4t–4x entries in `DECISIONS.md` |
-| Persistent page profiles | 2026-08-02 | Phase 4j–4o, then composable Phase 7, deployed | `PHASE-7-DIRECTION.md`, `PHASE-7-REPORT.md`, `PHASE-4-JOURNAL-DIRECTION.md` |
-| Source-oriented page templates | 2026-08-02 | Phase 7, deployed | `PHASE-7-DIRECTION.md`, `PHASE-7-REPORT.md` |
-| Meaning-block presentation | 2026-08-02 | Phase 4i, deployed | Phase 4i entries in `DECISIONS.md` |
+These rows identify completed work, not deployment status. Open follow-ups remain above.
 
----
+| Idea | Status | Historical context |
+|---|---|---|
+| Non-verb grammar drills | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#non-verb-grammar-drills) |
+| Suppressed-containment confirmation | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#suppressed-containment-confirmation) |
+| Unused dictionary fields (shipped-lemma census) | done | [Record](history/phases/PHASE-24-REPORT.md) |
+| The word's biography | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#the-words-biography) |
+| Neighborhood browsing | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#neighborhood-browsing) |
+| Phrase↔word containment links | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#phraseword-containment-links) |
+| Same-meaning clustering | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#same-meaning-clustering) |
+| "Conjugates like" verb families | done | [Record](history/phases/PHASE-21-REPORT.md) |
+| Android share target | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#android-share-target) |
+| English→Spanish lookup | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#englishspanish-lookup) |
+| Global tag management | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#global-tag-management) |
+| Markdown blank-line spacing | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#markdown-blank-line-spacing) |
+| Explicit Notes callouts | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#explicit-notes-callouts) |
+| Structured Notes outlines | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#structured-notes-outlines) |
+| Grammar guide depth and callouts | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#grammar-guide-depth-and-callouts) |
+| Owner-centric stats | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#owner-centric-stats) |
+| Learning depth (cloze, reverse, drill, audio) | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#learning-depth-cloze-reverse-drill-audio) |
+| Typed or explained relationships | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#typed-or-explained-relationships) |
+| Persistent page profiles | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#persistent-page-profiles) |
+| Source-oriented page templates | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#source-oriented-page-templates) |
+| Meaning-block presentation | done | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#meaning-block-presentation) |
+| Diario skill-practice prompting suite | done — Taller v1 | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#diario-skill-practice-prompting-suite) |
+| Historia word families | done — 25a; 25b rejected | [Record](history/IMPROVEMENT-IDEAS-HISTORY.md#historia-word-families) |
+
+Reference material: [candidate data sources](research/CANDIDATE-DATA-SOURCES.md),
+[Phase 19/20 polish observations](reviews/2026-08-10/PHASE-19-20-NITS.md), and
+[document history](history/IMPROVEMENT-IDEAS-HISTORY.md#document-history).
 
 ## Active ideas
-
-### Diario skill-practice prompting suite
-
-- **Date added:** 2026-08-20
-- **Last reviewed:** 2026-08-20 — workshopped into an approved direction the same day. A
-  multi-round owner workshop settled the full v1 design (the **Taller** door, drills in the
-  ordinary editor with keep-or-discard, rich practice events, a tema interest layer, static plus
-  dictionary-powered scaffolds, tiers, quiet derived timeline badges, no AI, record-don't-display
-  tracking). The contract is `docs/history/phases/DIARIO-TALLER-DIRECTION.md`; own-voice recycling was ranked
-  below the three chosen features and stays captured here rather than entering v1.
-- **Status:** Ready to plan — direction approved
-- **Origin:** Owner direction after the 2026-08-19 skill-focused prompt categories deployed
-  (`7ed9aca`); recorded from the follow-up prompting-directions discussion, 2026-08-20
-- **Owner interest:** Expects to pursue. The owner explicitly opened the door to amending the
-  2026-08-03 "visit-local guidance, never stored metadata" prompt rule: serious diary/journaling
-  work happens outside the app in English, so the Diario is more likely to be used — and used
-  more — as a space for deliberately working on Spanish skills, while still receiving some
-  reflection-style entries.
-- **Potential data impact:** Splits by option. The derived-only options need no storage at all;
-  prompt-usage memory or per-skill tracking would need a new event, preference, or field and
-  therefore §5 in full plus an explicit amendment of the 2026-08-03 rule in `DECISIONS.md`.
-
-#### Description and current context
-
-The prompt library (42 bilingual prompts, seven categories, `src/lib/journalPrompts.js`) is
-static and anonymous: nothing knows which prompts are used, and prompts know nothing about the
-notebook. The captured options deepen the classroom character in rough order of cost:
-
-- **Vocabulary-integrated prompts** — a prompt variant that samples 2–3 of the owner's own items
-  (due in Repaso, or recently created) and shows them as chips to work into the entry. Fully
-  derived at render, in the same style as the Cuidar hub's per-visit samples.
-- **Weakness-aware grammar prompts** — bias Narrate-style prompts toward the owner's weakest
-  tenses using the Conjugation Gym's existing derivations (`conjugationStats.js`). Derived only.
-- **Own-voice recycling** — prompts that point at the timeline: retell an old entry in another
-  tense, rewrite three past sentences with new connectors. Needs no data support at all.
-- **Micro-scaffolds** — a transient word bank under a chosen skill prompt (connectors, time
-  markers, subjunctive triggers). Data-only addition to the prompt records.
-- **Difficulty tiers** — two variants per skill category, mixed in or behind a subtle toggle.
-- **AI review with a declared focus** — the Phase 6 entry review accepts an optional focus chosen
-  at review time ("attend to preterite vs. imperfect"). Grows the workshopped, test-pinned
-  review prompt, so it needs its own small direction discussion; §9 disclosure posture governs.
-- **Prompt-usage memory / per-skill tracking** — no-repeat windows, "which skills have I practiced
-  lately", per-category streaks. Each requires storing prompt usage, i.e. the rule amendment and
-  a real storage decision; weigh against the app's anti-tracking ethos (Cuidar's no-counters
-  design) before choosing this over the derived alternatives.
-
-#### Considerations recorded at capture
-
-- Considered and set aside at capture: AI-generated prompts (the static bilingual list is
-  auditable, offline, and free; generation adds spend and provenance questions for marginal
-  variety) and unprompted prompt display on the Diario landing (the pull-model "Need a prompt?"
-  matches the app's no-nagging character).
-- The 2026-08-03 rule amendment, when made, should say precisely what becomes storable (prompt
-  ids used? skill categories? dates?) rather than dropping the rule wholesale — most captured
-  options need no storage, and the rule's anti-classification instinct still protects ordinary
-  reflective entries.
 
 ### Separate classroom-diario space
 
 - **Date added:** 2026-08-20
 - **Last reviewed:** 2026-08-20 — the Taller workshop chose **one Diario, two doors** for v1 and
   deliberately avoided foreclosing a later gathering of practice surfaces under Taller. This
-  entry stays captured as the contingent future split; the evidence bar below is unchanged.
-- **Status:** Captured
+  entry stays captured as a contingent future split; experimentation is allowed under owner response §15.
+- **Status:** idea
+- **Size (draft):** medium for a presentation-only hub; large for stored identity
+- **Touches (draft):** screen/navigation; schema and backup only for a stored-kind option
 - **Origin:** Same 2026-08-20 owner direction as the prompting suite
 - **Owner interest:** Raised by the owner as a possibility, explicitly contingent on what gets
   built: "depending on what gets added, maybe there might even be a need for separate spaces."
@@ -201,15 +139,17 @@ If the classroom direction grows (skill prompts, scaffolds, tracked practice), s
 entries and reflective moments may sit awkwardly in one timeline. The idea is a second hub —
 the current Diario for reflection, a classroom space for structured writing practice — in the
 spirit of the existing hub pattern (Pages hub, Words & phrases hub, Cuidar). The cheap version
-derives the split (e.g. entries created from a skill prompt *if* prompt usage becomes storable,
+derives the split (e.g. entries identifiable through existing Taller practice events,
 or simply a separate entry point that filters nothing); the expensive version stores entry kind,
-which is a §7 discussion. Evidence needed first: real mixed use of the prompting suite showing
-the single timeline actually chafes.
+which is a §7 discussion. Mixed-use observations can inform the design; they are not a prerequisite
+for trying a separate presentation.
 
 ### In-app AI prompt drafting
 
 - **Date added:** 2026-08-20
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** large
+- **Touches (draft):** AI request/disclosure, prompt editor; storage/backup if saved
 - **Origin:** Owner reflection during the Taller interests discussion, 2026-08-20: "I think that
   llms should be a good prompt writing resource and that my guidance can help direct it."
 - **Owner interest:** Wants AI-written, owner-directed prompts, but chose the session-workshop
@@ -221,16 +161,19 @@ the single timeline actually chafes.
 #### Description and current context
 
 Someday Taller could draft a fresh personalized prompt on demand — interests × skill × recent
-notebook activity. Deliberately gated: the ad hoc **prompt workshop practice** (owner directs an
+notebook activity. The owner chose the ad hoc **prompt workshop practice** (owner directs an
 LLM in a session, curated results ship as ordinary `journalPrompts.js` data — exactly how the
-2026-08-19 skill categories were made) must first prove what good personalized prompts look like.
+2026-08-19 skill categories were made) as the starting approach. Runtime drafting remains available
+for a separately approved experiment.
 The earlier capture note stands: runtime generation trades away an auditable, offline, free
-library for marginal variety, so it needs demonstrated value the workshop cadence cannot supply.
+library for added variety, with spend, privacy and provenance costs to weigh against workshop curation.
 
 ### Personal prompt store
 
 - **Date added:** 2026-08-20
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** large
+- **Touches (draft):** new personal prompt storage, editor and backup; schema decision
 - **Origin:** Privacy question raised while placing workshopped interest-prompts, 2026-08-20
 - **Owner interest:** "I don't expect that the prompts will contain much personal information.
   Maybe start with shipped and then add a store later if necessary."
@@ -249,7 +192,9 @@ revival of the long-deferred "user-authored templates" idea.
 ### Diario follow-up AI requests
 
 - **Date added:** 2026-08-14
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** AI request/disclosure and review UI; existing Apuntes if chosen
 - **Origin:** Owner question during the Apuntes (schema v9) discussion, 2026-08-14
 - **Owner interest:** Unsure — "not sure if that's a better option than just going to Gemini for
   additional feedback and bringing that feedback back."
@@ -267,48 +212,23 @@ owner's existing round-trip to another tool (Gemini) with the result pasted into
 
 - The external round-trip has a virtue an in-app button cannot replicate: a genuinely different
   model's second opinion. The Apuntes box removes most of the round-trip's friction, so judge
-  the remaining annoyance only after living with it.
+  the remaining annoyance as useful context, without making a period of use a prerequisite.
 - The existing review works because it is constrained — one workshopped prompt, schema-enforced
   JSON, one storage slot with a replace/remove lifecycle and staleness hash. Free-form output
   would need an equivalent home and lifecycle; without one it lands back in Apuntes anyway.
-- A free prompt box is the top of a slope toward a general chat client, against the project's
-  simplicity-over-features ethos; if evidence shows the same follow-up being asked repeatedly,
-  prefer one or two canned, workshopped follow-up actions inside the review panel whose dated
-  answers file into Apuntes. §9's disclosure-before-send posture governs any variant.
-
-### Historia word families
-
-- **Date added:** 2026-08-13
-- **Status:** Split 2026-08-13 — Phase 25a implemented and deployed at `1432dd1`; Phase 25b
-  stopped at its mandatory r4 quality gate before UI work
-- **Origin:** Owner selection from the 2026-08-13 Historia-strengthening discussion, scoped the
-  same day in a seven-question workshop
-- **Records:** `PHASE-25-DIRECTION.md`, `PHASE-25-REPORT.md`, Phase 25 entries in `DECISIONS.md`
-- **Potential data impact:** None; render-time derivation over existing personal data and the
-  installed r4 dictionary. Schema stays 8; no event, preference, or package change
-
-#### Description and current context
-
-Historia's habitat now shows **25a — conjugation family** on the live site, mirroring the wander
-card's family group (saved Phase 21 paradigm siblings plus the What-to-notice teaching exit)
-through one shared, word-only derivation — a rule that also narrowed the wander card's own family
-edge for attached phrases, recorded in the direction's Wander boundary amendment. The proposed
-**25b — derivational family** stopped
-at its required pre-UI audit:
-only 17.68% of r4's listed relation terms resolve to shipped lemmas, and the flattened field mixes
-genuine derivations with broad relations while discarding target entry identity. Exact matching
-therefore cannot prevent false family claims. `relatedWords` remains dormant; any revival needs a
-separately approved reference-data redesign. The unsaved-relative growth reading remains with the
-separate Dictionary word-family explorer idea below.
-
----
+- A free prompt box broadens scope toward a chat client. One or two canned follow-up actions
+  would be a smaller experiment; their dated answers could file into Apuntes. Either option
+  needs a clear lifecycle. §9's disclosure-before-send posture governs any variant.
 
 ### Edge-kind visual vocabulary
 
 - **Date added:** 2026-08-13
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** small
+- **Touches (draft):** screen styling and tokens
 - **Origin:** Connection-visualization brainstorm with the owner, 2026-08-13; captured as a
-  six-entry batch (see Document history), no settled aim yet
+  six-entry batch (see [document history](history/IMPROVEMENT-IDEAS-HISTORY.md#document-history)),
+no settled aim yet
 - **Owner interest:** Requested for the list while brainstorming.
 - **Potential data impact:** None; presentation only, every colour through existing theme tokens
 
@@ -338,7 +258,7 @@ the lists instead of inventing a second language.
   tests can see crosses back into plan-first territory — the agent-guide line applies: when
   unsure, it is structural.
 
-#### Evidence needed
+#### Evidence and design notes
 
 - None beyond the variant pass itself, built with real worst-case content (longest terms, an
   entry carrying every edge kind at once).
@@ -348,9 +268,11 @@ the lists instead of inventing a second language.
 ### Wander constellation (one-hop map)
 
 - **Date added:** 2026-08-13
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** screen/SVG layout and navigation
 - **Origin:** Connection-visualization brainstorm with the owner, 2026-08-13; captured as a
-  six-entry batch (see Document history)
+  six-entry batch (see [document history](history/IMPROVEMENT-IDEAS-HISTORY.md#document-history))
 - **Owner interest:** Requested for the list while brainstorming.
 - **Potential data impact:** None; renders exactly the neighborhood data the wander card already
   derives, stores no layout or position
@@ -378,20 +300,22 @@ derived at render, event-free, no stored trail, Diario stays an inert count.
   positions — persistence would be new stored state and a separate decision.
 - Accessibility: rows are inherently readable and tappable at 44px; an SVG must earn the same.
 
-#### Evidence needed
+#### Evidence and design notes
 
 - The shape of real neighborhoods. Sparse two-neighbor constellations may dominate and look
-  emptier than rows; Graph texture in Estadísticas (below) can answer this before any pixel is
-  drawn.
+  emptier than rows. Representative fixtures can explore this; Graph texture is another optional
+source of evidence.
 
 ---
 
 ### Connection cluster browsing
 
 - **Date added:** 2026-08-13
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** derived graph helper and browsing screen
 - **Origin:** Connection-visualization brainstorm with the owner, 2026-08-13; captured as a
-  six-entry batch (see Document history)
+  six-entry batch (see [document history](history/IMPROVEMENT-IDEAS-HISTORY.md#document-history))
 - **Owner interest:** Requested for the list while brainstorming.
 - **Potential data impact:** None; connected components derived at render, nothing stored
 
@@ -415,7 +339,8 @@ connection roadmap; it is not duplicated under a new name. Confirmed stored-once
 graph authority. Phase 26's Mentioned here proposals never become edges, and its factual
 Seen-together evidence may appear in a future visualization only as a separately labeled edge kind
 rather than being folded into confirmed clusters or their statistics. The existing sequence still
-stands: Graph texture first, then bounded cluster/constellation views, and the global map last.
+is a suggested sequence: Graph texture, bounded cluster/constellation views, then the global map.
+Section 15 makes it optional rather than an evidence gate.
 
 #### Expected owner value
 
@@ -430,19 +355,21 @@ stands: Graph texture first, then bounded cluster/constellation views, and the g
   desert and teach the owner to ignore the surface.
 - Cluster membership shifts as links change; the view derives at render and claims no history.
 
-#### Evidence needed
+#### Evidence and design notes
 
-- Real cluster count and size distribution in the owner's notebook — Graph texture in
-  Estadísticas (below) supplies exactly this, far more cheaply, first.
+- Cluster counts and size distributions help assess usefulness. Sparse and dense fixtures can
+support experiments; owner data requires task-scoped permission.
 
 ---
 
 ### Graph texture in Estadísticas
 
 - **Date added:** 2026-08-13
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** small
+- **Touches (draft):** derived statistics and screen
 - **Origin:** Connection-visualization brainstorm with the owner, 2026-08-13; captured as a
-  six-entry batch (see Document history)
+  six-entry batch (see [document history](history/IMPROVEMENT-IDEAS-HISTORY.md#document-history))
 - **Owner interest:** Requested for the list while brainstorming.
 - **Potential data impact:** None; derived counts over existing links, stored nowhere
 
@@ -451,9 +378,8 @@ stands: Graph texture first, then bounded cluster/constellation views, and the g
 A small connectivity section inside Estadísticas: how many items carry at least one connection,
 counts per edge kind, the largest cluster's size, and the number of isolates. Sought out rather
 than pushed — the same temperament rule the Review forecast entry records. Beyond its own value,
-this is the evidence base the rest of the visualization batch is gated on: it answers whether
-real neighborhoods are rich enough for a constellation and whether real clusters are numerous
-enough for cluster browsing, before either is designed.
+this can inform the other visualization ideas: it describes neighborhood richness and cluster sizes.
+Those experiments need not wait for this screen.
 
 #### Expected owner value
 
@@ -467,18 +393,20 @@ enough for cluster browsing, before either is designed.
 - Component derivation over all links is cheap at personal scale but should reuse the existing
   derived-graph helpers rather than growing a second traversal.
 
-#### Evidence needed
+#### Evidence and design notes
 
-- None; this entry *is* the evidence gatherer for its siblings.
+- No prerequisite; its descriptive counts could inform sibling ideas.
 
 ---
 
 ### Moment-of-learning micro-visuals
 
 - **Date added:** 2026-08-13
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** small per surface
+- **Touches (draft):** screen styling/layout
 - **Origin:** Connection-visualization brainstorm with the owner, 2026-08-13; captured as a
-  six-entry batch (see Document history)
+  six-entry batch (see [document history](history/IMPROVEMENT-IDEAS-HISTORY.md#document-history))
 - **Owner interest:** Requested for the list while brainstorming.
 - **Potential data impact:** None; presentation over data the surfaces already derive
 
@@ -502,19 +430,22 @@ reading moment the owner is already in, not when it lives on a destination page 
 - Each micro-visual is its own subjective choice — separate variant passes, separate visual
   commits, per the visual-changes process rules.
 
-#### Evidence needed
+#### Evidence and design notes
 
-- Which moments actually recur in real use (recall sessions vs Historia reads) — worth adding
-  visuals where the owner already spends time, not everywhere at once.
+- Which moments benefit from visuals can be explored in variants or real use; start with one surface
+to keep the experiment bounded.
 
 ---
 
 ### Global graph visualization
 
 - **Date added:** 2026-08-13
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** large
+- **Touches (draft):** graph layout, phone navigation and accessibility; persistence only if separately chosen
 - **Origin:** Connection-visualization brainstorm with the owner, 2026-08-13; captured as a
-  six-entry batch (see Document history). Phase 23 excluded this by name; this entry gives that
+  six-entry batch (see [document history](history/IMPROVEMENT-IDEAS-HISTORY.md#document-history)).
+Phase 23 excluded this by name; this entry gives that
   exclusion a place to point rather than reversing it
 - **Owner interest:** Requested for the list while brainstorming; explicitly last in the batch's
   suggested order.
@@ -526,9 +457,8 @@ reading moment the owner is already in, not when it lives on a destination page 
 The whole notebook as one navigable map. Deliberately held last: it is the hardest visualization
 to keep legible on a phone, the most expensive to build, and the one whose learning value is
 least proven — the classic risk is a screenshot feature that is admired once and never opened
-again. If the constellation and cluster views earn their keep in real use, a global map becomes
-a zoom-out of machinery that already exists; if they do not, that is strong evidence this entry
-should be closed rather than built.
+again. Smaller constellation and cluster experiments could supply reusable machinery and design
+lessons. Their prior use is not a condition for trying the global view.
 
 #### Expected owner value
 
@@ -543,18 +473,19 @@ should be closed rather than built.
   is exactly the stored state this idea must not smuggle in.
 - The no-pressure and no-analytics temperament forbids the map from becoming a score.
 
-#### Evidence needed
+#### Evidence and design notes
 
-- Real use of the smaller visuals first: constellation hop counts felt (not logged — the
-  event-free rule stands), cluster browsing reached for, Estadísticas texture consulted. This
-  idea only graduates on their evidence.
+- Smaller visual experiments and representative graph fixtures can inform legibility and navigation.
+Usage observations are optional; no usage review is required.
 
 ---
 
 ### Evidence-backed synonym/antonym proposals
 
 - **Date added:** 2026-08-13
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** large
+- **Touches (draft):** reference-quality audit, matching and proposal UI; existing link writes
 - **Origin:** Owner connection-derivation discussion; retained as step 4 after Phase 26 planning
 - **Owner interest:** Asked to retain for later, not approved for implementation.
 - **Potential data impact:** None for transient proposals; explicit acceptance uses ordinary
@@ -582,7 +513,7 @@ already a closed quality verdict.
 - Proposals remain explained and visit-local. Nothing links automatically, and no transitive
   synonym cluster becomes truth.
 
-#### Evidence needed
+#### Evidence and design notes
 
 - A shipped-r4 audit of unique target resolution and sense/POS compatibility over saved-attached
   fixtures before any UI work.
@@ -594,7 +525,9 @@ already a closed quality verdict.
 ### Evidence-backed Page-to-Page proposals
 
 - **Date added:** 2026-08-13
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** derived matching, proposal UI and existing link writes
 - **Origin:** Owner connection-derivation discussion; retained as step 5 after Phase 26 planning
 - **Owner interest:** Asked to retain for later, not approved for implementation.
 - **Potential data impact:** None for transient proposals; confirmation uses existing ordinary
@@ -621,17 +554,19 @@ a parallel Page graph.
   Related, Found in or Explained by.
 - Proposal caps and no dismissal memory keep the first slice schema-free but allow repeat noise.
 
-#### Evidence needed
+#### Evidence and design notes
 
-- Real-use density after Phase 26: how many Page pairs share two or more meaningful contextual
-  items or an exact URL, and how often those pairs are already linked.
+- Check sparse and dense cases: how many Page pairs share meaningful contextual items or an exact
+URL, and whether they are already linked. Real-use observations can supplement fixtures.
 
 ---
 
 ### Optional AI connection review
 
 - **Date added:** 2026-08-13
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** large
+- **Touches (draft):** AI disclosure/request, proposals and link confirmation; provenance if AI notes saved
 - **Origin:** Owner connection-derivation discussion; retained as step 7 after Phase 26 planning
 - **Owner interest:** Asked to retain for later and keep optional.
 - **Potential data impact:** Session-only proposals need none; accepted links use existing storage.
@@ -656,121 +591,20 @@ stored-once writer and explicit approval pattern.
 - Cost, privacy and provider behavior make this a deliberately summoned tool, not ambient polish.
 - Durable rejection memory or cached model output would enlarge the personal backup contract.
 
-#### Evidence needed
+#### Evidence and design notes
 
-- Whether Phase 26's local derivations leave a real connection-discovery gap worth sending data
-  and spending tokens to fill.
+- Compare the proposed experience with local derivations to understand the privacy, cost and
+discovery tradeoff; a real-use waiting period is not required.
 - A provenance decision before any AI-authored relationship note can become owner content.
-
----
-
-### Candidate future data sources (survey)
-
-- **Date added:** 2026-08-13
-- **Status:** Captured
-- **Origin:** Owner question ("are there new data sources that might be helpful later?"),
-  answered 2026-08-12 with a survey against the project's constraints (offline PWA, size budget,
-  licensing discipline, Mexico preference)
-- **Owner interest:** Requested for the list.
-- **Potential data impact:** None to personal data; each adoption is a `sources.json` entry, a
-  `DATA_SOURCES.md` record, and a dataset rebuild behind the §5 seam
-
-#### Standing rules this survey applied
-
-- **License quotes are recorded at download, never assumed.** Every license below must be
-  re-verified by `01-download` before a byte enters the bundle; only the Wikimedia-family
-  CC BY-SA sources and Common Voice's CC0 are near-certain from the survey alone.
-- **Noncommercial sources can only ever be build-time validators** (the Jehle precedent): the
-  public repository plus GitHub Pages redistribute everything shipped.
-- **Extract more before adding more.** The existing dump still holds unshipped value (see Unused
-  dictionary fields, above) and serves several needs at build time with no new download: the full
-  ~114k-lemma inventory could back "Did you mean" real-word checks, etymology text could yield
-  cognate hooks, and the Tatoeba sentences could yield collocation n-grams.
-
-#### Top candidate: Kaikki's Spanish-Wiktionary extract (es.wiktionary)
-
-The same wiktextract family, built from the Spanish Wiktionary. As an **addition** — never a
-replacement; `DATA_SOURCES.md` already records why the two files are not interchangeable — it
-offers the two things the English Wiktionary structurally cannot: **monolingual Spanish
-definitions** (real coverage for Monolingual recall without the owner writing thousands of cues)
-and **deeper regional and Mexican coverage** (native speakers document their own regionalisms
-best). The license is the same CC BY-SA family. The real cost is alignment: es.wiktionary entries
-will not map one-to-one onto existing canonical IDs (word + POS + etymology splits differ),
-senses can disagree between wiktionaries, and Spanish definition text costs bytes. A
-data-engineering project, not a bolt-on.
-
-#### Audio — the capability gap, and why it fights the architecture
-
-Kaikki had audio for only 5 shipped records, so audio means a new source — and every option
-fights the size budget. The base bundle can never carry it; any adoption would be an optional
-second download or a curated top-N subset.
-
-1. **Lingua Libre / Wikimedia Commons word recordings** (CC BY-SA): human per-word recordings
-   with clean metadata. Needs a Phase-21-style gate pass first: coverage against the shipped
-   lemmas, and speaker origin — contributors skew European Spanish, which matters for a
-   Mexico-preferred notebook.
-2. **Tatoeba sentence audio** (the `sentences_with_audio` export): native recordings of sentences
-   already shipped as examples. Audio licenses are **per contributor** and some are
-   noncommercial, so adoption means per-file license filtering with NC excluded from
-   distribution.
-3. **Mozilla Common Voice Spanish** (CC0): the cleanest license and the weakest fit — sentence
-   recordings of Common Voice's own prompts, not this app's content, in an enormous corpus.
-
-Evidence first, before any of the three: whether device-TTS quality actually bothers the owner in
-practice — the Dictation cards idea will surface this passively.
-
-#### Probably unnecessary: relations and thesaurus datasets
-
-The Open Multilingual Wordnet's Spanish wordnet (from the Multilingual Central Repository) and
-ConceptNet (CC BY-SA) provide synonym sets, antonyms and hierarchies, but they overlap heavily
-with the Wiktionary sense-level synonyms already sitting unshipped in the raw dump. Reopen only
-if those prove too sparse in real use; the MCR license in particular must be verified, not
-remembered.
-
-#### Curated-content seeds (editorial work more than pipeline work)
-
-- **Wikibooks/Wikiversity Spanish grammar** (CC BY-SA): raw material for Grammar guide depth and
-  for the curated item sets Non-verb grammar drills needs — every drill item still needs vetting,
-  so this is content work with a licensed quarry.
-- **Wikipedia's Spanish–English false-friends list** (CC BY-SA): a small, high-value seed for
-  confusable drills (*embarazada*, *actualmente*, *asistir*), curated by hand.
-- **Vikidia Spanish** (the children's encyclopedia, CC BY-SA): graded reading material if
-  assisted reading ever grows out of Select text to look up; until then, reading happens outside
-  the app.
-
-#### Gaps where nothing cleanly licensed exists
-
-Recorded so future sessions do not re-search them: **CEFR-graded word lists** (the Instituto
-Cervantes Plan Curricular is copyrighted; community lists have murky provenance), **collocation
-databases** (the good ones are commercial; the open path is deriving n-grams from the Tatoeba
-sentences at build time), and **Mexican slang dictionaries** (DEM and similar are proprietary —
-§13 closes that door; es.wiktionary is the licensed partial substitute).
-
-#### Contingency, not a feature
-
-The main Kaikki file carries a standing "DEPRECATED" flag that `01-download` re-checks on every
-run. If it ever stops being served, the fallback is running wiktextract directly against the raw
-enwiktionary dump — the same data, extracted locally. Same drawer as the alias map.
-
-#### Priority, if forced
-
-es.wiktionary first (it serves an already-captured idea and the Mexico preference), then the
-Lingua Libre coverage gate pass (cheap to measure, and it decides audio's fate), then the
-false-friends seed when drills next come up. Everything else waits for its need to become real.
-
-#### Questions for a future discussion
-
-- Where would an optional audio download live — a second Ajustes install alongside the
-  dictionary, or a per-entry fetch that compromises offline?
-- Does a monolingual Spanish definition belong on the dictionary entry screen alongside the
-  English gloss, or behind a display mode?
 
 ---
 
 ### Conjugation catalog extensions
 
 - **Date added:** 2026-08-12
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** classifier/reference coverage, dictionary pipeline and teaching UI
 - **Origin:** Phase 21 post-implementation corpus review
 - **Owner interest:** Recorded so the measured observation is not lost; not approved for implementation
 - **Potential data impact:** None to personal data; classifier/report changes would require a new
@@ -788,7 +622,9 @@ must be measured before changing the catalog.
 ### Monolingual recall (Spanish usage cues)
 
 - **Date added:** 2026-08-12
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** card selection/rendering; cue availability
 - **Origin:** Consolidation-themed brainstorm, requested for the list by the owner 2026-08-12
 - **Owner interest:** Requested with the rest of the consolidation batch; assessed as the
   deepest learning payoff of the five.
@@ -811,7 +647,7 @@ side effect: it creates a reason to write cues, which are optional today and lik
 - Whether this is a free-practice mode only or may join scheduled review needs the same
   face/grading-fairness discussion recorded under Dictation cards.
 
-#### Evidence needed
+#### Evidence and design notes
 
 - How many real meanings carry a usage cue — a disposable count over a backup export. Sparse
   cues make this a "write cues first" story, which may itself be the feature's first increment
@@ -822,7 +658,9 @@ side effect: it creates a reason to write cues, which are optional today and lik
 ### Retired-word spot checks
 
 - **Date added:** 2026-08-12
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** review selection and UI; event/scheduling decision if grades affect retirement
 - **Origin:** Consolidation-themed brainstorm, requested for the list by the owner 2026-08-12
 - **Owner interest:** Requested with the rest of the consolidation batch.
 - **Potential data impact:** None for a history-free version; a demoting version writes ordinary
@@ -830,7 +668,8 @@ side effect: it creates a reason to write cues, which are optional today and lik
 
 #### Description and current context
 
-Retirement is currently a one-way door: a Retired word never resurfaces, so decay is invisible.
+Retired words can re-enroll through the ordinary tricky/lookup rules, but there is no deliberate
+retired-word spot-check cycle to reveal forgotten material.
 An **owner-started** "spot-check retired words" deck — a handful, sampled oldest-retirement-first
 — keeps consolidated knowledge verifiably consolidated. Owner-started with no automatic
 re-enrollment keeps it on the right side of §14's scheduling deferral.
@@ -844,7 +683,7 @@ history-free is gentle but leaves the decay it found unfixed. This mirrors, in m
 Phase 13 decision that reversed the ungraded drill — worth deciding deliberately, not
 defaulting.
 
-#### Evidence needed
+#### Evidence and design notes
 
 - Enough Retired words for sampling to mean anything, and the owner's own sense of whether
   retired words are actually slipping.
@@ -854,11 +693,13 @@ defaulting.
 ### Near-duplicate consolidation view
 
 - **Date added:** 2026-08-12
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** derived matching and maintenance screen; existing actions
 - **Origin:** Consolidation-themed brainstorm, requested for the list by the owner 2026-08-12
 - **Owner interest:** Requested with the rest of the consolidation batch.
 - **Potential data impact:** None; a derived maintenance view offering only existing tools.
-  Actual entry merging would be a separate, much larger decision
+  The limited personal-twin merge already exists; broader merging remains a separate decision
 
 #### Description and current context
 
@@ -868,16 +709,18 @@ with heavily overlapping glosses. A derived maintenance view surfacing candidate
 the existing tools (link them as `Variant`/`Similar meaning`, or edit one away by hand), fits
 the completeness-view pattern the hub already has.
 
-**Deliberately excluded from this idea:** automatic or assisted entry *merging*. Merging two
+**Boundary:** the limited personal-twin merge shipped on 2026-08-13. Broader automatic or assisted
+merging remains outside this view. Merging two
 lexical entries means reconciling meanings, examples, links, Collection memberships and event
 history — the same class of stored-inverse-data problem that kept persistent undo out of
-Phase 20 (see Global tag management's watch items). The view is the safe first step; merging
-would be its own proposal.
+Phase 20 (see [Tag maintenance follow-ups](#tag-maintenance-follow-ups)). The view is the safe first
+step; merging
+beyond the existing twin operation would be its own proposal.
 
-#### Evidence needed
+#### Evidence and design notes
 
-- Whether real near-duplicates exist in the notebook at all — pre-guardrail entries are the
-  likely population, and a disposable pass over a backup export answers it.
+- Representative duplicate pairs can support an initial experiment. An owner-approved, read-only
+snapshot review could later establish how often those cases occur.
 
 ---
 
@@ -887,7 +730,9 @@ would be its own proposal.
 - **Last reviewed:** 2026-08-13 — Phase 25's shipped-package audit answered the quality question
   negatively: r4's flattened strings cannot support either the explorer or its personal-layer
   shadow without a reference-data redesign preserving relation provenance and target identity
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** large
+- **Touches (draft):** reference-data redesign/quality audit, identity mapping and browsing UI
 - **Origin:** Owner suggestion, assessed and requested for the list 2026-08-12
 - **Owner interest:** Requested after review of the assessment, including the verified data facts
   below.
@@ -930,8 +775,9 @@ Checked against the repository, not assumed:
 - **Phase 25 quality audit:** 8,125 mentions resolve to a normalized shipped lemma (17.68%);
   1,386 of those hits (17.06%) target a lemma represented by multiple entries. Deterministic
   samples exposed broad relations and false entry claims, while a reciprocal filter still kept
-  pronoun paradigms, homographs, and sense/POS mismatches. See `PHASE-25-DIRECTION.md` and
-  `PHASE-25-REPORT.md` for the full verdict.
+  pronoun paradigms, homographs, and sense/POS mismatches. See
+[PHASE-25-DIRECTION.md](history/phases/PHASE-25-DIRECTION.md) and
+  [PHASE-25-REPORT.md](history/phases/PHASE-25-REPORT.md) for the full verdict.
 
 #### Risks and tradeoffs
 
@@ -955,7 +801,9 @@ path. The explorer itself remains unapproved.
 ### Select text to look up
 
 - **Date added:** 2026-08-12
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** selection handling, search navigation and phone UI
 - **Origin:** Owner suggestion, assessed and requested for the list 2026-08-12
 - **Owner interest:** Requested after review of the assessment.
 - **Potential data impact:** None; read-only navigation glue, no storage, no events beyond what
@@ -982,17 +830,18 @@ already inside it.
   multi-paragraph or very long selections should degrade to something sensible rather than a
   garbage query.
 
-#### Evidence needed
+#### Evidence and design notes
 
-- None beyond real use; the friction (retyping a word you are already looking at) is
-  self-evident, and the cost is small.
+- Try phone-selection interactions with representative text; real use can refine the affordance.
 
 ---
 
 ### Paste a vocabulary list
 
 - **Date added:** 2026-08-12
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** large
+- **Touches (draft):** parser, preview, lexical creation/events and dictionary matching
 - **Origin:** Owner suggestion, assessed and requested for the list 2026-08-12; absorbs the
   earlier uncaptured "bulk vocabulary import from a wordlist" brainstorm as its file-based
   variant
@@ -1044,7 +893,7 @@ approved plan rather than assumed.
 - Parsing is where scope creeps: separators, duplicate lines within the paste, phrases versus
   words, and leading articles ("la mochila") all need unglamorous decisions.
 
-#### Evidence needed
+#### Evidence and design notes
 
 - Where the owner's lists actually come from (lesson notes, subtitles, another app's export),
   which decides between paste-only and the file variant, and whether pair parsing is worth its
@@ -1053,7 +902,7 @@ approved plan rather than assumed.
 #### Questions for a future discussion
 
 - Does this live in the Words & phrases hub, the Cuaderno add flow, or both?
-- Should a row with a dictionary match default to attaching the entry (`dictKey`), matching how
+- Should a row with a dictionary match default to attaching the entry (`dictKeys[]`), matching how
   the Collection picker treats dictionary selections?
 - Is there any appetite for the file-based variant now, or does paste cover the real cases?
 
@@ -1062,24 +911,27 @@ approved plan rather than assumed.
 ### PWA app shortcuts
 
 - **Date added:** 2026-08-12
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** small
+- **Touches (draft):** manifest shortcuts and arrival routing
 - **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
 - **Owner interest:** Recorded so it is not forgotten; the owner may or may not do it.
-- **Potential data impact:** None; a manifest-only change
+- **Potential data impact:** None; manifest entries plus explicit arrival routing
 
 #### Description and current context
 
 The web app manifest's `shortcuts` array puts entries like "New Diario moment", "Repaso" and
-"Search" on the installed app icon's long-press menu on Android. No application code changes —
-each shortcut is a URL into an existing screen, and the app is already installable. The one
-implementation detail is that shortcut URLs must respect the `/mi-cuaderno/` base path.
+"Search" on the installed app icon's long-press menu on Android. Each shortcut needs an explicit
+arrival route into the chosen screen: current startup handles history state and share parameters,
+not arbitrary shortcut URLs. Respect the `/mi-cuaderno/` base path and preserve startup/share
+behavior.
 
 #### Expected owner value
 
 Shortens the path to the actions done daily. The Android share target (implemented 2026-08-13)
 covers content coming *into* the app; this covers reaching a chosen screen faster.
 
-#### Evidence needed
+#### Evidence and design notes
 
 None beyond trying it — the cost is low enough that a real-device check of how Chrome on Android
 presents the shortcuts is the whole evaluation.
@@ -1089,7 +941,9 @@ presents the shortcuts is the whole evaluation.
 ### "Did you mean" search suggestions
 
 - **Date added:** 2026-08-12
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** query suggestions and search UI; normalization unchanged
 - **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
 - **Owner interest:** A good potential idea.
 - **Potential data impact:** None; a derived suggestion layer over existing search
@@ -1119,7 +973,7 @@ strictly above the search pipeline.
 - The miss log currently records honest misses; if a suggestion is taken, deciding whether the
   original miss still logs affects the meaning of the recorded signal.
 
-#### Evidence needed
+#### Evidence and design notes
 
 - The recorded misses themselves: what fraction of real misses are near-misses of known content
   versus genuinely absent words. That decides whether option 1 suffices.
@@ -1130,7 +984,9 @@ strictly above the search pipeline.
 
 - **Date added:** 2026-08-12
 - **Last reviewed:** 2026-08-13 — Connection cluster browsing (above) joined the overlap question
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** derived retrieval and navigation; preferences if pins chosen
 - **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
 - **Owner interest:** An idea to revisit later, when the owner has more tags and uses tags more.
 - **Potential data impact:** None; fully derived, no storage
@@ -1149,7 +1005,7 @@ maintenance. **Since 2026-08-13** Connection cluster browsing (above) is a third
 same question: graph edges, tags, and lens combinations are three grouping dimensions, and the
 first one planned should decide whether they coexist or converge.
 
-#### Evidence needed
+#### Evidence and design notes
 
 - Real tag volume and usage: hubs earn their place when the owner reaches for a tag expecting a
   place, not a filter. The owner has explicitly gated this on their own future tag use — check
@@ -1165,7 +1021,9 @@ first one planned should decide whether they coexist or converge.
 ### Review→writing bridge
 
 - **Date added:** 2026-08-12
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** review completion and Diario navigation; transient prompt
 - **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
 - **Owner interest:** Worth considering.
 - **Potential data impact:** None; a transient prompt, nothing stored
@@ -1175,8 +1033,10 @@ first one planned should decide whether they coexist or converge.
 After a review session with misses, offer a transient Diario prompt: "write a sentence using
 *tozudo*." One line of glue between the app's two halves — the words missed in review are
 precisely the ones the owner's writing never exercises, and Diario's prompt machinery is already
-transient by design (prompts are visit-local and store no ID). This also serves the
-active-vocabulary theme recorded in the document history on 2026-08-11.
+transient for ordinary prompts. Taller separately stores practice metadata in events; this bridge
+can remain transient unless tracking is explicitly chosen. This also serves the
+active-vocabulary theme recorded in the [document
+history](history/IMPROVEMENT-IDEAS-HISTORY.md#document-history) on 2026-08-11.
 
 #### Potential options
 
@@ -1187,13 +1047,12 @@ active-vocabulary theme recorded in the document history on 2026-08-11.
 
 #### Risks and tradeoffs
 
-- Must remain an offer, never an obligation: Diario's settled purpose is calm reflection, and a
-  homework-shaped prompt could poison that. The existing prompt system's take-it-or-leave-it
-  posture is the model.
+- Keep the action optional. Diario supports both reflection and deliberate Spanish practice;
+  the owner chooses when a review-to-writing transition is useful.
 - Selecting "recent misses" reads the event log at render — cheap and consistent with how
   everything else derives.
 
-#### Evidence needed
+#### Evidence and design notes
 
 - Whether the owner actually wants to write immediately after reviewing, or whether the two
   activities happen at different times of day — which decides between options 1 and 2.
@@ -1203,7 +1062,9 @@ active-vocabulary theme recorded in the document history on 2026-08-11.
 ### Time-boxed mixed session
 
 - **Date added:** 2026-08-12
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** large
+- **Touches (draft):** session composition, grading and event semantics
 - **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
 - **Owner interest:** Should be on the list.
 - **Potential data impact:** None expected; composes existing engines and writes only the events
@@ -1233,7 +1094,7 @@ exactly like every existing session.
 - A "weakest forms" selection reuses Adaptive's existing definition rather than inventing a
   second notion of weakness.
 
-#### Evidence needed
+#### Evidence and design notes
 
 - Real data volume: with a small due queue and sparse drill history, a mixed session degenerates
   into whatever exists. The feature makes sense once both queues are routinely nonempty.
@@ -1243,7 +1104,9 @@ exactly like every existing session.
 ### Review forecast
 
 - **Date added:** 2026-08-12
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** small
+- **Touches (draft):** derived schedule statistics and screen
 - **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
 - **Owner interest:** Can be added, but likely a low priority.
 - **Potential data impact:** None; derived at render from the existing Leitner schedule
@@ -1255,7 +1118,7 @@ is a small aggregation over the same computation Repaso runs today, displayed in
 derived-at-render pattern. It is display, not scheduling: no reminder, no badge, no obligation,
 which keeps it clear of §14's deferral of automatic scheduling and reminders. It belongs to the
 same family as the Phase 11 stats and their still-open retention/coverage/per-direction
-breakdowns (see Owner-centric stats in the Implemented band).
+breakdowns (see [Retention and direction statistics](#retention-and-direction-statistics)).
 
 #### Expected owner value
 
@@ -1274,7 +1137,9 @@ breakdowns (see Owner-centric stats in the Implemented band).
 - **Date added:** 2026-08-12 (promoted out of the Learning depth entry's "deliberately not built"
   list, where it had been recorded since 2026-08-06 and was invisible to anyone browsing open
   ideas)
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** card selection, pair presentation and grading choice
 - **Origin:** Phase 10 planning; dropped from that batch for scope only, and described there as
   attractive
 - **Potential data impact:** None expected; the source data already exists as owner-curated
@@ -1288,7 +1153,7 @@ practice. Since Phase 10 dropped it for scope, the machinery has matured — Pha
 recognition engine with curated confusables is close to what this drill needs, with the decks
 drawn from personal annotations instead of shipped reference data.
 
-**Sibling idea:** Non-verb grammar drills (below) practices *grammar* confusions from curated
+**Sibling:** the shipped Contrasts lane practices *grammar* confusions from curated
 reference data; this practices *vocabulary* confusions from the owner's own annotations. They
 could share an engine but differ in data source and in what "curation" means.
 
@@ -1304,7 +1169,7 @@ could share an engine but differ in data source and in what "curation" means.
 - A pair is two personal items; the drill must handle one side lacking meanings the same way
   existing card surfaces exclude and explain such entries.
 
-#### Evidence needed
+#### Evidence and design notes
 
 - How many `often_confused`/`contrast` annotations actually exist in the real notebook — the
   feature starts mattering at perhaps a dozen pairs.
@@ -1314,7 +1179,9 @@ could share an engine but differ in data source and in what "curation" means.
 ### Dictation cards
 
 - **Date added:** 2026-08-11
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** large
+- **Touches (draft):** speech playback, typed grading, card selection and accessibility
 - **Origin:** Brainstorming session on unconsidered possibilities; not yet requested from real friction
 - **Potential data impact:** None expected; additive `face` metadata on existing review events,
   following the cloze and image precedents
@@ -1354,10 +1221,10 @@ Spanish voice would govern availability.
 - Scheduled grades from a new face affect the one Leitner ladder; the cloze/image precedent
   (additive metadata nothing reads) covers this, but the grading-fairness question is real.
 
-#### Evidence needed
+#### Evidence and design notes
 
-- Real use of the picture face: whether always-when-available face substitution feels right or
-  needs owner control, before adding a fifth face to the same rule.
+- Compare face-selection options in a bounded experiment; picture-face experience can inform
+  owner controls without being a prerequisite.
 - Whether the device's Spanish voice is good enough to grade against — the existing pronunciation
   button provides this evidence passively.
 
@@ -1372,7 +1239,9 @@ Spanish voice would govern availability.
 ### Frequency coverage
 
 - **Date added:** 2026-08-11
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** reference-rank join, definition of known and statistics UI
 - **Origin:** Brainstorming session on unconsidered possibilities; not yet requested from real friction
 - **Potential data impact:** None; derived at render from existing `freqRank` reference data and
   the personal layer, in the Phase 11 pattern
@@ -1415,7 +1284,7 @@ statistic and a deliberate browse view. Neither re-litigates the other.
   stated on the surface.
 - Multiword phrases have no rank; coverage is a words-only statistic and should say so.
 
-#### Evidence needed
+#### Evidence and design notes
 
 - Whether `freqRank` coverage across the 10,278 shipped lemmas is dense enough for stable band
   percentages (what fraction of shipped entries carry a rank at all).
@@ -1427,52 +1296,22 @@ statistic and a deliberate browse view. Neither re-litigates the other.
 
 ---
 
-### Phase 19/20 review nits (edge polish)
-
-- **Date added:** 2026-08-10
-- **Status:** Captured
-- **Origin:** Independent code review of the committed Phase 19 and Phase 20 branches found no
-  correctness bugs. Three minor observations were deliberately left unfixed (per the working
-  agreement, reviews do not implement) and are recorded here so they are not lost.
-- **Potential data impact:** None; each would be a small behavior or accessibility refinement.
-
-Verify each against the current code before acting — any of these may already have been fixed or
-made obsolete by later phases.
-
-1. **Interleaved-order organizer save writes an event (Phase 19).** In `saveGrammarOrganization`
-   (`src/db/pageStructures.js`), the no-op signature is computed from the *stored* section order
-   but compared after depth-first canonicalization. If a valid interleaved backup was imported, a
-   save-without-changes in the Grammar organizer canonicalizes the stored order and logs one
-   `edit`, slightly bending "no-op organization is event-free". Only reachable after importing an
-   interleaved backup, and canonicalizing storage is arguably a real change; fix or formally
-   accept.
-2. **Resolved 2026-08-10 — Note callout announced "Note" twice (Phase 19).** The explicit Notes
-   callout increment replaced the Grammar aside's duplicate `aria-label` with `aria-labelledby`
-   wired to the one visible label, and the shared renderer applies the same accessible name to
-   Notes-family callouts.
-3. **Rename/merge kind seam between preview and transaction (Phase 20).** `TagManagementSheet`
-   decides rename-versus-merge from its `items` prop, while `applyGlobalTagChange` re-plans from
-   live index queries inside the transaction. If the prop were ever stale, a button labeled
-   "Rename tag" could execute what is actually a merge without the merge confirmation. Effectively
-   unreachable in a single-owner app whose mutations reload the notebook, and the atomic re-plan
-   is the right design; a cheap belt-and-braces option is having the writer compare the caller's
-   expected `kind` and abort on mismatch.
-
----
-
 ### Saved views
 
 - **Date added:** 2026-08-02
 - **Last reviewed:** 2026-08-12
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** small for fixed presets; large for named/pinned views
+- **Touches (draft):** screen presets or new preference/backup contract
 - **Origin:** Preliminary information-architecture review and follow-up discussion
 - **Potential data impact:** None for additional built-in presets; persistent preference/backup
   contract for owner-created views
 
 #### Description and current context
 
-Cuaderno currently offers type, maintenance, tag, and order controls. Those choices are intentionally
-component-local and reset after leaving Cuaderno. A saved view would preserve a useful combination
+Cuaderno offers type, maintenance, tag and order controls. Later navigation-continuity work restores
+route state; that is distinct from named persistent views. A saved view would preserve a useful
+combination
 such as "phrases missing examples," "recently added Mexico vocabulary," or "unlinked source pages."
 
 A saved view is a temporary lens over canonical items, not a new category or a copy of the content.
@@ -1506,7 +1345,7 @@ Whichever idea is planned first should consciously answer whether it subsumes th
 - Saved searches may remain useful for less time than saved structural filters.
 - Shortcuts can crowd navigation if they are treated like permanent content types.
 
-#### Evidence needed
+#### Evidence and design notes
 
 - Which filter combinations the owner repeatedly reconstructs.
 - Whether recurring retrieval is based on tags, sources, dates, completeness, or links.
@@ -1515,7 +1354,7 @@ Whichever idea is planned first should consciously answer whether it subsumes th
 
 #### Potential timing
 
-Observe real use of the Phase 5c controls first. A persistent view may fit the existing preferences
+A persistent view may fit the existing preferences
 store without a new Dexie table, but it still needs a documented preference shape, backup/import
 behavior, stale-reference handling, and a separately approved plan.
 
@@ -1523,35 +1362,34 @@ behavior, stale-reference handling, and a separately approved plan.
 
 - Is the desired behavior "resume where I left off" or "maintain several named lenses"?
 - Should query text ever be saved?
-- Where would saved views live without crowding the three primary tabs?
+- Where would saved views live without crowding primary navigation?
 
 #### Phase 8 overlap — 2026-08-04
 
 The Words & phrases hub does **not** implement saved views, and the distinction is worth keeping
 clear. Nothing it offers is saved or named: its five controls (where it lives, learning, view,
-order, tag) are visit-local and reset on leaving, exactly like Cuaderno's. What changed is the
-*vocabulary* of available lenses, not their persistence.
+order, tag) originally reset on leaving. Navigation continuity subsequently changed restoration;
+named/pinned views remain unbuilt. The original Phase 8 change expanded the *vocabulary* of lenses.
 
-That makes the hub a source of the evidence this idea has been waiting for. Two questions it can now
-answer that could not be asked before:
+The broader hub controls make these design questions more concrete:
 
 - Which of the five controls the owner reconstructs repeatedly, and in which combinations. A
   recurring pair such as "phrases, not in any page yet" or "words missing examples, tagged Mexico"
   is the concrete case for naming a view; a control that is set once and forgotten is not.
-- Whether the pull is really "resume where I left off". The hub deliberately preserves its
-  controls while the session trail is elsewhere but discards them on leaving, so the owner will
-  feel both behaviours and can say which one they missed.
+- Whether the desired capability is route restoration or named retrieval. Navigation continuity
+  now covers restoration; named views would add reusable, owner-chosen lenses.
 
 If named views are eventually wanted, the hub raises the cost slightly: a saved view would now have
 to describe which surface it belongs to, since Cuaderno, Pages and Words & phrases no longer share
-one control set. That is an argument for waiting on real use, not for building it sooner.
+one control set. This is a design cost to account for in an experiment, not a reason to require
+prior real use.
 
-#### Evidence window open — 2026-08-12
+#### Discussion carried forward from 2026-08-12
 
-Phase 8 deployed on 2026-08-04 and its lenses have been in daily use since. The evidence this
-idea was parked on is now collectable: the next step is simply asking the owner which control
-combinations they repeatedly reconstruct, and whether they miss "resume where I left off" when
-returning to a hub. No instrumentation is needed or wanted.
+Phase 8 deployed on 2026-08-04. The original discussion proposed asking which control combinations
+recur and whether returning to a hub should restore state. Later navigation continuity addresses
+part of the latter; named views remain a separate option. These questions can guide an experiment
+without instrumentation or a waiting period.
 
 ---
 
@@ -1559,7 +1397,9 @@ returning to a hub. No instrumentation is needed or wanted.
 
 - **Date added:** 2026-08-02
 - **Last reviewed:** 2026-08-12
-- **Status:** Captured
+- **Status:** idea
+- **Size (draft):** large
+- **Touches (draft):** authorship model, editor/display, schema and backup if durable
 - **Origin:** Preliminary information-architecture review and follow-up discussion
 - **Potential data impact:** Medium at entry level; high at meaning/field level; intersects links,
   events, backup, dictionary boundaries, and Phase 6 AI policy
@@ -1626,7 +1466,7 @@ imported meanings deliberately carry no link back to their source senses.
 - Personal source context may contain private information and must remain on-device under current
   policy unless deliberately included in a future AI request.
 
-#### Evidence needed
+#### Evidence and design notes
 
 - How often the owner currently records sources in notes, media links, or linked pages.
 - Whether provenance is needed mainly for rediscovery, trust, citation, or AI transparency.
@@ -1648,12 +1488,254 @@ durable implementation requires its own storage and backup plan.
 
 ---
 
+### Taller follow-ups
+
+- **Date added:** 2026-10-17 — carried forward from the dated capture linked below
+- **Status:** idea
+- **Size (draft):** medium per derived option; large for combined AI/history work
+- **Touches (draft):** prompt selection and screen; AI request for focused review; persistence only if needed
+- **Origin:** Unresolved possibilities retained during the documentation reset; no new approval.
+
+The owner opened the 2026-08-20 discussion because Diario could be a place for deliberate Spanish
+skill work alongside reflection; serious English journaling happens elsewhere. The workshop chose
+one Diario with two doors and ranked own-voice recycling below the first three chosen features.
+Vocabulary sampling, weak-tense bias, scaffolds, tiers and practice events have since shipped. The
+original discussion is preserved in
+[history](history/IMPROVEMENT-IDEAS-HISTORY.md#diario-skill-practice-prompting-suite).
+
+- **Own-voice recycling:** retell an old entry in another tense or rewrite past sentences with new connectors. This can derive from existing entries without new stored data.
+- **AI review with a declared focus:** choose “attend to preterite vs. imperfect” at review time. This changes the workshopped review prompt and needs its own discussion and §9 disclosure.
+- **Prompt memory and practice display:** no-repeat windows, a “skills practiced lately” view, category streaks, or more sophisticated stale/weak-skill proposals. Taller already records prompt/skill/tier metadata in `practice_write` and proposes the least-recently-practiced category; storing usage is no longer a hypothetical first step. New displays may derive from events; new persistent choices need explicit storage/backup design.
+
+The capture set aside runtime prompt generation and unsolicited landing prompts for v1. Runtime
+generation has its own active entry here. Ordinary reflective entries need not acquire practice
+classification just because Taller can track deliberate practice.
+
+---
+
+### Non-verb drill extensions and practice home
+
+- **Date added:** 2026-10-17 — carried forward from the dated capture linked below
+- **Status:** idea
+- **Size (draft):** medium per set; large for a new practice home
+- **Touches (draft):** curated cards, grading and navigation; existing events where compatible
+- **Origin:** Unresolved possibilities retained during the documentation reset; no new approval.
+
+Contrasts already offers ser/estar, por/para and Connectors. The owner chose the first two directly
+rather than waiting for AI feedback. Prepositions beyond por/para and gender/article agreement
+remain open. Feedback can suggest later sets, but it is not a prerequisite. A separate sibling
+practice home or gathering practice surfaces under Taller is still a product choice; the Gym kept
+its name for v1. See [Confusion-pair drills](#confusion-pair-drills) for the vocabulary-side idea
+and [the capture](history/IMPROVEMENT-IDEAS-HISTORY.md#non-verb-grammar-drills) for the delivered
+scope.
+
+---
+
+### Containment and Similar proposal follow-ups
+
+- **Date added:** 2026-10-17 — carried forward from the dated capture linked below
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** matching/proposal UI; preference/backup decision for dismissals
+- **Origin:** Unresolved possibilities retained during the documentation reset; no new approval.
+
+Suppressed-containment confirmation deliberately leaves the matcher unchanged, accepts explicit
+links and stores no dismissal memory. The published 2026-08-15 diagnostic recorded 48 suppressed
+rows against 83 shown: 28 artifacts, about 16 genuine misses and about four correct suppressions.
+This is historical aggregate evidence, not a new inspection of owner data.
+
+Wrong repeat proposals such as “al vino” → “venir” could motivate dismissed-pair memory; that
+requires a durability decision. Prose-containment proposals on Historia are a separate possibility.
+Similar-meaning proposals also need precision review: recurring noise may motivate dismissal or
+matching changes, but neither should be silently added. Experiments should preserve the difference
+between explained proposals and owner-confirmed edges. [Original
+context](history/IMPROVEMENT-IDEAS-HISTORY.md#suppressed-containment-confirmation) and [Similar
+context](history/IMPROVEMENT-IDEAS-HISTORY.md#same-meaning-clustering).
+
+---
+
+### Share post-attach quick actions
+
+- **Date added:** 2026-10-17 — carried forward from the dated capture linked below
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** share continuation UI, editor navigation and draft handling
+- **Origin:** Unresolved possibilities retained during the documentation reset; no new approval.
+
+The Android share target already has a destination chooser, a continuation pill, direct lexical
+creation and the later four-kind New page chooser. The initial always-new-Source behavior was
+changed after the owner's TikTok use: short learning videos several times a week needed multiple
+destinations.
+
+A remaining idea is to offer targeted actions such as **Add meaning** or **Add capture** on the
+continuation pill after attachment. Choose destinations and draft preservation explicitly; nothing
+should save implicitly. The separate installed-PWA/share-sheet verification question belongs in
+CURRENT. [Original discussion and shipped
+follow-ups](history/IMPROVEMENT-IDEAS-HISTORY.md#android-share-target).
+
+---
+
+### Historia performance and thin-biography lens
+
+- **Date added:** 2026-10-17 — carried forward from the dated capture linked below
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** performance measurement, derivation and optional retrieval UI
+- **Origin:** Unresolved possibilities retained during the documentation reset; no new approval.
+
+Historia derives milestones, habitats and visible-prose mentions for one item. Opening it scans
+visible documents; the original disposable fixture was immediate. Measure representative larger
+fixtures or an approved notebook snapshot before optimizing; memoization would be a disposable
+performance mechanism, subject to the governing architecture discussion rather than a change to
+canonical facts. A lens for entries with little biography is a separate product idea. [Original
+evidence](history/IMPROVEMENT-IDEAS-HISTORY.md#the-words-biography).
+
+---
+
+### Neighborhood browsing follow-ups
+
+- **Date added:** 2026-10-17 — carried forward from the dated capture linked below
+- **Status:** idea
+- **Size (draft):** medium per option
+- **Touches (draft):** graph derivation and screen; storage only for durable dismissal
+- **Origin:** Unresolved possibilities retained during the documentation reset; no new approval.
+
+Sparse notebooks can produce quiet or repetitive walks. Possible experiments include weighting,
+additional derived adjacency and dismissal. Each needs its own decision: v1's unweighted walk, no
+stored trail and confirmed-edge authority are current behavior, not permission to add hidden state.
+[Global graph visualization](#global-graph-visualization) already has its own entry. [Original
+context](history/IMPROVEMENT-IDEAS-HISTORY.md#neighborhood-browsing).
+
+---
+
+### Tag maintenance follow-ups
+
+- **Date added:** 2026-10-17 — carried forward from the dated capture linked below
+- **Status:** idea
+- **Size (draft):** medium for multi-source UI; large for undo/history
+- **Touches (draft):** tag transactions, events; stored inverse data and backup for undo
+- **Origin:** Unresolved possibilities retained during the documentation reset; no new approval.
+
+Phase 20 provides exact rename, single-source merge and removal, with one edit per changed item and
+an optional pre-change export. The original aim was consolidating spelling variants. Three unbuilt
+extensions remain:
+
+1. **Multi-source merge:** collapsing three spellings currently takes two previews and
+confirmations. A single multi-source operation could reduce repeated work, while keeping the
+destination and affected items explicit.
+2. **Persistent undo:** current events lack the old tag values, so a merge cannot be reconstructed
+without a prior backup. Undo needs stored inverse data and a separate backup/storage decision. A
+regretted merge is not a prerequisite for exploring it.
+3. **Grouped batch history:** renaming N items writes N edits visible in activity, calendar and
+streak. Grouping would change the event/history contract; silently filtering existing edits would
+misrepresent it.
+
+[Original tradeoffs](history/IMPROVEMENT-IDEAS-HISTORY.md#global-tag-management). None is an
+approved defect fix.
+
+---
+
+### Retention and direction statistics
+
+- **Date added:** 2026-10-17 — carried forward from the dated capture linked below
+- **Status:** idea
+- **Size (draft):** medium
+- **Touches (draft):** event derivation and statistics UI
+- **Origin:** Unresolved possibilities retained during the documentation reset; no new approval.
+
+Retention, coverage and per-direction breakdowns were excluded from Phase 11. Review events already
+carry direction metadata; useful rates need enough relevant observations and honest empty states.
+These are possible descriptive statistics, not requirements to track feature usage. [Frequency
+coverage](#frequency-coverage) and [Review forecast](#review-forecast) hold related proposals.
+[Original context](history/IMPROVEMENT-IDEAS-HISTORY.md#owner-centric-stats).
+
+---
+
+### Review direction and Diario cloze
+
+- **Date added:** 2026-10-17 — carried forward from the dated capture linked below
+- **Status:** idea
+- **Size (draft):** large
+- **Touches (draft):** review schedule/event semantics or prose matching/card generation
+- **Origin:** Unresolved possibilities retained during the documentation reset; no new approval.
+
+One Leitner ladder currently serves both review directions. Per-direction scheduling remains
+deferred under brief §14; direction metadata exists, but separate schedules would be a behavior
+decision. Cloze could draw on the owner's Diario writing rather than only an entry's assigned
+examples; matching, context and grading would need care.
+
+Optional observations include how often cloze is available, whether reverse/mixed cards are useful,
+and whether the shared ladder feels appropriate. They are design notes, not a usage-review
+assignment. Confusion-pair drills have their own active entry. Frequency-weighted suggestions were
+rejected at capture (search misses have no entry/rank); [Frequency coverage](#frequency-coverage) is
+a different display proposal. [Original
+reasoning](history/IMPROVEMENT-IDEAS-HISTORY.md#learning-depth-cloze-reverse-drill-audio).
+
+---
+
+### Richer Diario and page possibilities
+
+- **Date added:** 2026-10-17 — carried forward from the dated capture linked below
+- **Status:** idea
+- **Size (draft):** small/medium for derived UI; large for durable fields/identity
+- **Touches (draft):** retrieval/prompt screens; schema, migration and backup for durable variants
+- **Origin:** Unresolved possibilities retained during the documentation reset; no new approval.
+
+The original page-profile discussion left a substantial set of possible Diario directions.
+Composable pages, structured Notes, the prompt library and Taller now exist. A dated page is in
+Diario only with no enabled Vocabulary/Source/Grammar structure and no Notes outline. Same-day
+continuation cards and a Today-free grouped timeline shipped on 2026-08-28. These changes supersede
+the capture's overall retrieval description; the Today anchor still selects the first-created
+same-day entry.
+
+| Possible direction | Feasibility and context | Design questions |
+|---|---|---|
+| Further prompt refinement/regrouping | Ordinary random prompts and expanded categories already exist; Taller adds deliberate skill practice | Which new choices add variety or help learning? Transient prompt changes can remain storage-free. |
+| Calendar/month navigation, year summaries, journal filters | Small-to-medium derived UI over dated pages | How should retrieval complement the timeline, archive and search? |
+| Continuation or prior-year memory selection | Small-to-medium domain/UI change | Compare alternatives with current grouped timeline and same-day continuations; preserve intentional selection rules. |
+| Vocabulary capture from Diario | Medium; existing personal/dictionary seams | Make personal creation explicit and retain orphan handling; reduce writing interruptions. |
+| Journal-specific print/export | Medium; stored entries need not change | Choose a useful, privacy-safe output distinct from disaster-recovery backup. |
+| Mood, theme, gratitude, location, weather or stored prompt fields | Large if new durable structure; migration/export-first/backup design applies | Compare fields with text, tags, links and existing Taller practice metadata; do not assume a third content type. |
+| Journal streaks, completion, trends or scheduled review | Medium-to-large product work; some results can derive from events | Study streak/heatmap already live in Repaso. Journal-specific additions remain deferred, with an explicit learning/reflection purpose and no pressure or stored counters. |
+| Explicit/richer Journal identity, custom page kinds | Large architectural decision | Define how it composes with existing structures; brief §14 and Step 3's identity questions remain separate. |
+
+Optional context to revisit: whether the separate Diario door supports writing/rereading without
+obligation; useful retrieval paths and prompt categories; whether Collection grouping/manual order
+helps; and which combined page behaviors or journal-only fields are wanted. These questions preserve
+the discussion without reinstating friction gates. [Original table and
+discussion](history/IMPROVEMENT-IDEAS-HISTORY.md#persistent-page-profiles).
+
+---
+
+### Source templates and reading follow-ups
+
+- **Date added:** 2026-10-17 — carried forward from the dated capture linked below
+- **Status:** idea
+- **Size (draft):** medium for creation-only recipes; large for stored management
+- **Touches (draft):** page creation UI; schema/backup and provenance for durable variants
+- **Origin:** Unresolved possibilities retained during the documentation reset; no new approval.
+
+Source capability already provides optional identity plus one flat ordered capture stream,
+independently enabled. Family-first creation recipes seed content without storing a template
+identity; **Copy page structure** is the reuse mechanism. The initial aim was reducing blank-page
+friction for a film, podcast, book or article.
+
+User-authored templates, Source hierarchies, deeper provenance and reading tracking remain deferred
+possibilities under §14. Creation-only templates may be lighter than stored template management;
+compare them explicitly before adding fields or stores. [Personal-content
+provenance](#personal-content-provenance) contains the cross-cutting provenance discussion.
+[Original context](history/IMPROVEMENT-IDEAS-HISTORY.md#source-oriented-page-templates).
+
+---
+
 ## Deferred ideas
 
 ### Accent bar for typed inputs
 
 - **Date added:** 2026-08-12
-- **Status:** Deferred — owner-declined for now
+- **Status:** idea
+- **Size (draft):** small
+- **Touches (draft):** screen input controls
 - **Origin:** Brainstorming session, reviewed by the owner 2026-08-12
 - **Owner interest:** The owner thinks this could be a good feature but is not interested in
   pursuing it unless something changes: their current keyboard makes adding accents low-friction,
@@ -1676,761 +1758,3 @@ visible without implying work; the evidence that would reopen it is the owner no
 entry slowing them down in a typed session.
 
 ---
-
-## Implemented ideas (history)
-
-### Non-verb grammar drills
-
-- **Date added:** 2026-08-11 — **Status:** Implemented — Contrasts Gym lane, verified locally
-  2026-08-24; not yet pushed or deployed
-- **Records:** `docs/history/phases/CONTRAST-LANE-DIRECTION.md`; "Contrasts lane" entries in `DECISIONS.md`
-- **Owner interest:** Chose ser/estar and por/para directly on 2026-08-24 while reviewing
-  cloze/MCQ drill ideas, rather than waiting for Diario AI feedback to name the first pair.
-
-Option 1 of the capture ("one lane first") shipped as a fourth Gym lane: 32 ser/estar cards with
-conjugated-form options and 32 por/para cards, four-choice cloze through the Phase 17 engine,
-`drill_pass`/`drill_fail` with `skill: "contrast"`, `pair`, `answer` and no `tense`, per-pair
-statistics with directional confusions, and Grammar guide links on multi-word terms. Form
-Performance's recognition guard became structural in the process. The Gym keeps its name; the
-sibling-practice-home question stays open.
-
-A same-day follow-on added **Connectors** as a third set in the lane (26 cards: `pero`, `aunque`,
-`sin embargo`, `porque`, `por eso`, `así que`, `además`, `en cambio`, `mientras`, `entonces`).
-
-**Still open:** preposition choice beyond por/para and gender/article agreement (option 3) remain
-unbuilt; the capture's advice to let Diario AI feedback name the *next* set still applies. The
-vocabulary-side sibling, Confusion-pair drills, stays captured.
-
----
-
-Compressed summaries. The authoritative records are `DECISIONS.md` and each phase's
-direction/report documents; each entry's original full reasoning is preserved in this file's git
-history. Still-open evidence and questions are kept here in full.
-
-### Suppressed-containment confirmation
-
-- **Date added:** 2026-08-15 — **Status:** Implemented — same-day increment, deployed
-- **Records:** "Suppressed-containment confirmation tier" entries in `DECISIONS.md`
-
-Realizes the link-promotion increment `PHASE-23-DIRECTION.md` anticipated, scoped to the matches
-the Phase 22 ambiguity oracle deliberately hides. Detail's "From your cuaderno" card now proposes
-a suppressed inflected match (*Creo que* → *creer*, evidence shown: `also a form of crear`) with
-one explicit accept that writes the ordinary stored-once `found_in` edge — no event, no dismissal
-memory, oracle and matcher untouched. Candidates require a form posting naming the attached lemma
-among others; stop-word surfaces (the 28-row *dé* → `de` → *dar* artifact) never propose.
-
-Evidence that sized it: a diagnostic over the owner's real 2026-08-15 export found 48 suppressed
-rows against 83 shown — 28 artifact, ~16 genuine misses, ~4 correct suppressions. Real-use
-evidence to watch: whether wrong proposals (*al vino, vino* → *venir*) recur annoyingly enough to
-justify a dismissed-pairs durability decision, and whether prose-containment candidates (a
-different product question, Historia-side) become worth their own discussion.
-
----
-
-### Android share target
-
-- **Date added:** 2026-08-11 — **Status:** Implemented — 2026-08-13 increment, deployed
-- **Records:** 2026-08-13 entries in `DECISIONS.md`
-
-The installed PWA registers as an Android share target (`share_target` in the manifest, GET).
-Dispatch is by content (owner-chosen option 3): a shared URL — including text that is exactly one
-URL, Chrome's sharing shape — opens New Source notebook creation with the link and shared title
-prefilled and no format preselected; any other shared text, long prose included, lands whole in
-the two-layer search box for the owner to trim. The app still has no URL router: startup consumes
-the `share_*` params into the ordinary in-memory trail, then strips them from the address bar so
-refresh replays nothing. Nothing is saved implicitly; every write stays behind the existing
-explicit create actions.
-
-Still-open evidence: the real-device check — how Chrome on Android presents the share-sheet entry
-— is now possible on the deployed site once the installed PWA updates. Whether
-shared content is mostly words, phrases, or URLs (the doc's original question) can now be answered
-by real use. ~~A shared URL landing anywhere other than Source creation (e.g., a Media link on an
-existing page) remains a later owner decision.~~ **Answered 2026-08-13, same day:** real TikTok
-use (short learning videos, several a week) made always-new-Source-page too rigid; a URL share now
-opens a destination chooser — existing page or word/phrase (media link), new Grammar guide with
-the video attached, or new Source notebook. See the Share arrival destination chooser entries in
-`DECISIONS.md`. **Extended 2026-08-13:** an ephemeral continuation pill now keeps the video
-available after each action ("Add to another item" / "Done"), and the picker gained a create row
-for a new word or phrase carrying the video from birth — in-memory only, no schema or event
-change. **Extended 2026-08-14:** "New word or phrase" became a visible fourth chooser destination
-(owner-requested — the picker's create row alone was not discoverable). Which targeted
-post-attach quick actions (add meaning, add capture…) deserve promotion
-onto the pill is the remaining real-use question. See the Continue-with-this-video entries in
-`DECISIONS.md`.
-
----
-
-### The word's biography
-
-- **Date added:** 2026-08-12 — **Status:** Implemented — Phase 23a, deployed
-- **Records:** `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md`, Phase 23 entries in `DECISIONS.md`
-
-Lexical Detail's display-only **Historia** derives milestone history and current state from the
-existing item/event log, then shows its current Collections, Page contexts, Phrases, typed
-Connections, visible owner prose, and a separately disclosed **En tu Diario** section with
-snippets. Prose uses Phase 22's shared exact-first, ñ-preserving matcher and conservative
-ambiguity/clitic silences. No row promotes a link or writes an event, field, preference, or cache.
-
-Real-use evidence to watch: one subject scans each current visible-text document on open. The
-disposable fixture was immediate, but a materially larger notebook—not synthetic timing—should
-decide whether any future memoization work is warranted. A later thin-biography lens remains a
-separate product decision.
-
----
-
-### Neighborhood browsing
-
-- **Date added:** 2026-08-12 — **Status:** Implemented — Phase 23b, deployed
-- **Records:** `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md`, Phase 23 entries in `DECISIONS.md`
-
-The idle Cuaderno root now starts an unweighted walk from any personal Word or Phrase. Each
-transient center derives bidirectional typed Connections with owner notes, saved Phase 21 family
-siblings, and an inert Diario count; non-journal Pages can be reduced centers, while dictionary
-rows are marked exits. Hops use the ordinary session trail, write no event, and store no history.
-
-Real-use evidence to watch: sparse notebooks may produce quiet or repetitive neighborhoods. That
-is not permission to add hidden weighting, derived adjacency, stored dismissal, or global graph
-scope; each remains a later owner decision if actual use supplies a problem.
-
----
-
-### Phrase↔word containment links
-
-- **Date added:** 2026-08-12 — **Status:** Implemented — Phase 22a, deployed
-- **Records:** `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md`, Phase 22 entries in `DECISIONS.md`
-
-Lexical detail derives a read-only, bidirectional Word↔Phrase network through exact whole-token
-terms and unambiguous cloze-safe attached-verb forms. A fixed function-word stop list, reference-
-wide ambiguity suppression, exact-only reference failure fallback, preserved ñ, and explicit
-clitic/ambiguous silent misses keep it conservative. No link, event, preference, schema field, or
-dictionary package is created.
-
----
-
-### Same-meaning clustering
-
-- **Date added:** 2026-08-12 — **Status:** Implemented — Phase 22b–22c, deployed
-- **Records:** `PHASE-22-DIRECTION.md`, `PHASE-22-REPORT.md`, Phase 22 entries in `DECISIONS.md`
-
-At most three explained pairwise gloss-overlap proposals may appear outside Connections; sparse
-POS only rejects known conflicts, and v1 deliberately stores no dismissal. Explicit confirmation
-alone creates an ordinary stored-once Similar meaning edge. Direct confirmed edges—not raw
-proposals or transitive neighbors—feed a shuffled, self-graded, event-free hub recall deck with
-one missed-only round and an intentional cold start.
-
-Real-notebook suggestion precision remains evidence to watch after deployment; a noisy recurring
-proposal is not permission to add hidden dismissal storage or loosen whole-token matching.
-
----
-
-### English→Spanish lookup
-
-- **Date added:** 2026-08-12 — **Status:** Implemented — Phase 2e, deployed (predated the capture)
-- **Records:** `PHASE-2-REPORT.md`, the 2026-07-31 english-index entries in `DECISIONS.md`,
-  brief §8's amended tier list
-
-Captured 2026-08-12 without noticing the capability already existed: Phase 2e shipped a
-pipeline-built english index (`englishShards`, gloss word → entry ids, sharded like the form
-index), and search tier 4 answers "take out" → *sacar* by intersecting per-word postings,
-labeled as an English-meaning match. The capture's two open questions were already settled in
-shipped code — the one search field serves the English path (no direction toggle), and multiword
-queries intersect their words with whole-phrase glosses sorting first. Moved to history
-2026-08-13 as a correction, not an implementation.
-
----
-
-### Global tag management
-
-- **Date added:** 2026-08-10 — **Status:** Implemented — Phase 20, deployed
-- **Records:** `PHASE-20-DIRECTION.md`, `PHASE-20-REPORT.md`, Phase 20 entries in `DECISIONS.md`
-
-Ajustes is the single exact-tag maintenance home: rename to an unused spelling, explicit merge
-into one existing tag, or global removal, in one timestamp-neutral atomic transaction with one
-ordinary `edit` per changed item and an optional non-gating pre-change backup. Schema stayed v6.
-
-#### Evidence to watch in real use — 2026-08-10
-
-Recorded at review time so the deliberate Phase 20 trade-offs are re-examined against real usage
-rather than rediscovered. None of these is a defect; each names the evidence that would justify a
-follow-up product decision.
-
-1. **Multi-variant consolidation friction.** The phase's origin problem was consolidating spelling
-   variants, but merge is deliberately single-source: collapsing three variants into one takes two
-   sequential merges, each with its own preview and confirmation. If the owner's real tag clusters
-   are trios rather than pairs — repeated back-to-back merges of related spellings in practice —
-   that is the evidence for promoting the deferred multi-source merge.
-2. **Merge irreversibility rests on an opt-in backup.** The event log records that items changed,
-   not their previous tag values, so after a merge nothing in the app can reconstruct which entries
-   carried the old spelling. The safety net is the optional, non-gating **Export backup first**
-   action. If a merge is ever regretted without a fresh export on hand, that is the evidence for
-   revisiting persistent undo (which was excluded because it needs stored inverse data — a separate
-   product decision, per `DECISIONS.md`).
-3. **Batch maintenance inflates activity honestly.** One rename touching N entries writes N
-   ordinary `edit` events into Recent activity, the calendar and the streak — chosen deliberately
-   over a batch event type. If a large cleanup ever makes the stats screens feel dishonest or
-   noisy, that is the evidence for reopening the grouped-batch-history deferral rather than
-   filtering events after the fact.
-
----
-
-### Markdown blank-line spacing
-
-- **Date added:** 2026-08-10 — **Status:** Implemented — Phase 19 increment, deployed
-- **Records:** Phase 19 blank-line entries in `DECISIONS.md`
-
-A non-destructive Blank line action in Page Notes, Grammar Overview, Diario and top-level lexical
-notes writes one exact top-level standalone `<br>` per press, rendered as an unlabeled spacer and
-omitted from visible-text consumers. Lexical notes joined the deployed set in the 2026-08-16
-follow-up; no schema, storage or backup change.
-
----
-
-### Explicit Notes callouts
-
-- **Date added:** 2026-08-10 — **Status:** Implemented — Phase 19 increment, deployed
-- **Records:** Phase 19 callout entries in `DECISIONS.md`
-
-Page Notes and top-level lexical-note editors offer a Note callout beside Block quote; only a
-blockquote beginning with `[!NOTE]` becomes a labeled accessible Notes-blue callout, and the
-marker stays out of search, previews and AI-visible text. Lexical notes joined the deployed set in
-the 2026-08-16 follow-up. Ordinary blockquotes remain quotations; schema stayed v7 at the original
-increment and remains v9 after the no-schema follow-up.
-
----
-
-### Structured Notes outlines
-
-- **Date added:** 2026-08-10 — **Status:** Implemented — Phase 19 schema-v7 increment, deployed
-- **Records:** `PHASE-19-DIRECTION.md`, `PHASE-19-REPORT.md`, Phase 19 entries in `DECISIONS.md`
-
-Schema v7 keeps every Page body as Notes Overview and adds named top-level Notes sections plus
-exactly one subsection level, sharing hierarchy mechanics with Grammar without a general block
-editor. A nonempty outline deliberately counts as durable Page organization for the Pages/Diario
-boundary; the brief records the asymmetry and the leaf-body deletion rule.
-
----
-
-### Grammar guide depth and callouts
-
-- **Date added:** 2026-08-10 — **Status:** Implemented — Phase 19 first release, deployed
-- **Records:** `PHASE-19-DIRECTION.md`, `PHASE-19-REPORT.md`
-
-Grammar sections gained safe formatted Overviews, accessible Note callouts and schema-v6 one-level
-subsections, bounded deliberately short of arbitrary blocks or recursive page trees. Phase 19
-remains the grouping home for later owner-approved Page organization/formatting increments — a
-bookkeeping choice, not advance scope approval.
-
----
-
-### Owner-centric stats
-
-- **Date added:** 2026-08-06 — **Status:** Implemented — Phase 11, deployed
-- **Records:** `PHASE-11-DIRECTION.md`, Phase 11 entries in `DECISIONS.md`
-
-Study streak, 16-week activity calendar, cumulative growth line, Leitner ladder and per-item
-learning strip, every number derived at render with no stored counters. Two owner decisions are
-recorded in the direction doc: the streak amends the journal-streak deferral (journal-side streaks
-stay deferred), and day-level activity counts events of since-deleted items. This entry previously
-existed only as an index row; the section was added 2026-08-12 for completeness.
-
-**Still open:** retention, coverage and per-direction breakdowns were deliberately excluded until
-real data volume exists. The recorded `direction` metadata on review events is what a
-per-direction answer would be built from, and the Review forecast idea (Active band) belongs to
-this family.
-
----
-
-### Learning depth (cloze, reverse, drill, audio)
-
-- **Date added:** 2026-08-06 — **Status:** Implemented — Phase 10a–10d, deployed
-- **Records:** Phase 10 entries in `DECISIONS.md`
-
-Session direction (es→en / en→es / mixed), cloze cards from the entry's own examples with
-conjugation-aware matching, an ungraded conjugation drill, and browser-TTS pronunciation — all
-derived from existing data with no schema change. Several of its recorded open questions have
-since been answered by later phases: the drill's ungraded/recordless design was reversed by
-Phase 13 at the owner's request and expanded into the Conjugation Gym (Phases 14–18), and the
-drilled-tense set grew accordingly.
-
-**Deliberately not built then, and where those threads live now:**
-
-- **Confusion-pair drills** — dropped for scope only; now promoted to its own Active entry
-  (2026-08-12).
-- **Frequency weighting** of dictionary suggestions — rejected as the weakest candidate, partly
-  because a search miss has no entry and therefore no rank. The Active **Frequency coverage**
-  idea is a different proposal (a display statistic, not suggestion ranking) and is not covered
-  by this rejection.
-- **Per-direction scheduling** — still deferred by §14; the `direction` metadata recorded since
-  Phase 10 is what a future answer would be built from.
-
-**Still-open evidence:** whether cloze fires often enough to be worth it; whether reverse/mixed
-stay used once the novelty passes; whether one Leitner ladder across both directions stays
-believable; and whether cloze should ever draw on Diario writing — the owner's own Spanish in
-context (see also the active-vocabulary theme, document history 2026-08-11).
-
----
-
-### Typed or explained relationships
-
-- **Date added:** 2026-08-02 — **Status:** Implemented — Phase 4t–4x, deployed 2026-08-04
-- **Records:** Phase 4t–4x entries in `DECISIONS.md`; approval and outcome entries in this file's
-  document history
-
-The approved hybrid shipped on schema v4: one fixed type (seven types, Similar meaning through
-Related) plus one optional shared note per ordinary connection, stored as mandatory sparse
-`linkAnnotations[]` with `subject: owner | target` for direction, while `linkedKeys[]` remained
-the sole authority for existence. Link/unlink/type/note changes stay event-free bookkeeping;
-relationship notes stay out of search, filters, Repaso and activity. The owner expressly waived
-the real-link audit before approval. The disposable 375×812 browser closeout was never claimed
-(the browser-control kernel could not initialize); the deployment itself was verified.
-
----
-
-### Persistent page profiles
-
-- **Date added:** 2026-08-02 — **Status:** Implemented — Phase 4j–4o (schema v3), evolved into
-  composable pages as Phase 7 (schema v5), deployed
-- **Records:** `PHASE-7-DIRECTION.md`, `PHASE-7-REPORT.md`, `PHASE-4-JOURNAL-DIRECTION.md`,
-  Phase 4j–4o/4p–4s/4y and Phase 7 entries in `DECISIONS.md`
-
-Phase 4j–4o stored two exclusive profiles (General, Vocabulary Collection) with durable ordered
-groups, the Collection picker, reversible conversion and pins. Phase 7 replaced the exclusive
-model: one `pageFocus` plus independently enabled Vocabulary, Source and Grammar structures,
-Notes as the permanent foundation, and Diario derived from a date plus no enabled structure.
-Phase 4p–4s built the separate Diario workspace over dated General pages without a stored Journal
-profile; Phase 4y added lexical-side Add to Collection; Phase 9 added hub free practice without
-expanding in-place Collection Practice. The richer-profile question stays evidence-gated: an
-explicit Journal schema, custom page kinds and user-authored templates remain deferred (§14).
-
-#### Diario: possible future directions and feasibility (still open)
-
-Future changes should answer observed journal friction rather than add structure because a diary
-app could have it.
-
-| Possible direction | Feasibility in the current architecture | Evidence or decision needed first |
-|---|---|---|
-| Refine, replace or regroup prompts; add a session-only random prompt | Low effort and no schema change while prompt state remains transient | Which prompts the owner actually uses, skips or finds repetitive |
-| Add calendar/month navigation, year summaries, or more journal-only filters | Low-to-medium effort; all can be derived from dated General pages | Whether timeline, archive and search fail to retrieve real entries efficiently |
-| Adjust Today, Continue or prior-year memory selection | Low-to-medium effort with focused domain-test changes | Concrete cases where the current earliest-today, latest-other, or ±7-day rules feel surprising |
-| Improve vocabulary capture from Diario | Medium effort using existing personal-entry and dictionary seams | Whether selecting only existing personal vocabulary interrupts writing; any dictionary path must make personal creation explicit and retain orphan handling |
-| Add a journal-specific export or print view | Medium effort without changing stored entries | A real need beyond whole-notebook backup, plus a privacy-safe output format |
-| Add structured mood, theme, gratitude, location, weather or stored prompt fields | High effort and a likely future schema migration with export-first and backup work | Repeated use showing that text, tags and links cannot support the desired retrieval or reflection |
-| Add streaks, completion, trends or scheduled journal review | Medium-to-high product risk even if some results are event-derived | A clear learning/reflection outcome; avoid stored counters, analytics pressure and overlap with Repaso. **Amended 2026-08-06:** a study streak and activity heatmap are approved as Phase 11 (owner decision) — derived at render with no stored counters, and placed *in* Repaso rather than overlapping it. Journal-specific streaks, completion and trends in Diario remain deferred on this row's original terms |
-| Introduce an explicit/richer Journal profile | High architectural cost and migration risk | Durable behavior that cannot be expressed by the separate workspace over a dated General page, including how it composes with Collection or future Source behavior |
-
-#### Evidence still worth collecting from real use
-
-- Whether the separate Diario tab increases writing and rereading without feeling like an
-  obligation; which retrieval path (Today, Continue, scrolling, archive, search, memory) is
-  actually used; whether prompts help and which categories recur.
-- Whether Collections solve the vocabulary-hub use cases without excessive organizing work; which
-  group structures recur; whether manual ordering stays useful as Collections grow.
-- How often one page genuinely needs several specialized behaviors at once, and which desired
-  behavior, if any, truly requires durable journal-only fields rather than text, tags, links,
-  events or derived presentation.
-
----
-
-### Source-oriented page templates
-
-- **Date added:** 2026-08-02 — **Status:** Implemented — Phase 7, deployed
-- **Records:** `PHASE-7-DIRECTION.md`, `PHASE-7-REPORT.md`, Phase 7 entries in `DECISIONS.md`
-
-The original idea (reduce blank-page friction when capturing a film, podcast, book or article)
-resolved into Phase 7's Source capability: optional source identity (format, creator, scope, URL,
-context) plus one flat ordered capture stream, enabled independently rather than as an exclusive
-page kind, with built-in family-first creation recipes that store no template identity. **Copy
-page structure** is the only reuse mechanism. User-authored/stored template management, source
-hierarchies, deep provenance and reading tracking remain deferred (§14). The Phase 4j–4o starter
-gallery was the enabling precedent: creation-only seeding without permanent classification.
-
----
-
-### Meaning-block presentation
-
-- **Date added:** 2026-08-02 — **Status:** Implemented — Phase 4i, deployed
-- **Records:** Phase 4i entries in `DECISIONS.md`
-
-The one `translation` string became structured `meanings[]`: each ordered meaning has a stable
-personal `meaning:<uuid>` independent of dictionary senses, an English gloss, optional Spanish
-usage cue, compact region/usage/grammar labels, and optional note and assigned examples. The
-entry remains the review and scheduling unit; schema-v1 multiline translations migrated one
-nonblank line at a time. Approved after workshopping the polysemous verb *sacar*. Phase 12 later
-added optional import of dictionary senses as ordinary meaning records with no link back.
-
----
-
-## Document history
-
-- **2026-08-24 — Non-verb grammar drills planned as the Contrasts Gym lane.** The owner reviewed
-  a survey of cloze, multiple-choice and transformation drill ideas against the app and chose the
-  differentiative choice cloze first, naming ser/estar and por/para as the pairs. The direction is
-  `docs/history/phases/CONTRAST-LANE-DIRECTION.md`; the entry moves to Planned. Confusion-pair drills stays
-  captured as the vocabulary-side sibling.
-- **2026-08-20 — Taller direction workshopped and approved; two follow-on ideas captured.** A
-  multi-round owner workshop turned the prompting-suite capture into an approved v1 direction,
-  `docs/history/phases/DIARIO-TALLER-DIRECTION.md`: the Taller door on the Diario, drills with keep-or-discard,
-  rich practice events under a narrow amendment of the 2026-08-03 rule, an owner-edited tema
-  list, dictionary-powered scaffolds, tiers, and record-don't-display tracking; no AI in v1.
-  In-app AI prompt drafting and a Personal prompt store were captured as new Active entries; the
-  separate-space idea stays captured after the owner chose one-Diario-two-doors for v1.
-
-- **2026-08-20 — Classroom-diario direction captured as a two-entry batch.** After the 2026-08-19
-  skill-focused prompt categories deployed, the owner declared a direction shift: the Diario
-  should also be a space for deliberately working on skills, and the 2026-08-03 visit-local
-  prompt rule may be amended to support it. The prompting-suite options (vocabulary-integrated,
-  weakness-aware, own-voice recycling, scaffolds, tiers, AI review focus, usage tracking) and
-  the contingent separate-space idea were recorded; AI-generated prompts and unprompted landing
-  display were considered and set aside at capture.
-
-- **2026-08-15 — Suppressed-containment confirmation deployed.** The owner-approved push
-  (`39c0e90`) went out through a successful Pages run and the live site serves the new bundle.
-  The remaining real-use evidence: whether wrong proposals recur annoyingly enough to justify a
-  dismissed-pairs decision, and whether the owner's ~16 genuine misses convert into confirmed
-  Found in links in practice.
-
-- **2026-08-15 — Suppressed-containment confirmation added directly to Implemented.** The owner
-  noticed *Creo que* missing *creer*, a diagnostic over their real export sized the suppressed
-  class (48 rows: 28 artifact, ~16 genuine, ~4 correct), and the confirm tier was planned and
-  implemented the same day. Recorded straight into history with its still-open evidence
-  questions; not yet deployed.
-
-- **2026-08-13 — Phase 26 connection roadmap split into implementation and retained ideas.** The
-  owner approved Mentioned here, Seen together, and exact-URL source bundles for Phase 26, and
-  asked that the remaining four steps stay visible for later. Added evidence-backed
-  synonym/antonym proposals, evidence-backed Page-to-Page proposals, and optional AI connection
-  review; amended the existing Connection cluster browsing family in place rather than creating a
-  duplicate graph entry. None of those four retained ideas is implementation approval.
-
-- **2026-08-14 — "New word or phrase" promoted to a top-level share destination.** Owner-requested
-  after real use: creating a new entry from a share was reachable only through the picker's
-  buried create row. The chooser's second row now opens the blank creation sheet through the
-  existing `onCreateLexical` path, video attached from birth, pill following; the picker row
-  stays for the type-then-create case. Not yet deployed.
-
-- **2026-08-14 — Continue-with-this-video flow deployed.** The owner-approved push (`31f344a`)
-  went out through a successful Pages run and the live site serves the new bundle. The remaining
-  real-use questions: one TikTok processed into several outputs without resharing on the real
-  device, and which targeted post-attach quick actions deserve promotion onto the pill.
-
-- **2026-08-13 — Continue-with-this-video flow implemented locally.** After any chooser action an
-  ephemeral pill keeps the shared video available ("Add to another item" reopens the full
-  chooser; "Done" forgets it), and the existing-item picker gained a create row that makes a new
-  word or phrase through the normal AddSheet with the video attached from birth. Owner chose the
-  minimal pill over targeted per-type quick actions — real use decides which shortcuts deserve
-  promotion. In-memory only: no schema, preference, event, or reload survival. Not yet deployed.
-
-- **2026-08-13 — Share arrival destination chooser deployed.** The owner-approved push
-  (`f94c79a`) went out through a successful Pages run and the live site serves the new bundle.
-  The three-destination chooser is live; the owner's real-device TikTok walk-through of each
-  destination is the remaining evidence.
-
-- **2026-08-13 — Share arrival destination chooser implemented locally; the share target's open
-  destination question is answered.** The owner's real workflow (frequent short learning TikToks)
-  arrived the day the share target deployed and showed always-new-Source-page too rigid. A URL
-  share now opens a chooser: attach to an existing page or word/phrase as a media link, start a
-  Grammar guide with the video pre-attached, or keep the new Source notebook. Owner decisions:
-  three destinations, pages + lexical targets, long-prose handling unchanged. Implemented-entry
-  question struck through with the answer in place; not yet deployed.
-
-- **2026-08-13 — Phase 25a implemented and verified locally; Phase 25b remains stopped.** The
-  conjugation-family habitat now shares one alias-aware, word-only preparation and row component
-  with Wander, preserves notebook order, navigates personal siblings and the marked teaching
-  exit, stays quiet on optional-reference failure, and writes no event. The 1,403-test serial
-  suite, build, deliberate no-event failure/recovery, and disposable 375×812 flow pass. The r4
-  audit verdict is also carried into the Dictionary word-family explorer: flattened strings are
-  not a sanctioned source for either an explorer or saved-family shadow. Deployment remains a
-  separate approval; full evidence is in `PHASE-25-REPORT.md`.
-
-- **2026-08-13 — Historia word families planned as Phase 25a/25b after a seven-question
-  workshop.** The owner picked the conjugation-family and derivational-family enrichments from
-  the Historia-strengthening discussion and answered seven scope questions: saved derivational
-  relatives only; the conjugation section mirrors the wander card (siblings plus the
-  What-to-notice exit); Historia only, no wander-edge changes; no suppression of rows already in
-  Connections; words only; attachment required on both endpoints; and a `relatedWords` quality
-  audit gates 25b before UI work. The full contract is `PHASE-25-DIRECTION.md`; the Dictionary
-  word-family explorer entry was updated in place to hand its personal-layer shadow to Phase 25b
-  while keeping the unsaved-relative explorer unapproved. Planning is not implementation
-  approval; the §2 plan-first agreement still applies.
-- **2026-08-13 — Six connection-visualization ideas captured from an owner brainstorm.** With
-  Phases 22–23 deployed, every connection surface shows derived edges as labeled list rows; the
-  owner asked what showing connections and groups *better* could look like, explicitly without a
-  settled aim, and requested the whole batch for the list. Captured as separate entries so each
-  can be judged alone: Edge-kind visual vocabulary, Wander constellation (one-hop map),
-  Connection cluster browsing, Graph texture in Estadísticas, Moment-of-learning micro-visuals,
-  and Global graph visualization. The sequencing recorded in the entries — vocabulary first,
-  Estadísticas texture as the evidence gatherer, constellation as the first spatial step, the
-  global graph gated on all of it — is a starting position, not a decision. Cluster browsing
-  joins the existing Tag hubs / Saved views overlap question, updated in place. None of the six
-  is approved work.
-
-- **2026-08-13 — Android share target deployed.** The owner-approved push (`d0ceb27`, carrying
-  the interjection-override increment too) deployed through a successful Pages run, and the live
-  manifest serves the `share_target` block. The index row and entry now read "deployed"; the
-  real-device share-sheet check is open to the owner once the installed PWA updates.
-
-- **2026-08-13 — Android share target implemented and verified locally; moves to Implemented
-  history.** The owner approved dispatch-by-content (option 3) with long prose landing whole in
-  the search box. Manifest `share_target` (GET), a pure dispatch lib, and startup consumption of
-  the params into the in-memory trail; the entry is compressed here with `DECISIONS.md` as the
-  authoritative record. Deploy and the real-device share-sheet check remain open, so the index row
-  reads "awaiting deploy". Both cross-references (Select text to look up, PWA app shortcuts) now
-  point at the implementation instead of "below".
-
-- **2026-08-13 — Phase 24 deployed; the unused-field census moves to Implemented history.** The
-  owner-approved push deployed r4 at `da547fd` through successful Pages run 31723115634. The live
-  manifest and first chunk returned HTTP 200 with the expected r4 identity, counts, and byte length.
-  The census is compressed into the Implemented index with its direction/report as authoritative
-  records; the separate word-family explorer remains Captured, now with its dormant data deployed.
-
-- **2026-08-13 — Phase 24 implemented and verified locally.** The r4 rebuild and dictionary
-  display close the census implementation questions with exact r3 identity preservation, 45/45
-  shipment checks, a 4.06 MiB bundle, the complete serial suite/build, and a disposable 375×812
-  rich/plain-entry flow. Per the phase contract, the census entry stays Active until an
-  owner-approved push moves it to Implemented history; the word-family explorer itself remains
-  unapproved even though its source data now ships dormant in r4.
-
-- **2026-08-13 — Correction: English→Spanish lookup moves from Active to Implemented history.**
-  The 2026-08-12 capture recorded a capability Phase 2e had already shipped: the bundled
-  `englishShards` index and search tier 4 ("take out" → *sacar*) have been live since the
-  Phase 2 deployment, per the 2026-07-31 `DECISIONS.md` entries and brief §8's amended tier
-  list. The entry is compressed per the implemented-band convention; no code changed.
-
-- **2026-08-13 — Unused dictionary fields moves to Ready to plan: the owner decided the
-  next-rebuild field selection in a four-question workshop.** In: sense-level synonyms and
-  antonyms, topic labels, first-sentence etymology (measured at ~144 KB), filtered sense-attached
-  examples, and dormant derived/related data for the word-family explorer. Out: IPA and syllable
-  breaks. The selections total ~+660 KB gzipped (~3.96 MB bundle), knowingly past the plan-era
-  ~3.5 MB guideline the brief never fixed. Recorded in `DECISIONS.md`; display design and the
-  rebuild itself still require a plan under the working agreement. The word-family explorer's
-  timing question closes with the same decision (its data ships dormant; the phase stays
-  unapproved).
-
-- **2026-08-13 — Two data-layer surveys captured: Unused dictionary fields (shipped-lemma census)
-  and Candidate future data sources.** Both came from owner questions about the reference layer
-  and were requested for the list after reviewing the assessments. The census entry records
-  measured coverage and real gzip cost for every Kaikki field the pipeline currently drops
-  (sense-level synonyms, IPA, syllables, etymology, sense-attached examples, topics, antonyms),
-  the measured dead ends (audio, translations), a 175-sense parent-gloss data-quality nit in
-  `04-entries.mjs`, and the size arithmetic against the ~3.5 MB guideline. The sources entry
-  surveys candidate additions (the es.wiktionary extract, word and sentence audio, relations
-  data, curated-content seeds), names the gaps with no cleanly licensed source, and records the
-  wiktextract contingency — under the standing rules that licenses are re-verified at adoption
-  and noncommercial sources stay build-time only. The same census supplied survey-level evidence
-  to the Dictionary word-family explorer entry (~70% raw coverage, ~230 KB gzipped), whose
-  coverage risk is updated in place. Neither new entry is approved work.
-
-- **2026-08-13 — Phase 23 deployed.** The owner approved the verified branch and current visual
-  treatment; `main` fast-forwarded through the direction plus four Phase 23 commits to `bb292fe`.
-  GitHub Pages run 31668643593 completed successfully, and the live HTTP-200 application bundle
-  contains the Historia, Cuaderno wander, Diario-stub, and full-entry surfaces. README Status,
-  both implemented-idea summaries, the direction/report, and the durable decision record move to
-  deployed reality; personal schema remains v8.
-
-- **2026-08-12 — Phase 23 implemented and verified locally; not deployed.** Historia, shared
-  owner-prose containment, milestone replay, unweighted neighborhood starts, alias-safe typed
-  edges, Phase 21 family hops, inert Diario counts, reduced Page centers, and screen-aware Back
-  trails pass 1,372/1,372 serial tests, the 2,105-module production build, diff check, all three
-  deliberate red/green proofs, and a disposable 375×812 closeout. Both ideas move from Active to
-  Implemented history; real-notebook prose-scan cost and neighborhood usefulness remain evidence
-  to watch. No push or deployment is claimed.
-
-- **2026-08-12 — The word's biography and Neighborhood browsing enter as Planned: Phase 23a/23b,
-  direction approved through an owner decision workshop.** After a detailed two-idea breakdown
-  (use and value, implementation tiers, scope-shaping decisions, extension paths), the owner
-  answered nine workshop questions plus two scope questions; the decision-complete record is
-  `PHASE-23-DIRECTION.md`. Headline decisions: biography as a sub-view off Detail's learning
-  strip, milestones-only narrative, display-only derived rows, Diario as a disclosed section;
-  wandering over typed links + conjugation families with a pure-random start, no events from its
-  own surfaces, Diario as unopened stubs, entered from a Cuaderno root card; one phase, 23a then
-  23b, with Phase 22's containment matcher extended to prose inside 23a. Implementation has not
-  started and still follows the plan-first agreement.
-
-- **2026-08-12 — Phase 22 deployed.** The verified four-commit fast-forward reached `main` at
-  `022e1b6`, and GitHub Pages run 31661654898 completed successfully. The two implemented idea
-  statuses now describe deployed reality; the earlier local-only history remains as the state at
-  that time.
-- **2026-08-12 — Phase 22 implemented and verified locally; not deployed.** The three slices now
-  pass 1,341/1,341 serial tests, the production build, diff check, deliberate red/green proofs and
-  a disposable 375×812 flow covering containment, ambiguity suppression, explicit stored-once
-  confirmation and direct-link recall. The two idea entries move to Implemented history; their
-  only still-open evidence is real-notebook suggestion precision after a future deployment.
-
-- **2026-08-12 — Phrase↔word containment, same-meaning proposals, and confirmed-link recall are
-  approved as Phase 22.** The three-slice direction deliberately accepts reappearing false-positive
-  suggestions instead of adding a backed-up dismissal preference, treats sparse POS as a
-  best-effort guard, records ambiguous and clitic-attached containment as silent v1 misses, keeps
-  derived rows visibly outside ordinary Connections, and sequences recall last because it has no
-  honest deck before the owner confirms at least one Similar meaning edge. Deployment closeout must
-  synchronize README Status under the 2026-08-11 rule.
-
-- **2026-08-12 — Five consolidation-themed ideas captured: phrase↔word containment links,
-  same-meaning clustering, monolingual recall over Spanish usage cues, retired-word spot checks,
-  and the near-duplicate consolidation view.** All five came from a brainstorm on consolidation —
-  strengthening the network between things the owner already knows, as distinct from acquisition
-  and maintenance — and were requested for the list together. Each stays inside existing
-  boundaries: containment and clustering are derived display/suggestion layers that touch no link
-  authority, monolingual recall reuses the excluded-and-explained card pattern, spot checks are
-  owner-started per §14 with the demotion question named as the one real product decision, and
-  the duplicate view deliberately excludes entry merging (the Phase 20 stored-inverse-data
-  reasoning). The word-family explorer entry also gained its dependent personal-layer extension.
-  Captured concurrently with Phase 21's own doc updates, which this pass merged around rather
-  than disturbing. None is approved work.
-
-- **2026-08-12 — Dictionary word-family explorer captured as its own entry, deliberately
-  separate from "Conjugates like" verb families.** The two share the family-at-lookup pattern
-  but differ in kind (derivational vs. inflectional) and in cost: conjugation families derive
-  from shipped paradigm tables today, while derivational families need a dataset rebuild. The
-  entry records repository-verified facts — the raw Kaikki dump carries `derived`/`related`
-  fields that `pipeline/build/04-entries.mjs` currently discards — plus the two honest caveats
-  (coverage among the shipped 10,278 lemmas is unmeasured; family members may not be shipped,
-  invoking the "not installed" ≠ "orphaned" tripwire) and the timing note that the
-  English→Spanish index rebuild is the natural moment to carry both.
-
-- **2026-08-12 — Two owner-suggested ideas captured: Select text to look up and Paste a
-  vocabulary list.** Both were owner suggestions assessed in discussion and requested for the
-  list. The paste entry absorbs the earlier uncaptured "bulk vocabulary import from a wordlist"
-  brainstorm as its file-based variant, and deliberately restates the §13 merge-mode-import
-  boundary it sits beside: merging notebook states remains a non-goal, while explicit previewed
-  creation of new entries is on the safe side of that line. A third suggestion from the same
-  discussion, reading the owner's writing aloud through the existing on-device voice, was
-  assessed favorably but not requested for capture. Neither captured idea is approved work.
-
-- **2026-08-12 — Owner-approved restructure: three bands, compressed history, and convention
-  updates.** The document reorganized into Active / Deferred / Implemented (history) bands with a
-  banded index, and the eleven implemented entries compressed to summary-plus-links per an
-  owner-approved amendment to the keep-as-history rule (full original reasoning remains in git
-  history; still-open evidence and questions were kept in place). In the same pass: an
-  Owner-centric stats section was added for the index row that previously pointed nowhere;
-  Personal-content provenance was re-reviewed to record the Phase 6 feedback-field precedent;
-  Saved views was re-reviewed to note its Phase 8 evidence window is open; Confusion-pair drills
-  was promoted out of Learning depth's "deliberately not built" list into its own Active entry;
-  cross-references were added between Frequency coverage and the rejected frequency weighting,
-  between the two drill siblings, and between Tag hubs and Saved views; and the how-to now
-  documents the Owner interest convention and the banding. No idea changed approval state.
-
-- **2026-08-12 — Nine ideas recorded from the second brainstorming pass, each with the owner's
-  stated interest level.** Eight are Captured: PWA app shortcuts (so it is not forgotten),
-  "did you mean" search suggestions, English→Spanish lookup, "conjugates like" verb families
-  (owner expects to pursue), tag hubs (revisit when tags are used more), the review→writing
-  bridge (worth considering), the time-boxed mixed session, and the review forecast (low
-  priority). One is Deferred at the owner's direction: the accent bar for typed inputs, a
-  feature the owner considers good but declines while their keyboard keeps accent entry
-  low-friction. Owner-interest lines distinguish these dispositions from ordinary captures;
-  none is approved work.
-
-- **2026-08-11 — Four ideas captured from a brainstorming session: Android share target,
-  dictation cards, non-verb grammar drills, and frequency coverage.** All four are Captured, not
-  approved: they came from a discussion of unconsidered possibilities rather than observed
-  friction, and each records the evidence that would justify promotion. None changes schema,
-  storage or backup as described. Two adjacent ideas from the same session were deliberately not
-  captured: assisted reading (large enough to deserve its own discussion first) and active
-  vocabulary detection (worth capturing once Diario volume makes it testable).
-
-- **2026-08-11 — Status sweep: stale "implemented locally; not deployed" claims synced to
-  deployed reality.** Local `main` and `origin/main` both sit at `9503f96`, and the GitHub Pages
-  runs for the recent pushes (through the picture-front commit) completed successfully, so
-  Phases 10, 11, 4t–4x, 7, the Phase 19 callout/blank-line increments and Phase 20 are all live.
-  Index rows and section Status lines were updated, and a missing index row was added for
-  Markdown blank-line spacing. `README.md` was synced in the same pass: `SCHEMA_VERSION` corrected
-  to 8, and bullets added for the three deployed 2026-08-11 increments (persisted Diario feedback,
-  inline media rendering, picture-front flashcards). Document-history entries below keep their
-  original wording as history. No idea changed approval state.
-
-- **2026-08-06 — Phase 10a–10d implemented locally.** Recorded the learning-depth batch: session
-  direction, cloze cards, the ungraded conjugation drill and browser pronunciation, all without a
-  schema change or a new event type. The complete serial suite passes 762/762 across 71 files,
-  the production build passes, four deliberate red/green proofs hold, and a disposable 375×812
-  browser closeout covered all three directions, the drill and the speaker controls. That closeout
-  found a real defect the unit tests could not have caught — cloze preferred the owner's examples
-  in name only — which is fixed and now covered by a test that fails against the old behaviour.
-  No push or deployment is claimed.
-
-- **2026-08-04 — Phase 8 implemented locally; not deployed.** Recorded the Words & phrases hub's
-  overlap with Saved views under that idea: the hub adds organizing lenses but keeps every control
-  visit-local, so it supplies evidence for the saved-view question rather than answering it. No idea
-  was promoted; Saved views remains Captured. See [PHASE-8-DIRECTION.md](history/phases/PHASE-8-DIRECTION.md) and
-  [PHASE-8-REPORT.md](history/phases/PHASE-8-REPORT.md).
-
-- **2026-08-04 — Phase 7 deployed from `main`.** The approved `phase-7-composable-pages`
-  fast-forwarded into `main` at `982bae5`; GitHub Pages workflow run
-  [30966093217](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/30966093217)
-  completed successfully. The disposable 375×812 browser closeout remains unverified because the
-  in-app browser could not initialize; no owner browser data was inspected.
-
-- **2026-08-04 — Phase 7 automated closeout passed; browser closeout unverified.**
-  `npm.cmd test -- --no-file-parallelism` passed 58 files / 593 tests in 229.90s,
-  `npm.cmd run build` passed after Vite processed 1,863 modules in 4.49s, and
-  `git diff --check` passed. The in-app browser failed before fixture setup with
-  `failed to write kernel assets: The system cannot find the path specified. (os error 3)`, so the
-  disposable 375×812 flow remains unverified. No owner data was inspected, and no push or
-  deployment is claimed.
-
-- **2026-08-04 — Phase 7 implemented locally; release verification pending.** Promoted
-  Source-oriented page templates and the composable evolution of persistent page profiles from
-  Planned to Implemented locally. Schema v5, the unified page workspace, creation recipes, Source,
-  Grammar, exact Source references, and contextual retrieval are present on the feature branch.
-  The final serial suite, production build, disposable 375×812 browser closeout, push, and
-  deployment are not claimed.
-
-- **2026-08-04 — Phase 7 approved for implementation.** Promoted Source-oriented page templates
-  and the composable evolution of persistent page profiles to Planned. The approved schema-v5
-  direction replaces exclusive page profiles with one focus plus independently enabled Vocabulary,
-  Source and Grammar structures; retains derived Diario; adds built-in creation recipes and
-  copy-empty-structure without template identity; and records contextual retrieval, migration,
-  backup and first-release exclusions in `PHASE-7-DIRECTION.md`. This is an approval record, not an
-  implementation or deployment claim.
-
-- **2026-08-04 — Phase 4y deployed.** Fast-forwarded and pushed `main` at `c716e9d`; GitHub Pages
-  workflow run 30955868049 passed both jobs, and the live site returned HTTP 200 with the verified
-  `index-BpNcWMY7.js` asset. The disposable phone-width browser check remains pending.
-
-- **2026-08-04 — Phase 4y implemented locally.** Recorded the owner-observed reverse-capture gap,
-  the schema-free Add to Collection flow, ordinary-picker guard, lossless promotion behavior,
-  501-test serial suite and production build. Phone-width browser verification remains pending;
-  no push or deployment is claimed.
-
-- **2026-08-04 — Phase 4t–4x deployed.** Fast-forwarded and pushed `main` at `eb93c90`; GitHub
-  Pages workflow run 30949552774 passed both jobs, and the live site returned HTTP 200 with the
-  verified build asset. The disposable phone-width browser closeout remains pending.
-
-- **2026-08-04 — Phase 4t–4x implemented locally.** Promoted typed and explained relationships from
-  Planned to Implemented locally after the 493-test serial suite, production build, and deliberate
-  failure proofs passed. The disposable phone-width browser closeout remains pending because the
-  browser-control runtime could not initialize; no deployment is claimed.
-
-- **2026-08-04 — Typed and explained relationships approved.** Promoted the idea from Captured to
-  Planned as Phase 4t–4x, recorded the owner's real-link-audit waiver and seven-type decision, and
-  locked schema-v4 sparse annotations, event/recency behavior, seam constraints, and first-release
-  exclusions. Implementation is in progress; this entry does not claim the phase has shipped.
-
-- **2026-08-02 — Created.** Established the planning-record format and added the first six ideas
-  from the preliminary information-architecture discussion. No idea was approved for implementation.
-- **2026-08-02 — Meaning blocks approved.** Promoted meaning-block presentation from Captured to
-  Planned after the owner selected the structured option and approved the implementation plan.
-- **2026-08-02 — Phase 4i implemented locally.** Schema v2, export-first migration, v1 backup
-  upgrading, structured creation/detail/organization, search, maintenance and entry-level Repaso
-  are implemented and automated tests/build pass. Final seeded 375 px browser acceptance remains.
-- **2026-08-03 — Phase 4j–4o implemented and accepted locally.** Promoted persistent page profiles
-  for General and Vocabulary Collection, and marked Source/Grammar, richer Journal,
-  custom/user-authored templates, and richer structured submodels Deferred. The final serial suite
-  passed 393/393, the production build passed, and the disposable 375×812 browser flow covered
-  upgrade, creation, capture, organization, Practice, conversion, retrieval and backup restore.
-  Production deployment remains pending.
-- **2026-08-03 — Phase 4j–4o implementation-idea follow-up.** Recorded the concrete problems the
-  first profile release addressed, separated the still-unresolved Source use case, and narrowed
-  future questions to composable page behavior, richer profiles, reusable starters, provenance,
-  and possible Practice expansion. The accepted commits are pushed on
-  `codex/page-profiles-collections`; production deployment remains pending.
-- **2026-08-03 — Phase 4j–4o shipped.** Fast-forwarded General and Vocabulary Collection to
-  `main`; GitHub Pages deployment and the production 375×812 schema-v3 smoke test passed. The
-  original Collection problem is closed, while the Source-specific and composable-profile
-  questions above remain deliberate future work.
-- **2026-08-03 — Phase 4p–4s Diario implemented locally.** Recorded the separate workspace's
-  reflection-first purpose, completed creation/retrieval/writing/reading behavior, deliberate
-  migration-free boundaries, and evidence-gated future possibilities. The complete 422-test suite,
-  production build and disposable 375×812 closeout passed; push and deployment remain pending.
-- **2026-08-03 — Phase 4p–4s Diario shipped.** The final post-review autosave guard passes the
-  complete 423-test suite and production build. `main` deployed successfully through GitHub Pages,
-  the deployment points at the journal release commit, and the live application responds normally.
-  The richer-profile possibilities above remain evidence-gated future work.

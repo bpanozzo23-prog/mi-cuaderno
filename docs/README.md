@@ -18,12 +18,15 @@ for the task. Historical status describes its own date, not today's app.
 ## Proposals and work
 
 - [Improvement ideas](IMPROVEMENT-IDEAS.md): open ideas and their context, not an approved roadmap.
+- [Candidate data sources](research/CANDIDATE-DATA-SOURCES.md): dated reference research.
+- [Phase 19/20 polish observations](reviews/2026-08-10/PHASE-19-20-NITS.md): unapproved follow-ups.
 - [Guided lessons](guided-lessons/README.md): planning and chapter drafts, not implementation.
 - [2026-10-17 reassessment](reviews/2026-10-17/README.md): findings and owner response;
   [Step 1](reviews/2026-10-17/STEP-1.md) retains its completed work and verification evidence.
 
 ## Historical records
 
+- [Ideas history](history/IMPROVEMENT-IDEAS-HISTORY.md): completed bodies and the original change record.
 - [Release history](history/RELEASES.md): publication evidence.
 - [README Status snapshot](history/README-STATUS-2026-10-17.md): the preserved pre-reset narrative.
 
