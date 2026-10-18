@@ -1,6 +1,6 @@
 # Step 3 — contract reset
 
-**Status: complete locally, unpushed.** After reviewing the draft recommendations, the owner
+**Status: complete and published at `c82889f`.** After reviewing the draft recommendations, the owner
 said “Go with your recommendations,” approving all five choices below and activation of the
 replacement contract. This completes [reassessment Step 3](REASSESSMENT.md#12-suggested-order-of-work).
 Section 15 remains controlling; the usage review remains withdrawn.
@@ -105,3 +105,8 @@ only after compatibility evidence and specific approval. Neither changes running
 **Executable tooling and application work:** linting, Node pinning, awaitable reload, lesson
 restructuring, migrations and feature work remain separate. The lesson plan's contract references
 were corrected without approving its proposed store or player. Code licensing remains deferred.
+
+Publication was requested and verified on 2026-10-17. The full CI suite, build and deployment
+passed, and live app files matched the production build; see
+[release history](../../history/RELEASES.md#2026-10-17--steps-2-and-3). Current status and the
+recommended next task live in [CURRENT](../../CURRENT.md).

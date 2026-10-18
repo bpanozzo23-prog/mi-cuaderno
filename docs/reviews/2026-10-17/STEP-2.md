@@ -48,8 +48,9 @@ The reset is verified by document/content checks rather than a new application t
 - `git diff --check` passed. Pending owner/browser checks remain recorded in CURRENT; no owner
   data or private export was opened and no new browser verification is claimed.
 
-The last published app remains the release recorded in CURRENT. These documentation commits
-are local until the owner requests a push; the existing CI test/build/deploy gate is unchanged.
+Published with Step 3 at `c82889f` on 2026-10-17 after the owner's push request. The existing
+CI test/build/deploy gate passed; see [release history](../../history/RELEASES.md#2026-10-17--steps-2-and-3)
+for evidence and CURRENT for the latest verified publication.
 
 ## Separate work
 
@@ -58,6 +59,7 @@ record publication evidence, and decisions record reasons. This does not narrow 
 verification rules. A record-only follow-up does not need an endless chain of self-recording deploys.
 
 Executable deploy filtering, a skills-sync script or cleanup, lint and Node configuration remain
-separate. Brief v3 is unchanged and still the contract; PRODUCT/ARCHITECTURE and contract policy
-changes belong to Step 3. Guided-lessons restructuring, feature work and repository branch cleanup
-are not included. No further step or push is authorized by this reset.
+separate. Step 2 left brief v3 unchanged and authoritative; the separately accepted
+[Step 3](STEP-3.md) subsequently replaced its authority with PRODUCT/ARCHITECTURE while preserving
+its bytes. Guided-lessons restructuring, feature work and repository branch cleanup are not
+included. Step 2 itself authorized no further implementation.

@@ -1,17 +1,17 @@
 # Current state
 
-The app is deployed; Step 1 safety work is complete. Steps 2 and 3 are complete locally;
-documentation work is unpushed. This is the starting point for current status, not a release diary.
+The app is deployed; reassessment Steps 1, 2 and 3 are complete and published.
+This is the starting point for current status, not a release diary.
 
 ## Verified release
 
-- **Published revision:** `b48a948`, 2026-10-17. Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39080236039)
-  passed tests, build and deployment. The owner reported the final **1,913 tests across 155 files**
-  and live-asset verification; the workflow result was independently checked during Step 2 planning.
-- **Delivered work:** all four [Step 1 items](reviews/2026-10-17/STEP-1.md) are complete:
-  deployment test gate, backup safety, all-or-nothing saves and five small fixes.
-  The item-4 application release was `6d92bab`; `b48a948` records that deployment without
-  changing application code. Detailed checks remain in the work order and [release history](history/RELEASES.md).
+- **Published revision:** `c82889f`, 2026-10-17 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39086426104)
+  passed all **1,913 tests across 155 files** in 207.00 seconds, built and deployed successfully.
+  Seven live app files returned HTTP 200 and matched the local production build byte for byte.
+- **Delivered work:** [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md) and
+  [Step 3 contract reset](reviews/2026-10-17/STEP-3.md), on top of completed
+  [Step 1 safety work](reviews/2026-10-17/STEP-1.md). Application behavior is unchanged from the
+  Step 1 release. Detailed publication evidence lives in [release history](history/RELEASES.md).
 - **Personal schema:** **v12**, defined in [src/version.js](../src/version.js).
   Backups v1–v12 upgrade sequentially and validate before restore; newer versions are blocked.
   Legacy database upgrades require an untouched validated export before Dexie opens.
@@ -20,11 +20,11 @@ documentation work is unpushed. This is the starting point for current status, n
 
 ## Work and boundaries
 
-- **Complete locally, unpushed:** [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md).
+- **Complete and published:** [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md).
   Current status is consolidated, historical records preserved, active idea context kept together,
   and machine/browser recipes separated. Documentation and preservation checks pass.
-  No application, schema, CI or tooling behavior changes; no push requested.
-- **Complete locally, unpushed:** [Step 3 contract reset](reviews/2026-10-17/STEP-3.md).
+  No application, schema, CI or tooling behavior changes.
+- **Complete and published:** [Step 3 contract reset](reviews/2026-10-17/STEP-3.md).
   [PRODUCT](PRODUCT.md) and [ARCHITECTURE](ARCHITECTURE.md) are the accepted contract; brief v3
   is frozen unchanged as history. The owner approved supporting records, retaining structural
   Diario membership, case-specific review before any optional-field exception, approval once
@@ -32,7 +32,11 @@ documentation work is unpushed. This is the starting point for current status, n
   No application, schema, CI or executable tooling changes; no optional-field exception granted.
 - **Planning only:** [guided lessons](guided-lessons/README.md), including the 1917 drafts.
   The player and integration are not implemented or approved by this documentation work.
-- **Separate, unapproved follow-ups:** executable tooling changes and feature/code reorganization.
+- **Recommended next task, not yet approved:** begin [Step 5](reviews/2026-10-17/REASSESSMENT.md#12-suggested-order-of-work)
+  with a bounded lint setup: inspect baseline findings, propose useful JavaScript/React Hooks
+  rules, add local and CI checks, and fix accepted findings in small commits. Keep broader
+  refactoring incremental. Step 4's usage review is withdrawn; guided lessons follow as Step 6.
+- **Separate, unapproved follow-ups:** other executable tooling changes and feature/code reorganization.
 - **Owner direction:** [reassessment §15](reviews/2026-10-17/REASSESSMENT.md#15-owner-response-2026-10-17)
   takes precedence on experimental feature growth and the ideas file. The usage review is
   withdrawn. Friction is an input to ideas, not a condition for building features.

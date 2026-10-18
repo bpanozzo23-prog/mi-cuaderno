@@ -5,6 +5,17 @@ to the latest verified release; decisions record reasons, not repeated test/depl
 A documentation-only follow-up may trigger another deployment under the current workflow; record
 its verified target when needed, without chasing the commit that records its own result.
 
+## 2026-10-17 — Steps 2 and 3
+
+| Date | Published revision | Work | CI and checks |
+|---|---|---|---|
+| 2026-10-17 | `c82889f` | Documentation reset and accepted product/architecture contract; eight commits from `b48a948`, no application behavior change | [39086426104](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39086426104): 1,913 tests / 155 files in 207.00 s, build and deployment passed; local build passed; seven live files returned HTTP 200 and matched local bytes |
+
+The live comparison covered index HTML, manifest, service-worker registration, service worker,
+entry/application JavaScript and CSS. Documentation checks covered 105 Markdown files, unchanged
+brief v3 and preserved historical records. Existing owner-device checks remain pending in
+[CURRENT](../CURRENT.md); no new browser walkthrough or owner-data access was needed.
+
 ## 2026-10-17 — Step 1
 
 | Date | Published revision | Work | CI and checks |
