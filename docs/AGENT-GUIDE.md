@@ -117,9 +117,9 @@ this summary.
 ## Environment and checks
 
 - npm is the package manager (`package-lock.json`).
-- Commands below use npm's conventional spelling; a tool entry file may give the spelling needed
-  by its shell on the Windows laptop. On the Ubuntu server the conventional spelling is the right
-  one (see "Two machines, one remote" below).
+- Before running machine-specific setup or preview commands, read [Windows](agents/WINDOWS.md)
+  or [XPS/Linux](agents/XPS.md), according to the actual OS and shell. Use
+  [browser verification](agents/BROWSER-VERIFICATION.md) for visible application changes.
 - `npm test` — Vitest. Node is the default test environment; component tests opt into `jsdom`
   with a per-file `@vitest-environment` pragma. There is no lint or type-check script.
   **The suite runs one file at a time** (`fileParallelism: false`, set in `vitest.config.js` so
@@ -134,11 +134,8 @@ this summary.
 - **No fake timers.** This suite uses none anywhere, deliberately: the app's async paths run
   through Dexie and the browser's own scheduling, which `vi.useFakeTimers()` does not advance, so
   a test that awaits one hangs until the runner kills it rather than failing usefully. Wait for
-  the observable result instead — `await waitFor(() => …)`, as ~17 component test files already
-  do.
+  the observable result instead — `await waitFor(() => …)`.
 - `npm run build` — production build. Run the relevant checks after code changes.
-- Dev server: Vite on port 5173 (`node node_modules/vite/bin/vite.js`; honours `PORT`). The app
-  is served under `/mi-cuaderno/`.
 - Pushing to `main` deploys to GitHub Pages automatically. **Push only when asked.** A failed
   deploy leaves the previously published site serving.
 - **Record verified publication in the same session.** Put the published revision, date, CI run
@@ -167,58 +164,16 @@ start on may not be the branch the previous session used.
 - **Do not delete or reset the other tool's branches**, and do not rebase shared history. A
   branch you did not create may be mid-task. Leave it and say so.
 
-## Two machines, one remote
+## Machine and browser work
 
-Since 2026-08-22 the owner works from two checkouts of this repository: the **Windows laptop**
-(Claude Code desktop app and Codex; PowerShell and Git Bash) and a **headless Ubuntu server** —
-an old Dell XPS on the owner's Tailscale network, reached over SSH from a Surface Pro or a phone,
-where Claude Code and Codex run as CLIs inside `tmux`. The tool entry files carry the shell
-spellings for each machine; everything else in this guide applies on both. What differs:
+Use the recipes when the task needs them: [Windows](agents/WINDOWS.md),
+[XPS/Linux](agents/XPS.md), and [browser verification](agents/BROWSER-VERIFICATION.md).
+Fetch and inspect the branch at session start; local commits are invisible to the other machine
+until pushed. Report unpushed work and pending checks at handoff.
 
-- **`uname` tells you which one you are on** — `Linux` is the XPS. Do not carry the Windows
-  shell quirks (`npm.cmd`, the `PATH=` prepend, the full `gh.exe` path) onto Linux, and do not
-  assume Linux tools on Windows. On the XPS, `npm test`, `npm run build`, `node`, `git` and `gh`
-  all work under their plain names.
-- **Commits are invisible across machines until pushed.** "Push only when asked" still holds, so
-  a session that ends with unpushed commits must say so in its report — the next session may be
-  on the other machine and will not see them. `git status -sb` at the start of a session now also
-  answers whether the local branch is behind `origin/main`; catch up with `git pull --ff-only`
-  before building on it, and fetch before assuming the other machine has nothing new.
-- **Line endings.** The Windows checkout runs with `core.autocrlf=true` and over-reports modified
-  files; the Linux checkout runs with `core.autocrlf=input` so it commits LF without rewriting
-  the tree. A diff that touches every line of a file you did not edit is a line-ending accident,
-  not a change — stop and check `git config core.autocrlf` before committing it.
-- **`.claude/` is gitignored, so a fresh clone has none of it.** Recreate the Claude Code skills
-  copy with `mkdir -p .claude && cp -r .agents/skills .claude/skills` and keep
-  `diff -r .agents/skills .claude/skills` silent. `.claude/launch.json` only matters to a tool
-  with a browser pane; the CLI on the XPS has none (see below).
-- **The slower CPU exposes timing assumptions.** Apply the same verification gate above on
-  both machines. The historical App `DatabaseClosedError` was fixed on 2026-08-22
-  (`DECISIONS.md`); it is not an exception for ignoring a new nonzero exit.
-- **No browser pane from the CLI.** Verification on the XPS is tests plus the owner looking:
-  start the dev server with `--host` (`node node_modules/vite/bin/vite.js --host`; port 5173 is
-  open on the Tailscale interface only) and report the URL for the owner to open on the phone:
-  `echo "http://$(hostname):5173/mi-cuaderno/"` — the short name resolves over MagicDNS, and the
-  real name stays out of this public repo. The 375 px check is literal there. Say plainly in
-  the report that the agent did not see the app.
-
-## Verifying in the browser
-
-Tests are not enough for anything the owner can see; the project's habit is to check the running
-app and say so in the report.
-
-You do **not** need the real 22 MB dictionary. Write fixture entries straight into
-`mi-cuaderno-ref-a` and set `localStorage["mc-ref-active"] = "a"` — see `src/test/dictFixture.js`
-for the store shapes, and Phase 3c/4d in `DECISIONS.md` for how this has been done before. Seed
-personal items directly into the `mi-cuaderno` Dexie database the same way.
-
-Check the phone case: **375 px viewport, no horizontal overflow.** Phone is the primary device.
-
-**The in-app browser pane does not composite frames**, so screenshots time out. This is a known
-limitation, not a broken setup — do not burn time retrying. Verify visually by the numbers
-instead: computed styles (`getComputedStyle`), resolved colours, element counts, layout
-measurements, `scrollWidth` for overflow. Several phase closeouts have shipped on exactly this
-evidence.
+Visible changes require running-app verification with disposable fixtures at 375 px. Record what
+was actually inspected and any limitations; keep owner-only checks pending until confirmed.
+Never interpret an empty test notebook as the owner's actual state.
 
 ## Real notebook snapshot
 

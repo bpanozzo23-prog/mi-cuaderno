@@ -9,6 +9,7 @@ for the task. Historical status describes its own date, not today's app.
 | Read when | Document |
 |---|---|
 | Running or introducing the app | [Project README](../README.md) |
+| Machine setup or browser checks | [Windows](agents/WINDOWS.md), [XPS/Linux](agents/XPS.md), [browser verification](agents/BROWSER-VERIFICATION.md) |
 | Starting agent work | [Agent guide](AGENT-GUIDE.md) |
 | Planning behavior or architecture changes | [Brief v3](mi-cuaderno-project-brief-v3.md), still the contract; Step 3 is separate |
 | Understanding a previous choice | [Decision log](../DECISIONS.md) |
