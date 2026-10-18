@@ -11,7 +11,7 @@ reset in progress. This is the starting point for current status, not a release 
 - **Delivered work:** all four [Step 1 items](reviews/2026-10-17/STEP-1.md) are complete:
   deployment test gate, backup safety, all-or-nothing saves and five small fixes.
   The item-4 application release was `6d92bab`; `b48a948` records that deployment without
-  changing application code. Detailed checks remain in the work order.
+  changing application code. Detailed checks remain in the work order and [release history](history/RELEASES.md).
 - **Personal schema:** **v12**, defined in [src/version.js](../src/version.js).
   Backups v1–v12 upgrade sequentially and validate before restore; newer versions are blocked.
   Legacy database upgrades require an untouched validated export before Dexie opens.

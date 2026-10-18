@@ -24,6 +24,9 @@ for the task. Historical status describes its own date, not today's app.
 
 ## Historical records
 
+- [Release history](history/RELEASES.md): publication evidence.
+- [README Status snapshot](history/README-STATUS-2026-10-17.md): the preserved pre-reset narrative.
+
 Phase directions/reports, the prototype and design QA are dated records. Their relocation index
 will be added as the approved reset moves them. Consult CURRENT for today's status rather than
 inferring active work from a phase number or file timestamp. Brief v3 remains at its existing path

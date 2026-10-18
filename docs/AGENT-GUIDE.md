@@ -141,12 +141,11 @@ this summary.
   is served under `/mi-cuaderno/`.
 - Pushing to `main` deploys to GitHub Pages automatically. **Push only when asked.** A failed
   deploy leaves the previously published site serving.
-- **A deploy is not finished until the status docs say so.** In the same session as a push to
-  `main`, update `README.md`'s Status section — including its `SCHEMA_VERSION` paragraph if the
-  version moved — and any `docs/IMPROVEMENT-IDEAS.md` status the release changes. README Status is
-  step 1 of every session's read order, so drift there misleads every future session: the
-  2026-08-11 sweep existed because three deployed increments and a schema bump were recorded in
-  `DECISIONS.md` but never in the README.
+- **Record verified publication in the same session.** Put the published revision, date, CI run
+  and checks in [release history](history/RELEASES.md); update [CURRENT](CURRENT.md) to point to it
+  and change any affected idea's progress/completion status. Record what was actually verified,
+  including outstanding owner checks. README links to CURRENT; decisions retain reasons rather
+  than deployment transcripts. A record-only commit need not chase its own deployment recursively.
 
 ## Git, when two tools share one working directory
 

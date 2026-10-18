@@ -2,6 +2,27 @@
 
 One line per meaningful choice: date — decision — reason.
 
+
+## Reading this log
+
+Existing entries are preserved chronological evidence, including their original release/status
+claims. Use [CURRENT](docs/CURRENT.md) for today and [release history](docs/history/RELEASES.md)
+for publication evidence. New entries record concise decisions and reasons. Historical paths
+remain usable through redirects or the [documentation index](docs/README.md).
+
+| Topic | Starting points |
+|---|---|
+| Data foundations and identity | [Data foundation](#phase-1a--data-foundation-2026-07-31), [dictionary seam](#phase-2f--the-seam-and-acceptance-2026-07-31), [plural attachments](#plural-dictionary-attachments-2026-09-10) |
+| Pages and organization | [Composable pages](#phase-7--composable-pages-source-notebooks-and-grammar-guides-2026-08-04-approved-for-implementation), [page organization](#phase-19--page-organization-and-formatting-2026-08-10), [global tags](#phase-20--global-tag-management-2026-08-10) |
+| Review and practice | [Review schedule](#phase-3a--the-review-schedule-derived-2026-07-31), [Gym](#phase-14--conjugation-gym-2026-08-07), [review depth](#phase-16--review-depth-and-one-vocabulary-card-engine-2026-08-09) |
+| Diario and AI | [AI first slice](#phase-6--ai-assistant-first-slice-diario-feedback-2026-08-06), [persisted feedback](#phase-6--ai-assistant-second-slice-persisted-diario-feedback-2026-08-11), [Taller](#taller--diario-writing-practice-direction-2026-08-20) |
+| Process and verification | [Shared guide](#tooling--one-shared-agent-guide-2026-08-02), [visual process](#visual-changes-working-process-2026-08-05), [test reliability](#test-reliability--completion-isolation-and-negative-controls-2026-09-03) |
+| Reassessment and safety | [Owner response](#reassessment-owner-response-2026-10-17), [test gate](#deployment-test-gate--step-1-item-1-2026-10-17), [backup safety](#backup-safety--step-1-item-2-2026-10-17), [atomic saves](#all-or-nothing-saves--step-1-item-3-2026-10-17), [small fixes](#small-fixes--step-1-item-4-2026-10-17) |
+| Documentation | [Step 2 arrangement](#documentation-reset--step-2-2026-10-17) |
+
+Search other headings by feature, date or phase; this index selects entry points rather than
+copying every entry. The original log begins below.
+
 - 2026-07-30 — Adopted brief v3 (`docs/mi-cuaderno-project-brief-v3.md`) as the contract; Phase 0 + 0.5 plan approved before any code. — §2 working agreement.
 - 2026-07-30 — Repo is public, named `mi-cuaderno`. — GitHub Pages is free on public repos; personal data never enters the repo (it lives only in the device's browser storage).
 - 2026-07-30 — Brief and prototype committed under `docs/`. — They contain no personal data and are the project's reference documentation.
