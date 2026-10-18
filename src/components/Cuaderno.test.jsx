@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Cuaderno from "./Cuaderno.jsx";
+import * as referenceEntries from "../db/ref/entries.js";
 import { removeDictionary } from "../db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "../db/ref/refdb.js";
 import {
@@ -660,5 +661,38 @@ describe("Phase 23b: idle wandering launcher", () => {
     cleanup();
     render(<Cuaderno {...propsFor([pageOnly], { onWander })} />);
     expect(screen.queryByRole("button", { name: "Pasear" })).toBeNull();
+  });
+});
+
+
+describe("Cuaderno dictionary metadata", () => {
+  it("replaces a dictionary result with its personal attachment when the alias map arrives", async () => {
+    await seedCasaDictionary();
+    const casa = FIXTURE_ENTRIES.find((entry) => entry.lemma === "casa");
+    const oldKey = "dict:fixture:old-casa";
+    let releaseMetadata;
+    const metadata = new Promise((resolve) => { releaseMetadata = resolve; });
+    vi.spyOn(referenceEntries, "installedMeta").mockReturnValue(metadata);
+    // Keep every other memo input stable: a fresh clock/array would mask the missing dependency.
+    const props = propsFor([word("Mi hogar", { dictKeys: [oldKey] })], {
+      now: new Date("2026-10-17T12:00:00Z"),
+      seedQuery: { key: "alias-arrival", text: "casa" },
+      rootScreen: "search",
+    });
+    render(<Cuaderno {...props} />);
+    try {
+      expect(await screen.findByRole("button", { name: /^casa/ })).toBeTruthy();
+      expect(screen.queryByRole("button", { name: /^Mi hogar/ })).toBeNull();
+      await act(async () => {
+        releaseMetadata({ datasetVersion: "alias-fixture", previousIds: { [oldKey]: casa.id } });
+        await metadata;
+      });
+      expect(await screen.findByRole("button", { name: /^Mi hogar/ })).toBeTruthy();
+      expect(screen.queryByRole("button", { name: /^casa/ })).toBeNull();
+      expect(props.onSelect).not.toHaveBeenCalled();
+      expect(props.notebook.reload).not.toHaveBeenCalled();
+    } finally {
+      await act(async () => { releaseMetadata(null); await metadata; });
+    }
   });
 });

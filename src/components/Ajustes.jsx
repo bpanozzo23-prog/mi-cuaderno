@@ -352,11 +352,12 @@ export default function Ajustes({
   const countsByTag = new Map(tags.map(({ tag, count }) => [tag, count]));
   const duplicateGroups = caseVariantGroups(tags.map(({ tag }) => tag));
 
+  const expandedTagAvailable = tags.some(({ tag }) => tag === expandedTag);
   useEffect(() => {
-    if (expandedTag !== null && !tags.some(({ tag }) => tag === expandedTag)) {
+    if (expandedTag !== null && !expandedTagAvailable) {
       setExpandedTag(null);
     }
-  }, [expandedTag, notebook?.items]);
+  }, [expandedTag, expandedTagAvailable]);
 
   useEffect(() => {
     if (duplicatesOpen && duplicateGroups.length === 0) setDuplicatesOpen(false);

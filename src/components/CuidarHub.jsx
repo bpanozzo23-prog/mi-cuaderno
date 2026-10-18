@@ -158,11 +158,11 @@ export default function CuidarHub({
 }) {
   const { items } = notebook;
 
-  // Re-sampled per arrival, not per notebook change: App keeps this screen mounted behind
-  // `hidden`, so the visit key — not elapsed renders — is what makes each visit a fresh draw.
+  // Re-sample when items change or on arrival. App keeps this screen mounted behind `hidden`;
+  // ordinary renders (including a fresh default `now`) must not redraw the visit suggestions.
   const suggestions = useMemo(
     () => cuidarSuggestions(items, { now, random }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Sample the current clock/random only when items or the visit change.
     [items, visitKey]
   );
 

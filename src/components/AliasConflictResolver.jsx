@@ -50,6 +50,7 @@ export default function AliasConflictResolver({
     setDraft(normalizeRelationship(first?.relationship || {}));
     setSaving(false);
     setError("");
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Equivalent reloads must preserve the draft; only conflict content resets it.
   }, [conflictContentKey]);
 
   if (!conflict) return null;

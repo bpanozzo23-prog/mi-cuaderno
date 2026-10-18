@@ -34,7 +34,7 @@ export function DictionaryMeaningImportPanel({
   // Ids are minted here, so the rows the owner previews are the rows that get saved.
   const rows = useMemo(
     () => entryAware
-      ? meaningsFromEntryForItem(entry, item)
+      ? meaningsFromEntryForItem(entry, { id: item.id, meanings: item.meanings, pos: item.pos })
       : meaningsFromSenses(entry?.senses, item.meanings),
     [entry, entryAware, item.id, item.meanings, item.pos]
   );
@@ -158,7 +158,10 @@ export default function DictMeaningImport({ item, onImport }) {
   const [entries, setEntries] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [open, setOpen] = useState(false);
-  const keys = dictionaryKeysForItem(item);
+  const keys = useMemo(
+    () => dictionaryKeysForItem({ type: item.type, dictKeys: item.dictKeys }),
+    [item.type, item.dictKeys]
+  );
 
   useEffect(() => {
     let alive = true;
@@ -187,7 +190,7 @@ export default function DictMeaningImport({ item, onImport }) {
     return () => {
       alive = false;
     };
-  }, [item.id, item.dictKeys]);
+  }, [item.id, keys]);
 
   if (!entries.length) return null;
 

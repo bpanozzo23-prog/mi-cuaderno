@@ -278,7 +278,7 @@ function StandardDetail({
   // the alias map and reports what it could not find (§5); see db/linkedEntries.js.
   useEffect(() => {
     let alive = true;
-    resolveLinkedKeys(item).then(({ entryLinks, orphans, conflicts, rewritten }) => {
+    resolveLinkedKeys({ id: item.id, linkedKeys: item.linkedKeys, linkAnnotations: item.linkAnnotations }).then(({ entryLinks, orphans, conflicts, rewritten }) => {
       if (!alive) return;
       setLinkedEntryLinks(entryLinks);
       setOrphanKeys(orphans);
@@ -288,7 +288,7 @@ function StandardDetail({
     return () => {
       alive = false;
     };
-  }, [item.id, item.linkedKeys, item.linkAnnotations]);
+  }, [item.id, item.linkedKeys, item.linkAnnotations, onChanged]);
 
   // A dictionary connection whose entry the owner has since attached to an item of their own
   // gets a prompted merge offer on its card. Alias awareness needs the installed previousIds
@@ -366,6 +366,7 @@ function StandardDetail({
         ? { title: item.title, pageDate: item.pageDate || "" }
         : { term: item.term, pos: item.pos || "", form: item.form }
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Initialize on identity changes; refreshes must not overwrite heading edits.
   }, [item.id]);
 
   useEffect(() => {
@@ -398,7 +399,7 @@ function StandardDetail({
     logView(item.id).then((logged) => {
       if (logged) onChanged();
     });
-  }, [item.id]);
+  }, [item.id, onChanged]);
 
   if (activeView === "biography") {
     return (

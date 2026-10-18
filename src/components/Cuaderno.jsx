@@ -188,6 +188,7 @@ export default function Cuaderno({
     setQuery(seedQuery.text || "");
     setTypeFilter(FILTERS.all);
     if (!controlledRootMode) setRootMode("landing");
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Apply each handoff once; later route changes must not replay its query.
   }, [seedQuery]);
 
   // A maintenance view handed over from the Cuidar hub's "see all" action. Keyed like seedQuery
@@ -203,6 +204,7 @@ export default function Cuaderno({
     setRefineOpen(false);
     setResultLimit(30);
     if (!controlledRootMode) setRootMode("browse");
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Apply each handoff once; later route changes must not reset the controls.
   }, [seedBrowseView]);
 
   // A URL shared in from another Android app (share_target → App's startup dispatch). It opens
@@ -329,7 +331,7 @@ export default function Cuaderno({
             previousIds: dictionary?.previousIds,
           })
         : personalResults.map((r) => ({ ...r, kind: "item", key: r.item.id })),
-    [personalResults, dictResults, items, searching, dictionaryWanted]
+    [personalResults, dictResults, items, searching, dictionaryWanted, dictionary?.previousIds]
   );
 
   // What the Refine disclosure is hiding. The type chips and the query stay visible, so they are

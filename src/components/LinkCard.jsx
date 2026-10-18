@@ -40,9 +40,10 @@ function ConnectionEditor({ connection, focalItem, targetItem, onSave, onCancel,
     targetMeaningId: connection.connectedMeaningId,
   } : null);
 
+  const { type, subject, note } = normalizeRelationship(connection?.relationship || connection);
   useEffect(() => {
-    setDraft(normalizeRelationship(connection?.relationship || connection));
-  }, [connection?.type, connection?.subject, connection?.note]);
+    setDraft({ type, subject, note });
+  }, [type, subject, note]);
 
   const canScope = focalItem?.type === "lexical" && targetItem?.type === "lexical" && draft.type === "similar_meaning";
 

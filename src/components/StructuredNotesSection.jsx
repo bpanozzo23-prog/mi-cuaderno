@@ -27,6 +27,8 @@ import OutlineOrganizerFields from "./OutlineOrganizerFields.jsx";
 import PageSectionDisclosure, { SectionSpineNode } from "./PageSectionDisclosure.jsx";
 import { sectionFamily } from "./pageRoleMeta.js";
 
+const EMPTY_ROWS = [];
+
 const fieldStyle = { background: C.card, borderColor: C.line, color: C.ink };
 const NOTES_FAMILY = sectionFamily("notes");
 
@@ -367,7 +369,7 @@ export default function StructuredNotesSection({
 }) {
   const owner = page || item;
   const lexical = owner?.type === "lexical";
-  const sections = owner?.noteSections || [];
+  const sections = owner?.noteSections || EMPTY_ROWS;
   const hierarchy = useMemo(() => noteSectionHierarchy(sections), [sections]);
   const [sectionDraft, setSectionDraft] = useState(null);
   const [organizing, setOrganizing] = useState(false);
@@ -385,6 +387,7 @@ export default function StructuredNotesSection({
     setCollapsedSections(new Set(
       sections.filter((section) => !section.body?.trim()).map((section) => section.id)
     ));
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Reset drafts and disclosure only for another item, not a notebook refresh.
   }, [owner?.id]);
 
   if (!owner || (owner.type !== "page" && owner.type !== "lexical")) return null;

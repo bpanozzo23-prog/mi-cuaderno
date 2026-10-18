@@ -40,6 +40,8 @@ import MentionedHere from "./MentionedHere.jsx";
 import { sectionFamily } from "./pageRoleMeta.js";
 import OutlineOrganizerFields from "./OutlineOrganizerFields.jsx";
 
+const EMPTY_ROWS = [];
+
 const GRAMMAR_FAMILY = sectionFamily("grammar");
 
 /**
@@ -863,7 +865,7 @@ export default function GrammarSection({
   onAddMention,
 }) {
   const grammar = page?.grammar;
-  const sections = grammar?.sections || [];
+  const sections = grammar?.sections || EMPTY_ROWS;
   const [sectionDraft, setSectionDraft] = useState(null);
   const [exampleDraft, setExampleDraft] = useState(null);
   const [organizing, setOrganizing] = useState(false);
@@ -883,6 +885,7 @@ export default function GrammarSection({
     setCollapsedSections(new Set(
       sections.filter((section) => !grammarSectionHasContent(section)).map((section) => section.id)
     ));
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Reset disclosure state only when opening another page, not after a save.
   }, [page.id]);
 
   if (!page || page.type !== "page" || !grammar?.enabled) return null;

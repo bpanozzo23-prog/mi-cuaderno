@@ -30,6 +30,8 @@ import MentionedHere from "./MentionedHere.jsx";
 import SharedSourceDisclosure from "./SharedSourceDisclosure.jsx";
 import PageSectionDisclosure from "./PageSectionDisclosure.jsx";
 
+const EMPTY_ROWS = [];
+
 const CAPTURE_TYPES = [
   { value: "passage", label: "Passage", Icon: Quote },
   { value: "reflection", label: "Reflection", Icon: MessageSquareText },
@@ -727,7 +729,7 @@ export default function SourceSection({
     [itemsById, page?.linkedKeys]
   );
 
-  const captures = source?.captures || [];
+  const captures = source?.captures || EMPTY_ROWS;
   const hasDetails = Boolean(source?.format || source?.creator || source?.scope || source?.url || source?.context);
   const empty = captures.length === 0 && !hasDetails;
   const normalizedQuery = normalizeLocalSearch(query);

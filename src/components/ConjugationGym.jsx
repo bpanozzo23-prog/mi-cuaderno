@@ -188,9 +188,12 @@ export default function ConjugationGym({
     }
     return Object.keys(target).length ? target : null;
   }, [focusTarget, selectedOneVerb]);
-  const selectedTenses = sessionKind === "focus" && activeFocusTarget?.tense && !baseSelectedTenses.includes(activeFocusTarget.tense)
-    ? [...baseSelectedTenses, activeFocusTarget.tense]
-    : baseSelectedTenses;
+  const selectedTenses = useMemo(
+    () => sessionKind === "focus" && activeFocusTarget?.tense && !baseSelectedTenses.includes(activeFocusTarget.tense)
+      ? [...baseSelectedTenses, activeFocusTarget.tense]
+      : baseSelectedTenses,
+    [sessionKind, activeFocusTarget?.tense, baseSelectedTenses]
+  );
   const deckVerbs = sessionKind === "adaptive" && oneVerb
     ? poolVerbs.filter((verb) => (verb.itemKey || verb.verbKey) === oneVerb)
     : poolVerbs;

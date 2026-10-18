@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BookMarked, Unlink, Search, X, ChevronRight } from "lucide-react";
 import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
 import { grammarAbbreviations } from "../lib/partOfSpeech.js";
@@ -61,7 +61,10 @@ export function DictPicker({ term, placeholder = "Find the dictionary entry…",
 }
 
 export default function DictAttachment({ item, onOpen, onChanged, onEntriesResolved }) {
-  const keys = dictionaryKeysForItem(item);
+  const keys = useMemo(
+    () => dictionaryKeysForItem({ type: item.type, dictKeys: item.dictKeys }),
+    [item.type, item.dictKeys]
+  );
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
   const [picking, setPicking] = useState(null);
@@ -110,7 +113,7 @@ export default function DictAttachment({ item, onOpen, onChanged, onEntriesResol
     return () => {
       alive = false;
     };
-  }, [item.id, item.dictKeys, onEntriesResolved]);
+  }, [item.id, keys, onEntriesResolved, onChanged]);
 
   async function attachTo(picked) {
     const activeKeys = rows.length ? rows.map((row) => row.key) : keys;

@@ -608,6 +608,7 @@ function VocabularySection({
       collection.groups.filter((group) => group.items.length === 0).map((group) => group.id)
     ));
     setAddTarget(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Reset disclosure only for another page, not after a save.
   }, [page.id]);
 
   function toggleGroup(groupKey) {
@@ -863,11 +864,11 @@ export default function CollectionPage({
     logView(item.id).then((logged) => {
       if (logged) onChanged();
     });
-  }, [item.id]);
+  }, [item.id, onChanged]);
 
   useEffect(() => {
     let alive = true;
-    resolveLinkedKeys(item).then(({ entryLinks, orphans, conflicts, rewritten }) => {
+    resolveLinkedKeys({ id: item.id, linkedKeys: item.linkedKeys, linkAnnotations: item.linkAnnotations }).then(({ entryLinks, orphans, conflicts, rewritten }) => {
       if (!alive) return;
       setLinkedEntryLinks(entryLinks);
       setOrphanKeys(orphans);
@@ -875,7 +876,7 @@ export default function CollectionPage({
       if (rewritten) onChanged();
     });
     return () => { alive = false; };
-  }, [item.id, item.linkedKeys, item.linkAnnotations]);
+  }, [item.id, item.linkedKeys, item.linkAnnotations, onChanged]);
 
   function enterMode(next) {
     setRevealed(new Set());

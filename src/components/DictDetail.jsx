@@ -240,7 +240,7 @@ export default function DictDetail({
     logView(entryId).then((logged) => {
       if (logged) onChanged?.();
     });
-  }, [entryId]);
+  }, [entryId, onChanged]);
 
   // A reversible dictionary attachment says "this is one source for my copy"; it is
   // deliberately separate from an ordinary connection. Include an old key when the installed
@@ -292,7 +292,7 @@ export default function DictDetail({
       if (rows.some(({ result }) => result.rewritten)) onChanged?.();
     });
     return () => { alive = false; };
-  }, [entryId, items, meta, subjectKeys]);
+  }, [entryId, items, meta, subjectKeys, onChanged]);
 
   const connections = useMemo(
     () => resolvedPersonalLinks.flatMap(({ item, entryLinks }) =>

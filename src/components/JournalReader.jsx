@@ -139,7 +139,7 @@ export default function JournalReader({
 
   useEffect(() => {
     let current = true;
-    resolveLinkedKeys(entry).then(({ entryLinks, orphans, conflicts, rewritten }) => {
+    resolveLinkedKeys({ id: entry.id, linkedKeys: entry.linkedKeys, linkAnnotations: entry.linkAnnotations }).then(({ entryLinks, orphans, conflicts, rewritten }) => {
       if (!current) return;
       setDictionaryEntryLinks(entryLinks);
       setOrphanKeys(orphans);
@@ -149,13 +149,13 @@ export default function JournalReader({
     return () => {
       current = false;
     };
-  }, [entry.id, entry.linkedKeys, entry.linkAnnotations]);
+  }, [entry.id, entry.linkedKeys, entry.linkAnnotations, onChanged]);
 
   useEffect(() => {
     logView(entry.id).then((logged) => {
       if (logged) onChanged();
     });
-  }, [entry.id]);
+  }, [entry.id, onChanged]);
 
   async function removeLink(key) {
     await unlinkItems(entry.id, key);

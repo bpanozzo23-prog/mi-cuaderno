@@ -219,6 +219,7 @@ export default function JournalEditor({
     if (!registerNavigationHandlers) return undefined;
     registerNavigationHandlers({ prepareToLeave, flushForTabSwitch });
     return () => registerNavigationHandlers(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Register visit handlers on draft changes; fresh function identities are not navigation events.
   }, [registerNavigationHandlers, title, body, date, apuntes]);
 
   useEffect(() => {
@@ -228,6 +229,7 @@ export default function JournalEditor({
       if (logged) onChanged();
     });
     return undefined;
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Log only an entry opened at mount, not a new draft materialized during this visit.
   }, []);
 
   useEffect(() => {
@@ -253,6 +255,7 @@ export default function JournalEditor({
       enqueueSave(requested, version);
     }, autosaveMs);
     return () => clearTimeout(timerRef.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Autosave follows draft changes; visit-scoped drill/callback identities must not restart its timer.
   }, [title, body, date, apuntes, autosaveMs]);
 
   useEffect(() => {
@@ -266,6 +269,7 @@ export default function JournalEditor({
       // with the latest valid date rather than letting a temporarily blank required field drop it.
       flushForTabSwitch();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Unmount-only flush reads the latest draft refs; rerenders must not flush.
   }, []);
 
   async function leaveEditor() {

@@ -363,13 +363,13 @@ export default function App() {
     commitNavigation(next, { payload });
   }
 
-  function replaceRoute(destination, payloadForVisit = null) {
+  const replaceRoute = useCallback((destination, payloadForVisit = null) => {
     const next = replaceActiveDestination(navigationRef.current, destination);
     const payload = typeof payloadForVisit === "function"
       ? payloadForVisit(activeRoute(next)?.visitKey)
       : payloadForVisit;
     commitNavigation(next, { replace: true, payload });
-  }
+  }, [commitNavigation]);
 
   function navigateBack(options = {}) {
     captureCurrentScroll();
@@ -494,7 +494,7 @@ export default function App() {
       screen: canonicalTab === "diario" ? "read" : "detail",
       id: current.id,
     });
-  }, [notebook.items, notebook.hasLoaded, notebook.refreshing, notebook.error, route?.id, route?.tab]);
+  }, [notebook.items, notebook.hasLoaded, notebook.refreshing, notebook.error, route?.id, route?.tab, replaceRoute]);
 
   // Deleted personal items cannot strand refresh or Forward on an empty detail surface.
   useEffect(() => {

@@ -49,7 +49,7 @@ export default function SearchBar({
     }, SEARCH_SETTLE_MS);
 
     return () => clearTimeout(timer.current);
-  }, [value, resultCount, pending, logMisses]);
+  }, [value, resultCount, pending, logMisses, onMissLogged]);
 
   return (
     <div
