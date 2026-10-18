@@ -6,6 +6,34 @@ Documentation-only follow-ups covered by the [workflow exclusions](../../.github
 normally skip deployment. Keep the last verified published revision; the
 [agent guide](../AGENT-GUIDE.md#environment-and-checks) covers publication checks and filter limits.
 
+## 2026-10-18 — Guarded Back/Forward navigation
+
+| Date | Published revision | Work | CI and checks |
+|---|---|---|---|
+| 2026-10-18 | `740311a` | Guarded Back/Forward ordering (`90bd038`) and contract/verification record (`740311a`) | [39147520015](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39147520015): lint, 1,960 tests / 158 files in 226.65 s, build and deployment passed; seven live files returned HTTP 200 and matched local build bytes |
+
+The push advanced `main` from `4e65b12` to `740311a`; local HEAD matched `origin/main`.
+CI used Node 24.21.0 / npm 11.19.0. Live comparison covered index HTML, manifest,
+service-worker registration, service worker, entry/application JavaScript and CSS. This
+publication record is a documentation-only follow-up and does not require redeployment.
+
+Local acceptance passed zero-warning lint, 39 focused checks, the complete serial suite
+(1,960/1,960 across 158 files in 412.48 s, no unhandled errors), production build and diff
+checks. Eighteen new integration cases cover superseding navigation, read/write failure,
+competing saves, refused navigation, queued recovery, unmount, saved-entry identity, study
+markers and the navigation-depth cap. All 16 initial regressions failed against the original
+App; the cap regression independently failed when recovery used capped depth. Read-only
+Claude CLI review identified the cap issue; follow-up review of the corrected implementation
+found no grounded actionable defects.
+
+Fresh Chromium fixtures at 375×812 verified saved-entry Forward, a newer Repaso choice through
+old refresh failure/retry, and refused navigation recovery followed by valid-date exit, retaining
+one saved entry. Four screenshots were inspected with no horizontal overflow, browser warnings
+or uncaught errors. The disposable profile was removed and preview stopped; no owner data was
+accessed. Personal schema v12, backups, dependency resolutions and save/refresh policy are
+unchanged. Existing build chunk-size warnings and npm audit findings (2 moderate, 5 high)
+remain; physical Android Back verification remains pending in [CURRENT](../CURRENT.md).
+
 ## 2026-10-18 — Shared Node selection and Journal navigation ordering
 
 | Date | Published revision | Work | CI and checks |

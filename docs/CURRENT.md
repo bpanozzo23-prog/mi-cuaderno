@@ -1,16 +1,16 @@
 # Current state
 
 The app is deployed; reassessment Steps 1–3, bounded lint/refresh work, documentation-only CI
-filtering, shared Node selection and Journal tab navigation ordering are published.
+filtering, shared Node selection and guarded Journal/Back/Forward navigation ordering are published.
 This is the starting point for current status, not a release diary.
 
 ## Verified release
 
-- **Published revision:** `d37b943`, 2026-10-18 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39142390630)
-  passed lint, all **1,942 tests across 157 files** in 220.16 seconds, the production build and
+- **Published revision:** `740311a`, 2026-10-18 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39147520015)
+  passed lint, all **1,960 tests across 158 files** in 226.65 seconds, the production build and
   deployment. Seven live app files returned HTTP 200 and matched the verified local build byte
   for byte. Detailed publication evidence lives in [release history](history/RELEASES.md).
-- **Delivered work:** Journal tab navigation ordering, shared Node selection, documentation-only CI
+- **Delivered work:** guarded Back/Forward and Journal tab navigation ordering, shared Node selection, documentation-only CI
   filtering, the bounded Step 5 lint setup and awaitable notebook refresh, on top of completed
   [Step 1 safety work](reviews/2026-10-17/STEP-1.md), [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md)
   and [Step 3 contract reset](reviews/2026-10-17/STEP-3.md). JavaScript/React Hooks lint runs locally
@@ -94,7 +94,7 @@ This is the starting point for current status, not a release diary.
   [release history](history/RELEASES.md#2026-10-18--shared-node-selection-and-journal-navigation-ordering).
   The existing build chunk-size warning and physical Android Back check remain;
   refresh-latency changes remain a separate, unapproved follow-up.
-- **Complete locally; not pushed:** guarded Back/Forward ordering (`90bd038`). Obsolete
+- **Complete and published:** guarded Back/Forward ordering (`90bd038`), through `740311a`. Obsolete
   save-waiting handlers can no longer overwrite a newer destination or perform stale refusal
   recovery. Refused navigation restores the editor's browser position, and tab/route/visible-Back
   actions wait for an already-requested recovery. New Journal saves retain their originating
@@ -113,7 +113,9 @@ This is the starting point for current status, not a release diary.
   recovery followed by valid-date exit, retaining one saved entry. Four screenshots were
   inspected with no horizontal overflow, browser warnings or uncaught errors. The profile was
   removed and preview stopped; no owner data was accessed. The existing build chunk-size warning
-  remains. CI/deployment await a separate push request; physical Android Back remains pending.
+  remains. CI/deployment and seven live-file comparisons passed, recorded in
+  [release history](history/RELEASES.md#2026-10-18--guarded-backforward-navigation).
+  Physical Android Back remains pending.
 
 ## Unresolved verification
 
