@@ -138,6 +138,7 @@ export default function App() {
   const scrollByVisitRef = useRef(new Map());
   const pendingPersonalIdsRef = useRef(new Set());
   const navigationRef = useRef(initialRef.current.navigation);
+  const tabRequestRef = useRef(0);
   const editorNavigationRef = useRef(null);
   const skipEditorGuardOnceRef = useRef(false);
   const studyMarkerActiveRef = useRef(false);
@@ -232,6 +233,8 @@ export default function App() {
   }, [rememberVisitedTab]);
 
   const handlePopState = useCallback(async (event) => {
+    // Back/Forward supersedes a pending tab choice even if its own editor guard waits.
+    tabRequestRef.current += 1;
     const targetHasStudyMarker = hasStudyMarker(event.state);
     const targetNavigation = navigationFromHistoryState(event.state);
     const current = navigationRef.current;
@@ -300,6 +303,7 @@ export default function App() {
 
     window.addEventListener("popstate", handlePopState);
     return () => {
+      tabRequestRef.current += 1;
       window.removeEventListener("popstate", handlePopState);
       window.history.scrollRestoration = previousScrollRestoration;
     };
@@ -380,6 +384,7 @@ export default function App() {
   }
 
   async function switchTab(nextTab) {
+    const request = ++tabRequestRef.current;
     const currentRoute = activeRoute(navigationRef.current);
     if (currentRoute?.tab === "diario" && currentRoute.screen === "edit") {
       if (nextTab === "diario") {
@@ -389,6 +394,10 @@ export default function App() {
         await editorNavigationRef.current?.flushForTabSwitch?.();
       }
     }
+    // A save may materialize an entry within this visit. Only a newer navigation
+    // request or departure from the visit cancels this pending tab choice.
+    if (request !== tabRequestRef.current
+      || currentRoute?.visitKey !== activeRoute(navigationRef.current)?.visitKey) return;
     const next = selectPrimaryTab(navigationRef.current, nextTab, {
       visitKey: makeNavigationVisitKey(),
     });
