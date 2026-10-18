@@ -49,6 +49,7 @@ const TABS = [
 
 const STUDY_SESSION_STATE_KEY = "mcStudySession";
 const STUDY_SESSION_STATE_VERSION = 1;
+const HISTORY_POSITION_KEY = "mcHistoryPosition";
 const PERSONAL_ITEM_SCREENS = new Set(["detail", "biography", "wander", "read", "edit"]);
 const CUADERNO_ROOT_SCREENS = new Set(["landing", "browse", "search"]);
 
@@ -60,6 +61,15 @@ function stateWithoutStudyMarker(state) {
 
 function hasStudyMarker(state) {
   return state?.[STUDY_SESSION_STATE_KEY]?.version === STUDY_SESSION_STATE_VERSION;
+}
+
+function historyPosition(state) {
+  // Recovery needs entry distance, not the capped navigation depth. Older entries
+  // still work through their existing depth until this app writes their position.
+  const position = state?.[HISTORY_POSITION_KEY];
+  return Number.isSafeInteger(position) && position >= 0
+    ? position
+    : navigationFromHistoryState(state)?.depth ?? 0;
 }
 
 function urlWithoutShareParams() {
@@ -138,7 +148,10 @@ export default function App() {
   const scrollByVisitRef = useRef(new Map());
   const pendingPersonalIdsRef = useRef(new Set());
   const navigationRef = useRef(initialRef.current.navigation);
-  const tabRequestRef = useRef(0);
+  const navigationPositionRef = useRef(historyPosition(window.history.state));
+  const navigationRequestRef = useRef(0);
+  const pendingPopRef = useRef(null);
+  const historyRecoveryRef = useRef(null);
   const editorNavigationRef = useRef(null);
   const skipEditorGuardOnceRef = useRef(false);
   const studyMarkerActiveRef = useRef(false);
@@ -191,6 +204,34 @@ export default function App() {
     const current = navigationRef.current;
     if (payload) setVisitPayload(activeRoute(next)?.visitKey, payload);
     if (next === current) return false;
+    const sameVisit = activeRoute(next)?.visitKey === activeRoute(current)?.visitKey;
+    // The browser has already moved while a leave guard keeps the editor onscreen.
+    // Materialization updates that editor, never the entry under the browser cursor.
+    if (replace && sameVisit && pendingPopRef.current) {
+      navigationRef.current = next;
+      setNavigation(next);
+      return true;
+    }
+    if (!replace || !sameVisit) navigationRequestRef.current += 1;
+    if (historyRecoveryRef.current) {
+      const request = navigationRequestRef.current;
+      historyRecoveryRef.current.promise.then(() => {
+        if (request === navigationRequestRef.current) {
+          commitNavigation(next, { replace, captureScroll });
+        }
+      });
+      return true;
+    }
+    if (pendingPopRef.current) {
+      // A new destination branches from the actual cursor, not the retained editor.
+      const cursor = navigationFromHistoryState(window.history.state);
+      if (cursor) next = navigationFromHistoryState(historyStateWithNavigation(null, {
+        ...next,
+        depth: cursor.depth + (replace ? 0 : 1),
+        backLabel: replace ? cursor.backLabel : labelForRoute(activeRoute(cursor)),
+      }));
+      pendingPopRef.current = null;
+    }
     if (captureScroll) captureCurrentScroll();
 
     let shouldReplace = replace;
@@ -203,16 +244,30 @@ export default function App() {
       shouldReplace = true;
     }
     historyState = historyStateWithNavigation(historyState, next);
+    const position = historyPosition(window.history.state) + (shouldReplace ? 0 : 1);
+    historyState[HISTORY_POSITION_KEY] = position;
     if (shouldReplace) window.history.replaceState(historyState, "", window.location.href);
     else window.history.pushState(historyState, "", window.location.href);
 
     navigationRef.current = next;
+    navigationPositionRef.current = position;
     setNavigation(next);
     rememberVisitedTab(next.activeTab);
     return true;
   }, [captureCurrentScroll, rememberVisitedTab, setVisitPayload]);
 
   const applyPoppedNavigation = useCallback((rawNavigation, rawState) => {
+    // A new entry may have been saved after its browser entry was left behind.
+    rawNavigation = {
+      ...rawNavigation,
+      stacks: {
+        ...rawNavigation.stacks,
+        diario: rawNavigation.stacks.diario.map((route) => {
+          const id = visitPayloadsRef.current.get(route.visitKey)?.journalId;
+          return route.screen === "edit" && !route.id && id ? { ...route, id } : route;
+        }),
+      },
+    };
     const sanitized = sanitizeHydratedNavigation(rawNavigation, {
       hasTransientPayload: (visitKey, kind) => transientPayloadExists(
         visitPayloadsRef.current,
@@ -228,13 +283,48 @@ export default function App() {
       );
     }
     navigationRef.current = sanitized;
+    navigationPositionRef.current = historyPosition(rawState);
     setNavigation(sanitized);
     rememberVisitedTab(sanitized.activeTab);
   }, [rememberVisitedTab]);
 
+  const restoreEditorHistory = useCallback(() => {
+    if (!pendingPopRef.current || historyRecoveryRef.current) return;
+    const cursor = navigationFromHistoryState(window.history.state);
+    if (!cursor) return;
+    const source = navigationRef.current;
+    const delta = navigationPositionRef.current - historyPosition(window.history.state);
+    if (!delta) {
+      pendingPopRef.current = null;
+      applyPoppedNavigation(source, window.history.state);
+      return;
+    }
+    let resolve;
+    const promise = new Promise((done) => { resolve = done; });
+    historyRecoveryRef.current = {
+      promise, resolve,
+      visitKey: activeRoute(source)?.visitKey,
+      position: navigationPositionRef.current,
+    };
+    window.history.go(delta);
+  }, [applyPoppedNavigation]);
+
   const handlePopState = useCallback(async (event) => {
+    const recovery = historyRecoveryRef.current;
+    if (recovery) {
+      historyRecoveryRef.current = null;
+      pendingPopRef.current = null;
+      if (historyPosition(event.state) === recovery.position
+        && activeRoute(navigationFromHistoryState(event.state))?.visitKey === recovery.visitKey) {
+        applyPoppedNavigation(navigationRef.current, event.state);
+        recovery.resolve();
+        return;
+      }
+      recovery.resolve();
+    }
     // Back/Forward supersedes a pending tab choice even if its own editor guard waits.
-    tabRequestRef.current += 1;
+    const request = ++navigationRequestRef.current;
+    pendingPopRef.current = null;
     const targetHasStudyMarker = hasStudyMarker(event.state);
     const targetNavigation = navigationFromHistoryState(event.state);
     const current = navigationRef.current;
@@ -272,19 +362,23 @@ export default function App() {
     const targetRoute = activeRoute(targetNavigation);
     const leavingEditor = currentRoute?.tab === "diario"
       && currentRoute.screen === "edit"
+      && currentRoute.visitKey !== targetRoute?.visitKey
       && !sameRouteDestination(currentRoute, targetRoute);
 
-    if (leavingEditor && !skipEditorGuardOnceRef.current) {
+    const skipEditorGuard = skipEditorGuardOnceRef.current;
+    skipEditorGuardOnceRef.current = false;
+    if (leavingEditor && !skipEditorGuard) {
+      pendingPopRef.current = { request };
       const allowed = await (editorNavigationRef.current?.prepareToLeave?.() ?? true);
+      if (request !== navigationRequestRef.current) return;
       if (!allowed) {
-        const recoveryDelta = targetNavigation.depth <= current.depth ? 1 : -1;
-        window.history.go(recoveryDelta);
+        restoreEditorHistory();
         return;
       }
     }
-    skipEditorGuardOnceRef.current = false;
+    pendingPopRef.current = null;
     applyPoppedNavigation(targetNavigation, event.state);
-  }, [applyPoppedNavigation, captureCurrentScroll]);
+  }, [applyPoppedNavigation, captureCurrentScroll, restoreEditorHistory]);
 
   useLayoutEffect(() => {
     const previousScrollRestoration = window.history.scrollRestoration;
@@ -294,6 +388,7 @@ export default function App() {
       stateWithoutStudyMarker(window.history.state),
       navigationRef.current,
     );
+    initialState[HISTORY_POSITION_KEY] = navigationPositionRef.current;
     if (initial.startedOnStudyMarker) initialState = stateWithoutStudyMarker(initialState);
     window.history.replaceState(
       initialState,
@@ -303,7 +398,10 @@ export default function App() {
 
     window.addEventListener("popstate", handlePopState);
     return () => {
-      tabRequestRef.current += 1;
+      navigationRequestRef.current += 1;
+      pendingPopRef.current = null;
+      historyRecoveryRef.current?.resolve();
+      historyRecoveryRef.current = null;
       window.removeEventListener("popstate", handlePopState);
       window.history.scrollRestoration = previousScrollRestoration;
     };
@@ -328,10 +426,13 @@ export default function App() {
       stateWithoutStudyMarker(window.history.state),
       navigationRef.current,
     );
+    const position = historyPosition(window.history.state) + 1;
     window.history.pushState({
       ...state,
+      [HISTORY_POSITION_KEY]: position,
       [STUDY_SESSION_STATE_KEY]: { version: STUDY_SESSION_STATE_VERSION },
     }, "", window.location.href);
+    navigationPositionRef.current = position;
     studyMarkerActiveRef.current = true;
     skipStudyFinishOnceRef.current = false;
   }, []);
@@ -377,27 +478,36 @@ export default function App() {
     commitNavigation(next, { replace: true, payload });
   }, [commitNavigation]);
 
-  function navigateBack(options = {}) {
+  async function navigateBack(options = {}) {
+    const request = ++navigationRequestRef.current;
+    if (historyRecoveryRef.current) await historyRecoveryRef.current.promise;
+    if (request !== navigationRequestRef.current) return;
     captureCurrentScroll();
     if (options?.editorPrepared) skipEditorGuardOnceRef.current = true;
     window.history.back();
   }
 
   async function switchTab(nextTab) {
-    const request = ++tabRequestRef.current;
+    const request = ++navigationRequestRef.current;
     const currentRoute = activeRoute(navigationRef.current);
+    if (historyRecoveryRef.current) await historyRecoveryRef.current.promise;
+    if (request !== navigationRequestRef.current) return;
+    let allowed = true;
     if (currentRoute?.tab === "diario" && currentRoute.screen === "edit") {
       if (nextTab === "diario") {
-        const allowed = await (editorNavigationRef.current?.prepareToLeave?.() ?? true);
-        if (!allowed) return;
+        allowed = await (editorNavigationRef.current?.prepareToLeave?.() ?? true);
       } else {
         await editorNavigationRef.current?.flushForTabSwitch?.();
       }
     }
     // A save may materialize an entry within this visit. Only a newer navigation
     // request or departure from the visit cancels this pending tab choice.
-    if (request !== tabRequestRef.current
+    if (request !== navigationRequestRef.current
       || currentRoute?.visitKey !== activeRoute(navigationRef.current)?.visitKey) return;
+    if (!allowed) {
+      restoreEditorHistory();
+      return;
+    }
     const next = selectPrimaryTab(navigationRef.current, nextTab, {
       visitKey: makeNavigationVisitKey(),
     });
@@ -467,9 +577,12 @@ export default function App() {
     );
   }
 
-  function journalMaterialized(id) {
+  function journalMaterialized(id, visitKey) {
     if (!id) return;
     pendingPersonalIdsRef.current.add(id);
+    const payload = visitPayloadsRef.current.get(visitKey);
+    visitPayloadsRef.current.set(visitKey, { ...payload, journalId: id });
+    if (activeRoute(navigationRef.current)?.visitKey !== visitKey) return;
     replaceRoute({ tab: "diario", screen: "edit", id });
   }
 
@@ -752,7 +865,7 @@ export default function App() {
                   backLabel={backLabel}
                   onEdit={editJournal}
                   onStart={startJournal}
-                  onMaterialized={journalMaterialized}
+                  onMaterialized={(id) => journalMaterialized(id, diarioRoute.visitKey)}
                   onDrillKept={journalDrillKept}
                   registerEditorNavigationHandlers={registerEditorNavigationHandlers}
                 />
