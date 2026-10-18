@@ -39,6 +39,20 @@ This is the starting point for current status, not a release diary.
   lifecycle patterns retain explained exceptions. Local tests, the deliberate regression check,
   375×812 browser fixtures and publication evidence are recorded in [release history](history/RELEASES.md).
   Broader Step 5 work remains separate; Step 4's usage review remains withdrawn.
+- **Complete and verified locally; not published:** the bounded awaitable-refresh
+  follow-up (`0d14853`, `a28976a`). `reload()` reports loaded/failed/cancelled after accepted
+  completion, preserving the last committed snapshot and settling superseded/unmounted callers.
+  Journal/Taller and link-saving flows distinguish committed writes from refresh failure;
+  post-refresh navigation uses current items, and delayed Taller completion respects the owner's
+  chosen visit. Storage, personal schema, backup compatibility and event policy are unchanged.
+  Local verification: lint passes with zero warnings; the complete serial suite passes **1,932
+  tests across 157 files** in 393.30 seconds, exit zero without failures or unhandled errors;
+  the production build passes with the existing chunk-size warning. Seventy focused tests pass,
+  and deliberate early completion, stale navigation data and missing visit guards fail their
+  targeted regressions. Disposable headless Chromium at **375×812** verifies long Journal text
+  through refresh failure/retry and pending Taller Keep through a tab switch, without duplicate
+  writes. Screenshots were inspected; there was no horizontal overflow or browser error/warning.
+  The temporary browser profiles and preview were cleaned up. Publication awaits a push request.
 - **Separate, unapproved follow-ups:** other executable tooling changes and feature/code reorganization.
 - **Owner direction:** [reassessment §15](reviews/2026-10-17/REASSESSMENT.md#15-owner-response-2026-10-17)
   takes precedence on experimental feature growth and the ideas file. The usage review is

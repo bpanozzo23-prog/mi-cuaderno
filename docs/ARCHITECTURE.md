@@ -90,10 +90,24 @@ the outer transaction commits.
 
 [useNotebook](../src/useNotebook.js) loads items and events and derives the current item-state
 map. Initial load failure is distinct from an empty notebook; refresh failure preserves the
-last snapshot. Abandoned reads cannot replace newer results. Its `reload()` currently bumps a
-React epoch and returns before loading finishes: it is **not awaitable**. These UI reads are
-separate from the consistent export snapshot. A committed save and a refreshed screen are
-different completion points; editors retain failed drafts rather than announcing false success.
+last committed snapshot. Abandoned reads cannot replace newer results, including results queued
+before a newer refresh but not yet committed by React. The stable `reload()` callback returns a
+promise fulfilled with `{ status: "loaded" }`, `{ status: "failed", error }`, or
+`{ status: "cancelled" }`. Loaded means both reads and derived state have reached a React commit;
+it does not promise a browser paint. Refresh failures do not reject, so callers that deliberately
+do not wait remain safe and a committed write is never mistaken for a failed save.
+
+Every call requires reads started after that call. Calls in one turn may coalesce; superseded
+callers wait for the newest accepted attempt. Its success or failure settles all waiting callers;
+unmount settles them as cancelled, and later calls also return cancellation. Waiting does not
+update a caller's captured variables: navigation uses the latest committed items to classify a
+new destination. Delayed Taller completion navigates only from its originating active visit.
+
+These UI reads are separate from the consistent export snapshot. A committed save and a refreshed
+screen are different completion points. Journal/Taller and quick-create report post-save refresh
+failure without offering another creation; review grades remain recorded and advance after refresh
+settles, with the global retry banner reporting read failure. Editors retain failed write drafts
+rather than announcing false success.
 
 ## Backup and schema upgrades
 
