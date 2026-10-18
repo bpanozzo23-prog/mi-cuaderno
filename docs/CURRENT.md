@@ -1,20 +1,21 @@
 # Current state
 
-The app is deployed; reassessment Steps 1–3 and the bounded lint, awaitable-refresh and
-documentation-only CI filtering tasks are published.
+The app is deployed; reassessment Steps 1–3, bounded lint/refresh work, documentation-only CI
+filtering, shared Node selection and Journal tab navigation ordering are published.
 This is the starting point for current status, not a release diary.
 
 ## Verified release
 
-- **Published revision:** `ac527a0`, 2026-10-18 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39134092760)
-  passed lint, all **1,932 tests across 157 files** in 162.26 seconds, the production build and
+- **Published revision:** `d37b943`, 2026-10-18 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39142390630)
+  passed lint, all **1,942 tests across 157 files** in 220.16 seconds, the production build and
   deployment. Seven live app files returned HTTP 200 and matched the verified local build byte
   for byte. Detailed publication evidence lives in [release history](history/RELEASES.md).
-- **Delivered work:** documentation-only CI filtering, the bounded Step 5 lint setup and awaitable notebook refresh, on top of completed
+- **Delivered work:** Journal tab navigation ordering, shared Node selection, documentation-only CI
+  filtering, the bounded Step 5 lint setup and awaitable notebook refresh, on top of completed
   [Step 1 safety work](reviews/2026-10-17/STEP-1.md), [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md)
   and [Step 3 contract reset](reviews/2026-10-17/STEP-3.md). JavaScript/React Hooks lint runs locally
   and in CI. Refresh now reports committed completion without misclassifying saved writes;
-  delayed Taller completion preserves the owner’s chosen tab.
+  delayed Journal tab requests and Taller completion preserve the owner’s newer navigation.
 - **Personal schema:** **v12**, defined in [src/version.js](../src/version.js).
   Backups v1–v12 upgrade sequentially and validate before restore; newer versions are blocked.
   Legacy database upgrades require an untouched validated export before Dexie opens.
@@ -63,7 +64,7 @@ This is the starting point for current status, not a release diary.
 - **Owner direction:** [reassessment §15](reviews/2026-10-17/REASSESSMENT.md#15-owner-response-2026-10-17)
   takes precedence on experimental feature growth and the ideas file. The usage review is
   withdrawn. Friction is an input to ideas, not a condition for building features.
-- **Complete locally; not pushed:** shared Node version selection (`3af203c`). CI reads Node's
+- **Complete and published:** shared Node version selection (`3af203c`). CI reads Node's
   major from [.nvmrc](../.nvmrc); package and lockfile metadata declare the supported range.
   [Linux](agents/XPS.md#node-setup) and [Windows](agents/WINDOWS.md#node-setup) guidance explains
   setup and version checks. Verification on 2026-10-18 with Node 24.19.0 / npm 11.17.0 passed
@@ -72,9 +73,10 @@ This is the starting point for current status, not a release diary.
   unchanged dependency records and workflow behavior apart from the version-file input; config
   changes still trigger CI. The existing build chunk-size warning and npm audit findings
   (2 moderate, 5 high) remain. Application, dictionary, schema and machine installations are
-  unchanged. Windows commands were not executed on the owner's laptop; CI's actual version-file
-  resolution awaits a separately requested push.
-- **Complete locally; not pushed:** Journal tab navigation ordering (`2c18404`). A delayed
+  unchanged. CI resolved `.nvmrc` to Node 24.21.0 / npm 11.19.0 in the verified deployment;
+  Windows commands were not executed on the owner's laptop. Publication evidence is in
+  [release history](history/RELEASES.md#2026-10-18--shared-node-selection-and-journal-navigation-ordering).
+- **Complete and published:** Journal tab navigation ordering (`2c18404`). A delayed
   save/refresh can no longer let an older tab choice overwrite a newer choice or a different
   active visit. Back/Forward and App unmount cancel pending choices; saving a new entry within
   its current visit still permits the intended navigation. Save policy, refresh waiting,
@@ -88,9 +90,10 @@ This is the starting point for current status, not a release diary.
   suggestion was added and passed. Fresh Chromium fixtures at 375×812 verified delayed success,
   delayed failure/retry and Back/Forward, with one saved entry, inspected screenshots, no
   horizontal overflow and no browser warnings or uncaught errors. The fixture profile was
-  removed and preview stopped. The existing build chunk-size warning remains. CI/deployment
-  and physical Android Back await separate publication/device checks; broader popstate races
-  and refresh-latency changes remain separate, unverified follow-ups.
+  removed and preview stopped. CI/deployment and seven live-file comparisons passed, recorded in
+  [release history](history/RELEASES.md#2026-10-18--shared-node-selection-and-journal-navigation-ordering).
+  The existing build chunk-size warning and physical Android Back check remain; broader
+  popstate races and refresh-latency changes remain separate, unverified follow-ups.
 
 ## Unresolved verification
 

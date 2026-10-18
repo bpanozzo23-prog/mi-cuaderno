@@ -6,6 +6,32 @@ Documentation-only follow-ups covered by the [workflow exclusions](../../.github
 normally skip deployment. Keep the last verified published revision; the
 [agent guide](../AGENT-GUIDE.md#environment-and-checks) covers publication checks and filter limits.
 
+## 2026-10-18 — Shared Node selection and Journal navigation ordering
+
+| Date | Published revision | Work | CI and checks |
+|---|---|---|---|
+| 2026-10-18 | `d37b943` | Shared Node selection (`3af203c`, `a3d3656`) and Journal tab navigation ordering (`2c18404`, `d37b943`) | [39142390630](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39142390630): lint, 1,942 tests / 157 files in 220.16 s, build and deployment passed; seven live files returned HTTP 200 and matched local build bytes |
+
+CI read `.nvmrc` as Node 24 and selected Node 24.21.0 / npm 11.19.0. The push advanced
+`main` from `b5c3812` to `d37b943`; local HEAD matched `origin/main`. Live comparison covered
+index HTML, manifest, service-worker registration, service worker, entry/application JavaScript
+and CSS. The publication record is a documentation-only follow-up and does not require redeployment.
+
+Local acceptance with Node 24.19.0 / npm 11.17.0 passed zero-warning lint, the complete serial
+suite (1,942/1,942 across 157 files in 405.69 s, no unhandled errors), production build and diff
+checks. Ten added integration cases cover delayed tab choices, competing saves, read failure,
+refused reselection, materialization, Back/Forward, unmount and another in-app visit. Seven cases
+failed against the original implementation; independently removing the visit guard failed its
+targeted case. Focused read-only Claude review found no actionable defects introduced by the fix;
+its refused-request coverage suggestion was added and passed.
+
+Fresh headless Chromium fixtures at 375×812 verified delayed refresh success, failure/retry and
+Back/Forward while preserving one saved entry. Four screenshots were inspected, with no horizontal
+overflow, browser warnings or uncaught errors. The disposable profile was removed and preview
+stopped. No owner data was accessed. Save/refresh policy, dependency resolutions, personal schema
+v12 and dictionary data are unchanged. The existing build chunk-size warning and npm audit findings
+(2 moderate, 5 high) remain; owner-device checks remain pending in [CURRENT](../CURRENT.md).
+
 ## 2026-10-18 — Documentation-only CI filtering
 
 | Date | Published revision | Work | CI and checks |
