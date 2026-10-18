@@ -130,8 +130,10 @@ this summary.
 - Before running machine-specific setup or preview commands, read [Windows](agents/WINDOWS.md)
   or [XPS/Linux](agents/XPS.md), according to the actual OS and shell. Use
   [browser verification](agents/BROWSER-VERIFICATION.md) for visible application changes.
+- `npm run lint` — JavaScript and React Hooks correctness checks; zero warnings. Keep intentional
+  lifecycle exceptions narrow and explained; changing dependencies must preserve drafts and event timing.
 - `npm test` — Vitest. Node is the default test environment; component tests opt into `jsdom`
-  with a per-file `@vitest-environment` pragma. There is no lint or type-check script.
+  with a per-file `@vitest-environment` pragma. There is no type-check script.
   **The suite runs one file at a time** (`fileParallelism: false`, set in `vitest.config.js` so
   every invocation gets it). Run the complete serial suite before claiming a phase; parallel
   runs are not the project's acceptance gate.

@@ -9,9 +9,10 @@ its verified target when needed, without chasing the commit that records its own
 
 | Date | Published revision | Work | CI and checks |
 |---|---|---|---|
+| 2026-10-17 | `33b5300` | Documentation-only follow-up; application unchanged from `c82889f` | [39086772342](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39086772342): 1,913 tests / 155 files in 219.37 s, build and deployment passed; checked at Step 5 start, no new live-asset comparison |
 | 2026-10-17 | `c82889f` | Documentation reset and accepted product/architecture contract; eight commits from `b48a948`, no application behavior change | [39086426104](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39086426104): 1,913 tests / 155 files in 207.00 s, build and deployment passed; local build passed; seven live files returned HTTP 200 and matched local bytes |
 
-The live comparison covered index HTML, manifest, service-worker registration, service worker,
+The `c82889f` live comparison covered index HTML, manifest, service-worker registration, service worker,
 entry/application JavaScript and CSS. Documentation checks covered 105 Markdown files, unchanged
 brief v3 and preserved historical records. Existing owner-device checks remain pending in
 [CURRENT](../CURRENT.md); no new browser walkthrough or owner-data access was needed.

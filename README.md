@@ -18,6 +18,7 @@ Use Node 24 (the version used by [CI](.github/workflows/deploy.yml)) and npm:
 ```sh
 npm ci          # install locked dependencies
 npm run dev     # http://localhost:5173/mi-cuaderno/
+npm run lint    # JavaScript and React Hooks checks; zero warnings
 npm test        # complete serial Vitest suite
 npm run build   # production output in dist/
 ```
@@ -26,7 +27,7 @@ Database tests use real Dexie code with in-memory IndexedDB. Component tests opt
 the pipeline has tests too. Shell-specific commands and verification rules are linked from
 the [agent guide](docs/AGENT-GUIDE.md).
 
-Every push to `main`, including documentation-only pushes, runs tests, builds and deploys to
+Every push to `main`, including documentation-only pushes, runs lint and tests, builds and deploys to
 GitHub Pages. Pushing requires an explicit request; [release history](docs/history/RELEASES.md)
 records verified publications.
 
