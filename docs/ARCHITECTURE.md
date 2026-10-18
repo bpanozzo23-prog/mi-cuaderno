@@ -196,6 +196,13 @@ positions remain transient. Editor and study handlers protect save and exit flow
 A tab choice waiting for a Journal save/refresh applies only while it remains the newest tab
 request and its originating visit is active. Back/Forward and App unmount cancel pending tab
 choices; materializing a saved entry within the same visit does not.
+Delayed Back/Forward guards share request ownership with tab choices and cannot apply an old
+destination or recovery traversal after newer navigation. Refused departures restore the editor's
+browser position; new destinations wait for an already-requested recovery to finish. History
+entries carry a separate `mcHistoryPosition` because navigation depth is capped; older entries
+fall back to their existing depth. Saving a new Journal entry while Back waits updates its visit
+in memory without rewriting the popped target, and Forward resolves that visit to the saved ID.
+These navigation fields and visit mappings do not enter personal stores or backups.
 [Share-target parsing](../src/lib/shareTarget.js) consumes shared URL/text parameters into an
 explicit flow. Opening a route or receiving shared text never itself authorizes a content save.
 

@@ -92,8 +92,28 @@ This is the starting point for current status, not a release diary.
   horizontal overflow and no browser warnings or uncaught errors. The fixture profile was
   removed and preview stopped. CI/deployment and seven live-file comparisons passed, recorded in
   [release history](history/RELEASES.md#2026-10-18--shared-node-selection-and-journal-navigation-ordering).
-  The existing build chunk-size warning and physical Android Back check remain; broader
-  popstate races and refresh-latency changes remain separate, unverified follow-ups.
+  The existing build chunk-size warning and physical Android Back check remain;
+  refresh-latency changes remain a separate, unapproved follow-up.
+- **Complete locally; not pushed:** guarded Back/Forward ordering (`90bd038`). Obsolete
+  save-waiting handlers can no longer overwrite a newer destination or perform stale refusal
+  recovery. Refused navigation restores the editor's browser position, and tab/route/visible-Back
+  actions wait for an already-requested recovery. New Journal saves retain their originating
+  visit's identity without rewriting the popped target. A separate browser-history position
+  handles recovery beyond the capped navigation depth; personal schema v12, backups, dependency
+  resolutions and save/refresh policy are unchanged.
+  Verification on 2026-10-18 passed zero-warning lint, **39 focused checks**, all **1,960 tests
+  across 158 files** serially in 412.48 seconds (no unhandled errors), production build and diff
+  checks. Eighteen new integration cases cover superseding Back/Forward/tabs, read/write failure,
+  competing saves, refused navigation, queued recovery, unmount, saved-entry identity, study
+  markers and the depth cap. All 16 initial regressions failed against the original App; an
+  independent depth-cap check failed when recovery again used capped depth. Focused Claude CLI
+  review identified the cap issue; the corrected implementation passed follow-up review with
+  no grounded actionable defects. Fresh Chromium fixtures at 375×812 verified saved-entry
+  Forward, a newer Repaso choice through old refresh failure/retry, and refused navigation
+  recovery followed by valid-date exit, retaining one saved entry. Four screenshots were
+  inspected with no horizontal overflow, browser warnings or uncaught errors. The profile was
+  removed and preview stopped; no owner data was accessed. The existing build chunk-size warning
+  remains. CI/deployment await a separate push request; physical Android Back remains pending.
 
 ## Unresolved verification
 
