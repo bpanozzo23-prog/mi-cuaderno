@@ -1,0 +1,48 @@
+# Current state
+
+The app is deployed; Step 1 safety work is complete. Step 2 is an approved documentation
+reset in progress. This is the starting point for current status, not a release diary.
+
+## Verified release
+
+- **Published revision:** `b48a948`, 2026-10-17. Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39080236039)
+  passed tests, build and deployment. The owner reported the final **1,913 tests across 155 files**
+  and live-asset verification; the workflow result was independently checked during Step 2 planning.
+- **Delivered work:** all four [Step 1 items](reviews/2026-10-17/STEP-1.md) are complete:
+  deployment test gate, backup safety, all-or-nothing saves and five small fixes.
+  The item-4 application release was `6d92bab`; `b48a948` records that deployment without
+  changing application code. Detailed checks remain in the work order.
+- **Personal schema:** **v12**, defined in [src/version.js](../src/version.js).
+  Backups v1–v12 upgrade sequentially and validate before restore; newer versions are blocked.
+  Legacy database upgrades require an untouched validated export before Dexie opens.
+- **Dictionary:** see the [shipped manifest](../public/dict/manifest.json) for the dataset revision,
+  counts and raw/gzip package bytes, and [data sources](../DATA_SOURCES.md) for attribution.
+
+## Work and boundaries
+
+- **Approved, in progress:** Step 2 documentation reset from the
+  [reassessment](reviews/2026-10-17/REASSESSMENT.md#12-suggested-order-of-work).
+  Consolidate current status, preserve history, keep open ideas together and separate recipes.
+  No application, schema, CI or tooling behavior changes; no push requested.
+- **Planning only:** [guided lessons](guided-lessons/README.md), including the 1917 drafts.
+  The player and integration are not implemented or approved by this documentation work.
+- **Separate, unapproved follow-ups:** Step 3's contract reset; executable tooling changes;
+  feature/code reorganization. Brief v3 stays unchanged during Step 2.
+- **Owner direction:** [reassessment §15](reviews/2026-10-17/REASSESSMENT.md#15-owner-response-2026-10-17)
+  takes precedence on experimental feature growth and the ideas file. The usage review is
+  withdrawn. Friction is an input to ideas, not a condition for building features.
+
+## Unresolved verification
+
+These are gaps in recorded evidence, not claims that the features are broken. Later Step 1
+fixtures do not close checks of different features. Preserve each until matching evidence exists.
+
+| Check | Evidence to consult |
+|---|---|
+| Phase 4t–4x Connections browser closeout | [Phase 4 report](PHASE-4-REPORT.md) |
+| Phase 4y Add to Collection phone/browser closeout | [Phase 4 report](PHASE-4-REPORT.md) |
+| Phase 7 composable-pages phone/browser closeout | [Phase 7 report](PHASE-7-REPORT.md) |
+| Plural dictionary attachments: owner's phone check | [2026-09-10 decision](../DECISIONS.md#plural-dictionary-attachments-2026-09-10) |
+
+The later owner confirmation for same-heading dictionary meanings is recorded; that phone check
+is complete. See the [documentation index](README.md) for current guidance, proposals and history.

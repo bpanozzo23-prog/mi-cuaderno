@@ -15,10 +15,9 @@ file that restates it is a copy that goes stale between commits.
 
 Start every task with the current state:
 
-1. `README.md` → Status — which phases are done and what is in progress.
-2. Follow the report linked from the in-progress phase in that Status section. If no phase is in
-   progress, use the report linked from the most recently completed phase. Do not guess from file
-   timestamps: older reports deliberately keep their historical figures.
+1. [docs/CURRENT.md](CURRENT.md) — verified release, current work and unresolved checks.
+2. Follow its task-relevant references. Use the [documentation index](README.md) to find
+   proposals and history; historical reports retain their original figures and are not current status.
 3. Inspect the existing architecture, components and utilities relevant to the request before
    recommending changes or introducing duplicates.
 
