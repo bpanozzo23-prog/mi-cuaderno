@@ -1,18 +1,20 @@
 # Current state
 
-The app is deployed; reassessment Steps 1–3 and Step 5’s bounded lint setup are published.
+The app is deployed; reassessment Steps 1–3 and Step 5’s bounded lint and awaitable-refresh tasks
+are published.
 This is the starting point for current status, not a release diary.
 
 ## Verified release
 
-- **Published revision:** `2dfe9c2`, 2026-10-17 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39090099456)
-  passed lint, all **1,914 tests across 155 files** in 157.69 seconds, the production build and
+- **Published revision:** `4b7d47d`, 2026-10-18 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39099125670)
+  passed lint, all **1,932 tests across 157 files** in 169.29 seconds, the production build and
   deployment. Seven live app files returned HTTP 200 and matched the verified local build byte
   for byte. Detailed publication evidence lives in [release history](history/RELEASES.md).
-- **Delivered work:** the bounded Step 5 lint setup, on top of completed
+- **Delivered work:** the bounded Step 5 lint setup and awaitable notebook refresh, on top of completed
   [Step 1 safety work](reviews/2026-10-17/STEP-1.md), [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md)
   and [Step 3 contract reset](reviews/2026-10-17/STEP-3.md). JavaScript/React Hooks lint runs locally
-  and in CI; Cuaderno updates merged results when dictionary alias metadata arrives independently.
+  and in CI. Refresh now reports committed completion without misclassifying saved writes;
+  delayed Taller completion preserves the owner’s chosen tab.
 - **Personal schema:** **v12**, defined in [src/version.js](../src/version.js).
   Backups v1–v12 upgrade sequentially and validate before restore; newer versions are blocked.
   Legacy database upgrades require an untouched validated export before Dexie opens.
@@ -39,20 +41,14 @@ This is the starting point for current status, not a release diary.
   lifecycle patterns retain explained exceptions. Local tests, the deliberate regression check,
   375×812 browser fixtures and publication evidence are recorded in [release history](history/RELEASES.md).
   Broader Step 5 work remains separate; Step 4's usage review remains withdrawn.
-- **Complete and verified locally; not published:** the bounded awaitable-refresh
-  follow-up (`0d14853`, `a28976a`). `reload()` reports loaded/failed/cancelled after accepted
-  completion, preserving the last committed snapshot and settling superseded/unmounted callers.
-  Journal/Taller and link-saving flows distinguish committed writes from refresh failure;
-  post-refresh navigation uses current items, and delayed Taller completion respects the owner's
-  chosen visit. Storage, personal schema, backup compatibility and event policy are unchanged.
-  Local verification: lint passes with zero warnings; the complete serial suite passes **1,932
-  tests across 157 files** in 393.30 seconds, exit zero without failures or unhandled errors;
-  the production build passes with the existing chunk-size warning. Seventy focused tests pass,
-  and deliberate early completion, stale navigation data and missing visit guards fail their
-  targeted regressions. Disposable headless Chromium at **375×812** verifies long Journal text
-  through refresh failure/retry and pending Taller Keep through a tab switch, without duplicate
-  writes. Screenshots were inspected; there was no horizontal overflow or browser error/warning.
-  The temporary browser profiles and preview were cleaned up. Publication awaits a push request.
+- **Complete and published:** the bounded awaitable-refresh follow-up (`0d14853`, `a28976a`),
+  published through `4b7d47d`. `reload()` reports loaded/failed/cancelled after accepted completion,
+  preserves the last committed snapshot and settles superseded/unmounted callers. Journal/Taller
+  and link-saving flows distinguish committed writes from refresh failure; post-refresh navigation
+  uses current items, and delayed Taller completion respects the owner's chosen visit. Storage,
+  personal schema, backup compatibility and event policy are unchanged. Local/CI results,
+  deliberate regressions, 375×812 browser fixtures and live-file comparisons are recorded in
+  [release history](history/RELEASES.md#2026-10-18--awaitable-notebook-refresh).
 - **Separate, unapproved follow-ups:** other executable tooling changes and feature/code reorganization.
 - **Owner direction:** [reassessment §15](reviews/2026-10-17/REASSESSMENT.md#15-owner-response-2026-10-17)
   takes precedence on experimental feature growth and the ideas file. The usage review is

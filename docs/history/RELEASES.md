@@ -5,6 +5,26 @@ to the latest verified release; decisions record reasons, not repeated test/depl
 A documentation-only follow-up may trigger another deployment under the current workflow; record
 its verified target when needed, without chasing the commit that records its own result.
 
+## 2026-10-18 — Awaitable notebook refresh
+
+| Date | Published revision | Work | CI and checks |
+|---|---|---|---|
+| 2026-10-18 | `4b7d47d` | Bounded awaitable-refresh follow-up (`0d14853`, `a28976a`) and verified contract record | [39099125670](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39099125670): lint, 1,932 tests / 157 files in 169.29 s, build and deployment passed; seven live files returned HTTP 200 and matched local build bytes |
+
+The live comparison covered index HTML, manifest, service-worker registration, service worker,
+entry/application JavaScript and CSS. Local acceptance on 2026-10-17 passed zero-warning lint,
+the complete serial suite (1,932/1,932 across 157 files in 393.30 s, no unhandled errors), the
+production build and diff checks. The existing build chunk-size warning remains. Seventy focused
+tests passed; deliberately resolving before React commit, restoring stale navigation data, and
+removing the originating-visit guards failed their targeted regressions.
+
+Disposable headless Chromium at 375×812 verified long Journal text through refresh failure/retry
+and pending Taller Keep through a tab switch without duplicate writes. Four screenshots were
+inspected; there was no horizontal overflow, browser warning or uncaught error. Temporary
+profiles and the preview were cleaned up. No owner data was accessed. Storage, personal schema
+v12, backup compatibility and event policy are unchanged; existing owner-device checks remain
+pending in [CURRENT](../CURRENT.md).
+
 ## 2026-10-17 — Step 5 lint setup
 
 | Date | Published revision | Work | CI and checks |
