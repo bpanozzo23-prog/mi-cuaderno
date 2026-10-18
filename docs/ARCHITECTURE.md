@@ -1,11 +1,11 @@
 # Architecture
 
-**Draft for the Step 3 contract reset, 2026-10-17.** This describes the app at the deployed
-baseline named in [CURRENT](CURRENT.md), checked against the working tree. It does not approve
-implementation changes or yet supersede [brief v3](mi-cuaderno-project-brief-v3.md).
-[PRODUCT](PRODUCT.md) covers owner-facing promises; [Step 3](reviews/2026-10-17/STEP-3.md) tracks
-the unresolved contract choices. Exact release, schema and dataset figures belong in CURRENT
-and its linked sources, rather than being copied here.
+**Current architecture contract, owner-approved 2026-10-17.** Together with [PRODUCT](PRODUCT.md),
+this replaces [brief v3](mi-cuaderno-project-brief-v3.md), which is frozen unchanged as history.
+This describes the implemented architecture and its safeguards; adopting it does not itself
+authorize an application change. [Step 3](reviews/2026-10-17/STEP-3.md) records the accepted policy
+choices. Exact release, schema and dataset figures belong in [CURRENT](CURRENT.md) and its
+linked sources, rather than being copied here.
 
 ## Runtime and ownership
 
@@ -123,6 +123,13 @@ need reader, writer, copy, migration and round-trip analysis. New event kinds/me
 absent-valid preferences already have extension paths; new item fields or stores must not be
 assumed equally safe. Snapshot and restore currently name the three personal stores explicitly.
 
+Personal-schema changes normally require an approved migration plan, version bump, export-first
+safety and matching backup validation. The owner allows consideration of a lighter process for
+a truly optional addition that does not rewrite existing data, but only after a specific review
+demonstrates compatibility across old and new readers, creation/edit/copy paths, exports,
+restores and supported upgrades. Record the evidence and obtain approval for that exception
+before implementation. Optionality alone is not an exception, and none is granted here.
+
 The implemented gate remains in force until separately approved code changes it. Browser
 storage protection is checked with browser APIs; an imported preference is not evidence that
 the new browser protects its storage.
@@ -186,8 +193,10 @@ was persisted.
 
 ## Changing this architecture
 
-Use the [guide](AGENT-GUIDE.md) for approval, verification and deployment procedures. Product
-policy choices are tracked in [Step 3](reviews/2026-10-17/STEP-3.md); this factual description
-does not settle them. Current behavior and historical rationale remain accessible through the
-code links above and the [decision-log index](../DECISIONS.md#reading-this-log). New tests,
-refactors, tooling, migrations and features are separate work from this documentation reset.
+Use the [guide](AGENT-GUIDE.md) for approval, verification and deployment procedures. Preserve
+existing behavior outside the approved scope; a historical acceptance criterion's omission
+from this shorter contract is not permission to change it. Consult the linked implementation,
+tests and [decision-log index](../DECISIONS.md#reading-this-log) for exact affected behavior and
+rationale. Keep these documents current when approved work changes their guarantees; retain
+old reasoning in the decision log rather than accumulating strikethrough amendments here.
+New tooling, migrations, refactors and features remain separately scoped work.

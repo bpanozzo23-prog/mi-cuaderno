@@ -27,5 +27,6 @@ The [owner-supplied research reference](PLAN.md#2-what-informs-this-plan) remain
 pinned version on the separate research branch; it has not been copied or merged here.
 
 Project-wide decisions remain in [DECISIONS.md](../../DECISIONS.md#history-and-spanish-lesson-planning-2026-10-05).
-The [project brief](../mi-cuaderno-project-brief-v3.md) remains the product contract. Organizing
-and committing these drafts does not approve implementation, storage changes, or deployment.
+[PRODUCT](../PRODUCT.md) and [ARCHITECTURE](../ARCHITECTURE.md) are the current contract.
+Supporting records are allowed, but organizing these drafts and accepting that policy do not
+approve the lesson player, its storage design, a migration, or deployment.

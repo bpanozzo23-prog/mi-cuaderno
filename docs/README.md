@@ -11,7 +11,7 @@ for the task. Historical status describes its own date, not today's app.
 | Running or introducing the app | [Project README](../README.md) |
 | Machine setup or browser checks | [Windows](agents/WINDOWS.md), [XPS/Linux](agents/XPS.md), [browser verification](agents/BROWSER-VERIFICATION.md) |
 | Starting agent work | [Agent guide](AGENT-GUIDE.md) |
-| Planning behavior or architecture changes | [Brief v3](mi-cuaderno-project-brief-v3.md), still the contract while Step 3 drafts await acceptance |
+| Planning behavior or architecture changes | [PRODUCT](PRODUCT.md) and [ARCHITECTURE](ARCHITECTURE.md), the current contract |
 | Understanding a previous choice | [Decision log](../DECISIONS.md) |
 | Checking owner direction after reassessment | [Owner response, section 15](reviews/2026-10-17/REASSESSMENT.md#15-owner-response-2026-10-17) |
 | Checking dictionary facts and attribution | [Manifest](../public/dict/manifest.json) and [data sources](../DATA_SOURCES.md) |
@@ -26,8 +26,8 @@ for the task. Historical status describes its own date, not today's app.
   [Step 1](reviews/2026-10-17/STEP-1.md) retains its completed work and verification evidence.
 - [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md): approved scope, changed homes and
   verification evidence; consult CURRENT for publication status.
-- [Step 3 contract reset](reviews/2026-10-17/STEP-3.md): owner decisions and carry-forward map;
-  [PRODUCT](PRODUCT.md) and [ARCHITECTURE](ARCHITECTURE.md) are review drafts, not yet the contract.
+- [Step 3 contract reset](reviews/2026-10-17/STEP-3.md): accepted owner decisions, carry-forward
+  map and verification of the replacement contract.
 
 ## Historical records
 
@@ -41,7 +41,8 @@ for the task. Historical status describes its own date, not today's app.
 - [Design QA](history/design-qa/design-qa.md): historical review and its tracked images.
 - [Pipeline spike output](../pipeline/spike/out/07-review-records.md): Phase 0.5 historical evidence.
 
-Brief v3 remains unchanged at its existing path and governs until the Step 3 replacements are accepted.
+[Brief v3](mi-cuaderno-project-brief-v3.md) is frozen unchanged at its existing path as history.
+PRODUCT and ARCHITECTURE supersede its authority; old links remain usable.
 
 ### Relocated paths
 

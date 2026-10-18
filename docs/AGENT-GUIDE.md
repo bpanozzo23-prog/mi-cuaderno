@@ -27,11 +27,16 @@ Start every task with the current state:
 
 Then load the durable references the task actually needs:
 
-- `docs/mi-cuaderno-project-brief-v3.md` is **the contract.** Read the sections governing a
-  proposed behaviour change before planning it. Read the whole brief before planning a new phase
-  or changing cross-cutting architecture, the data model, storage, identity, search, events,
-  backup, the reference-data seam or AI policy. Where it specifies exact behaviour, implement it
-  as written. Amendments use strikethrough plus the replacement so the original stays readable.
+- [PRODUCT](PRODUCT.md) and [ARCHITECTURE](ARCHITECTURE.md) are **the current contract.** Read the
+  relevant sections before planning behavior changes; read both in full for a new phase or
+  cross-cutting work on storage, identity, search, events, backup, the reference seam or AI.
+  PRODUCT owns product policy, ARCHITECTURE owns implementation guarantees, and this guide owns
+  working procedures. Preserve existing behavior outside the approved scope; inspect affected
+  code, tests and decisions for exact details. Raise conflicts rather than choosing silently.
+- [Brief v3](mi-cuaderno-project-brief-v3.md) is **frozen history**, kept byte-for-byte at its
+  existing path. Read it when investigating an old acceptance criterion or decision; it no
+  longer overrides the current contract. Update current documents in place and record reasons
+  in DECISIONS rather than adding amendments to the brief.
 - `DECISIONS.md` is the append-only reasoning record, not an always-load checklist. Scan its
   headings or search it for the affected phase, component and concept; read the matching entries
   before re-litigating a choice. Read current-phase and Tooling entries when they affect the work.
@@ -45,16 +50,19 @@ Then load the durable references the task actually needs:
   without checking the current app and `DECISIONS.md` first — a match may be coincidence, not
   intent.
 
-## Working agreement (brief §2)
+## Working agreement
 
-- **Propose a plan in plain language and wait for approval before writing code.** Purely-visual
-  changes are the one exception — see "Visual changes" below. (The brief's own wording is
-  per phase or sub-phase; the blanket form here was this guide's broadening.)
+- **Approve a bounded task once.** Propose its plan in plain language and get approval before writing code;
+  once approved, complete implementation, verification and routine fixes within that scope
+  without asking again for each edit. Raise material scope changes and data-model changes not
+  covered by the approved plan. Schema-policy exceptions still need their specific review and
+  approval. Purely visual changes retain the lighter process below; push authorization remains
+  separate. This is the owner-approved Step 3 workflow change.
 - Explain choices; define jargon the first time it appears.
 - Small verifiable steps. One commit per completed feature or sub-phase. After each change,
   state exactly how the owner can see or test it.
 - **Every meaningful decision gets a `DECISIONS.md` line: date — decision — reason.**
-- Found a conflict with the brief, or think a rule is wrong? **Raise it. Do not deviate quietly.**
+- Found a conflict with the current contract, or think a rule is wrong? **Raise it. Do not deviate quietly.**
 - For audits and reviews, do not implement recommendations unless explicitly asked.
 
 ## Tripwires
@@ -62,11 +70,15 @@ Then load the durable references the task actually needs:
 Easy to violate, expensive to discover later. Verify each against the files rather than trusting
 this summary.
 
-- **The event log is the single source of truth** (§7). No stored counters, no state flags.
-  Tricky state, lookup counts, review box and due date are all *derived at render*
-  (`src/lib/review.js`, `src/db/events.js`).
-- **Personal schema changes trigger brief §5 in full:** migration plan, export-first safety,
-  version bump and matching backup validation. **If you conclude one is needed, stop and raise it.**
+- **Events govern recorded activity and learning state.** Derive tricky state, lookup counts,
+  review box and due date from them (`src/lib/review.js`, `src/db/events.js`); do not substitute
+  persisted counters or mastery flags. Content and preferences have their own authority;
+  disposable memory caches are allowed.
+- **Personal-schema changes need an explicit safety plan.** Follow
+  [ARCHITECTURE's migration and exception policy](ARCHITECTURE.md#backup-and-schema-upgrades).
+  Raise changes not covered by the approved scope before implementing them. The default remains
+  versioned migration, export-first safety and matching backup validation; an optional-field
+  exception requires its own compatibility evidence and owner approval.
   [CURRENT](CURRENT.md) identifies the current schema and accepted backup versions; inspect
   [the version constant](../src/version.js), [database migrations](../src/db/db.js),
   [pre-upgrade gate](../src/db/preupgrade.js) and [backup path](../src/db/backup.js) for exact behavior.
@@ -74,8 +86,9 @@ this summary.
 - **`src/lib/normalize.js` preserves ñ** — "año" must never match "ano", anywhere new. All
   matching goes through it. **Do not change it:** the pipeline imports the same file, so it also
   decides what the shipped dictionary entries match.
-- **Personal content has exactly two types** — lexical items and pages (§7 forbids a third
-  without a brief amendment). Words and phrases are both lexical, told apart by `form`. Pages store
+- **Notebook content has two types** — lexical items and pages. Supporting records are allowed
+  after their own design and safety review; this does not approve a new store. Words and phrases
+  are both lexical, told apart by `form`. Pages store
   one `pageFocus: notes | vocabulary | source | grammar`; Notes are the permanent body-based
   foundation, while complete `collection`, `source`, and `grammar` structures enable independently.
   A dated page is a Journal entry only when none of those structures is enabled and its Notes
@@ -97,7 +110,7 @@ this summary.
   outside display, filters, search, and contextual summaries. Removing authoritative page
   vocabulary or deleting an item/page/capture must clean every dependent nested reference in the
   same transaction without inventing reciprocal links.
-- **The §5 seam.** `dict:` keys can go stale across a dataset rebuild. Anything new that renders
+- **The reference seam.** `dict:` keys can go stale across a dataset rebuild. Anything new that renders
   one needs the orphan behaviour: resolve through the alias map, rewrite the key when it answers
   (without logging an edit), and say so plainly when nothing answers. "Not installed" is **not**
   "orphaned". See `src/db/linkedEntries.js` and `src/components/DictAttachment.jsx`.
@@ -107,8 +120,9 @@ this summary.
   entries are read-only in-app.
 - **Backups** are JSON replace-and-restore of the personal layer only; the dictionary is
   replaceable and excluded. Never overwrite or delete the owner's browser data.
-- **Non-goals (§13) still stand:** no accounts, no server, no sync, no analytics, no merge-mode
-  import, no file attachments (model reserved), no content from proprietary dictionaries.
+- **Current scope:** no accounts, application server, sync, analytics, merge-mode import or
+  stored file attachments. There is no reserved Attachment store. Future work needs its own
+  approved scope; proprietary dictionary content remains excluded.
 
 ## Environment and checks
 
@@ -228,8 +242,8 @@ through iteration rather than declared up front.
 - the affected files or components;
 - implementation effort and risk;
 - whether the change fits the existing architecture;
-- dependencies on the personal/reference data seam, storage or schema changes, deferred
-  decisions (§14), or in-progress phase work.
+- dependencies on the personal/reference data seam, storage or schema changes, open product
+  decisions, or in-progress work.
 
 ## One habit worth keeping
 

@@ -36,6 +36,7 @@ Personal notebook data lives on-device and is never committed. Reference data co
 sources: [attribution](DATA_SOURCES.md) and the [shipped manifest](public/dict/manifest.json)
 record licenses, dataset revision, counts and package sizes.
 
-The [brief](docs/mi-cuaderno-project-brief-v3.md) remains the contract pending a separate reset.
+[PRODUCT](docs/PRODUCT.md) and [ARCHITECTURE](docs/ARCHITECTURE.md) are the current contract.
+The [brief](docs/mi-cuaderno-project-brief-v3.md) is preserved unchanged as history.
 [Decisions](DECISIONS.md) retain the reasoning; [improvement ideas](docs/IMPROVEMENT-IDEAS.md)
 and [guided lessons](docs/guided-lessons/README.md) distinguish proposals from approved work.

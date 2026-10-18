@@ -7,8 +7,9 @@ there once, so the two tools can never drift apart. Do not restate its content h
 
 Claude-Code-specific notes only:
 
-- **Use Plan Mode** for the brief §2 working agreement: propose the plan in plain language and
-  wait for approval before writing code.
+- **Use Plan Mode** when a new scope needs approval under the
+  [shared working agreement](docs/AGENT-GUIDE.md#working-agreement). Once approved, implement
+  and verify within that scope without returning to Plan Mode for each routine fix.
 - **Before shell or preview work:** read [Windows recipes](docs/agents/WINDOWS.md#claude-code--git-bash-and-desktop-preview)
   on the laptop or [XPS/Linux recipes](docs/agents/XPS.md) on the server. The actual OS and shell
   determine commands; a missing browser pane does not rule out a separate browser tool.

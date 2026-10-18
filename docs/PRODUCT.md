@@ -1,10 +1,11 @@
 # Product
 
-**Draft for the Step 3 contract reset, 2026-10-17.** This is ready for owner review, not yet a
-replacement for [brief v3](mi-cuaderno-project-brief-v3.md). The
-[open decisions](reviews/2026-10-17/STEP-3.md#owner-decisions) identify what still needs an answer.
-[Reassessment §15](reviews/2026-10-17/REASSESSMENT.md#15-owner-response-2026-10-17) already governs
-experimental growth and the withdrawn usage review.
+**Current product contract, owner-approved 2026-10-17.** Together with
+[ARCHITECTURE](ARCHITECTURE.md), this replaces [brief v3](mi-cuaderno-project-brief-v3.md),
+which is frozen unchanged as history. The [Step 3 record](reviews/2026-10-17/STEP-3.md)
+maps the previous contract and records the accepted choices. Working procedures live in the
+[agent guide](AGENT-GUIDE.md). Experimental growth and the withdrawn usage review follow
+[reassessment §15](reviews/2026-10-17/REASSESSMENT.md#15-owner-response-2026-10-17).
 
 ## Purpose
 
@@ -29,12 +30,13 @@ The notebook currently has two kinds of content:
 
 Today a dated page appears in Diario when it has no enabled Vocabulary, Source or Grammar
 structure and no named Notes outline. Feedback and Apuntes do not change that membership.
-Whether Diario membership should instead be an explicit owner choice remains open.
+The owner chose to retain this rule. An explicit owner-chosen identity remains a possible
+future redesign, not approved implementation.
 
-The app also stores activity and preferences. The proposed contract would permit separately
-designed supporting records, such as lesson progress, without treating them as another kind of
-notebook content. **That future allowance awaits the owner's answer.** It would not approve a
-lesson store, a migration or a player by itself.
+The app also stores activity and preferences. The two-type rule governs notebook content;
+separately designed supporting records, such as lesson progress, are allowed. A new supporting
+store still needs its own approved design, persistence and backup/restore coverage. This
+allowance does not itself approve a lesson store, a migration or a player.
 
 Personal content belongs to the owner. Dictionary updates do not rewrite personal meanings.
 Connections are saved by explicit action; suggestions and inferred relationships remain
@@ -74,8 +76,8 @@ does not imply permission to add feature-usage tracking.
 AI is off by default and requires explicit enablement, disclosure and the owner's API key.
 Before enabling it, the owner must set a hard monthly spending cap in the provider console and
 acknowledge doing so; the app does not enforce that cap itself. Each request is deliberate.
-The current feature reviews one Diario
-entry using its title and visible body text, excluding Apuntes and the rest of the notebook.
+The current feature reviews one Diario entry using its title and visible body text, excluding
+Apuntes and the rest of the notebook.
 The browser sends that text directly to the provider and sends the key for authentication.
 
 The latest feedback can be saved with the entry, without rewriting the owner's text or marking
@@ -100,9 +102,11 @@ import today. A rescue export preserves recoverable raw records when validation 
 is not a restorable backup and cannot authorize an upgrade or replacement.
 
 Existing schema upgrades require an untouched, validated export before opening and changing
-the old database. A proposed lighter policy for genuinely compatible additions is an open
-decision; this reset does not alter the installed upgrade gate. Browser storage protection
-cannot replace keeping backups outside the browser.
+the old database. A genuinely optional, compatible addition may receive a lighter process only
+after a specific compatibility review and owner approval, as defined in
+[ARCHITECTURE](ARCHITECTURE.md#backup-and-schema-upgrades). No such exception is granted by this
+reset, and the installed upgrade gate remains unchanged. Browser storage protection cannot
+replace keeping backups outside the browser.
 
 ## Boundaries and future work
 
@@ -112,8 +116,8 @@ no reserved attachment store that makes future file support migration-free.
 
 These boundaries describe current scope. A new feature requires its own bounded plan and any
 necessary data-safety design; this document does not approve every future possibility. Guided
-lessons remain [separate planning work](guided-lessons/README.md). The code-license decision
-remains unresolved; dictionary attribution does not settle it.
+lessons remain [separate planning work](guided-lessons/README.md). The owner chose to defer the
+code-license decision to separate work; dictionary attribution does not settle it.
 
 Open ideas and their context stay together in [IMPROVEMENT-IDEAS](IMPROVEMENT-IDEAS.md), without
 becoming an approved roadmap. [CURRENT](CURRENT.md) owns release and verification status;

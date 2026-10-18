@@ -1,8 +1,7 @@
 # Current state
 
-The app is deployed; Step 1 safety work is complete. Step 2 is complete locally and Step 3 has
-contract drafts awaiting owner decisions. Documentation work is unpushed. This is the starting
-point for current status, not a release diary.
+The app is deployed; Step 1 safety work is complete. Steps 2 and 3 are complete locally;
+documentation work is unpushed. This is the starting point for current status, not a release diary.
 
 ## Verified release
 
@@ -25,10 +24,12 @@ point for current status, not a release diary.
   Current status is consolidated, historical records preserved, active idea context kept together,
   and machine/browser recipes separated. Documentation and preservation checks pass.
   No application, schema, CI or tooling behavior changes; no push requested.
-- **In progress:** [Step 3 contract reset](reviews/2026-10-17/STEP-3.md), requested after Step 2.
-  [PRODUCT](PRODUCT.md) and [ARCHITECTURE](ARCHITECTURE.md) are drafts; five owner choices remain
-  pending. Brief v3 remains unchanged and authoritative until replacements are accepted.
-  No application implementation or workflow-policy change is approved by drafting them.
+- **Complete locally, unpushed:** [Step 3 contract reset](reviews/2026-10-17/STEP-3.md).
+  [PRODUCT](PRODUCT.md) and [ARCHITECTURE](ARCHITECTURE.md) are the accepted contract; brief v3
+  is frozen unchanged as history. The owner approved supporting records, retaining structural
+  Diario membership, case-specific review before any optional-field exception, approval once
+  per bounded task, and deferring code licensing. The guide and current entry points agree.
+  No application, schema, CI or executable tooling changes; no optional-field exception granted.
 - **Planning only:** [guided lessons](guided-lessons/README.md), including the 1917 drafts.
   The player and integration are not implemented or approved by this documentation work.
 - **Separate, unapproved follow-ups:** executable tooling changes and feature/code reorganization.

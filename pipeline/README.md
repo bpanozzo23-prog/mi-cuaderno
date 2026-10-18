@@ -1,6 +1,8 @@
 # pipeline
 
-Builds the bundled reference dictionary (brief §11, §12 Phase 2) from four open sources.
+Builds the bundled reference dictionary described in
+[ARCHITECTURE](../docs/ARCHITECTURE.md#reference-installation-and-search) from the sources in
+[DATA_SOURCES](../DATA_SOURCES.md).
 Nothing here runs in the app or ships to the phone — it produces the chunk files under
 `public/dict/` that the app downloads on request.
 
@@ -47,7 +49,7 @@ node --max-old-space-size=6144 pipeline/build/08-report.mjs
 | `05-examples` | Attaches ≤3 Tatoeba es↔en pairs per entry with full per-side attribution |
 | `06-conjugate` | Extracts kaikki conjugation tables and optionally validates them against Jehle without shipping Jehle data |
 | `06b-conjugation-patterns` | Verifies teaching-pattern coverage and builds the reverse family rows used by verb detail |
-| `check` | Asserts the brief and current-dataset acceptance list against intermediates and, after packaging, the size/alias gates |
+| `check` | Asserts the historical Phase 2 and current-dataset acceptance list against intermediates and, after packaging, the size/alias gates |
 | `07-package` | Compacts and shards the five reference stores, with an r3→r4 exact-ID gate before replacing the manifest |
 | `verify-package` | Reassembles the actual chunks, checks hashes, searches, conjugations, patterns, attribution and r4 enrichment |
 | `08-report` | Regenerates `DATA_SOURCES.md` and representative review records |
@@ -59,4 +61,4 @@ node --max-old-space-size=6144 pipeline/build/08-report.mjs
 Every dataset's exact license is recorded in `sources.json` and rendered into the repo's
 `DATA_SOURCES.md`. The Jehle conjugation database is **noncommercial** (CC BY-NC-SA 3.0), so it is
 an optional build-time validation reference only: no Jehle row ships in the dictionary and its
-license does not attach to the bundle — see brief §4.
+license does not attach to the bundle — see [data sources](../DATA_SOURCES.md) for the recorded source boundaries.

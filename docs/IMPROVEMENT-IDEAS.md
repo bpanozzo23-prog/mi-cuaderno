@@ -2,7 +2,8 @@
 
 Open ideas live here with their reasoning, potential benefits, tradeoffs and later discussion.
 They are possibilities, not an approved roadmap. Before planning, read the [agent guide](AGENT-GUIDE.md),
-[CURRENT](CURRENT.md), governing brief and relevant decisions, and inspect the implementation.
+[CURRENT](CURRENT.md), [PRODUCT](PRODUCT.md), [ARCHITECTURE](ARCHITECTURE.md) and relevant decisions,
+and inspect the implementation.
 
 ## How to use this document
 
@@ -1429,7 +1430,7 @@ What it deliberately does not answer is the harder half of option 5 below: prove
 content that becomes *owner content* — an AI-proposed word, meaning or example the owner approves
 into the notebook, where structural separation is no longer possible because the content joins
 the owner's own records. That decision is still needed **before** any AI-proposes-content design
-(brief §9's approved proposed entries), and this precedent suggests the shape of the question:
+(the future proposed-entry direction in [PRODUCT](PRODUCT.md#optional-ai)), and this precedent suggests the shape of the question:
 either approved content carries an origin marker, or approval is defined as adoption and the
 provenance is deliberately dropped. Phase 12's dictionary-import precedent is relevant too:
 imported meanings deliberately carry no link back to their source senses.
@@ -1660,7 +1661,7 @@ coverage](#frequency-coverage) and [Review forecast](#review-forecast) hold rela
 - **Origin:** Unresolved possibilities retained during the documentation reset; no new approval.
 
 One Leitner ladder currently serves both review directions. Per-direction scheduling remains
-deferred under brief §14; direction metadata exists, but separate schedules would be a behavior
+deferred (originally recorded in brief §14); direction metadata exists, but separate schedules would be a behavior
 decision. Cloze could draw on the owner's Diario writing rather than only an entry's assigned
 examples; matching, context and grading would need care.
 
@@ -1697,7 +1698,7 @@ same-day entry.
 | Journal-specific print/export | Medium; stored entries need not change | Choose a useful, privacy-safe output distinct from disaster-recovery backup. |
 | Mood, theme, gratitude, location, weather or stored prompt fields | Large if new durable structure; migration/export-first/backup design applies | Compare fields with text, tags, links and existing Taller practice metadata; do not assume a third content type. |
 | Journal streaks, completion, trends or scheduled review | Medium-to-large product work; some results can derive from events | Study streak/heatmap already live in Repaso. Journal-specific additions remain deferred, with an explicit learning/reflection purpose and no pressure or stored counters. |
-| Explicit/richer Journal identity, custom page kinds | Large architectural decision | Define how it composes with existing structures; brief §14 and Step 3's identity questions remain separate. |
+| Explicit/richer Journal identity, custom page kinds | Large architectural decision | Step 3 retained the structural Diario rule; a redesign remains open and needs a separate plan defining how it composes with existing structures. |
 
 Optional context to revisit: whether the separate Diario door supports writing/rereading without
 obligation; useful retrieval paths and prompt categories; whether Collection grouping/manual order

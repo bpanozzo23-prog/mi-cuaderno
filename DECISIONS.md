@@ -18,7 +18,7 @@ remain usable through redirects or the [documentation index](docs/README.md).
 | Diario and AI | [AI first slice](#phase-6--ai-assistant-first-slice-diario-feedback-2026-08-06), [persisted feedback](#phase-6--ai-assistant-second-slice-persisted-diario-feedback-2026-08-11), [Taller](#taller--diario-writing-practice-direction-2026-08-20) |
 | Process and verification | [Shared guide](#tooling--one-shared-agent-guide-2026-08-02), [visual process](#visual-changes-working-process-2026-08-05), [test reliability](#test-reliability--completion-isolation-and-negative-controls-2026-09-03) |
 | Reassessment and safety | [Owner response](#reassessment-owner-response-2026-10-17), [test gate](#deployment-test-gate--step-1-item-1-2026-10-17), [backup safety](#backup-safety--step-1-item-2-2026-10-17), [atomic saves](#all-or-nothing-saves--step-1-item-3-2026-10-17), [small fixes](#small-fixes--step-1-item-4-2026-10-17) |
-| Documentation | [Step 2 arrangement](#documentation-reset--step-2-2026-10-17), [Step 3 drafts](#contract-reset-drafts--step-3-2026-10-17) |
+| Documentation | [Step 2 arrangement](#documentation-reset--step-2-2026-10-17), [Step 3 activation](#contract-reset-accepted--step-3-2026-10-17) |
 
 Search other headings by feature, date or phase; this index selects entry points rather than
 copying every entry. The original log begins below.
@@ -1515,3 +1515,7 @@ copying every entry. The original log begins below.
 ## Contract reset drafts — Step 3 (2026-10-17)
 
 - 2026-10-17 — **OWNER-REQUESTED: begin Step 3; prepare PRODUCT and ARCHITECTURE as review drafts.** — The owner asked to move on after Step 2. Current implementation and durable safeguards are separated from proposed policy choices. Brief v3 remains unchanged and authoritative pending the owner's answers and acceptance; drafting does not approve storage, workflow, licensing or application changes. The carry-forward map and pending questions live in `docs/reviews/2026-10-17/STEP-3.md`.
+
+## Contract reset accepted — Step 3 (2026-10-17)
+
+- 2026-10-17 — **OWNER-APPROVED: activate PRODUCT and ARCHITECTURE as the current contract; freeze brief v3 unchanged as history.** — The owner accepted the five recommendations with “Go with your recommendations.” The two-type restriction applies to notebook content and allows separately designed supporting records; it approves no new store. Diario keeps its structural membership rule, with redesign left open. Optional additive fields may receive an exception only after a specific compatibility review and owner approval; existing migration/export gates remain unchanged and no exception is granted here. Approve each bounded task once, allowing routine implementation and fixes within it; material scope changes and uncovered data-model work must be raised, and push permission remains separate. Code licensing stays deferred. These choices support experimental growth while preserving data safety; the usage review remains withdrawn. The guide and current entry points now route to the new contract, and the Step 3 record maps the retained safeguards. No application, schema, CI or executable tooling changes accompany activation.

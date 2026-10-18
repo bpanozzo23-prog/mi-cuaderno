@@ -46,7 +46,8 @@ Its actual repository filename differs from the filename used in conversation. N
 switched or merged to read it.
 
 The reference is advisory, not the product contract or a publication-ready source packet.
-This plan also follows the current project brief and inspected application code.
+This plan follows [PRODUCT](../PRODUCT.md), [ARCHITECTURE](../ARCHITECTURE.md) and inspected
+application code. Brief v3 is now frozen history.
 
 | Reference idea | Proposed treatment |
 | --- | --- |
@@ -247,13 +248,14 @@ Recommended first usable release:
   explicit action. Removing downloaded content never removes personal work.
 
 Prefer a narrowly defined lesson-work store in the personal database over unbounded draft data
-hidden in preferences or disposable content caches. This is a **proposed contract change**, not
-an assertion that schema 12 already permits it. Before implementation, specify its shape and
-ownership, its distinction from the two notebook content types, and the exception for operational
-resume/draft state versus event-derived learning statistics. Any later completion or learning
-history needs its own event semantics; do not store a parallel mastery counter.
+hidden in preferences or disposable content caches. The accepted product contract permits
+supporting records; this particular store remains **proposed storage work**, not an assertion
+that schema 12 contains it. Before implementation, specify its shape and ownership, its
+distinction from notebook content, and operational resume/draft state versus event-derived
+learning statistics. Any later completion or learning history needs its own event semantics;
+do not store a parallel mastery counter.
 
-This requires approval of the relevant brief changes, a schema migration and version bump,
+This requires approval of the storage design, a schema migration and version bump,
 untouched export-first protection, strict backup validation, atomic restore, and preservation
 of all older supported backups. Use the next available schema version at implementation time.
 Do not quietly proceed if this design conflicts with the product contract.
@@ -275,8 +277,8 @@ leave the prior version usable. Missing media has a readable fallback. Do not si
 the whole season or embed every image and audio file into one HTML file.
 
 Authored media is replaceable reference material, not the deferred personal Attachment feature.
-Record this distinction in the approved contract. Personal backups retain writing, location,
-and reference/version information; media can be downloaded again. No server, account, sync,
+Record this distinction in the approved lesson integration design. Personal backups retain
+writing, location and reference/version information; media can be downloaded again. No server, account, sync,
 analytics, recording upload, or new runtime AI dependency is implied.
 
 ## 6. Audio: prepare now, produce after the script settles
@@ -389,7 +391,7 @@ Confirmed on 2026-10-05: Spanish story with English help; plan on recreating the
 The owner subsequently requested storyboard development. Next is review of the
 [1917 draft](chapters/1917/STORYBOARD.md): narrative interest, Spanish difficulty, depth, and
 optional activities. After revision and source/asset checks, seek approval for A's player
-implementation. Before B, review the exact durability and brief amendments separately.
+implementation. Before B, review the exact durability and storage design separately.
 Storyboard development does not itself authorize application code, personal-data migration,
 or deployment.
 The topic after 1920 can be selected later and does not block the first two chapters.

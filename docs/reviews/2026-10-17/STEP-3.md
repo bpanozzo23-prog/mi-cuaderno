@@ -1,9 +1,9 @@
 # Step 3 — contract reset
 
-**Status: drafts prepared; owner decisions pending.** The owner asked to move to the next task
-after Step 2. This is [reassessment Step 3](REASSESSMENT.md#12-suggested-order-of-work), whose
-policy choices explicitly depend on the owner. Section 15 remains controlling; the withdrawn
-usage review has not returned as a requirement.
+**Status: complete locally, unpushed.** After reviewing the draft recommendations, the owner
+said “Go with your recommendations,” approving all five choices below and activation of the
+replacement contract. This completes [reassessment Step 3](REASSESSMENT.md#12-suggested-order-of-work).
+Section 15 remains controlling; the usage review remains withdrawn.
 
 ## Reviewable result
 
@@ -11,33 +11,32 @@ usage review has not returned as a requirement.
   plain language, including experimental feature growth.
 - [ARCHITECTURE](../../ARCHITECTURE.md) describes actual storage, identity, saves, backup,
   reference installation, search, navigation, learning and AI behavior.
-- Brief v3 remains unchanged and authoritative pending acceptance of its replacements.
-  Historical decision entries remain intact. Nothing in these drafts approves app changes.
+- PRODUCT and ARCHITECTURE are now authoritative. Brief v3 remains byte-identical at its
+  original path as frozen history. Historical decisions remain intact; the new acceptance entry
+  records the changed policy. No application changes are authorized by this reset.
 
 ## Small commits
 
-1. Add the two explicitly marked drafts, this carry-forward record and navigation/status links.
-   Verify claims against source and check links; leave the old contract in force.
-2. Incorporate the owner's decisions, then activate the new contract and update the guide's
-   authority/read-order pointers. Freeze brief v3 unchanged as historical reference at its
-   existing path. Record the policy choices once in the decision log.
-
-The second commit depends on answers below. No automatic acceptance is inferred from time or
-from permission to draft the documents.
+1. `2d91b8b` added the two marked drafts, this carry-forward record and status/index links.
+   Implementation reviews and preservation checks passed while the old contract remained active.
+2. Activation incorporates the owner's answers, changes the guide's authority and approval
+   rules, updates current entry points and records acceptance. Brief v3 stays unchanged.
 
 ## Owner decisions
 
-| Question | Proposed resolution for review | Current rule while unanswered |
+All five recommendations were accepted on 2026-10-17. The authoritative rules live in the
+contract and guide; this table records the choice and its boundary.
+
+| Question | Accepted recommendation | Boundary |
 |---|---|---|
-| Two content types | Two kinds of notebook content; supporting records allowed after their own design and safety review | Lexical/page items plus existing events/preferences; no new store approved |
-| Diario membership | Document the structural rule; keep possible redesign open | Dated page, no enabled structured capability, empty Notes outline |
-| Optional additive fields | Consider an exception only after a specific compatibility review and approval | Existing personal-schema version/export/validation requirements and installed gate remain |
-| Plan approval | Approve a bounded task once; routine fixes within it may proceed | Guide's existing plan-first rule and visual-only exception remain |
-| Code license | Keep a separate owner decision | No license selected by this reset |
+| Two content types | Two kinds of notebook content; supporting records allowed | Each new store still needs its own approved design and safety coverage |
+| Diario membership | Retain the current structural rule; leave redesign open | No identity or schema change |
+| Optional additive fields | Consider an exception only after specific compatibility review and approval | Existing version/export/validation requirements and installed gate remain; no exception granted |
+| Plan approval | Approve a bounded task once; routine fixes within it may proceed | Raise material scope changes and uncovered data-model work; push permission remains separate |
+| Code license | Keep a separate owner decision | No license selected |
 
 Local feature-open events remain a low-priority possibility; none are approved here. The
 keep/hide/retire review was withdrawn by the owner and is not a gate for lessons or other growth.
-The five questions above were sent to the owner during this task; answers are not yet recorded.
 
 ## Where the old contract's content goes
 
@@ -52,7 +51,7 @@ The five questions above were sent to the owner during this task; answers are no
 | Search, ñ preservation and active page content | PRODUCT: Reference and discovery; ARCHITECTURE: Reference installation and search |
 | Explicit AI, key safety, saved feedback and future assistant | PRODUCT: Optional AI; ARCHITECTURE: Navigation and optional AI |
 | Atomic saves, export/upgrade/restore, rescue and persistence | PRODUCT: Data safety; ARCHITECTURE: Writes and Backup |
-| Approval, commits, verification, pushes and machine recipes | Existing shared guide and docs/agents recipes; approval wording pending owner |
+| Approval, commits, verification, pushes and machine recipes | Shared guide and docs/agents recipes; bounded-task approval is active |
 | Current releases, schemas, dataset figures and outstanding checks | CURRENT and its manifest/release links |
 | Phase acceptance lists, old measurements, amendments and deferred history | Unchanged brief v3, DECISIONS and archived phase records |
 | Guided lessons, future stores, attachments, sync and tooling | Separate proposals; no implementation authorization from this reset |
@@ -78,7 +77,7 @@ files, ran competing tests or accessed private notebook data.
   still used a version bump/export gate; validators have version-specific rules without a
   global unknown-property ban.
 
-## Verification and remaining work
+## Verification and separate follow-ups
 
 Completed for the draft increment: all 105 Markdown files have valid local targets/fragments;
 `git diff --check` passes; brief v3 is byte-identical to the deployed baseline; historical
@@ -89,10 +88,20 @@ No runtime files or executable tooling changed in this increment, so no applicat
 or browser walkthrough was rerun. Existing release evidence and unresolved owner-device checks
 stay in CURRENT.
 
-Before activation, incorporate the owner's answers, recheck the final authority/read-order
-links, and review the guide's tripwires for conflicts with the accepted contract. Confirm each
-durable safeguard is stated in an active document, not merely linked through code or historical
-records. Keep changes
-to workflow policy explicit: bounded approval and additive-field exceptions are proposals, not
-already adopted rules. Linting, Node pinning, awaitable reload, lesson restructuring, migrations
-and any other executable tooling or application work remain separate.
+Activation passed the same link, whitespace and preservation checks. Both independent
+read-only reviews confirmed the accepted policy boundaries and retained safeguards. Current
+authority pointers were corrected in the guide, entry points, ideas, lesson plan, pipeline
+README and tracked wait-what skill; the ignored Claude skills copy was not changed. All
+activation changes are Markdown; pre-activation decisions, release evidence and pending
+owner-device checks are unchanged. Durable safeguards remain explicit in active documents: stable identity,
+personal/reference separation, nested reference authority and cleanup, event-derived learning,
+ñ preservation, explicit AI requests and spending-cap condition, secrets exclusion, deletion
+confirmation, atomic saves, validated export/restore and attribution. Existing behavior outside
+approved scope remains protected even where the old brief's phase acceptance lists are not
+repeated. Historical records remain available for exact rationale.
+
+**Workflow changes:** bounded approval is active; optional-field exceptions can be considered
+only after compatibility evidence and specific approval. Neither changes running code.
+**Executable tooling and application work:** linting, Node pinning, awaitable reload, lesson
+restructuring, migrations and feature work remain separate. The lesson plan's contract references
+were corrected without approving its proposed store or player. Code licensing remains deferred.
