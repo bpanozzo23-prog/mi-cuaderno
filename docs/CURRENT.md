@@ -50,6 +50,16 @@ This is the starting point for current status, not a release diary.
   deliberate regressions, 375×812 browser fixtures and live-file comparisons are recorded in
   [release history](history/RELEASES.md#2026-10-18--awaitable-notebook-refresh).
 - **Separate, unapproved follow-ups:** other executable tooling changes and feature/code reorganization.
+- **Complete locally; not pushed:** bounded documentation-only CI filtering (`abad2e4`). The
+  [workflow](../.github/workflows/deploy.yml) skips pushes whose changed paths all match its
+  explicit documentation exclusions; mixed pushes retain every check and deployment, and manual
+  dispatch remains available. Local verification on 2026-10-18 passed YAML parsing/unchanged-job
+  checks, 29 changed-path cases, zero-warning lint, all **1,932 tests across 157 files** serially
+  in 410.57 seconds (no unhandled errors), the production build and diff checks. The existing
+  build chunk-size warning remains. Application, schema, dependencies and Node configuration
+  are unchanged. After a separately requested push, verify that the workflow change triggers
+  deployment and that its documentation-only publication-record follow-up skips it. Native
+  GitHub diff generation and trigger behavior are not established by the local path checks.
 - **Owner direction:** [reassessment §15](reviews/2026-10-17/REASSESSMENT.md#15-owner-response-2026-10-17)
   takes precedence on experimental feature growth and the ideas file. The usage review is
   withdrawn. Friction is an input to ideas, not a condition for building features.

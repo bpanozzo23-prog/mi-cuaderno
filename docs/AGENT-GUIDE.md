@@ -148,13 +148,20 @@ this summary.
   a test that awaits one hangs until the runner kills it rather than failing usefully. Wait for
   the observable result instead — `await waitFor(() => …)`.
 - `npm run build` — production build. Run the relevant checks after code changes.
-- Pushing to `main` deploys to GitHub Pages automatically. **Push only when asked.** A failed
-  deploy leaves the previously published site serving.
+- Pushes to `main` run checks and deploy to GitHub Pages unless every changed path matches the
+  documentation exclusions in the [workflow](../.github/workflows/deploy.yml). Mixed pushes
+  retain the full gate; manual `workflow_dispatch` runs remain available. **Push only when asked.**
+  A failed deploy leaves the previously published site serving. For unusually large pushes,
+  check [GitHub's diff limits](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow#git-diff-comparisons):
+  a timeout or more than 1,000 commits forces a run, while the 3,000-file cap can miss changes
+  that should trigger it. Verify a run was created for an authorized publication; use manual
+  dispatch on `main` if filtering missed it.
 - **Record verified publication in the same session.** Put the published revision, date, CI run
   and checks in [release history](history/RELEASES.md); update [CURRENT](CURRENT.md) to point to it
   and change any affected idea's progress/completion status. Record what was actually verified,
   including outstanding owner checks. README links to CURRENT; decisions retain reasons rather
-  than deployment transcripts. A record-only commit need not chase its own deployment recursively.
+  than deployment transcripts. A documentation-only publication record normally skips deployment;
+  keep the last verified published revision until another deployment is actually verified.
 
 ## Git, when two tools share one working directory
 

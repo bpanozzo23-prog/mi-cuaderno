@@ -27,9 +27,11 @@ Database tests use real Dexie code with in-memory IndexedDB. Component tests opt
 the pipeline has tests too. Shell-specific commands and verification rules are linked from
 the [agent guide](docs/AGENT-GUIDE.md).
 
-Every push to `main`, including documentation-only pushes, runs lint and tests, builds and deploys to
-GitHub Pages. Pushing requires an explicit request; [release history](docs/history/RELEASES.md)
-records verified publications.
+Pushes to `main` run lint and tests, build and deploy to GitHub Pages unless all changed paths
+match the documentation exclusions in the [workflow](.github/workflows/deploy.yml). Mixed pushes
+retain the full gate; manual runs remain available. Pushing requires an explicit request;
+the [agent guide](docs/AGENT-GUIDE.md#environment-and-checks) covers publication records and
+GitHub's path-filter limits.
 
 ## Data and project records
 

@@ -2,8 +2,9 @@
 
 Record publication evidence here: date, published revision, CI run and checks. CURRENT links
 to the latest verified release; decisions record reasons, not repeated test/deploy transcripts.
-A documentation-only follow-up may trigger another deployment under the current workflow; record
-its verified target when needed, without chasing the commit that records its own result.
+Documentation-only follow-ups covered by the [workflow exclusions](../../.github/workflows/deploy.yml)
+normally skip deployment. Keep the last verified published revision; the
+[agent guide](../AGENT-GUIDE.md#environment-and-checks) covers publication checks and filter limits.
 
 ## 2026-10-18 — Awaitable notebook refresh
 
