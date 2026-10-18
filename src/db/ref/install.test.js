@@ -209,7 +209,7 @@ describe("integrity and interruption (§11)", () => {
 
   it("resumes an interrupted install instead of starting over", async () => {
     const v1 = await buildFixtureDictionary();
-    const failing = installFetchStub(v1, { failAfter: 1 });
+    installFetchStub(v1, { failAfter: 1 });
     await expect(installDictionary(v1.manifest)).rejects.toThrow();
 
     const pending = await pendingInstall();

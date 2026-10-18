@@ -25,7 +25,6 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { raw, out, repo, readJson, writeJson, gzipSize, mb, kb, step, done, PIPELINE_DIR } from "../lib/io.mjs";
-import { normalize } from "../lib/ids.mjs";
 import { CURATED_GYM_LEMMAS } from "../../src/lib/conjugationGym.js";
 import { englishSearchWords } from "../../src/lib/englishSearch.js";
 

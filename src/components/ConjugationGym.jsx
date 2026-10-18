@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BarChart3, ChevronLeft, Dumbbell, Play, SlidersHorizontal } from "lucide-react";
-import { C, MONO, SERIF, Card, Button, SectionTitle, Segmented, dotGrid } from "../theme.jsx";
+import { C, SERIF, Card, Button, SectionTitle, Segmented, dotGrid } from "../theme.jsx";
 import { loadGymLibrary } from "../db/ref/gym.js";
 import {
   CURATED_GYM_LEMMAS,

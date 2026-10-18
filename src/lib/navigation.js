@@ -32,6 +32,8 @@ const OPTIONAL_ITEM_SCREENS = new Set(["edit"]);
 const MAX_STACK_LENGTH = 64;
 const MAX_DEPTH = 1_000_000;
 const SAFE_VISIT_KEY = /^[A-Za-z0-9._:-]{1,160}$/;
+// Reject control characters in history-state IDs; these escapes are deliberate validation.
+// eslint-disable-next-line no-control-regex -- Control characters are intentionally excluded.
 const SAFE_ITEM_ID = /^[^\u0000-\u001f\u007f]{1,512}$/;
 
 export const BACK_LABELS = new Set([

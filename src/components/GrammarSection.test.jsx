@@ -570,7 +570,7 @@ describe("GrammarSection organization", () => {
 
   it("renders root-owned subtrees with independent subsection disclosure", async () => {
     const user = userEvent.setup();
-    const { container } = render(<GrammarSection {...baseProps({ page: hierarchicalPage() })} />);
+    render(<GrammarSection {...baseProps({ page: hierarchicalPage() })} />);
 
     const childHeading = screen.getByRole("heading", { name: "SPOCK" });
     const childNode = childHeading.closest(".grammar-guide-subsection");

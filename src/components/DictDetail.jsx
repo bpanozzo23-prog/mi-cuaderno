@@ -24,7 +24,7 @@ import {
 import { logView } from "../db/events.js";
 import { groupConnections, normalizeRelationship, relationshipLabel } from "../lib/relationships.js";
 import { connectionsFromResolvedEntryLinks } from "../lib/resolvedConnections.js";
-import { SLOTS, COLLAPSED_SLOTS, SIMPLE_TENSES, PERFECT_TENSES, tenseHeading } from "../lib/conjugation.js";
+import { SLOTS, COLLAPSED_SLOTS, PERFECT_TENSES, tenseHeading } from "../lib/conjugation.js";
 import { analyzeConjugationPatterns } from "../lib/conjugationPatterns.js";
 import { itemAttachesDictionaryEntry } from "../lib/dictionaryAttachments.js";
 

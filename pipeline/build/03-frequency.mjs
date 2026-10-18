@@ -59,7 +59,6 @@ const WATCH_SHOULD_HOLD = [
   "pero|conj", "así|adv", "ir|verb", "ser|verb", "poder|verb", "querer|verb", "deber|verb",
   "gustar|verb", "preocupar|verb", "soler|verb", "adiós|intj", "amigo|noun", "casa|noun",
 ];
-const WATCH = [...WATCH_SHOULD_FALL, ...WATCH_SHOULD_HOLD];
 const TOP_N = 10000;
 
 /**

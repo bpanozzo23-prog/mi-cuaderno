@@ -254,7 +254,7 @@ check("every entry is findable by its own lemma", unfindable.length === 0,
   unfindable.length ? unfindable.slice(0, 5).map((e) => e.lemma).join(", ") : "");
 
 // ---- §4 attribution -------------------------------------------------------
-const [ES, EN, ES_ID, ES_USER, EN_ID] = [0, 1, 2, 3, 4];
+const [ES, EN, ES_ID, , EN_ID] = [0, 1, 2, 3, 4];
 const examples = stores.entries.flatMap((e) => e.examples || []);
 check("every example carries text and a sentence id for both sides (§4)",
   examples.every((x) => x[ES] && x[EN] && x[ES_ID] && x[EN_ID]),

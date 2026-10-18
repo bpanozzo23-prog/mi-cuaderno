@@ -247,7 +247,7 @@ describe("JournalReader", () => {
   it("keeps content actions and bookkeeping actions distinct inside Más", async () => {
     const user = userEvent.setup();
     const page = await createItem(newPage({ title: "Grammar notes" }));
-    const otherJournal = await createItem(newPage({ title: "Another moment", pageDate: "2026-08-02" }));
+    await createItem(newPage({ title: "Another moment", pageDate: "2026-08-02" }));
     const entry = await createItem(newPage({ body: "Un día.", pageDate: "2026-08-03" }));
     const props = propsFor(entry, await allItems());
     render(<JournalReader {...props} />);
