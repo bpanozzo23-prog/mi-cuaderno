@@ -34,7 +34,7 @@ Then load the durable references the task actually needs:
 - `docs/IMPROVEMENT-IDEAS.md` is a dated record of unapproved planning possibilities. Read it when
   the owner asks to discuss or develop one of those ideas, but never treat an entry there as an
   approved phase, product requirement or implementation instruction.
-- `docs/mi-cuaderno.jsx` is **historical, not current.** It was the look-and-feel reference before
+- `docs/history/prototype/mi-cuaderno.jsx` is **historical, not current.** It was the look-and-feel reference before
   the app existed; the real app now supersedes it for visual and interaction decisions alike, and
   it drifts further every time a styling or layout choice is made only in `src/`. Its storage,
   linking and state handling were already superseded by the brief. Do not restore styling from it

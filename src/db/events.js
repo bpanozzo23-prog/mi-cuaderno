@@ -135,7 +135,7 @@ export async function logDrill(itemKey, passed, details = null, when = new Date(
 }
 
 /**
- * Records one Taller drill outcome (docs/DIARIO-TALLER-DIRECTION.md) — the narrow 2026-08-20
+ * Records one Taller drill outcome (docs/history/phases/DIARIO-TALLER-DIRECTION.md) — the narrow 2026-08-20
  * amendment of the 2026-08-03 visit-local prompt rule. Logged exactly once per drill, only at
  * keep/discard time. `pageId` is the kept Journal page's id, or null when the writing was
  * discarded: a discarded drill still logs, because writing happened, but its text is never

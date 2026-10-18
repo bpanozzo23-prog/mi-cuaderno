@@ -52,7 +52,7 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Status | Earliest sensible discussion point |
 |---|---|---|---|
-| Diario skill-practice prompting suite | 2026-08-20 | Ready to plan — direction approved as Taller | Now; `docs/DIARIO-TALLER-DIRECTION.md` is the workshopped contract awaiting an implementation plan |
+| Diario skill-practice prompting suite | 2026-08-20 | Ready to plan — direction approved as Taller | Now; `docs/history/phases/DIARIO-TALLER-DIRECTION.md` is the workshopped contract awaiting an implementation plan |
 | Separate classroom-diario space | 2026-08-20 | Captured | Owner chose one-Diario-two-doors for v1; revisit only if real mixed use shows the single timeline chafing |
 | In-app AI prompt drafting | 2026-08-20 | Captured | After the ad hoc prompt-workshop practice proves what good personalized prompts look like |
 | Personal prompt store | 2026-08-20 | Captured | If workshopped prompts ever get too personal for the public repo; shipped-in-code is the deliberate start |
@@ -98,7 +98,7 @@ Useful information to retain for each idea:
 
 | Idea | Date added | Implemented as | Full records |
 |---|---|---|---|
-| Non-verb grammar drills | 2026-08-11 | Contrasts Gym lane, implemented locally 2026-08-24 (not yet deployed) | `docs/CONTRAST-LANE-DIRECTION.md`; 2026-08-24 entries in `DECISIONS.md` |
+| Non-verb grammar drills | 2026-08-11 | Contrasts Gym lane, implemented locally 2026-08-24 (not yet deployed) | `docs/history/phases/CONTRAST-LANE-DIRECTION.md`; 2026-08-24 entries in `DECISIONS.md` |
 | Suppressed-containment confirmation | 2026-08-15 | Same-day increment, deployed | 2026-08-15 entries in `DECISIONS.md` |
 | Unused dictionary fields (shipped-lemma census) | 2026-08-13 | Phase 24 r4 enrichment, deployed | `PHASE-24-DIRECTION.md`, `PHASE-24-REPORT.md` |
 | The word's biography | 2026-08-12 | Phase 23a, deployed | `PHASE-23-DIRECTION.md`, `PHASE-23-REPORT.md` |
@@ -131,7 +131,7 @@ Useful information to retain for each idea:
   multi-round owner workshop settled the full v1 design (the **Taller** door, drills in the
   ordinary editor with keep-or-discard, rich practice events, a tema interest layer, static plus
   dictionary-powered scaffolds, tiers, quiet derived timeline badges, no AI, record-don't-display
-  tracking). The contract is `docs/DIARIO-TALLER-DIRECTION.md`; own-voice recycling was ranked
+  tracking). The contract is `docs/history/phases/DIARIO-TALLER-DIRECTION.md`; own-voice recycling was ranked
   below the three chosen features and stays captured here rather than entering v1.
 - **Status:** Ready to plan — direction approved
 - **Origin:** Owner direction after the 2026-08-19 skill-focused prompt categories deployed
@@ -1683,7 +1683,7 @@ entry slowing them down in a typed session.
 
 - **Date added:** 2026-08-11 — **Status:** Implemented — Contrasts Gym lane, verified locally
   2026-08-24; not yet pushed or deployed
-- **Records:** `docs/CONTRAST-LANE-DIRECTION.md`; "Contrasts lane" entries in `DECISIONS.md`
+- **Records:** `docs/history/phases/CONTRAST-LANE-DIRECTION.md`; "Contrasts lane" entries in `DECISIONS.md`
 - **Owner interest:** Chose ser/estar and por/para directly on 2026-08-24 while reviewing
   cloze/MCQ drill ideas, rather than waiting for Diario AI feedback to name the first pair.
 
@@ -2065,11 +2065,11 @@ added optional import of dictionary senses as ordinary meaning records with no l
 - **2026-08-24 — Non-verb grammar drills planned as the Contrasts Gym lane.** The owner reviewed
   a survey of cloze, multiple-choice and transformation drill ideas against the app and chose the
   differentiative choice cloze first, naming ser/estar and por/para as the pairs. The direction is
-  `docs/CONTRAST-LANE-DIRECTION.md`; the entry moves to Planned. Confusion-pair drills stays
+  `docs/history/phases/CONTRAST-LANE-DIRECTION.md`; the entry moves to Planned. Confusion-pair drills stays
   captured as the vocabulary-side sibling.
 - **2026-08-20 — Taller direction workshopped and approved; two follow-on ideas captured.** A
   multi-round owner workshop turned the prompting-suite capture into an approved v1 direction,
-  `docs/DIARIO-TALLER-DIRECTION.md`: the Taller door on the Diario, drills with keep-or-discard,
+  `docs/history/phases/DIARIO-TALLER-DIRECTION.md`: the Taller door on the Diario, drills with keep-or-discard,
   rich practice events under a narrow amendment of the 2026-08-03 rule, an owner-edited tema
   list, dictionary-powered scaffolds, tiers, and record-don't-display tracking; no AI in v1.
   In-app AI prompt drafting and a Personal prompt store were captured as new Active entries; the
@@ -2349,8 +2349,8 @@ added optional import of dictionary senses as ordinary meaning records with no l
 - **2026-08-04 — Phase 8 implemented locally; not deployed.** Recorded the Words & phrases hub's
   overlap with Saved views under that idea: the hub adds organizing lenses but keeps every control
   visit-local, so it supplies evidence for the saved-view question rather than answering it. No idea
-  was promoted; Saved views remains Captured. See [PHASE-8-DIRECTION.md](PHASE-8-DIRECTION.md) and
-  [PHASE-8-REPORT.md](PHASE-8-REPORT.md).
+  was promoted; Saved views remains Captured. See [PHASE-8-DIRECTION.md](history/phases/PHASE-8-DIRECTION.md) and
+  [PHASE-8-REPORT.md](history/phases/PHASE-8-REPORT.md).
 
 - **2026-08-04 — Phase 7 deployed from `main`.** The approved `phase-7-composable-pages`
   fast-forwarded into `main` at `982bae5`; GitHub Pages workflow run

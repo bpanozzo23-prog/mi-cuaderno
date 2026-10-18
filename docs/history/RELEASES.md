@@ -29,7 +29,6 @@ Missing CI links or revisions mean the snapshot did not identify them, not that 
 
 | Historical release narrative | Recorded revision references | Recorded CI evidence |
 |---|---|---|
-| 1,883/1,883 tests across 151 files | `aa9db7d` | [run 39076885631](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39076885631) |
 | Phase 0 — done | Not identified in snapshot | See snapshot narrative |
 | Phase 4 — ongoing maintenance | Not identified in snapshot | See snapshot narrative |
 | Phase 6 — first slice deployed | Not identified in snapshot | See snapshot narrative |

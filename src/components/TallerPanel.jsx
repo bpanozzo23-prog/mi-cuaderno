@@ -13,7 +13,7 @@ import {
 } from "../lib/taller.js";
 
 /**
- * The Taller door's proposal panel (docs/DIARIO-TALLER-DIRECTION.md): one proposed skill with
+ * The Taller door's proposal panel (docs/history/phases/DIARIO-TALLER-DIRECTION.md): one proposed skill with
  * the full category list one tap away, plus the owner-edited tema list — kept inside Taller so
  * the feature stays self-contained. Everything but the tema preference is visit-local; the
  * drill itself starts through `onStart({ drill })` and the door never shows counts or pressure.

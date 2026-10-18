@@ -1,6 +1,6 @@
 /**
  * Static word banks for Taller drills — transient drill furniture shipped with the prompt
- * library (docs/DIARIO-TALLER-DIRECTION.md). Nothing here is ever stored on a page or an
+ * library (docs/history/phases/DIARIO-TALLER-DIRECTION.md). Nothing here is ever stored on a page or an
  * event; the drill renders a bank for its prompt's category and forgets it.
  */
 export const TALLER_SCAFFOLDS = Object.freeze({

@@ -1,5 +1,5 @@
 /**
- * Curated reference content for the Gym's Transform lane (docs/TRANSFORM-LANE-DIRECTION.md).
+ * Curated reference content for the Gym's Transform lane (docs/history/phases/TRANSFORM-LANE-DIRECTION.md).
  *
  * Each card pairs an indicative sentence with a frame that puts the same verb, same person,
  * under a present-subjunctive trigger. The answer is the verb form alone; the frame carries

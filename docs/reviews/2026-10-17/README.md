@@ -12,7 +12,7 @@ agent guide or any approval boundary. Each change still goes through the plan-fi
 |---|---|
 | [REASSESSMENT.md](REASSESSMENT.md) | The full report: what to keep, how the brief shaped the project, documentation and process, feature growth, code, confirmed bugs, data layer, guided lessons, suggested order of work, the questions only the owner can answer, and the owner's response (section 15) |
 | [STEP-1.md](STEP-1.md) | Work order for the first batch of safety fixes, one item per session, with evidence, a ready regression test and acceptance checks |
-| [codex/](codex/) | The four Codex reviews, verbatim apart from repository-relative links: [code](codex/1-code.md), [brief and process](codex/2-brief-and-process.md), [data model](codex/3-data-model.md), [repository](codex/4-repository.md) |
+| [codex/](codex) | The four Codex reviews, verbatim apart from repository-relative links: [code](codex/1-code.md), [brief and process](codex/2-brief-and-process.md), [data model](codex/3-data-model.md), [repository](codex/4-repository.md) |
 
 Line numbers in all of these refer to `35cda8e`. Confirm a finding against current code before
 acting on it.

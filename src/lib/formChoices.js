@@ -4,7 +4,7 @@ import { RECOGNITION_CONFUSABLES } from "./recognitionContent.js";
 
 /**
  * Four-option choices for a Forms card, built from the verb's own table
- * (docs/FORMS-CHOICE-DIRECTION.md).
+ * (docs/history/phases/FORMS-CHOICE-DIRECTION.md).
  *
  * The answer plus three morphological distractors: one other person in the same tense, the
  * same person in a confusable tense (the curated Phase 17 map, so "confusable" is one fact

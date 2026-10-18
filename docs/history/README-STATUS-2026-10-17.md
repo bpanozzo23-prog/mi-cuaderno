@@ -21,7 +21,7 @@ horizontal overflow and no browser warnings or uncaught errors. The dictionary v
 [GitHub Actions](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39079960584)
 passed all 1,913 tests, built and deployed from `6d92bab`. The live index and application assets
 return HTTP 200; the JavaScript and CSS match the verified local build byte for byte. Step 1 is
-complete. See [Step 1, item 4](../../docs/reviews/2026-10-17/STEP-1.md#item-4--small-fixes)
+complete. See [Step 1, item 4](../reviews/2026-10-17/STEP-1.md#item-4--small-fixes)
 for commits, verification and manual checks.
 
 **All-or-nothing saves — deployed (2026-10-17).** Item saves now commit
@@ -34,7 +34,7 @@ Chromium at 375px with inspected screenshots and no horizontal overflow. Schema 
 [GitHub Actions](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39076885631)
 passed all 1,883 tests, built and deployed from `aa9db7d`. The live index and application assets
 return HTTP 200; the JavaScript and CSS match the verified local build byte for byte.
-See [Step 1, item 3](../../docs/reviews/2026-10-17/STEP-1.md#item-3--all-or-nothing-saves).
+See [Step 1, item 3](../reviews/2026-10-17/STEP-1.md#item-3--all-or-nothing-saves).
 
 **Backup safety — deployed (2026-10-17).** Opposing Source-capture
 citations are refused before changing either page. Failed backup validation now offers a separate
@@ -47,9 +47,9 @@ were inspected. The owner confirmed all four fixture buttons work on the phone.
 [GitHub Actions](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39070596526)
 passed the full suite, built and deployed from `bca7f22`; the live entry assets match the verified
 production build. See
-[Step 1, item 2](../../docs/reviews/2026-10-17/STEP-1.md#item-2--backup-safety).
+[Step 1, item 2](../reviews/2026-10-17/STEP-1.md#item-2--backup-safety).
 
-**Guided lessons — planning only (2026-10-17).** The [feature plan and 1917 chapter drafts](../../docs/guided-lessons/README.md)
+**Guided lessons — planning only (2026-10-17).** The [feature plan and 1917 chapter drafts](../guided-lessons/README.md)
 are grouped in `docs/guided-lessons/`. The lesson player and integration are not implemented;
 this documentation-only update changes no application behavior or personal schema.
 
@@ -58,19 +58,19 @@ serial test suite after `npm ci` and before the production build, so a test fail
 publication. The first [GitHub Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39057987662)
 at `401bc74` passed **1,816/1,816 tests across 148 files**, then built and deployed successfully.
 Pull-request testing remains deferred; application behavior and schema v12 are unchanged. See
-[Step 1, item 1](../../docs/reviews/2026-10-17/STEP-1.md#item-1--run-the-tests-before-every-deploy).
+[Step 1, item 1](../reviews/2026-10-17/STEP-1.md#item-1--run-the-tests-before-every-deploy).
 
 - **Phase 0 — done.** Installable PWA shell, auto-deployed on every push to `main`.
 - **Phase 0.5 — done, reviewed.** Data pipeline proven end to end on all four sources;
-  see [docs/PHASE-0.5-SPIKE-REPORT.md](../../docs/PHASE-0.5-SPIKE-REPORT.md) and the 20 generated records in
+  see [docs/PHASE-0.5-SPIKE-REPORT.md](phases/PHASE-0.5-SPIKE-REPORT.md) and the 20 generated records in
   [pipeline/spike/out/07-review-records.md](../../pipeline/spike/out/07-review-records.md).
 - **Phase 1 — done.** The notebook itself, in four subphases: data foundation and backup (1a),
   words, phrases and pages (1b), search and linking (1c), tracking and Repaso (1d).
 - **Phase 2 — done.** The bundled dictionary: 10,278 lemmas with conjugations and examples,
   installed offline in one explicit download, and two-layer search where an inflected form
-  finds its lemma. See [docs/PHASE-2-REPORT.md](../../docs/PHASE-2-REPORT.md).
+  finds its lemma. See [docs/PHASE-2-REPORT.md](phases/PHASE-2-REPORT.md).
 - **Phase 3 — done.** The Leitner review queue, derived entirely from the event log.
-  See [docs/PHASE-3-REPORT.md](../../docs/PHASE-3-REPORT.md).
+  See [docs/PHASE-3-REPORT.md](phases/PHASE-3-REPORT.md).
 - **Phase 4 — ongoing maintenance.** Live-use polish driven only by friction observed in daily use.
   The linking package (4a–4e) and first friction batch (4f–4h) shipped. Structured personal
   meanings (4i) are shipped and browser-verified. Persistent page profiles and the first
@@ -88,14 +88,14 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   closeout and a successful GitHub Pages deployment check. Source and Grammar were deferred from this maintenance
   stream and are now shipped as Phase 7; richer stored Journal profiles,
   user-authored templates, and exact term/title link suggestions remain deferred. See
-  [docs/PHASE-4-JOURNAL-DIRECTION.md](../../docs/PHASE-4-JOURNAL-DIRECTION.md) and
-  [docs/PHASE-4-REPORT.md](../../docs/PHASE-4-REPORT.md).
+  [docs/PHASE-4-JOURNAL-DIRECTION.md](phases/PHASE-4-JOURNAL-DIRECTION.md) and
+  [docs/PHASE-4-REPORT.md](phases/PHASE-4-REPORT.md).
 - **Phase 5 — done.** Organizational improvements that do not require real notebook data:
   navigation continuity (5a), organizational derivations (5b), Cuaderno retrieval controls (5c),
   activity navigation (5d), scan-first detail pages (5e), and duplicate guardrails (5f).
   Its planned work is kept separate from Phase 4's friction-only maintenance stream. See
-  [docs/PHASE-5-DIRECTION.md](../../docs/PHASE-5-DIRECTION.md) and
-  [docs/PHASE-5-REPORT.md](../../docs/PHASE-5-REPORT.md).
+  [docs/PHASE-5-DIRECTION.md](phases/PHASE-5-DIRECTION.md) and
+  [docs/PHASE-5-REPORT.md](phases/PHASE-5-REPORT.md).
 - **Phase 6 — first slice deployed.** The AI assistant (brief §9), opened
   with one narrow feature rather than an app-wide assistant: a user-initiated review of a single
   Diario entry, judging whether it is understandable and where it is correct but unnatural. Off by
@@ -113,8 +113,8 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   `git diff --check` passes. The disposable 375×812 browser closeout remains unverified because the
   in-app browser could not bootstrap. The GitHub Pages deployment from `main` completed
   successfully; the phone browser closeout remains explicitly unverified. See
-  [docs/PHASE-7-DIRECTION.md](../../docs/PHASE-7-DIRECTION.md) and
-  [docs/PHASE-7-REPORT.md](../../docs/PHASE-7-REPORT.md).
+  [docs/PHASE-7-DIRECTION.md](phases/PHASE-7-DIRECTION.md) and
+  [docs/PHASE-7-REPORT.md](phases/PHASE-7-REPORT.md).
 - **Phase 8 — shipped.** A dedicated **Words & phrases hub**, the lexical
   twin of the Pages hub: one hub for both forms, reached by the `palabras` and `frases` chips that
   now open it rather than filtering in place. It browses by where a word lives (Collection, Source,
@@ -127,8 +127,8 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   build and `git diff --check` pass, and four deliberate red/green proofs behaved as intended. The 375×812
   closeout passed on a disposable local origin by driving real DOM events and measuring layout
   numerically; **no visual screenshot was captured**, because the in-app browser pane does not
-  composite frames. See [docs/PHASE-8-DIRECTION.md](../../docs/PHASE-8-DIRECTION.md) and
-  [docs/PHASE-8-REPORT.md](../../docs/PHASE-8-REPORT.md).
+  composite frames. See [docs/PHASE-8-DIRECTION.md](phases/PHASE-8-DIRECTION.md) and
+  [docs/PHASE-8-REPORT.md](phases/PHASE-8-REPORT.md).
 - **Phase 9 — shipped.** The Words & phrases hub can turn its current
   filters or search into an anytime Spanish-first flashcard deck. A transient preflight chooses
   10, 20 or All cards and shuffled or current hub order; entries without meanings are excluded and
@@ -137,8 +137,8 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   remains 5. The full serial suite passes 662/662 across 64 files, the production build and diff
   check pass, the missing-meaning red/green proof behaved as intended, and a disposable
   375×812 visual browser flow passed without overflow, warnings or errors. See
-  [docs/PHASE-9-DIRECTION.md](../../docs/PHASE-9-DIRECTION.md) and
-  [docs/PHASE-9-REPORT.md](../../docs/PHASE-9-REPORT.md).
+  [docs/PHASE-9-DIRECTION.md](phases/PHASE-9-DIRECTION.md) and
+  [docs/PHASE-9-REPORT.md](phases/PHASE-9-REPORT.md).
 - **Phase 10 — deployed.** Learning depth in Repaso, built only from
   data the notebook already holds: **session direction** (10a — es→en, en→es or mixed, chosen
   per session and fixed per card, with reverse withholding the term and its Spanish usage cue),
@@ -163,7 +163,7 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   Estadísticas sub-view, swapped in the way a review session already is. No schema, event-type,
   metadata, preference or backup change: `SCHEMA_VERSION` remains 5, and every number is derived
   at render, so deleting these screens would lose no data. Two owner decisions are recorded in
-  [docs/PHASE-11-DIRECTION.md](../../docs/PHASE-11-DIRECTION.md): the streak amends the deferral in
+  [docs/PHASE-11-DIRECTION.md](phases/PHASE-11-DIRECTION.md): the streak amends the deferral in
   `docs/IMPROVEMENT-IDEAS.md` (journal-side streaks stay deferred), and day-level activity counts
   events of since-deleted items, since §7's exclusion protects item-centric results rather than
   the owner's own calendar. The full serial suite passes 827/827 across 73 files, the production
@@ -213,7 +213,7 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   build and `git diff --check` pass, three deliberate failure proofs reddened as intended, and a
   seeded 375×812 closeout independently reproduced the displayed score from the raw event log.
   It introduces no schema change, due date, automatic queue or Leitner effect. See the approved
-  [direction](../../docs/PHASE-14-DIRECTION.md) and [implementation report](../../docs/PHASE-14-REPORT.md).
+  [direction](phases/PHASE-14-DIRECTION.md) and [implementation report](phases/PHASE-14-REPORT.md).
 - **Phase 15 — deployed.** Gym correctness and depth: accent-near
   answers now fail when the missing accent changes the tense, performance actions open full
   target-centred Focus decks, and Adaptive uses resolved misses, a 90-day window and rolling
@@ -224,7 +224,7 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   suite passes 1,021/1,021 across 86 files, the production build and `git diff --check` pass, all
   56 unique curated lemmas resolve to shipped tables, and a disposable 375×812 closeout passed
   without horizontal overflow or console warnings/errors. See the approved
-  [direction](../../docs/PHASE-15-DIRECTION.md) and [implementation report](../../docs/PHASE-15-REPORT.md).
+  [direction](phases/PHASE-15-DIRECTION.md) and [implementation report](phases/PHASE-15-REPORT.md).
 - **Phase 16 — deployed.** Scheduled review now uses the full
   Again/Hard/Good/Easy grade scale, objectively marks typed reverse and cloze answers, offers one
   history-free missed-card recovery round, and chunks queues over 20 into 10/20/All sittings.
@@ -235,7 +235,7 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   Schema v5 and the existing event types remain unchanged. The final serial suite passes
   1,044/1,044 across 87 files, the production build and `git diff --check` pass, and a disposable
   375×812 closeout passed without horizontal overflow or console warnings/errors. See the approved
-  [direction](../../docs/PHASE-16-DIRECTION.md) and [implementation report](../../docs/PHASE-16-REPORT.md).
+  [direction](phases/PHASE-16-DIRECTION.md) and [implementation report](phases/PHASE-16-REPORT.md).
 - **Phase 17 — deployed.** The Gym now has Forms, Tense usage and
   Endings lanes. Usage and Endings use one objective four-choice engine with balanced decks,
   curated confusables, no immediate retry, one reshuffled missed round, and dictionary-backed
@@ -246,8 +246,8 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   Schema v5 and the existing event types remain unchanged. The final serial suite passes
   1,073/1,073 across 93 files, the production build and `git diff --check` pass, two deliberate
   failure proofs reddened as intended, and a disposable 375×812 closeout passed without overflow
-  or console warnings/errors. See the approved [direction](../../docs/PHASE-17-DIRECTION.md) and
-  [implementation report](../../docs/PHASE-17-REPORT.md).
+  or console warnings/errors. See the approved [direction](phases/PHASE-17-DIRECTION.md) and
+  [implementation report](phases/PHASE-17-REPORT.md).
 - **Phase 18 — deployed.** Tense usage now supports
   self-graded recall from a tense to all of its curated uses, while Endings adds five-field typed
   production with exact-first accent grading, locked passing fields, one retry and one optional
@@ -258,8 +258,8 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   The final serial suite passes 1,111/1,111 across 98 files, the production build and
   `git diff --check` pass, three deliberate data/isolation failures reddened as intended, and a
   disposable 375×812 closeout passed without horizontal overflow or console warnings/errors.
-  See the approved [direction](../../docs/PHASE-18-DIRECTION.md) and
-  [implementation report](../../docs/PHASE-18-REPORT.md).
+  See the approved [direction](phases/PHASE-18-DIRECTION.md) and
+  [implementation report](phases/PHASE-18-REPORT.md).
 - **Phase 19 — deployed.** Grammar guides have safe formatted Overviews, accessible Note callouts
   and schema-v6 one-level subsections. The schema-v7 Structured Notes increment keeps every Page
   body as Notes Overview and adds one level of named Notes sections, shared hierarchy mechanics,
@@ -275,8 +275,8 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   explicit Note-callout and Blank-line set. Exact standalone `<br>` markers render as spacing and
   stay out of visible-text consumers; the original combined suite passed 1,214/1,214.
   Phase 19 may group later related owner-approved Page organization/formatting increments, but does
-  not pre-approve unknown scope. See the approved [direction](../../docs/PHASE-19-DIRECTION.md) and
-  [implementation report](../../docs/PHASE-19-REPORT.md).
+  not pre-approve unknown scope. See the approved [direction](phases/PHASE-19-DIRECTION.md) and
+  [implementation report](phases/PHASE-19-REPORT.md).
 - **Phase 20 — deployed.** Ajustes now manages every exact
   personal tag globally: rename to an unused spelling, explicitly merge into an existing tag, or
   remove it without deleting entries. One atomic transaction preserves item timestamps, records
@@ -285,8 +285,8 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   final serial suite passes 1,168/1,168 across 101 files, the production build and
   `git diff --check` pass, rollback/backup proofs pass, and a disposable 375×812 rename→merge→remove
   closeout passed without horizontal overflow or console warnings/errors. See the approved
-  [direction](../../docs/PHASE-20-DIRECTION.md) and
-  [implementation report](../../docs/PHASE-20-REPORT.md).
+  [direction](phases/PHASE-20-DIRECTION.md) and
+  [implementation report](phases/PHASE-20-REPORT.md).
 - **Phase 21 — deployed.** Dictionary verb
   details now lead their Conjugation card with **What to notice**: actual-paradigm lessons,
   contrastive emphasized forms, and pipeline-verified sibling families. Regular verbs keep one
@@ -298,8 +298,8 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   structural emphasis—including pronoun-bearing *arrepentirse*—plus 44px targets, wrapping,
   navigation, overflow and console checks. Only manifest-selected r3 artifacts remain in the
   public package tree. See the approved
-  [direction](../../docs/PHASE-21-DIRECTION.md) and
-  [implementation report](../../docs/PHASE-21-REPORT.md).
+  [direction](phases/PHASE-21-DIRECTION.md) and
+  [implementation report](phases/PHASE-21-REPORT.md).
 - **Phase 22 — deployed.** Lexical detail now derives
   conjugation-aware whole-token links between saved Words and Phrases, suppressing ambiguous
   inflections and fixed high-noise function words. Conservative personal-gloss overlap can show
@@ -312,8 +312,8 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   check pass, and a disposable 375×812 seeded flow verifies `dar` ↔ `me da igual`, ambiguous
   `fui` suppression, explicit confirmation, event-free recall, 44px actions, zero overflow, and
   zero console warnings/errors. See the approved
-  [direction](../../docs/PHASE-22-DIRECTION.md) and
-  [implementation report](../../docs/PHASE-22-REPORT.md).
+  [direction](phases/PHASE-22-DIRECTION.md) and
+  [implementation report](phases/PHASE-22-REPORT.md).
 - **Phase 23 — deployed.** Lexical Detail now
   offers a display-only **Historia** of saved/review/box/tricky/retirement milestones and every
   current habitat, including marker-free owner prose and a disclosed **En tu Diario** section.
@@ -325,8 +325,8 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   across 118 files, the 2,105-module build and diff check pass, all three deliberate failures red,
   and a disposable 375×812 flow verifies rich prose Biography, a three-hop family/Page walk,
   same-id full-entry opening, 44px actions, zero overflow, and zero console warnings/errors. See
-  the approved [direction](../../docs/PHASE-23-DIRECTION.md) and
-  [implementation report](../../docs/PHASE-23-REPORT.md).
+  the approved [direction](phases/PHASE-23-DIRECTION.md) and
+  [implementation report](phases/PHASE-23-REPORT.md).
 - **Phase 24 — deployed.** The r4 dictionary
   preserves all 10,278 r3 entry IDs while adding sense- and entry-level synonyms/antonyms, topic
   labels, first-sentence etymology, filtered sense-attached examples, dormant derived/related
@@ -336,8 +336,8 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   empty. The final package passes 45/45 shipment checks at 4.06 MiB gzipped; the serial suite,
   production build, deliberate display failure, and disposable 375×812 rich/plain-entry flow all
   pass. GitHub Pages deployment run 31723115634 succeeded, and the live site serves the r4
-  manifest and all 16 chunks. See the approved [direction](../../docs/PHASE-24-DIRECTION.md) and
-  [implementation report](../../docs/PHASE-24-REPORT.md).
+  manifest and all 16 chunks. See the approved [direction](phases/PHASE-24-DIRECTION.md) and
+  [implementation report](phases/PHASE-24-REPORT.md).
 - **Phase 25 — safe slice deployed.** Historia now shows an attached
   word's saved conjugation-family siblings plus a marked What-to-notice dictionary exit through
   one alias-aware, read-only derivation shared with Wander. Both endpoints must be words; phrases,
@@ -348,7 +348,7 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   diff check pass, and a disposable 375×812 flow verifies 44–56px actions, no overflow or console
   issues, personal/dictionary navigation, and zero fixture rows after cleanup. Deployed from
   `main` at `1432dd1` through Pages run 31749800168; personal schema stays v8. See the
-  [direction](../../docs/PHASE-25-DIRECTION.md) and [implementation report](../../docs/PHASE-25-REPORT.md).
+  [direction](phases/PHASE-25-DIRECTION.md) and [implementation report](phases/PHASE-25-REPORT.md).
 - **Phase 26 — deployed.** Saved visible Notes,
   enabled Source captures, enabled Grammar explanations/examples, and Diario can now disclose
   personal vocabulary **Mentioned here** without writing until an explicit context-appropriate
@@ -361,7 +361,7 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   and a disposable 375×812 flow verified explicit-write boundaries, 44px actions, zero overflow,
   and a clear console before cleanup returned the fixture to zero items/events. Deployed from
   `main` at `6780961` through Pages run 31812821165. See the
-  [direction](../../docs/PHASE-26-DIRECTION.md) and [implementation report](../../docs/PHASE-26-REPORT.md).
+  [direction](phases/PHASE-26-DIRECTION.md) and [implementation report](phases/PHASE-26-REPORT.md).
 - **Editable media links — deployed.** A saved media link is no longer open-or-delete only: each
   row carries a pencil that reopens the existing composer prefilled with its URL and label, and
   Save link replaces that row rather than appending, logging one ordinary `edit`. This matters
@@ -805,7 +805,7 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   by the numbers with zero horizontal overflow and a clean console. Deployed from `main` at
   `6d7dd34` through Pages run
   [32437421316](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/32437421316). See
-  [docs/DIARIO-TALLER-DIRECTION.md](../../docs/DIARIO-TALLER-DIRECTION.md) and the Taller v1 entries
+  [docs/DIARIO-TALLER-DIRECTION.md](phases/DIARIO-TALLER-DIRECTION.md) and the Taller v1 entries
   in [DECISIONS.md](../../DECISIONS.md).
 
 - **Lexical Structured Notes — deployed.** (Pushed 2026-08-21 as `2b8fabd` with the spacing
@@ -826,7 +826,7 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   root and subsection, full Markdown editor, organizer and name/body search: Notes stayed 328/328px,
   the document stayed within the 375px viewport, every visible Notes action met 44px, third-level
   nesting stayed absent, and the console was clean. See
-  [docs/LEXICAL-STRUCTURED-NOTES-DIRECTION.md](../../docs/LEXICAL-STRUCTURED-NOTES-DIRECTION.md) and the
+  [docs/LEXICAL-STRUCTURED-NOTES-DIRECTION.md](phases/LEXICAL-STRUCTURED-NOTES-DIRECTION.md) and the
   2026-08-21 entries in [DECISIONS.md](../../DECISIONS.md).
 - **Recent list expansion — deployed.** The Cuaderno landing's Recent card shows five items
   (was three) with a "Show more" toggle revealing up to ten; the expanded state is in-memory
@@ -849,7 +849,7 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   production build transforms 2,138 modules, `git diff --check` passes, and four deliberate
   failure proofs reddened as intended. No agent browser closeout: shipped from the headless XPS
   on test and build evidence plus the owner's phone check against the `--host` dev URL. Pushed
-  2026-08-24 as `bc5c053`. See [docs/CONTRAST-LANE-DIRECTION.md](../../docs/CONTRAST-LANE-DIRECTION.md)
+  2026-08-24 as `bc5c053`. See [docs/CONTRAST-LANE-DIRECTION.md](phases/CONTRAST-LANE-DIRECTION.md)
   and the "Contrasts lane" entries in [DECISIONS.md](../../DECISIONS.md).
 - **Forms Choose — deployed.** The Conjugation Gym's Forms drill gains a third answer mode,
   Choose, beside Type and Reveal: the answer plus three other forms of the same verb (another
@@ -863,7 +863,7 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   `git diff --check` passes, and three deliberate failure proofs reddened as intended. No agent
   browser closeout: shipped from the headless XPS on test and build evidence plus the owner's
   phone check against the `--host` dev URL. Pushed 2026-08-24 as `f3e4d03`. See
-  [docs/FORMS-CHOICE-DIRECTION.md](../../docs/FORMS-CHOICE-DIRECTION.md) and the "Forms Choose" entries
+  [docs/FORMS-CHOICE-DIRECTION.md](phases/FORMS-CHOICE-DIRECTION.md) and the "Forms Choose" entries
   in [DECISIONS.md](../../DECISIONS.md).
 - **Transform lane — deployed.** The Conjugation Gym gains a fifth, typed lane, Transform: an
   indicative sentence and a subjunctive trigger frame with one blank, the present-subjunctive form
@@ -879,7 +879,7 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   transforms 2,141 modules, `git diff --check` passes, and two deliberate failure proofs reddened
   as intended. No agent browser closeout: shipped from the headless XPS on test and build evidence
   plus the owner's phone check against the `--host` dev URL. Pushed 2026-08-24 as `939e48f`. See
-  [docs/TRANSFORM-LANE-DIRECTION.md](../../docs/TRANSFORM-LANE-DIRECTION.md) and the "Transform lane"
+  [docs/TRANSFORM-LANE-DIRECTION.md](phases/TRANSFORM-LANE-DIRECTION.md) and the "Transform lane"
   entries in [DECISIONS.md](../../DECISIONS.md).
 - **Diario skill-prompt examples and coverage expansion — deployed.** Every skill prompt
   (narrate/imagine/connect) now carries a Spanish-only `example` — a short model answer to the
@@ -1085,7 +1085,7 @@ Pull-request testing remains deferred; application behavior and schema v12 are u
   No production behavior, schema, timeout or deployment workflow change.
   Published from `main` at `b04c171`; Pages build and deploy succeeded in
   [run 33800415895](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/33800415895).
-  See the [test reliability report](../../docs/TEST-RELIABILITY-REPORT.md).
+  See the [test reliability report](verification/TEST-RELIABILITY-REPORT.md).
 - **Same-heading dictionary meanings — deployed.** When a dictionary entry has the same
   accent-sensitive heading as a personal word or phrase, Dictionary Detail now offers to append
   selected senses to an existing entry or create a genuinely separate entry. Copied senses stay

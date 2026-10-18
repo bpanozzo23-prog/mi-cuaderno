@@ -5,7 +5,7 @@ import { localDate } from "./dates.js";
 import { TENSE_ENDINGS } from "./recognitionContent.js";
 
 /**
- * Taller — the Diario's skill-directed writing drill (docs/DIARIO-TALLER-DIRECTION.md).
+ * Taller — the Diario's skill-directed writing drill (docs/history/phases/DIARIO-TALLER-DIRECTION.md).
  * Everything here is a pure derivation over the items and event log; nothing stores state.
  * The literal event type matches EVENT_TYPES.practiceWrite in src/db/events.js — spelled out
  * here so this stays a pure lib module, the conjugationStats.js precedent.

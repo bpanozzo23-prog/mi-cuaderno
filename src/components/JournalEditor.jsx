@@ -51,7 +51,7 @@ export default function JournalEditor({
   registerNavigationHandlers = null,
   autosaveMs = JOURNAL_AUTOSAVE_MS,
 }) {
-  // A Taller drill (docs/DIARIO-TALLER-DIRECTION.md): same writing surface, but keep-or-discard
+  // A Taller drill (docs/history/phases/DIARIO-TALLER-DIRECTION.md): same writing surface, but keep-or-discard
   // replaces the save flow entirely — nothing below may persist or log until one is chosen.
   const drill = seed?.drill || null;
   const initial = cleanDraft({

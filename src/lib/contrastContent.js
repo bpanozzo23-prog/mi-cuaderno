@@ -1,5 +1,5 @@
 /**
- * Curated reference content for the Gym's Contrasts lane (docs/CONTRAST-LANE-DIRECTION.md).
+ * Curated reference content for the Gym's Contrasts lane (docs/history/phases/CONTRAST-LANE-DIRECTION.md).
  *
  * Four-choice cloze over short, original, everyday sentences: one blank, exactly one correct
  * option. Like the Usage and Endings content these constants know nothing about React,

@@ -1,7 +1,7 @@
 # Mi Cuaderno, reassessed
 
 Read-only review of `main` at `35cda8e`, 2026-10-17, by Claude Code on the XPS, with four
-independent Codex reviews ([`codex/`](codex/)). Requested by the owner: assess the project's
+independent Codex reviews ([`codex/`](codex)). Requested by the owner: assess the project's
 organization now that it has grown, and check whether following the brief has led anywhere that
 should be reconsidered.
 
@@ -331,7 +331,7 @@ these needs a schema change. Details, evidence and suggested fixes for items 1â€
 
 ## 10. Repository tidy-up
 
-- `design-qa.md` and three JPGs sit at the root and point to Windows paths. They were committed
+- `docs/history/design-qa/design-qa.md` and three JPGs sit at the root and point to Windows paths. They were committed
   inside an unrelated feature commit ("Show Taller practice targets in Diario"), which suggests
   agents stage every changed file. Move them to `docs/history/design-qa/` and have agents stage
   files by name.

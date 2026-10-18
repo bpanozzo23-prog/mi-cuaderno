@@ -1,4 +1,4 @@
-/** Design tokens and small shared pieces, lifted from the prototype (docs/mi-cuaderno.jsx). */
+/** Design tokens and small shared pieces, lifted from the prototype (docs/history/prototype/mi-cuaderno.jsx). */
 
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 

@@ -39,9 +39,9 @@ fixtures do not close checks of different features. Preserve each until matching
 
 | Check | Evidence to consult |
 |---|---|
-| Phase 4t–4x Connections browser closeout | [Phase 4 report](PHASE-4-REPORT.md) |
-| Phase 4y Add to Collection phone/browser closeout | [Phase 4 report](PHASE-4-REPORT.md) |
-| Phase 7 composable-pages phone/browser closeout | [Phase 7 report](PHASE-7-REPORT.md) |
+| Phase 4t–4x Connections browser closeout | [Phase 4 report](history/phases/PHASE-4-REPORT.md) |
+| Phase 4y Add to Collection phone/browser closeout | [Phase 4 report](history/phases/PHASE-4-REPORT.md) |
+| Phase 7 composable-pages phone/browser closeout | [Phase 7 report](history/phases/PHASE-7-REPORT.md) |
 | Plural dictionary attachments: owner's phone check | [2026-09-10 decision](../DECISIONS.md#plural-dictionary-attachments-2026-09-10) |
 
 The later owner confirmation for same-heading dictionary meanings is recorded; that phone check

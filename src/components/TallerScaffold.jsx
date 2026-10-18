@@ -10,7 +10,7 @@ import { scaffoldForCategory } from "../lib/tallerScaffolds.js";
 const FALLBACK_TENSE = "Indicative/Present";
 
 /**
- * Transient drill furniture (docs/DIARIO-TALLER-DIRECTION.md): a tense-targeted prompt keeps
+ * Transient drill furniture (docs/history/phases/DIARIO-TALLER-DIRECTION.md): a tense-targeted prompt keeps
  * its regular endings always visible, while the category word bank and the live dictionary
  * verb lookup sit behind one disclosure. Read-only throughout — the lookup resolves a typed
  * lemma at render through the reference layer and stores no `dict:` key anywhere, so the §5

@@ -347,7 +347,7 @@ describe("import: replace and restore", () => {
   });
 
   it("round-trips practice events, including a discarded drill's subject-less one", async () => {
-    // Taller practice events (docs/DIARIO-TALLER-DIRECTION.md) are the first stored prompt
+    // Taller practice events (docs/history/phases/DIARIO-TALLER-DIRECTION.md) are the first stored prompt
     // usage; a discarded drill's event carries no itemKey at all. Both shapes must survive a
     // backup at schema v9 with no schema bump — checked through JSON text.
     const page = makePage({ title: "Práctica", pageDate: "2026-08-20" });
