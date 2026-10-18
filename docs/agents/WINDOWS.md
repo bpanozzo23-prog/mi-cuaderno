@@ -3,6 +3,25 @@
 Use this on the owner's Windows laptop. Confirm the shell before copying commands; Linux/XPS
 uses [different spellings](XPS.md). Shared policy stays in the [agent guide](../AGENT-GUIDE.md).
 
+## Node setup
+
+The shared major selection is in [.nvmrc](../../.nvmrc); the supported range is `engines.node`
+in [package.json](../../package.json). With the existing Windows Node installer, `.nvmrc` is a
+reference file, not an automatic version switch. Select a release within that range using the
+machine's existing installation method; exact minor/patch versions can differ from CI.
+
+From the repository root in PowerShell, check before running `npm.cmd ci`:
+
+```powershell
+Get-Content .nvmrc
+node -p "require('./package.json').engines.node"
+node --version
+npm.cmd --version
+```
+
+In Git Bash, use `cat .nvmrc` and plain `npm --version`; the Node commands are the same.
+Use the PATH recipe below if the installed executable is missing from that shell's PATH.
+
 ## Codex — Windows PowerShell 5.1
 
 Use `npm.cmd test`, `npm.cmd run build` and `npm.cmd run dev`. Plain `npm` resolves to

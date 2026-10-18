@@ -13,7 +13,12 @@ Agents start with the [shared guide](docs/AGENT-GUIDE.md).
 
 ## Development and checks
 
-Use Node 24 (the version used by [CI](.github/workflows/deploy.yml)) and npm:
+Use npm and the Node major selected in [.nvmrc](.nvmrc), with an installed version inside
+`engines.node` in [package.json](package.json). [CI](.github/workflows/deploy.yml) reads the same
+version file. The major selection allows patch/minor updates; it does not pin an exact release.
+The engines field declares compatibility, without switching Node or enabling strict enforcement.
+See [Linux](docs/agents/XPS.md#node-setup) or [Windows](docs/agents/WINDOWS.md#node-setup) for setup
+and version checks, then run:
 
 ```sh
 npm ci          # install locked dependencies

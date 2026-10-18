@@ -63,6 +63,17 @@ This is the starting point for current status, not a release diary.
 - **Owner direction:** [reassessment §15](reviews/2026-10-17/REASSESSMENT.md#15-owner-response-2026-10-17)
   takes precedence on experimental feature growth and the ideas file. The usage review is
   withdrawn. Friction is an input to ideas, not a condition for building features.
+- **Complete locally; not pushed:** shared Node version selection (`3af203c`). CI reads Node's
+  major from [.nvmrc](../.nvmrc); package and lockfile metadata declare the supported range.
+  [Linux](agents/XPS.md#node-setup) and [Windows](agents/WINDOWS.md#node-setup) guidance explains
+  setup and version checks. Verification on 2026-10-18 with Node 24.19.0 / npm 11.17.0 passed
+  `npm ci`, zero-warning lint, all **1,932 tests across 157 files** serially in 394.83 seconds
+  (no unhandled errors), the production build and diff checks. Metadata/range checks confirmed
+  unchanged dependency records and workflow behavior apart from the version-file input; config
+  changes still trigger CI. The existing build chunk-size warning and npm audit findings
+  (2 moderate, 5 high) remain. Application, dictionary, schema and machine installations are
+  unchanged. Windows commands were not executed on the owner's laptop; CI's actual version-file
+  resolution awaits a separately requested push.
 
 ## Unresolved verification
 

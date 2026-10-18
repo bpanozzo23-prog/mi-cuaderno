@@ -20,6 +20,23 @@ This checkout historically uses `core.autocrlf=input`. A whole-file diff in an u
 a signal to check line endings before committing. For the ignored Claude skills copy, use the
 [repeatable copy procedure](WINDOWS.md#claude-skill-copy); Linux needs no launch.json for CLI use.
 
+## Node setup
+
+Run these from the repository root to compare the selected major, supported range and installed
+version:
+
+```bash
+cat .nvmrc
+node -p "require('./package.json').engines.node"
+node --version
+npm --version
+```
+
+If this machine already uses nvm, `nvm install` followed by `nvm use` reads `.nvmrc` and selects
+an installed release for that major. Otherwise use the existing Node installation method to
+select a release within the declared range. Check `node --version` before `npm ci`; the version
+file alone does not change the current shell's Node. Exact minor/patch versions can differ from CI.
+
 ## Checks and phone preview
 
 Run `npm test` and `npm run build` as the guide requires. A slower CPU can expose timing mistakes;
