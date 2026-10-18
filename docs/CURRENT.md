@@ -1,19 +1,18 @@
 # Current state
 
-The app is deployed; reassessment Steps 1, 2 and 3 are complete and published.
+The app is deployed; reassessment Steps 1–3 and Step 5’s bounded lint setup are published.
 This is the starting point for current status, not a release diary.
 
 ## Verified release
 
-- **Published revision:** `33b5300`, 2026-10-17 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39086772342)
-  passed all **1,913 tests across 155 files** in 219.37 seconds, built and deployed successfully.
-  This documentation-only follow-up leaves application behavior unchanged from `c82889f`.
-  Seven live app files matched that earlier revision's local build; no new live-asset comparison
-  was performed for `33b5300`. See [release history](history/RELEASES.md).
-- **Delivered work:** [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md) and
-  [Step 3 contract reset](reviews/2026-10-17/STEP-3.md), on top of completed
-  [Step 1 safety work](reviews/2026-10-17/STEP-1.md). Application behavior is unchanged from the
-  Step 1 release. Detailed publication evidence lives in [release history](history/RELEASES.md).
+- **Published revision:** `2dfe9c2`, 2026-10-17 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39090099456)
+  passed lint, all **1,914 tests across 155 files** in 157.69 seconds, the production build and
+  deployment. Seven live app files returned HTTP 200 and matched the verified local build byte
+  for byte. Detailed publication evidence lives in [release history](history/RELEASES.md).
+- **Delivered work:** the bounded Step 5 lint setup, on top of completed
+  [Step 1 safety work](reviews/2026-10-17/STEP-1.md), [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md)
+  and [Step 3 contract reset](reviews/2026-10-17/STEP-3.md). JavaScript/React Hooks lint runs locally
+  and in CI; Cuaderno updates merged results when dictionary alias metadata arrives independently.
 - **Personal schema:** **v12**, defined in [src/version.js](../src/version.js).
   Backups v1–v12 upgrade sequentially and validate before restore; newer versions are blocked.
   Legacy database upgrades require an untouched validated export before Dexie opens.
@@ -34,18 +33,11 @@ This is the starting point for current status, not a release diary.
   No application, schema, CI or executable tooling changes; no optional-field exception granted.
 - **Planning only:** [guided lessons](guided-lessons/README.md), including the 1917 drafts.
   The player and integration are not implemented or approved by this documentation work.
-- **Locally complete, not published:** [Step 5](reviews/2026-10-17/REASSESSMENT.md#12-suggested-order-of-work)'s
-  bounded lint setup. `npm run lint` checks active JavaScript and React Hooks with zero warnings;
-  CI runs it before the serial tests and build. Intentional lifecycle patterns retain explained
-  exceptions; Cuaderno now updates merged results when dictionary alias metadata arrives.
-  Clean `npm ci`, lint, all **1,914 tests across 155 files** (444.94 s, no unhandled errors), the
-  production build and `git diff --check` pass. The existing build chunk-size warning remains.
-  Focused tests pass 69/69; removing the alias dependency deliberately fails its new regression.
-  Disposable Chromium fixtures at 375×812 verify alias-result replacement, retained Diario and
-  conflict drafts, and the Diario unmount save. Four screenshots were inspected with no horizontal
-  overflow, browser warnings or uncaught errors. No owner data was accessed; the preview server
-  was stopped and the disposable profile removed. Implementation commits are `6492682` and `872cb8f`; CI/docs
-  closeout completes the three-commit local task. Push and live CI verification await a request.
+- **Complete and published:** [Step 5](reviews/2026-10-17/REASSESSMENT.md#12-suggested-order-of-work)'s
+  bounded lint setup (`6492682`, `872cb8f`, `2dfe9c2`). `npm run lint` checks active JavaScript and
+  React Hooks with zero warnings; CI runs it before the serial tests and build. Intentional
+  lifecycle patterns retain explained exceptions. Local tests, the deliberate regression check,
+  375×812 browser fixtures and publication evidence are recorded in [release history](history/RELEASES.md).
   Broader Step 5 work remains separate; Step 4's usage review remains withdrawn.
 - **Separate, unapproved follow-ups:** other executable tooling changes and feature/code reorganization.
 - **Owner direction:** [reassessment §15](reviews/2026-10-17/REASSESSMENT.md#15-owner-response-2026-10-17)

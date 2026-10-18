@@ -5,6 +5,26 @@ to the latest verified release; decisions record reasons, not repeated test/depl
 A documentation-only follow-up may trigger another deployment under the current workflow; record
 its verified target when needed, without chasing the commit that records its own result.
 
+## 2026-10-17 — Step 5 lint setup
+
+| Date | Published revision | Work | CI and checks |
+|---|---|---|---|
+| 2026-10-17 | `2dfe9c2` | Bounded local/CI lint setup, reviewed baseline findings and Cuaderno alias-metadata dependency fix; three commits from `33b5300` | [39090099456](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39090099456): lint, 1,914 tests / 155 files in 157.69 s, build and deployment passed; seven live files returned HTTP 200 and matched local build bytes |
+
+The live comparison covered index HTML, manifest, service-worker registration, service worker,
+entry/application JavaScript and CSS. Local clean install, zero-warning lint, the complete serial
+suite (1,914/1,914 across 155 files in 444.94 s, no unhandled errors), production build and diff
+checks passed. The existing build chunk-size warning remains. Focused tests passed 69/69;
+removing the alias dependency deliberately failed the new metadata-arrival regression. In-memory
+lint probes detected undefined JSX names, browser/Node global mistakes, conditional Hooks and
+missing dependencies, while accepting intentional field removal and excluding historical output.
+
+Disposable Chromium fixtures at 375×812 verified alias-result replacement, retained Diario and
+conflict drafts, and the Diario unmount save. Four screenshots were inspected with no horizontal
+overflow, browser warnings or uncaught errors. No owner data was accessed; the preview server
+was stopped and the disposable profile removed. Schema remains v12, dictionary files are
+unchanged, and existing owner-device checks remain pending in [CURRENT](../CURRENT.md).
+
 ## 2026-10-17 — Steps 2 and 3
 
 | Date | Published revision | Work | CI and checks |
