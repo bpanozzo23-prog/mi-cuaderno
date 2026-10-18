@@ -18,7 +18,7 @@ remain usable through redirects or the [documentation index](docs/README.md).
 | Diario and AI | [AI first slice](#phase-6--ai-assistant-first-slice-diario-feedback-2026-08-06), [persisted feedback](#phase-6--ai-assistant-second-slice-persisted-diario-feedback-2026-08-11), [Taller](#taller--diario-writing-practice-direction-2026-08-20) |
 | Process and verification | [Shared guide](#tooling--one-shared-agent-guide-2026-08-02), [visual process](#visual-changes-working-process-2026-08-05), [test reliability](#test-reliability--completion-isolation-and-negative-controls-2026-09-03) |
 | Reassessment and safety | [Owner response](#reassessment-owner-response-2026-10-17), [test gate](#deployment-test-gate--step-1-item-1-2026-10-17), [backup safety](#backup-safety--step-1-item-2-2026-10-17), [atomic saves](#all-or-nothing-saves--step-1-item-3-2026-10-17), [small fixes](#small-fixes--step-1-item-4-2026-10-17) |
-| Documentation | [Step 2 arrangement](#documentation-reset--step-2-2026-10-17) |
+| Documentation | [Step 2 arrangement](#documentation-reset--step-2-2026-10-17), [Step 3 drafts](#contract-reset-drafts--step-3-2026-10-17) |
 
 Search other headings by feature, date or phase; this index selects entry points rather than
 copying every entry. The original log begins below.
@@ -1511,3 +1511,7 @@ copying every entry. The original log begins below.
 ## Documentation reset — Step 2 (2026-10-17)
 
 - 2026-10-17 — **OWNER-APPROVED: give current status, release evidence, decisions and proposals distinct homes.** — CURRENT replaces README Status, release evidence moves to history, existing decisions and brief v3 stay intact, and open ideas retain their context together. Machine/browser recipes move out of the guide; executable tooling changes and the contract reset remain separate. Owner-interest rankings stay unset and effort estimates are provisional.
+
+## Contract reset drafts — Step 3 (2026-10-17)
+
+- 2026-10-17 — **OWNER-REQUESTED: begin Step 3; prepare PRODUCT and ARCHITECTURE as review drafts.** — The owner asked to move on after Step 2. Current implementation and durable safeguards are separated from proposed policy choices. Brief v3 remains unchanged and authoritative pending the owner's answers and acceptance; drafting does not approve storage, workflow, licensing or application changes. The carry-forward map and pending questions live in `docs/reviews/2026-10-17/STEP-3.md`.

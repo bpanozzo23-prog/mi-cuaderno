@@ -1,7 +1,8 @@
 # Current state
 
-The app is deployed; Step 1 safety work is complete. Step 2 is complete locally; its documentation
-commits are unpushed. This is the starting point for current status, not a release diary.
+The app is deployed; Step 1 safety work is complete. Step 2 is complete locally and Step 3 has
+contract drafts awaiting owner decisions. Documentation work is unpushed. This is the starting
+point for current status, not a release diary.
 
 ## Verified release
 
@@ -23,12 +24,14 @@ commits are unpushed. This is the starting point for current status, not a relea
 - **Complete locally, unpushed:** [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md).
   Current status is consolidated, historical records preserved, active idea context kept together,
   and machine/browser recipes separated. Documentation and preservation checks pass.
-  No application, schema, CI or tooling behavior changes; no push requested. No next implementation
-  step is approved.
+  No application, schema, CI or tooling behavior changes; no push requested.
+- **In progress:** [Step 3 contract reset](reviews/2026-10-17/STEP-3.md), requested after Step 2.
+  [PRODUCT](PRODUCT.md) and [ARCHITECTURE](ARCHITECTURE.md) are drafts; five owner choices remain
+  pending. Brief v3 remains unchanged and authoritative until replacements are accepted.
+  No application implementation or workflow-policy change is approved by drafting them.
 - **Planning only:** [guided lessons](guided-lessons/README.md), including the 1917 drafts.
   The player and integration are not implemented or approved by this documentation work.
-- **Separate, unapproved follow-ups:** Step 3's contract reset; executable tooling changes;
-  feature/code reorganization. Brief v3 stays unchanged during Step 2.
+- **Separate, unapproved follow-ups:** executable tooling changes and feature/code reorganization.
 - **Owner direction:** [reassessment §15](reviews/2026-10-17/REASSESSMENT.md#15-owner-response-2026-10-17)
   takes precedence on experimental feature growth and the ideas file. The usage review is
   withdrawn. Friction is an input to ideas, not a condition for building features.
