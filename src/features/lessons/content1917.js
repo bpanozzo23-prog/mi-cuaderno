@@ -2,7 +2,7 @@
 // Source and excerpt decisions: its companion SOURCES.md. No remote content is fetched.
 export const lesson1917 = {
   "id": "mexico-1917",
-  "revision": "0.2.0-a1",
+  "revision": "0.3.0-a1",
   "title": "1917: Una Constitución, muchas promesas",
   "question": "¿Qué cambia cuando una demanda se convierte en un derecho?",
   "coreOrder": [
@@ -49,17 +49,20 @@ export const lesson1917 = {
       ],
       "sourceIds": [
         "S1",
-        "S2"
+        "S2",
+        "S6"
       ],
       "card": {
         "id": "c1917-places",
+        "variant": "mexico-1917-locator",
         "title": "Lugares del capítulo",
         "lines": [
           "Querétaro",
           "Ciudad de México",
           "Anenecuilco (Morelos)"
         ],
-        "note": "Orientación por nombres; no es un mapa histórico."
+        "description": "Querétaro está al noroeste de Ciudad de México; Anenecuilco, al sur y un poco al este. El recuadro muestra esta región dentro de México.",
+        "note": "Mapa actual simplificado · puntos de referencia aproximados."
       }
     },
     {
@@ -724,6 +727,17 @@ export const lesson1917 = {
           "label": "Exposición · INEHRM",
           "url": "https://repositorio-inehrm.cultura.gob.mx/exposiciones-digitales/las-mujeres-en-la-constitucion/"
         }
+      ]
+    },
+    {
+      "id": "S6",
+      "title": "Mapa de orientación · lugares del capítulo",
+      "credit": "Contorno: Natural Earth, Admin 0 Countries 1:110m, v5.1.1, dominio público. Puntos de referencia: INEGI, Anuario estadístico de los Estados Unidos Mexicanos 2004, cuadro 1.3; Secretaría de Cultura, SIC, ficha del Museo Casa Zapata.",
+      "limit": "Mapa de orientación actual, no de fronteras históricas. Los puntos usan las catedrales de Querétaro y Ciudad de México y el Museo Casa Zapata en Anenecuilco. Son referencias aproximadas: no delimitan municipios, parcelas ni el lugar donde se escribió la petición de 1910. Las líneas cortas solo unen cada punto con su nombre; no son rutas.",
+      "links": [
+        { "label": "Natural Earth · base geográfica y licencia", "url": "https://www.naturalearthdata.com/about/terms-of-use/" },
+        { "label": "INEGI · ubicaciones de ciudades, cuadro 1.3", "url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/historicos/2104/702825168469/702825168469_1.pdf" },
+        { "label": "SIC · Museo Casa Zapata en Anenecuilco", "url": "https://sic.cultura.gob.mx/ficha.php?disciplina=&table=museo&table_id=1229" }
       ]
     }
   ]

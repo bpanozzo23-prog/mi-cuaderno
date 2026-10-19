@@ -43,8 +43,19 @@ This is the starting point for current status, not a release diary.
   accessed. Claude's grounded findings were fixed. Run `npm run dev:lessons`; see the
   [preview instructions](guided-lessons/README.md#try-the-a1-preview).
   [First owner feedback](guided-lessons/chapters/1917/REVIEW.md#first-owner-feedback-visual-interest)
-  requests more visual interest; three disposable concepts are awaiting selection, with no player
-  changes in that exploration. Owner narrative/language/phone acceptance remains pending.
+  requests more visual interest. The owner selected the map-led option 2 and approved
+  [the bounded visual pass](guided-lessons/chapters/1917/REVIEW.md#selected-direction-and-bounded-visual-pass)
+  with “Proceed.” **The visual pass is implemented and verified locally**, including the
+  sourced modern locator and reader styling. The 2026-10-19 retry resolved the tool blockers;
+  zero-warning lint, **2,002 tests across 160 files** serially in 429.96s, production build and
+  isolation checks pass. All 45 production files match a fresh build of unchanged `a06ee3d`
+  byte for byte. Chromium at 375×812 and 1100×900 verified the map, source/help styling, keyboard
+  focus, both branches, conclusion and reload reset. Actual inspection caught and fixed a
+  clipped city label; Claude's review/follow-up confirms the grounded findings are resolved.
+  See the [visual closeout](guided-lessons/chapters/1917/REVIEW.md#visual-pass-retry-and-closeout)
+  and [design QA](../design-qa.md). The disposable browser profiles were removed and preview
+  stopped. Remote `main` was refreshed and remains `f86c841`; local commits are unpushed.
+  Owner visual/narrative/language/phone acceptance remains pending.
   Saved writing, notebook integration, schema changes and a production lesson release remain
   outside A1. The deployed revision above is unchanged; the preview and feedback record are local only.
 - **Complete and published:** [Step 5](reviews/2026-10-17/REASSESSMENT.md#12-suggested-order-of-work)'s

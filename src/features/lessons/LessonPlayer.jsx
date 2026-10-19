@@ -1,11 +1,14 @@
 import { useId, useLayoutEffect, useRef, useState } from "react";
+import { ChevronDown, List } from "lucide-react";
 import { Button, C, Card, SERIF } from "../../theme.jsx";
+import LessonLocator from "./LessonLocator.jsx";
 
 function Disclosure({ id, label, open, onToggle, children }) {
   return (
     <div className="lesson-disclosure">
       <Button type="button" tone="quiet" aria-expanded={open} aria-controls={id} onClick={onToggle}>
         {label}
+        <ChevronDown size={16} aria-hidden="true" className={open ? "lesson-chevron lesson-chevron-open" : "lesson-chevron"} />
       </Button>
       {open && <div id={id} className="lesson-disclosure-body">{children}</div>}
     </div>
@@ -23,12 +26,12 @@ function Passage({ block, source, translationOpen, onToggleTranslation, translat
     );
   }
   return (
-    <Card className="lesson-source-passage">
+    <div className={`lesson-source-passage lesson-source-passage--${block.type}`}>
       <p className="lesson-label">{block.label}</p>
       {block.type === "excerpt" ? <blockquote>{block.text}</blockquote> : <p>{block.text}</p>}
       {block.note && <p className="lesson-note">{block.note}</p>}
       {source && <p className="lesson-credit">{source.credit}</p>}
-    </Card>
+    </div>
   );
 }
 
@@ -74,16 +77,19 @@ export default function LessonPlayer({ lesson }) {
   return (
     <main className="lesson-reader" lang="es" style={{ color: C.ink, fontFamily: SERIF }}>
       <header className="lesson-header">
-        <p className="lesson-eyebrow">Mi cuaderno · Lecciones</p>
-        <h1>{lesson.title}</h1>
-        <p>{lesson.question}</p>
-        <p className="lesson-preview-note">
-          Vista previa: la posición y las respuestas a las opciones se reinician al recargar.
-          Usa Anterior, Siguiente e Índice para recorrer el capítulo. Atrás del navegador sale de esta vista.
-        </p>
-      </header>
-      <Disclosure id={`${instance}-outline`} label="Índice del capítulo" open={outlineOpen} onToggle={() => setOutlineOpen(!outlineOpen)}>
-        <nav aria-label="Páginas del capítulo">
+        <div className="lesson-toolbar">
+          <p className="lesson-brand">Mi cuaderno · Lecciones</p>
+          <div className="lesson-position">
+            <span aria-hidden="true">{coreIndex + 1} de {lesson.coreOrder.length}</span>
+            <progress aria-label="Posición de lectura" aria-valuetext={`Página ${coreIndex + 1} de ${lesson.coreOrder.length}`}
+              value={coreIndex + 1} max={lesson.coreOrder.length} />
+          </div>
+          <Button type="button" tone="quiet" aria-label="Índice del capítulo" aria-expanded={outlineOpen}
+            aria-controls={`${instance}-outline`} onClick={() => setOutlineOpen(!outlineOpen)}>
+            <List size={17} aria-hidden="true" /> Índice
+          </Button>
+        </div>
+        {outlineOpen && <nav id={`${instance}-outline`} aria-label="Páginas del capítulo">
           <ol className="lesson-outline">
             {lesson.coreOrder.map((id, index) => (
               <li key={id}>
@@ -93,12 +99,15 @@ export default function LessonPlayer({ lesson }) {
               </li>
             ))}
           </ol>
-        </nav>
-      </Disclosure>
+        </nav>}
+        <h1>{lesson.title}</h1>
+        <p className="lesson-question">{lesson.question}</p>
+      </header>
       <article key={step.id} aria-labelledby={`${instance}-step-title`}>
-        <p className="lesson-eyebrow">{step.kind === "branch" ? "Exploración opcional" : `Página ${coreIndex + 1} de ${lesson.coreOrder.length}`}</p>
+        {step.kind === "branch" && <p className="lesson-eyebrow">Exploración opcional</p>}
         <h2 ref={heading} tabIndex={-1} id={`${instance}-step-title`}>{step.title}</h2>
         {step.timeLabel && <p className="lesson-time-label">{step.timeLabel}</p>}
+        {step.card?.variant === "mexico-1917-locator" && <LessonLocator card={step.card} />}
         <div className="lesson-prose">
           {step.blocks.map((block) => (
             <Passage key={block.id} block={block} source={lesson.sources.find((source) => source.id === block.sourceId)}
@@ -106,7 +115,7 @@ export default function LessonPlayer({ lesson }) {
               onToggleTranslation={() => changeVisit({ translations: { ...visit.translations, [block.id]: !visit.translations?.[block.id] } })} />
           ))}
         </div>
-        {step.card && (
+        {step.card && !step.card.variant && (
           <Card className="lesson-orientation">
             <h3 id={`${instance}-${step.card.id}`}>{step.card.title}</h3>
             <ul>{step.card.lines.map((line) => <li key={line}>{line}</li>)}</ul>
@@ -173,6 +182,10 @@ export default function LessonPlayer({ lesson }) {
         {step.nextChapter && <aside className="lesson-next-chapter"><p className="lesson-label">Vista del próximo capítulo · todavía no disponible</p><p>{step.nextChapter}</p></aside>}
         {step.id === lesson.endId && <p role="status" className="lesson-feedback">{finished ? "Fin del capítulo. Puedes volver a cualquier página con el índice." : ""}</p>}
       </article>
+      <p className="lesson-preview-note">
+        Vista previa: la posición y las respuestas a las opciones se reinician al recargar.
+        Usa Anterior, Siguiente e Índice para recorrer el capítulo. Atrás del navegador sale de esta vista.
+      </p>
       <nav className="lesson-controls" aria-label="Recorrer el capítulo">
         {step.kind === "branch" ? (
           <Button type="button" onClick={() => go(step.returnTo, step.id)}>Volver a la lectura</Button>

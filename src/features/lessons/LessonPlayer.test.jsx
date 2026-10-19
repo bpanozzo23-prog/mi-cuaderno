@@ -20,6 +20,32 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe("isolated lesson reader", () => {
+  it("keeps the locator with the opening heading and restores it through the outline", async () => {
+    const user = userEvent.setup();
+    open();
+    const assertOpening = () => {
+      const figure = screen.getByRole("figure", { name: "Lugares del capítulo" });
+      const graphic = within(figure).getByRole("img", { name: "Lugares del capítulo" });
+      const description = document.getElementById(graphic.getAttribute("aria-describedby"));
+      for (const place of lesson1917.steps[0].card.lines) expect(description.textContent).toContain(place);
+      expect(within(figure).getByText(/puntos de referencia aproximados/)).toBeTruthy();
+      const heading = screen.getByRole("heading", { level: 2 });
+      const prose = screen.getByText(lesson1917.steps[0].blocks[0].text);
+      expect(heading.compareDocumentPosition(figure) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(figure.compareDocumentPosition(prose) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(screen.getByRole("progressbar", { name: "Posición de lectura" }).value).toBe(1);
+    };
+    assertOpening();
+    await jump(user, "Una petición no es un resultado");
+    expect(screen.queryByRole("img")).toBeNull();
+    await user.click(screen.getByRole("button", { name: /Investigar las pruebas/ }));
+    expect(screen.queryByRole("img")).toBeNull();
+    expect(screen.getByRole("progressbar").value).toBe(5);
+    await jump(user, "Querétaro, 1917");
+    assertOpening();
+    expect(document.activeElement).toBe(screen.getByRole("heading", { level: 2 }));
+    expect(screen.getByText(/Atrás del navegador sale de esta vista/)).toBeTruthy();
+  });
   it("reaches the conclusion and finishes without exercises or writing", async () => {
     const user = userEvent.setup();
     open();

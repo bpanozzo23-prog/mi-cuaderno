@@ -268,7 +268,8 @@ Fresh 375×812 captures show a readable but repetitive paragraph-and-card rhythm
 title, preview notice and outline control occupy substantial space before the story. Three
 independent image concepts were shown, in this order: **1. Illustrated reader**, **2. Map-led
 opening**, **3. Evidence-focused page**. The images and side-by-side comparison are disposable
-artifacts outside the repository. No direction has been selected and no player code changed.
+artifacts outside the repository. No player code changed during the comparison. The owner's
+subsequent selection and proposed implementation pass are recorded below.
 
 The useful opportunities are a quieter opening, distinctive source quotations, a compact place
 locator, a visual comparison of the page-5 evidence, and the page-9 date distinction. These can
@@ -293,7 +294,197 @@ option 3's closing Spanish paragraph above English help so it cannot look like d
 Check diagram wrapping and navigation spacing in the real 375px reader. The mockup review is
 visual evidence, not geographic verification, rights clearance or a test of the remaining pages.
 
-Next: the owner chooses or refines the visual direction, then agree the bounded structural/media
-implementation scope. A1's existing no-storage/no-notebook boundaries remain intact. This pass
+At the comparison stage, direction and implementation scope were pending. A1's existing
+no-storage/no-notebook boundaries remain intact. This pass
 captured and inspected the unchanged reader and reviewed concepts; it does not repeat or replace
 the implementation test/build evidence above, or establish physical-phone acceptance.
+
+## Selected direction and bounded visual pass
+
+2026-10-18 — The owner selected **option 2, the map-led opening**: “2 is the most interesting
+looking option.” This resolves the visual direction. A refined image keeps its warm atlas-like
+appearance, clearer labels and quieter preview notice; it remains a style reference, not verified
+geography. The owner approved the two-commit implementation pass with “Proceed.” Routine
+implementation and verification fixes are authorized; publication remains separate.
+
+The existing reader repeats paragraph/card treatments, and the opening notice delays the story.
+This pass should make the opening more inviting and geographically meaningful while improving
+the reading hierarchy across the chapter. It does not add the option-3 evidence diagram, date
+diagrams, photographs, activities or additional map placements.
+
+### Two implementation commits
+
+1. **Prepare a verified, local locator.** Use a pinned reusable geographic base and independently
+   checked locality positions for Querétaro, Ciudad de México and Anenecuilco. Render a compact
+   central-Mexico locator with a whole-country inset, north up, no state boundaries, invented
+   shaded regions, routes or historical control areas. Keep the selected paper/blue/ochre style,
+   but derive geography from source data. Record provenance, source hashes, point records and
+   projection/crop choices in `SOURCES.md`. Add a small static `LessonLocator.jsx` and only the
+   necessary opening-card metadata and validation in `content1917.js` / `contentValidation.js`.
+   Retain the three place names as a text equivalent and a visible modern-orientation caption.
+   No general media loader, map library, remote tiles or runtime fetches. Do not ship unverified
+   coordinates or substitute the generated map for the checked asset.
+2. **Apply the selected reader layout and verify it.** In `LessonPlayer.jsx`, group the existing
+   outline and reading-position information into a compact header, place the locator immediately
+   after the opening's heading and before its prose, and replace the opening's name-only card.
+   Keeping the heading before the map lets existing heading focus/scroll reveal it on return.
+   Give the reset/navigation notice a quieter location in normal flow while preserving its full
+   information. Use scoped `preview/preview.css` for typography, spacing, dividers and distinct
+   source treatments. Retain readable prose, credits and help; do not trade font size for fitting
+   the entire page into one viewport. Leave navigation state, branch refs, focus/scroll effect,
+   choice behavior and source links intact. Complete the checks below and record the outcome.
+
+The map's subject matter was already allowed in A1; replacing the card and regrouping the header
+are structural under the guide's visual-change rule, covered by the owner's approval of this
+bounded pass. Effort is small to medium; the main risks are geographic fidelity,
+crowded labels, heading/branch focus and accidental inclusion in production assets. It fits the
+isolated preview without changes to notebook data, schema v12, backups, reference data or events.
+All component/assets remain under `src/features/lessons/`, outside `public/`; use existing palette
+tokens. Any asset derivation is data-based cartography, not invented vector illustration.
+
+### Geographic preparation at approval time
+
+[Natural Earth 1:50m Admin 0 Countries](https://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-admin-0-countries-2/)
+has a [pinned v5.1.1 source](https://github.com/nvkelso/natural-earth-vector/tree/v5.1.1/50m_cultural)
+and [public-domain terms](https://www.naturalearthdata.com/about/terms-of-use/). Its geometry has
+not yet been downloaded or inspected for this pass. Use the matching source files together and
+extract Mexico; the final asset should not suggest a historical boundary reconstruction.
+
+The [INEGI locality API](https://www.inegi.org.mx/servicios/catalogounico.html) documents decimal
+latitude/longitude. Exact response values remain unverified for
+[Anenecuilco](https://gaia.inegi.org.mx/wscatgeo/v2/localidades/170040004),
+[Santiago de Querétaro](https://gaia.inegi.org.mx/wscatgeo/v2/localidades/220140001), and the
+[Ciudad de México lookup](https://gaia.inegi.org.mx/wscatgeo/v2/localidades/buscar/ciudad%20de%20m%C3%A9xico).
+Resolve an appropriate city/locality point, not the federal entity's centroid. The read-only
+lookup did not execute because automatic approval review reported model capacity; this was a
+technical review failure, not an unsafe-action determination. Coordinate verification remains a
+prerequisite to the map commit. The generated mockup does not close that gap. These were the
+preparation limits; the implementation resolved the geographic sources as recorded in
+[SOURCES V1](SOURCES.md#v1-verified-modern-locator-2026-10-18).
+
+### Verification after approval
+
+- Check map geometry and projected markers against the geographic sources, including label
+  separation at 375px. Static image tests alone do not prove geographic accuracy.
+- Add focused cases for locator metadata/required text alternatives and an opening-only figure.
+  Preserve existing outline, branch return, focus/scroll, help, choices and reload-reset tests.
+  Compare all narrative, excerpt and help strings with the pre-change chapter.
+- Inspect the real reader at 375×812 and a wider viewport: opening, long/source-heavy pages,
+  open help, both branches and conclusion. Check keyboard visibility, map labels, overflow,
+  captions, notice readability and browser errors using disposable fixtures only.
+- Run zero-warning lint, the complete serial test suite, production build and diff checks.
+  Recheck preview isolation and absence of lesson/map assets from production output, and
+  smoke-check the ordinary app if shared generated CSS changes. Consult Claude on the finished
+  visual/accessibility and isolation changes; resolve grounded findings within this scope.
+
+No application code changed in the preparation pass. The subsequent “Proceed” authorized
+implementation; publication still requires a separate push request.
+
+## Visual pass: implementation and verification handoff
+
+2026-10-18 checkpoint — The approved pass was implemented in the working tree, **not yet complete,
+committed, pushed or deployed**. The 2026-10-19 retry/closeout below supersedes this blocker status.
+The pass replaces the opening name card with the verified modern locator,
+groups the outline and reading position into a compact header, preserves the full preview
+notice below the reading, and distinguishes excerpts from paraphrases through scoped styling.
+No new activity, persistence, notebook integration, event, backup or schema change is included.
+
+The source packet closes geographic verification using a pinned Natural Earth 1:110m outline
+and official landmark records. Two read-only Codex investigations checked source provenance and
+player/validation risks. Their grounded fixes bind labels to stable place IDs, reject reordered
+text equivalents and move the Ciudad de México label below the inset. Actual glyph clearance
+and visual quality still need browser inspection; source review does not establish them.
+
+Completed checks:
+
+- Zero-warning lint and all **2,002 tests across 160 files** in the complete serial suite,
+  417.18s, exit zero with no failing tests or unhandled errors. The final label-only adjustment
+  shortened the inset label to “México” and increased its size; a subsequent focused run passed
+  **42 tests across two files** in 5.85s, followed by lint. The suite adds seven authoring
+  rejection cases and one locator/reading-position/navigation integration case.
+- A disposable copy of the authoring test fails on “swapped locator names” when the name guard
+  is deliberately removed, then passes with the original validator restored. Repository files
+  were not changed for this regression proof.
+- All narrative, quotations, help, activities, original sources and reading order compare
+  unchanged with the pre-pass content. The three original place names remain a text equivalent.
+- Production build passes with the existing chunk-size warning. All **45 production files**
+  match a fresh build of unchanged `a06ee3d` byte for byte, including CSS, app bundles and service
+  worker. An older on-disk build differed, so it was not used as the isolation baseline.
+  Lesson/map identifiers and source strings are absent from production text assets. The lesson
+  configuration still refuses production build and `vite preview`.
+- Source geometry is a closed 170-vertex polygon; numerical checks place all three landmarks
+  inside it. Projection and inset extent derive from the same coordinates. This is separate
+  from the required mobile label/layout inspection.
+
+Checks blocked at the 2026-10-18 handoff:
+
+- A loopback-only preview launch and its single retry did not execute because automatic
+  approval review timed out. The browser inventory call timed out in the same service. A safer
+  sandbox launch failed with `listen EPERM` at `127.0.0.1:5341`; no server was started.
+- The read-only Claude CLI implementation review produced no result in the sandbox and was
+  stopped. Its network-enabled launch did not execute: automatic approval review reported that
+  the selected review model was at capacity. This was a review-service failure, not an
+  unsafe-action determination. Earlier Claude concept reviews remain useful history but do
+  not count as review of this implementation.
+- Resume with real 375×812 and wide-reader inspection, including map labels/inset, keyboard
+  focus, open help/source notes, both branch returns and conclusion. Verify zero overflow,
+  unexpected network requests, persistence access or console errors using a disposable browser.
+  Obtain Claude's focused implementation review and resolve grounded findings, then record the
+  final evidence and make the two planned commits. Refresh/inspect the remote before committing;
+  this turn has not re-established remote freshness. Push still requires the owner's request.
+
+Scratch evidence is under `/tmp/mi-cuaderno-lesson-map/` (serial/focused/lint/build logs, source
+geometry, production hashes, mutation results and the prepared Claude prompt). The selected
+style reference remains `/tmp/mi-cuaderno-lesson-visuals/map-refined.png`. No owner data was
+opened and no new browser profile or live preview needs cleanup. Owner narrative/language and
+physical-phone acceptance remain pending independently of these tool failures.
+
+## Visual pass: retry and closeout
+
+2026-10-19 — The owner requested a retry of the blocked checks. The preview, disposable Chromium
+and read-only Claude CLI review all ran successfully. **The bounded pass is complete locally;
+it is not pushed or deployed.** Remote `main` was fetched and remains `f86c841`; the six earlier
+local commits were preserved.
+
+The real phone-width render exposed a clipped Ciudad de México label (right edge 361.02px,
+map edge 359px). The label now ends to the left of its unchanged marker. The inset is slightly
+taller, with its country name below the coastline. Both fixes passed a fresh capture and label
+bounds check at 375×812 and 1100×900. Claude found that the new source credit preceded the
+historical sources and that the visual register was stale. S6 now follows S1–S5, the citation
+test removes its target by stable ID, and the register points to the verified provenance.
+Claude's focused follow-up read the corrected code and phone/desktop screenshots and confirmed
+all grounded findings resolved, with no concrete defect introduced by the fixes. Potential
+screen-reader repetition remains an unverified minor consideration; no screen-reader test is
+claimed.
+
+Final verification:
+
+- Zero-warning lint; complete serial suite **2,002/2,002 tests across 160 files in 429.96s**,
+  exit zero, no failing tests or unhandled errors; production build and `git diff --check` pass.
+  An earlier retry was intentionally interrupted to incorporate review fixes before the final
+  complete run. The existing chunk-size build warning and nine jsdom `scrollTo` notices remain.
+- All **45 production files** still match the fresh unchanged-`a06ee3d` build byte for byte,
+  including CSS, JavaScript and service worker. No ordinary-app smoke repeat was necessary
+  because no shared generated assets changed. The development-only lesson build/preview guards
+  remain verified; no notebook integration or production lesson assets were introduced.
+- Browser checks capture 19 screenshots at the two widths. Inspected views cover the opening,
+  map on return, long/source-heavy pages, open English/glossary/translation help, keyboard focus,
+  both optional branches, dates, conclusion and reflection. Branch return retains exact scroll,
+  launch focus and help state; completion needs no writing, and reload resets the visit. There
+  is no horizontal overflow, browser exception or console warning. All 27 unique requests stay
+  on the local origin; guards detect no database access, storage writes or service-worker
+  registration. [Design QA](../../../../design-qa.md) records the comparison, fixes and expected
+  adaptations from the generated style reference.
+- A fresh full download of the pinned geographic source exactly matches the bundled geometry;
+  its upstream hash is now recorded in [SOURCES](SOURCES.md#v1-verified-modern-locator-2026-10-18).
+  Original narrative, quotations, help, activities, glossary and historical-source order remain
+  unchanged. The earlier deliberate authoring regression proof remains valid.
+
+The two commit boundaries keep the verified locator/data/provenance preparation separate from
+the reader/content/validation integration and its verification record. Scratch evidence remains
+under `/tmp/mi-cuaderno-lesson-map/`: `browser-result.json`, `design-comparison.png`, screenshots,
+`claude-retry.json`, `claude-followup.json`, `serial-retry-final.log`, `build-retry-final.log` and
+`production-comparison-final.json`. Temporary profiles were removed and the loopback preview
+stopped. No owner data was opened. To try the reader, use `npm run dev:lessons` and the printed
+local URL; owner visual/narrative/language and physical-phone acceptance remain the next input.
+Publication still requires an explicit push request.

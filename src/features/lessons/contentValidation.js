@@ -1,4 +1,5 @@
 // Validate the small, authored A1 format. This is not a remote lesson/package loader.
+import { locatorPlaces } from "./locatorMexico1917.js";
 const BLOCK_TYPES = new Set(["paragraph", "excerpt", "paraphrase", "translation"]);
 const list = (value) => Array.isArray(value) ? value : [];
 const filled = (value) => typeof value === "string" && value.trim().length > 0;
@@ -87,6 +88,15 @@ export function validateLesson(lesson) {
       check(list(step.card.lines).length > 0, `${step.card.id}: card lines are required`);
       unique(list(step.card.lines), `${step.card.id} lines`);
       for (const line of list(step.card.lines)) text(line, `${step.card.id} line`);
+      if (step.card.variant !== undefined) {
+        check(step.card.variant === "mexico-1917-locator", `${step.card.id}: unsupported locator variant`);
+        check(step.id === coreOrder[0] && step.kind === "core", `${step.card.id}: locator belongs on the opening only`);
+        check(list(step.card.lines).length === 3, `${step.card.id}: locator needs three place names`);
+        check(locatorPlaces.every((place, index) => list(step.card.lines)[index] === place.name), `${step.card.id}: locator place names must match the verified landmarks`);
+        text(step.card.description, `${step.card.id} locator description`);
+        text(step.card.note, `${step.card.id} locator caption`);
+        check(list(step.sourceIds).includes("S6"), `${step.card.id}: locator source must be cited`);
+      }
     }
     if (step.activity) {
       identify(step.activity.id, "Activity");

@@ -1,6 +1,6 @@
 # 1917: Una Constitución, muchas promesas
 
-Storyboard v0.2 — 2026-10-18. **Revised for the owner-approved A1 preview.**
+Storyboard v0.3 — 2026-10-18. **Revised for the owner-approved A1 preview and map-led visual pass.**
 
 The owner selected a full 1917 chapter first, followed by 1920, with a Spanish story and
 English help. This document develops that choice into a readable narrative and bounded
@@ -59,7 +59,7 @@ does not override the separate persistence approval in the development plan.
 
 ## 1. Querétaro, 1917
 
-ID: `c1917-opening` · Role: narrative opening · Evidence: S1, S2.
+ID: `c1917-opening` · Role: narrative opening · Evidence: S1, S2; V1 / reader S6 for orientation.
 
 **Spanish narration**
 
@@ -82,9 +82,13 @@ and whose demands remain outside the settlement.
 
 **Visual / action**
 
-V1, a simple modern locator map showing Querétaro, Mexico City, and Anenecuilco. Caption:
-*Mapa de orientación actual; no representa límites de propiedad de 1917.* The first page needs
-no quiz or vocabulary pretest. Button: *Comenzar*.
+V1, a simple modern locator showing Querétaro, Ciudad de México, and Anenecuilco, placed after
+the opening heading and before the prose. A whole-country inset locates the central region.
+Caption: *Mapa actual simplificado · puntos de referencia aproximados.* The
+[source packet](SOURCES.md#v1-verified-modern-locator-2026-10-18) records the Natural Earth
+outline and official city/museum landmarks. These orient the reader; they do not reconstruct
+1917 boundaries, parcels or event sites. The first page needs no quiz or vocabulary pretest;
+the preview retains its existing *Siguiente* control.
 
 **Editorial boundary:** no invented weather, crowd reactions, dialogue, or claim that February
 1917 ended the war. A historical photograph may supplement the map only after verification.
