@@ -36,6 +36,9 @@ This is the starting point for current status, not a release diary.
   No application, schema, CI or executable tooling changes; no optional-field exception granted.
 - **Planning only:** [guided lessons](guided-lessons/README.md), including the 1917 drafts.
   The player and integration are not implemented or approved by this documentation work.
+  The [2026-10-18 review and A1 preview proposal](guided-lessons/chapters/1917/REVIEW.md) records
+  editorial refinements and a separate development entry for the full chapter. Owner approval
+  of that bounded implementation remains pending; the current script is unchanged.
 - **Complete and published:** [Step 5](reviews/2026-10-17/REASSESSMENT.md#12-suggested-order-of-work)'s
   bounded lint setup (`6492682`, `872cb8f`, `2dfe9c2`). `npm run lint` checks active JavaScript and
   React Hooks with zero warnings; CI runs it before the serial tests and build. Intentional

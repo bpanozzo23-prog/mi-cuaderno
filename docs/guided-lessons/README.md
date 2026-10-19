@@ -11,9 +11,11 @@ The 1917 storyboard is drafted; the lesson player and integration remain propose
 | [Development plan](PLAN.md) | Feature scope, chapter sequence, player and notebook integration, durability, audio, and implementation approval gates. |
 | [1917 storyboard](chapters/1917/STORYBOARD.md) | Page-by-page Spanish narrative, English help, optional activities, and visual suggestions. |
 | [1917 sources](chapters/1917/SOURCES.md) | Checked passages, source limitations, image candidates, and remaining publication checks. |
+| [1917 review and preview proposal](chapters/1917/REVIEW.md) | Editorial findings and a bounded development-only first preview, pending owner approval. |
 
-Next: review the 1917 narrative, Spanish difficulty, and activities before approving player
-implementation. The [1920 outline](PLAN.md#chapter-2-storyboard--1920) is in the development plan;
+Next: consider the [editorial refinements and A1 preview scope](chapters/1917/REVIEW.md) before
+approving player implementation. The storyboard has not yet been revised or accepted by the owner.
+The [1920 outline](PLAN.md#chapter-2-storyboard--1920) is in the development plan;
 it does not yet have a separate storyboard.
 
 ## Organization
