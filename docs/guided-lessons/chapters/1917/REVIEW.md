@@ -257,3 +257,34 @@ Run instructions and owner review prompts are in [the feature README](../../READ
 Owner acceptance of narrative interest, Spanish difficulty, pacing and phone usability remains
 pending. The optional reflection still does not test durable writing. Broader media work and
 increment B's storage/backup/resume design need their own bounded plan; a push remains separate.
+
+## First owner feedback: visual interest
+
+2026-10-18 — The owner wants a more visually appealing lesson to help sustain interest,
+including possible images, maps, diagrams and formatting improvements. This is the first
+preview feedback, not acceptance of the narrative, language level or whole chapter.
+
+Fresh 375×812 captures show a readable but repetitive paragraph-and-card rhythm; the opening's
+title, preview notice and outline control occupy substantial space before the story. Three
+independent image concepts were shown, in this order: **1. Illustrated reader**, **2. Map-led
+opening**, **3. Evidence-focused page**. The images and side-by-side comparison are disposable
+artifacts outside the repository. No direction has been selected and no player code changed.
+
+The useful opportunities are a quieter opening, distinctive source quotations, a compact place
+locator, a visual comparison of the page-5 evidence, and the page-9 date distinction. These can
+be combined after owner feedback; they are not an instruction to decorate every page. Actual
+chapter text and the existing palette ground the concepts. The generated map is a layout sketch
+with unverified geography/boundaries, not a usable geographic asset. Illustrations are conceptual,
+not archival evidence; source labels, readable text and accessible text equivalents remain needed.
+
+Two read-only Codex investigations covered pacing and media/source candidates. A focused Claude
+review supported compact visuals and warned against implying that the local petition caused the
+national rule or that legal recognition proves local implementation. Keep the page-5 local outcome
+explicitly unanswered, the page-9 election exception visible and implementation undated. A map
+needs verified placement and a reusable base; archival photographs need item-level image, caption
+and rights review. No photograph or scan was cleared or added in this pass.
+
+Next: the owner chooses or refines the visual direction, then agree the bounded structural/media
+implementation scope. A1's existing no-storage/no-notebook boundaries remain intact. This pass
+captured and inspected the unchanged reader and reviewed concepts; it does not repeat or replace
+the implementation test/build evidence above, or establish physical-phone acceptance.

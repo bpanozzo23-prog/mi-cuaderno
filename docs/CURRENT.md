@@ -42,9 +42,11 @@ This is the starting point for current status, not a release diary.
   branch return, reload reset and the ordinary app with synthetic fixtures; no owner data was
   accessed. Claude's grounded findings were fixed. Run `npm run dev:lessons`; see the
   [preview instructions](guided-lessons/README.md#try-the-a1-preview).
-  Owner narrative/language/phone acceptance remains pending. Saved writing, notebook integration,
-  schema changes and a production lesson release remain outside A1. The deployed revision above
-  is unchanged; the review plus three implementation commits are local only.
+  [First owner feedback](guided-lessons/chapters/1917/REVIEW.md#first-owner-feedback-visual-interest)
+  requests more visual interest; three disposable concepts are awaiting selection, with no player
+  changes in that exploration. Owner narrative/language/phone acceptance remains pending.
+  Saved writing, notebook integration, schema changes and a production lesson release remain
+  outside A1. The deployed revision above is unchanged; the preview and feedback record are local only.
 - **Complete and published:** [Step 5](reviews/2026-10-17/REASSESSMENT.md#12-suggested-order-of-work)'s
   bounded lint setup (`6492682`, `872cb8f`, `2dfe9c2`). `npm run lint` checks active JavaScript and
   React Hooks with zero warnings; CI runs it before the serial tests and build. Intentional
