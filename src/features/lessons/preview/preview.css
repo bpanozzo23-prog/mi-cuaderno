@@ -1,0 +1,46 @@
+@import "../../../index.css";
+@source "../";
+@source "../../../theme.jsx";
+
+/* Keep keyboard-focused controls clear of the sticky chapter navigation. */
+html { scroll-padding-bottom: 6rem; }
+body { margin: 0; background: var(--color-paper); }
+.lesson-reader { max-width: 42rem; margin: 0 auto; padding: 1.25rem 1rem 0; line-height: 1.7; overflow-wrap: anywhere; }
+.lesson-reader h1 { font-size: 1.65rem; line-height: 1.25; font-weight: 600; margin: .4rem 0 .8rem; }
+.lesson-reader h2 { font-size: 1.4rem; line-height: 1.35; font-weight: 600; margin: .4rem 0 1rem; scroll-margin-top: 1rem; }
+.lesson-reader h3 { font-weight: 600; line-height: 1.5; margin-bottom: .6rem; }
+.lesson-reader p { margin: .65rem 0; }
+.lesson-reader article { margin-top: 1.75rem; }
+.lesson-reader button, .lesson-reader summary { min-height: 44px; cursor: pointer; }
+.lesson-reader button:disabled { cursor: default; }
+.lesson-reader button:focus-visible, .lesson-reader a:focus-visible, .lesson-reader summary:focus-visible { outline: 2px solid var(--color-pen); outline-offset: 3px; }
+.lesson-reader h2:focus { outline: none; }
+.lesson-reader a { color: var(--color-pen-dark); text-decoration: underline; text-underline-offset: 3px; }
+.lesson-eyebrow, .lesson-label { font-family: system-ui, sans-serif; font-size: .78rem; color: var(--color-pen-dark); }
+.lesson-eyebrow { letter-spacing: .06em; }
+.lesson-preview-note, .lesson-note, .lesson-credit { font-family: system-ui, sans-serif; font-size: .85rem; line-height: 1.6; }
+.lesson-preview-note { padding: .7rem .85rem; background: var(--color-pen-pale); border-radius: .6rem; }
+.lesson-time-label { color: var(--color-pen-dark); border-left: 3px solid var(--color-pen); padding-left: .7rem; font-size: .92rem; }
+.lesson-prose p { margin-bottom: 1rem; }
+.lesson-source-passage, .lesson-orientation, .lesson-activity, .lesson-reflection { margin: 1.1rem 0; }
+.lesson-reader blockquote { font-size: 1.17rem; border-left: 3px solid var(--color-pen); padding-left: .8rem; margin: .7rem 0; }
+.lesson-disclosure { margin: .8rem 0; }
+.lesson-disclosure-body { padding: .5rem .15rem; }
+.lesson-outline { list-style: none; }
+.lesson-outline button { text-align: left; padding: .6rem .3rem; color: var(--color-pen-dark); width: 100%; }
+.lesson-outline [aria-current="step"] { font-weight: 700; background: var(--color-pen-pale); border-radius: .4rem; }
+.lesson-reader ul { padding-left: 1.1rem; list-style: disc; }
+.lesson-reader li { margin: .4rem 0; }
+.lesson-glossary > div { padding: .5rem 0; border-bottom: 1px solid var(--color-line); }
+.lesson-glossary dt { font-weight: 600; }
+.lesson-glossary dd { font-family: system-ui, sans-serif; font-size: .93rem; }
+.lesson-branch-button { margin: .6rem 0; }
+.lesson-choices { display: grid; gap: .7rem; margin: 1rem 0; }
+.lesson-choices button { text-align: left; justify-content: start; line-height: 1.6; }
+.lesson-choices [aria-pressed="true"] { outline: 2px solid var(--color-pen); outline-offset: 2px; }
+.lesson-feedback { padding: .7rem; background: var(--color-pen-pale); border-radius: .5rem; }
+.lesson-feedback:empty { padding: 0; margin: 0; }
+.lesson-explanations li { margin-bottom: 1rem; }
+.lesson-source-note { border-top: 1px solid var(--color-line); padding-top: 1rem; margin-top: 1rem; font-family: system-ui, sans-serif; font-size: .9rem; }
+.lesson-next-chapter { border-top: 1px solid var(--color-line); margin-top: 1.5rem; padding-top: .5rem; }
+.lesson-controls { position: sticky; bottom: 0; display: flex; justify-content: space-between; gap: .75rem; padding: .85rem 0; margin-top: 1.5rem; background: var(--color-paper); border-top: 1px solid var(--color-line); }

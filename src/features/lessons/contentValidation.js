@@ -8,6 +8,7 @@ export function validateLesson(lesson) {
   const ids = new Set();
   const check = (condition, message) => { if (!condition) errors.push(message); };
   const text = (value, name) => check(filled(value), `${name}: text is required`);
+  const unique = (values, name) => check(new Set(values).size === values.length, `${name}: duplicate entries`);
   const identify = (value, name) => {
     check(filled(value), `${name}: id is required`);
     check(!ids.has(value), `${name}: duplicate id ${value}`);
@@ -31,6 +32,7 @@ export function validateLesson(lesson) {
     identify(source.id, "Source");
     for (const key of ["title", "credit", "limit"]) text(source[key], `${source.id} ${key}`);
     check(list(source.links).length > 0, `${source.id}: source link is required`);
+    unique(list(source.links).map((link) => link.url), `${source.id} links`);
     for (const link of list(source.links)) {
       text(link.label, `${source.id} link label`);
       let safe = false;
@@ -48,7 +50,12 @@ export function validateLesson(lesson) {
     check(["core", "branch"].includes(step.kind), `${step.id}: unknown step kind`);
     text(step.title, `${step.id} title`);
     text(step.english, `${step.id} English help`);
-    if (step.kind === "core") check(coreOrder.includes(step.id), `${step.id}: core step is unreachable`);
+    check(Array.isArray(step.blocks), `${step.id}: blocks must be an array`);
+    check(Array.isArray(step.glossaryIds), `${step.id}: glossaryIds must be an array`);
+    if (step.kind === "core") {
+      check(coreOrder.includes(step.id), `${step.id}: core step is unreachable`);
+      check(list(step.blocks).length > 0, `${step.id}: core reading passages are required`);
+    }
     check(list(step.sourceIds).length > 0, `${step.id}: citations are required`);
     for (const id of list(step.sourceIds)) check(sources.has(id), `${step.id}: missing source ${id}`);
     for (const id of list(step.glossaryIds)) check(glossary.has(id), `${step.id}: missing glossary ${id}`);
@@ -57,11 +64,14 @@ export function validateLesson(lesson) {
       check(BLOCK_TYPES.has(block.type), `${block.id}: unsupported block type`);
       text(block.text, `${block.id} passage`);
       if (block.type !== "paragraph") text(block.label, `${block.id} label`);
-      if (block.type === "excerpt") {
+      if (block.sourceId || block.type === "excerpt") {
         check(sources.has(block.sourceId) && list(step.sourceIds).includes(block.sourceId), `${block.id}: excerpt source must be cited on its step`);
+      }
+      if (block.type === "excerpt") {
         text(block.note, `${block.id} edition note`);
       }
     }
+    unique(list(step.branchIds), `${step.id} branches`);
     for (const id of list(step.branchIds)) {
       const branch = byId.get(id);
       check(step.kind === "core" && branch?.kind === "branch" && branch.returnTo === step.id, `${step.id}: invalid branch destination/return ${id}`);
@@ -75,6 +85,7 @@ export function validateLesson(lesson) {
       identify(step.card.id, "Card");
       text(step.card.title, `${step.card.id} title`);
       check(list(step.card.lines).length > 0, `${step.card.id}: card lines are required`);
+      unique(list(step.card.lines), `${step.card.id} lines`);
       for (const line of list(step.card.lines)) text(line, `${step.card.id} line`);
     }
     if (step.activity) {
@@ -82,6 +93,7 @@ export function validateLesson(lesson) {
       text(step.activity.prompt, `${step.activity.id} prompt`);
       const options = list(step.activity.options);
       check(options.length >= 2, `${step.activity.id}: at least two choices required`);
+      // Authoring metadata, not a persisted grade or a gate to progress.
       check(options.some((option) => option.id === step.activity.answerId), `${step.activity.id}: invalid answer id`);
       for (const option of options) {
         identify(option.id, "Choice");
@@ -93,6 +105,7 @@ export function validateLesson(lesson) {
       identify(step.reflection.id, "Reflection");
       for (const key of ["title", "prompt", "selfCheck", "model"]) text(step.reflection[key], `${step.reflection.id} ${key}`);
       check(list(step.reflection.frames).length > 0, "Reflection frames are required");
+      unique(list(step.reflection.frames), `${step.reflection.id} frames`);
       for (const frame of list(step.reflection.frames)) text(frame, "Reflection frame");
     }
   }

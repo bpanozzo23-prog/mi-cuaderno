@@ -2,7 +2,7 @@
 
 Planning, research, and chapter drafts for Mi Cuaderno's guided-lesson feature. The initial
 history sequence is **1917, then 1920**, with Spanish storytelling and optional English help.
-The 1917 storyboard is drafted; its bounded A1 preview is approved and in progress.
+The reviewed 1917 chapter now has a complete, verified local A1 preview.
 Notebook integration remains proposed work.
 
 ## Start here
@@ -16,10 +16,31 @@ Notebook integration remains proposed work.
 | [1917 sources](chapters/1917/SOURCES.md) | Checked passages, source limitations, image candidates, and remaining publication checks. |
 | [1917 review and preview proposal](chapters/1917/REVIEW.md) | Editorial findings and the approved development-only first preview. |
 
-Next: implement and verify the [approved A1 preview](chapters/1917/REVIEW.md), then review
-the chapter in that reader. Owner acceptance of narrative and language remains pending.
+Next: review the chapter in the [completed A1 preview](chapters/1917/REVIEW.md#implementation-closeout).
+Owner acceptance of narrative, language and phone usability remains pending.
 The [1920 outline](SCOPE.md#chapter-2-storyboard--1920) is in Scope;
 it does not yet have a separate storyboard.
+
+## Try the A1 preview
+
+From the repository root, run `npm run dev:lessons` and open `http://127.0.0.1:5174/` on
+that same computer. If that port is occupied, choose another explicitly, for example
+`npm run dev:lessons -- --port 5341`; the server will not silently change ports. Stop it with Ctrl+C.
+This is a separate development reader, without a Lecciones tab in the normal app. Building or
+serving it with `vite preview` is intentionally blocked.
+
+Read with Anterior, Siguiente or Índice. Both optional branches return to their launch point;
+English help, translations, glosses, explanations and sources open in place. No exercise is
+required. Position and choices reset on reload. The final reflection has a prompt and model,
+with no typing field or saved writing. Source links open a separate tab and need connectivity.
+
+Review narrative interest and pacing, Spanish difficulty, usefulness of English/glossary help,
+and whether the optional checks and final reflection help. Screenshots and automated checks
+establish the implemented behavior; they do not settle those editorial choices.
+
+The XPS's loopback address is not reachable from another device. A phone walkthrough needs the
+verified [private-network recipe](../agents/XPS.md#checks-and-phone-preview) and a reachable port;
+no public preview or deployment has been enabled. Task-created verification servers are stopped.
 
 ## Organization
 

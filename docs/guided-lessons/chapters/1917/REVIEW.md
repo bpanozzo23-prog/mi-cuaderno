@@ -1,4 +1,4 @@
-# 1917 review and proposed first preview
+# 1917 review and A1 preview
 
 2026-10-18. **Owner-approved A1 implementation scope.**
 Approval followed the completed review: “Approved, proceed.” The three commits and all seven
@@ -152,7 +152,8 @@ Acceptance after implementation:
 - Request focused Claude review of content changes and completed preview boundaries. Resolve
   grounded findings within the approved scope, rather than requesting approval for routine fixes.
 
-No tests or build were run for this document-only review; no application behavior changed.
+At the original document-only review, no tests or build were run and no application behavior changed.
+Implementation evidence follows below.
 
 ## Evidence and review record
 
@@ -199,3 +200,60 @@ model's recommendation is treated as owner approval.
 Implementation editorial check: Claude reviewed v0.2 and confirmed the seven rows and objective
 answer keys. Routine fixes clarified B2's two-word title and schedule wording, retained Galindo's
 written action in English, smoothed page-9 grammar and made approval status explicit.
+
+## Implementation closeout
+
+2026-10-18 — A1 is complete locally, not pushed or deployed. The seven editorial refinements,
+planning split, structured chapter and isolated player are implemented. Content revision is
+`0.2.0-a1`; semantic IDs are independent of that revision. The text-card fallback was used for
+place orientation, and the [source packet](SOURCES.md) records the specific basis for the two
+short excerpts. No archival images or new media were included.
+
+Verification of the final implementation:
+
+- Zero-warning lint and **34 focused tests** pass. The complete serial suite passes
+  **1,994 tests across 160 files in 415.79s**, with zero exit and no unhandled errors.
+  An earlier sandboxed run terminated with exit 143 without results; its remaining process group
+  was stopped before the clean final run. No timeout policy or fake timers changed.
+  The suite prints nine jsdom `Window.scrollTo` notices; lesson scrolling is mocked in component
+  tests and independently verified in Chromium. These are not unhandled Vitest errors.
+- The production build passes; the existing chunk-size warning remains. Production output and
+  service-worker entries contain no preview HTML, lesson code/text or lesson-only styles/assets.
+  The separate lesson config refuses both build and preview commands with its development-only
+  error. Production CSS is byte-identical to the pre-task build. The JavaScript hashes change
+  because `src/version.js` imports package metadata, now including `dev:lessons`; that script
+  string is present, but the lesson entry and content are absent. No assets were added beyond
+  the renamed app chunks; `index.html` and `sw.js` reference their new hashes.
+- Content validation catches a deliberately broken branch return. New-document browser
+  instrumentation blocks database opens/deletion, local/session-storage writes and service-worker
+  registration; deliberately injecting a database open fails the intended isolation assertion.
+  The restored complete flow makes none of those calls, no AI/remote-media requests and no
+  notebook startup imports. The 43 recorded requests are local development/font resources.
+- Fresh disposable Chromium profiles at **375×812** cover the opening, assembly, 1910 letter,
+  source/date distinctions, English/glossary help, both branches and feedback, conclusion/model,
+  and finish without writing or answers. Eleven preview screenshots were inspected. Branch
+  return restores scroll, focus and open help; reload resets transient state. Local Literata
+  loading, shared button styles, zero horizontal overflow and no console warnings/errors pass.
+- Tab traversal reproduced a control partly hidden by the sticky navigation bar; preview-only
+  scroll padding fixes it, and the same check passes. Keyboard disclosure activation and heading
+  focus also pass. This is browser evidence, not a physical-phone or screen-reader certification.
+- A separate fresh profile seeds two synthetic notebook items into the normal production app.
+  Cuaderno, lexical detail, Diario and Repaso smoke checks and four inspected screenshots pass
+  at 375×812, with no horizontal overflow, warnings or uncaught errors. No owner data was accessed.
+  Task-created browser profiles were removed and preview servers stopped. One browser run passed
+  interactions but hit a profile-removal race during Chromium shutdown; bounded cleanup retries
+  resolved it and the final run exited zero.
+- Diff and local documentation-link checks pass. The normal application, dependencies, personal
+  schema v12, backups, reference data, event policy and deployed revision are unchanged.
+
+Two read-only Codex investigations checked content fidelity and player/test boundaries. Claude's
+content and code reviews prompted source/language precision, persistent feedback live regions,
+finish-button focus retention, branch outline marking, validation gaps and the keyboard fix.
+Its follow-up found no blocking or medium-severity issue; the three low-severity findings were
+resolved with required content arrays, removal of an unnecessary label on a generic card, and
+verified scroll padding. No further media interaction or integration was added.
+
+Run instructions and owner review prompts are in [the feature README](../../README.md#try-the-a1-preview).
+Owner acceptance of narrative interest, Spanish difficulty, pacing and phone usability remains
+pending. The optional reflection still does not test durable writing. Broader media work and
+increment B's storage/backup/resume design need their own bounded plan; a push remains separate.

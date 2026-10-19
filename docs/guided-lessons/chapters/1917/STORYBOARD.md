@@ -563,7 +563,7 @@ after the owner accepts the tone. No provider or voice is selected here.
   made schooling restrictions concrete, and reduced repetitive methodological caveats.
 - Next owner review: does this feel like a satisfying historical chapter, is the Spanish
   manageable, and do the document stops add something beyond a podcast? Then revise the script
-  and resolve the remaining source/asset checks before proposing implementation.
+  and resolve remaining source/asset choices before widening the approved A1 preview.
 
 The 2026-10-05 drafting pass changed no application code, schema, owner data or deployment.
 On 2026-10-18 the seven approved editorial refinements were applied for A1. Wider integration

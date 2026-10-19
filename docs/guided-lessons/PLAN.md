@@ -1,6 +1,6 @@
 # Guided lessons — delivery plan
 
-**A1 approved for implementation, 2026-10-18.** The owner approved all seven editorial
+**A1 implemented and verified locally, 2026-10-18; not pushed.** The owner approved all seven editorial
 refinements and the three-commit plan in the [1917 review](chapters/1917/REVIEW.md).
 The preview covers the complete reading path and optional checks, without saved writing,
 notebook integration or deployment. Narrative/language acceptance still follows owner use.
@@ -41,8 +41,9 @@ than treating research and narration as fixed-cost code tasks.
 
 ### Approved A1 inside increment A
 
-Three commits: refine the script and split planning documents; encode/validate the chapter;
-build and verify the isolated player preview. Full scope and acceptance checks live in the
+The three implementation commits refine the script and split planning documents, encode/validate
+the chapter, and build/verify the isolated player preview. See the [closeout](chapters/1917/REVIEW.md#implementation-closeout)
+and [local run instructions](README.md#try-the-a1-preview). Full scope and acceptance checks live in the
 [approved review](chapters/1917/REVIEW.md#small-implementation-commits-after-approval).
 No durable response field, archival media, audio, app route or schema change is included.
 The optional reflection remains a prompt/model to consider aloud or on paper. This is a

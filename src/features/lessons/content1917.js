@@ -432,7 +432,9 @@ export const lesson1917 = {
         "frames": [
           "La Constitución reconoció…",
           "Sin embargo, para saber si… necesitaríamos…",
-          "Este documento muestra…, pero no demuestra…"
+          "Este documento muestra…, pero no demuestra…",
+          "Restituir tierras significa…",
+          "Entrar en vigor no demuestra por sí solo que…"
         ],
         "selfCheck": "¿Distinguí una regla de un resultado? ¿Qué pruebas necesitaría? ¿Mi español comunica la idea? Otras interpretaciones bien apoyadas son posibles.",
         "model": "El artículo 123 estableció un límite para la jornada. Sin embargo, para conocer su cumplimiento en un lugar concreto, necesitaríamos más pruebas. La norma no es un registro de los horarios."
@@ -476,7 +478,8 @@ export const lesson1917 = {
         ],
         "answerId": "c1917-evidence-choice-b"
       },
-      "followUp": "¿Qué le preguntarías a una persona de la comunidad para complementar ese expediente? Puedes pensarlo sin escribir una respuesta."
+      "followUp": "¿Qué le preguntarías a una persona de la comunidad para complementar ese expediente? Puedes pensarlo sin escribir una respuesta.",
+      "followUpEnglish": "Follow-up: What would you ask someone from the community to supplement the administrative record?"
     },
     {
       "id": "c1917-branch-language",

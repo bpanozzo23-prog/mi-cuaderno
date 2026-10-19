@@ -34,12 +34,17 @@ This is the starting point for current status, not a release diary.
   Diario membership, case-specific review before any optional-field exception, approval once
   per bounded task, and deferring code licensing. The guide and current entry points agree.
   No application, schema, CI or executable tooling changes; no optional-field exception granted.
-- **Approved; in progress:** the [guided-lessons A1 preview](guided-lessons/chapters/1917/REVIEW.md).
-  The owner approved seven editorial refinements, the planning-document split, structured
-  chapter content and an isolated development player for all ten pages and both branches.
-  Reflection remains a prompt/model without typing. Durable drafts, notebook integration,
-  schema changes and deployment are not included; final narrative/language acceptance follows
-  owner preview use.
+- **Complete locally; not pushed:** the [guided-lessons A1 preview](guided-lessons/chapters/1917/REVIEW.md#implementation-closeout).
+  All ten pages and both optional branches run in an isolated development reader with English
+  help, glosses, source notes and temporary choices. Reflection is a prompt/model without typing.
+  Zero-warning lint, **1,994 tests across 160 files** serially in 415.79s, production
+  build and isolation checks pass. Chromium at 375×812 verified reading, keyboard navigation,
+  branch return, reload reset and the ordinary app with synthetic fixtures; no owner data was
+  accessed. Claude's grounded findings were fixed. Run `npm run dev:lessons`; see the
+  [preview instructions](guided-lessons/README.md#try-the-a1-preview).
+  Owner narrative/language/phone acceptance remains pending. Saved writing, notebook integration,
+  schema changes and a production lesson release remain outside A1. The deployed revision above
+  is unchanged; the review plus three implementation commits are local only.
 - **Complete and published:** [Step 5](reviews/2026-10-17/REASSESSMENT.md#12-suggested-order-of-work)'s
   bounded lint setup (`6492682`, `872cb8f`, `2dfe9c2`). `npm run lint` checks active JavaScript and
   React Hooks with zero warnings; CI runs it before the serial tests and build. Intentional
