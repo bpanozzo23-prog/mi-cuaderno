@@ -284,6 +284,15 @@ explicitly unanswered, the page-9 election exception visible and implementation 
 needs verified placement and a reusable base; archival photographs need item-level image, caption
 and rights review. No photograph or scan was cleared or added in this pass.
 
+After the owner invited another opinion, Claude inspected all three generated mockups. It
+recommends a compact version of option 2's map plus option 3's evidence diagram, using option 1's
+quiet preview footer. This differs from Codex's preference for option 1's warmer opening; neither
+is an owner choice. Grounded follow-ups are clearer conceptual-art labels and less artifact-like
+document illustrations, separated map labels with no unexplained shaded regions, and moving
+option 3's closing Spanish paragraph above English help so it cannot look like disclosure content.
+Check diagram wrapping and navigation spacing in the real 375px reader. The mockup review is
+visual evidence, not geographic verification, rights clearance or a test of the remaining pages.
+
 Next: the owner chooses or refines the visual direction, then agree the bounded structural/media
 implementation scope. A1's existing no-storage/no-notebook boundaries remain intact. This pass
 captured and inspected the unchanged reader and reviewed concepts; it does not repeat or replace
