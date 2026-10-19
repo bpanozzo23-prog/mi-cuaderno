@@ -124,15 +124,16 @@ regional differences by jumping directly to a national milestone decades later.
 
 | ID | Proposed use and metadata | Current status / fallback |
 | --- | --- | --- |
-| V1 · locator map | Querétaro, Mexico City, Anenecuilco; newly authored modern orientation graphic. | Not yet drawn. Verify placement before release; use original simple geometry or an appropriately licensed base, no invented historical boundaries. Provide place names in text. |
+| V1 · locator map | Querétaro, Ciudad de México, Anenecuilco; modern orientation graphic. | Implemented in the isolated preview using verified Natural Earth geometry and official reference landmarks; see [V1 provenance](#v1-verified-modern-locator-2026-10-18). Original place names remain a text equivalent. Publication and owner acceptance remain separate. |
 | V2 · signing photograph | José Mendoza, *Salvador González Torres firma la nueva Constitución*, Fototeca Constantino Reyes-Valerio / Fondo Carranza, indexed as Querétaro, 1917. [INAH record](https://mediateca.inah.gob.mx/repositorio/islandora/object/fotografia%3A508277); current redirect [o-621135](https://repositorio.inah.gob.mx/o-621135). | Candidate only: indexed metadata retrieved, live record/image inaccessible in this pass. Exact date, visual match and item rights unresolved. Do not bundle, crop, or write final alt text yet; use V1/date card instead. |
 | V3 · local voice card | Newly typeset short letter fragment with S3 credit and an explicit transcription label. | Printed transcription visually checked; no imitation manuscript or book-page scan. A1 uses the nine-word analytical quotation under the decision below. Link to S3. |
 | V4 · evidence comparison | Authored cards: local petition, national rule, unanswered implementation question. | Not yet drawn. Avoid arrows suggesting the specific letter caused Article 27 or that an outcome has been established. |
 | V5 · original Article 123 | Diario Oficial, 5 February 1917, printed p.158 / PDF 10; see S1. | Text and page visually checked. A1 uses legislative text only; no scan/crop. Always supply accessible transcription and a link to the complete page. |
 | V6 · date strip | Authored publication/general-effect comparison using S1. | Not yet drawn. Keep the election exception explicit and the implementation question undated. |
 
-These assets are candidates/specifications, not downloaded production assets. Draft alt text
-for V1/V4/V6 must describe the actual final graphic; captioning V2 requires seeing the image.
+V1 now packages the verified geometry and text equivalent documented below. Other media entries
+remain candidates/specifications rather than downloaded production assets. Descriptions for
+V4/V6 must match their final graphics; captioning V2 requires seeing the image.
 
 ### Candidates deliberately not selected
 
@@ -189,10 +190,72 @@ These are the recorded bases for the following editorial choices, not a blanket 
   SCJN edition, printed p.109, with the edition link and © SCJN 2008 credit. The limited
   unchanged fragment is not a substitute for the letter or book; no surrounding study prose
   or page image is reproduced. The translation remains explicitly lesson-authored.
-- **V1:** A1 uses a place-name orientation card, not an unverified geographic map.
+- **V1:** A1 initially uses a place-name orientation card, not an unverified geographic map
+  (superseded by the verified V1 locator below).
 - **V2:** use the date/location fallback, without the candidate photograph.
 - **V4/V6:** newly authored evidence/date cards, with textual equivalents and the election
   exception attached to general commencement. No media download or generated illustration.
 
 This closes the two text-excerpt choices for A1. It does not authorize longer excerpts, page
 scans, image crops, archival photography or narration. Reassess changed uses individually.
+
+## V1: verified modern locator (2026-10-18)
+
+The owner selected the map-led design and approved its bounded implementation. This supersedes
+the A1 name-card fallback for the opening only. It adds no historical scene, parcel boundary,
+travel route or historical-outcome claim. Generated concept maps are not source assets.
+
+**Outline:** Natural Earth, Admin 0 Countries, **1:110m, v5.1.1**, Mexico (`ADMIN: Mexico`,
+`ADM0_A3: MEX`). [Pinned source GeoJSON](https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.1/geojson/ne_110m_admin_0_countries.geojson),
+[public-domain terms](https://www.naturalearthdata.com/about/terms-of-use/). Natural Earth's terms
+allow modification and redistribution. Attribution is retained even though the terms do not
+require it. The coarser 1:110m polygon is sufficient for this simplified locator; it replaces
+the 1:50m candidate, whose complete geometry could not be retrieved through the available reader.
+The coastline is intentionally generalized, not suitable for navigation or property boundaries.
+
+The web tool retrieved the pinned GeoJSON text. The `geometry` object following the Mexico
+feature was extracted without changing coordinates and serialized as compact JSON plus a final
+newline in `src/features/lessons/assets/mexico-outline.json`. It is one closed Polygon ring with
+170 vertices and extent `[-117.127760, 14.538829, -86.811982, 32.720830]` (west, south, east, north).
+SHA-256 of this **extracted geometry file**, not the unmodified full source download:
+`393b8622acbe723427d14045258367077710e298494358959c5518ce848d6e0c`.
+The text reader did not establish the full upstream byte hash. On 2026-10-19, a direct download
+of the pinned GeoJSON matched the extracted Mexico geometry exactly; SHA-256 of that full file:
+`6866c877d39cba9c357620878839b336d569f8c662d3cfab4cb1dbe2d39c977f`.
+To reproduce, select that feature from the pinned GeoJSON and serialize its geometry with
+`JSON.stringify` followed by a newline; compare the resulting geometry and hash before replacing
+the asset.
+
+**Markers:** approximate modern reference landmarks within each named place, not locality/state
+centroids or surveyed locations of the historical events. Coordinates live with stable place IDs
+in `locatorMexico1917.js`; labels cannot be silently reassigned by reordering the content card.
+
+| Place | Reference point and source | Original coordinate / plotted value |
+|---|---|---|
+| Querétaro | Cathedral tower; INEGI, *Anuario estadístico de los Estados Unidos Mexicanos* 2004, Cuadro 1.3, row 52, PDF page 57 (index 56). | 20°35′36″ N, 100°23′11″ W; DMS converted arithmetically to 20.593333… / −100.386389… |
+| Ciudad de México | East cathedral tower; same table, row 5, PDF page 55 (index 54). | 19°25′59″ N, 99°07′58″ W; 19.433056… / −99.132778… |
+| Anenecuilco (Morelos) | Museo Casa Zapata, Av. Emiliano Zapata s/n, Centro, Anenecuilco, Ayala, Morelos; official Secretaría de Cultura SIC record and its map-link destination. | Link gives 18.776722222528000 / −98.987779319286000; plotted as 18.776722 / −98.987779. Extra decimal digits do not establish survey accuracy. |
+
+[INEGI table](https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/historicos/2104/702825168469/702825168469_1.pdf),
+[official SIC museum record](https://sic.cultura.gob.mx/ficha.php?disciplina=&table=museo&table_id=1229),
+[map destination linked by that record](https://www.google.com/maps?q=18.776722222528000%2C-98.987779319286000).
+The INEGI table explicitly identifies selected city reference points and cites the UNAM 1991
+astronomical yearbook / INEGI 1995 population count. Its text/table context was inspected, not a
+new survey. The SIC address and linked coordinates were independently checked by two Codex
+readers. Google Maps itself did not render; the coordinates are evidenced by the official link,
+not by an inspected Google map or reuse of its imagery. No map image or photograph was copied.
+
+**Derivation:** `LessonLocator.jsx` applies the same equidistant cylindrical projection to the
+outline and markers: `x = (longitude − west) × cos(19°) × scale`,
+`y = (north − latitude) × scale`. Regional viewport is 500×310, west −105°, north 21.7°,
+scale `500 / (9.5 × cos(19°))`; clip this region from the source outline. The whole-country inset
+uses west −118.5°, north 33.5°, scale `114 / (32.5 × cos(19°))`. Its highlighted extent is derived
+from the regional frame, not hand-estimated. Outline display coordinates round to two SVG units;
+landmark dots retain their computed positions. Label offsets/short leaders do not move the dots.
+There are no state boundaries or routes. A numerical point-in-polygon check places all three
+reference points within the source Mexico polygon; browser geometry/label inspection is separate.
+
+**Reader labels:** “Mapa actual simplificado · puntos de referencia aproximados.” The visible
+credit names Natural Earth, INEGI and SIC; opening source S6 provides full links and limits. The
+figure has a Spanish text equivalent and all three original place names. The map and its data
+stay inside the isolated lesson feature, with no mapping library or runtime network request.
