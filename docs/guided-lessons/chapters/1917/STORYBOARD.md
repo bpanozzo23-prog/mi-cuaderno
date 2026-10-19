@@ -1,10 +1,11 @@
 # 1917: Una Constitución, muchas promesas
 
-Storyboard v0.1 — 2026-10-05. **Editorial draft for owner review, not a built lesson.**
+Storyboard v0.2 — 2026-10-18. **Revised for the owner-approved A1 preview.**
 
 The owner selected a full 1917 chapter first, followed by 1920, with a Spanish story and
 English help. This document develops that choice into a readable narrative and bounded
-interactions. It does not approve application implementation, media publication, or narration.
+interactions. The owner approved the bounded [A1 preview](REVIEW.md); wider integration, media publication
+and narration remain separate. Final narrative/language acceptance follows preview use.
 The companion [source packet](SOURCES.md) distinguishes checked evidence from
 remaining research and rights work. The broader [development plan](../../PLAN.md)
 still governs the proposed player, saving, notebook integration, and audio sequence.
@@ -90,14 +91,14 @@ no quiz or vocabulary pretest. Button: *Comenzar*.
 
 ## 2. ¿Quién escribe las reglas?
 
-ID: `c1917-assembly` · Role: political orientation · Evidence: S2; interpretation labeled below.
+ID: `c1917-assembly` · Role: political orientation · Evidence: S2; S1 preamble for the meeting; interpretation labeled below.
 
 **Spanish narration**
 
 Venustiano Carranza convocó al Congreso Constituyente, que abrió sus sesiones formales en
-Querétaro en diciembre de 1916. Las reglas impedían ser elegidos diputados a quienes habían
-apoyado con las armas o mediante cargos públicos a gobiernos o facciones contrarios a la causa
-constitucionalista.
+Querétaro en diciembre de 1916. No todos podían ser elegidos diputados. Las reglas excluían
+a quienes habían apoyado, con las armas o desde cargos públicos, a gobiernos o facciones
+contrarios a la causa constitucionalista.
 
 Por eso, el Congreso no era una reunión de todas las fuerzas revolucionarias para ponerse de
 acuerdo. Sin embargo, sus diputados tampoco formaban una sola voz. Escribir las nuevas reglas
@@ -137,8 +138,8 @@ en ella por razones de interés público y para restituir o dotar de tierras a c
 Restituir significa devolver; una dotación permite conceder tierras. No son exactamente la
 misma solución.
 
-Para entender por qué importa esa diferencia, dejemos un momento el texto nacional y viajemos
-a Morelos. Allí encontraremos una petición anterior a 1917. No es una explicación de toda la
+Para ver qué significaba el acceso a la tierra en un lugar concreto, dejemos un momento el
+texto nacional y viajemos a Morelos. Allí encontraremos una petición anterior a 1917. No es una explicación de toda la
 Revolución: es una ventana a un problema concreto.
 
 **English help — meaning summary**
@@ -205,7 +206,7 @@ Constitución establece reglas de alcance nacional. Ninguno de los dos, por sí 
 toda la historia de una parcela.
 
 Para saber qué cambió en Anenecuilco, habría que seguir buscando: una resolución, un expediente
-agrario, una entrega de tierras o un testimonio sobre su uso. También habría que comprobar
+agrario, un acta de entrega de tierras o un testimonio sobre su uso. También habría que comprobar
 las fechas y preguntar quién produjo cada documento.
 
 Esto no convierte la Constitución en una promesa vacía. Cambiar el marco legal importa. Pero
@@ -259,8 +260,8 @@ entender qué hace esta frase jurídica.
 **English help — meaning summary**
 
 The Constitution addressed everyday labor relations as well as governmental power: working
-time, rest, wages, and workers' organization. This short quotation sets a rule, not a report of
-actual hours, and is only one provision within a larger article.
+time, rest, wages, and workers' organization. The eight-hour clause is one provision within
+that larger article.
 
 **Visual / action**
 
@@ -322,16 +323,16 @@ Hermila Galindo envió al Constituyente una petición a favor del voto de las mu
 no fue aceptada. No era diputada del Congreso: su intervención escrita muestra que la discusión sobre
 el nuevo país también ocurría fuera de los asientos de la asamblea.
 
-Este caso cambia nuestra pregunta. Ya no basta con preguntar qué derechos se reconocieron.
-También debemos preguntar quién podía participar en las decisiones. Un mismo orden político
+Este caso nos devuelve a una pregunta del principio: ¿quién podía participar en las decisiones?
+No basta con preguntar qué derechos se reconocieron. Un mismo orden político
 podía ampliar ciertas protecciones y conservar exclusiones. Esa tensión forma parte de la
-historia de 1917, no es una nota ajena a ella.
+historia de 1917; no es una nota ajena a ella.
 
 **English help — meaning summary**
 
-Galindo pressed for women's voting rights, unsuccessfully. She was not a constituent deputy.
-Her case shows why expanding social protections and including everyone politically are different
-questions. The chapter does not treat exclusion as political inactivity by women.
+Galindo sent the Constituent Congress a written petition for women's voting rights; it was
+not accepted. She was not a deputy. Her case returns to the earlier question of who could
+take part in decisions: expanding social protections and political inclusion are different questions.
 
 **Visual / action**
 
@@ -339,29 +340,30 @@ A concise name/context card is sufficient. Do not use an unidentified group port
 of Galindo. A verified portrait could be selected later; no invented speech or exact petition
 date is needed. No quiz asking the reader to endorse or excuse the exclusion.
 
+**Editorial boundary:** exclusion is not treated as political inactivity by women.
+
 ## 9. Publicar, entrar en vigor, hacer cumplir
 
 ID: `c1917-dates` · Role: chronology and precision · Evidence: S1, transitional provisions.
 
 **Spanish narration**
 
-Conviene distinguir tres cosas. Promulgar una Constitución, entrar en vigor y hacer cumplir
-sus reglas no son la misma acción.
+Conviene distinguir tres cosas: publicar una Constitución, que entre en vigor y hacer cumplir
+sus reglas.
 
 El texto se publicó el 5 de febrero de 1917. Su entrada en vigor general se fijó para el
 1 de mayo, con una excepción inmediata para las disposiciones electorales. Esas fechas nos
 ayudan a ordenar la historia, pero no responden por sí solas a nuestras preguntas sobre una
 parcela, un horario de trabajo o una escuela.
 
-Tampoco debemos imaginar que los derechos eran simples deseos sin fuerza legal. La cuestión
-histórica es más precisa: ¿qué establecía el nuevo orden y qué pruebas tenemos de cómo se
-aplicó, dónde y para quién?
+Las reglas tenían fuerza legal. Investigar su aplicación exige preguntar dónde, cómo y para
+quién se hicieron cumplir.
 
 **English help — meaning summary**
 
 Publication, legal effect, and enforcement are distinct. General commencement was May 1, with
-an immediate election-provisions exception. These dates do not by themselves demonstrate local
-outcomes, but uncertainty about outcomes does not mean the rights were legally meaningless.
+an immediate election-provisions exception. Studying enforcement means asking where, how and
+for whom the rules were applied.
 
 **Visual / action**
 
@@ -441,34 +443,35 @@ the administrative record?” Do not require a recorded or typed answer.
 
 **Purpose:** evidence selection, not an automated verdict on a historical interpretation.
 
-### B2. Lo que hace una palabra: será
+### B2. Lo que hacen dos palabras: máxima y será
 
 ID: `c1917-branch-language` · Opens from / returns to `c1917-workday`.
 
 **Spanish explanation**
 
-En esta frase jurídica, *será* establece una norma. No funciona como una predicción del tiempo
+*Máxima* fija un límite, no una duración exacta para todas las jornadas. En esta frase jurídica,
+*será* establece una norma. No funciona como una predicción sobre el horario
 de mañana ni como un informe sobre todos los talleres del país. El contexto cambia lo que
 hace el futuro: aquí expresa cómo debe ser la jornada.
 
-**English help:** In this legal sentence, the future form expresses a rule—English often uses
+**English help:** Máxima means maximum, not exactly. In this legal sentence, the future form expresses a rule—English often uses
 “shall.” It does not report actual working conditions. This is not a claim that every Spanish
 future form has that function.
 
-**Check:** *¿Cuál es la lectura más precisa del fragmento?*
+**Check:** *¿Qué hacen «máxima» y «será» en esta frase?*
 
-- A. Todos trabajaban exactamente ocho horas.
-- B. La norma fijaba un máximo; su cumplimiento es otra pregunta.
-- C. Nadie podía trabajar menos de ocho horas.
+- A. «Máxima» significa «exactamente»; «será» cuenta lo que ya pasó.
+- B. «Máxima» señala un límite; «será» establece una regla.
+- C. «Máxima» señala un mínimo; «será» predice el horario de mañana.
 
-**Feedback for B:** *Sí: la frase establece un límite. Para conocer su cumplimiento en un lugar
-concreto necesitaríamos otras pruebas.*
+**Feedback for B:** *Sí: «máxima» indica el límite y el futuro «será» expresa la regla en este
+contexto jurídico.*
 
-**Feedback for A:** *La norma no informa sobre los horarios reales de todos. Además, «máxima»
-no significa «exactamente».*
+**Feedback for A:** *«Máxima» no significa «exactamente». «Será» es una forma de futuro, no un
+relato de algo que ya pasó.*
 
-**Feedback for C:** *Aquí se fija un máximo, no un mínimo. La frase no exige trabajar por lo
-menos ocho horas.*
+**Feedback for C:** *Un máximo es un límite superior, no un mínimo. Aquí «será» expresa una
+regla, no una predicción del horario de mañana.*
 
 Explanations are available immediately, and the branch can be skipped.
 
@@ -511,9 +514,15 @@ replace the reader's claim with the model or automatically grade agreement with 
 | *sin embargo* | However; supports a qualification rather than an absolute verdict. | Assembly, model response. |
 
 Gloss on demand, without assigning active review: *constituyente, parcela, dotación, siembra,
-jornada, máxima, laica, ministro de culto, expediente, promulgación*. Keep definitions tied to
+jornada, máxima, laica, ministro de culto, expediente, publicación, vigencia*. Keep definitions tied to
 the passage. In the local case, *pueblo* refers to a community/town, not an undifferentiated
 national “people.” No CEFR level or proficiency diagnosis is assigned.
+
+Additional contextual help for A1: *constitucionalista* = of the political/military cause led
+by Carranza here; *facción* = political or armed group; *cargo público* = a government office;
+*demanda* = a request or claim here; *marco legal* = the set of legal rules; *particular* =
+private in this schooling passage; *oficial* = public/state in this schooling passage. These
+are reading aids, not additions to the six active expressions.
 
 Optional response support for the less-repeated expressions: *Restituir tierras significa…*;
 *Entrar en vigor no demuestra por sí solo que…*. Do not require the reader to use all six.
@@ -556,4 +565,6 @@ after the owner accepts the tone. No provider or voice is selected here.
   manageable, and do the document stops add something beyond a podcast? Then revise the script
   and resolve the remaining source/asset checks before proposing implementation.
 
-No application code, schema, owner data, runtime generation, or deployment changed in this pass.
+The 2026-10-05 drafting pass changed no application code, schema, owner data or deployment.
+On 2026-10-18 the seven approved editorial refinements were applied for A1. Wider integration
+and final owner editorial acceptance remain pending; [REVIEW](REVIEW.md) records the boundary.

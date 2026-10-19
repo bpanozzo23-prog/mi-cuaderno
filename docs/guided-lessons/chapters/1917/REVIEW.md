@@ -1,10 +1,14 @@
 # 1917 review and proposed first preview
 
-2026-10-18. **Review complete; implementation plan proposed, not approved.**
+2026-10-18. **Owner-approved A1 implementation scope.**
+Approval followed the completed review: “Approved, proceed.” The three commits and all seven
+editorial rows below are authorized; routine fixes stay within scope. Final chapter acceptance,
+integration, personal-data changes and push/deployment are separate. The original review
+findings and proposal below are retained as the approval record.
 The owner requested this review and consultation with Claude Code. The existing
 [storyboard](STORYBOARD.md) remains the script draft; the [development plan](../../PLAN.md)
-retains the full feature context. This review does not accept the chapter on the owner's
-behalf or authorize application code, persistence, publication or deployment.
+retains the full feature context. The review does not accept the final chapter on the owner's behalf. A1 code is now approved;
+persistence, publication and deployment are not.
 
 ## Editorial recommendation
 
@@ -16,7 +20,7 @@ in history.
 
 The draft works best as a guided historical investigation. Whether it feels sufficiently
 story-like, and whether its Spanish is comfortable, need a readable preview and owner feedback.
-The following refinements are proposals, not changes already applied to the script.
+The following refinements were proposed in the review and are now approved and applied for A1.
 
 | Place | Finding | Proposed refinement |
 |---|---|---|
@@ -33,7 +37,7 @@ Preserve the explicit 1910 look back and the 2008-transcription label on the loc
 The page-9 wording change and citation addition are precision fixes. Pacing and activity
 changes are editorial choices to try, not evidence that the current chapter is historically wrong.
 
-## Proposed A1: read and explore the whole chapter
+## Approved A1: read and explore the whole chapter
 
 Build one development-only preview of the eventual shared player. This is a bounded part of
 increment A, not completion of A or the usable integrated A+B release.
@@ -66,8 +70,8 @@ resume after refresh/restart and integrated Back behavior belong to increment B.
 
 ## Small implementation commits, after approval
 
-Approval of A1 would cover all seven editorial rows above and the three commits below,
-including the focused planning-document split. It would accept those changes for a preview,
+Approval of A1 covers all seven editorial rows above and the three commits below,
+including the focused planning-document split. It accepts those changes for a preview,
 not certify the final chapter's difficulty or authorize integrated release B.
 
 1. **Prepare the script and lighten the planning documents.** Apply the agreed editorial
@@ -182,8 +186,8 @@ deliberately modest and ungraded, and a new interaction is unnecessary to test t
 Its proposed translation changes are optional editorial alternatives, not established errors.
 No new assembly conflict is added from recollection. Its suggestion that A remains incomplete
 because audio is absent is not adopted: audio belongs to increment D. A1 remains partial
-because it narrows the response and media experience. Preview authorization has not yet been
-given, so the existing draft's unapproved status remains accurate.
+because it narrows the response and media experience. At review time, authorization was
+pending; the owner has since approved A1, as recorded above.
 
 A second, focused Claude plan review prompted explicit file paths, font imports, port/owner
 access behavior, approval coverage, config refusal checks and browser instrumentation. Its
@@ -191,3 +195,7 @@ claim that the entry would be outside lint came from the abbreviated path; the e
 spelled out under `src/features/lessons/preview/`, already covered by existing globs. The plan
 split remains an explicit part of the proposed approval, following reassessment §11. No second
 model's recommendation is treated as owner approval.
+
+Implementation editorial check: Claude reviewed v0.2 and confirmed the seven rows and objective
+answer keys. Routine fixes clarified B2's two-word title and schedule wording, retained Galindo's
+written action in English, smoothed page-9 grammar and made approval status explicit.

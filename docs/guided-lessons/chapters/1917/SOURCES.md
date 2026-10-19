@@ -1,6 +1,6 @@
 # 1917 chapter — source and visual packet
 
-Research pass: 2026-10-05. Companion to the [storyboard](STORYBOARD.md).
+Research pass: 2026-10-05; A1 reuse decisions: 2026-10-18. Companion to the [storyboard](STORYBOARD.md).
 This is an editorial evidence record, not a blanket rights clearance or completed scholarly
 review. The broader postrevolutionary research reference supplied leads; sources below were
 checked specifically for this chapter. No owner notebook data was used.
@@ -27,6 +27,7 @@ The Spanish narrative is authored explanation; a citation does not turn it into 
 
 | Passage used | Locator | Check / significance |
 | --- | --- | --- |
+| Preamble | Printed p.149; PDF 1 | Text rechecked 2026-10-18: the meeting in December 1916, supporting page 2 alongside the convocation. |
 | Article 3 | Printed p.149; PDF 1 | Visually checked by source agent; schooling provisions. Do not import compulsory schooling into this article alone. |
 | Article 27 | Printed pp.150–151; PDF 2–3 | Visually checked by source agent; land/property provisions. Neither abolishes all private property nor proves a local outcome. |
 | Article 123, I | Printed p.158; PDF 10, middle column | Visually checked by primary and source agents; the storyboard's short quotation matches the scan. |
@@ -43,8 +44,8 @@ Article 27 OCR/transcription discrepancy involving *expropiada*. Check quotation
 school availability, or the experiences of every social group.
 
 **Reuse:** source access and text verification completed; no assumption that every institutional
-scan has a blanket redistribution permission. Exact asset attribution/reuse decision remains
-a publication gate. Link to the original if the image cannot be packaged.
+scan has a blanket redistribution permission. A1 uses only the legislative text transcription, under the specific decision below.
+Scan/crop redistribution remains unapproved; link to the original.
 
 ## S2. Who could participate in the Constituent Congress?
 
@@ -91,7 +92,7 @@ of printed p.109. Do not label the 2008 page a 1910 manuscript facsimile or inve
 **Limit:** evidence of a prior demand, not proof of a 1917 outcome or of direct influence on
 Article 27. Do not import the study's broader rhetorical claims into the narration.
 **Reuse:** book marked © SCJN 2008; no open page-image license verified. Link only for the page;
-review the limited quotation and attribution before publication.
+the nine-word A1 analytical quotation is covered by the specific decision below.
 
 ## S4. Corroboration of the letter's date and occasion
 
@@ -125,9 +126,9 @@ regional differences by jumping directly to a national milestone decades later.
 | --- | --- | --- |
 | V1 · locator map | Querétaro, Mexico City, Anenecuilco; newly authored modern orientation graphic. | Not yet drawn. Verify placement before release; use original simple geometry or an appropriately licensed base, no invented historical boundaries. Provide place names in text. |
 | V2 · signing photograph | José Mendoza, *Salvador González Torres firma la nueva Constitución*, Fototeca Constantino Reyes-Valerio / Fondo Carranza, indexed as Querétaro, 1917. [INAH record](https://mediateca.inah.gob.mx/repositorio/islandora/object/fotografia%3A508277); current redirect [o-621135](https://repositorio.inah.gob.mx/o-621135). | Candidate only: indexed metadata retrieved, live record/image inaccessible in this pass. Exact date, visual match and item rights unresolved. Do not bundle, crop, or write final alt text yet; use V1/date card instead. |
-| V3 · local voice card | Newly typeset short letter fragment with S3 credit and an explicit transcription label. | Printed transcription visually checked; no imitation manuscript or book-page scan. Decide excerpt reuse before publication. Link to S3. |
+| V3 · local voice card | Newly typeset short letter fragment with S3 credit and an explicit transcription label. | Printed transcription visually checked; no imitation manuscript or book-page scan. A1 uses the nine-word analytical quotation under the decision below. Link to S3. |
 | V4 · evidence comparison | Authored cards: local petition, national rule, unanswered implementation question. | Not yet drawn. Avoid arrows suggesting the specific letter caused Article 27 or that an outcome has been established. |
-| V5 · original Article 123 | Diario Oficial, 5 February 1917, printed p.158 / PDF 10; see S1. | Text and page visually checked. Reproduction/crop decision pending. Always supply accessible transcription and a link to the complete page. |
+| V5 · original Article 123 | Diario Oficial, 5 February 1917, printed p.158 / PDF 10; see S1. | Text and page visually checked. A1 uses legislative text only; no scan/crop. Always supply accessible transcription and a link to the complete page. |
 | V6 · date strip | Authored publication/general-effect comparison using S1. | Not yet drawn. Keep the election exception explicit and the implementation question undated. |
 
 These assets are candidates/specifications, not downloaded production assets. Draft alt text
@@ -170,3 +171,28 @@ reviews. The primary agent inspected the Article 123 scan, the letter's extracte
 printed transcription, and the SRE biography while drafting. This is
 an agent-assisted research pass, not independent historian, legal, or native-speaker sign-off.
 Application tests and phone verification are not applicable to this document-only deliverable.
+
+## A1 excerpt and asset decisions — 2026-10-18
+
+The preview packages two short text excerpts, not the source PDFs, page design or images.
+The checked [Mexican copyright statute](https://www.diputados.gob.mx/LeyesBiblio/pdf/LFDA.pdf)
+(current retrieved edition: reform 14 May 2026) distinguishes legislative text in Article 14 VIII
+from protected commentary and permits bounded attributed textual quotation under Article 148 I.
+These are the recorded bases for the following editorial choices, not a blanket source license:
+
+- **S1 / V5:** retain the exact Article 123 I sentence as legislative text, with the 1917
+  edition, article/section, printed page and institutional link. The English rendering and
+  modern paraphrase are separately labeled lesson-authored text. No scan or institutional
+  layout is copied.
+- **S3 / V3:** retain only the nine-word planting fragment for close analysis of the petition's
+  stated need. It is attributed to the Anenecuilco residents through Mureddu Torres's 2008
+  SCJN edition, printed p.109, with the edition link and © SCJN 2008 credit. The limited
+  unchanged fragment is not a substitute for the letter or book; no surrounding study prose
+  or page image is reproduced. The translation remains explicitly lesson-authored.
+- **V1:** A1 uses a place-name orientation card, not an unverified geographic map.
+- **V2:** use the date/location fallback, without the candidate photograph.
+- **V4/V6:** newly authored evidence/date cards, with textual equivalents and the election
+  exception attached to general commencement. No media download or generated illustration.
+
+This closes the two text-excerpt choices for A1. It does not authorize longer excerpts, page
+scans, image crops, archival photography or narration. Reassess changed uses individually.
