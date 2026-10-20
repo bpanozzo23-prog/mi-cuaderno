@@ -21,11 +21,47 @@ immediately. The owner has already listened extensively to the Revolution throug
 pre-1917 background should be optional and supplied where needed. The 1917 chapter itself is
 substantive core content, not an optional refresher or a preface to 1920.
 
-Confirmed language direction, 2026-10-05: accessible adult Spanish narrative with English help
-on request. Spanish carries the main story; English supports comprehension rather than replacing
-the narrative by default. Intellectual depth and Spanish difficulty are separate controls;
-difficult history need not require difficult
-Spanish production. Do not assume a proficiency level from interest in history.
+Confirmed language direction, updated 2026-10-20: accessible adult Spanish narrative with
+brief English orientation, explicit Spanish focus and nearby English help. This refines the
+2026-10-05 Spanish-first choice in response to the owner's concern that a full page in Spanish
+can feel intimidating and effortful. Intellectual depth and Spanish difficulty remain separate
+controls; difficult history need not require difficult Spanish production. Do not assume a
+proficiency level from interest in history.
+
+### Agreed language-support direction — 2026-10-20
+
+The owner accepted the combined approach with “I think your combined approach sounds good.”
+The aim is meaningful, sustainable Spanish reading, with clear priorities and accessible help;
+there is no fixed Spanish/English percentage.
+
+- Introduce a section's idea with a brief English orientation.
+- Present manageable Spanish paragraphs with breathing room, without making every sentence
+  another screen or required tap.
+- Mark one or two focus expressions where useful, drawn from a small recurring chapter set.
+  Other unfamiliar words can receive contextual help without becoming study obligations.
+- Offer English directly beneath the matching passage when revealed. Prefer stacked passages
+  on a phone. A “Show English throughout” control is a candidate for avoiding repeated taps;
+  its exact behavior remains to be designed.
+- Distinguish an English meaning summary from a close passage translation. Author and label
+  each for its purpose; keep original quotations, modern paraphrases and translations distinct.
+- Explain that following the main idea is enough and the marked expressions are the deliberate
+  Spanish focus. Help can be opened immediately; understanding every word is not a requirement.
+
+The current preview has page-level English summaries, glossaries and two source translations.
+It does not yet implement this combined presentation. The existing six active expressions
+remain the starting set; accepting the direction does not finalize new passage translations,
+layout or player behavior.
+
+Related workflow feedback: the owner supports using real text and usable visual assets in an
+early visual proof, reports installing the Figma connector for use when appropriate, and is
+open to a lightweight history/Spanish learning-intent outline. A natural reading session and
+optional delayed recall remain options for later; the owner explicitly does not want that
+session now. Keep this feedback here rather than introducing a second planning system.
+
+Proposed next bounded task: compare two phone-sized treatments of the complete existing opening
+page, showing its actual locator, English orientation, selected Spanish expressions and nearby
+English in both hidden and revealed states. Use a disposable design proof before changing the
+reader. This is the next proposal, not approval of application implementation or publication.
 
 ## 2. What informs this plan
 

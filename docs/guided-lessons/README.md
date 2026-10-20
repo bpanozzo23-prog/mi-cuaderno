@@ -1,7 +1,7 @@
 # Guided lessons
 
 Planning, research, and chapter drafts for Mi Cuaderno's guided-lesson feature. The initial
-history sequence is **1917, then 1920**, with Spanish storytelling and optional English help.
+history sequence is **1917, then 1920**, with supported Spanish storytelling.
 The reviewed 1917 chapter now has a complete, verified local A1 preview.
 Notebook integration remains proposed work.
 
@@ -16,8 +16,10 @@ Notebook integration remains proposed work.
 | [1917 sources](chapters/1917/SOURCES.md) | Checked passages, source limitations, image candidates, and remaining publication checks. |
 | [1917 review and preview proposal](chapters/1917/REVIEW.md) | Editorial findings and the approved development-only first preview. |
 
-Next: review the chapter in the [completed A1 preview](chapters/1917/REVIEW.md#implementation-closeout).
-Owner acceptance of narrative, language and phone usability remains pending.
+Next proposed task: a small visual proof of the [agreed language-support direction](SCOPE.md#agreed-language-support-direction--2026-10-20),
+using real opening-page content. The [completed A1 preview](chapters/1917/REVIEW.md#implementation-closeout)
+still has its existing language-help behavior. Owner acceptance of narrative, language and phone
+usability remains pending; a reading session is an option for later, not the immediate next step.
 The [1920 outline](SCOPE.md#chapter-2-storyboard--1920) is in Scope;
 it does not yet have a separate storyboard.
 

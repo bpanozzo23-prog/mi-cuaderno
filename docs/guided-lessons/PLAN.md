@@ -7,7 +7,7 @@ notebook integration or deployment. Narrative/language acceptance still follows 
 
 | Document | Owns |
 |---|---|
-| [Scope](SCOPE.md) | Confirmed Spanish-first direction, research context, chapter outlines, branching, future topics and audio. |
+| [Scope](SCOPE.md) | Confirmed language-support direction, research context, chapter outlines, branching, future topics and audio. |
 | [Integration](INTEGRATION.md) | Proposed notebook handoffs, storage/backup contract, media/offline behavior and integrated-release checks. |
 | [1917 storyboard](chapters/1917/STORYBOARD.md) | Reviewed script and activity text. |
 | [1917 sources](chapters/1917/SOURCES.md) | Evidence, exact excerpts, attribution and asset choices. |
@@ -55,8 +55,12 @@ preview for owner feedback, not the integrated first release.
 - 2026-10-18: A1 approved to make the whole chapter reviewable without personal-data integration.
   The no-typing-field tradeoff avoids disposable writing; the separate entry avoids notebook
   startup and service-worker coupling. Project approval is recorded in [DECISIONS](../../DECISIONS.md).
+- 2026-10-20: owner accepted the [combined language-support direction](SCOPE.md#agreed-language-support-direction--2026-10-20).
+  A real-content visual proof is the proposed next bounded task; new player behavior is not
+  implemented. Owner reading/recall feedback remains optional and deferred.
 
-After A1, review narrative interest, Spanish difficulty, depth and optional activities in the
-preview. Broader media choices and the rest of A remain separately bounded work. Before B,
-review the exact durability/storage design and safety plan. The topic after 1920 remains open
-and does not block the first two chapters. No push or production lesson release is authorized.
+After the visual proof, review narrative interest, Spanish difficulty, depth and optional
+activities when the owner is ready. Broader media choices and the rest of A remain separately
+bounded work. Before B, review the exact durability/storage design and safety plan. The topic
+after 1920 remains open and does not block the first two chapters. No push or production lesson
+release is authorized.

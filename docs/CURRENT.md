@@ -56,6 +56,10 @@ This is the starting point for current status, not a release diary.
   and [design QA](../design-qa.md). The disposable browser profiles were removed and preview
   stopped. Remote `main` was refreshed and remains `f86c841`; local commits are unpushed.
   Owner visual/narrative/language/phone acceptance remains pending.
+  On 2026-10-20 the owner accepted the [combined language-support direction](guided-lessons/SCOPE.md#agreed-language-support-direction--2026-10-20):
+  brief English orientation, manageable Spanish, explicit focus expressions and nearby English
+  help. This is recorded direction, not implemented behavior; a small visual proof is proposed,
+  and the owner reading session is deferred.
   Saved writing, notebook integration, schema changes and a production lesson release remain
   outside A1. The deployed revision above is unchanged; the preview and feedback record are local only.
 - **Complete and published:** [Step 5](reviews/2026-10-17/REASSESSMENT.md#12-suggested-order-of-work)'s
