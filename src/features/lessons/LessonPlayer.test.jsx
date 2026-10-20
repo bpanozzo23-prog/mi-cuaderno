@@ -67,12 +67,89 @@ describe("isolated lesson reader", () => {
     const user = userEvent.setup();
     open();
     const title = screen.getByRole("heading", { level: 2 });
-    expect(screen.getByText("English help").lang).toBe("en");
-    await user.click(screen.getByRole("button", { name: "English help" }));
+    expect(screen.getByText("English meaning summary").lang).toBe("en");
+    await user.click(screen.getByRole("button", { name: "English meaning summary" }));
     expect(screen.getByText(lesson1917.steps[0].english).lang).toBe("en");
     await user.click(screen.getByRole("button", { name: "Palabras de esta página" }));
     expect(screen.getByText("un derecho")).toBeTruthy();
     expect(screen.getByRole("heading", { level: 2 })).toBe(title);
+    expect(scroll).not.toHaveBeenCalled();
+  });
+  it("retains complete Spanish and offers correctly paired English beside each passage", async () => {
+    const user = userEvent.setup();
+    // Reordering paragraphs cannot move their support to a different passage.
+    const lesson = structuredClone(lesson1917);
+    lesson.steps[0].blocks.reverse();
+    render(<StrictMode><LessonPlayer lesson={lesson} /></StrictMode>);
+    for (const block of lesson.steps[0].blocks) {
+      const card = screen.getByRole("region", { name: block.support.label });
+      expect(card.querySelector(".lesson-spanish-passage").textContent).toBe(block.text);
+      expect(within(card).queryByText(block.support.translation)).toBeNull();
+      const button = within(card).getByRole("button", { name: /Show English/ });
+      expect(button.getAttribute("aria-expanded")).toBe("false");
+      await user.click(button);
+      expect(document.activeElement).toBe(button);
+      expect(button.getAttribute("aria-expanded")).toBe("true");
+      const panel = document.getElementById(button.getAttribute("aria-controls"));
+      expect(panel.contains(within(card).getByText(block.support.translation))).toBe(true);
+      expect(within(card).getByText(block.support.translation).closest("[lang]").lang).toBe("en");
+      await user.click(button);
+      expect(within(card).queryByText(block.support.translation)).toBeNull();
+    }
+    expect([...document.querySelectorAll(".lesson-focus-expression")].map((el) => el.textContent))
+      .toEqual(["reconocer un derecho", "hacerlo cumplir"]);
+    expect(screen.getByRole("complementary", { name: "The idea" }).lang).toBe("en");
+    expect(scroll).not.toHaveBeenCalled();
+  });
+  it("opens all from a mixed state and closes all independently of the meaning summary", async () => {
+    const user = userEvent.setup();
+    open();
+    await user.click(screen.getByRole("button", { name: "English meaning summary" }));
+    const first = screen.getByRole("button", { name: /Show English · 01/ });
+    await user.click(first);
+    expect(screen.getAllByRole("button", { name: /Hide English ·/ })).toHaveLength(1);
+    const all = screen.getByRole("button", { name: "Show English on this page" });
+    await user.click(all);
+    expect(document.activeElement).toBe(all);
+    expect(screen.getAllByRole("button", { name: /Hide English ·/ })).toHaveLength(3);
+    await user.click(screen.getByRole("button", { name: /Hide English · 02/ }));
+    expect(screen.getAllByRole("button", { name: /Hide English ·/ })).toHaveLength(2);
+    await user.click(screen.getByRole("button", { name: "Show English on this page" }));
+    await user.click(screen.getByRole("button", { name: "Hide passage translations" }));
+    for (const block of lesson1917.steps[0].blocks) expect(screen.queryByText(block.support.translation)).toBeNull();
+    expect(screen.getByText(lesson1917.steps[0].english)).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: /Show English ·/ })).toHaveLength(3);
+    expect(scroll).not.toHaveBeenCalled();
+  });
+  it("keeps opening reveals through navigation without changing other pages or source translations", async () => {
+    const user = userEvent.setup();
+    open();
+    await user.click(screen.getByRole("button", { name: /Show English · 02/ }));
+    await user.click(screen.getByRole("button", { name: "Siguiente" }));
+    expect(document.querySelector(".lesson-reading-card")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Show English on this page" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Anterior" }));
+    expect(screen.getByRole("button", { name: /Hide English · 02/ })).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: /Show English ·/ })).toHaveLength(2);
+    await jump(user, "Ocho horas, por escrito");
+    await user.click(screen.getByRole("button", { name: "Traducción al inglés" }));
+    await jump(user, "Querétaro, 1917");
+    await user.click(screen.getByRole("button", { name: "Show English on this page" }));
+    await user.click(screen.getByRole("button", { name: "Hide passage translations" }));
+    await jump(user, "Ocho horas, por escrito");
+    expect(screen.getByText("The maximum working day shall be eight hours.")).toBeTruthy();
+  });
+  it("supports keyboard reveal without moving focus or forcing the reader to continue", async () => {
+    const user = userEvent.setup();
+    open();
+    const first = screen.getByRole("button", { name: /Show English · 01/ });
+    first.focus();
+    await user.keyboard("{Enter}");
+    expect(first.getAttribute("aria-expanded")).toBe("true");
+    await user.keyboard(" ");
+    expect(first.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(first);
+    expect(screen.getByRole("progressbar").value).toBe(1);
     expect(scroll).not.toHaveBeenCalled();
   });
   it.each([
@@ -153,10 +230,14 @@ describe("isolated lesson reader", () => {
     const clear = vi.spyOn(Storage.prototype, "clear");
     const remove = vi.spyOn(Storage.prototype, "removeItem");
     const view = open();
+    fireEvent.click(screen.getByRole("button", { name: "Show English on this page" }));
+    fireEvent.click(screen.getByRole("button", { name: /Hide English · 01/ }));
     for (let i = 1; i < 10; i++) fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
     fireEvent.click(screen.getByRole("button", { name: "Ver un modelo" }));
     view.unmount();
     open();
+    expect(screen.getAllByRole("button", { name: /Show English ·/ })).toHaveLength(3);
+    for (const block of lesson1917.steps[0].blocks) expect(screen.queryByText(block.support.translation)).toBeNull();
     expect(screen.getByRole("heading", { level: 2 }).textContent).toBe("Querétaro, 1917");
     expect(db).not.toHaveBeenCalled();
     expect(setItem).not.toHaveBeenCalled();
