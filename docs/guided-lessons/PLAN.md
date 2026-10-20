@@ -59,7 +59,7 @@ preview for owner feedback, not the integrated first release.
   The subsequently approved real-content visual proof is complete in Figma, with two treatments
   and both English states. The owner selected **B — short sections**; the
   [opening-page implementation plan](SCOPE.md#selected-b-layout--proposed-opening-page-implementation)
-  awaits approval. New player behavior is not implemented. Owner reading/recall feedback
+  is approved with a map visual refinement and is in progress. Owner reading/recall feedback
   remains optional and deferred.
 
 After the visual proof, review narrative interest, Spanish difficulty, depth and optional

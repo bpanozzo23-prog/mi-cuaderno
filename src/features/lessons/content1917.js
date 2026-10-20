@@ -1,8 +1,8 @@
-// Reviewed A1 script: docs/guided-lessons/chapters/1917/STORYBOARD.md (v0.2).
+// Reviewed A1 script: docs/guided-lessons/chapters/1917/STORYBOARD.md (v0.4).
 // Source and excerpt decisions: its companion SOURCES.md. No remote content is fetched.
 export const lesson1917 = {
   "id": "mexico-1917",
-  "revision": "0.3.0-a1",
+  "revision": "0.4.0-a1",
   "title": "1917: Una Constitución, muchas promesas",
   "question": "¿Qué cambia cuando una demanda se convierte en un derecho?",
   "coreOrder": [
@@ -23,21 +23,52 @@ export const lesson1917 = {
       "id": "c1917-opening",
       "kind": "core",
       "title": "Querétaro, 1917",
+      "readingSupport": {
+        "title": "Una Constitución, muchas promesas",
+        "orientation": "A right written into law still needs people and institutions to make it effective.",
+        "invitation": "Follow the main idea. Notice the two marked expressions; you don’t need to learn every word."
+      },
       "blocks": [
         {
           "id": "c1917-opening-context",
           "type": "paragraph",
-          "text": "Querétaro, febrero de 1917. Después de años de lucha, una nueva Constitución propone reglas para organizar el país. No se trata solamente de decidir quién ocupa la presidencia. También están en juego la tierra, el trabajo, la educación y los límites del poder."
+          "text": "Querétaro, febrero de 1917. Después de años de lucha, una nueva Constitución propone reglas para organizar el país. No se trata solamente de decidir quién ocupa la presidencia. También están en juego la tierra, el trabajo, la educación y los límites del poder.",
+          "support": {
+            "label": "01 · El momento",
+            "translation": "Querétaro, February 1917. After years of fighting, a new Constitution proposes rules for organizing the country. It is not only a question of deciding who holds the presidency. Land, work, education, and the limits of power are also at stake."
+          }
         },
         {
           "id": "c1917-opening-questions",
           "type": "paragraph",
-          "text": "Una ley puede reconocer un derecho. Pero ¿qué hace falta para ejercerlo? ¿Quién debe hacerlo cumplir? ¿Y qué ocurre con las demandas que quedan fuera del acuerdo?"
+          "text": "Una ley puede reconocer un derecho. Pero ¿qué hace falta para ejercerlo? ¿Quién debe hacerlo cumplir? ¿Y qué ocurre con las demandas que quedan fuera del acuerdo?",
+          "support": {
+            "label": "02 · El derecho y la realidad",
+            "translation": "A law can recognize a right. But what is needed to exercise it? Who must enforce it? And what happens to the demands left out of the agreement?",
+            "focus": [
+              {
+                "glossaryId": "reconocer",
+                "text": "reconocer un derecho",
+                "term": "reconocer un derecho",
+                "meaning": "recognize a right"
+              },
+              {
+                "glossaryId": "hacer-cumplir",
+                "text": "hacerlo cumplir",
+                "term": "hacer cumplir",
+                "meaning": "enforce · hacerlo cumplir = enforce it"
+              }
+            ]
+          }
         },
         {
           "id": "c1917-opening-invitation",
           "type": "paragraph",
-          "text": "En este capítulo vamos a entrar en esas preguntas. Seguiremos algunas decisiones del Congreso, leeremos una frase del texto original y escucharemos, a través de una carta anterior a la Revolución, una necesidad muy concreta: poder sembrar."
+          "text": "En este capítulo vamos a entrar en esas preguntas. Seguiremos algunas decisiones del Congreso, leeremos una frase del texto original y escucharemos, a través de una carta anterior a la Revolución, una necesidad muy concreta: poder sembrar.",
+          "support": {
+            "label": "03 · Lo que vamos a explorar",
+            "translation": "In this chapter, we will explore those questions. We will follow some decisions made by Congress, read a sentence from the original text, and hear, through a letter written before the Revolution, a very concrete need: being able to plant crops."
+          }
         }
       ],
       "english": "The new Constitution concerns more than the presidency: it addresses land, work, education, and power. We will ask what changes when a right is recognized, what enforcing it requires, and whose demands remain outside the settlement.",

@@ -73,13 +73,13 @@ flattened UI images; the proof uses editable text, vector map geometry, shared c
 the product's Literata font, and Roboto for the system-style labels. These are static layout
 states, not a working reader or a completed phone-use review.
 
-Next: approve the bounded opening-page implementation below.
+Next: complete and verify the approved opening-page implementation below.
 The existing development reader and production app are unchanged. The Figma design, supporting
 scripts and screenshots are separate from application source; nothing has been pushed.
 
 ### Selected B layout — proposed opening-page implementation
 
-**Layout selected; implementation plan awaiting approval.** Apply B first to the opening page
+**Owner-approved 2026-10-20; implementation in progress.** Apply B first to the opening page
 of the existing isolated development reader. This makes the selected design usable before
 authoring passage translations for the remaining chapter. The selected references are
 [B with English hidden](https://www.figma.com/design/qYUUCkgMUmEgumNEhO5549?node-id=3-260)
@@ -117,8 +117,11 @@ production output against the unchanged app baseline to confirm preview isolatio
 This proposal adds no saved preference, notebook integration, database/schema change, runtime
 translation service or dependency. The other nine core pages and two branches keep their
 current presentation and support behavior; a chapter-wide rollout is a later bounded task.
-The owner reading/recall session stays deferred. Approval of this plan would cover routine
-implementation fixes and verification; push permission remains separate.
+The owner approved this plan and also requested a map visual improvement. Refine label
+legibility, marker hierarchy, north indicator and inset presentation using the verified
+geometry, coordinates and existing palette; retain the modern/approximate caption and source
+credits. Routine implementation fixes and verification are authorized. The reading/recall
+session stays deferred, and push permission remains separate.
 
 ## 2. What informs this plan
 

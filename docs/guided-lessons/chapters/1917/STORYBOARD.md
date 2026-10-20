@@ -1,6 +1,6 @@
 # 1917: Una Constitución, muchas promesas
 
-Storyboard v0.3 — 2026-10-18. **Revised for the owner-approved A1 preview and map-led visual pass.**
+Storyboard v0.4 — 2026-10-20. **Revised for the approved opening-page language-support pilot.**
 
 The owner selected a full 1917 chapter first, followed by 1920, with a Spanish story and
 English help. This document develops that choice into a readable narrative and bounded
@@ -29,7 +29,8 @@ toward the struggle for governing authority in 1920.
   becoming a compulsory vocabulary list.
 
 All **Spanish narration** below is newly authored draft text, not historical quotation. All
-**English help** is a concise meaning summary, not a line-by-line translation. Historical
+**English help** remains a concise meaning summary, not a line-by-line translation. The opening
+also has a brief English orientation and individually labeled passage translations. Historical
 quotations, contemporary-Spanish paraphrases, and translations are labeled separately. English
 help is optional and opens alongside the Spanish. The source labels are available without
 requiring the reader to finish an activity.
@@ -73,6 +74,37 @@ cumplir? ¿Y qué ocurre con las demandas que quedan fuera del acuerdo?
 En este capítulo vamos a entrar en esas preguntas. Seguiremos algunas decisiones del Congreso,
 leeremos una frase del texto original y escucharemos, a través de una carta anterior a la
 Revolución, una necesidad muy concreta: poder sembrar.
+
+**Opening support — selected Figma B treatment**
+
+English orientation, labeled *The idea*: A right written into law still needs people and
+institutions to make it effective.
+
+Reading invitation: Follow the main idea. Notice the two marked expressions; you don’t need
+to learn every word.
+
+The three Spanish paragraphs above remain intact, each in its own card:
+
+1. **01 · El momento** (`c1917-opening-context`). English passage translation:
+   Querétaro, February 1917. After years of fighting, a new Constitution proposes rules for
+   organizing the country. It is not only a question of deciding who holds the presidency.
+   Land, work, education, and the limits of power are also at stake.
+2. **02 · El derecho y la realidad** (`c1917-opening-questions`). English passage translation:
+   A law can recognize a right. But what is needed to exercise it? Who must enforce it? And
+   what happens to the demands left out of the agreement?
+   Mark *reconocer un derecho* and *hacerlo cumplir* in the Spanish. The focus panel pairs
+   *reconocer un derecho* with “recognize a right” and *hacer cumplir* with
+   “enforce · hacerlo cumplir = enforce it.” These reuse the chapter's existing expressions.
+3. **03 · Lo que vamos a explorar** (`c1917-opening-invitation`). English passage translation:
+   In this chapter, we will explore those questions. We will follow some decisions made by
+   Congress, read a sentence from the original text, and hear, through a letter written before
+   the Revolution, a very concrete need: being able to plant crops.
+
+Each translation opens immediately beneath its paragraph. A page control opens all when
+any are hidden and closes all when all are open. The meaning summary below remains a
+separate optional aid. The pilot retains choices during the visit and resets on reload.
+The [approved scope](../../SCOPE.md#selected-b-layout--proposed-opening-page-implementation)
+keeps this treatment on the opening while the remaining chapter retains its existing help.
 
 **English help — meaning summary**
 

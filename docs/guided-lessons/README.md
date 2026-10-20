@@ -18,7 +18,7 @@ Notebook integration remains proposed work.
 
 The owner selected **B — short sections** from the
 [Figma comparison](https://www.figma.com/design/qYUUCkgMUmEgumNEhO5549?node-id=2-64).
-Next: approve the [bounded opening-page implementation](SCOPE.md#selected-b-layout--proposed-opening-page-implementation)
+In progress: the approved [bounded opening-page implementation](SCOPE.md#selected-b-layout--proposed-opening-page-implementation)
 of the agreed language-support direction. The Figma layouts show hidden/revealed English
 as separate static states.
 The [completed A1 preview](chapters/1917/REVIEW.md#implementation-closeout)

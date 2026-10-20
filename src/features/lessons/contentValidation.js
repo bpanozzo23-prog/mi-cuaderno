@@ -60,6 +60,13 @@ export function validateLesson(lesson) {
     check(list(step.sourceIds).length > 0, `${step.id}: citations are required`);
     for (const id of list(step.sourceIds)) check(sources.has(id), `${step.id}: missing source ${id}`);
     for (const id of list(step.glossaryIds)) check(glossary.has(id), `${step.id}: missing glossary ${id}`);
+    if (step.readingSupport !== undefined) {
+      check(step.kind === "core" && step.id === coreOrder[0], `${step.id}: reading support pilot belongs on the opening only`);
+      for (const key of ["title", "orientation", "invitation"]) text(step.readingSupport?.[key], `${step.id} reading support ${key}`);
+      check(list(step.blocks).every((block) => block.type === "paragraph" && block.support), `${step.id}: reading support requires supported paragraphs`);
+      const focusCount = list(step.blocks).reduce((count, block) => count + list(block.support?.focus).length, 0);
+      check(focusCount > 0 && focusCount <= 2, `${step.id}: reading support needs one or two focus expressions`);
+    }
     for (const block of list(step.blocks)) {
       identify(block.id, "Passage");
       check(BLOCK_TYPES.has(block.type), `${block.id}: unsupported block type`);
@@ -70,6 +77,24 @@ export function validateLesson(lesson) {
       }
       if (block.type === "excerpt") {
         text(block.note, `${block.id} edition note`);
+      }
+      if (block.support !== undefined) {
+        check(!!step.readingSupport && block.type === "paragraph", `${block.id}: support must belong to a reading-support paragraph`);
+        text(block.support?.label, `${block.id} section label`);
+        text(block.support?.translation, `${block.id} passage translation`);
+        check(block.support?.focus === undefined || Array.isArray(block.support.focus), `${block.id}: focus must be an array`);
+        const ranges = [];
+        for (const focus of list(block.support?.focus)) {
+          for (const key of ["text", "term", "meaning"]) text(focus?.[key], `${block.id} focus ${key}`);
+          check(glossary.has(focus?.glossaryId) && list(step.glossaryIds).includes(focus?.glossaryId), `${block.id}: focus must use a page glossary entry`);
+          const start = filled(focus?.text) && filled(block.text) ? block.text.indexOf(focus.text) : -1;
+          check(start >= 0 && block.text.indexOf(focus.text, start + 1) === -1, `${block.id}: focus text must occur exactly once`);
+          if (start >= 0) {
+            const end = start + focus.text.length;
+            check(ranges.every(([from, to]) => end <= from || start >= to), `${block.id}: focus text must not overlap`);
+            ranges.push([start, end]);
+          }
+        }
       }
     }
     unique(list(step.branchIds), `${step.id} branches`);

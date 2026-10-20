@@ -62,7 +62,8 @@ This is the starting point for current status, not a release diary.
   now contains two editable 375px treatments, each with English hidden and revealed.
   Content/bounds checks and visual inspection pass. The owner selected **B — short sections**;
   the [bounded opening-page implementation plan](guided-lessons/SCOPE.md#selected-b-layout--proposed-opening-page-implementation)
-  now awaits approval. These remain static design states, not implemented reader behavior.
+  is approved and in progress, including the owner-requested map readability refinement.
+  Final implementation verification remains pending.
   The owner reading session is deferred.
   Saved writing, notebook integration, schema changes and a production lesson release remain
   outside A1. The deployed revision above is unchanged; the preview and feedback record are local only.
