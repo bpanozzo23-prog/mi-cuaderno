@@ -86,6 +86,7 @@ export function validateLesson(lesson) {
         const ranges = [];
         for (const focus of list(block.support?.focus)) {
           for (const key of ["text", "term", "meaning"]) text(focus?.[key], `${block.id} focus ${key}`);
+          if (focus?.text !== focus?.term) text(focus?.contextMeaning, `${block.id} focus contextual meaning`);
           check(glossary.has(focus?.glossaryId) && list(step.glossaryIds).includes(focus?.glossaryId), `${block.id}: focus must use a page glossary entry`);
           const start = filled(focus?.text) && filled(block.text) ? block.text.indexOf(focus.text) : -1;
           check(start >= 0 && block.text.indexOf(focus.text, start + 1) === -1, `${block.id}: focus text must occur exactly once`);

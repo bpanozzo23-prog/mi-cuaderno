@@ -45,7 +45,7 @@ function Passage({ block, source, translationOpen, onToggleTranslation, translat
             <dl>{focus.map((expression) => (
               <div key={expression.glossaryId}>
                 <dt lang="es">{expression.term}</dt>
-                <dd>{expression.meaning}</dd>
+                <dd>{expression.meaning}{expression.contextMeaning && <> · <span lang="es">{expression.text}</span> = {expression.contextMeaning}</>}</dd>
               </div>
             ))}</dl>
           </aside>
@@ -118,10 +118,13 @@ export default function LessonPlayer({ lesson }) {
     (returnControl || heading.current)?.focus({ preventScroll: true });
     if (returnControl) {
       window.scrollTo({ top: scrollPositions.current[navigation.id] || 0, behavior: "instant" });
+    } else if (support) {
+      // B's visible title precedes the article's accessible page heading.
+      window.scrollTo({ top: 0, behavior: "instant" });
     } else {
       heading.current?.scrollIntoView?.({ block: "start", behavior: "instant" });
     }
-  }, [navigation]);
+  }, [navigation, support]);
 
   return (
     <main className={`lesson-reader${support ? " lesson-reader--supported" : ""}`} lang="es" style={{ color: C.ink, fontFamily: SERIF }}>

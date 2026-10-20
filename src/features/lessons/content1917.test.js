@@ -30,6 +30,13 @@ describe("1917 authored chapter", () => {
     expect(excerpts[1].note).toContain("1917");
     expect(lesson1917.steps.flatMap((step) => step.blocks).filter((block) => block.type === "translation")).toHaveLength(2);
   });
+  it("preserves the approved Spanish opening while adding reading support", () => {
+    expect(lesson1917.steps[0].blocks.map((block) => block.text)).toEqual([
+      "Querétaro, febrero de 1917. Después de años de lucha, una nueva Constitución propone reglas para organizar el país. No se trata solamente de decidir quién ocupa la presidencia. También están en juego la tierra, el trabajo, la educación y los límites del poder.",
+      "Una ley puede reconocer un derecho. Pero ¿qué hace falta para ejercerlo? ¿Quién debe hacerlo cumplir? ¿Y qué ocurre con las demandas que quedan fuera del acuerdo?",
+      "En este capítulo vamos a entrar en esas preguntas. Seguiremos algunas decisiones del Congreso, leeremos una frase del texto original y escucharemos, a través de una carta anterior a la Revolución, una necesidad muy concreta: poder sembrar.",
+    ]);
+  });
   it.each([
     ["duplicate IDs", (l) => { l.steps[1].blocks[0].id = l.steps[0].blocks[0].id; }, /duplicate id/],
     ["missing core destination", (l) => { l.coreOrder[0] = "missing"; }, /Core destination missing/],
@@ -68,6 +75,7 @@ describe("1917 authored chapter", () => {
     ["ambiguous focus", (l) => { l.steps[0].blocks[1].text += " hacerlo cumplir"; }, /occur exactly once/],
     ["overlapping focus", (l) => { l.steps[0].blocks[1].support.focus[1].text = "un derecho"; }, /must not overlap/],
     ["missing focus", (l) => { delete l.steps[0].blocks[1].support.focus; }, /one or two/],
+    ["missing contextual meaning", (l) => { delete l.steps[0].blocks[1].support.focus[1].contextMeaning; }, /focus contextual meaning/],
     ["too many focus expressions", (l) => { l.steps[0].blocks[1].support.focus.push(l.steps[0].blocks[1].support.focus[0]); }, /one or two/],
     ["malformed focus collection", (l) => { l.steps[0].blocks[1].support.focus = {}; }, /must be an array/],
     ["duplicate source link", (l) => { l.sources[0].links.push(l.sources[0].links[0]); }, /duplicate entries/],

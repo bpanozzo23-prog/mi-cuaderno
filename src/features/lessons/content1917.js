@@ -56,7 +56,8 @@ export const lesson1917 = {
                 "glossaryId": "hacer-cumplir",
                 "text": "hacerlo cumplir",
                 "term": "hacer cumplir",
-                "meaning": "enforce · hacerlo cumplir = enforce it"
+                "meaning": "enforce",
+                "contextMeaning": "enforce it"
               }
             ]
           }

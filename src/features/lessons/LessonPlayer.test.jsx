@@ -98,6 +98,9 @@ describe("isolated lesson reader", () => {
     }
     expect([...document.querySelectorAll(".lesson-focus-expression")].map((el) => el.textContent))
       .toEqual(["reconocer un derecho", "hacerlo cumplir"]);
+    const contextForm = within(screen.getByRole("complementary", { name: "Spanish focus" })).getByText("hacerlo cumplir");
+    expect(contextForm.lang).toBe("es");
+    expect(contextForm.parentElement.closest("[lang]").lang).toBe("en");
     expect(screen.getByRole("complementary", { name: "The idea" }).lang).toBe("en");
     expect(scroll).not.toHaveBeenCalled();
   });
@@ -129,11 +132,13 @@ describe("isolated lesson reader", () => {
     expect(document.querySelector(".lesson-reading-card")).toBeNull();
     expect(screen.queryByRole("button", { name: "Show English on this page" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "Anterior" }));
+    expect(scroll).toHaveBeenLastCalledWith({ top: 0, behavior: "instant" });
     expect(screen.getByRole("button", { name: /Hide English · 02/ })).toBeTruthy();
     expect(screen.getAllByRole("button", { name: /Show English ·/ })).toHaveLength(2);
     await jump(user, "Ocho horas, por escrito");
     await user.click(screen.getByRole("button", { name: "Traducción al inglés" }));
     await jump(user, "Querétaro, 1917");
+    expect(scroll).toHaveBeenLastCalledWith({ top: 0, behavior: "instant" });
     await user.click(screen.getByRole("button", { name: "Show English on this page" }));
     await user.click(screen.getByRole("button", { name: "Hide passage translations" }));
     await jump(user, "Ocho horas, por escrito");
