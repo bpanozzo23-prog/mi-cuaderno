@@ -63,7 +63,8 @@ The owner approved the bounded layouts task on 2026-10-20. The
 now shows two treatments of the complete opening page at 375px: **A — continuous reading** and
 **B — short sections**. Each has English-hidden and English-revealed states, using the existing
 locator geometry and all three Spanish paragraphs unchanged. The English orientation, passage
-translations, section labels and focus presentation are design drafts; no layout is selected yet.
+translations and section labels are design drafts. The owner selected **B — short sections**
+with “B”: separate reading cards, nearby English and a small focus-expression panel.
 
 The connection, file creation and editing worked. Visual inspection caught and corrected text
 auto-sizing before handoff. All four frames retain the full Spanish text; revealed translations
@@ -72,9 +73,52 @@ flattened UI images; the proof uses editable text, vector map geometry, shared c
 the product's Literata font, and Roboto for the system-style labels. These are static layout
 states, not a working reader or a completed phone-use review.
 
-Next: choose a treatment or specific elements to combine, then bound the reader implementation.
+Next: approve the bounded opening-page implementation below.
 The existing development reader and production app are unchanged. The Figma design, supporting
 scripts and screenshots are separate from application source; nothing has been pushed.
+
+### Selected B layout — proposed opening-page implementation
+
+**Layout selected; implementation plan awaiting approval.** Apply B first to the opening page
+of the existing isolated development reader. This makes the selected design usable before
+authoring passage translations for the remaining chapter. The selected references are
+[B with English hidden](https://www.figma.com/design/qYUUCkgMUmEgumNEhO5549?node-id=3-260)
+and [B with English revealed](https://www.figma.com/design/qYUUCkgMUmEgumNEhO5549?node-id=3-362).
+
+Use three small implementation commits:
+
+1. **Prepare the opening's reading support.** Retain all three Spanish paragraphs and the
+   verified locator. Add the Figma draft's brief English orientation, three section labels,
+   three matching passage translations and two focus expressions: *reconocer un derecho* and
+   *hacer cumplir*, shown in context as *hacerlo cumplir*. Keep the canonical Spanish intact;
+   validate that support belongs to the intended passage and that marked text exists.
+   Update the opening's authored storyboard alongside its content data. Review English for
+   fidelity without adding historical claims or expanding the chapter's learning targets.
+2. **Make the support controls work.** Each reading card has its own English reveal directly
+   under the Spanish. A page-level “Show English on this page” / “Hide passage translations”
+   control opens or closes all three passage translations. When some are open, the page
+   control opens the remaining ones; individual controls can always close a passage.
+   Start hidden, retain choices when returning to the opening during the same preview visit,
+   and reset on reload. The existing meaning summary remains separately labeled and
+   independently controlled, as do glosses and source notes. Use the player's existing
+   temporary state and accessible disclosure conventions; add focused interaction checks.
+3. **Apply and verify B's presentation.** Match the selected hierarchy, English orientation,
+   map placement, short labeled cards, two-expression panel and chapter-question treatment,
+   using existing palette/fonts and responsive preview styles. Keep styling separate from
+   interaction logic. Inspect hidden, mixed and fully revealed states at 375px and a wider
+   viewport, including keyboard controls, text enlargement, navigation away/back and reload.
+
+Consult Claude Code for a focused read-only review of translation fidelity and the completed
+interaction changes where useful. Verification includes the authoring checks, meaningful
+control/state regressions, zero-warning lint, the complete serial test suite and production
+build. Recheck both optional branch returns and existing source translations, and compare
+production output against the unchanged app baseline to confirm preview isolation.
+
+This proposal adds no saved preference, notebook integration, database/schema change, runtime
+translation service or dependency. The other nine core pages and two branches keep their
+current presentation and support behavior; a chapter-wide rollout is a later bounded task.
+The owner reading/recall session stays deferred. Approval of this plan would cover routine
+implementation fixes and verification; push permission remains separate.
 
 ## 2. What informs this plan
 

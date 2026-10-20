@@ -60,8 +60,10 @@ This is the starting point for current status, not a release diary.
   brief English orientation, manageable Spanish, explicit focus expressions and nearby English
   help. The owner then approved the layouts task; the [Figma comparison](https://www.figma.com/design/qYUUCkgMUmEgumNEhO5549?node-id=2-64)
   now contains two editable 375px treatments, each with English hidden and revealed.
-  Content/bounds checks and visual inspection pass; these are static design states awaiting
-  owner selection, not implemented reader behavior. The owner reading session is deferred.
+  Content/bounds checks and visual inspection pass. The owner selected **B — short sections**;
+  the [bounded opening-page implementation plan](guided-lessons/SCOPE.md#selected-b-layout--proposed-opening-page-implementation)
+  now awaits approval. These remain static design states, not implemented reader behavior.
+  The owner reading session is deferred.
   Saved writing, notebook integration, schema changes and a production lesson release remain
   outside A1. The deployed revision above is unchanged; the preview and feedback record are local only.
 - **Complete and published:** [Step 5](reviews/2026-10-17/REASSESSMENT.md#12-suggested-order-of-work)'s
