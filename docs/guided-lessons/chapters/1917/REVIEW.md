@@ -488,3 +488,62 @@ under `/tmp/mi-cuaderno-lesson-map/`: `browser-result.json`, `design-comparison.
 stopped. No owner data was opened. To try the reader, use `npm run dev:lessons` and the printed
 local URL; owner visual/narrative/language and physical-phone acceptance remain the next input.
 Publication still requires an explicit push request.
+
+
+## Opening-page B implementation and closeout
+
+2026-10-20 — The owner chose **B — short sections**, approved the
+[bounded opening-page plan](../../SCOPE.md#selected-b-layout--opening-page-implementation), and
+requested a map visual improvement. **Complete and verified locally; not pushed or deployed.**
+The three planned stages keep authored content, interaction logic and visual styling separate;
+small follow-up commits isolate the review corrections and stronger outline-return assertion.
+
+The opening now pairs its three unchanged Spanish paragraphs with labeled reading cards,
+matching English reveals, a page-level show/hide action and two recurring focus expressions.
+Brief English orientation and a read-for-gist invitation reduce the initial reading burden.
+The existing meaning summary, glossary and sources remain separate. All controls use temporary
+per-page state; there are no saved preferences, notebook handoffs or schema changes. Later
+pages, both optional branches, historical source translations, source order and glossary data
+compare unchanged with pre-task `c9d66d1`.
+
+The requested map refinement enlarges labels/inset, emphasizes Querétaro, lightens label halos,
+adds a north arrowhead and uses existing tokens for softly shaded land. Geometry, coordinates,
+projection and regional extent are unchanged. The modern/approximate caption and credits stay
+visible. [Source derivation](SOURCES.md#v1-verified-modern-locator-2026-10-18) and
+[design QA](../../../../design-qa.md#selected-b-comparison) record the display changes.
+
+Verification and review:
+
+- Two read-only Codex investigations checked content fidelity/validation and interaction/map
+  constraints. Claude's focused CLI review found no translation defect. It identified the
+  hidden-heading return-scroll regression, missing canonical-Spanish assertion and Spanish
+  language marking inside the English focus note; all were corrected. Browser verification
+  additionally caught native reload scroll restoration and enlarged-text wrapping. Claude's
+  screenshot/code follow-up confirms no blocking map/layout defect or unresolved earlier
+  finding; its weak outline-return assertion was strengthened and passed targeted verification.
+- Zero-warning lint; **2,021 tests across 160 files in the complete serial suite, 457.02s**,
+  exit zero with no failures or unhandled errors. After the assertion-only follow-up,
+  **61 focused tests across two files passed in 8.07s**, followed by another successful build;
+  lint also passed. Deliberately opening only one passage makes the mixed-state regression fail.
+- Production build succeeds with the existing chunk-size warning. All **45 production files**
+  are byte-identical to the fresh pre-task `c9d66d1` build, including CSS, app bundles and service
+  worker. The opening lesson identifier is absent from production output. Both lesson build
+  and `vite preview` still refuse the development-only entry.
+- Actual Chromium inspection at **375×812** and **1100×900**, plus 200% root text size, verifies
+  hidden/mixed/revealed English, keyboard activation/focus, separate summary state, visible
+  title on Next/Previous and outline returns, both optional branch returns, both source
+  translations, conclusion and reload reset. No horizontal overflow, clipped map labels,
+  console warnings or uncaught exceptions remain. Guards record no database opens or storage
+  mutations; the preview has no service-worker registration and requests only local assets.
+- The first full-page capture retained a sticky-control overlay at the viewport boundary;
+  final complete-page artifacts use a tall viewport. The separately inspected phone capture
+  is the real 375×812 viewport. A stale generated stylesheet was discarded by restarting Vite
+  and disabling browser cache before the final checks. Screenshots and measured bounds agree.
+
+Scratch evidence is in `/tmp/mi-cuaderno-opening-b/`: `full-suite.log`, `final-focused.log`,
+`final-lint.log`, `final-build.log`, `production-comparison.json`, `browser-report.json`,
+`browser-isolation.json`, `preview-guards.json`, screenshots and both Claude review reports.
+The disposable Chromium profile was removed and temporary loopback preview stopped. No owner
+browser data was accessed. Use `npm run dev:lessons` and its printed local URL to try the result.
+Owner visual/language/physical-phone acceptance remains separate; the formal reading session
+stays deferred. Expanding the treatment to the rest of the chapter is a later bounded task.

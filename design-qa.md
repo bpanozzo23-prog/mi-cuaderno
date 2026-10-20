@@ -1,4 +1,66 @@
-# Design QA — 1917 lesson map-led pass
+# Design QA — 1917 opening language support
+
+2026-10-20. **Visual and interaction checks: passed.** The owner selected Figma **B — short
+sections**, approved its opening-page implementation and requested a map visual refinement.
+The [chapter review](docs/guided-lessons/chapters/1917/REVIEW.md#opening-page-b-implementation-and-closeout)
+owns the complete acceptance record. The earlier map pass is retained below.
+
+## Selected B comparison
+
+References: [hidden English](https://www.figma.com/design/qYUUCkgMUmEgumNEhO5549?node-id=3-260)
+and [revealed English](https://www.figma.com/design/qYUUCkgMUmEgumNEhO5549?node-id=3-362).
+Figma design context and its screenshot were inspected before implementation. The existing
+native locator and shared buttons/icons supply the matching project assets; there are no
+flattened UI images or temporary Figma URLs in application code. The owner's map refinement
+explicitly extends the static reference.
+
+Actual Chromium screenshots in `/tmp/mi-cuaderno-opening-b/` were inspected:
+
+- `01-phone-opening-verified.png`: real 375×812 viewport, initial hidden state.
+- `02-opening-hidden-full-verified.png` and `04-opening-english-full-verified.png`: complete
+  opening at 375px width, hidden and revealed. These use a tall viewport so the sticky controls
+  appear at the bottom of the full-page artifact; they are not 812px viewport screenshots.
+- `03-mixed-english.png`: a passage revealed by native Enter with keyboard focus retained.
+- `05-large-text-verified.png`: 375×812 with root text enlarged to 200%.
+- `06-desktop-opening-verified.png` and `07-desktop-full.png`: 1100px-wide comparison.
+
+The selected hierarchy, brief English orientation, Spanish cards, nearby translations,
+focus-expression panel and chapter question are implemented. Existing local Literata and
+system UI fonts replace Figma's Roboto approximation. The existing outline/progress controls,
+disabled Previous control and full preview-reset notice are retained, so the full page is
+longer than the static reference. All three original Spanish paragraphs remain intact.
+
+## Findings resolved during implementation
+
+- Enlarged toolbar/navigation text originally broke into narrow columns. Flexible wrapping and
+  word-preserving controls fix that at 200% text size. A stale Vite-generated stylesheet initially
+  concealed the fix; restarting the preview and disabling browser cache established the final
+  rendered result. Screenshots, rather than overflow measurements alone, caught this mismatch.
+- Return navigation originally placed the hidden article heading at the top, hiding B's visible
+  title. A 375px reproduction measured the title bottom at −14.5px. Returning now scrolls to 0;
+  the heading keeps focus and open translations remain available. Native reload scroll
+  restoration is disabled only in the disposable preview so its reset starts at the title.
+- Claude's review corrected the Spanish language tag within the English focus note. Its
+  screenshot/code follow-up found no blocking layout or map defect. No actual screen-reader
+  walkthrough or owner physical-phone acceptance is claimed.
+
+## Map and interaction evidence
+
+Larger place labels, a highlighted Querétaro marker, thinner label halos, a clearer north arrow,
+a larger country inset and softly shaded land improve legibility. Existing palette tokens
+supply every color. Geometry, projection, landmark coordinates, derived regional extent,
+modern/approximate caption and attribution are preserved. Bounds checks and screenshot
+inspection show all place, inset and ocean labels inside the map at both widths.
+
+Hidden, mixed and fully revealed states have no horizontal overflow. Keyboard activation keeps
+focus and scroll; individual/page controls leave the meaning summary independent. Next/Previous
+and outline returns retain help. Both optional branches retain their launch focus, scroll and
+help, and both historical-source translations remain usable. Reload resets reading/help state.
+Disposable-browser checks found no database opens or storage mutations, service-worker
+registrations, external page requests, console warnings or uncaught exceptions. The request
+check observed 26 unique local URLs. Owner visual/language acceptance remains separate.
+
+## Previous verified map pass — 2026-10-19
 
 2026-10-19. **final result: passed**
 

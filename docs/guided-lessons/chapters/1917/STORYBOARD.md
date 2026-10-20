@@ -103,7 +103,7 @@ The three Spanish paragraphs above remain intact, each in its own card:
 Each translation opens immediately beneath its paragraph. A page control opens all when
 any are hidden and closes all when all are open. The meaning summary below remains a
 separate optional aid. The pilot retains choices during the visit and resets on reload.
-The [approved scope](../../SCOPE.md#selected-b-layout--proposed-opening-page-implementation)
+The [approved scope](../../SCOPE.md#selected-b-layout--opening-page-implementation)
 keeps this treatment on the opening while the remaining chapter retains its existing help.
 
 **English help — meaning summary**

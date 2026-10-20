@@ -58,12 +58,13 @@ preview for owner feedback, not the integrated first release.
 - 2026-10-20: owner accepted the [combined language-support direction](SCOPE.md#agreed-language-support-direction--2026-10-20).
   The subsequently approved real-content visual proof is complete in Figma, with two treatments
   and both English states. The owner selected **B — short sections**; the
-  [opening-page implementation plan](SCOPE.md#selected-b-layout--proposed-opening-page-implementation)
-  is approved with a map visual refinement and is in progress. Owner reading/recall feedback
-  remains optional and deferred.
+  [opening-page implementation plan](SCOPE.md#selected-b-layout--opening-page-implementation)
+  and map refinement are complete and verified locally; see the
+  [closeout](chapters/1917/REVIEW.md#opening-page-b-implementation-and-closeout). Owner assessment
+  and any chapter-wide rollout remain next; formal reading/recall feedback stays deferred.
 
 After the visual proof, review narrative interest, Spanish difficulty, depth and optional
 activities when the owner is ready. Broader media choices and the rest of A remain separately
-bounded work. Before B, review the exact durability/storage design and safety plan. The topic
-after 1920 remains open and does not block the first two chapters. No push or production lesson
-release is authorized.
+bounded work. Before delivery increment B, review the exact durability/storage design and safety
+plan. The topic after 1920 remains open and does not block the first two chapters. No push or
+production lesson release is authorized.

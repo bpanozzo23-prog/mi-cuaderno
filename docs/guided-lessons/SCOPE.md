@@ -47,10 +47,10 @@ there is no fixed Spanish/English percentage.
 - Explain that following the main idea is enough and the marked expressions are the deliberate
   Spanish focus. Help can be opened immediately; understanding every word is not a requirement.
 
-The current preview has page-level English summaries, glossaries and two source translations.
-It does not yet implement this combined presentation. The existing six active expressions
-remain the starting set; accepting the direction does not finalize new passage translations,
-layout or player behavior.
+The opening-page pilot now implements this combined presentation, using the existing chapter
+expressions. The remaining pages retain page-level English summaries, glossaries and the two
+source translations. Owner assessment of language load and usefulness remains pending; a
+chapter-wide rollout is separate work.
 
 Related workflow feedback: the owner supports using real text and usable visual assets in an
 early visual proof, reports installing the Figma connector for use when appropriate, and is
@@ -73,19 +73,21 @@ flattened UI images; the proof uses editable text, vector map geometry, shared c
 the product's Literata font, and Roboto for the system-style labels. These are static layout
 states, not a working reader or a completed phone-use review.
 
-Next: complete and verify the approved opening-page implementation below.
-The existing development reader and production app are unchanged. The Figma design, supporting
-scripts and screenshots are separate from application source; nothing has been pushed.
+The approved opening-page implementation below is complete and verified locally. The
+[closeout](chapters/1917/REVIEW.md#opening-page-b-implementation-and-closeout) records the checks.
+The production app is unchanged; the owner can now try B in the development reader. The Figma
+design, supporting scripts and screenshots are separate from application source; nothing has
+been pushed.
 
-### Selected B layout — proposed opening-page implementation
+### Selected B layout — opening-page implementation
 
-**Owner-approved 2026-10-20; implementation in progress.** Apply B first to the opening page
-of the existing isolated development reader. This makes the selected design usable before
+**Owner-approved and verified locally, 2026-10-20; not pushed.** B applies first to the opening
+page of the existing isolated development reader. This makes the selected design usable before
 authoring passage translations for the remaining chapter. The selected references are
 [B with English hidden](https://www.figma.com/design/qYUUCkgMUmEgumNEhO5549?node-id=3-260)
 and [B with English revealed](https://www.figma.com/design/qYUUCkgMUmEgumNEhO5549?node-id=3-362).
 
-Use three small implementation commits:
+The approved plan has three stages, kept separate from routine review-fix commits:
 
 1. **Prepare the opening's reading support.** Retain all three Spanish paragraphs and the
    verified locator. Add the Figma draft's brief English orientation, three section labels,
@@ -114,7 +116,7 @@ control/state regressions, zero-warning lint, the complete serial test suite and
 build. Recheck both optional branch returns and existing source translations, and compare
 production output against the unchanged app baseline to confirm preview isolation.
 
-This proposal adds no saved preference, notebook integration, database/schema change, runtime
+This pilot adds no saved preference, notebook integration, database/schema change, runtime
 translation service or dependency. The other nine core pages and two branches keep their
 current presentation and support behavior; a chapter-wide rollout is a later bounded task.
 The owner approved this plan and also requested a map visual improvement. Refine label

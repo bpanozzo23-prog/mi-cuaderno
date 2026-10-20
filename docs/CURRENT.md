@@ -61,10 +61,17 @@ This is the starting point for current status, not a release diary.
   help. The owner then approved the layouts task; the [Figma comparison](https://www.figma.com/design/qYUUCkgMUmEgumNEhO5549?node-id=2-64)
   now contains two editable 375px treatments, each with English hidden and revealed.
   Content/bounds checks and visual inspection pass. The owner selected **B — short sections**;
-  the [bounded opening-page implementation plan](guided-lessons/SCOPE.md#selected-b-layout--proposed-opening-page-implementation)
-  is approved and in progress, including the owner-requested map readability refinement.
-  Final implementation verification remains pending.
-  The owner reading session is deferred.
+  the [bounded opening-page implementation plan](guided-lessons/SCOPE.md#selected-b-layout--opening-page-implementation)
+  is complete locally, including the requested map readability refinement. The opening now
+  has English orientation, three reading cards, two focus expressions and independent passage/
+  page translation controls. Claude's grounded review findings are resolved. Zero-warning lint,
+  **2,021 tests across 160 files** serially in 457.02s and the production build pass; a subsequent
+  test-assertion improvement passed all **61 focused checks**, lint and build. All 45 production
+  files match the fresh pre-task build byte for byte. Chromium verified 375×812, 1100×900,
+  enlarged text, keyboard controls, both branch returns and reload reset. See the
+  [B closeout](guided-lessons/chapters/1917/REVIEW.md#opening-page-b-implementation-and-closeout)
+  and [design QA](../design-qa.md). Temporary preview/browser resources were cleaned up.
+  Owner visual/language acceptance remains pending; the formal reading session is deferred.
   Saved writing, notebook integration, schema changes and a production lesson release remain
   outside A1. The deployed revision above is unchanged; the preview and feedback record are local only.
 - **Complete and published:** [Step 5](reviews/2026-10-17/REASSESSMENT.md#12-suggested-order-of-work)'s

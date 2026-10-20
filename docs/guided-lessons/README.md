@@ -18,12 +18,13 @@ Notebook integration remains proposed work.
 
 The owner selected **B — short sections** from the
 [Figma comparison](https://www.figma.com/design/qYUUCkgMUmEgumNEhO5549?node-id=2-64).
-In progress: the approved [bounded opening-page implementation](SCOPE.md#selected-b-layout--proposed-opening-page-implementation)
-of the agreed language-support direction. The Figma layouts show hidden/revealed English
-as separate static states.
-The [completed A1 preview](chapters/1917/REVIEW.md#implementation-closeout)
-still has its existing language-help behavior. Owner acceptance of narrative, language and phone
-usability remains pending; a reading session is an option for later, not the immediate next step.
+The [bounded opening-page implementation](SCOPE.md#selected-b-layout--opening-page-implementation)
+is now verified locally, including the map refinement. Run the preview below to try three
+Spanish reading cards, individual English reveals, a page-level show/hide control and two focus
+expressions. See the [closeout](chapters/1917/REVIEW.md#opening-page-b-implementation-and-closeout).
+The remaining chapter keeps its existing support. Owner visual/language/phone acceptance remains
+pending; a formal reading session is still an option for later. A chapter-wide rollout would
+be a separate bounded task.
 The [1920 outline](SCOPE.md#chapter-2-storyboard--1920) is in Scope;
 it does not yet have a separate storyboard.
 
@@ -36,7 +37,9 @@ This is a separate development reader, without a Lecciones tab in the normal app
 serving it with `vite preview` is intentionally blocked.
 
 Read with Anterior, Siguiente or Índice. Both optional branches return to their launch point;
-English help, translations, glosses, explanations and sources open in place. No exercise is
+English help, translations, glosses, explanations and sources open in place. On the opening,
+“Show English on this page” opens all passage translations; the meaning summary remains a
+separate control. Choices survive navigating away and back during the visit. No exercise is
 required. Position and choices reset on reload. The final reflection has a prompt and model,
 with no typing field or saved writing. Source links open a separate tab and need connectivity.
 

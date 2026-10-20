@@ -39,32 +39,37 @@ export default function LessonLocator({ card }) {
         aria-labelledby={`${id}-title`} aria-describedby={`${id}-description`}>
         <defs>
           <clipPath id={`${id}-clip`}><rect width="500" height="310" rx="12" /></clipPath>
+          <linearGradient id={`${id}-land`} x1="0" y1="0" x2="0" y2="1">
+            <stop className="lesson-map-land-light" offset="0" />
+            <stop className="lesson-map-land-warm" offset="1" />
+          </linearGradient>
         </defs>
         <g clipPath={`url(#${id}-clip)`}>
           <rect className="lesson-map-water" width="500" height="310" />
-          <path className="lesson-map-land" d={REGION_PATH} />
+          <path className="lesson-map-land" fill={`url(#${id}-land)`} d={REGION_PATH} />
           <text className="lesson-map-sea" x="48" y="280">Océano Pacífico</text>
           {locatorPlaces.map((place) => {
             const [x, y] = project(place.lon, place.lat, REGION);
             const label = LABELS[place.id];
-            return <g key={place.id} className="lesson-map-place" data-place={place.id}>
+            return <g key={place.id} className={`lesson-map-place${place.id === "queretaro" ? " lesson-map-place--opening" : ""}`} data-place={place.id}>
               <line className="lesson-map-leader" x1={x} y1={y} x2={label.x + (label.anchor === "end" ? 6 : -6)} y2={label.y - 6} />
-              <circle cx={x} cy={y} r="6" />
+              <circle cx={x} cy={y} r={place.id === "queretaro" ? 8 : 6} />
               <text x={label.x} y={label.y} textAnchor={label.anchor || "start"}>
                 {place.name.split(/\s(?=\()/).map((part, line) => <tspan key={part} x={label.x} dy={line ? 21 : 0}>{part}</tspan>)}
               </text>
             </g>;
           })}
-          <g className="lesson-map-inset" transform="translate(360 12)">
-            <rect width="128" height="100" rx="6" />
-            <g transform="translate(7 5)">
+          <g className="lesson-map-inset" transform="translate(344 12)">
+            <rect width="144" height="112" rx="8" />
+            <g transform="translate(10 7) scale(1.08)">
               <path d={COUNTRY_PATH} />
               <rect className="lesson-map-extent" x={areaX} y={areaY} width={areaWidth} height={areaHeight} />
             </g>
-            <text x="64" y="91" textAnchor="middle">México</text>
+            <text x="72" y="102" textAnchor="middle">México</text>
           </g>
           <text className="lesson-map-north" x="24" y="32">N</text>
           <line className="lesson-map-north-line" x1="31" y1="65" x2="31" y2="40" />
+          <path className="lesson-map-north-line" d="M26 47 L31 40 L36 47" fill="none" />
         </g>
       </svg>
       <p id={`${id}-description`} className="lesson-map-description">

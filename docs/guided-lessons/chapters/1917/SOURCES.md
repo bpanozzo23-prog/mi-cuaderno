@@ -252,6 +252,9 @@ scale `500 / (9.5 × cos(19°))`; clip this region from the source outline. The 
 uses west −118.5°, north 33.5°, scale `114 / (32.5 × cos(19°))`. Its highlighted extent is derived
 from the regional frame, not hand-estimated. Outline display coordinates round to two SVG units;
 landmark dots retain their computed positions. Label offsets/short leaders do not move the dots.
+The 2026-10-20 visual refinement displays the country outline and extent together at 1.08×
+inside a 144×112-unit inset. This is a display transform only; the regional frame, projection,
+geometry and landmark coordinates remain unchanged.
 There are no state boundaries or routes. A numerical point-in-polygon check places all three
 reference points within the source Mexico polygon; browser geometry/label inspection is separate.
 
