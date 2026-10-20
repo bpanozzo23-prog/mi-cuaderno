@@ -56,7 +56,8 @@ preview for owner feedback, not the integrated first release.
   The no-typing-field tradeoff avoids disposable writing; the separate entry avoids notebook
   startup and service-worker coupling. Project approval is recorded in [DECISIONS](../../DECISIONS.md).
 - 2026-10-20: owner accepted the [combined language-support direction](SCOPE.md#agreed-language-support-direction--2026-10-20).
-  A real-content visual proof is the proposed next bounded task; new player behavior is not
+  The subsequently approved real-content visual proof is complete in Figma, with two treatments
+  and both English states. Owner layout selection is next; new player behavior is not
   implemented. Owner reading/recall feedback remains optional and deferred.
 
 After the visual proof, review narrative interest, Spanish difficulty, depth and optional

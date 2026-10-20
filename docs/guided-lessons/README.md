@@ -16,8 +16,10 @@ Notebook integration remains proposed work.
 | [1917 sources](chapters/1917/SOURCES.md) | Checked passages, source limitations, image candidates, and remaining publication checks. |
 | [1917 review and preview proposal](chapters/1917/REVIEW.md) | Editorial findings and the approved development-only first preview. |
 
-Next proposed task: a small visual proof of the [agreed language-support direction](SCOPE.md#agreed-language-support-direction--2026-10-20),
-using real opening-page content. The [completed A1 preview](chapters/1917/REVIEW.md#implementation-closeout)
+Next: choose between the [two Figma layouts](https://www.figma.com/design/qYUUCkgMUmEgumNEhO5549?node-id=2-64)
+of the [agreed language-support direction](SCOPE.md#agreed-language-support-direction--2026-10-20),
+using real opening-page content. Both show hidden/revealed English as separate static states.
+The [completed A1 preview](chapters/1917/REVIEW.md#implementation-closeout)
 still has its existing language-help behavior. Owner acceptance of narrative, language and phone
 usability remains pending; a reading session is an option for later, not the immediate next step.
 The [1920 outline](SCOPE.md#chapter-2-storyboard--1920) is in Scope;

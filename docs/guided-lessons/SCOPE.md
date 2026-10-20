@@ -58,10 +58,23 @@ open to a lightweight history/Spanish learning-intent outline. A natural reading
 optional delayed recall remain options for later; the owner explicitly does not want that
 session now. Keep this feedback here rather than introducing a second planning system.
 
-Proposed next bounded task: compare two phone-sized treatments of the complete existing opening
-page, showing its actual locator, English orientation, selected Spanish expressions and nearby
-English in both hidden and revealed states. Use a disposable design proof before changing the
-reader. This is the next proposal, not approval of application implementation or publication.
+The owner approved the bounded layouts task on 2026-10-20. The
+[editable Figma comparison](https://www.figma.com/design/qYUUCkgMUmEgumNEhO5549?node-id=2-64)
+now shows two treatments of the complete opening page at 375px: **A — continuous reading** and
+**B — short sections**. Each has English-hidden and English-revealed states, using the existing
+locator geometry and all three Spanish paragraphs unchanged. The English orientation, passage
+translations, section labels and focus presentation are design drafts; no layout is selected yet.
+
+The connection, file creation and editing worked. Visual inspection caught and corrected text
+auto-sizing before handoff. All four frames retain the full Spanish text; revealed translations
+match their draft passages. Structural checks found no overflowing auto-layout children or
+flattened UI images; the proof uses editable text, vector map geometry, shared components,
+the product's Literata font, and Roboto for the system-style labels. These are static layout
+states, not a working reader or a completed phone-use review.
+
+Next: choose a treatment or specific elements to combine, then bound the reader implementation.
+The existing development reader and production app are unchanged. The Figma design, supporting
+scripts and screenshots are separate from application source; nothing has been pushed.
 
 ## 2. What informs this plan
 
