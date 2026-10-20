@@ -137,6 +137,7 @@ describe("isolated lesson reader", () => {
     expect(screen.getAllByRole("button", { name: /Show English ·/ })).toHaveLength(2);
     await jump(user, "Ocho horas, por escrito");
     await user.click(screen.getByRole("button", { name: "Traducción al inglés" }));
+    scroll.mockClear();
     await jump(user, "Querétaro, 1917");
     expect(scroll).toHaveBeenLastCalledWith({ top: 0, behavior: "instant" });
     await user.click(screen.getByRole("button", { name: "Show English on this page" }));
