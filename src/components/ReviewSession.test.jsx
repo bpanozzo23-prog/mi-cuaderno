@@ -496,3 +496,108 @@ describe("picture-front cards", () => {
     });
   });
 });
+
+describe("asking Claude about a card", () => {
+  const card = (overrides = {}) => ({
+    id: "user:madrugar",
+    term: "madrugar",
+    form: "word",
+    pos: "verb",
+    meanings: [newMeaning({ id: "meaning:early", gloss: "to get up early" })],
+    notes: "",
+    myExamples: [],
+    box: 2,
+    reason: "reviewing",
+    tricky: false,
+    ...overrides,
+  });
+
+  it("offers nothing when AI is not available", async () => {
+    const user = userEvent.setup();
+    render(<ReviewSession cards={[card()]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "Tap to see the meaning" }));
+    expect(screen.queryByRole("button", { name: /Ask Claude later|Ask now/ })).toBeNull();
+  });
+
+  it("queues the card for later without leaving the session, then offers Pregunta at the end", async () => {
+    const user = userEvent.setup();
+    const onFinish = vi.fn();
+    const onAskLater = vi.fn(() => "added");
+    const onAskAbout = vi.fn();
+    const onOpenPregunta = vi.fn();
+    render(
+      <ReviewSession
+        cards={[card()]}
+        onFinish={onFinish}
+        onOpen={vi.fn()}
+        onGraded={vi.fn()}
+        onAskLater={onAskLater}
+        onAskAbout={onAskAbout}
+        onOpenPregunta={onOpenPregunta}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: "Tap to see the meaning" }));
+    await user.click(screen.getByRole("button", { name: "Ask Claude later" }));
+
+    expect(onAskLater).toHaveBeenCalledWith("user:madrugar", {
+      origin: "review",
+      review: { shown: "spanish", cloze: null, typed: null },
+    });
+    expect(onFinish).not.toHaveBeenCalled();
+    expect(onAskAbout).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Saved for Pregunta" })).toBeTruthy();
+    // Still the same card, still gradable.
+    await user.click(screen.getByRole("button", { name: "Again" }));
+    await waitFor(async () => expect(await allEvents()).toHaveLength(1));
+
+    await user.click(await screen.findByRole("button", { name: "Go to Pregunta (1 saved)" }));
+    expect(onFinish).toHaveBeenCalledTimes(1);
+    expect(onOpenPregunta).toHaveBeenCalledTimes(1);
+  });
+
+  it("says when Pregunta is already full", async () => {
+    const user = userEvent.setup();
+    render(
+      <ReviewSession cards={[card()]} onFinish={vi.fn()} onOpen={vi.fn()} onGraded={vi.fn()} onAskLater={() => "full"} />
+    );
+    await user.click(screen.getByRole("button", { name: "Tap to see the meaning" }));
+    await user.click(screen.getByRole("button", { name: "Ask Claude later" }));
+    expect(screen.getByRole("button", { name: /Pregunta already has 5/ })).toBeTruthy();
+  });
+
+  it("asks now only on a second tap, ending the session first, with the typed miss and the expected answer", async () => {
+    const user = userEvent.setup();
+    const calls = [];
+    const onFinish = vi.fn(() => calls.push("finish"));
+    const onAskAbout = vi.fn(() => calls.push("ask"));
+    render(
+      <ReviewSession
+        mode="typed"
+        cards={[card({ direction: "reverse" })]}
+        onFinish={onFinish}
+        onOpen={vi.fn()}
+        onGraded={vi.fn()}
+        onAskAbout={onAskAbout}
+      />
+    );
+    await user.type(screen.getByRole("textbox", { name: "Type the Spanish word" }), "levantarse");
+    await user.click(screen.getByRole("button", { name: "Check answer" }));
+    await waitFor(async () => expect(await allEvents()).toHaveLength(1));
+
+    await user.click(screen.getByRole("button", { name: "Ask now" }));
+    expect(screen.getByRole("alert").textContent).toContain("Asking now ends this session");
+    expect(onAskAbout).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Ask now and end session" }));
+    expect(calls).toEqual(["finish", "ask"]);
+    expect(onAskAbout).toHaveBeenCalledWith("user:madrugar", {
+      origin: "review",
+      review: {
+        shown: "meanings",
+        cloze: null,
+        typed: { attempt: "levantarse", answer: "madrugar", verdict: "wrong" },
+      },
+    });
+  });
+});

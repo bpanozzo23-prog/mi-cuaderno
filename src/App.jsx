@@ -10,6 +10,7 @@ import Ajustes from "./components/Ajustes.jsx";
 import Wander from "./components/Wander.jsx";
 import CuidarHub from "./components/CuidarHub.jsx";
 import Pregunta from "./components/Pregunta.jsx";
+import { MAX_ATTACHMENTS } from "./lib/askContext.js";
 import { useNotebook } from "./useNotebook.js";
 import { isJournalEntry } from "./lib/journal.js";
 import { parseSharePayload } from "./lib/shareTarget.js";
@@ -173,6 +174,11 @@ export default function App() {
   const [tagColors, setTagColors] = useState({});
   const [studySessionActive, setStudySessionActive] = useState(false);
   const [ajustesDuplicatesRequest, setAjustesDuplicatesRequest] = useState(null);
+  /* Entries waiting to be attached to the next Pregunta question ("Ask about this"). App holds
+     them because Pregunta may not be mounted yet — Repaso's "Ask later" queues without leaving
+     the session. `arrival` counts additions so Pregunta can react once to each. In memory only. */
+  const [preguntaQueue, setPreguntaQueue] = useState({ attachments: [], arrival: 0 });
+  const preguntaQueueRef = useRef(preguntaQueue);
   /* Whether Pregunta is reachable. `null` until the first read: a restored Pregunta route is left
      alone while unknown, and only a resolved `false` moves the owner off it. */
   const [aiReady, setAiReady] = useState(null);
@@ -214,7 +220,13 @@ export default function App() {
     } catch {
       ready = false;
     }
-    if (request === aiReadyRequestRef.current) setAiReady(ready);
+    if (request !== aiReadyRequestRef.current) return;
+    setAiReady(ready);
+    // Whatever was waiting for Pregunta goes with it, so re-enabling AI replays nothing.
+    if (!ready) {
+      preguntaQueueRef.current = { attachments: [], arrival: preguntaQueueRef.current.arrival };
+      setPreguntaQueue(preguntaQueueRef.current);
+    }
   }, []);
 
   useEffect(() => {
@@ -560,6 +572,46 @@ export default function App() {
     pushRoute({ tab: targetTab, screen: targetTab === "diario" ? "read" : "detail", id });
   }
 
+  /** Queues an entry for Pregunta: "added", "updated" (already queued; review context refreshed) or "full". */
+  function addPreguntaAttachment(itemId, { origin = "entry", review = null } = {}) {
+    const current = preguntaQueueRef.current;
+    const index = current.attachments.findIndex((attachment) => attachment.itemId === itemId);
+    let attachments;
+    let result;
+    if (index >= 0) {
+      attachments = current.attachments.map((attachment, at) => (at === index ? { ...attachment, origin, review } : attachment));
+      result = "updated";
+    } else if (current.attachments.length >= MAX_ATTACHMENTS) {
+      return "full";
+    } else {
+      attachments = [...current.attachments, { key: makeNavigationVisitKey(), itemId, origin, review }];
+      result = "added";
+    }
+    preguntaQueueRef.current = { attachments, arrival: current.arrival + 1 };
+    setPreguntaQueue(preguntaQueueRef.current);
+    return result;
+  }
+
+  function removePreguntaAttachments(keys) {
+    const drop = new Set(keys);
+    const current = preguntaQueueRef.current;
+    preguntaQueueRef.current = {
+      ...current,
+      attachments: current.attachments.filter((attachment) => !drop.has(attachment.key)),
+    };
+    setPreguntaQueue(preguntaQueueRef.current);
+  }
+
+  /* Offered only while Pregunta is reachable; screens hide their Ask buttons otherwise. */
+  const askAbout = aiReady === true
+    ? (itemId, options) => {
+      const result = addPreguntaAttachment(itemId, options);
+      switchTab("pregunta");
+      return result;
+    }
+    : undefined;
+  const askLater = aiReady === true ? addPreguntaAttachment : undefined;
+
   function openWander(id) {
     if (id) pushRoute({ tab: "cuaderno", screen: "wander", id });
   }
@@ -832,6 +884,7 @@ export default function App() {
                     onOpenBiography={openBiography}
                     onCloseBiography={navigateBack}
                     onOpenSettings={() => switchTab("ajustes")}
+                    onAskAbout={askAbout}
                     onOpenPages={openPages}
                     onOpenLexical={openLexical}
                     onOpenCuidar={openCuidar}
@@ -912,7 +965,13 @@ export default function App() {
               /* Turning AI off unmounts this surface, which cancels any request in flight and
                  discards the conversation — Ajustes says so. */
               <section hidden={tab !== "pregunta"} aria-label="Pregunta surface">
-                <Pregunta notebook={notebook} onSelect={openItem} />
+                <Pregunta
+                  notebook={notebook}
+                  onSelect={openItem}
+                  attachments={preguntaQueue.attachments}
+                  arrival={preguntaQueue.arrival}
+                  onRemoveAttachments={removePreguntaAttachments}
+                />
               </section>
             )}
             {visitedTabs.has("repaso") && (
@@ -924,6 +983,9 @@ export default function App() {
                   onBack={navigateBack}
                   backLabel={backLabel}
                   onSelect={openItem}
+                  onAskAbout={askAbout}
+                  onAskLater={askLater}
+                  onOpenPregunta={aiReady === true ? () => switchTab("pregunta") : null}
                 />
               </section>
             )}

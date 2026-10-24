@@ -80,6 +80,9 @@ export function PracticeCard({
   onTypedValueChange,
   typedResult = null,
   onTypedResult,
+  onAskLater = null,
+  onAskNow = null,
+  askLaterStatus = null,
 }) {
   // A card with no written gloss has no reverse question side. `cardDirection` normally
   // prevents that shape; the guard also keeps fixtures and legacy callers honest.
@@ -203,6 +206,9 @@ export function PracticeCard({
             onToggleContext={onToggleContext}
             onOpen={onOpen}
             onExit={onExit}
+            onAskLater={onAskLater}
+            onAskNow={onAskNow}
+            askLaterStatus={askLaterStatus}
           />
         </>
       ) : null}

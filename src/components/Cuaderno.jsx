@@ -62,6 +62,7 @@ export default function Cuaderno({
   onBack,
   backLabel = "Todo el cuaderno",
   onOpenSettings,
+  onAskAbout,
   onOpenPages,
   onOpenLexical,
   onOpenCuidar,
@@ -482,6 +483,7 @@ export default function Cuaderno({
           }}
           pagePinned={pinnedPageIds.includes(selected.id)}
           onPagePinnedChange={(pinned) => onPagePinnedChange?.(selected.id, pinned)}
+          onAskAbout={onAskAbout}
         />
         {shareLayer}
       </>

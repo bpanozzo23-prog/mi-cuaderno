@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft, Trash2, X, ExternalLink, Pencil, CalendarDays, FileText, Check,
   Highlighter, Eye, Clock, Plus, Bookmark, BookmarkCheck, Layers, RotateCcw,
-  BarChart3, ChevronDown, Ellipsis, History, MoveRight,
+  BarChart3, ChevronDown, Ellipsis, History, MoveRight, MessageCircleQuestion,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Hi, SectionTitle, Card, Button, IconButton } from "../theme.jsx";
 import { POS_OPTIONS, PosSuffix, personalHeadingSuffix, personalLexicalForm } from "./ItemCard.jsx";
@@ -190,6 +190,7 @@ function StandardDetail({
   onOpenBiography = null,
   onCloseBiography = null,
   biographyBackLabel = null,
+  onAskAbout = null,
 }) {
   const isPage = item.type === "page";
   const itemKind = isPage ? "page" : personalLexicalForm(item);
@@ -749,6 +750,16 @@ function StandardDetail({
                   style={{ background: C.card, borderColor: C.line, color: C.mut }}
                 >
                   <History size={15} /> Historia
+                </button>
+              )}
+              {onAskAbout && !isPage && (
+                <button
+                  type="button"
+                  onClick={() => onAskAbout(item.id, { origin: "entry" })}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium"
+                  style={{ background: C.card, borderColor: C.line, color: C.mut }}
+                >
+                  <MessageCircleQuestion size={15} /> Ask Claude
                 </button>
               )}
             </div>

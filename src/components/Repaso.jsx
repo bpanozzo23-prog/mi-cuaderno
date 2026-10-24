@@ -189,6 +189,9 @@ export default function Repaso({
   onBack = null,
   backLabel = "Repaso",
   clock,
+  onAskAbout = null,
+  onAskLater = null,
+  onOpenPregunta = null,
 }) {
   const { items, events, itemState, reload } = notebook;
   const today = useLocalDay(clock);
@@ -427,6 +430,9 @@ export default function Repaso({
         }}
         onOpen={onSelect}
         onGraded={reload}
+        onAskAbout={onAskAbout}
+        onAskLater={onAskLater}
+        onOpenPregunta={onOpenPregunta}
         remainingDueCount={review.due.length}
         chunkSize={sessionChunkSize}
         onStartNext={startSession}

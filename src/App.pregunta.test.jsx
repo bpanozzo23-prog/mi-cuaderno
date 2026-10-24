@@ -1,12 +1,14 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App.jsx";
 import { db, clearAllPersonalData, setPref } from "./db/db.js";
 import { AI_API_KEY_PREF, AI_ENABLED_PREF } from "./lib/aiPrefs.js";
 import * as aiPrefs from "./lib/aiPrefs.js";
-import { createNavigation, historyStateWithNavigation, selectPrimaryTab } from "./lib/navigation.js";
+import { createNavigation, historyStateWithNavigation, pushDestination, selectPrimaryTab } from "./lib/navigation.js";
+import * as items from "./db/items.js";
+import * as events from "./db/events.js";
 
 const answer = {
   model: "claude-opus-5-5",
@@ -157,5 +159,133 @@ describe("Pregunta tab availability", () => {
     await user.click(await screen.findByRole("button", { name: /Turn off/ }));
     await waitFor(() => expect(within(primary).queryByRole("button", { name: "Pregunta" })).toBeNull());
     expect(screen.queryByText("te extraño")).toBeNull();
+  });
+});
+
+describe("Ask about this", () => {
+  async function savedWord(term = "madrugar", { due = false } = {}) {
+    const word = await items.createItem(items.newLexical({ term, meanings: [{ gloss: "to get up early" }] }));
+    // Marked tricky, a word is due in Repaso at once.
+    if (due) await events.logEvent(events.EVENT_TYPES.trickyOn, word.id);
+    return word;
+  }
+
+  function startOnEntry(id) {
+    const navigation = pushDestination(createNavigation(), { tab: "cuaderno", screen: "detail", id });
+    window.history.replaceState(historyStateWithNavigation(null, navigation), "", "/");
+  }
+
+  const tray = () => screen.findByRole("generic", { name: "Attached to your next question" });
+
+  it("offers no Ask button on an entry while AI is off", async () => {
+    const word = await savedWord();
+    startOnEntry(word.id);
+    render(<App />);
+    expect(await screen.findByRole("button", { name: "Historia" })).toBeTruthy();
+    // The tab bar settles at four tabs once readiness has been read as "off".
+    const primary = await primaryNav();
+    await waitFor(() => expect(within(primary).getAllByRole("button")).toHaveLength(4));
+    expect(screen.queryByRole("button", { name: "Ask Claude" })).toBeNull();
+  });
+
+  it("takes an entry to a Pregunta never visited before, attached and unsent", async () => {
+    const user = userEvent.setup();
+    await enableAi();
+    const word = await savedWord();
+    startOnEntry(word.id);
+    render(<App />);
+    await user.click(await screen.findByRole("button", { name: "Ask Claude" }));
+
+    expect(within(await tray()).getByText("About: madrugar")).toBeTruthy();
+    expect(window.history.state.mcNavigation.activeTab).toBe("pregunta");
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+
+    // The entry is still where it was in Cuaderno.
+    const primary = await primaryNav();
+    await user.click(within(primary).getByRole("button", { name: "Cuaderno" }));
+    expect(await screen.findByRole("button", { name: "Ask Claude" })).toBeTruthy();
+  });
+
+  it("offers Ask on a page too", async () => {
+    const user = userEvent.setup();
+    await enableAi();
+    const page = await items.createItem(items.newPage({ title: "Ser vs estar" }));
+    startOnEntry(page.id);
+    render(<App />);
+    await user.click(await screen.findByRole("button", { name: "Ask Claude about this page" }));
+    expect(within(await tray()).getByText("About: Ser vs estar")).toBeTruthy();
+  });
+
+  it("forgets queued entries when AI is turned off, so turning it on again replays nothing", async () => {
+    const user = userEvent.setup();
+    await enableAi();
+    const word = await savedWord();
+    startOnEntry(word.id);
+    render(<App />);
+    await user.click(await screen.findByRole("button", { name: "Ask Claude" }));
+    await tray();
+
+    const primary = await primaryNav();
+    await user.click(within(primary).getByRole("button", { name: "Ajustes" }));
+    await user.click(await screen.findByRole("button", { name: /Turn off/ }));
+    await waitFor(() => expect(within(primary).queryByRole("button", { name: "Pregunta" })).toBeNull());
+    await user.click(await screen.findByRole("checkbox", { name: /spend cap/ }));
+    await user.click(screen.getByRole("button", { name: /^Turn on/ }));
+    await user.click(await within(primary).findByRole("button", { name: "Pregunta" }));
+
+    expect(await screen.findByLabelText("Your question")).toBeTruthy();
+    expect(screen.queryByRole("generic", { name: "Attached to your next question" })).toBeNull();
+  });
+
+  it("queues a card from Repaso without leaving the session, and Pregunta has it afterwards", async () => {
+    const user = userEvent.setup();
+    await enableAi();
+    await savedWord("madrugar", { due: true });
+    render(<App />);
+    const primary = await primaryNav();
+    await user.click(await within(primary).findByRole("button", { name: "Pregunta" }));
+    await user.click(within(primary).getByRole("button", { name: "Repaso" }));
+    await user.click(await screen.findByRole("button", { name: "Start" }));
+    const session = await screen.findByRole("region", { name: "Review session" });
+    const before = structuredClone(window.history.state);
+
+    await user.click(within(session).getByRole("button", { name: "Tap to see the meaning" }));
+    await user.click(within(session).getByRole("button", { name: "Ask Claude later" }));
+
+    expect(within(session).getByRole("button", { name: "Saved for Pregunta" })).toBeTruthy();
+    expect(screen.queryByRole("navigation", { name: "Primary" })).toBeNull();
+    expect(window.history.state).toEqual(before);
+
+    await user.click(within(session).getByRole("button", { name: "Good" }));
+    await user.click(await screen.findByRole("button", { name: "Go to Pregunta (1 saved)" }));
+    expect(within(await tray()).getByText("About: madrugar")).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Review session" })).toBeNull();
+    expect(window.history.state.mcStudySession).toBeUndefined();
+  });
+
+  it("asks now from Repaso by ending the session, and Back returns to Repaso with no dead session entry", async () => {
+    const user = userEvent.setup();
+    await enableAi();
+    await savedWord("madrugar", { due: true });
+    render(<App />);
+    const primary = await primaryNav();
+    await user.click(await within(primary).findByRole("button", { name: "Repaso" }));
+    await user.click(await screen.findByRole("button", { name: "Start" }));
+    const session = await screen.findByRole("region", { name: "Review session" });
+
+    await user.click(within(session).getByRole("button", { name: "Tap to see the meaning" }));
+    await user.click(within(session).getByRole("button", { name: "Ask now" }));
+    await user.click(within(session).getByRole("button", { name: "Ask now and end session" }));
+
+    expect(within(await tray()).getByText("About: madrugar")).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Review session" })).toBeNull();
+    expect(window.history.state.mcStudySession).toBeUndefined();
+    expect(window.history.state.mcNavigation.activeTab).toBe("pregunta");
+
+    act(() => window.history.back());
+    await waitFor(() => expect(window.history.state.mcNavigation.activeTab).toBe("repaso"));
+    expect(window.history.state.mcStudySession).toBeUndefined();
+    expect(await screen.findByRole("button", { name: "Start" })).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Review session" })).toBeNull();
   });
 });

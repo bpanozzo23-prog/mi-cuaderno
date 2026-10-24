@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, BookmarkPlus, Loader2, RotateCcw, Send, Square } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AlertTriangle, BookmarkPlus, Loader2, Paperclip, RotateCcw, Send, Square, X } from "lucide-react";
 import { C, MONO, SERIF, Button, Card, Segmented } from "../theme.jsx";
 import MarkdownText from "./MarkdownText.jsx";
 import KeepReview from "./KeepReview.jsx";
@@ -8,6 +8,8 @@ import { AI_API_KEY_PREF } from "../lib/aiPrefs.js";
 import { MAX_QUESTION_CHARS, MAX_TURNS, questionProblem, requestAskTurn } from "../lib/aiAsk.js";
 import { formatCost } from "../lib/aiRequest.js";
 import { MAX_PASTE_CHARS } from "../lib/aiKeep.js";
+import { MAX_ATTACHMENTS, attachmentSnapshot, starterQuestions } from "../lib/askContext.js";
+import { allPersonalExamples } from "../lib/meanings.js";
 
 /**
  * Pregunta: a conversation with Claude about Spanish, held only in this screen's memory.
@@ -21,12 +23,23 @@ import { MAX_PASTE_CHARS } from "../lib/aiKeep.js";
  * from the notebook is attached. Keep does send notebook data, so it confirms first (KeepReview).
  *
  * Paste mode skips asking altogether: a conversation from another app goes straight to Keep.
+ *
+ * "Ask about this" attachments arrive from App (`attachments`, counted by `arrival`), which holds
+ * them so Repaso can queue one without leaving its session. Their text is built from the latest
+ * notebook when Ask is tapped and frozen into the turn as `userContent`; from then on the
+ * disclosure says notebook entries are part of this conversation.
  */
 
 let turnSequence = 0;
 const nextTurnId = () => `turn-${++turnSequence}`;
 
-export default function Pregunta({ notebook, onSelect }) {
+export default function Pregunta({
+  notebook,
+  onSelect,
+  attachments = [],
+  arrival = 0,
+  onRemoveAttachments = () => {},
+}) {
   const [turns, setTurns] = useState([]);
   const [draft, setDraft] = useState("");
   const [pendingQuestion, setPendingQuestion] = useState(null);
@@ -41,6 +54,11 @@ export default function Pregunta({ notebook, onSelect }) {
   const abortRef = useRef(null);
   const mountedRef = useRef(false);
   const lastAnswerRef = useRef(null);
+  const composerRef = useRef(null);
+  /** The last `arrival` acted on; the effect below must act once per arrival, StrictMode or not. */
+  const handledArrivalRef = useRef(0);
+  const notebookItems = notebook?.items;
+  const itemsById = useMemo(() => new Map((notebookItems || []).map((item) => [item.id, item])), [notebookItems]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -57,11 +75,43 @@ export default function Pregunta({ notebook, onSelect }) {
   const asking = pendingQuestion !== null;
   const kept = turns.length > 0 && keptThrough === turns.length;
   const full = turns.length >= MAX_TURNS;
+  const sharesNotebook = attachments.length > 0 || turns.some((turn) => turn.attachments?.length > 0);
+
+  /*
+   * New attachments: open the ask view, and start fresh if the conversation is empty or already
+   * kept — never discarding an unkept one. Only while idle: a late answer must not land in a
+   * conversation reset under it, and an open Keep review is left alone until it closes.
+   */
+  useEffect(() => {
+    if (arrival === handledArrivalRef.current || asking || keepSource) return;
+    handledArrivalRef.current = arrival;
+    setMode("ask");
+    if (turns.length === 0 || kept) {
+      setTurns([]);
+      setKeptThrough(null);
+      setConfirmNew(false);
+      setError("");
+    }
+  }, [arrival, asking, keepSource, turns.length, kept]);
 
   async function ask() {
     if (asking) return;
     const question = draft.trim();
-    const problem = questionProblem(question, turns);
+    // Built now, from the notebook as it is, so an edit made after attaching is what is sent.
+    const sending = attachments.map((attachment) => ({
+      attachment,
+      snapshot: attachmentSnapshot(itemsById.get(attachment.itemId), { items: notebookItems || [], review: attachment.review }),
+    }));
+    const gone = sending.filter((entry) => !entry.snapshot);
+    if (gone.length > 0) {
+      onRemoveAttachments(gone.map((entry) => entry.attachment.key));
+      setError(gone.length === 1
+        ? "An attached entry is no longer in your cuaderno, so it was removed. Nothing was sent."
+        : `${gone.length} attached entries are no longer in your cuaderno, so they were removed. Nothing was sent.`);
+      return;
+    }
+    const snapshots = sending.map((entry) => entry.snapshot);
+    const problem = questionProblem(question, turns, snapshots);
     if (problem) {
       setError(problem);
       return;
@@ -73,9 +123,18 @@ export default function Pregunta({ notebook, onSelect }) {
     abortRef.current = controller;
     try {
       const apiKey = await getPref(AI_API_KEY_PREF);
-      const result = await requestAskTurn({ history: turns, question, apiKey, signal: controller.signal });
+      const result = await requestAskTurn({
+        history: turns,
+        question,
+        attachments: snapshots,
+        apiKey,
+        signal: controller.signal,
+      });
       if (!mountedRef.current || controller.signal.aborted) return;
-      setTurns((current) => [...current, { id: nextTurnId(), question, ...result }]);
+      const sent = snapshots.map(({ itemId, label, kind }) => ({ itemId, label, kind }));
+      setTurns((current) => [...current, { id: nextTurnId(), question, ...result, attachments: sent }]);
+      // Only what was sent: anything queued while Claude was answering stays for the next question.
+      if (sending.length > 0) onRemoveAttachments(sending.map((entry) => entry.attachment.key));
       setDraft("");
     } catch (err) {
       // A Stop is the owner's own doing: the question simply stays in the composer.
@@ -123,6 +182,15 @@ export default function Pregunta({ notebook, onSelect }) {
     else if (keepSource?.kind === "ask") setKeptThrough(keepSource.turns.length);
   }
 
+  function applyStarter(text) {
+    setDraft(text);
+    const composer = composerRef.current;
+    if (!composer) return;
+    composer.focus();
+    // Leave the cursor at the end, so "How is it different from " can be finished.
+    globalThis.requestAnimationFrame?.(() => composer.setSelectionRange?.(text.length, text.length));
+  }
+
   function onComposerKeyDown(event) {
     if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
       event.preventDefault();
@@ -160,7 +228,7 @@ export default function Pregunta({ notebook, onSelect }) {
       <div className="mt-4 space-y-4" aria-live="polite">
         {turns.map((turn, index) => (
           <div key={turn.id} className="space-y-2">
-            <QuestionBubble text={turn.question} />
+            <QuestionBubble text={turn.question} attachments={turn.attachments} itemsById={itemsById} onSelect={onSelect} />
             <Card ref={index === turns.length - 1 ? lastAnswerRef : null} aria-label="Claude's answer">
               <MarkdownText remoteImages={false} className="text-sm">
                 {turn.text}
@@ -171,7 +239,10 @@ export default function Pregunta({ notebook, onSelect }) {
         ))}
         {asking && (
           <div className="space-y-2">
-            <QuestionBubble text={pendingQuestion} />
+            <QuestionBubble text={pendingQuestion} attachments={attachments.map((attachment) => ({
+              itemId: attachment.itemId,
+              label: itemLabel(itemsById.get(attachment.itemId)),
+            }))} itemsById={itemsById} onSelect={onSelect} />
             <div className="flex items-center gap-2 text-sm" style={{ color: C.mut }}>
               <Loader2 size={16} className="animate-spin" /> Claude is thinking…
               <Button tone="quiet" onClick={stop} className="ml-auto">
@@ -232,10 +303,30 @@ export default function Pregunta({ notebook, onSelect }) {
 
       {!keepSource && mode === "ask" && (
       <div className="mt-4">
+        {attachments.length > 0 && !asking && (
+          <AttachmentTray
+            attachments={attachments}
+            itemsById={itemsById}
+            items={notebookItems || []}
+            joinsConversation={turns.length > 0}
+            onRemove={(key) => onRemoveAttachments([key])}
+            starters={draft.trim() === "" ? starterQuestions(attachments.map((attachment) => {
+              const item = itemsById.get(attachment.itemId);
+              return {
+                kind: itemKind(item),
+                origin: attachment.origin,
+                review: attachment.review,
+                hasExamples: allPersonalExamples(item).length > 0,
+              };
+            })) : []}
+            onStarter={applyStarter}
+          />
+        )}
         <label className="sr-only" htmlFor="pregunta-composer">
           {turns.length > 0 ? "Follow-up question" : "Your question"}
         </label>
         <textarea
+          ref={composerRef}
           id="pregunta-composer"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
@@ -269,8 +360,18 @@ export default function Pregunta({ notebook, onSelect }) {
           )}
         </div>
         <p className="mt-2 text-xs leading-relaxed" style={{ color: C.mut }}>
-          Tapping Ask sends your question and this conversation so far to Anthropic (Claude).
-          Nothing from your notebook is included, and the conversation is not saved.
+          {sharesNotebook ? (
+            <>
+              Tapping Ask sends your question, this conversation so far, and the attached entries
+              (meanings, examples, notes and the names of linked entries) to Anthropic (Claude).
+              Nothing else from your notebook is included, and the conversation is not saved.
+            </>
+          ) : (
+            <>
+              Tapping Ask sends your question and this conversation so far to Anthropic (Claude).
+              Nothing from your notebook is included, and the conversation is not saved.
+            </>
+          )}
         </p>
       </div>
       )}
@@ -278,15 +379,118 @@ export default function Pregunta({ notebook, onSelect }) {
   );
 }
 
-function QuestionBubble({ text }) {
+const itemLabel = (item) => (item?.type === "page" ? item.title : item?.term) || "(removed entry)";
+const itemKind = (item) => (item?.type === "page" ? "page" : item?.form === "phrase" ? "phrase" : "word");
+
+function QuestionBubble({ text, attachments = [], itemsById, onSelect }) {
   return (
-    <div className="flex justify-end">
+    <div className="flex flex-col items-end gap-1">
+      {attachments?.length > 0 && (
+        <div className="flex max-w-[85%] flex-wrap justify-end gap-1">
+          {attachments.map((attachment) => (
+            itemsById?.has(attachment.itemId) && onSelect ? (
+              <button
+                key={attachment.itemId}
+                type="button"
+                onClick={() => onSelect(attachment.itemId)}
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] underline-offset-2 hover:underline"
+                style={{ background: C.paper, color: C.mut, border: `1px solid ${C.line}` }}
+              >
+                <Paperclip size={10} /> About: {attachment.label}
+              </button>
+            ) : (
+              <span
+                key={attachment.itemId}
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px]"
+                style={{ background: C.paper, color: C.mut, border: `1px solid ${C.line}` }}
+              >
+                <Paperclip size={10} /> About: {attachment.label}
+              </span>
+            )
+          ))}
+        </div>
+      )}
       <div
         className="max-w-[85%] rounded-xl px-3 py-2 text-sm whitespace-pre-wrap break-words"
         style={{ background: C.penPale, color: C.penDark }}
       >
         {text}
       </div>
+    </div>
+  );
+}
+
+/** What will go with the next question: removable chips, the exact text, and starter questions. */
+function AttachmentTray({ attachments, itemsById, items, joinsConversation, onRemove, starters, onStarter }) {
+  return (
+    <div className="mb-3 space-y-2" aria-label="Attached to your next question">
+      <div className="flex flex-wrap gap-1.5">
+        {attachments.map((attachment) => {
+          const item = itemsById.get(attachment.itemId);
+          const label = itemLabel(item);
+          return (
+            <span
+              key={attachment.key}
+              className="inline-flex max-w-full items-center gap-1 rounded-full border pl-2.5 text-xs"
+              style={{ background: C.card, borderColor: C.line, color: C.ink }}
+            >
+              <Paperclip size={11} style={{ color: C.mut }} />
+              <span className="truncate">About: {label}</span>
+              <button
+                type="button"
+                aria-label={`Remove ${label}`}
+                onClick={() => onRemove(attachment.key)}
+                className="inline-flex h-8 w-8 items-center justify-center"
+              >
+                <X size={13} style={{ color: C.mut }} />
+              </button>
+            </span>
+          );
+        })}
+      </div>
+      <details className="text-xs" style={{ color: C.mut }}>
+        <summary className="cursor-pointer">What's sent with your question</summary>
+        <div className="mt-1 space-y-2">
+          {attachments.map((attachment) => {
+            const snapshot = attachmentSnapshot(itemsById.get(attachment.itemId), { items, review: attachment.review });
+            return (
+              <pre
+                key={attachment.key}
+                aria-label={`Sent for ${snapshot?.label || "a removed entry"}`}
+                className="max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-lg p-2 text-[11px]"
+                style={{ background: C.paper, color: C.ink, border: `1px solid ${C.line}`, fontFamily: MONO }}
+              >
+                {snapshot ? snapshot.text : "This entry is no longer in your cuaderno; it will be removed."}
+              </pre>
+            );
+          })}
+        </div>
+      </details>
+      {attachments.length >= MAX_ATTACHMENTS && (
+        <div className="text-xs" style={{ color: C.mut }}>
+          {MAX_ATTACHMENTS} attachments is the most for one question.
+        </div>
+      )}
+      {joinsConversation && (
+        <div className="text-xs" style={{ color: C.mut }}>
+          This joins your current conversation — New question starts fresh (attachments stay).
+        </div>
+      )}
+      {starters.length > 0 && (
+        <div className="flex flex-wrap gap-1.5" aria-label="Starter questions">
+          {starters.map((starter) => (
+            <button
+              key={starter}
+              type="button"
+              onClick={() => onStarter(starter)}
+              className="min-h-8 rounded-full px-2.5 py-1 text-xs"
+              style={{ background: C.penPale, color: C.penDark }}
+            >
+              {starter.trimEnd()}{starter.endsWith(" ") ? "…" : ""}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bookmark, BookmarkCheck, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink,
-  Goal, Link2, ListTree, MoreHorizontal, Pencil, Play, Plus, Settings2, Tag as TagIcon, Trash2, X,
+  Goal, Link2, ListTree, MessageCircleQuestion, MoreHorizontal, Pencil, Play, Plus, Settings2, Tag as TagIcon, Trash2, X,
 } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Card, Button, IconButton } from "../theme.jsx";
 import { allTagsIn } from "../lib/tags.js";
@@ -797,6 +797,7 @@ export default function CollectionPage({
   onChanged,
   pagePinned = false,
   onPagePinnedChange,
+  onAskAbout = null,
 }) {
   const [mode, setMode] = useState("read");
   const [revealed, setRevealed] = useState(() => new Set());
@@ -1054,6 +1055,16 @@ export default function CollectionPage({
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-1">
+                {onAskAbout && (
+                  <button
+                    type="button"
+                    aria-label="Ask Claude about this page"
+                    onClick={() => onAskAbout(item.id, { origin: "page" })}
+                    className="p-2"
+                  >
+                    <MessageCircleQuestion size={18} style={{ color: C.mut }} />
+                  </button>
+                )}
                 <button
                   type="button"
                   aria-label={pagePinned ? "Unpin page" : "Pin page"}

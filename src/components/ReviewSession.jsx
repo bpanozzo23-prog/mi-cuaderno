@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, Highlighter, RotateCcw, ArrowLeftRight, Image as ImageIcon } from "lucide-react";
+import { Eye, Highlighter, RotateCcw, ArrowLeftRight, Image as ImageIcon, MessageCircleQuestion } from "lucide-react";
 import { C, SERIF, MONO, Card, Button } from "../theme.jsx";
 import { logReview } from "../db/events.js";
 import { GRADES } from "../lib/review.js";
@@ -12,6 +12,7 @@ import {
   usePracticeCardState,
 } from "./PracticeCard.jsx";
 import StudySessionFrame from "./StudySessionFrame.jsx";
+import { reviewContextFor } from "../lib/askContext.js";
 
 /**
  * One pass through today's due words (brief section 12).
@@ -43,6 +44,9 @@ export default function ReviewSession({
   chunkSize = cards.length,
   onStartNext = null,
   startingNext = false,
+  onAskAbout = null,
+  onAskLater = null,
+  onOpenPregunta = null,
 }) {
   const [stage, setStage] = useState("primary");
   const [roundCards, setRoundCards] = useState(cards);
@@ -53,6 +57,10 @@ export default function ReviewSession({
   const [missedCards, setMissedCards] = useState([]);
   const [recovered, setRecovered] = useState(0);
   const cardState = usePracticeCardState();
+  /* "Ask Claude later" per card: "saved" or "full". The session is a full-screen overlay that
+     owns a history entry, so asking never navigates mid-session — it queues for Pregunta. */
+  const [askLaterStatus, setAskLaterStatus] = useState({});
+  const savedForPregunta = Object.values(askLaterStatus).filter((status) => status === "saved").length;
 
   const recovery = stage === "recovery";
   const item = roundCards[index] || null;
@@ -112,6 +120,28 @@ export default function ReviewSession({
     setBusy(false);
   }
 
+  /* What the card showed and what was typed, frozen now: the card moves on. */
+  const askAboutCard = () => ({ origin: "review", review: reviewContextFor(item, cardState.typedResult) });
+
+  function askLaterAboutCard() {
+    if (!item || !onAskLater) return;
+    const result = onAskLater(item.id, askAboutCard());
+    setAskLaterStatus((current) => ({ ...current, [item.id]: result === "full" ? "full" : "saved" }));
+  }
+
+  function askNowAboutCard() {
+    if (!item || !onAskAbout) return;
+    const options = askAboutCard();
+    // The same order as "Open the full entry": end the session, then leave for Pregunta.
+    onFinish?.();
+    onAskAbout(item.id, options);
+  }
+
+  function goToPregunta() {
+    onFinish?.();
+    onOpenPregunta?.();
+  }
+
   function answerRecovery(gotIt) {
     if (!item) return;
     if (gotIt) setRecovered((current) => current + 1);
@@ -127,6 +157,15 @@ export default function ReviewSession({
     cardState.reset();
   }
 
+  function preguntaButton() {
+    if (!onOpenPregunta || savedForPregunta === 0) return null;
+    return (
+      <Button className="min-h-11 w-full" tone="quiet" onClick={goToPregunta}>
+        <MessageCircleQuestion size={15} /> Go to Pregunta ({savedForPregunta} saved)
+      </Button>
+    );
+  }
+
   if (done) {
     const nextCount = Math.min(remainingDueCount, Math.max(1, Number(chunkSize) || 20));
     if (recovery) {
@@ -137,6 +176,7 @@ export default function ReviewSession({
               Start next {nextCount}
             </Button>
           )}
+          {preguntaButton()}
           <Button className="min-h-11 w-full" tone={nextCount > 0 ? "quiet" : "primary"} onClick={onFinish}>
             Back to Repaso
           </Button>
@@ -180,6 +220,7 @@ export default function ReviewSession({
             Start next {nextCount}
           </Button>
         )}
+        {preguntaButton()}
         <Button
           className="min-h-11 w-full"
           tone={missedCards.length > 0 || nextCount > 0 ? "quiet" : "primary"}
@@ -283,6 +324,9 @@ export default function ReviewSession({
         onTypedValueChange={cardState.setTypedValue}
         typedResult={cardState.typedResult}
         onTypedResult={markTyped}
+        onAskLater={onAskLater ? askLaterAboutCard : null}
+        onAskNow={onAskAbout ? askNowAboutCard : null}
+        askLaterStatus={askLaterStatus[item.id] || null}
         metadata={(
           <div className="inline-flex flex-wrap items-center justify-center gap-2 text-xs" style={{ fontFamily: MONO, color: C.mut }}>
             <span>caja {item.box}</span>

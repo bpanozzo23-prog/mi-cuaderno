@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BookOpen, ChevronDown, ChevronUp } from "lucide-react";
+import { BookOpen, Check, ChevronDown, ChevronUp, MessageCircleQuestion } from "lucide-react";
 import { C, SERIF, MONO } from "../theme.jsx";
 import { meaningLabels } from "../lib/meanings.js";
 import MarkdownText from "./MarkdownText.jsx";
@@ -30,8 +30,18 @@ export function MeaningRow({ meaning, index, showCue = true }) {
 }
 
 /** The shared answer side for scheduled Repaso and session-only free practice. */
-export default function LexicalAnswer({ item, showContext, onToggleContext, onOpen, onExit }) {
+export default function LexicalAnswer({
+  item,
+  showContext,
+  onToggleContext,
+  onOpen,
+  onExit,
+  onAskLater = null,
+  onAskNow = null,
+  askLaterStatus = null,
+}) {
   const [openArmed, setOpenArmed] = useState(false);
+  const [askArmed, setAskArmed] = useState(false);
   const [showNamedNotes, setShowNamedNotes] = useState(false);
   const hasMeaningContext = item.meanings?.some(
     (meaning) => meaning.note || meaning.examples?.length
@@ -39,6 +49,7 @@ export default function LexicalAnswer({ item, showContext, onToggleContext, onOp
 
   useEffect(() => {
     setOpenArmed(false);
+    setAskArmed(false);
     setShowNamedNotes(false);
   }, [item.id]);
 
@@ -51,6 +62,15 @@ export default function LexicalAnswer({ item, showContext, onToggleContext, onOp
     }
     onExit?.();
     onOpen?.(item.id);
+  }
+
+  function askNow() {
+    // Asking now leaves the session, so it takes a second tap, like opening the entry.
+    if (!askArmed) {
+      setAskArmed(true);
+      return;
+    }
+    onAskNow?.();
   }
 
   return (
@@ -137,6 +157,44 @@ export default function LexicalAnswer({ item, showContext, onToggleContext, onOp
           {example.en && <div className="text-xs mt-0.5" style={{ color: C.mut }}>{example.en}</div>}
         </div>
       ))}
+
+      {(onAskLater || onAskNow) && (
+        <div className="space-y-1.5">
+          {askArmed && (
+            <div role="alert" className="text-xs" style={{ color: C.red }}>
+              Asking now ends this session.
+            </div>
+          )}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            {onAskLater && (
+              <button
+                type="button"
+                onClick={onAskLater}
+                className="text-xs inline-flex min-h-8 items-center gap-1 underline underline-offset-2"
+                style={{ color: askLaterStatus === "full" ? C.red : C.pen }}
+              >
+                {askLaterStatus === "saved" ? (
+                  <><Check size={12} /> Saved for Pregunta</>
+                ) : askLaterStatus === "full" ? (
+                  "Pregunta already has 5 — ask about those first"
+                ) : (
+                  <><MessageCircleQuestion size={12} /> Ask Claude later</>
+                )}
+              </button>
+            )}
+            {onAskNow && (
+              <button
+                type="button"
+                onClick={askNow}
+                className="text-xs inline-flex min-h-8 items-center gap-1 underline underline-offset-2"
+                style={{ color: askArmed ? C.red : C.pen }}
+              >
+                <MessageCircleQuestion size={12} /> {askArmed ? "Ask now and end session" : "Ask now"}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {onOpen && (
         <div className="space-y-1.5">
