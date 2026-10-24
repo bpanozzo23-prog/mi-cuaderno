@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, Loader2, RotateCcw, Send, Square } from "lucide-react";
-import { C, MONO, SERIF, Button, Card } from "../theme.jsx";
+import { AlertTriangle, BookmarkPlus, Loader2, RotateCcw, Send, Square } from "lucide-react";
+import { C, MONO, SERIF, Button, Card, Segmented } from "../theme.jsx";
 import MarkdownText from "./MarkdownText.jsx";
+import KeepReview from "./KeepReview.jsx";
 import { getPref } from "../db/db.js";
 import { AI_API_KEY_PREF } from "../lib/aiPrefs.js";
 import { MAX_QUESTION_CHARS, MAX_TURNS, questionProblem, requestAskTurn } from "../lib/aiAsk.js";
 import { formatCost } from "../lib/aiRequest.js";
+import { MAX_PASTE_CHARS } from "../lib/aiKeep.js";
 
 /**
  * Pregunta: a conversation with Claude about Spanish, held only in this screen's memory.
@@ -16,18 +18,26 @@ import { formatCost } from "../lib/aiRequest.js";
  *
  * Each Ask is the deliberate act, so the disclosure is a standing line under the composer rather
  * than a confirmation per message: the owner types this text in order to send it, and nothing
- * from the notebook is attached.
+ * from the notebook is attached. Keep does send notebook data, so it confirms first (KeepReview).
+ *
+ * Paste mode skips asking altogether: a conversation from another app goes straight to Keep.
  */
 
 let turnSequence = 0;
 const nextTurnId = () => `turn-${++turnSequence}`;
 
-export default function Pregunta() {
+export default function Pregunta({ notebook, onSelect }) {
   const [turns, setTurns] = useState([]);
   const [draft, setDraft] = useState("");
   const [pendingQuestion, setPendingQuestion] = useState(null);
   const [error, setError] = useState("");
   const [confirmNew, setConfirmNew] = useState(false);
+  const [mode, setMode] = useState("ask");
+  const [pasted, setPasted] = useState("");
+  /** The conversation or pasted text Keep is working on, frozen when Keep opens. */
+  const [keepSource, setKeepSource] = useState(null);
+  /** True once this conversation's proposals were applied, so starting over loses nothing. */
+  const [kept, setKept] = useState(false);
   const abortRef = useRef(null);
   const mountedRef = useRef(false);
   const lastAnswerRef = useRef(null);
@@ -83,8 +93,9 @@ export default function Pregunta() {
 
   function startNewQuestion() {
     if (asking) return;
-    // A conversation cost money and exists nowhere else, so discarding it takes a second tap.
-    if (turns.length > 0 && !confirmNew) {
+    // A conversation cost money and exists nowhere else, so discarding it takes a second tap —
+    // unless what was worth keeping has already been kept.
+    if (turns.length > 0 && !kept && !confirmNew) {
       setConfirmNew(true);
       return;
     }
@@ -92,6 +103,23 @@ export default function Pregunta() {
     setDraft("");
     setError("");
     setConfirmNew(false);
+    setKept(false);
+    setKeepSource(null);
+  }
+
+  function openKeep() {
+    setError("");
+    setConfirmNew(false);
+    setKeepSource(mode === "paste" ? { kind: "paste", text: pasted } : { kind: "ask", turns });
+  }
+
+  function closeKeep() {
+    setKeepSource(null);
+  }
+
+  function keepApplied() {
+    setKept(true);
+    if (keepSource?.kind === "paste") setPasted("");
   }
 
   function onComposerKeyDown(event) {
@@ -113,6 +141,21 @@ export default function Pregunta() {
         </p>
       )}
 
+      {!keepSource && !asking && (
+        <div className="mt-3">
+          <Segmented
+            label="How to start"
+            value={mode}
+            onChange={setMode}
+            options={[
+              { value: "ask", label: "Ask Claude" },
+              { value: "paste", label: "Paste a conversation" },
+            ]}
+          />
+        </div>
+      )}
+
+      {mode === "ask" && (
       <div className="mt-4 space-y-4" aria-live="polite">
         {turns.map((turn, index) => (
           <div key={turn.id} className="space-y-2">
@@ -137,6 +180,7 @@ export default function Pregunta() {
           </div>
         )}
       </div>
+      )}
 
       {error && (
         <div
@@ -148,6 +192,44 @@ export default function Pregunta() {
         </div>
       )}
 
+      {keepSource && (
+        <KeepReview
+          key={keepSource.kind === "paste" ? "paste" : `ask-${turns.length}`}
+          source={keepSource}
+          notebook={notebook}
+          onSelect={onSelect}
+          onClose={closeKeep}
+          onApplied={keepApplied}
+        />
+      )}
+
+      {!keepSource && mode === "paste" && (
+        <div className="mt-4">
+          <label className="text-sm" style={{ color: C.ink }} htmlFor="pregunta-paste">
+            Paste a conversation from another app
+          </label>
+          <textarea
+            id="pregunta-paste"
+            value={pasted}
+            onChange={(event) => setPasted(event.target.value)}
+            rows={8}
+            maxLength={MAX_PASTE_CHARS}
+            placeholder="Paste the whole conversation — Keep picks out what's worth saving."
+            className="mt-1 w-full rounded-lg px-3 py-2 text-sm leading-relaxed"
+            style={{ color: C.ink, background: C.card, border: `1px solid ${C.line}` }}
+          />
+          <div className="mt-1 text-[11px]" style={{ fontFamily: MONO, color: C.mut }}>
+            {pasted.length.toLocaleString("en-US")} / {MAX_PASTE_CHARS.toLocaleString("en-US")}
+          </div>
+          <div className="mt-2">
+            <Button onClick={openKeep} disabled={pasted.trim() === ""}>
+              <BookmarkPlus size={15} /> Keep
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {!keepSource && mode === "ask" && (
       <div className="mt-4">
         <label className="sr-only" htmlFor="pregunta-composer">
           {turns.length > 0 ? "Follow-up question" : "Your question"}
@@ -170,6 +252,11 @@ export default function Pregunta() {
           <Button onClick={ask} disabled={asking || full || draft.trim() === ""}>
             <Send size={15} /> Ask
           </Button>
+          {turns.length > 0 && !asking && (
+            <Button tone="quiet" onClick={openKeep}>
+              <BookmarkPlus size={15} /> {kept ? "Keep again" : "Keep"}
+            </Button>
+          )}
           {(turns.length > 0 || draft) && (
             <Button
               tone={confirmNew ? "dangerArmed" : "quiet"}
@@ -185,6 +272,7 @@ export default function Pregunta() {
           Nothing from your notebook is included, and the conversation is not saved.
         </p>
       </div>
+      )}
     </div>
   );
 }
