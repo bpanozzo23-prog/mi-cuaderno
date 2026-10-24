@@ -110,6 +110,7 @@ describe("the answer", () => {
     const result = await requestAskTurn({ question: "q", apiKey: KEY });
     expect(result.fallback).toBe(true);
     expect(result.model).toBe("claude-opus-5");
+    expect(result.cost).toBeNull();
   });
 
   it("reports a refusal without reading the content", async () => {

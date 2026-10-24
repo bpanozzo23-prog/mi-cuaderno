@@ -218,3 +218,111 @@ describe("Keep", () => {
     expect(content).not.toContain("How do you say");
   });
 });
+
+describe("Keep while the notebook changes", () => {
+  function deferredKeepFetch() {
+    let release;
+    const gate = new Promise((resolve) => { release = resolve; });
+    globalThis.fetch.mockReset()
+      .mockResolvedValueOnce(ok(answer))
+      .mockImplementationOnce(async () => { await gate; return ok(keepResponse()); });
+    return () => release();
+  }
+
+  it("unticks a proposal whose entry was saved elsewhere while Claude was working", async () => {
+    const user = userEvent.setup();
+    const release = deferredKeepFetch();
+    const view = await renderWithAnswer(user);
+    await user.click(screen.getByRole("button", { name: "Keep" }));
+    await user.click(screen.getByRole("button", { name: "Send and propose" }));
+    await screen.findByText(/Claude is choosing/);
+
+    await createItem(newLexical({ term: "extrañar" }));
+    view.rerender(<Pregunta notebook={{ items: await items.allItems(), reload }} onSelect={vi.fn()} />);
+    release();
+    await screen.findByRole("region", { name: "Keep proposals" });
+    expect(screen.getByRole("checkbox", { name: "Keep extrañar" }).checked).toBe(false);
+  });
+
+  it("unticks a proposal that becomes a duplicate during the review, once", async () => {
+    const user = userEvent.setup();
+    const view = await renderWithAnswer(user);
+    await openReview(user);
+    expect(screen.getByRole("checkbox", { name: "Keep hacer falta" }).checked).toBe(true);
+
+    await createItem(newLexical({ term: "hacer falta", form: "phrase" }));
+    view.rerender(<Pregunta notebook={{ items: await items.allItems(), reload }} onSelect={vi.fn()} />);
+    await waitFor(() => expect(screen.getByRole("checkbox", { name: "Keep hacer falta" }).checked).toBe(false));
+    // The owner can still choose to keep it deliberately.
+    await user.click(screen.getByRole("checkbox", { name: "Keep hacer falta" }));
+    view.rerender(<Pregunta notebook={{ items: await items.allItems(), reload }} onSelect={vi.fn()} />);
+    expect(screen.getByRole("checkbox", { name: "Keep hacer falta" }).checked).toBe(true);
+  });
+
+  it("still refreshes the notebook when the screen goes away while Apply is saving", async () => {
+    const user = userEvent.setup();
+    const view = await renderWithAnswer(user);
+    await openReview(user);
+    const real = items.createItemsWithLinks;
+    let finish;
+    vi.spyOn(items, "createItemsWithLinks").mockImplementationOnce((writes) => new Promise((resolve) => {
+      finish = () => resolve(real(writes));
+    }));
+    await user.click(screen.getByRole("button", { name: /Apply 2 entries/ }));
+    view.unmount();
+    finish();
+    await waitFor(() => expect(reload).toHaveBeenCalledTimes(1));
+    expect(await items.allItems()).toHaveLength(3);
+  });
+
+  it("stores a saved note without image syntax", async () => {
+    const user = userEvent.setup();
+    const withPixel = structuredClone(proposals);
+    withPixel.entries[0].note = "Look ![x](https://example.com/p?q=private)";
+    globalThis.fetch.mockReset().mockResolvedValueOnce(ok(answer)).mockResolvedValueOnce(ok(keepResponse(withPixel)));
+    await renderWithAnswer(user);
+    await openReview(user);
+    await user.click(screen.getByRole("button", { name: /Apply 2 entries/ }));
+    await screen.findByText(/Saved 2 entries/);
+    const saved = (await items.allItems()).find((item) => item.term === "extrañar");
+    expect(saved.notes).toBe("Look [x](https://example.com/p?q=private)");
+  });
+});
+
+describe("what counts as kept", () => {
+  it("needs two taps again once a follow-up arrives after Keep", async () => {
+    const user = userEvent.setup();
+    globalThis.fetch.mockResolvedValueOnce(ok({ ...answer, content: [{ type: "text", text: "Follow-up answer" }] }));
+    await renderWithAnswer(user);
+    await openReview(user);
+    await user.click(screen.getByRole("button", { name: /Apply 2 entries/ }));
+    await screen.findByText(/Saved 2 entries/);
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    await user.type(screen.getByLabelText("Follow-up question"), "And formally?");
+    await user.click(screen.getByRole("button", { name: "Ask" }));
+    await screen.findByText("Follow-up answer");
+
+    await user.click(screen.getByRole("button", { name: /New question/ }));
+    expect(screen.getByText("Follow-up answer")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Tap again to discard/ })).toBeTruthy();
+  });
+
+  it("does not count a pasted Keep as keeping the Pregunta conversation", async () => {
+    const user = userEvent.setup();
+    globalThis.fetch.mockReset().mockResolvedValueOnce(ok(answer)).mockResolvedValueOnce(ok(keepResponse()));
+    await renderWithAnswer(user);
+    await user.click(screen.getByRole("radio", { name: "Paste a conversation" }));
+    await user.click(screen.getByLabelText("Paste a conversation from another app"));
+    await user.paste("Gemini: extrañar.");
+    await user.click(screen.getByRole("button", { name: "Keep" }));
+    await user.click(screen.getByRole("button", { name: "Send and propose" }));
+    await screen.findByRole("region", { name: "Keep proposals" });
+    await user.click(screen.getByRole("button", { name: /Apply 2 entries/ }));
+    await screen.findByText(/Saved 2 entries/);
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    await user.click(screen.getByRole("radio", { name: "Ask Claude" }));
+
+    await user.click(screen.getByRole("button", { name: /New question/ }));
+    expect(screen.getByRole("button", { name: /Tap again to discard/ })).toBeTruthy();
+  });
+});

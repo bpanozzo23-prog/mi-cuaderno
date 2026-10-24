@@ -36,8 +36,8 @@ export default function Pregunta({ notebook, onSelect }) {
   const [pasted, setPasted] = useState("");
   /** The conversation or pasted text Keep is working on, frozen when Keep opens. */
   const [keepSource, setKeepSource] = useState(null);
-  /** True once this conversation's proposals were applied, so starting over loses nothing. */
-  const [kept, setKept] = useState(false);
+  /** How many turns the last applied Keep covered; a later answer makes the conversation unkept. */
+  const [keptThrough, setKeptThrough] = useState(null);
   const abortRef = useRef(null);
   const mountedRef = useRef(false);
   const lastAnswerRef = useRef(null);
@@ -55,6 +55,7 @@ export default function Pregunta({ notebook, onSelect }) {
   }, [turns.length]);
 
   const asking = pendingQuestion !== null;
+  const kept = turns.length > 0 && keptThrough === turns.length;
   const full = turns.length >= MAX_TURNS;
 
   async function ask() {
@@ -103,7 +104,7 @@ export default function Pregunta({ notebook, onSelect }) {
     setDraft("");
     setError("");
     setConfirmNew(false);
-    setKept(false);
+    setKeptThrough(null);
     setKeepSource(null);
   }
 
@@ -118,8 +119,8 @@ export default function Pregunta({ notebook, onSelect }) {
   }
 
   function keepApplied() {
-    setKept(true);
     if (keepSource?.kind === "paste") setPasted("");
+    else if (keepSource?.kind === "ask") setKeptThrough(keepSource.turns.length);
   }
 
   function onComposerKeyDown(event) {

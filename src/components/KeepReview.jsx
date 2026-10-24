@@ -50,6 +50,9 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
   const abortRef = useRef(null);
   const mountedRef = useRef(false);
   const committedRef = useRef(false);
+  // The latest notebook, so proposals arriving after a wait are checked against current entries.
+  const itemsRef = useRef(notebook.items || []);
+  itemsRef.current = notebook.items || [];
 
   useEffect(() => {
     mountedRef.current = true;
@@ -76,7 +79,7 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
       if (!mountedRef.current || controller.signal.aborted) return;
       const proposals = normalizeKeepProposals(result.proposals, {
         candidates: disclosed.candidates,
-        items: notebook.items || [],
+        items: itemsRef.current,
       });
       setResponse({ ...result, proposals });
       setSelection(defaultKeepSelection(proposals));
@@ -124,7 +127,12 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
     committedRef.current = true;
     const created = writes.items.map((item) => ({ id: item.id, term: item.term }));
     onApplied?.();
-    if (!mountedRef.current) return;
+    if (!mountedRef.current) {
+      // The save committed even though this screen went away (AI turned off, say): the notebook
+      // still has to show the new entries.
+      notebook.reload();
+      return;
+    }
     setSaved({ created, skipped: result.skipped, linked: result.linked.length });
     setPhase("saved");
     await refresh();
@@ -264,6 +272,27 @@ function ProposalReview({
     findPersonalHeadingDuplicates(items, "lexical", entry.term),
   ])), [items, proposals.entries]);
   const termByRef = new Map(proposals.entries.map((entry) => [entry.ref, entry.term]));
+
+  // An entry that becomes a duplicate while the review is open (saved elsewhere meanwhile) is
+  // unticked once, like one flagged from the start; the owner may tick it again deliberately.
+  const reconciledRef = useRef(null);
+  if (reconciledRef.current === null) {
+    reconciledRef.current = new Set(proposals.entries.filter((entry) => !entry.defaultSelected).map((entry) => entry.ref));
+  }
+  useEffect(() => {
+    const newlyDuplicate = proposals.entries
+      .filter((entry) => (liveDuplicates.get(entry.ref) || []).length > 0 && !reconciledRef.current.has(entry.ref))
+      .map((entry) => entry.ref);
+    if (newlyDuplicate.length === 0) return;
+    for (const ref of newlyDuplicate) reconciledRef.current.add(ref);
+    setSelection((current) => ({
+      ...current,
+      entries: Object.fromEntries(Object.entries(current.entries).map(([ref, choice]) => [
+        ref,
+        newlyDuplicate.includes(ref) ? { ...choice, selected: false } : choice,
+      ])),
+    }));
+  }, [liveDuplicates, proposals.entries, setSelection]);
 
   const selectedEntries = proposals.entries.filter((entry) => selection.entries[entry.ref]?.selected);
   const selectedLinks = proposals.links.filter((link) => selection.links[link.id] && linkIsAvailable(link, selection));

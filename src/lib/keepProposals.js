@@ -20,7 +20,13 @@ export const MAX_KEEP_ENTRIES = 12;
 const MAX_TAGS_PER_ENTRY = 3;
 const MAX_EXAMPLES_PER_ENTRY = 3;
 
-const text = (value) => (typeof value === "string" ? value.trim() : "");
+/**
+ * Saved fields are AI-written text that later renders as Markdown (notes) or beside it. Image
+ * syntax is turned into an ordinary link so that opening the saved entry can never load a remote
+ * image — a URL could otherwise carry conversation text to a third party. Links stay tap-only.
+ */
+const inert = (value) => value.replaceAll("![", "[");
+const text = (value) => (typeof value === "string" ? inert(value.trim()) : "");
 
 /** The owner's existing spelling of the provenance tag ("IA", say), or the default. */
 function provenanceTagFor(existingTags) {

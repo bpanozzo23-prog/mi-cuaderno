@@ -6,6 +6,7 @@ import {
   httpFailure,
   postMessages,
   priceUsage,
+  responseCost,
   REFUSAL_FALLBACK_BETA,
   textFromContent,
   usedFallback,
@@ -160,6 +161,12 @@ describe("cost", () => {
     expect(priceUsage("claude-unknown", { input_tokens: 1 })).toBeNull();
     expect(priceUsage("claude-opus-5-5", { input_tokens: -1 })).toBeNull();
     expect(priceUsage("claude-opus-5-5", null)).toBeNull();
+  });
+
+  it("gives no figure when the fallback answered, since the declined attempt is billed separately", () => {
+    const usage = { input_tokens: 1000, output_tokens: 1000 };
+    expect(responseCost("claude-opus-5-5", { content: [], usage })).toBeGreaterThan(0);
+    expect(responseCost("claude-opus-5", { content: [{ type: "fallback" }], usage })).toBeNull();
   });
 
   it("formats approximately", () => {

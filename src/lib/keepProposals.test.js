@@ -33,6 +33,18 @@ describe("normalizeKeepProposals", () => {
     expect(result.droppedCount).toBe(3);
   });
 
+  it("turns image syntax into a plain link in every saved field, so a saved entry never loads one", () => {
+    const pixel = "![x](https://example.com/p?q=secret)";
+    const [kept] = normalized({
+      entries: [entry("n1", `chido ${pixel}`, {
+        gloss: `cool ${pixel}`, usageCue: pixel, note: `See ${pixel}`, reason: pixel,
+        examples: [{ es: `¡Qué chido! ${pixel}`, en: pixel }],
+      })],
+    }).entries;
+    expect(JSON.stringify(kept)).not.toContain("![");
+    expect(kept.note).toBe("See [x](https://example.com/p?q=secret)");
+  });
+
   it("keeps only examples with Spanish, and only supported usage labels", () => {
     const [kept] = normalized({
       entries: [entry("n1", "chido", {

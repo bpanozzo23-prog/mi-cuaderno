@@ -14,7 +14,7 @@ import {
   aiFailure,
   assertFinished,
   postMessages,
-  priceUsage,
+  responseCost,
   textFromContent,
   usedFallback,
   withRefusalFallback,
@@ -227,6 +227,6 @@ export async function requestKeepProposals({ source, tagNames, candidates, apiKe
     model,
     usage: data.usage ?? null,
     fallback: usedFallback(data),
-    cost: priceUsage(model, data.usage),
+    cost: responseCost(model, data),
   };
 }

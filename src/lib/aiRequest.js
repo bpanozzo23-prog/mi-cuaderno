@@ -165,6 +165,15 @@ export function priceUsage(model, usage) {
   return counts.reduce((total, count, index) => total + count * PRICES[model][index], 0) / 1_000_000;
 }
 
+/**
+ * Dollars for a whole response, or null when it cannot be known: when the fallback answered, the
+ * declined attempt is billed too but reported separately, so a partial figure would understate it.
+ */
+export function responseCost(model, data) {
+  if (usedFallback(data)) return null;
+  return priceUsage(model, data?.usage);
+}
+
 /** "≈ 2¢", "< 1¢" or "≈ $0.12" — deliberately approximate. */
 export function formatCost(dollars) {
   if (!Number.isFinite(dollars) || dollars < 0) return "";
