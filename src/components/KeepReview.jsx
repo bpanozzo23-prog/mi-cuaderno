@@ -8,6 +8,7 @@ import { attachedItemIds, conversationText, requestKeepProposals } from "../lib/
 import { formatCost } from "../lib/aiRequest.js";
 import { findPersonalHeadingDuplicates } from "../lib/duplicateGuard.js";
 import { findKeepCandidates } from "../lib/keepCandidates.js";
+import { keepAttachedSnapshots } from "../lib/keepAttached.js";
 import {
   buildKeepWrites,
   defaultKeepSelection,
@@ -35,11 +36,15 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
   // What the confirmation discloses is fixed when Keep opens, so what is sent matches it.
   const [disclosed] = useState(() => {
     const items = notebook.items || [];
+    // Entries attached to the conversation lead, so proposals link to them.
+    const candidates = findKeepCandidates(items, conversationText(source), { attachedIds: attachedItemIds(source) });
     return {
       characters: conversationText(source).length,
       tagNames: allTagsIn(items),
-      // Entries attached to the conversation lead, so proposals link to them.
-      candidates: findKeepCandidates(items, conversationText(source), { attachedIds: attachedItemIds(source) }),
+      candidates,
+      // Frozen from this same reading: the text sent, its meaning numbers and the fingerprint
+      // Apply checks, so an addition can only land on the entry Claude saw.
+      attached: keepAttachedSnapshots(items, candidates),
     };
   });
   const [phase, setPhase] = useState("confirm");
@@ -74,6 +79,7 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
         source,
         tagNames: disclosed.tagNames,
         candidates: disclosed.candidates,
+        attached: disclosed.attached,
         apiKey,
         signal: controller.signal,
       });
@@ -160,7 +166,16 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
           {disclosed.tagNames.length} tag {disclosed.tagNames.length === 1 ? "name" : "names"}, and{" "}
           {disclosed.candidates.length === 0
             ? "none of your entries (none seem related)."
-            : `${disclosed.candidates.length} related ${disclosed.candidates.length === 1 ? "entry" : "entries"} from your cuaderno (term and first meaning only).`}
+            : `${disclosed.candidates.length} related ${disclosed.candidates.length === 1 ? "entry" : "entries"} from your cuaderno (term and first meaning only)${
+              disclosed.attached.length === 0 ? "." : ""}`}
+          {disclosed.attached.length > 0 && (
+            <>
+              {", plus "}
+              {disclosed.attached.length === 1 ? "the attached entry" : `the ${disclosed.attached.length} attached entries`}{" "}
+              in full as they are now — meanings, examples, notes and the names of linked entries — so
+              Claude can suggest additions to {disclosed.attached.length === 1 ? "it" : "them"}.
+            </>
+          )}
         </div>
         {disclosed.candidates.length > 0 && (
           <details className="mt-2 text-xs" style={{ color: C.mut }}>
@@ -173,6 +188,21 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
                 </li>
               ))}
             </ul>
+          </details>
+        )}
+        {disclosed.attached.length > 0 && (
+          <details className="mt-2 text-xs" style={{ color: C.mut }}>
+            <summary className="cursor-pointer">Show the attached entries as they will be sent</summary>
+            {disclosed.attached.map((snapshot) => (
+              <pre
+                key={snapshot.ref}
+                aria-label={`Sent in full for ${snapshot.term}`}
+                className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-lg p-2 text-[11px]"
+                style={{ background: C.paper, color: C.ink, border: `1px solid ${C.line}`, fontFamily: MONO }}
+              >
+                {snapshot.text}
+              </pre>
+            ))}
           </details>
         )}
         {error && <ErrorNote>{error}</ErrorNote>}

@@ -36,6 +36,7 @@ const proposals = {
       usageLabels: [], examples: [], note: null, tags: [], reason: "Already discussed.",
     },
   ],
+  updates: [],
   links: [
     { from: "n1", to: "c1", type: "similar_meaning", reason: "Same idea." },
     { from: "n2", to: "n1", type: "similar_meaning", reason: "Same idea." },

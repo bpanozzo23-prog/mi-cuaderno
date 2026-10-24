@@ -94,16 +94,25 @@ function collectionPageIds(item, items) {
     .map((page) => page.id));
 }
 
-function lexicalLines(item, items) {
+/** The meanings a snapshot lists, in the order it numbers them. Blank ones are left out. */
+export function shownMeanings(item) {
+  return (item?.meanings || []).filter((meaning) => clean(meaning?.gloss) || meaning?.examples?.length);
+}
+
+/**
+ * A word or phrase as snapshot lines. `meaningRefs` numbers meanings `m1.`, `m2.`… so Keep can
+ * say which one an example belongs to; `shownMeanings` gives the same order.
+ */
+export function lexicalLines(item, items, { meaningRefs = false } = {}) {
   const pos = clean(item.pos);
   const lines = [`Entry: ${labelFor(item)} (${kindFor(item)}${pos ? `, ${pos}` : ""})`];
-  const meanings = (item.meanings || []).filter((meaning) => clean(meaning?.gloss) || meaning?.examples?.length);
+  const meanings = shownMeanings(item);
   if (meanings.length) {
     lines.push("Meanings:");
     meanings.forEach((meaning, index) => {
       const gloss = clean(meaning.gloss) || "(no gloss)";
       const labels = meaningLabels(meaning).map(clean).filter(Boolean);
-      lines.push(`${index + 1}. ${gloss}${labels.length ? ` [${labels.join(", ")}]` : ""}`);
+      lines.push(`${meaningRefs ? "m" : ""}${index + 1}. ${gloss}${labels.length ? ` [${labels.join(", ")}]` : ""}`);
       const cue = line("   When: ", meaning.usageCue);
       if (cue) lines.push(cue);
       const note = line("   Note: ", meaning.note);
@@ -239,7 +248,8 @@ function reviewLines(review, item) {
   return lines;
 }
 
-function capped(text) {
+/** Caps one attachment's text on a line boundary, saying so when it had to cut. */
+export function capped(text) {
   if (text.length <= MAX_ATTACHMENT_CHARS) return { text, truncated: false };
   const room = MAX_ATTACHMENT_CHARS - SHORTENED.length - 1;
   const slice = text.slice(0, room);

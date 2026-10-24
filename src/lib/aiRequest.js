@@ -184,7 +184,14 @@ export function formatCost(dollars) {
 }
 
 /** Every tag an AI request uses to mark data, so no piece of data can close another's block. */
-export const DATA_TAG_NAMES = Object.freeze(["conversation", "turn", "owner_tags", "existing_entries", "attached_entry"]);
+export const DATA_TAG_NAMES = Object.freeze([
+  "conversation",
+  "turn",
+  "owner_tags",
+  "existing_entries",
+  "attached_entry",
+  "attached_entries",
+]);
 
 /**
  * Keeps text from closing the tags that mark it as data: `</turn` becomes `<\/turn`. Only the

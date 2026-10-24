@@ -256,6 +256,7 @@ describe("arrivals after Keep", () => {
       ref: "n1", term: "quedarse", form: "word", gloss: "to stay", usageCue: null, usageLabels: [],
       examples: [{ es: "Me quedo aquí.", en: "I'm staying here." }], note: null, tags: [], reason: "Related.",
     }],
+    updates: [],
     links: [{ from: "n1", to: "c1", type: "related", reason: "Same root." }],
   };
   const keepResponse = () => ok({
@@ -278,6 +279,28 @@ describe("arrivals after Keep", () => {
     // "ir" is a stop-length word that matching alone would never send; attached, it leads.
     expect(listed[0]).toBe("ir — to go (attached)");
     expect(listed).toContain("quedar — to remain");
+  });
+
+  it("discloses the attached entry in full and sends exactly that, with meaning refs", async () => {
+    const user = userEvent.setup();
+    globalThis.fetch.mockReset();
+    globalThis.fetch.mockResolvedValueOnce(ok(answer())).mockResolvedValueOnce(keepResponse());
+    await renderHarness({ initial: [attach(quedar)] });
+    await ask(user, "More examples?");
+    await screen.findByText(/for plans/);
+
+    await user.click(screen.getByRole("button", { name: "Keep" }));
+    const keep = screen.getByRole("generic", { name: "Keep" });
+    expect(keep.textContent).toMatch(/plus the attached entry in full as they are now/);
+    const shown = within(keep).getByLabelText("Sent in full for quedar").textContent;
+    expect(shown).toContain("m1. to remain");
+
+    await user.click(screen.getByRole("button", { name: "Send and propose" }));
+    await screen.findByRole("region", { name: "Keep proposals" });
+    const content = bodyAt(1).messages[0].content;
+    expect(content).toContain(`<attached_entries>\n<attached_entry>\nRef: c1\n${shown}\n</attached_entry>\n</attached_entries>`);
+    expect(content).not.toContain(quedar.id);
+    expect(content).not.toContain(quedar.meanings[0].id);
   });
 
   it("start fresh when the conversation was kept, but never reset one with an answer in flight", async () => {
