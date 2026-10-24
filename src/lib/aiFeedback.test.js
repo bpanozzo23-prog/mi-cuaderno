@@ -70,6 +70,12 @@ describe("the request", () => {
     expect(body).not.toHaveProperty("top_p");
   });
 
+  it("sends no refusal fallback or beta header — the review's request is unchanged by Pregunta", async () => {
+    await call();
+    expect(requestBody()).not.toHaveProperty("fallbacks");
+    expect(requestInit().headers).not.toHaveProperty("anthropic-beta");
+  });
+
   it("sends the entry's title and body, and nothing else about the notebook", async () => {
     await call();
     const body = requestBody();

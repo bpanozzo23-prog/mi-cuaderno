@@ -1,20 +1,16 @@
 /**
- * The one request this app makes to an AI provider (brief §9).
+ * The Diario review request (brief §9): one entry's title and body in, one structured review out.
  *
- * A raw `fetch` rather than Anthropic's SDK: there is exactly one call site, it is neither
- * streaming nor tool-using, and none of what the SDK adds would be exercised — so its weight would
- * be paid by every install of a PWA that ships with four runtime dependencies. Direct browser
- * calls need the `anthropic-dangerous-direct-browser-access` header, which is what the SDK's
- * `dangerouslyAllowBrowser` flag sets underneath. `db/ref/install.js` already establishes the
- * hand-rolled-fetch-with-status-messages shape used here.
+ * The transport — headers, error mapping, cancel handling — lives in `aiRequest.js`, shared with
+ * Pregunta. This module keeps its own model and settings, and deliberately sends no refusal
+ * fallback: the review's behaviour predates that option and is unchanged by it.
  *
  * Nothing in this module reads or writes the database. The caller passes the key in and takes the
  * result away; persisting the latest review onto the entry (schema v8's `feedback` field) is the
  * caller's business, through `db/items.js`.
  */
 
-const API_URL = "https://api.anthropic.com/v1/messages";
-const API_VERSION = "2023-06-01";
+import { aiFailure as failure, assertFinished, postMessages } from "./aiRequest.js";
 
 /** One place to change the model. Priced per million tokens; a review costs cents at this size. */
 export const FEEDBACK_MODEL = "claude-opus-5";
@@ -87,63 +83,6 @@ export const FEEDBACK_SCHEMA = {
   },
 };
 
-/** Carries a `kind` so callers can react without matching on message text. */
-class FeedbackError extends Error {
-  constructor(kind, message) {
-    super(message);
-    this.name = "FeedbackError";
-    this.kind = kind;
-  }
-}
-
-const failure = (kind, message) => new FeedbackError(kind, message);
-
-/**
- * Everything the owner might see when a request does not come back with a review. Written as
- * sentences rather than status codes because this surfaces inside a journal entry, not a console.
- */
-function httpFailure(status) {
-  if (status === 401 || status === 403) {
-    return failure("auth", "Anthropic rejected the API key. Check it in Ajustes.");
-  }
-  if (status === 429) {
-    return failure("rate", "Too many requests just now. Wait a moment and try again.");
-  }
-  if (status === 400 || status === 413) {
-    return failure("request", "Anthropic refused the request — this entry may be too long to review.");
-  }
-  if (status >= 500) {
-    return failure("overloaded", "Anthropic is busy or unavailable right now. Try again shortly.");
-  }
-  return failure("request", `The request failed (HTTP ${status}).`);
-}
-
-const NETWORK_MESSAGE = "Could not reach Anthropic. Check your connection and try again.";
-
-async function postMessages(body, { apiKey, signal }) {
-  let res;
-  try {
-    res = await fetch(API_URL, {
-      method: "POST",
-      signal,
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": API_VERSION,
-        // Required for a browser origin; without it the request never leaves the page.
-        "anthropic-dangerous-direct-browser-access": "true",
-      },
-      body: JSON.stringify(body),
-    });
-  } catch (err) {
-    // A cancel is the owner's own doing and is not an error — let the caller recognise it.
-    if (err?.name === "AbortError") throw err;
-    throw failure("network", NETWORK_MESSAGE);
-  }
-  if (!res.ok) throw httpFailure(res.status);
-  return res.json();
-}
-
 const isString = (v) => typeof v === "string";
 
 /** Guards against a well-formed envelope carrying a shape the panel cannot render. */
@@ -184,7 +123,7 @@ function parseFeedback(text) {
  * confirms beforehand names exactly these, so nothing else may join them here.
  *
  * Resolves with { verdict, summary, items: [{ category, quote, corrected, explanation }] }, throws
- * a FeedbackError carrying a readable `message`, or rethrows an AbortError when cancelled.
+ * an AiError carrying a readable `message`, or rethrows an AbortError when cancelled.
  */
 export async function requestDiarioFeedback({ title, body, apiKey, signal } = {}) {
   const entryText = isString(body) ? body : "";
@@ -210,13 +149,10 @@ export async function requestDiarioFeedback({ title, body, apiKey, signal } = {}
     { apiKey, signal }
   );
 
-  // Checked before `content` is read: on a refusal the content array can be empty.
-  if (data?.stop_reason === "refusal") {
-    throw failure("refusal", "Claude declined to review this entry.");
-  }
-  if (data?.stop_reason === "max_tokens") {
-    throw failure("truncated", "The review was cut short before it finished. Try again.");
-  }
+  assertFinished(data, {
+    refusal: "Claude declined to review this entry.",
+    truncated: "The review was cut short before it finished. Try again.",
+  });
   const text = (data?.content || []).find((block) => block?.type === "text")?.text;
   if (!isString(text)) throw failure("invalid", "The review came back empty.");
   return parseFeedback(text);
