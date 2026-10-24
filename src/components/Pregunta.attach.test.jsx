@@ -465,4 +465,57 @@ describe("Keep adds to an attached entry", () => {
     expect(within(card).getByText("Close to an example it already has.")).toBeTruthy();
     expect(screen.getByText(/One suggestion was left out/)).toBeTruthy();
   });
+
+  it("reports additions refused during the review and leaves the conversation unkept, while saving the rest", async () => {
+    const user = userEvent.setup();
+    globalThis.fetch.mockReset();
+    globalThis.fetch.mockResolvedValueOnce(ok(answer())).mockResolvedValueOnce(keepWith([update()], [{
+      ref: "n1", term: "quedarse", form: "word", gloss: "to stay", usageCue: null, usageLabels: [],
+      examples: [], note: null, tags: [], reason: "Related.",
+    }]));
+    const view = await renderHarness({ initial: [attach(quedar)] });
+    await ask(user, "More examples?");
+    await screen.findByText(/for plans/);
+    await user.click(screen.getByRole("button", { name: "Keep" }));
+    await user.click(screen.getByRole("button", { name: "Send and propose" }));
+    await screen.findByRole("region", { name: "Keep proposals" });
+
+    await items.updateItem(quedar.id, { notes: "My own edit." });
+    view.rerenderWith(await items.allItems());
+    await screen.findByText(/You changed this entry after Claude saw it/);
+    await user.click(screen.getByRole("button", { name: "Apply 1 entry" }));
+
+    expect(await screen.findByText("Nothing was added to quedar: you changed it after Claude saw it.")).toBeTruthy();
+    expect(screen.getByText(/Saved 1 entry/)).toBeTruthy();
+    expect((await db.items.get(quedar.id)).notes).toBe("My own edit.");
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    await user.click(screen.getByRole("button", { name: "New question" }));
+    expect(screen.getByRole("button", { name: /Tap again to discard/ })).toBeTruthy();
+  });
+
+  it("offers a connection between two attached entries on its own", async () => {
+    const user = userEvent.setup();
+    globalThis.fetch.mockReset();
+    globalThis.fetch.mockResolvedValueOnce(ok(answer())).mockResolvedValueOnce(ok({
+      model: "claude-opus-5-5",
+      stop_reason: "end_turn",
+      content: [{ type: "text", text: JSON.stringify({
+        summary: "Connect them.", entries: [], updates: [],
+        links: [{ from: "c2", to: "c1", type: "related", reason: "Both about plans." }],
+      }) }],
+      usage: { input_tokens: 2000, output_tokens: 300 },
+    }));
+    await renderHarness({ initial: [attach(quedar), attach(ir)] });
+    await ask(user, "Compare these");
+    await screen.findByText(/for plans/);
+    await user.click(screen.getByRole("button", { name: "Keep" }));
+    await user.click(screen.getByRole("button", { name: "Send and propose" }));
+    await screen.findByRole("region", { name: "Keep proposals" });
+
+    expect(screen.queryByText("Claude found nothing new worth keeping here.")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Apply 1 connection" }));
+    await screen.findByText(/Saved 1 connection/);
+    expect((await db.items.get(ir.id)).linkedKeys).toEqual([quedar.id]);
+    expect((await db.events.toArray()).filter((event) => event.type === "edit")).toEqual([]);
+  });
 });

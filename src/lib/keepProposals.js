@@ -105,7 +105,10 @@ function additionsFor(rawUpdate, item, snapshot, ctx) {
       const es = text(raw?.es);
       const meaningRef = raw?.meaning === null ? null : text(raw?.meaning);
       // A meaning ref that does not exist is dropped, never moved to My examples.
-      const meaningId = meaningRef === null ? null : snapshot.meaningIds[meaningRef];
+      // Own keys only: "constructor" must not resolve to something inherited.
+      const meaningId = meaningRef === null
+        ? null
+        : Object.hasOwn(snapshot.meaningIds, meaningRef) ? snapshot.meaningIds[meaningRef] : undefined;
       if (!es || meaningId === undefined || count === MAX_ADDED_EXAMPLES || exact.has(exactKey(es))) {
         dropped += 1;
         continue;

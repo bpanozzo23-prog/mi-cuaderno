@@ -233,6 +233,12 @@ describe("additions to attached entries", () => {
     expect(result.droppedCount).toBe(1);
   });
 
+  it.each(["constructor", "__proto__", "toString"])("drops an inherited name like %s as a meaning ref, keeping the rest", (ref) => {
+    const result = run({ updates: [update({ examples: [{ meaning: ref, es: "Quedó claro.", en: "" }], note: "A new note." })] });
+    expect(result.updates[0].additions).toEqual([expect.objectContaining({ kind: "note", note: "A new note." })]);
+    expect(result.droppedCount).toBe(1);
+  });
+
   it("drops exact repeats but only flags an accent-only match", () => {
     const [card] = run({
       updates: [update({

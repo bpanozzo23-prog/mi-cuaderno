@@ -259,7 +259,7 @@ export async function createItemsWithLinks({ items = [], links = [] } = {}) {
 
 /**
  * Adds ticked additions to one existing word or phrase, inside `applyKeep`'s transaction.
- * Returns null when saved (or when nothing new remained), otherwise why it was skipped.
+ * Returns "updated", "unchanged" (nothing new remained) or why it was skipped.
  *
  * The fingerprint frozen with what Claude saw must still match: an entry edited since is never
  * merged into. Additions are appended to the fresh record — examples to the meanings they name,
@@ -297,9 +297,9 @@ async function addToItem(update) {
   if (tags.length > 0) patch.tags = [...(item.tags || []), ...tags];
 
   // Nothing new: no write, so no edit event and no recency change.
-  if (Object.keys(patch).length === 0) return null;
+  if (Object.keys(patch).length === 0) return "unchanged";
   await updateItem(item.id, patch);
-  return null;
+  return "updated";
 }
 
 const connected = (a, b) => (a?.linkedKeys || []).includes(b?.id) || (b?.linkedKeys || []).includes(a?.id);
@@ -334,9 +334,9 @@ export async function applyKeep({ items = [], links = [], updates = [], attached
     const updated = [];
     const skippedUpdates = [];
     for (const update of updates) {
-      const reason = await addToItem(update);
-      if (reason) skippedUpdates.push({ itemId: update.itemId, reason });
-      else updated.push(update.itemId);
+      const result = await addToItem(update);
+      if (result === "updated") updated.push(update.itemId);
+      else if (result !== "unchanged") skippedUpdates.push({ itemId: update.itemId, reason: result });
     }
     const created = [];
     for (const item of items) {

@@ -156,7 +156,13 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
     const created = writes.items.map((item) => ({ id: item.id, term: item.term }));
     const termOf = new Map(response.proposals.updates.map((update) => [update.itemId, update.term]));
     const updated = result.updated.map((id) => ({ id, term: termOf.get(id) }));
-    const skippedUpdates = result.skippedUpdates.map((skip) => ({ ...skip, term: termOf.get(skip.itemId) }));
+    // Additions the review itself refused (the entry changed while it was open) count as skipped
+    // too, so they are reported and the conversation stays unkept.
+    const refusedHere = response.proposals.updates
+      .filter((update) => (selection.staleRefs || []).includes(update.ref))
+      .filter((update) => !result.skippedUpdates.some((skip) => skip.itemId === update.itemId))
+      .map((update) => ({ itemId: update.itemId, reason: "entry_changed" }));
+    const skippedUpdates = [...result.skippedUpdates, ...refusedHere].map((skip) => ({ ...skip, term: termOf.get(skip.itemId) }));
     // The conversation counts as kept only when something was saved and nothing the owner ticked
     // was refused for being out of date; otherwise New question still asks before discarding it.
     const savedSomething = created.length + updated.length + result.linked.length > 0;
@@ -389,15 +395,19 @@ function ProposalReview({
   useEffect(() => {
     const newlyStale = updates.filter((update) => staleRefs.has(update.ref) && !unticked.current.has(update.ref));
     if (newlyStale.length === 0) return;
-    const ids = new Set();
-    for (const update of newlyStale) {
-      unticked.current.add(update.ref);
-      for (const addition of update.additions) ids.add(addition.id);
-    }
-    setSelection((current) => ({
-      ...current,
-      additions: Object.fromEntries(Object.entries(current.additions || {}).map(([id, on]) => [id, ids.has(id) ? false : on])),
-    }));
+    for (const update of newlyStale) unticked.current.add(update.ref);
+    setSelection((current) => {
+      // Remembered when something was still ticked, so Apply reports it as refused.
+      const refused = newlyStale
+        .filter((update) => update.additions.some((addition) => current.additions?.[addition.id]))
+        .map((update) => update.ref);
+      const ids = new Set(newlyStale.flatMap((update) => update.additions.map((addition) => addition.id)));
+      return {
+        ...current,
+        staleRefs: [...new Set([...(current.staleRefs || []), ...refused])],
+        additions: Object.fromEntries(Object.entries(current.additions || {}).map(([id, on]) => [id, ids.has(id) ? false : on])),
+      };
+    });
   }, [updates, staleRefs, setSelection]);
 
   const selectedEntries = proposals.entries.filter((entry) => selection.entries[entry.ref]?.selected);
@@ -448,7 +458,7 @@ function ProposalReview({
         )}
       </div>
 
-      {proposals.entries.length === 0 && updates.length === 0 && (
+      {proposals.entries.length === 0 && updates.length === 0 && proposals.links.length === 0 && (
         <Card><p className="text-sm" style={{ color: C.mut }}>Claude found nothing new worth keeping here.</p></Card>
       )}
 

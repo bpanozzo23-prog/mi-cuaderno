@@ -113,6 +113,7 @@ describe("applyKeep — additions", () => {
   it("writes nothing and logs no edit when nothing new remains", async () => {
     const before = await db.items.get(quedar.id);
     const result = await applyKeep({ updates: [additions(before, { tags: ["citas"], note: "   " })], attachedIds: [quedar.id] });
+    expect(result.updated).toEqual([]);
     expect(result.skippedUpdates).toEqual([]);
     expect(await db.items.get(quedar.id)).toEqual(before);
     expect(await editEvents(quedar.id)).toHaveLength(0);
