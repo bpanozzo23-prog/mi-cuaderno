@@ -1,17 +1,17 @@
 # Current state
 
 The app is deployed; reassessment Steps 1–3, bounded lint/refresh work, documentation-only CI
-filtering, shared Node selection, guarded Journal/Back/Forward navigation ordering and Ask + Keep
-(Pregunta) are published.
+filtering, shared Node selection, guarded Journal/Back/Forward navigation ordering, Ask + Keep
+(Pregunta) and Ask about this are published.
 This is the starting point for current status, not a release diary.
 
 ## Verified release
 
-- **Published revision:** `29101fe`, 2026-10-24 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/40121045969)
-  passed lint, all **2,141 tests across 169 files** in 187.16 seconds, the production build and
+- **Published revision:** `3f13cf1`, 2026-10-24 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/40136679980)
+  passed lint, all **2,195 tests across 171 files** in 246.04 seconds, the production build and
   deployment. Seven live app files returned HTTP 200 and matched the verified local build byte
   for byte. Detailed publication evidence lives in [release history](history/RELEASES.md).
-- **Delivered work:** Ask + Keep (Pregunta tab and Keep proposals), guarded Back/Forward and Journal tab navigation ordering, shared Node selection, documentation-only CI
+- **Delivered work:** Ask about this (entry, page and Repaso attachments for Pregunta), Ask + Keep (Pregunta tab and Keep proposals), guarded Back/Forward and Journal tab navigation ordering, shared Node selection, documentation-only CI
   filtering, the bounded Step 5 lint setup and awaitable notebook refresh, on top of completed
   [Step 1 safety work](reviews/2026-10-17/STEP-1.md), [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md)
   and [Step 3 contract reset](reviews/2026-10-17/STEP-3.md). JavaScript/React Hooks lint runs locally
@@ -25,7 +25,7 @@ This is the starting point for current status, not a release diary.
 
 ## Work and boundaries
 
-- **Complete, not yet published (2026-10-24):** "Ask about this" — the follow-on to Ask + Keep
+- **Complete and published (`3f13cf1`, 2026-10-24):** "Ask about this" — the follow-on to Ask + Keep
   (approved 2026-10-24). "Ask Claude" on a word, phrase or page, or on a revealed Repaso card
   ("Ask later" keeps the session; "Ask now" ends it), attaches that entry to the next Pregunta
   question as an allowlisted, scrubbed text snapshot (up to five), with a preview, starter
