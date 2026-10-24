@@ -15,7 +15,7 @@ const saveButton = () => screen.getByRole("button", { name: /Save key and turn o
 /** Waits out the mount-time preference read, whichever state it lands in. */
 const rendered = async () => {
   render(<AiCard />);
-  await waitFor(() => expect(screen.getByText("AI feedback")).toBeTruthy());
+  await waitFor(() => expect(screen.getByText("AI (Claude)")).toBeTruthy());
 };
 
 beforeEach(async () => {
@@ -33,8 +33,11 @@ describe("turning the feature on", () => {
   it("starts off, and says what gets sent before offering to enable anything", async () => {
     await rendered();
 
-    expect(screen.getByText(/Claude can review a Diario entry/i)).toBeTruthy();
-    expect(screen.getByText(/title and text are sent, only to Anthropic/i)).toBeTruthy();
+    expect(screen.getByText(/Claude can answer Spanish questions in a Pregunta tab and review Diario entries/i)).toBeTruthy();
+    expect(screen.getByText(/Nothing is sent until you tap, and only to Anthropic/i)).toBeTruthy();
+    expect(screen.getByText(/Diario Feedback sends that entry's title and text/i)).toBeTruthy();
+    expect(screen.getByText(/Pregunta sends your questions and the conversation so far — nothing from your notebook/i)).toBeTruthy();
+    expect(screen.getByText(/Keep also sends your tag names and a short list of entries/i)).toBeTruthy();
     expect(screen.getByText(/stored in this browser/i)).toBeTruthy();
     expect(await getPref(AI_ENABLED_PREF)).toBe(null);
   });
@@ -63,7 +66,7 @@ describe("turning the feature on", () => {
 
     await waitFor(async () => expect(await getPref(AI_ENABLED_PREF)).toBe(true));
     expect(await getPref(AI_API_KEY_PREF)).toBe(KEY);
-    expect(screen.getByText(/A Feedback button appears on Diario entries/i)).toBeTruthy();
+    expect(screen.getByText(/Ask Spanish questions in Pregunta; tap Feedback on a Diario entry/i)).toBeTruthy();
     // The key is never rendered back — only the fact that one is held.
     expect(document.body.textContent).not.toContain(KEY);
   });

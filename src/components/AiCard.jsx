@@ -6,7 +6,7 @@ import { AI_ENABLED_PREF, AI_API_KEY_PREF } from "../lib/aiPrefs.js";
 import { testApiKey } from "../lib/aiFeedback.js";
 
 /**
- * Where the owner turns the AI feature on (brief §9): off by default, enabled explicitly, with the
+ * Where the owner turns AI on (brief §9) — for the Diario review and the Pregunta tab alike: off by default, enabled explicitly, with the
  * spend cap acknowledged before a key can be saved.
  *
  * The acknowledgement is a gate rather than a stored consent record — §3 makes the cap the
@@ -49,7 +49,7 @@ export default function AiCard({ onChanged }) {
     setCapAcknowledged(false);
     setHasKey(true);
     setEnabled(true);
-    setNote("AI feedback is on. Open a Diario entry and tap Feedback.");
+    setNote("AI is on. Pregunta is now in the tab bar, and Diario entries have a Feedback button.");
     onChanged?.();
   }
 
@@ -58,7 +58,7 @@ export default function AiCard({ onChanged }) {
     setError("");
     await setPref(AI_ENABLED_PREF, false);
     setEnabled(false);
-    setNote("AI feedback is off. The key is still on this device.");
+    setNote("AI is off. The key is still on this device.");
     onChanged?.();
   }
 
@@ -97,21 +97,34 @@ export default function AiCard({ onChanged }) {
 
   return (
     <>
-      <SectionTitle>AI feedback</SectionTitle>
+      <SectionTitle>AI (Claude)</SectionTitle>
       <Card>
         <div className="flex items-start gap-2">
           <Sparkles size={16} style={{ color: on ? C.green : C.mut, marginTop: 2 }} />
           <div className="text-sm" style={{ color: C.ink }}>
             {on
-              ? "On. A Feedback button appears on Diario entries."
-              : "Claude can review a Diario entry when you ask it to."}
+              ? "On. Ask Spanish questions in Pregunta; tap Feedback on a Diario entry."
+              : "Claude can answer Spanish questions in a Pregunta tab and review Diario entries, when you ask."}
           </div>
         </div>
 
-        <div className="mt-2 text-xs leading-relaxed" style={{ color: C.mut }}>
-          Only that entry's title and text are sent, only to Anthropic, and only when you tap the
-          button. Nothing is saved — the feedback disappears when you leave the entry.
-        </div>
+        <ul className="mt-2 space-y-1 text-xs leading-relaxed list-disc pl-4" style={{ color: C.mut }}>
+          <li>
+            Nothing is sent until you tap, and only to Anthropic.
+          </li>
+          <li>
+            Diario Feedback sends that entry's title and text. The latest feedback is kept with the
+            entry.
+          </li>
+          <li>
+            Pregunta sends your questions and the conversation so far — nothing from your notebook.
+            The conversation is never saved; turning AI off closes it.
+          </li>
+          <li>
+            Keep also sends your tag names and a short list of entries that seem related (term and
+            first meaning). Only entries you tick and apply are saved, tagged #ia.
+          </li>
+        </ul>
 
         {on ? (
           <>
