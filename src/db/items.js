@@ -244,6 +244,52 @@ export async function createAndLinkItem(sourceId, item, relationship = undefined
   return item;
 }
 
+/**
+ * Several new items and their connections as one save (Keep's Apply). Each item logs its
+ * `create` event; each connection is stored once, on `ownerId`, without an `edit` event. Every
+ * link must have at least one end among the new items, so no existing entry's content changes.
+ *
+ * A connection whose existing end has been deleted since the proposal was made is skipped and
+ * reported rather than failing the whole save: it cannot corrupt anything, and the owner should
+ * not lose ticked entries over an unrelated deletion. Any other failure rolls everything back.
+ *
+ * Resolves with { created: [id], linked: [link], skipped: [{ ...link, reason }] }.
+ */
+export async function createItemsWithLinks({ items = [], links = [] } = {}) {
+  const newIds = new Set(items.map((item) => item.id));
+  for (const link of links) {
+    if (!newIds.has(link.ownerId) && !newIds.has(link.targetId)) {
+      throw new Error("Each connection in a batch must involve a new item.");
+    }
+  }
+  let outcome;
+  await db.transaction("rw", db.items, db.events, async () => {
+    const created = [];
+    const linked = [];
+    const skipped = [];
+    const usable = [];
+    for (const link of links) {
+      const existingEnds = [link.ownerId, link.targetId].filter((id) => !newIds.has(id));
+      const ends = await Promise.all(existingEnds.map((id) => db.items.get(id)));
+      if (ends.every((item) => item?.type === "lexical")) usable.push(link);
+      else skipped.push({ ...link, reason: "target_deleted" });
+    }
+    for (const item of items) {
+      await insertItemWithEvent(item);
+      created.push(item.id);
+    }
+    for (const link of usable) {
+      const saved = await linkItems(link.ownerId, link.targetId, link.relationship);
+      // linkItems quietly keeps an earlier edge between the same pair; report that honestly.
+      if ((saved?.linkedKeys || []).includes(link.targetId)) linked.push(link);
+      else skipped.push({ ...link, reason: "already_connected" });
+    }
+    outcome = { created, linked, skipped };
+  });
+  requestPersistenceAfterCommit();
+  return outcome;
+}
+
 /** The caller prepares the dated page, including the prompt only when requested. */
 export async function createKeptPracticeEntry(page, details) {
   await db.transaction("rw", db.items, db.events, async () => {
