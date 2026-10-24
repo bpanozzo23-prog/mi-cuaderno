@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, BookmarkPlus, Check, Loader2, Square, X } from "lucide-react";
 import { C, MONO, Button, Card } from "../theme.jsx";
 import { getPref } from "../db/db.js";
-import { createItemsWithLinks } from "../db/items.js";
+import { applyKeep } from "../db/items.js";
 import { AI_API_KEY_PREF } from "../lib/aiPrefs.js";
 import { attachedItemIds, conversationText, requestKeepProposals } from "../lib/aiKeep.js";
 import { formatCost } from "../lib/aiRequest.js";
@@ -15,11 +15,13 @@ import {
   linkIsAvailable,
   normalizeKeepProposals,
 } from "../lib/keepProposals.js";
+import { contentFingerprint } from "../lib/contentFingerprint.js";
 import { relationshipLabel } from "../lib/relationships.js";
 import { allTagsIn } from "../lib/tags.js";
 
 /**
- * Keep: a conversation becomes proposed notebook entries, which the owner ticks and applies.
+ * Keep: a conversation becomes proposed notebook entries and additions to attached entries,
+ * which the owner ticks and applies.
  *
  * confirm → loading → review → applying → saved (refreshing) → applied. Nothing is sent before
  * the confirmation, which names exactly what leaves the device; nothing is saved before Apply.
@@ -30,6 +32,19 @@ import { allTagsIn } from "../lib/tags.js";
 const SKIP_REASONS = {
   target_deleted: "the existing entry was deleted meanwhile",
   already_connected: "they were already connected",
+};
+
+const UPDATE_SKIP_REASONS = {
+  entry_changed: "you changed it after Claude saw it",
+  entry_deleted: "it was deleted meanwhile",
+};
+
+const plural = (count, one, many) => `${count} ${count === 1 ? one : many}`;
+
+/** An entry changed (or gone) since Keep froze it can no longer take its additions. */
+const isStale = (update, itemsById) => {
+  const item = itemsById.get(update.itemId);
+  return !item || contentFingerprint(item) !== update.fingerprint;
 };
 
 export default function KeepReview({ source, notebook, onSelect, onClose, onApplied }) {
@@ -87,6 +102,7 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
       const proposals = normalizeKeepProposals(result.proposals, {
         candidates: disclosed.candidates,
         items: itemsRef.current,
+        attached: disclosed.attached,
       });
       setResponse({ ...result, proposals });
       setSelection(defaultKeepSelection(proposals));
@@ -118,12 +134,17 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
   async function apply() {
     if (committedRef.current || phase !== "review") return;
     const writes = buildKeepWrites(response.proposals, selection);
-    if (writes.items.length === 0) return;
+    if (writes.items.length === 0 && writes.updates.length === 0 && writes.links.length === 0) return;
     setError("");
     setPhase("applying");
     let result;
     try {
-      result = await createItemsWithLinks({ items: writes.items, links: writes.links });
+      result = await applyKeep({
+        items: writes.items,
+        links: writes.links,
+        updates: writes.updates,
+        attachedIds: writes.attachedIds,
+      });
     } catch {
       if (mountedRef.current) {
         setError("Couldn't save — nothing was changed. Your selections are still here; try again.");
@@ -133,14 +154,20 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
     }
     committedRef.current = true;
     const created = writes.items.map((item) => ({ id: item.id, term: item.term }));
-    onApplied?.();
+    const termOf = new Map(response.proposals.updates.map((update) => [update.itemId, update.term]));
+    const updated = result.updated.map((id) => ({ id, term: termOf.get(id) }));
+    const skippedUpdates = result.skippedUpdates.map((skip) => ({ ...skip, term: termOf.get(skip.itemId) }));
+    // The conversation counts as kept only when something was saved and nothing the owner ticked
+    // was refused for being out of date; otherwise New question still asks before discarding it.
+    const savedSomething = created.length + updated.length + result.linked.length > 0;
+    if (savedSomething && !skippedUpdates.some((skip) => skip.reason === "entry_changed")) onApplied?.();
     if (!mountedRef.current) {
       // The save committed even though this screen went away (AI turned off, say): the notebook
       // still has to show the new entries.
       notebook.reload();
       return;
     }
-    setSaved({ created, skipped: result.skipped, linked: result.linked.length });
+    setSaved({ created, updated, skippedUpdates, skipped: result.skipped, linked: result.linked.length });
     setPhase("saved");
     await refresh();
   }
@@ -234,11 +261,18 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
   if (phase === "saved" || phase === "applied") {
     return (
       <Card aria-label="Keep" className="mt-4">
-        <div className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: C.green }}>
-          <Check size={15} /> Saved {saved.created.length} {saved.created.length === 1 ? "entry" : "entries"}
-          {saved.linked > 0 && ` and ${saved.linked} ${saved.linked === 1 ? "connection" : "connections"}`}
+        <div className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: savedSummary(saved) ? C.green : C.mut }}>
+          {savedSummary(saved) ? <><Check size={15} /> {savedSummary(saved)}</> : "Nothing was saved"}
         </div>
         <ul className="mt-2 space-y-1.5">
+          {saved.updated.map((entry) => (
+            <li key={entry.id} className="flex items-center justify-between gap-2 text-sm">
+              <span style={{ color: C.ink }}>{entry.term} <span className="text-xs" style={{ color: C.mut }}>· added to</span></span>
+              <Button tone="quiet" disabled={phase !== "applied"} onClick={() => onSelect(entry.id)} aria-label={`Open ${entry.term}`}>
+                Open
+              </Button>
+            </li>
+          ))}
           {saved.created.map((entry) => (
             <li key={entry.id} className="flex items-center justify-between gap-2 text-sm">
               <span style={{ color: C.ink }}>{entry.term}</span>
@@ -248,6 +282,11 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
             </li>
           ))}
         </ul>
+        {saved.skippedUpdates.map((skip) => (
+          <div key={skip.itemId} role="status" className="mt-2 text-xs leading-relaxed rounded-lg p-2" style={{ background: C.amberPale, color: C.amber }}>
+            Nothing was added to {skip.term}: {UPDATE_SKIP_REASONS[skip.reason] || skip.reason}.
+          </div>
+        ))}
         {saved.skipped.length > 0 && (
           <div className="mt-2 text-xs leading-relaxed" style={{ color: C.mut }}>
             {saved.skipped.length === 1 ? "One connection was" : `${saved.skipped.length} connections were`} not
@@ -284,6 +323,18 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
       onSelect={onSelect}
     />
   );
+}
+
+/** "Added to 1 entry · Saved 2 entries and 1 connection", or "" when nothing was saved. */
+function savedSummary(saved) {
+  const parts = [];
+  if (saved.updated.length > 0) parts.push(`Added to ${plural(saved.updated.length, "entry", "entries")}`);
+  const stored = [
+    saved.created.length > 0 ? plural(saved.created.length, "entry", "entries") : "",
+    saved.linked > 0 ? plural(saved.linked, "connection", "connections") : "",
+  ].filter(Boolean);
+  if (stored.length > 0) parts.push(`Saved ${stored.join(" and ")}`);
+  return parts.join(" · ");
 }
 
 function ErrorNote({ children }) {
@@ -326,8 +377,36 @@ function ProposalReview({
     }));
   }, [liveDuplicates, proposals.entries, setSelection]);
 
+  // An attached entry edited while the review is open can no longer take its additions: they are
+  // unticked once and disabled while the entry differs from what Claude saw.
+  const itemsById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
+  const updates = useMemo(() => proposals.updates || [], [proposals.updates]);
+  const staleRefs = useMemo(
+    () => new Set(updates.filter((update) => isStale(update, itemsById)).map((update) => update.ref)),
+    [updates, itemsById]
+  );
+  const unticked = useRef(new Set());
+  useEffect(() => {
+    const newlyStale = updates.filter((update) => staleRefs.has(update.ref) && !unticked.current.has(update.ref));
+    if (newlyStale.length === 0) return;
+    const ids = new Set();
+    for (const update of newlyStale) {
+      unticked.current.add(update.ref);
+      for (const addition of update.additions) ids.add(addition.id);
+    }
+    setSelection((current) => ({
+      ...current,
+      additions: Object.fromEntries(Object.entries(current.additions || {}).map(([id, on]) => [id, ids.has(id) ? false : on])),
+    }));
+  }, [updates, staleRefs, setSelection]);
+
   const selectedEntries = proposals.entries.filter((entry) => selection.entries[entry.ref]?.selected);
   const selectedLinks = proposals.links.filter((link) => selection.links[link.id] && linkIsAvailable(link, selection));
+  const selectedAdditions = updates
+    .filter((update) => !staleRefs.has(update.ref))
+    .flatMap((update) => update.additions)
+    .filter((addition) => selection.additions?.[addition.id]);
+  const nothingSelected = selectedEntries.length + selectedAdditions.length + selectedLinks.length === 0;
 
   function toggleEntry(ref) {
     setSelection((current) => ({
@@ -349,6 +428,10 @@ function ProposalReview({
     });
   }
 
+  function toggleAddition(id) {
+    setSelection((current) => ({ ...current, additions: { ...current.additions, [id]: !current.additions?.[id] } }));
+  }
+
   function toggleLink(id) {
     setSelection((current) => ({ ...current, links: { ...current.links, [id]: !current.links[id] } }));
   }
@@ -365,8 +448,30 @@ function ProposalReview({
         )}
       </div>
 
-      {proposals.entries.length === 0 && (
+      {proposals.entries.length === 0 && updates.length === 0 && (
         <Card><p className="text-sm" style={{ color: C.mut }}>Claude found nothing new worth keeping here.</p></Card>
+      )}
+
+      {updates.length > 0 && (
+        <div className="text-xs font-semibold uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>
+          Changes to your entries
+        </div>
+      )}
+      {updates.map((update) => (
+        <UpdateCard
+          key={update.ref}
+          update={update}
+          stale={staleRefs.has(update.ref)}
+          selection={selection}
+          applying={applying}
+          onToggle={toggleAddition}
+          onSelect={onSelect}
+        />
+      ))}
+      {updates.length > 0 && proposals.entries.length > 0 && (
+        <div className="text-xs font-semibold uppercase pt-1" style={{ color: C.mut, letterSpacing: "0.08em" }}>
+          New entries
+        </div>
       )}
 
       {proposals.entries.map((entry) => {
@@ -485,17 +590,130 @@ function ProposalReview({
       {error && <ErrorNote>{error}</ErrorNote>}
 
       <div className="flex flex-wrap gap-2">
-        <Button onClick={onApply} disabled={applying || selectedEntries.length === 0}>
+        <Button onClick={onApply} disabled={applying || nothingSelected}>
           {applying ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
-          {applying
-            ? "Saving…"
-            : `Apply ${selectedEntries.length} ${selectedEntries.length === 1 ? "entry" : "entries"}${
-              selectedLinks.length > 0 ? `, ${selectedLinks.length} ${selectedLinks.length === 1 ? "connection" : "connections"}` : ""}`}
+          {applying ? "Saving…" : applyLabel(selectedEntries.length, selectedAdditions.length, selectedLinks.length)}
         </Button>
         <Button tone={confirmDiscard ? "dangerArmed" : "quiet"} onClick={onDiscard} disabled={applying}>
           <X size={15} /> {confirmDiscard ? "Tap again to discard" : "Discard"}
         </Button>
       </div>
     </section>
+  );
+}
+
+/** "Apply 2 entries, 3 additions, 1 connection"; plain "Apply" when nothing is ticked. */
+function applyLabel(entries, additions, links) {
+  const parts = [
+    entries > 0 ? plural(entries, "entry", "entries") : "",
+    additions > 0 ? plural(additions, "addition", "additions") : "",
+    links > 0 ? plural(links, "connection", "connections") : "",
+  ].filter(Boolean);
+  return parts.length > 0 ? `Apply ${parts.join(", ")}` : "Apply 0 entries";
+}
+
+const FLAGS = {
+  similar_example: "Close to an example it already has.",
+  similar_meaning: "Close to a meaning it already has.",
+};
+
+/** What one addition says, both on screen and as its checkbox's name. */
+function additionLabel(addition) {
+  switch (addition.kind) {
+    case "example":
+      return `Add example: ${addition.example.es}`;
+    case "meaning":
+      return `Add meaning: ${addition.meaning.gloss}`;
+    case "note":
+      return "Add to notes";
+    default:
+      return `Add tag ${addition.tag.name}`;
+  }
+}
+
+function AdditionBody({ addition }) {
+  if (addition.kind === "example") {
+    return (
+      <>
+        <span className="text-xs" style={{ color: C.mut }}>
+          + example · {addition.meaningId ? addition.meaningGloss || "a meaning" : "My examples"}
+        </span>
+        <span className="block" style={{ color: C.ink }}>{addition.example.es}</span>
+        {addition.example.en && <span className="block text-xs" style={{ color: C.mut }}>{addition.example.en}</span>}
+      </>
+    );
+  }
+  if (addition.kind === "meaning") {
+    const { meaning } = addition;
+    const usage = [meaning.usageLabels.join(", "), meaning.usageCue].filter(Boolean).join(" — ");
+    return (
+      <>
+        <span className="text-xs" style={{ color: C.mut }}>+ meaning</span>
+        <span className="block" style={{ color: C.ink }}>{meaning.gloss}</span>
+        {usage && <span className="block text-xs" style={{ color: C.mut }}>{usage}</span>}
+        {meaning.examples.map((example, index) => (
+          <span key={index} className="block text-xs" style={{ color: C.mut }}>
+            <span style={{ color: C.ink }}>{example.es}</span>{example.en ? ` — ${example.en}` : ""}
+          </span>
+        ))}
+      </>
+    );
+  }
+  if (addition.kind === "note") {
+    return (
+      <>
+        <span className="text-xs" style={{ color: C.mut }}>+ note, after your notes</span>
+        <span className="block whitespace-pre-wrap" style={{ color: C.ink }}>{addition.note}</span>
+      </>
+    );
+  }
+  return (
+    <span className="text-xs" style={{ color: C.mut }}>
+      + tag <span style={{ color: C.ink }}>#{addition.tag.name}</span>{addition.tag.isNew ? " · new" : ""}
+    </span>
+  );
+}
+
+function UpdateCard({ update, stale, selection, applying, onToggle, onSelect }) {
+  return (
+    <Card aria-label={`Changes to ${update.term}`} style={stale ? { opacity: 0.75 } : {}}>
+      <div className="flex items-center justify-between gap-2">
+        <span className="min-w-0">
+          <span className="font-semibold" style={{ color: C.ink }}>{update.term}</span>{" "}
+          <span className="text-xs" style={{ color: C.mut }}>your entry</span>
+        </span>
+        <Button tone="quiet" onClick={() => onSelect(update.itemId)} aria-label={`Open your ${update.term}`}>
+          Open
+        </Button>
+      </div>
+      {stale && (
+        <div role="status" className="mt-2 text-xs rounded-lg p-2" style={{ background: C.amberPale, color: C.amber }}>
+          You changed this entry after Claude saw it, so these additions can&apos;t be applied.
+        </div>
+      )}
+      <ul className="mt-2 space-y-2">
+        {update.additions.map((addition) => (
+          <li key={addition.id}>
+            <label className="flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="mt-1 shrink-0"
+                checked={!stale && Boolean(selection.additions?.[addition.id])}
+                disabled={stale || applying}
+                onChange={() => onToggle(addition.id)}
+                aria-label={additionLabel(addition)}
+              />
+              <span className="min-w-0 break-words">
+                <AdditionBody addition={addition} />
+                {addition.flag && (
+                  <span className="block text-xs" style={{ color: C.amber }}>{FLAGS[addition.flag]}</span>
+                )}
+              </span>
+            </label>
+          </li>
+        ))}
+      </ul>
+      {update.reason && <div className="mt-2 text-xs italic" style={{ color: C.mut }}>{update.reason}</div>}
+    </Card>
   );
 }

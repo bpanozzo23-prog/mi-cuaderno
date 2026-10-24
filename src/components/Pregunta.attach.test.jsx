@@ -361,3 +361,108 @@ describe("arrivals after Keep", () => {
     expect(screen.queryByText(/This joins your current conversation/)).toBeNull();
   });
 });
+
+describe("Keep adds to an attached entry", () => {
+  const update = (extra = {}) => ({
+    target: "c1",
+    examples: [{ meaning: "m1", es: "Me quedo en casa hoy.", en: "I'm staying home today." }],
+    meanings: [],
+    note: "Quedar de + infinitive is common in Mexico.",
+    tags: [],
+    reason: "From the conversation.",
+    ...extra,
+  });
+  const keepWith = (updates, entries = []) => ok({
+    model: "claude-opus-5-5",
+    stop_reason: "end_turn",
+    content: [{ type: "text", text: JSON.stringify({ summary: "Additions to quedar.", entries, updates, links: [] }) }],
+    usage: { input_tokens: 2000, output_tokens: 1000 },
+  });
+
+  async function reviewAdditions(user, updates = [update()]) {
+    globalThis.fetch.mockReset();
+    globalThis.fetch.mockResolvedValueOnce(ok(answer())).mockResolvedValueOnce(keepWith(updates));
+    const view = await renderHarness({ initial: [attach(quedar)] });
+    await ask(user, "More examples?");
+    await screen.findByText(/for plans/);
+    await user.click(screen.getByRole("button", { name: "Keep" }));
+    await user.click(screen.getByRole("button", { name: "Send and propose" }));
+    await screen.findByRole("region", { name: "Keep proposals" });
+    return view;
+  }
+
+  const editEvents = async () => (await db.events.toArray()).filter((event) => event.type === "edit" && event.itemKey === quedar.id);
+
+  it("shows each addition with its own tick and applies only the ticked ones, once", async () => {
+    const user = userEvent.setup();
+    await reviewAdditions(user);
+    const card = screen.getByRole("generic", { name: "Changes to quedar" });
+    expect(within(card).getByText("+ example · to remain")).toBeTruthy();
+    expect(within(card).getByText("Me quedo en casa hoy.")).toBeTruthy();
+    expect(within(card).getByText("Quedar de + infinitive is common in Mexico.")).toBeTruthy();
+
+    await user.click(within(card).getByRole("checkbox", { name: "Add to notes" }));
+    await user.click(screen.getByRole("button", { name: "Apply 1 addition" }));
+    await screen.findByText(/Added to 1 entry/);
+
+    const saved = await db.items.get(quedar.id);
+    expect(saved.meanings[0].examples).toEqual([
+      { es: "Quedamos a las cinco.", en: "Let's meet at five." },
+      { es: "Me quedo en casa hoy.", en: "I'm staying home today." },
+    ]);
+    expect(saved.notes).toBe("");
+    expect(saved.tags).toEqual([]);
+    expect(await editEvents()).toHaveLength(1);
+
+    // Kept: New question starts fresh with one tap.
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    await user.click(screen.getByRole("button", { name: "New question" }));
+    expect(screen.queryByText(/for plans/)).toBeNull();
+  });
+
+  it("disables the additions when the entry is edited while the review is open", async () => {
+    const user = userEvent.setup();
+    const view = await reviewAdditions(user);
+    await items.updateItem(quedar.id, { notes: "My own edit." });
+    view.rerenderWith(await items.allItems());
+
+    const card = screen.getByRole("generic", { name: "Changes to quedar" });
+    expect(await within(card).findByText(/You changed this entry after Claude saw it/)).toBeTruthy();
+    expect(within(card).getByRole("checkbox", { name: /Add example/ }).disabled).toBe(true);
+    expect(screen.getByRole("button", { name: /^Apply/ }).disabled).toBe(true);
+  });
+
+  it("refuses additions to an entry changed just before Apply, and leaves the conversation unkept", async () => {
+    const user = userEvent.setup();
+    await reviewAdditions(user);
+    // Edited elsewhere without this screen hearing about it yet.
+    await items.updateItem(quedar.id, { notes: "My own edit." });
+    await user.click(screen.getByRole("button", { name: "Apply 2 additions" }));
+
+    expect(await screen.findByText("Nothing was added to quedar: you changed it after Claude saw it.")).toBeTruthy();
+    expect(screen.getByText("Nothing was saved")).toBeTruthy();
+    expect((await db.items.get(quedar.id)).notes).toBe("My own edit.");
+    expect(await editEvents()).toHaveLength(1);
+
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    await user.click(screen.getByRole("button", { name: "New question" }));
+    expect(screen.getByText(/for plans/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Tap again to discard/ })).toBeTruthy();
+  });
+
+  it("flags an accent-only match unticked and drops an exact repeat", async () => {
+    const user = userEvent.setup();
+    await reviewAdditions(user, [update({
+      examples: [
+        { meaning: "m1", es: "quedamos a las cinco.", en: "exact repeat" },
+        { meaning: "m1", es: "Quedámos a las cinco", en: "accent-only" },
+      ],
+      note: null,
+    })]);
+    const card = screen.getByRole("generic", { name: "Changes to quedar" });
+    expect(within(card).getAllByRole("checkbox")).toHaveLength(1);
+    expect(within(card).getByRole("checkbox").checked).toBe(false);
+    expect(within(card).getByText("Close to an example it already has.")).toBeTruthy();
+    expect(screen.getByText(/One suggestion was left out/)).toBeTruthy();
+  });
+});

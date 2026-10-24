@@ -162,7 +162,7 @@ describe("Keep", () => {
     const user = userEvent.setup();
     await renderWithAnswer(user);
     await openReview(user);
-    vi.spyOn(items, "createItemsWithLinks").mockRejectedValueOnce(new Error("disk full"));
+    vi.spyOn(items, "applyKeep").mockRejectedValueOnce(new Error("disk full"));
     await user.click(screen.getByRole("button", { name: /Apply 2 entries/ }));
     expect((await screen.findByRole("alert")).textContent).toMatch(/Couldn't save — nothing was changed/);
     expect(screen.getByRole("checkbox", { name: "Keep extrañar" }).checked).toBe(true);
@@ -264,9 +264,9 @@ describe("Keep while the notebook changes", () => {
     const user = userEvent.setup();
     const view = await renderWithAnswer(user);
     await openReview(user);
-    const real = items.createItemsWithLinks;
+    const real = items.applyKeep;
     let finish;
-    vi.spyOn(items, "createItemsWithLinks").mockImplementationOnce((writes) => new Promise((resolve) => {
+    vi.spyOn(items, "applyKeep").mockImplementationOnce((writes) => new Promise((resolve) => {
       finish = () => resolve(real(writes));
     }));
     await user.click(screen.getByRole("button", { name: /Apply 2 entries/ }));
