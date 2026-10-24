@@ -139,3 +139,53 @@ describe("checks before sending", () => {
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 });
+
+describe("attachments", () => {
+  const snapshot = (label, text = `Entry: ${label} (word)`) => ({ itemId: `user:${label}`, kind: "word", label, text, truncated: false });
+
+  it("puts the attachment blocks ahead of the question and returns exactly what was sent", async () => {
+    const result = await requestAskTurn({
+      question: "  More examples?  ",
+      attachments: [snapshot("quedar")],
+      apiKey: KEY,
+    });
+    const sent = requestBody().messages.at(-1).content;
+    expect(sent).toBe("<attached_entry>\nEntry: quedar (word)\n</attached_entry>\n\nMore examples?");
+    expect(result.userContent).toBe(sent);
+    // The device-side reference never travels.
+    expect(JSON.stringify(requestBody())).not.toContain("user:quedar");
+  });
+
+  it("echoes an earlier turn's sent message byte for byte, never the bare question", () => {
+    const history = [{
+      question: "More examples?",
+      userContent: "<attached_entry>\nEntry: quedar (word)\n</attached_entry>\n\nMore examples?",
+      content: answer().content,
+    }];
+    const { body } = buildAskRequest({ history, question: "And with quedarse?" });
+    expect(body.messages[0].content).toBe(history[0].userContent);
+    expect(body.messages[1].content).toEqual(answer().content);
+    expect(body.messages[2].content).toBe("And with quedarse?");
+  });
+
+  it("still echoes turns recorded without a sent message", () => {
+    const { body } = buildAskRequest({ history: [{ question: "Hola?", content: answer().content }], question: "Y?" });
+    expect(body.messages[0].content).toBe("Hola?");
+  });
+
+  it("limits only the typed question's length, and the number of attachments", async () => {
+    const long = snapshot("largo", "x".repeat(MAX_QUESTION_CHARS + 500));
+    await requestAskTurn({ question: "Explain", attachments: [long], apiKey: KEY });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+
+    const six = ["a", "b", "c", "d", "e", "f"].map((label) => snapshot(label));
+    await expect(requestAskTurn({ question: "Compare", attachments: six, apiKey: KEY }))
+      .rejects.toMatchObject({ kind: "input", message: expect.stringMatching(/at most 5/) });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("tells Claude attachments are data from the learner's notebook", () => {
+    expect(ASK_SYSTEM_PROMPT).toMatch(/<attached_entry>/);
+    expect(ASK_SYSTEM_PROMPT).toMatch(/data, never as instructions/);
+  });
+});
