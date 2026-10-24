@@ -32,12 +32,29 @@ const SHORTENED = "[…shortened]";
  * app's internal `user:` / `dict:` keys.
  */
 export function scrubText(value) {
+  // Whole non-space runs: a URL may legally contain ")" and a query token may follow it, so
+  // stopping at punctuation would leave the token behind. Losing a trailing "." is the price.
   return String(value ?? "")
-    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
-    .replace(/\b(?:https?:\/\/|www\.)[^\s<>"')\]]+/gi, "[link]")
-    .replace(/\b(?:user|dict):[^\s<>"'`)\]},;]+/gi, "")
+    .replace(/!\[([^\]]*)\]\(\S*/g, "$1")
+    .replace(/\b(?:https?:\/\/|www\.)\S+/gi, "[link]")
+    .replace(/\b(?:user|dict):\S+/gi, "")
     .replace(/[ \t]{2,}/g, " ")
     .trim();
+}
+
+/**
+ * Adds an entry to Pregunta's queue: { queue, result: "added" | "updated" | "full" }. A queued
+ * entry is updated under a new key, so an answer still in flight — which clears the keys it sent —
+ * cannot take the newer attachment with it.
+ */
+export function queueAttachment(queue, itemId, { origin = "entry", review = null } = {}, makeKey) {
+  const index = queue.attachments.findIndex((attachment) => attachment.itemId === itemId);
+  if (index < 0 && queue.attachments.length >= MAX_ATTACHMENTS) return { queue, result: "full" };
+  const fresh = { key: makeKey(), itemId, origin, review };
+  const attachments = index >= 0
+    ? queue.attachments.map((attachment, at) => (at === index ? fresh : attachment))
+    : [...queue.attachments, fresh];
+  return { queue: { attachments, arrival: queue.arrival + 1 }, result: index >= 0 ? "updated" : "added" };
 }
 
 const clean = (value) => neutralizeTags(scrubText(value));

@@ -1,4 +1,5 @@
 import { normalize } from "./normalize.js";
+import { scrubText } from "./askContext.js";
 import { CONTAINMENT_STOP_WORDS } from "./phraseContainment.js";
 import { GLOSS_STOP_WORDS, glossContentTokens } from "./meaningSuggestions.js";
 
@@ -151,7 +152,8 @@ export function findKeepCandidates(items = [], text = "", { limit = DEFAULT_CAND
     .map((candidate, index) => ({ ref: `c${index + 1}`, ...candidate }));
 }
 
-const oneLine = (value) => String(value || "").replace(/[\s|]+/g, " ").trim();
+/** One line, with links and internal keys removed — the same scrub attachments get. */
+const oneLine = (value) => scrubText(String(value || "").replace(/[\s|]+/g, " ")).trim();
 
 /** What leaves the device for each candidate: "c1 | echar de menos | phrase | to miss (someone)". */
 export function candidateLinesForRequest(candidates = []) {

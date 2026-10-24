@@ -10,7 +10,7 @@ import Ajustes from "./components/Ajustes.jsx";
 import Wander from "./components/Wander.jsx";
 import CuidarHub from "./components/CuidarHub.jsx";
 import Pregunta from "./components/Pregunta.jsx";
-import { MAX_ATTACHMENTS } from "./lib/askContext.js";
+import { queueAttachment } from "./lib/askContext.js";
 import { useNotebook } from "./useNotebook.js";
 import { isJournalEntry } from "./lib/journal.js";
 import { parseSharePayload } from "./lib/shareTarget.js";
@@ -573,22 +573,11 @@ export default function App() {
   }
 
   /** Queues an entry for Pregunta: "added", "updated" (already queued; review context refreshed) or "full". */
-  function addPreguntaAttachment(itemId, { origin = "entry", review = null } = {}) {
-    const current = preguntaQueueRef.current;
-    const index = current.attachments.findIndex((attachment) => attachment.itemId === itemId);
-    let attachments;
-    let result;
-    if (index >= 0) {
-      attachments = current.attachments.map((attachment, at) => (at === index ? { ...attachment, origin, review } : attachment));
-      result = "updated";
-    } else if (current.attachments.length >= MAX_ATTACHMENTS) {
-      return "full";
-    } else {
-      attachments = [...current.attachments, { key: makeNavigationVisitKey(), itemId, origin, review }];
-      result = "added";
-    }
-    preguntaQueueRef.current = { attachments, arrival: current.arrival + 1 };
-    setPreguntaQueue(preguntaQueueRef.current);
+  function addPreguntaAttachment(itemId, options) {
+    const { queue, result } = queueAttachment(preguntaQueueRef.current, itemId, options, makeNavigationVisitKey);
+    if (result === "full") return result;
+    preguntaQueueRef.current = queue;
+    setPreguntaQueue(queue);
     return result;
   }
 
@@ -606,6 +595,9 @@ export default function App() {
   const askAbout = aiReady === true
     ? (itemId, options) => {
       const result = addPreguntaAttachment(itemId, options);
+      // A full queue still opens Pregunta from an entry, where the five chips explain it; a
+      // review card stays in its session instead (ReviewSession says why).
+      if (result === "full" && options?.origin === "review") return result;
       switchTab("pregunta");
       return result;
     }

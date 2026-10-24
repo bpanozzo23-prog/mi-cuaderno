@@ -130,11 +130,15 @@ export default function ReviewSession({
   }
 
   function askNowAboutCard() {
-    if (!item || !onAskAbout) return;
-    const options = askAboutCard();
-    // The same order as "Open the full entry": end the session, then leave for Pregunta.
+    if (!item || !onAskAbout) return null;
+    // Attach first: if Pregunta is full, the card is not attached and the session must go on.
+    const result = onAskAbout(item.id, askAboutCard());
+    if (result === "full") {
+      setAskLaterStatus((current) => ({ ...current, [item.id]: "full" }));
+      return result;
+    }
     onFinish?.();
-    onAskAbout(item.id, options);
+    return result;
   }
 
   function goToPregunta() {

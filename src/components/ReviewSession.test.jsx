@@ -563,10 +563,27 @@ describe("asking Claude about a card", () => {
     );
     await user.click(screen.getByRole("button", { name: "Tap to see the meaning" }));
     await user.click(screen.getByRole("button", { name: "Ask Claude later" }));
-    expect(screen.getByRole("button", { name: /Pregunta already has 5/ })).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toMatch(/Pregunta already has 5 attachments/);
+    expect(screen.queryByRole("button", { name: "Saved for Pregunta" })).toBeNull();
   });
 
-  it("asks now only on a second tap, ending the session first, with the typed miss and the expected answer", async () => {
+  it("stays in the session when Ask now finds Pregunta full", async () => {
+    const user = userEvent.setup();
+    const onFinish = vi.fn();
+    render(
+      <ReviewSession cards={[card()]} onFinish={onFinish} onOpen={vi.fn()} onGraded={vi.fn()} onAskAbout={() => "full"} />
+    );
+    await user.click(screen.getByRole("button", { name: "Tap to see the meaning" }));
+    await user.click(screen.getByRole("button", { name: "Ask now" }));
+    await user.click(screen.getByRole("button", { name: "Ask now and end session" }));
+
+    expect(onFinish).not.toHaveBeenCalled();
+    expect(screen.getByRole("status").textContent).toMatch(/Pregunta already has 5 attachments/);
+    expect(screen.getByRole("button", { name: "Ask now" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Good" })).toBeTruthy();
+  });
+
+  it("asks now only on a second tap, attaching before ending the session, with the typed miss and the expected answer", async () => {
     const user = userEvent.setup();
     const calls = [];
     const onFinish = vi.fn(() => calls.push("finish"));
@@ -590,7 +607,7 @@ describe("asking Claude about a card", () => {
     expect(onAskAbout).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "Ask now and end session" }));
-    expect(calls).toEqual(["finish", "ask"]);
+    expect(calls).toEqual(["ask", "finish"]);
     expect(onAskAbout).toHaveBeenCalledWith("user:madrugar", {
       origin: "review",
       review: {

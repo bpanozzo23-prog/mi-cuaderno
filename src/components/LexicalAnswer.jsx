@@ -70,7 +70,7 @@ export default function LexicalAnswer({
       setAskArmed(true);
       return;
     }
-    onAskNow?.();
+    if (onAskNow?.() === "full") setAskArmed(false);
   }
 
   return (
@@ -165,18 +165,21 @@ export default function LexicalAnswer({
               Asking now ends this session.
             </div>
           )}
+          {askLaterStatus === "full" && (
+            <div role="status" className="text-xs" style={{ color: C.red }}>
+              Pregunta already has 5 attachments — ask about those first.
+            </div>
+          )}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             {onAskLater && (
               <button
                 type="button"
                 onClick={onAskLater}
                 className="text-xs inline-flex min-h-8 items-center gap-1 underline underline-offset-2"
-                style={{ color: askLaterStatus === "full" ? C.red : C.pen }}
+                style={{ color: C.pen }}
               >
                 {askLaterStatus === "saved" ? (
                   <><Check size={12} /> Saved for Pregunta</>
-                ) : askLaterStatus === "full" ? (
-                  "Pregunta already has 5 — ask about those first"
                 ) : (
                   <><MessageCircleQuestion size={12} /> Ask Claude later</>
                 )}

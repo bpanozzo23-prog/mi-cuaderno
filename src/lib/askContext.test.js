@@ -3,6 +3,7 @@ import {
   MAX_ATTACHMENT_CHARS,
   attachmentSnapshot,
   attachmentsBlock,
+  queueAttachment,
   reviewContextFor,
   scrubText,
   starterQuestions,
@@ -226,6 +227,12 @@ describe("review context", () => {
 });
 
 describe("scrubText", () => {
+  it("removes a whole link, even one with parentheses before its query", () => {
+    expect(scrubText("see https://example.com/file(1)?token=SECRET now")).toBe("see [link] now");
+    expect(scrubText("![pic](https://x.example/f(1)?t=SECRET) after")).toBe("pic after");
+    expect(scrubText("key user:abc(1)?x=SECRET end")).toBe("key end");
+  });
+
   it("leaves ordinary prose alone", () => {
     expect(scrubText("The user: said hola")).toBe("The user: said hola");
     expect(scrubText("año ≠ ano")).toBe("año ≠ ano");
@@ -244,5 +251,31 @@ describe("starterQuestions", () => {
     expect(starterQuestions([{ kind: "word", origin: "review", review: { typed: null } }]))
       .not.toContain("Why was my answer wrong?");
     expect(starterQuestions([{ kind: "word" }, { kind: "phrase" }])[0]).toBe("What's the difference between these?");
+  });
+});
+
+describe("queueAttachment", () => {
+  let n = 0;
+  const makeKey = () => `k${++n}`;
+  const empty = { attachments: [], arrival: 0 };
+
+  it("adds, refreshes a queued entry under a new key, and refuses a sixth", () => {
+    let { queue, result } = queueAttachment(empty, "user:a", { origin: "entry" }, makeKey);
+    expect(result).toBe("added");
+    const firstKey = queue.attachments[0].key;
+
+    ({ queue, result } = queueAttachment(queue, "user:a", { origin: "review", review: { shown: "spanish" } }, makeKey));
+    expect(result).toBe("updated");
+    expect(queue.attachments).toHaveLength(1);
+    expect(queue.attachments[0]).toMatchObject({ itemId: "user:a", origin: "review" });
+    // An answer in flight clears only the key it sent; the refreshed attachment survives that.
+    expect(queue.attachments[0].key).not.toBe(firstKey);
+    expect(queue.arrival).toBe(2);
+
+    for (const id of ["user:b", "user:c", "user:d", "user:e"]) ({ queue } = queueAttachment(queue, id, {}, makeKey));
+    const full = queueAttachment(queue, "user:f", {}, makeKey);
+    expect(full.result).toBe("full");
+    expect(full.queue).toBe(queue);
+    expect(queueAttachment(queue, "user:b", {}, makeKey).result).toBe("updated");
   });
 });

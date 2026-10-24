@@ -115,6 +115,12 @@ describe("attached entries", () => {
 });
 
 describe("candidateLinesForRequest", () => {
+  it("never sends a link or an internal key from a term or gloss", () => {
+    const ir = word("ir", "go https://private.example/export(1)?token=abc user:other-record");
+    const [line] = candidateLinesForRequest(findKeepCandidates([ir], "", { attachedIds: [ir.id] })).split("\n");
+    expect(line).toBe("c1 | ir | word | go [link]");
+  });
+
   it("sends term, form and a short gloss under the reference, never the item id", () => {
     const item = phrase("echar | de\nmenos", `to miss (someone) ${"very ".repeat(30)}`);
     const lines = candidateLinesForRequest(findKeepCandidates([item], "echar de menos"));
