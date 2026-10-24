@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, BookmarkPlus, Check, Loader2, Square, X } from "lucide-react";
 import { C, MONO, Button, Card } from "../theme.jsx";
+import MarkdownText from "./MarkdownText.jsx";
 import { getPref } from "../db/db.js";
 import { applyKeep } from "../db/items.js";
 import { AI_API_KEY_PREF } from "../lib/aiPrefs.js";
@@ -673,7 +674,8 @@ function AdditionBody({ addition }) {
     return (
       <>
         <span className="text-xs" style={{ color: C.mut }}>+ note, after your notes</span>
-        <span className="block whitespace-pre-wrap" style={{ color: C.ink }}>{addition.note}</span>
+        {/* As it will look once saved; never loads a remote image. */}
+        <MarkdownText remoteImages={false} compact className="block" style={{ color: C.ink }}>{addition.note}</MarkdownText>
       </>
     );
   }
