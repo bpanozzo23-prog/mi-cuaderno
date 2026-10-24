@@ -6,6 +6,24 @@ Documentation-only follow-ups covered by the [workflow exclusions](../../.github
 normally skip deployment. Keep the last verified published revision; the
 [agent guide](../AGENT-GUIDE.md#environment-and-checks) covers publication checks and filter limits.
 
+## 2026-10-24 — Ask + Keep (Pregunta)
+
+| Date | Published revision | Work | CI and checks |
+|---|---|---|---|
+| 2026-10-24 | `29101fe` | Ask + Keep: Pregunta tab, Keep proposals and review, shared AI request layer, batch writer, settings copy, Codex fixes and contract record (`8971557`–`29101fe`); also publishes the earlier local guided-lessons A1 preview commits | [40121045969](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/40121045969): lint, 2,141 tests / 169 files in 187.16 s, build and deployment passed; seven live files returned HTTP 200 and matched local build bytes |
+
+The owner-requested push advanced `main` from `f86c841` to `29101fe`; local HEAD matched
+`origin/main`. CI used Node 24.21.0 / npm 11.19.0. Live comparison covered index HTML, manifest,
+service-worker registration, service worker, entry/application JavaScript and CSS. The
+guided-lessons preview remains a separate development entry outside the production build.
+
+Local acceptance passed zero-warning lint, the complete serial suite (2,141/2,141 across 169 files
+in 476.23 s, no unhandled errors) and the production build. Every new safety test was shown to
+fail with its protection removed. Headless Chromium at 375×812 with fixtures and locally fulfilled
+Anthropic requests verified the flow; no real API call was made and no owner data was accessed.
+Codex reviewed the plan (six findings) and the diff (five findings); all were fixed. Personal
+schema v12 and backups are unchanged. Pending owner checks are listed in [CURRENT](../CURRENT.md).
+
 ## 2026-10-18 — Guarded Back/Forward navigation
 
 | Date | Published revision | Work | CI and checks |

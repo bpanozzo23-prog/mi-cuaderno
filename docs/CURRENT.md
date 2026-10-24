@@ -1,16 +1,17 @@
 # Current state
 
 The app is deployed; reassessment Steps 1–3, bounded lint/refresh work, documentation-only CI
-filtering, shared Node selection and guarded Journal/Back/Forward navigation ordering are published.
+filtering, shared Node selection, guarded Journal/Back/Forward navigation ordering and Ask + Keep
+(Pregunta) are published.
 This is the starting point for current status, not a release diary.
 
 ## Verified release
 
-- **Published revision:** `740311a`, 2026-10-18 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/39147520015)
-  passed lint, all **1,960 tests across 158 files** in 226.65 seconds, the production build and
+- **Published revision:** `29101fe`, 2026-10-24 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/40121045969)
+  passed lint, all **2,141 tests across 169 files** in 187.16 seconds, the production build and
   deployment. Seven live app files returned HTTP 200 and matched the verified local build byte
   for byte. Detailed publication evidence lives in [release history](history/RELEASES.md).
-- **Delivered work:** guarded Back/Forward and Journal tab navigation ordering, shared Node selection, documentation-only CI
+- **Delivered work:** Ask + Keep (Pregunta tab and Keep proposals), guarded Back/Forward and Journal tab navigation ordering, shared Node selection, documentation-only CI
   filtering, the bounded Step 5 lint setup and awaitable notebook refresh, on top of completed
   [Step 1 safety work](reviews/2026-10-17/STEP-1.md), [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md)
   and [Step 3 contract reset](reviews/2026-10-17/STEP-3.md). JavaScript/React Hooks lint runs locally
@@ -24,7 +25,7 @@ This is the starting point for current status, not a release diary.
 
 ## Work and boundaries
 
-- **Complete locally; not pushed:** [Ask + Keep](IMPROVEMENT-IDEAS.md#ai-ask-and-tidy-with-a-shared-review),
+- **Complete and published (`29101fe`, 2026-10-24):** [Ask + Keep](IMPROVEMENT-IDEAS.md#ai-ask-and-tidy-with-a-shared-review),
   the first slice of AI Ask and Tidy (approved 2026-10-24). A Pregunta tab, shown while AI is on,
   holds a transient conversation with Claude (`claude-opus-5-5`); Keep turns it, or a pasted
   conversation, into reviewed proposals (new words/phrases, tags, connections) saved only on
@@ -33,7 +34,7 @@ This is the starting point for current status, not a release diary.
   locally fulfilled requests verified the flow. Codex reviewed the plan and the diff; all
   findings are fixed. See the [decision record](../DECISIONS.md#ask--keep--ai-ask-and-tidy-first-slice-2026-10-24).
   **Pending owner checks:** first real request from the phone (fallback beta from a browser),
-  latency, tab order and answer quality. The deployed revision above is unchanged.
+  latency, tab order and answer quality.
 - **Complete and published:** [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md).
   Current status is consolidated, historical records preserved, active idea context kept together,
   and machine/browser recipes separated. Documentation and preservation checks pass.
@@ -64,7 +65,7 @@ This is the starting point for current status, not a release diary.
   clipped city label; Claude's review/follow-up confirms the grounded findings are resolved.
   See the [visual closeout](guided-lessons/chapters/1917/REVIEW.md#visual-pass-retry-and-closeout)
   and [design QA](../design-qa.md). The disposable browser profiles were removed and preview
-  stopped. Remote `main` was refreshed and remains `f86c841`; local commits are unpushed.
+  stopped. These commits were pushed with the Ask + Keep publication (`29101fe`, 2026-10-24).
   Owner visual/narrative/language/phone acceptance remains pending.
   On 2026-10-20 the owner accepted the [combined language-support direction](guided-lessons/SCOPE.md#agreed-language-support-direction--2026-10-20):
   brief English orientation, manageable Spanish, explicit focus expressions and nearby English
@@ -83,7 +84,7 @@ This is the starting point for current status, not a release diary.
   and [design QA](../design-qa.md). Temporary preview/browser resources were cleaned up.
   Owner visual/language acceptance remains pending; the formal reading session is deferred.
   Saved writing, notebook integration, schema changes and a production lesson release remain
-  outside A1. The deployed revision above is unchanged; the preview and feedback record are local only.
+  outside A1. The preview stays a separate development entry (`npm run dev:lessons`) outside the production build.
 - **Complete and published:** [Step 5](reviews/2026-10-17/REASSESSMENT.md#12-suggested-order-of-work)'s
   bounded lint setup (`6492682`, `872cb8f`, `2dfe9c2`). `npm run lint` checks active JavaScript and
   React Hooks with zero warnings; CI runs it before the serial tests and build. Intentional
