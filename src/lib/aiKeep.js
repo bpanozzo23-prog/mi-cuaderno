@@ -16,6 +16,7 @@ import {
   postMessages,
   responseCost,
   textFromContent,
+  neutralizeTags,
   usedFallback,
   withRefusalFallback,
 } from "./aiRequest.js";
@@ -115,8 +116,12 @@ At most one link per pair.
 
 "summary": one sentence describing what you are proposing.`;
 
-/** Keeps pasted or answered text from closing the tag that marks it as data. */
-const neutralised = (text) => String(text ?? "").replace(/<\/(conversation|turn|owner_tags|existing_entries)/gi, "<\\/$1");
+/**
+ * Keeps pasted or answered text from closing Keep's own tags. An attachment block inside a turn
+ * was already neutralised for every tag when it was built, so it stays readable here.
+ */
+const KEEP_TAGS = ["conversation", "turn", "owner_tags", "existing_entries"];
+const neutralised = (text) => neutralizeTags(text, KEEP_TAGS);
 
 /** The conversation as it will be sent: Pregunta's turns as displayed, or the pasted text. */
 export function conversationText(source) {

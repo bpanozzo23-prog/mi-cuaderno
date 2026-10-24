@@ -182,3 +182,17 @@ export function formatCost(dollars) {
   if (cents < 100) return `≈ ${Math.round(cents)}¢`;
   return `≈ $${dollars.toFixed(2)}`;
 }
+
+/** Every tag an AI request uses to mark data, so no piece of data can close another's block. */
+export const DATA_TAG_NAMES = Object.freeze(["conversation", "turn", "owner_tags", "existing_entries", "attached_entry"]);
+
+/**
+ * Keeps text from closing the tags that mark it as data: `</turn` becomes `<\/turn`. Only the
+ * named tags are touched, so a request can neutralise its own tags while leaving a nested block
+ * that was already made safe readable.
+ */
+export function neutralizeTags(text, names = DATA_TAG_NAMES) {
+  if (names.length === 0) return String(text ?? "");
+  const pattern = new RegExp(`<\\/(${names.join("|")})`, "gi");
+  return String(text ?? "").replace(pattern, "<\\/$1");
+}
