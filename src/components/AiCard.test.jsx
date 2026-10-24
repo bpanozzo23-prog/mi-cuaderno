@@ -36,7 +36,7 @@ describe("turning the feature on", () => {
     expect(screen.getByText(/Claude can answer Spanish questions in a Pregunta tab and review Diario entries/i)).toBeTruthy();
     expect(screen.getByText(/Nothing is sent until you tap, and only to Anthropic/i)).toBeTruthy();
     expect(screen.getByText(/Diario Feedback sends that entry's title and text/i)).toBeTruthy();
-    expect(screen.getByText(/Pregunta sends your questions and the conversation so far — nothing from your notebook/i)).toBeTruthy();
+    expect(screen.getByText(/From your notebook it sends\s+only entries you attach with Ask Claude/i)).toBeTruthy();
     expect(screen.getByText(/Keep also sends your tag names and a short list of entries/i)).toBeTruthy();
     expect(screen.getByText(/stored in this browser/i)).toBeTruthy();
     expect(await getPref(AI_ENABLED_PREF)).toBe(null);

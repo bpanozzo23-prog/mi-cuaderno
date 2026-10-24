@@ -117,8 +117,9 @@ export default function AiCard({ onChanged }) {
             entry.
           </li>
           <li>
-            Pregunta sends your questions and the conversation so far — nothing from your notebook.
-            The conversation is never saved; turning AI off closes it.
+            Pregunta sends your questions and the conversation so far. From your notebook it sends
+            only entries you attach with Ask Claude: their meanings, examples, notes and the names
+            of linked entries. The conversation is never saved; turning AI off closes it.
           </li>
           <li>
             Keep also sends your tag names and a short list of entries that seem related (term and
