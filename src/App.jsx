@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { BookOpen, BarChart3, Settings, Loader2, PenLine } from "lucide-react";
+import { BookOpen, BarChart3, Settings, Loader2, PenLine, MessageCircleQuestion } from "lucide-react";
 import { C, SERIF, MONO, Hi, Button } from "./theme.jsx";
 import Cuaderno from "./components/Cuaderno.jsx";
 import PageHub from "./components/PageHub.jsx";
@@ -9,6 +9,7 @@ import Repaso from "./components/Repaso.jsx";
 import Ajustes from "./components/Ajustes.jsx";
 import Wander from "./components/Wander.jsx";
 import CuidarHub from "./components/CuidarHub.jsx";
+import Pregunta from "./components/Pregunta.jsx";
 import { useNotebook } from "./useNotebook.js";
 import { isJournalEntry } from "./lib/journal.js";
 import { parseSharePayload } from "./lib/shareTarget.js";
@@ -16,6 +17,7 @@ import { isDictKey } from "./db/ref/entries.js";
 import { getPinnedPageIds, setPagePinned } from "./db/collections.js";
 import { getPinnedLexicalIds, setLexicalPinned } from "./db/items.js";
 import { getPref, setPref } from "./db/db.js";
+import { aiFeedbackReady } from "./lib/aiPrefs.js";
 import { FILTERS } from "./lib/filters.js";
 import { allTagsIn } from "./lib/tags.js";
 import { DEFAULT_SWATCH, TAG_COLORS_PREF, normalizeTagColors } from "./lib/tagColors.js";
@@ -33,6 +35,7 @@ import {
   sanitizeHydratedNavigation,
   sameRouteDestination,
   selectPrimaryTab,
+  withoutUnavailableTab,
 } from "./lib/navigation.js";
 
 export { sameRouteDestination } from "./lib/navigation.js";
@@ -43,6 +46,8 @@ const count = (n, singular) => `${n} ${n === 1 ? singular : `${singular}s`}`;
 const TABS = [
   { id: "cuaderno", label: "Cuaderno", icon: BookOpen },
   { id: "diario", label: "Diario", icon: PenLine },
+  // Shown only while AI is on with a key; see `aiReady` in App.
+  { id: "pregunta", label: "Pregunta", icon: MessageCircleQuestion },
   { id: "repaso", label: "Repaso", icon: BarChart3 },
   { id: "ajustes", label: "Ajustes", icon: Settings },
 ];
@@ -168,6 +173,10 @@ export default function App() {
   const [tagColors, setTagColors] = useState({});
   const [studySessionActive, setStudySessionActive] = useState(false);
   const [ajustesDuplicatesRequest, setAjustesDuplicatesRequest] = useState(null);
+  /* Whether Pregunta is reachable. `null` until the first read: a restored Pregunta route is left
+     alone while unknown, and only a resolved `false` moves the owner off it. */
+  const [aiReady, setAiReady] = useState(null);
+  const aiReadyRequestRef = useRef(0);
   const notebook = useNotebook();
   const committedItemsRef = useRef(notebook.items);
   useLayoutEffect(() => { committedItemsRef.current = notebook.items; }, [notebook.items]);
@@ -195,6 +204,22 @@ export default function App() {
     visitPayloadsRef.current.set(visitKey, payload);
     setTransientRevision((value) => value + 1);
   }, []);
+
+  /** Latest-wins, so an older read can never overwrite a newer settings change. */
+  const refreshAiReady = useCallback(async () => {
+    const request = ++aiReadyRequestRef.current;
+    let ready;
+    try {
+      ready = await aiFeedbackReady();
+    } catch {
+      ready = false;
+    }
+    if (request === aiReadyRequestRef.current) setAiReady(ready);
+  }, []);
+
+  useEffect(() => {
+    refreshAiReady();
+  }, [refreshAiReady]);
 
   const commitNavigation = useCallback((next, {
     replace = false,
@@ -478,6 +503,17 @@ export default function App() {
     commitNavigation(next, { replace: true, payload });
   }, [commitNavigation]);
 
+  /* Pregunta disappears when AI is turned off, a restore drops the key, or Back/Forward or a
+     restored snapshot lands on it while AI is off. Replace rather than push, so no dead history
+     entry is left behind. */
+  useEffect(() => {
+    if (aiReady !== false || navigation.activeTab !== "pregunta") return;
+    commitNavigation(withoutUnavailableTab(navigationRef.current, "pregunta"), {
+      replace: true,
+      captureScroll: false,
+    });
+  }, [aiReady, navigation, commitNavigation]);
+
   async function navigateBack(options = {}) {
     const request = ++navigationRequestRef.current;
     if (historyRecoveryRef.current) await historyRecoveryRef.current.promise;
@@ -488,6 +524,7 @@ export default function App() {
   }
 
   async function switchTab(nextTab) {
+    if (nextTab === "pregunta" && aiReady !== true) return;
     const request = ++navigationRequestRef.current;
     const currentRoute = activeRoute(navigationRef.current);
     if (historyRecoveryRef.current) await historyRecoveryRef.current.promise;
@@ -757,7 +794,7 @@ export default function App() {
                   Mi <Hi>cuaderno</Hi>
                 </div>
               </div>
-              {tab !== "diario" && !entryOpen && (
+              {tab !== "diario" && tab !== "pregunta" && !entryOpen && (
                 <div
                   aria-label="Notebook totals"
                   className="text-right text-xs leading-relaxed"
@@ -871,6 +908,13 @@ export default function App() {
                 />
               </section>
             )}
+            {visitedTabs.has("pregunta") && aiReady === true && (
+              /* Turning AI off unmounts this surface, which cancels any request in flight and
+                 discards the conversation — Ajustes says so. */
+              <section hidden={tab !== "pregunta"} aria-label="Pregunta surface">
+                <Pregunta notebook={notebook} onSelect={openItem} />
+              </section>
+            )}
             {visitedTabs.has("repaso") && (
               <section hidden={tab !== "repaso"} aria-label="Repaso surface">
                 <Repaso
@@ -890,7 +934,12 @@ export default function App() {
                   duplicatesRequest={ajustesDuplicatesRequest}
                   tagColors={tagColors}
                   onTagColorChange={changeTagColor}
-                  onDataReplaced={notebook.reload}
+                  onDataReplaced={() => {
+                    // A restore never carries the key, so Pregunta may no longer be reachable.
+                    refreshAiReady();
+                    return notebook.reload();
+                  }}
+                  onAiChanged={refreshAiReady}
                   onTagsChanged={notebook.reload}
                 />
               </section>
@@ -900,7 +949,7 @@ export default function App() {
 
         {!studySessionActive && <nav aria-label="Primary" className="fixed bottom-0 inset-x-0 z-30">
           <div className="max-w-md mx-auto flex border-t" style={{ background: C.card, borderColor: C.line }}>
-            {TABS.map((item) => {
+            {TABS.filter((item) => item.id !== "pregunta" || aiReady === true).map((item) => {
               const Icon = item.icon;
               const active = tab === item.id;
               return (

@@ -1,11 +1,13 @@
 export const NAVIGATION_STATE_KEY = "mcNavigation";
 export const NAVIGATION_VERSION = 1;
 
-export const PRIMARY_TABS = ["cuaderno", "diario", "repaso", "ajustes"];
+/** Pregunta exists in every snapshot; App decides whether it is reachable (AI on with a key). */
+export const PRIMARY_TABS = ["cuaderno", "diario", "pregunta", "repaso", "ajustes"];
 
 export const ROOT_SCREENS = Object.freeze({
   cuaderno: "landing",
   diario: "home",
+  pregunta: "home",
   repaso: "home",
   ajustes: "home",
 });
@@ -23,6 +25,7 @@ export const SCREENS_BY_TAB = Object.freeze({
     "cuidar",
   ]),
   diario: new Set(["home", "read", "edit"]),
+  pregunta: new Set(["home"]),
   repaso: new Set(["home", "stats", "gym", "gym-performance"]),
   ajustes: new Set(["home"]),
 });
@@ -47,6 +50,7 @@ export const BACK_LABELS = new Set([
   "Wander",
   "Cuidar mi cuaderno",
   "Diario",
+  "Pregunta",
   "Repaso",
   "Estadísticas",
   "Gym",
@@ -68,6 +72,7 @@ const ROUTE_LABELS = Object.freeze({
   "diario:home": "Diario",
   "diario:read": "Atrás",
   "diario:edit": "Atrás",
+  "pregunta:home": "Pregunta",
   "repaso:home": "Repaso",
   "repaso:stats": "Estadísticas",
   "repaso:gym": "Gym",
@@ -338,6 +343,15 @@ export function sanitizeHydratedNavigation(navigation, {
     stacks[tab] = cappedStack(safe);
   }
   return { ...navigation, stacks };
+}
+
+/**
+ * Moves off a tab that is not currently reachable (Pregunta while AI is off), keeping every
+ * stack. Returns the same object when nothing needs to change.
+ */
+export function withoutUnavailableTab(navigation, unavailableTab, fallbackTab = "cuaderno") {
+  if (navigation.activeTab !== unavailableTab) return navigation;
+  return { ...navigation, activeTab: fallbackTab };
 }
 
 /** Pure startup policy: a share wins once; otherwise a valid history snapshot is restored. */

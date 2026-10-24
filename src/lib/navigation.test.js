@@ -11,6 +11,7 @@ import {
   sanitizeHydratedNavigation,
   selectPrimaryTab,
   validateNavigation,
+  withoutUnavailableTab,
 } from "./navigation.js";
 
 function keys(prefix = "visit") {
@@ -142,5 +143,35 @@ describe("browser navigation snapshots", () => {
     expect(activeRoute(initialized.navigation)).toMatchObject({ tab: "cuaderno", screen: "landing" });
     expect(initialized.sharePayload.text).toBe("madrugar");
     expect(initialized.restored).toBe(false);
+  });
+});
+
+describe("Pregunta tab", () => {
+  it("is a valid destination with its own root", () => {
+    const navigation = createNavigation({ makeVisitKey: keys() });
+    expect(navigation.stacks.pregunta).toEqual([
+      expect.objectContaining({ tab: "pregunta", screen: "home", id: null }),
+    ]);
+    const selected = selectPrimaryTab(navigation, "pregunta", { visitKey: "visit:x" });
+    expect(selected.activeTab).toBe("pregunta");
+  });
+
+  it("gives an older snapshot without a Pregunta stack a fresh root", () => {
+    const navigation = createNavigation({ makeVisitKey: keys() });
+    const { pregunta: _omitted, ...olderStacks } = navigation.stacks;
+    const restored = validateNavigation({ ...navigation, stacks: olderStacks }, { makeVisitKey: keys("new") });
+    expect(restored.stacks.pregunta).toEqual([
+      expect.objectContaining({ tab: "pregunta", screen: "home", visitKey: "new:1" }),
+    ]);
+    expect(restored.stacks.cuaderno).toEqual(navigation.stacks.cuaderno);
+  });
+
+  it("moves off an unavailable tab and keeps every stack", () => {
+    const navigation = selectPrimaryTab(createNavigation({ makeVisitKey: keys() }), "pregunta");
+    const moved = withoutUnavailableTab(navigation, "pregunta");
+    expect(moved.activeTab).toBe("cuaderno");
+    expect(moved.stacks).toBe(navigation.stacks);
+    const elsewhere = createNavigation({ makeVisitKey: keys() });
+    expect(withoutUnavailableTab(elsewhere, "pregunta")).toBe(elsewhere);
   });
 });

@@ -29,6 +29,14 @@ function BodyImage({ src, alt }) {
   );
 }
 
+/**
+ * Text written by an AI never loads remote images: a URL in an answer could otherwise send a
+ * request — and anything encoded in it — somewhere other than Anthropic, unprompted.
+ */
+function InertImage({ alt }) {
+  return alt ? <span>[{alt}]</span> : null;
+}
+
 function BodyLink({ href, children }) {
   if (!isHttps(href)) return <>{children}</>;
   return (
@@ -89,8 +97,9 @@ export default function MarkdownText({
   calloutBlockquotes = false,
   explicitNoteCallouts = false,
   blankLines = false,
+  remoteImages = true,
 }) {
-  const components = { img: BodyImage, a: BodyLink, code: InlineCode };
+  const components = { img: remoteImages ? BodyImage : InertImage, a: BodyLink, code: InlineCode };
   if (calloutBlockquotes || explicitNoteCallouts) {
     components.blockquote = ({ children: quoteChildren, className, node }) => {
       const explicitType = explicitNoteCallouts ? explicitCalloutType(node) : null;

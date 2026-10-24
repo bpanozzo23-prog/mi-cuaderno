@@ -16,7 +16,7 @@ import { testApiKey } from "../lib/aiFeedback.js";
 
 const CONSOLE_URL = "https://console.anthropic.com/settings/limits";
 
-export default function AiCard() {
+export default function AiCard({ onChanged }) {
   const [enabled, setEnabled] = useState(false);
   const [hasKey, setHasKey] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -50,6 +50,7 @@ export default function AiCard() {
     setHasKey(true);
     setEnabled(true);
     setNote("AI feedback is on. Open a Diario entry and tap Feedback.");
+    onChanged?.();
   }
 
   async function turnOff() {
@@ -58,6 +59,7 @@ export default function AiCard() {
     await setPref(AI_ENABLED_PREF, false);
     setEnabled(false);
     setNote("AI feedback is off. The key is still on this device.");
+    onChanged?.();
   }
 
   async function removeKey() {
@@ -69,6 +71,7 @@ export default function AiCard() {
     setHasKey(false);
     setEnabled(false);
     setNote("Key removed from this device.");
+    onChanged?.();
   }
 
   async function checkKey() {

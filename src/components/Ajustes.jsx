@@ -193,6 +193,7 @@ export default function Ajustes({
   tagColors = {},
   onTagColorChange,
   onDataReplaced,
+  onAiChanged,
   onTagsChanged,
 }) {
   const [storage, setStorage] = useState(null);
@@ -489,7 +490,7 @@ export default function Ajustes({
 
       <DictionaryCard onInstalled={refreshDictionary} />
 
-      <AiCard />
+      <AiCard onChanged={onAiChanged} />
 
       <div ref={tagsSectionRef}>
         <SectionTitle>Tags</SectionTitle>
