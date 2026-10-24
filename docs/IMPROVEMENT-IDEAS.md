@@ -604,7 +604,7 @@ discovery tradeoff; a real-use waiting period is not required.
 ### AI Ask and Tidy with a shared review
 
 - **Date added:** 2026-10-24
-- **Status:** in progress — Ask + Keep (first slice) approved 2026-10-24; Tidy remains an idea
+- **Status:** in progress — Ask + Keep (first slice) implemented locally 2026-10-24 and awaiting owner checks; Tidy remains an idea
 - **Size (draft):** large overall. Ask with Keep is medium to large; Tidy is large; the shared
   review is part of whichever is built first
 - **Touches (draft):** AI request/disclosure (existing Phase 6 layer), a new proposal format and

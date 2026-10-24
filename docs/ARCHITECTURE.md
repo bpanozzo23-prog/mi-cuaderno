@@ -190,7 +190,7 @@ the general streak; keeping writing can count through its separate create event.
 
 ## Navigation and optional AI
 
-[App](../src/App.jsx) has four tabs. [Navigation](../src/lib/navigation.js) validates shallow
+[App](../src/App.jsx) has four tabs, plus Pregunta while AI is ready. [Navigation](../src/lib/navigation.js) validates shallow
 route stacks in `history.state`; visit-specific drafts, filters, study payloads and scroll
 positions remain transient. Editor and study handlers protect save and exit flows.
 A tab choice waiting for a Journal save/refresh applies only while it remains the newest tab
@@ -206,14 +206,40 @@ These navigation fields and visit mappings do not enter personal stores or backu
 [Share-target parsing](../src/lib/shareTarget.js) consumes shared URL/text parameters into an
 explicit flow. Opening a route or receiving shared text never itself authorizes a content save.
 
-[AI feedback](../src/lib/aiFeedback.js), [preferences](../src/lib/aiPrefs.js) and
-[Diario review](../src/lib/diarioReview.js) implement one explicit Diario request, not a general
-notebook assistant. The browser sends title and visible body text directly to Anthropic,
-excluding Apuntes and broader context; the local API key is transmitted as authentication.
+[App](../src/App.jsx) shows a fifth tab, Pregunta, only while AI is ready (enabled with a key).
+Readiness starts unknown and reads are latest-wins; a restored or popped visit on Pregunta is left
+alone while unknown, and when readiness resolves false (turned off, or a restore without the key)
+App replaces the visit with Cuaderno without adding a history entry. Navigation snapshots always
+carry a Pregunta stack, so older snapshots stay valid.
+
+[The request layer](../src/lib/aiRequest.js) is a raw `fetch` with the browser-access header,
+shared by every AI request: error mapping (including spend limits), cancel passthrough,
+stop-reason checks, text-only extraction and a transient cost estimate. [Diario
+review](../src/lib/diarioReview.js) uses it through [AI feedback](../src/lib/aiFeedback.js) with
+its own model and no refusal fallback. [Pregunta](../src/lib/aiAsk.js) and
+[Keep](../src/lib/aiKeep.js) use `claude-opus-5-5` with the server-side refusal fallback;
+thinking is never configured, and Pregunta echoes each earlier assistant content array unchanged
+so history stays append-only. [Preferences](../src/lib/aiPrefs.js) hold the flag and key.
+
 [The feedback component](../src/components/DiarioFeedback.jsx) persists the latest response and
 reviewed-text hash without a content edit/timestamp change. A hash mismatch marks stale feedback.
 A paid response can remain onscreen when saving fails; receiving a response does not prove it
 was persisted.
+
+[Pregunta's screen](../src/components/Pregunta.jsx) keeps its conversation in component state
+only; turning AI off unmounts it and aborts any request. AI-written Markdown renders without
+remote images, so an answer cannot trigger another network request. Keep finds related entries
+on the device with [keepCandidates](../src/lib/keepCandidates.js) (whole-token runs through
+`normalize`, ñ preserved), and sends them under opaque `c#` references, never `user:` IDs.
+[keepProposals](../src/lib/keepProposals.js) normalizes the structured response (drops
+unexportable examples, reuses owner tag spellings, adds `ia`, flags notebook and in-batch
+duplicates, keeps one link per pair with at least one new end) and turns ticks into writes.
+[`createItemsWithLinks`](../src/db/items.js) applies them in one items+events transaction:
+each item logs `create`; each connection is stored once on a new item through `linkItems`,
+reoriented when the suggestion started from an existing entry, with no `edit` event. A link whose
+existing end was deleted meanwhile is skipped and reported; any other failure rolls back the
+whole batch. [The review](../src/components/KeepReview.jsx) marks a batch committed before
+refreshing, so a failed refresh offers only Refresh, and opens new entries only after a load.
 
 ## Changing this architecture
 

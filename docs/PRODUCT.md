@@ -75,18 +75,33 @@ does not imply permission to add feature-usage tracking.
 
 AI is off by default and requires explicit enablement, disclosure and the owner's API key.
 Before enabling it, the owner must set a hard monthly spending cap in the provider console and
-acknowledge doing so; the app does not enforce that cap itself. Each request is deliberate.
-The current feature reviews one Diario entry using its title and visible body text, excluding
-Apuntes and the rest of the notebook.
-The browser sends that text directly to the provider and sends the key for authentication.
+acknowledge doing so; the app does not enforce that cap itself. Each request is deliberate, and
+the browser sends it directly to the provider with the key for authentication. The key is
+excluded from backups.
 
-The latest feedback can be saved with the entry, without rewriting the owner's text or marking
-it as a content edit. Changed writing makes old feedback visibly stale. If saving fails, the
-response remains onscreen for that visit, but the current interface does not identify it as
-unsaved. The key is excluded from backups.
+**Diario review.** Claude reviews one Diario entry using its title and visible body text,
+excluding Apuntes and the rest of the notebook. The latest feedback can be saved with the entry,
+without rewriting the owner's text or marking it as a content edit. Changed writing makes old
+feedback visibly stale. If saving fails, the response remains onscreen for that visit, but the
+current interface does not identify it as unsaved.
 
-A general notebook assistant and AI-proposed notebook entries are future possibilities, not
-current features. Any future saving of proposed content must remain explicit.
+**Pregunta.** While AI is on, a Pregunta tab holds a conversation with Claude about Spanish:
+how to say something, other ways to say it, equivalents of English expressions, what a heard
+phrase means. Each Ask sends the question and the conversation so far, and nothing from the
+notebook. The conversation lives only in memory: it survives switching tabs, and is discarded by
+New question, a reload, or turning AI off. It is never stored or backed up.
+
+**Keep.** Keep turns a Pregunta conversation, or a conversation the owner pastes from another
+app, into proposed notebook entries. Before sending, it names exactly what leaves the device:
+the conversation, the owner's tag names, and up to 40 related words and phrases found on the
+device (term and first meaning only). The owner reviews each proposal (new words and phrases
+with a meaning, usage, examples and tags; connections to existing or other new entries) and
+saves only what they tick, with one explicit Apply. Keep creates; it never edits existing
+entries. Kept entries carry an `ia` tag marking them as AI-proposed, which the owner may untick
+per entry or remove later like any tag; once saved they are ordinary personal entries.
+
+A notebook-wide assistant that reorganizes or edits existing content (Tidy) remains a future
+possibility. Any future saving of proposed content must remain explicit.
 
 ## Data safety
 

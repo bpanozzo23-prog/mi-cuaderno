@@ -24,6 +24,16 @@ This is the starting point for current status, not a release diary.
 
 ## Work and boundaries
 
+- **Complete locally; not pushed:** [Ask + Keep](IMPROVEMENT-IDEAS.md#ai-ask-and-tidy-with-a-shared-review),
+  the first slice of AI Ask and Tidy (approved 2026-10-24). A Pregunta tab, shown while AI is on,
+  holds a transient conversation with Claude (`claude-opus-5-5`); Keep turns it, or a pasted
+  conversation, into reviewed proposals (new words/phrases, tags, connections) saved only on
+  Apply, tagged `ia`. No schema change. Zero-warning lint, **2,141 tests across 169 files**
+  serially in 476.23s and the production build pass; Chromium at 375×812 with fixtures and
+  locally fulfilled requests verified the flow. Codex reviewed the plan and the diff; all
+  findings are fixed. See the [decision record](../DECISIONS.md#ask--keep--ai-ask-and-tidy-first-slice-2026-10-24).
+  **Pending owner checks:** first real request from the phone (fallback beta from a browser),
+  latency, tab order and answer quality. The deployed revision above is unchanged.
 - **Complete and published:** [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md).
   Current status is consolidated, historical records preserved, active idea context kept together,
   and machine/browser recipes separated. Documentation and preservation checks pass.
