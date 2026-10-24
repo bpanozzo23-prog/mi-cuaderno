@@ -604,7 +604,7 @@ discovery tradeoff; a real-use waiting period is not required.
 ### AI Ask and Tidy with a shared review
 
 - **Date added:** 2026-10-24
-- **Status:** in progress — Ask + Keep (first slice) published 2026-10-24 (`29101fe`) and awaiting owner checks; "Ask about this" attachments (follow-on step 1, below) published 2026-10-24 (`3f13cf1`) and awaiting owner checks; Tidy remains an idea
+- **Status:** in progress — Ask + Keep (first slice) published 2026-10-24 (`29101fe`) and awaiting owner checks; "Ask about this" attachments (follow-on step 1, below) published 2026-10-24 (`3f13cf1`) and awaiting owner checks; "Keep adds to existing entries" (follow-on step 2) approved 2026-10-24 and in progress; Tidy remains an idea
 - **Size (draft):** large overall. Ask with Keep is medium to large; Tidy is large; the shared
   review is part of whichever is built first
 - **Touches (draft):** AI request/disclosure (existing Phase 6 layer), a new proposal format and
@@ -718,16 +718,45 @@ question instead of the owner retyping it. Agreed order:
    (words, phrases, pages) and on a revealed Repaso card: "Ask later" queues the card without
    leaving the session, "Ask now" ends the session first (owner chose both). One-tap starter
    questions, linked entry names included, and Keep treats attached entries as link targets.
-2. **"Add to an existing entry" proposals** for Keep — the same capability Tidy needs, built once.
+2. **"Add to an existing entry" proposals (OWNER-APPROVED 2026-10-24; plan below)** for Keep — the same capability Tidy needs, built once.
 3. **Several entries or a collection as context**, which by then overlaps with Tidy.
    Several entries already work one at a time (up to five chips); this step is attaching a whole
    collection, tag or selection in one tap, which needs compact per-entry text and a higher cap.
    Bring it forward as a small "Ask about this collection" if one-at-a-time attaching proves
    tedious.
 
-#### Step 2 notes: Keep adds to existing entries (discussion 2026-10-24, not yet planned)
+#### Step 2 plan: Keep adds to existing entries (OWNER-APPROVED 2026-10-24)
 
-Not approved for building; captured so a new session can plan it. The agent suggested the owner
+**Owner decisions.** No marker on additions: ticking one adopts it as the owner's content (the
+ordinary `edit` event records neither AI origin nor the added text); new entries still get `ia`.
+All four kinds in the first version: examples, new meanings, a note paragraph, tags + links
+(including links between two existing entries). Plan now and build now. Codex reviewed the draft
+design read-only; its eight findings are folded in.
+
+**Rules.**
+1. Content additions only on attached words and phrases, and only when the attachment was not
+   cut short; truncated attachments may still get tags and links. Pages, pasted conversations
+   and related `c#` lines get none.
+2. Append-only: an example on a named meaning or in My examples; a new meaning (fresh ID) after
+   the others; a paragraph at the end of the General note; tags added. Nothing rewritten,
+   reordered or deleted.
+3. Links between two existing entries are allowed when at least one is attached, stored once on
+   the `from` end, no event; a pair already connected either way is skipped and reported.
+4. Stale guard: when Keep opens it freezes, from one reading, the text sent, the meaning-number
+   → meaning-ID map and an exact canonical-JSON content fingerprint (term, form, pos, meanings
+   with IDs, My examples, notes, note sections, tags; links excluded). Apply compares inside the
+   transaction and skips a changed entry with all its additions; the review greys it out live.
+
+**Pieces.** A `<attached_entries>` block in Keep's request with `c#`/`m#` refs (new
+`keepAttached.js`, reusing `askContext.js`); an `updates` array in `KEEP_SCHEMA` (string meaning
+refs); normaliser rules (unknown meaning refs dropped, never redirected; exact duplicates with
+accents kept dropped, accent-only matches flagged unticked; repeated notes dropped; no `ia`);
+one-transaction `applyKeep` writer (one `edit` event per changed entry, empty patches skipped,
+links log none); "Changes to your entries" cards with a tick per addition, Apply for update-only
+or link-only batches, and partial outcomes that leave the conversation unkept when an addition was
+skipped as changed. No schema change.
+
+*Discussion notes that led to the plan (2026-10-24):* The agent suggested the owner
 use Ask, Keep and attachments for a few days first, so the kinds of change seen in real use
 (mostly examples? meanings? notes?) decide what this step supports first.
 
