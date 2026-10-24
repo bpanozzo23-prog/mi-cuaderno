@@ -87,14 +87,21 @@ current interface does not identify it as unsaved.
 
 **Pregunta.** While AI is on, a Pregunta tab holds a conversation with Claude about Spanish:
 how to say something, other ways to say it, equivalents of English expressions, what a heard
-phrase means. Each Ask sends the question and the conversation so far, and nothing from the
-notebook. The conversation lives only in memory: it survives switching tabs, and is discarded by
-New question, a reload, or turning AI off. It is never stored or backed up.
+phrase means. Each Ask sends the question and the conversation so far. Nothing from the notebook
+is sent unless the owner attaches it: **Ask Claude** on a word, phrase or page, or on a revealed
+Repaso card, attaches that entry (up to five per question) as text — its meanings, examples,
+notes and page prose, the names of linked entries and, for a card, what it showed and what was
+answered — never IDs, tags, links or images. Pregunta shows each attachment, the exact text to be
+sent and one-tap starter questions before anything leaves the device, and the standing disclosure
+says notebook entries are included. In Repaso, "Ask Claude later" queues the card without leaving
+the session; "Ask now" ends the session first. An attachment never discards an unkept
+conversation. The conversation lives only in memory: it survives switching tabs, and is discarded
+by New question, a reload, or turning AI off. It is never stored or backed up.
 
 **Keep.** Keep turns a Pregunta conversation, or a conversation the owner pastes from another
 app, into proposed notebook entries. Before sending, it names exactly what leaves the device:
 the conversation, the owner's tag names, and up to 40 related words and phrases found on the
-device (term and first meaning only). The owner reviews each proposal (new words and phrases
+device (term and first meaning only), led by any attached to the conversation. The owner reviews each proposal (new words and phrases
 with a meaning, usage, examples and tags; connections to existing or other new entries) and
 saves only what they tick, with one explicit Apply. Keep creates; it never edits existing
 entries. Kept entries carry an `ia` tag marking them as AI-proposed, which the owner may untick

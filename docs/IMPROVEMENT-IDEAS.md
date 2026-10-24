@@ -604,7 +604,7 @@ discovery tradeoff; a real-use waiting period is not required.
 ### AI Ask and Tidy with a shared review
 
 - **Date added:** 2026-10-24
-- **Status:** in progress — Ask + Keep (first slice) published 2026-10-24 (`29101fe`) and awaiting owner checks; "Ask about this" attachments (follow-on step 1, below) in progress; Tidy remains an idea
+- **Status:** in progress — Ask + Keep (first slice) published 2026-10-24 (`29101fe`) and awaiting owner checks; "Ask about this" attachments (follow-on step 1, below) complete locally, not yet published; Tidy remains an idea
 - **Size (draft):** large overall. Ask with Keep is medium to large; Tidy is large; the shared
   review is part of whichever is built first
 - **Touches (draft):** AI request/disclosure (existing Phase 6 layer), a new proposal format and
@@ -713,7 +713,7 @@ Separate entry points: Ask somewhere quick to reach; Tidy alongside notebook vie
 Most questions start from something on screen, so a tap should attach it to the next Pregunta
 question instead of the owner retyping it. Agreed order:
 
-1. **Attachments (OWNER-APPROVED, in progress).** A list of attached entries (up to 5), sent as
+1. **Attachments (OWNER-APPROVED, complete locally 2026-10-24, not yet published).** A list of attached entries (up to 5), sent as
    text snapshots while the app keeps which entry each came from. Buttons on the entry screen
    (words, phrases, pages) and on a revealed Repaso card: "Ask later" queues the card without
    leaving the session, "Ask now" ends the session first (owner chose both). One-tap starter

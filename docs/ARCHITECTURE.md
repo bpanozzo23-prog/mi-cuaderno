@@ -227,7 +227,14 @@ A paid response can remain onscreen when saving fails; receiving a response does
 was persisted.
 
 [Pregunta's screen](../src/components/Pregunta.jsx) keeps its conversation in component state
-only; turning AI off unmounts it and aborts any request. AI-written Markdown renders without
+only; turning AI off unmounts it and aborts any request. "Ask about this" attachments wait in a
+small in-memory queue in App (Pregunta may not be mounted, and Repaso's "Ask later" must not
+navigate out of a study session); an `arrival` counter tells Pregunta to act once per addition,
+and only while idle (no answer in flight, no Keep review open). At Ask, [askContext](../src/lib/askContext.js)
+builds each snapshot from the current notebook by allowlist, scrubbing links, image syntax and
+internal keys from the owner's own text and capping it at 6,000 characters; the sent message is
+frozen on the turn as `userContent` and echoed byte for byte, and Keep serializes those frozen
+messages, never the device-side item IDs. Attached words and phrases lead Keep's candidates. AI-written Markdown renders without
 remote images, so an answer cannot trigger another network request. Keep finds related entries
 on the device with [keepCandidates](../src/lib/keepCandidates.js) (whole-token runs through
 `normalize`, ñ preserved), and sends them under opaque `c#` references, never `user:` IDs.

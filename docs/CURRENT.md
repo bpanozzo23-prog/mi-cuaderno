@@ -25,6 +25,15 @@ This is the starting point for current status, not a release diary.
 
 ## Work and boundaries
 
+- **Complete, not yet published (2026-10-24):** "Ask about this" — the follow-on to Ask + Keep
+  (approved 2026-10-24). "Ask Claude" on a word, phrase or page, or on a revealed Repaso card
+  ("Ask later" keeps the session; "Ask now" ends it), attaches that entry to the next Pregunta
+  question as an allowlisted, scrubbed text snapshot (up to five), with a preview, starter
+  questions and a history-aware disclosure; Keep lists attached entries first. No schema change.
+  Zero-warning lint, **2,195 tests across 171 files** serially in 462.46s and the production build
+  pass; Chromium at 375×812 verified the flows. Codex reviewed the plan and the diff; all findings
+  are fixed. See the [decision record](../DECISIONS.md#ask-about-this--attaching-entries-to-pregunta-2026-10-24).
+  **Pending owner checks:** starter usefulness, answer quality with attachments, Repaso flow feel.
 - **Complete and published (`29101fe`, 2026-10-24):** [Ask + Keep](IMPROVEMENT-IDEAS.md#ai-ask-and-tidy-with-a-shared-review),
   the first slice of AI Ask and Tidy (approved 2026-10-24). A Pregunta tab, shown while AI is on,
   holds a transient conversation with Claude (`claude-opus-5-5`); Keep turns it, or a pasted
