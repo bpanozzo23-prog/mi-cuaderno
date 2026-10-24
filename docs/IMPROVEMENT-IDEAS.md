@@ -720,6 +720,45 @@ question instead of the owner retyping it. Agreed order:
    questions, linked entry names included, and Keep treats attached entries as link targets.
 2. **"Add to an existing entry" proposals** for Keep — the same capability Tidy needs, built once.
 3. **Several entries or a collection as context**, which by then overlaps with Tidy.
+   Several entries already work one at a time (up to five chips); this step is attaching a whole
+   collection, tag or selection in one tap, which needs compact per-entry text and a higher cap.
+   Bring it forward as a small "Ask about this collection" if one-at-a-time attaching proves
+   tedious.
+
+#### Step 2 notes: Keep adds to existing entries (discussion 2026-10-24, not yet planned)
+
+Not approved for building; captured so a new session can plan it. The agent suggested the owner
+use Ask, Keep and attachments for a few days first, so the kinds of change seen in real use
+(mostly examples? meanings? notes?) decide what this step supports first.
+
+- **Why next:** asking about an attached entry often ends with "keep this in *that* entry", but
+  Keep is create-only. Tidy needs the same ability, so it is built once for both.
+- **Kinds of change (candidates):** add an example (to a meaning or to My examples), add a
+  meaning, append to notes, add tags (reusing existing spellings), add links, possibly between
+  two existing entries (Keep forbids that today). Out of scope: rewriting or deleting the owner's
+  text, tag merges (Tidy, no undo) and page creation.
+- **Which entries can be changed:** Claude only sees an entry in full when it is attached; other
+  related entries reach Keep as `c# | term | form | first gloss`. Proposals that edit an entry
+  Claude has not seen in full risk duplicating or contradicting what is already there, so the
+  likely rule is: edits only to attached entries; links and tags may still reach the others.
+- **Stale-change guard:** Apply must refuse a change to an entry edited since Claude saw it
+  (the shared-core rule above). The snapshot is built at send time, so record each attached
+  entry's `updatedAt` (or a content hash, as Diario feedback does for staleness) with the turn,
+  and skip and report any change whose entry has moved on rather than overwrite.
+- **History:** changes go through the existing writers, so each logs an `edit` event as a manual
+  edit would (`updateItem` in `src/db/items.js` logs one by default; links log none — a
+  tripwire). One transaction per Apply with rollback, like `createItemsWithLinks`. Adding a
+  meaning must respect meaning-specific connection protection in `updateItem`.
+- **Review screen:** extend Keep's review (`KeepReview.jsx`, `keepProposals.js`) with per-entry
+  change cards showing exactly what is added ("+ example: …"), ticked individually, with the
+  same rule that nothing saves without Apply.
+- **Open question — provenance inside an owner-written entry:** the `ia` tag marks whole entries
+  Keep created; tagging an owner's entry `ia` because one example was added would mislabel it.
+  Options: no mark beyond the event history; a visible marker per added example or meaning (a
+  schema change, so it needs a safety plan); or a short "(IA)" text convention. See
+  [Personal-content provenance](#personal-content-provenance). This is the main design decision.
+- **Sizing (agent estimate):** medium, more delicate than Ask + Keep and Ask about this because
+  it changes existing data. Codex review of plan and diff, as before.
 
 #### Risks, dependencies and related ideas
 
