@@ -5,6 +5,7 @@ import { isDictKey, isUserKey, newUserKey } from "../lib/ids.js";
 import { nowIso } from "../lib/dates.js";
 import { requestPersistence } from "../lib/persistence.js";
 import { cleanMeanings, newMeaning } from "../lib/meanings.js";
+import { contentFingerprint } from "../lib/contentFingerprint.js";
 import { personalPosForEntryPos } from "../lib/partOfSpeech.js";
 import { validateCollectionGroups } from "../lib/collections.js";
 import { isPageProfile, PAGE_PROFILES } from "../lib/pageProfiles.js";
@@ -245,46 +246,120 @@ export async function createAndLinkItem(sourceId, item, relationship = undefined
 }
 
 /**
- * Several new items and their connections as one save (Keep's Apply). Each item logs its
- * `create` event; each connection is stored once, on `ownerId`, without an `edit` event. Every
- * link must have at least one end among the new items, so no existing entry's content changes.
- *
- * A connection whose existing end has been deleted since the proposal was made is skipped and
- * reported rather than failing the whole save: it cannot corrupt anything, and the owner should
- * not lose ticked entries over an unrelated deletion. Any other failure rolls everything back.
+ * Several new items and their connections as one save. Each item logs its `create` event; each
+ * connection is stored once, on `ownerId`, without an `edit` event. Every link must have at least
+ * one end among the new items, so no existing entry's content changes. See `applyKeep`.
  *
  * Resolves with { created: [id], linked: [link], skipped: [{ ...link, reason }] }.
  */
 export async function createItemsWithLinks({ items = [], links = [] } = {}) {
+  const { created, linked, skipped } = await applyKeep({ items, links });
+  return { created, linked, skipped };
+}
+
+/**
+ * Adds ticked additions to one existing word or phrase, inside `applyKeep`'s transaction.
+ * Returns null when saved (or when nothing new remained), otherwise why it was skipped.
+ *
+ * The fingerprint frozen with what Claude saw must still match: an entry edited since is never
+ * merged into. Additions are appended to the fresh record — examples to the meanings they name,
+ * new meanings after the others (fresh IDs), a paragraph after the General note, tags after the
+ * existing ones — so nothing the owner wrote is rewritten. One `updateItem`, so one edit event,
+ * and its meaning-connection protection still runs.
+ */
+async function addToItem(update) {
+  const item = await db.items.get(update.itemId);
+  if (!item || item.type !== "lexical") return "entry_deleted";
+  if (contentFingerprint(item) !== update.fingerprint) return "entry_changed";
+
+  const byMeaning = update.examplesByMeaningId || {};
+  const meaningIds = new Set((item.meanings || []).map((meaning) => meaning.id));
+  // Unreachable while the fingerprint matches, but an example must never land on another meaning.
+  if (Object.keys(byMeaning).some((id) => !meaningIds.has(id))) return "entry_changed";
+
+  const patch = {};
+  const addedMeanings = update.meanings || [];
+  if (Object.keys(byMeaning).length > 0 || addedMeanings.length > 0) {
+    patch.meanings = [
+      ...(item.meanings || []).map((meaning) => (byMeaning[meaning.id]
+        ? { ...meaning, examples: [...(meaning.examples || []), ...byMeaning[meaning.id]] }
+        : meaning)),
+      ...addedMeanings.map((meaning) => newMeaning(meaning)),
+    ];
+  }
+  if ((update.myExamples || []).length > 0) patch.myExamples = [...(item.myExamples || []), ...update.myExamples];
+  const note = String(update.note || "").trim();
+  if (note) {
+    const current = String(item.notes || "").replace(/\s+$/, "");
+    patch.notes = current ? `${current}\n\n${note}` : note;
+  }
+  const tags = (update.tags || []).filter((tag) => !(item.tags || []).includes(tag));
+  if (tags.length > 0) patch.tags = [...(item.tags || []), ...tags];
+
+  // Nothing new: no write, so no edit event and no recency change.
+  if (Object.keys(patch).length === 0) return null;
+  await updateItem(item.id, patch);
+  return null;
+}
+
+const connected = (a, b) => (a?.linkedKeys || []).includes(b?.id) || (b?.linkedKeys || []).includes(a?.id);
+
+/**
+ * Keep's Apply as one save: additions to attached entries, new items and connections. Each
+ * changed entry logs one `edit` event, each new item its `create` event, and connections none.
+ *
+ * Every link must touch a new item or an entry in `attachedIds` (Claude saw those in full). It is
+ * stored once, on `ownerId`. An existing end that has been deleted, or a pair already connected
+ * in either direction, is skipped and reported — never counted as saved, since `linkItems`
+ * quietly keeps an earlier edge. An entry whose content changed since Keep froze it is skipped
+ * with all its additions. Anything else rolls the whole save back.
+ *
+ * Resolves with { created: [id], updated: [id], linked: [link], skipped: [{ ...link, reason }],
+ * skippedUpdates: [{ itemId, reason }] }.
+ */
+export async function applyKeep({ items = [], links = [], updates = [], attachedIds = [] } = {}) {
   const newIds = new Set(items.map((item) => item.id));
+  const attached = new Set(attachedIds);
   for (const link of links) {
-    if (!newIds.has(link.ownerId) && !newIds.has(link.targetId)) {
-      throw new Error("Each connection in a batch must involve a new item.");
+    const touches = (id) => newIds.has(id) || attached.has(id);
+    if (!touches(link.ownerId) && !touches(link.targetId)) {
+      throw new Error("Each connection in a batch must involve a new item or an attached entry.");
     }
+  }
+  for (const update of updates) {
+    if (!attached.has(update.itemId)) throw new Error("Additions can only go to attached entries.");
   }
   let outcome;
   await db.transaction("rw", db.items, db.events, async () => {
-    const created = [];
-    const linked = [];
-    const skipped = [];
-    const usable = [];
-    for (const link of links) {
-      const existingEnds = [link.ownerId, link.targetId].filter((id) => !newIds.has(id));
-      const ends = await Promise.all(existingEnds.map((id) => db.items.get(id)));
-      if (ends.every((item) => item?.type === "lexical")) usable.push(link);
-      else skipped.push({ ...link, reason: "target_deleted" });
+    const updated = [];
+    const skippedUpdates = [];
+    for (const update of updates) {
+      const reason = await addToItem(update);
+      if (reason) skippedUpdates.push({ itemId: update.itemId, reason });
+      else updated.push(update.itemId);
     }
+    const created = [];
     for (const item of items) {
       await insertItemWithEvent(item);
       created.push(item.id);
     }
-    for (const link of usable) {
+    const linked = [];
+    const skipped = [];
+    for (const link of links) {
+      const [owner, target] = await Promise.all([db.items.get(link.ownerId), db.items.get(link.targetId)]);
+      if (owner?.type !== "lexical" || target?.type !== "lexical") {
+        skipped.push({ ...link, reason: "target_deleted" });
+        continue;
+      }
+      if (connected(owner, target)) {
+        skipped.push({ ...link, reason: "already_connected" });
+        continue;
+      }
       const saved = await linkItems(link.ownerId, link.targetId, link.relationship);
-      // linkItems quietly keeps an earlier edge between the same pair; report that honestly.
       if ((saved?.linkedKeys || []).includes(link.targetId)) linked.push(link);
       else skipped.push({ ...link, reason: "already_connected" });
     }
-    outcome = { created, linked, skipped };
+    outcome = { created, updated, linked, skipped, skippedUpdates };
   });
   requestPersistenceAfterCommit();
   return outcome;

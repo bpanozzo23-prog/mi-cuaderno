@@ -11,25 +11,9 @@
  */
 
 import { capped, lexicalLines, shownMeanings } from "./askContext.js";
+import { contentFingerprint } from "./contentFingerprint.js";
 
-/** The fields an addition could conflict with. Links are excluded: linking changes no content. */
-const CONTENT_FIELDS = ["term", "form", "pos", "meanings", "myExamples", "notes", "noteSections", "tags"];
-
-function canonical(value) {
-  if (Array.isArray(value)) return value.map(canonical);
-  if (value && typeof value === "object") {
-    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonical(value[key])]));
-  }
-  return value === undefined ? null : value;
-}
-
-/**
- * An exact, order-preserving JSON of the entry's content. Compared as a string — not hashed —
- * so two different contents can never look the same.
- */
-export function contentFingerprint(item) {
-  return JSON.stringify(CONTENT_FIELDS.map((field) => [field, canonical(item?.[field])]));
-}
+export { contentFingerprint };
 
 /**
  * One frozen snapshot per attached word or phrase, using the `c#` refs Keep's candidates gave
