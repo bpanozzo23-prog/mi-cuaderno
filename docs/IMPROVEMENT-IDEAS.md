@@ -45,6 +45,7 @@ and inspect the implementation.
 | [Evidence-backed synonym/antonym proposals](#evidence-backed-synonymantonym-proposals) | idea | Not set |
 | [Evidence-backed Page-to-Page proposals](#evidence-backed-page-to-page-proposals) | idea | Not set |
 | [Optional AI connection review](#optional-ai-connection-review) | idea | Not set |
+| [AI Ask and Tidy with a shared review](#ai-ask-and-tidy-with-a-shared-review) | in progress | want soon |
 | [Conjugation catalog extensions](#conjugation-catalog-extensions) | idea | Not set |
 | [Monolingual recall (Spanish usage cues)](#monolingual-recall-spanish-usage-cues) | idea | Not set |
 | [Retired-word spot checks](#retired-word-spot-checks) | idea | Not set |
@@ -597,6 +598,131 @@ stored-once writer and explicit approval pattern.
 - Compare the proposed experience with local derivations to understand the privacy, cost and
 discovery tradeoff; a real-use waiting period is not required.
 - A provenance decision before any AI-authored relationship note can become owner content.
+
+---
+
+### AI Ask and Tidy with a shared review
+
+- **Date added:** 2026-10-24
+- **Status:** in progress — Ask + Keep (first slice) approved 2026-10-24; Tidy remains an idea
+- **Size (draft):** large overall. Ask with Keep is medium to large; Tidy is large; the shared
+  review is part of whichever is built first
+- **Touches (draft):** AI request/disclosure (existing Phase 6 layer), a new proposal format and
+  review/apply screen, existing writers (item create, meanings, stored-once links, Phase 20 tag
+  operations, page create); a last-tidy preference
+- **Origin:** Owner brainstorm with Claude Code, 2026-10-24
+- **Owner interest:** Discussion only; no build decision. The owner agreed with the two-feature
+  shape, the Ask-first order and the leads approach below.
+- **Potential data impact:** Create-only proposals use existing storage. A proposals-file import
+  is a new input path that needs its own design. No inbox store and no chat-history store are proposed.
+
+#### The problem (owner's words, summarised)
+
+- Questions such as "how do you say this phrase?", "another way to say this sentence?",
+  "a Spanish equivalent of this English idiom?" and "explain what I just heard" come up
+  often. The bundled dictionary answers single words but not phrases or rewordings.
+- Asking Gemini works, but after a few turns the owner must decide what is worth keeping,
+  extract only that text and format it as a note. "While possible, most of the time I'm not going
+  to do that." Sharing the whole conversation into the app brings too much text and still needs
+  formatting. A fixed-format outside project or an inbox of outputs still leaves the job of
+  turning them into organised notes.
+- Separately, the owner would like an LLM to look across the notebook and suggest
+  connections, evaluate tag use, suggest topic pages from saved words and phrases, and similar.
+
+The barrier is turning answers into organised notes, not getting an answer. The useful
+AI job is that turning step.
+
+#### Shape: two features over one shared core
+
+| | Ask | Tidy |
+|---|---|---|
+| When | Frequent, in the moment, on the phone | Occasional, deliberate |
+| Scope | One conversation | Much or all of the notebook |
+| Proposes | Mostly new entries | Mostly changes to existing ones |
+| Needs | Speed | Depth and back-and-forth |
+
+**Ask.** The owner types a question, follows up a few times, then taps **Keep**. The AI reads the
+whole thread and proposes notebook-ready entries. Starting fresh for each question was preferred
+over one endless session: the questions are mostly unrelated, a long history adds cost and noise,
+and the notebook itself serves as memory. A small standing profile (level, dialect preference)
+gives continuity without stored history. Keep should also accept a **pasted or shared outside
+conversation**, such as Gemini, so the owner keeps a second model's view without extracting
+text by hand.
+
+**Tidy.** A deliberate pass that proposes connections between differently worded items with
+related meanings, a cleaner tag scheme and topic pages that group saved phrases. Plain counting
+work, such as tag usage and single-use tags, needs no AI. Existing local proposals already
+cover containment and some Similar-meaning matches.
+
+**Shared core, built once:**
+
+1. **A proposal format**: create an item, add a meaning or example, link two items with an
+   existing relationship type (Similar meaning, Variant, Contrast, Often confused…), add or
+   merge a tag, create a page or add to one. This is the expensive-to-redo decision; design it
+   for both features from the start.
+2. **One review screen**: a tick per proposal, then Apply through the existing writers. Apply
+   refuses a change to anything edited since the AI saw it. Nothing saves without the owner's tap.
+3. **The existing request layer**: owner key, disclosure before send, cost.
+4. **Local matching**: "you already have this" and link targets are found on the device, so
+   the notebook need not be sent for Ask.
+
+Ask and Tidy meet in the middle. Keep's best proposals often include small organising steps
+for the new item, such as a link to an existing phrase or the tag used on similar items.
+
+#### How proposals can reach the review screen
+
+| Route | Description | Notes |
+|---|---|---|
+| In-app | Browser calls Claude with the owner's key, as the Diario review does | Required for Ask; also usable for Tidy |
+| File round trip | Export → Claude (claude.ai or Claude Code on the XPS) analyses the export and writes a proposals file → the app opens it in the review screen | Good for deep, conversational Tidy sessions on the subscription; a new import path, distinct from replace-only backup restore |
+| XPS sync | The notebook lives on the XPS too; Claude Code proposes at any time | Model: notes_app Phase 4. Current scope excludes server and sync; only worthwhile for ongoing background work |
+
+Because Ask needs the in-app route anyway, start there. The file round trip is an optional later
+extra; sync is not needed for anything discussed here.
+
+#### Leads for Tidy (decided against a separate inbox)
+
+A running list of "things to tidy" was considered. The agent's judgement, which the owner
+accepted, is that a dedicated inbox is unnecessary at first:
+
+- **New, unorganised items** are derivable: Tidy defaults to items created or edited since the
+  last tidy (from events, plus a small last-tidy preference).
+- **Organising Ask notices in the moment** belongs in Keep's review right then, not deferred.
+- **Owner hunches** use an existing tag (e.g. `revisar`) or a Notes page, which Tidy reads as
+  leads. No new store is needed.
+- A real inbox would add a store, a backup and a lifecycle, risks an unread backlog, and
+  stored AI leads go stale.
+
+Revisit only if Ask repeatedly raises things that cannot be decided in the moment and a tag
+proves too thin because reasons need to travel with the lead.
+
+#### Suggested order (agent estimate)
+
+1. Design the shared proposal format for both features.
+2. **Ask + Keep** with create-only proposals (the safest kind) plus small link/tag
+   suggestions; pasted-conversation input.
+3. **Tidy** adds the harder kinds of change: edits to existing items, tag merges and page
+   creation, all using the staleness checks.
+4. Optional: the proposals-file round trip for deep sessions. XPS sync only if background
+   work becomes wanted.
+
+Separate entry points: Ask somewhere quick to reach; Tidy alongside notebook views or settings.
+
+#### Risks, dependencies and related ideas
+
+- [Personal-content provenance](#personal-content-provenance): whether AI-written meanings or
+  notes are marked as such is unresolved and affects Keep directly.
+- Tag merges have no undo ([Tag maintenance follow-ups](#tag-maintenance-follow-ups)); a
+  pre-change export remains the safety net for Tidy tag proposals.
+- Ask costs money per question on the owner's key. notes_app measured roughly 2–6¢ per
+  question or tidy on Opus 5.5, but that was a different app and prompt.
+- AI suggestions for idiom equivalents can be confidently wrong; context corpora (Reverso
+  Context) or native-speaker forums remain useful checks.
+- Related: [Optional AI connection review](#optional-ai-connection-review) is a one-item slice
+  of Tidy; [Diario follow-up AI requests](#diario-follow-up-ai-requests) records the owner's
+  earlier Gemini round-trip hesitation, which this idea responds to.
+- Reference implementation: notes_app (`~/code/notes_app`), Phase 3 (in-browser ask and tidy,
+  tick review, all-or-nothing Apply, Undo) and Phase 4 (XPS sync with owner-approved proposals).
 
 ---
 
