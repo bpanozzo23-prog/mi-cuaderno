@@ -99,37 +99,56 @@ function byRank(a, b) {
     || String(a.itemId).localeCompare(String(b.itemId));
 }
 
+/** The candidate shape for one lexical item, before it is ranked and given a `c#` ref. */
+export function candidateFromItem(item, match = { matchedBy: "attached", score: 0 }) {
+  return {
+    itemId: item.id,
+    term: item.term.trim(),
+    form: item.form === "phrase" ? "phrase" : "word",
+    gloss: String(item.meanings?.[0]?.gloss || "").trim(),
+    ...match,
+  };
+}
+
 /**
  * Returns up to `limit` lexical items related to `text`, best first:
- * [{ ref: "c1", itemId, term, form, gloss, matchedBy: "term" | "gloss", score }].
+ * [{ ref: "c1", itemId, term, form, gloss, matchedBy: "attached" | "term" | "gloss", score }].
+ *
+ * Entries the owner attached to the conversation (`attachedIds`) come first, in that order,
+ * whatever their spelling — an attached "ir" counts although a matched one would not. Attached
+ * IDs that are missing or not words/phrases are skipped.
  */
-export function findKeepCandidates(items = [], text = "", { limit = DEFAULT_CANDIDATE_LIMIT } = {}) {
-  const tokens = tokensOf(text);
-  if (tokens.length === 0) return [];
-  const prepared = { tokens, counts: runCounts(tokens), tokenSet: new Set(tokens) };
-  const matches = [];
-  for (const item of items) {
-    if (item?.type !== "lexical" || typeof item.term !== "string") continue;
-    const byTerm = termMatch(item, prepared);
-    const byGloss = byTerm ? null : glossMatch(item, prepared);
-    const match = byTerm || byGloss;
-    if (!match) continue;
-    matches.push({
-      itemId: item.id,
-      term: item.term.trim(),
-      form: item.form === "phrase" ? "phrase" : "word",
-      gloss: String(item.meanings?.[0]?.gloss || "").trim(),
-      updatedAt: item.updatedAt,
-      ...match,
-    });
+export function findKeepCandidates(items = [], text = "", { limit = DEFAULT_CANDIDATE_LIMIT, attachedIds = [] } = {}) {
+  const max = Math.max(0, limit);
+  const byId = new Map(items.map((item) => [item?.id, item]));
+  const attached = [];
+  const attachedSet = new Set();
+  for (const id of attachedIds) {
+    const item = byId.get(id);
+    if (attachedSet.has(id) || item?.type !== "lexical" || typeof item.term !== "string") continue;
+    attachedSet.add(id);
+    attached.push(candidateFromItem(item));
   }
-  return matches
+
+  const tokens = tokensOf(text);
+  const matches = [];
+  if (tokens.length > 0) {
+    const prepared = { tokens, counts: runCounts(tokens), tokenSet: new Set(tokens) };
+    for (const item of items) {
+      if (item?.type !== "lexical" || typeof item.term !== "string" || attachedSet.has(item.id)) continue;
+      const byTerm = termMatch(item, prepared);
+      const byGloss = byTerm ? null : glossMatch(item, prepared);
+      const match = byTerm || byGloss;
+      if (!match) continue;
+      matches.push({ ...candidateFromItem(item, match), updatedAt: item.updatedAt });
+    }
+  }
+  const ranked = matches
     .sort(byRank)
-    .slice(0, Math.max(0, limit))
-    .map(({ updatedAt: _updatedAt, count: _count, ...candidate }, index) => ({
-      ref: `c${index + 1}`,
-      ...candidate,
-    }));
+    .map(({ updatedAt: _updatedAt, count: _count, ...candidate }) => candidate);
+  return [...attached, ...ranked]
+    .slice(0, max)
+    .map((candidate, index) => ({ ref: `c${index + 1}`, ...candidate }));
 }
 
 const oneLine = (value) => String(value || "").replace(/[\s|]+/g, " ").trim();

@@ -78,6 +78,42 @@ describe("findKeepCandidates", () => {
   });
 });
 
+describe("attached entries", () => {
+  it("lead the list in attached order, whatever their spelling, and are not repeated", () => {
+    const ir = word("ir", "to go");
+    const quedar = word("quedar", "to remain");
+    const sacar = word("sacar", "to take out");
+    const candidates = findKeepCandidates([sacar, quedar, ir], "Hablamos de sacar y quedar.", {
+      attachedIds: [ir.id, quedar.id, ir.id],
+    });
+
+    expect(terms(candidates)).toEqual(["ir", "quedar", "sacar"]);
+    expect(candidates.map((candidate) => candidate.ref)).toEqual(["c1", "c2", "c3"]);
+    expect(candidates[0]).toMatchObject({ itemId: ir.id, matchedBy: "attached", gloss: "to go" });
+    expect(candidates[2].matchedBy).toBe("term");
+  });
+
+  it("skip deleted entries and pages, and still count toward the limit", () => {
+    const quedar = word("quedar", "to remain");
+    const page = newPage({ title: "Quedar notes" });
+    const others = Array.from({ length: 5 }, (_, index) => word(`palabra${index}`, `gloss ${index}`));
+    const text = others.map((item) => item.term).join(" ");
+    const candidates = findKeepCandidates([quedar, page, ...others], text, {
+      attachedIds: ["user:gone", page.id, quedar.id],
+      limit: 3,
+    });
+
+    expect(candidates).toHaveLength(3);
+    expect(candidates[0]).toMatchObject({ term: "quedar", matchedBy: "attached" });
+    expect(candidates.slice(1).every((candidate) => candidate.matchedBy === "term")).toBe(true);
+  });
+
+  it("are found even when the conversation text is empty", () => {
+    const quedar = word("quedar", "to remain");
+    expect(terms(findKeepCandidates([quedar], "", { attachedIds: [quedar.id] }))).toEqual(["quedar"]);
+  });
+});
+
 describe("candidateLinesForRequest", () => {
   it("sends term, form and a short gloss under the reference, never the item id", () => {
     const item = phrase("echar | de\nmenos", `to miss (someone) ${"very ".repeat(30)}`);

@@ -5,6 +5,7 @@ import {
   KEEP_SCHEMA,
   KEEP_SYSTEM_PROMPT,
   MAX_PASTE_CHARS,
+  attachedItemIds,
   buildKeepRequest,
   conversationText,
   matchesSchema,
@@ -156,5 +157,33 @@ describe("the response", () => {
   ])("refuses %s without calling Anthropic", async (_label, source) => {
     await expect(requestKeepProposals({ source, apiKey: KEY })).rejects.toMatchObject({ kind: "input" });
     expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("conversations with attachments", () => {
+  const sent = "<attached_entry>\nEntry: quedar (word)\n</attached_entry>\n\nMore examples?";
+  const attachedTurns = [{
+    question: "More examples?",
+    userContent: sent,
+    attachments: [{ itemId: "user:quedar", label: "quedar", text: "Entry: quedar (word)" }],
+    text: "Quedamos a las cinco.",
+  }];
+
+  it("sends each learner turn exactly as Ask sent it, never the device-side reference", () => {
+    const { body } = buildKeepRequest({ source: { kind: "ask", turns: attachedTurns } });
+    const content = body.messages[0].content;
+    // The attachment block survives intact inside the learner's turn.
+    expect(content).toContain(`<turn speaker="learner">\n${sent}\n</turn>`);
+    expect(content).not.toContain("user:quedar");
+    expect(conversationText({ kind: "ask", turns: attachedTurns })).toContain(sent);
+  });
+
+  it("lists attached entries once, in first-attached order, for asked conversations only", () => {
+    const turns = [
+      ...attachedTurns,
+      { question: "And these?", userContent: "x", text: "y", attachments: [{ itemId: "user:ir" }, { itemId: "user:quedar" }] },
+    ];
+    expect(attachedItemIds({ kind: "ask", turns })).toEqual(["user:quedar", "user:ir"]);
+    expect(attachedItemIds({ kind: "paste", text: "user:quedar" })).toEqual([]);
   });
 });

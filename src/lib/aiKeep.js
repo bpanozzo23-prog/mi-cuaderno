@@ -123,12 +123,24 @@ At most one link per pair.
 const KEEP_TAGS = ["conversation", "turn", "owner_tags", "existing_entries"];
 const neutralised = (text) => neutralizeTags(text, KEEP_TAGS);
 
+/**
+ * What the learner said in a turn: the message exactly as Ask sent it (attachment snapshots
+ * included), never rebuilt from attachment objects, which hold device-side IDs.
+ */
+const learnerText = (turn) => turn.userContent ?? turn.question;
+
 /** The conversation as it will be sent: Pregunta's turns as displayed, or the pasted text. */
 export function conversationText(source) {
   if (source?.kind === "paste") return String(source.text ?? "").trim();
   return (source?.turns || [])
-    .map((turn) => `Learner: ${turn.question}\n\nClaude: ${turn.text}`)
+    .map((turn) => `Learner: ${learnerText(turn)}\n\nClaude: ${turn.text}`)
     .join("\n\n");
+}
+
+/** The notebook entries attached anywhere in an Ask conversation, in first-attached order. */
+export function attachedItemIds(source) {
+  if (source?.kind !== "ask") return [];
+  return [...new Set((source.turns || []).flatMap((turn) => (turn.attachments || []).map((attachment) => attachment.itemId)))];
 }
 
 function conversationBlock(source) {
@@ -136,7 +148,7 @@ function conversationBlock(source) {
     return `<conversation source="pasted">\n${neutralised(source.text)}\n</conversation>`;
   }
   const turns = (source?.turns || []).flatMap((turn) => [
-    `<turn speaker="learner">\n${neutralised(turn.question)}\n</turn>`,
+    `<turn speaker="learner">\n${neutralised(learnerText(turn))}\n</turn>`,
     `<turn speaker="claude">\n${neutralised(turn.text)}\n</turn>`,
   ]);
   return `<conversation source="mi-cuaderno">\n${turns.join("\n")}\n</conversation>`;

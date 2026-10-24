@@ -4,7 +4,7 @@ import { C, MONO, Button, Card } from "../theme.jsx";
 import { getPref } from "../db/db.js";
 import { createItemsWithLinks } from "../db/items.js";
 import { AI_API_KEY_PREF } from "../lib/aiPrefs.js";
-import { conversationText, requestKeepProposals } from "../lib/aiKeep.js";
+import { attachedItemIds, conversationText, requestKeepProposals } from "../lib/aiKeep.js";
 import { formatCost } from "../lib/aiRequest.js";
 import { findPersonalHeadingDuplicates } from "../lib/duplicateGuard.js";
 import { findKeepCandidates } from "../lib/keepCandidates.js";
@@ -38,7 +38,8 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
     return {
       characters: conversationText(source).length,
       tagNames: allTagsIn(items),
-      candidates: findKeepCandidates(items, conversationText(source)),
+      // Entries attached to the conversation lead, so proposals link to them.
+      candidates: findKeepCandidates(items, conversationText(source), { attachedIds: attachedItemIds(source) }),
     };
   });
   const [phase, setPhase] = useState("confirm");
@@ -168,6 +169,7 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
               {disclosed.candidates.map((candidate) => (
                 <li key={candidate.ref}>
                   {candidate.term}{candidate.gloss ? ` — ${candidate.gloss}` : ""}
+                  {candidate.matchedBy === "attached" ? " (attached)" : ""}
                 </li>
               ))}
             </ul>
