@@ -1,10 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   KEEP_EFFORT,
+  KEEP_GROUP_MAX_TOKENS,
+  KEEP_MAX_TOKENS,
   KEEP_MODEL,
   KEEP_SCHEMA,
   KEEP_SYSTEM_PROMPT,
   MAX_PASTE_CHARS,
+  attachedGroupMembers,
   attachedItemIds,
   buildKeepRequest,
   conversationText,
@@ -242,5 +245,42 @@ describe("attached entries in full", () => {
     const { body } = buildKeepRequest({ source: { kind: "ask", turns }, candidates });
     expect(body.messages[0].content).not.toContain("attached_entries");
     expect(body.messages[0].content).toMatch(/^Propose notebook entries from this conversation\./);
+  });
+});
+
+describe("group members", () => {
+  const groupTurns = [
+    { question: "Quiz me", text: "…", attachments: [
+      { itemId: "user:page", label: "Cocina", kind: "page", group: { source: "page", detail: "meanings", memberIds: ["user:a", "user:b"], chars: 100 } },
+      { itemId: "user:solo", label: "solo", kind: "word" },
+    ] },
+    { question: "More", text: "…", attachments: [
+      { label: "Tagged “x”", kind: "group", group: { source: "list", detail: "examples", memberIds: ["user:b", "user:c"], chars: 100 } },
+    ] },
+  ];
+
+  it("lists group members first sent first, at the fuller detail, and never as single attachments", () => {
+    const source = { kind: "ask", turns: groupTurns };
+    expect(attachedGroupMembers(source)).toEqual([
+      { itemId: "user:a", detail: "meanings" },
+      { itemId: "user:b", detail: "examples" },
+      { itemId: "user:c", detail: "examples" },
+    ]);
+    expect(attachedItemIds(source)).toEqual(["user:page", "user:solo"]);
+    expect(attachedGroupMembers({ kind: "paste", text: "x" })).toEqual([]);
+  });
+
+  it("raises the output ceiling only when group members are sent", () => {
+    const source = { kind: "ask", turns };
+    const full = { ref: "c1", text: "Entry: quedar (word)", short: false };
+    const short = { ref: "c2", text: "Entry: picar (word)", short: true, detail: "meanings" };
+    expect(buildKeepRequest({ source, attached: [full] }).body.max_tokens).toBe(KEEP_MAX_TOKENS);
+    expect(buildKeepRequest({ source, attached: [full, short] }).body.max_tokens).toBe(KEEP_GROUP_MAX_TOKENS);
+  });
+
+  it("tells Claude what a short-form member may receive, and the batch limits", () => {
+    expect(KEEP_SYSTEM_PROMPT).toMatch(/"Short form".*only examples, tags and links — never new meanings or a note/);
+    expect(KEEP_SYSTEM_PROMPT).toMatch(/At most 30 entries may receive updates, with at most 60 additions/);
+    expect(KEEP_SYSTEM_PROMPT).toMatch(/at most 30 links in total/);
   });
 });

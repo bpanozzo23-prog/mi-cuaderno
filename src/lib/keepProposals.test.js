@@ -365,3 +365,78 @@ describe("additions to attached entries", () => {
     expect(buildKeepWrites(proposals, selection).updates).toEqual([]);
   });
 });
+
+describe("group members and batch limits", () => {
+  const member = (term, extra = {}) => newLexical({ term, meanings: [{ gloss: `meaning of ${term}` }], ...extra });
+  const shortSnapshot = (item, ref) => ({
+    ref,
+    itemId: item.id,
+    term: item.term,
+    text: "…",
+    truncated: false,
+    short: true,
+    detail: "meanings",
+    meaningIds: { m1: item.meanings[0].id },
+    fingerprint: "frozen",
+  });
+  const groupRun = (members, raw) => {
+    const candidatesFor = members.map((item, index) => ({
+      ref: `c${index + 1}`, itemId: item.id, term: item.term, form: "word", gloss: "", matchedBy: "group",
+    }));
+    return normalizeKeepProposals(
+      { summary: "s", entries: [], updates: [], links: [], ...raw },
+      { candidates: candidatesFor, items: members, attached: members.map((item, index) => shortSnapshot(item, `c${index + 1}`)) },
+    );
+  };
+  const groupUpdate = (target, extra = {}) => ({ target, examples: [], meanings: [], note: null, tags: [], reason: "r", ...extra });
+
+  it("lets a short-form group member receive examples and tags, never meanings or a note", () => {
+    const picar = member("picar");
+    const result = groupRun([picar], {
+      updates: [groupUpdate("c1", {
+        examples: [{ meaning: "m1", es: "Pica la cebolla.", en: "Chop the onion." }, { meaning: null, es: "Pico todo.", en: "" }],
+        meanings: [{ gloss: "to sting", usageCue: null, usageLabels: [], examples: [] }],
+        note: "A note Claude could not check.",
+        tags: ["cocina"],
+      })],
+    });
+    const [card] = result.updates;
+    expect(card.additions.map((addition) => addition.kind)).toEqual(["example", "example", "tag"]);
+    expect(card.additions[0]).toMatchObject({ meaningId: picar.meanings[0].id, meaningRef: "m1" });
+    expect(result.droppedCount).toBe(2);
+  });
+
+  it("connects two group members, since both count as attached", () => {
+    const [picar, cortar] = [member("picar"), member("cortar")];
+    const result = groupRun([picar, cortar], { links: [{ from: "c1", to: "c2", type: "similar_meaning", reason: "r" }] });
+    expect(result.links).toHaveLength(1);
+    expect(result.links[0]).toMatchObject({ from: { kind: "existing", itemId: picar.id }, to: { kind: "existing", itemId: cortar.id } });
+  });
+
+  it("changes at most 30 entries", () => {
+    const members = Array.from({ length: 40 }, (_, index) => member(`palabra${index}`));
+    const updates = members.map((_item, index) => groupUpdate(`c${index + 1}`, { tags: [`tema${index}`] }));
+    const result = groupRun(members, { updates });
+    expect(result.updates).toHaveLength(30);
+    expect(result.droppedCount).toBe(10);
+  });
+
+  it("proposes at most 60 additions in all, cutting the last entries short", () => {
+    const members = Array.from({ length: 25 }, (_, index) => member(`palabra${index}`));
+    const updates = members.map((_item, index) => groupUpdate(`c${index + 1}`, {
+      examples: [1, 2, 3].map((n) => ({ meaning: "m1", es: `Frase ${index}-${n}.`, en: "" })),
+    }));
+    const result = groupRun(members, { updates });
+    expect(result.updates).toHaveLength(20);
+    expect(result.updates.flatMap((update) => update.additions)).toHaveLength(60);
+    expect(result.droppedCount).toBe(15);
+  });
+
+  it("proposes at most 30 connections", () => {
+    const members = Array.from({ length: 40 }, (_, index) => member(`palabra${index}`));
+    const links = members.slice(1).map((_item, index) => ({ from: "c1", to: `c${index + 2}`, type: "related", reason: "r" }));
+    const result = groupRun(members, { links });
+    expect(result.links).toHaveLength(30);
+    expect(result.droppedCount).toBe(9);
+  });
+});

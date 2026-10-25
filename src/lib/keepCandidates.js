@@ -16,6 +16,8 @@ import { GLOSS_STOP_WORDS, glossContentTokens } from "./meaningSuggestions.js";
 const WORD = /[\p{L}\p{M}\p{N}]+(?:['’][\p{L}\p{M}\p{N}]+)*/gu;
 const MAX_NGRAM = 6;
 export const DEFAULT_CANDIDATE_LIMIT = 40;
+/** Group members Keep sends, besides the 40 related entries. */
+export const MAX_KEEP_GROUP_MEMBERS = 60;
 const GLOSS_LINE_CHARS = 80;
 
 function tokensOf(text) {
@@ -112,14 +114,28 @@ export function candidateFromItem(item, match = { matchedBy: "attached", score: 
 }
 
 /**
+ * Which members of attached groups Keep sends: { members: [{ itemId, detail }], omitted }, in
+ * first-sent order. Entries attached on their own go in full instead; deleted ones are skipped.
+ */
+export function selectGroupMembers(items = [], groupMembers = [], singleIds = [], limit = MAX_KEEP_GROUP_MEMBERS) {
+  const byId = new Map(items.map((item) => [item?.id, item]));
+  const singles = new Set(singleIds);
+  const eligible = groupMembers.filter((member) =>
+    !singles.has(member.itemId) && byId.get(member.itemId)?.type === "lexical" && typeof byId.get(member.itemId).term === "string");
+  return { members: eligible.slice(0, limit), omitted: Math.max(0, eligible.length - limit) };
+}
+
+/**
  * Returns up to `limit` lexical items related to `text`, best first:
  * [{ ref: "c1", itemId, term, form, gloss, matchedBy: "attached" | "term" | "gloss", score }].
  *
  * Entries the owner attached to the conversation (`attachedIds`) come first, in that order,
  * whatever their spelling — an attached "ir" counts although a matched one would not. Attached
- * IDs that are missing or not words/phrases are skipped.
+ * IDs that are missing or not words/phrases are skipped. Group members (`groupIds`, already
+ * chosen by `selectGroupMembers`) follow them with `matchedBy: "group"`, outside `limit`, which
+ * still covers attached entries and matches together.
  */
-export function findKeepCandidates(items = [], text = "", { limit = DEFAULT_CANDIDATE_LIMIT, attachedIds = [] } = {}) {
+export function findKeepCandidates(items = [], text = "", { limit = DEFAULT_CANDIDATE_LIMIT, attachedIds = [], groupIds = [] } = {}) {
   const max = Math.max(0, limit);
   const byId = new Map(items.map((item) => [item?.id, item]));
   const attached = [];
@@ -129,6 +145,14 @@ export function findKeepCandidates(items = [], text = "", { limit = DEFAULT_CAND
     if (attachedSet.has(id) || item?.type !== "lexical" || typeof item.term !== "string") continue;
     attachedSet.add(id);
     attached.push(candidateFromItem(item));
+  }
+
+  const grouped = [];
+  for (const id of groupIds) {
+    const item = byId.get(id);
+    if (attachedSet.has(id) || item?.type !== "lexical" || typeof item.term !== "string") continue;
+    attachedSet.add(id);
+    grouped.push(candidateFromItem(item, { matchedBy: "group", score: 0 }));
   }
 
   const tokens = tokensOf(text);
@@ -147,8 +171,8 @@ export function findKeepCandidates(items = [], text = "", { limit = DEFAULT_CAND
   const ranked = matches
     .sort(byRank)
     .map(({ updatedAt: _updatedAt, count: _count, ...candidate }) => candidate);
-  return [...attached, ...ranked]
-    .slice(0, max)
+  const kept = [...attached, ...ranked].slice(0, max);
+  return [...kept.slice(0, attached.length), ...grouped, ...kept.slice(attached.length)]
     .map((candidate, index) => ({ ref: `c${index + 1}`, ...candidate }));
 }
 

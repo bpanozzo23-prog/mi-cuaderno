@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { candidateLinesForRequest, findKeepCandidates } from "./keepCandidates.js";
+import { MAX_KEEP_GROUP_MEMBERS, candidateLinesForRequest, findKeepCandidates, selectGroupMembers } from "./keepCandidates.js";
 import { newLexical, newPage } from "../db/items.js";
 
 const word = (term, gloss, extra = {}) => newLexical({ term, meanings: [{ gloss }], ...extra });
@@ -128,5 +128,38 @@ describe("candidateLinesForRequest", () => {
     expect(lines).not.toContain("user:");
     expect(lines).not.toContain(item.id);
     expect(lines.split(" | ")[3].length).toBeLessThanOrEqual(80);
+  });
+});
+
+describe("group members", () => {
+  it("are chosen first sent first, without entries attached on their own or deleted ones, up to Keep's limit", () => {
+    const members = Array.from({ length: 70 }, (_, index) => word(`palabra${index}`, "x"));
+    const groupMembers = [
+      { itemId: "user:deleted", detail: "meanings" },
+      ...members.map((item) => ({ itemId: item.id, detail: "meanings" })),
+    ];
+    const { members: chosen, omitted } = selectGroupMembers(members, groupMembers, [members[0].id]);
+    expect(chosen).toHaveLength(MAX_KEEP_GROUP_MEMBERS);
+    expect(chosen[0].itemId).toBe(members[1].id);
+    expect(omitted).toBe(69 - MAX_KEEP_GROUP_MEMBERS);
+  });
+
+  it("follow attached entries outside the 40-entry limit, which still covers attached entries and matches", () => {
+    const attached = word("quedar", "to remain");
+    const grouped = [word("picar", "to chop"), word("hervir", "to boil")];
+    const matched = Array.from({ length: 45 }, (_, index) => phrase(`frase número ${index}`, "x"));
+    const text = `${matched.map((item) => item.term).join(". ")}. picar`;
+    const found = findKeepCandidates([attached, ...grouped, ...matched], text, {
+      attachedIds: [attached.id],
+      groupIds: grouped.map((item) => item.id),
+    });
+
+    expect(found.slice(0, 3).map((candidate) => [candidate.term, candidate.matchedBy])).toEqual([
+      ["quedar", "attached"], ["picar", "group"], ["hervir", "group"],
+    ]);
+    // A group member is never matched a second time, and the matches fill the remaining 39.
+    expect(found.filter((candidate) => candidate.term === "picar")).toHaveLength(1);
+    expect(found.filter((candidate) => candidate.matchedBy !== "group")).toHaveLength(40);
+    expect(found.map((candidate) => candidate.ref)).toEqual(found.map((_candidate, index) => `c${index + 1}`));
   });
 });

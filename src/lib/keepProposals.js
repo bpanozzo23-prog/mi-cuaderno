@@ -25,6 +25,10 @@ export const MAX_ADDED_EXAMPLES = 3;
 export const MAX_ADDED_MEANINGS = 2;
 export const MAX_ADDED_TAGS = 3;
 export const MAX_NOTE_CHARS = 1000;
+/** Whole-batch limits, so a large attached group cannot produce an unreviewable Keep. */
+export const MAX_KEEP_UPDATES = 30;
+export const MAX_KEEP_ADDITIONS = 60;
+export const MAX_KEEP_LINKS = 30;
 
 /**
  * Saved fields are AI-written text that later renders as Markdown (notes) or beside it. Image
@@ -131,7 +135,8 @@ function additionsFor(rawUpdate, item, snapshot, ctx) {
     let meanings = 0;
     for (const raw of rawMeanings) {
       const gloss = text(raw?.gloss);
-      if (!gloss || meanings === MAX_ADDED_MEANINGS) {
+      // A group member was seen only in short form: no meaning notes to judge a new sense against.
+      if (!gloss || meanings === MAX_ADDED_MEANINGS || snapshot.short) {
         dropped += 1;
         continue;
       }
@@ -151,9 +156,9 @@ function additionsFor(rawUpdate, item, snapshot, ctx) {
     }
 
     if (note) {
-      // "Keep again" must not append the same paragraph twice.
+      // "Keep again" must not append the same paragraph twice; a short-form member's notes were never seen.
       const already = exactKey(item.notes).includes(exactKey(note));
-      if (already || note.length > MAX_NOTE_CHARS) dropped += 1;
+      if (already || note.length > MAX_NOTE_CHARS || snapshot.short) dropped += 1;
       else add({ kind: "note", note, flag: null });
     }
   }
@@ -175,7 +180,8 @@ function additionsFor(rawUpdate, item, snapshot, ctx) {
  *   { kind: "existing", itemId, term }.
  *
  * `attached` are the `keepAttachedSnapshots` Keep sent; only they can receive additions, and an
- * existing-to-existing link needs one of them at an end.
+ * existing-to-existing link needs one of them at an end. A short-form group member may receive
+ * examples and tags only. At most 30 entries change, with 60 additions and 30 connections in all.
  */
 export function normalizeKeepProposals(raw, { candidates = [], items = [], attached = [] } = {}) {
   const existingTags = allTagsIn(items);
@@ -222,15 +228,19 @@ export function normalizeKeepProposals(raw, { candidates = [], items = [], attac
   const attachedIds = new Set(attached.map((snapshot) => snapshot.itemId));
   const itemsById = new Map(items.map((item) => [item?.id, item]));
   const updates = [];
+  let additionCount = 0;
   for (const rawUpdate of Array.isArray(raw?.updates) ? raw.updates : []) {
     const snapshot = attachedByRef.get(text(rawUpdate?.target));
     const item = snapshot && itemsById.get(snapshot.itemId);
-    if (!snapshot || item?.type !== "lexical" || updates.some((update) => update.ref === snapshot.ref)) {
+    if (!snapshot || item?.type !== "lexical" || updates.some((update) => update.ref === snapshot.ref)
+      || updates.length === MAX_KEEP_UPDATES) {
       droppedCount += 1;
       continue;
     }
-    const { additions, dropped } = additionsFor(rawUpdate, item, snapshot, { existingByNormalized, existingTags });
-    droppedCount += dropped;
+    const built = additionsFor(rawUpdate, item, snapshot, { existingByNormalized, existingTags });
+    const additions = built.additions.slice(0, Math.max(0, MAX_KEEP_ADDITIONS - additionCount));
+    droppedCount += built.dropped + built.additions.length - additions.length;
+    additionCount += additions.length;
     if (additions.length === 0) continue;
     updates.push({
       ref: snapshot.ref,
@@ -267,7 +277,7 @@ export function normalizeKeepProposals(raw, { candidates = [], items = [], attac
     const pair = usable ? [endKey(from), endKey(to)].sort().join("|") : null;
     // One connection per pair: storage keeps only the first edge between two items, so a
     // repeated or contradictory suggestion would look approved but silently vanish.
-    if (!usable || seenPairs.has(pair)) {
+    if (!usable || seenPairs.has(pair) || links.length === MAX_KEEP_LINKS) {
       droppedCount += 1;
       continue;
     }

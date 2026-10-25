@@ -643,3 +643,153 @@ describe("attaching a group", () => {
     expect(globalThis.fetch).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("keeping from a group conversation", () => {
+  const keepJson = (json) => ok({
+    model: "claude-opus-5-5",
+    stop_reason: "end_turn",
+    content: [{ type: "text", text: JSON.stringify({ summary: "s", entries: [], updates: [], links: [], ...json }) }],
+    usage: { input_tokens: 2000, output_tokens: 1000 },
+  });
+
+  it("sends group members in short form, then saves the examples ticked for each", async () => {
+    const user = userEvent.setup();
+    const members = [];
+    for (const term of ["picar", "hervir", "freír", "asar", "hornear", "batir"]) {
+      members.push(await createItem(newLexical({ term, meanings: [{ gloss: `cook: ${term}` }], notes: `NOTE ${term}` })));
+    }
+    const updates = members.map((item, index) => ({
+      target: `c${index + 1}`,
+      examples: [{ meaning: "m1", es: `Ejemplo con ${item.term}.`, en: "An example." }],
+      meanings: [{ gloss: "a new sense", usageCue: null, usageLabels: [], examples: [] }],
+      note: "Not allowed here.",
+      tags: [],
+      reason: "r",
+    }));
+    globalThis.fetch.mockReset();
+    globalThis.fetch.mockResolvedValueOnce(ok(answer("Here is one sentence each.")))
+      .mockResolvedValueOnce(keepJson({ updates }));
+    await renderHarness({ initial: [{ key: "g", kind: "group", label: "Tagged “cocina”", memberIds: members.map((item) => item.id), detail: "meanings" }] });
+    await ask(user, "Give me a sentence using each");
+    await screen.findByText("Here is one sentence each.");
+
+    await user.click(screen.getByRole("button", { name: "Keep" }));
+    const keep = screen.getByRole("generic", { name: "Keep" });
+    expect(keep.textContent).toMatch(/plus 6 entries from attached groups in short form as they are now/);
+    expect(within(keep).getByLabelText("Sent in short form for picar").textContent).not.toContain("NOTE");
+
+    await user.click(screen.getByRole("button", { name: "Send and propose" }));
+    await screen.findByRole("region", { name: "Keep proposals" });
+    const content = bodyAt(1).messages[0].content;
+    expect(content).toContain("Ref: c1\nShort form (from a group; meanings only): examples, tags and links only\nEntry: picar (word)\nm1. cook: picar");
+    expect(content).not.toMatch(/NOTE|user:/);
+    expect(bodyAt(1).max_tokens).toBe(32000);
+
+    // Meanings and notes for short-form members were left out; one example per entry remains.
+    expect(screen.queryByRole("checkbox", { name: /Add meaning/ })).toBeNull();
+    expect(screen.queryByRole("checkbox", { name: "Add to notes" })).toBeNull();
+    expect(screen.getAllByRole("checkbox", { name: /Add example/ })).toHaveLength(6);
+
+    await user.click(screen.getByRole("button", { name: "Untick all" }));
+    expect(screen.getAllByRole("checkbox", { name: /Add example/ }).every((box) => !box.checked)).toBe(true);
+    await user.click(screen.getByRole("button", { name: "Tick all" }));
+    await user.click(screen.getByRole("checkbox", { name: "Add example: Ejemplo con batir." }));
+    await user.click(screen.getByRole("button", { name: /Apply 5 additions/ }));
+    await screen.findByText(/Added to 5 entries/);
+
+    const saved = await items.getItem(members[0].id);
+    expect(saved.meanings[0].examples).toEqual([expect.objectContaining({ es: "Ejemplo con picar." })]);
+    expect(saved.notes).toBe("NOTE picar");
+    expect((await items.getItem(members[5].id)).meanings[0].examples || []).toEqual([]);
+  });
+
+  it("Tick all leaves an example flagged as close to an existing one as the owner set it", async () => {
+    const user = userEvent.setup();
+    const members = [];
+    for (const term of ["uno", "dos", "tres", "cuatro", "cinco", "seis"]) {
+      members.push(await createItem(newLexical({
+        term,
+        meanings: [{ gloss: `number ${term}`, examples: term === "seis" ? [{ es: "Tengo seis años.", en: "" }] : [] }],
+      })));
+    }
+    const updates = members.map((item, index) => ({
+      target: `c${index + 1}`,
+      examples: [{ meaning: "m1", es: item.term === "seis" ? "Tengo séis años." : `Frase con ${item.term}.`, en: "" }],
+      meanings: [], note: null, tags: [], reason: "r",
+    }));
+    globalThis.fetch.mockReset();
+    globalThis.fetch.mockResolvedValueOnce(ok(answer("Numbers.")))
+      .mockResolvedValueOnce(keepJson({ updates }));
+    await renderHarness({ initial: [{ key: "g", kind: "group", label: "N", memberIds: members.map((item) => item.id), detail: "meanings" }] });
+    await ask(user, "Sentences");
+    await screen.findByText("Numbers.");
+    await user.click(screen.getByRole("button", { name: "Keep" }));
+    await user.click(screen.getByRole("button", { name: "Send and propose" }));
+    await screen.findByRole("region", { name: "Keep proposals" });
+
+    const flagged = () => screen.getByRole("checkbox", { name: "Add example: Tengo séis años." });
+    expect(flagged().checked).toBe(false);
+    await user.click(screen.getByRole("button", { name: "Untick all" }));
+    await user.click(screen.getByRole("button", { name: "Tick all" }));
+    expect(flagged().checked).toBe(false);
+    expect(screen.getAllByRole("checkbox", { name: /Add example/ }).filter((box) => box.checked)).toHaveLength(5);
+    await user.click(flagged());
+    await user.click(screen.getByRole("button", { name: "Tick all" }));
+    expect(flagged().checked).toBe(true);
+  });
+
+  it("Tick all never ticks an entry changed after Claude saw it", async () => {
+    const user = userEvent.setup();
+    const members = [];
+    for (const term of ["uno", "dos", "tres", "cuatro", "cinco", "seis"]) {
+      members.push(await createItem(newLexical({ term, meanings: [{ gloss: `number ${term}` }] })));
+    }
+    const updates = members.map((item, index) => ({
+      target: `c${index + 1}`,
+      examples: [{ meaning: "m1", es: `Frase con ${item.term}.`, en: "" }],
+      meanings: [], note: null, tags: [], reason: "r",
+    }));
+    globalThis.fetch.mockReset();
+    globalThis.fetch.mockResolvedValueOnce(ok(answer("Numbers.")))
+      .mockResolvedValueOnce(keepJson({ updates }));
+    const view = await renderHarness({ initial: [{ key: "g", kind: "group", label: "N", memberIds: members.map((item) => item.id), detail: "meanings" }] });
+    await ask(user, "Sentences");
+    await screen.findByText("Numbers.");
+    await user.click(screen.getByRole("button", { name: "Keep" }));
+    await user.click(screen.getByRole("button", { name: "Send and propose" }));
+    await screen.findByRole("region", { name: "Keep proposals" });
+
+    await items.updateItem(members[0].id, { meanings: [{ ...members[0].meanings[0], gloss: "the number one" }] });
+    view.rerenderWith(await items.allItems());
+    await screen.findByText(/You changed this entry after Claude saw it/);
+    await user.click(screen.getByRole("button", { name: "Untick all" }));
+    await user.click(screen.getByRole("button", { name: "Tick all" }));
+    const save = vi.spyOn(items, "applyKeep");
+    await user.click(screen.getByRole("button", { name: /Apply 5 additions/ }));
+    await screen.findByText(/Added to 5 entries/);
+    // The changed entry never reaches the save; Apply's own check would refuse it anyway.
+    const sentIds = save.mock.calls[0][0].updates.map((update) => update.itemId);
+    expect(sentIds).toHaveLength(5);
+    expect(sentIds).not.toContain(members[0].id);
+  });
+
+  it("refuses additions to a group member changed after Keep froze it", async () => {
+    const user = userEvent.setup();
+    const picar = await createItem(newLexical({ term: "picar", meanings: [{ gloss: "to chop" }] }));
+    const asar = await createItem(newLexical({ term: "asar", meanings: [{ gloss: "to roast" }] }));
+    globalThis.fetch.mockReset();
+    globalThis.fetch.mockResolvedValueOnce(ok(answer("Sentences.")))
+      .mockResolvedValueOnce(keepJson({ updates: [{ target: "c1", examples: [{ meaning: "m1", es: "Pica todo.", en: "" }], meanings: [], note: null, tags: [], reason: "r" }] }));
+    const view = await renderHarness({ initial: [{ key: "g", kind: "group", label: "L", memberIds: [picar.id, asar.id], detail: "meanings" }] });
+    await ask(user, "Sentences please");
+    await screen.findByText("Sentences.");
+    await user.click(screen.getByRole("button", { name: "Keep" }));
+    await user.click(screen.getByRole("button", { name: "Send and propose" }));
+    await screen.findByRole("region", { name: "Keep proposals" });
+
+    await items.updateItem(picar.id, { meanings: [{ ...picar.meanings[0], gloss: "to chop finely" }] });
+    view.rerenderWith(await items.allItems());
+    expect(await screen.findByText(/You changed this entry after Claude saw it/)).toBeTruthy();
+    expect(screen.getByRole("checkbox", { name: "Add example: Pica todo." }).disabled).toBe(true);
+  });
+});

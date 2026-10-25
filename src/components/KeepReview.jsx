@@ -5,10 +5,10 @@ import MarkdownText from "./MarkdownText.jsx";
 import { getPref } from "../db/db.js";
 import { applyKeep } from "../db/items.js";
 import { AI_API_KEY_PREF } from "../lib/aiPrefs.js";
-import { attachedItemIds, conversationText, requestKeepProposals } from "../lib/aiKeep.js";
+import { attachedGroupMembers, attachedItemIds, conversationText, requestKeepProposals } from "../lib/aiKeep.js";
 import { formatCost } from "../lib/aiRequest.js";
 import { findPersonalHeadingDuplicates } from "../lib/duplicateGuard.js";
-import { findKeepCandidates } from "../lib/keepCandidates.js";
+import { findKeepCandidates, selectGroupMembers } from "../lib/keepCandidates.js";
 import { keepAttachedSnapshots } from "../lib/keepAttached.js";
 import {
   buildKeepWrites,
@@ -52,15 +52,24 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
   // What the confirmation discloses is fixed when Keep opens, so what is sent matches it.
   const [disclosed] = useState(() => {
     const items = notebook.items || [];
+    const attachedIds = attachedItemIds(source);
+    // Members of attached groups, first sent first, up to Keep's own limit for them.
+    const group = selectGroupMembers(items, attachedGroupMembers(source), attachedIds);
     // Entries attached to the conversation lead, so proposals link to them.
-    const candidates = findKeepCandidates(items, conversationText(source), { attachedIds: attachedItemIds(source) });
+    const candidates = findKeepCandidates(items, conversationText(source), {
+      attachedIds,
+      groupIds: group.members.map((member) => member.itemId),
+    });
     return {
       characters: conversationText(source).length,
       tagNames: allTagsIn(items),
       candidates,
+      groupOmitted: group.omitted,
       // Frozen from this same reading: the text sent, its meaning numbers and the fingerprint
       // Apply checks, so an addition can only land on the entry Claude saw.
-      attached: keepAttachedSnapshots(items, candidates),
+      attached: keepAttachedSnapshots(items, candidates, {
+        groupDetails: new Map(group.members.map((member) => [member.itemId, member.detail])),
+      }),
     };
   });
   const [phase, setPhase] = useState("confirm");
@@ -190,6 +199,9 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
   }
 
   if (phase === "confirm" || phase === "loading") {
+    const full = disclosed.attached.filter((snapshot) => !snapshot.short);
+    const short = disclosed.attached.filter((snapshot) => snapshot.short);
+    const related = disclosed.candidates.filter((candidate) => candidate.matchedBy !== "group");
     return (
       <Card aria-label="Keep" className="mt-4">
         <div className="text-sm font-semibold" style={{ color: C.ink }}>Keep</div>
@@ -200,16 +212,25 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
           Sent to Anthropic: {source.kind === "paste" ? "the pasted conversation" : "this conversation"}{" "}
           (≈ {disclosed.characters.toLocaleString("en-US")} characters), your{" "}
           {disclosed.tagNames.length} tag {disclosed.tagNames.length === 1 ? "name" : "names"}, and{" "}
-          {disclosed.candidates.length === 0
-            ? "none of your entries (none seem related)."
-            : `${disclosed.candidates.length} related ${disclosed.candidates.length === 1 ? "entry" : "entries"} from your cuaderno (term and first meaning only)${
-              disclosed.attached.length === 0 ? "." : ""}`}
-          {disclosed.attached.length > 0 && (
+          {related.length === 0
+            ? (full.length + short.length === 0 ? "none of your entries (none seem related)." : "no other related entries")
+            : `${related.length} related ${related.length === 1 ? "entry" : "entries"} from your cuaderno (term and first meaning only)${
+              full.length + short.length === 0 ? "." : ""}`}
+          {full.length > 0 && (
             <>
               {", plus "}
-              {disclosed.attached.length === 1 ? "the attached entry" : `the ${disclosed.attached.length} attached entries`}{" "}
+              {full.length === 1 ? "the attached entry" : `the ${full.length} attached entries`}{" "}
               in full as they are now — meanings, examples, notes and the names of linked entries — so
-              Claude can suggest additions to {disclosed.attached.length === 1 ? "it" : "them"}.
+              Claude can suggest additions to {full.length === 1 ? "it" : "them"}{short.length > 0 ? "" : "."}
+            </>
+          )}
+          {short.length > 0 && (
+            <>
+              {", plus "}
+              {plural(short.length, "entry", "entries")} from attached groups in short form as they are now —
+              meanings, and examples where you chose them — so Claude can suggest examples, tags and
+              connections for them.
+              {disclosed.groupOmitted > 0 && ` ${plural(disclosed.groupOmitted, "more group entry was", "more group entries were")} left out.`}
             </>
           )}
         </div>
@@ -220,7 +241,7 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
               {disclosed.candidates.map((candidate) => (
                 <li key={candidate.ref}>
                   {candidate.term}{candidate.gloss ? ` — ${candidate.gloss}` : ""}
-                  {candidate.matchedBy === "attached" ? " (attached)" : ""}
+                  {candidate.matchedBy === "attached" ? " (attached)" : candidate.matchedBy === "group" ? " (from a group)" : ""}
                 </li>
               ))}
             </ul>
@@ -232,7 +253,7 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
             {disclosed.attached.map((snapshot) => (
               <pre
                 key={snapshot.ref}
-                aria-label={`Sent in full for ${snapshot.term}`}
+                aria-label={`${snapshot.short ? "Sent in short form" : "Sent in full"} for ${snapshot.term}`}
                 className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-lg p-2 text-[11px]"
                 style={{ background: C.paper, color: C.ink, border: `1px solid ${C.line}`, fontFamily: MONO }}
               >
@@ -445,6 +466,21 @@ function ProposalReview({
     setSelection((current) => ({ ...current, additions: { ...current.additions, [id]: !current.additions?.[id] } }));
   }
 
+  /** Tick every addition that can be applied and is not flagged; flagged ones keep their tick. */
+  function tickAllAdditions(on) {
+    setSelection((current) => {
+      const additions = { ...current.additions };
+      for (const update of updates) {
+        if (staleRefs.has(update.ref)) continue;
+        for (const addition of update.additions) {
+          if (!on) additions[addition.id] = false;
+          else if (addition.flag === null) additions[addition.id] = true;
+        }
+      }
+      return { ...current, additions };
+    });
+  }
+
   function toggleLink(id) {
     setSelection((current) => ({ ...current, links: { ...current.links, [id]: !current.links[id] } }));
   }
@@ -466,8 +502,16 @@ function ProposalReview({
       )}
 
       {updates.length > 0 && (
-        <div className="text-xs font-semibold uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>
-          Changes to your entries
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-xs font-semibold uppercase" style={{ color: C.mut, letterSpacing: "0.08em" }}>
+            Changes to your entries
+          </div>
+          {updates.length > 5 && (
+            <div className="flex shrink-0 gap-1">
+              <Button tone="quiet" disabled={applying} onClick={() => tickAllAdditions(true)}>Tick all</Button>
+              <Button tone="quiet" disabled={applying} onClick={() => tickAllAdditions(false)}>Untick all</Button>
+            </div>
+          )}
         </div>
       )}
       {updates.map((update) => (

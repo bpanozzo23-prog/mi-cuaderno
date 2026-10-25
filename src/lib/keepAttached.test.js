@@ -107,3 +107,35 @@ describe("attachedEntriesBlock", () => {
     expect(attachedEntriesBlock([])).toBe("");
   });
 });
+
+describe("group members in short form", () => {
+  const groupCandidate = (item, ref = "c2") => ({ ...attachedCandidate(item, ref), matchedBy: "group" });
+
+  it("freezes a group member in the short form Pregunta sent, numbered for Keep", () => {
+    const item = quedar();
+    const [snapshot] = keepAttachedSnapshots([item], [groupCandidate(item)], { groupDetails: new Map([[item.id, "examples"]]) });
+
+    expect(snapshot).toMatchObject({ ref: "c2", itemId: item.id, short: true, truncated: false, detail: "examples" });
+    expect(snapshot.text).toContain("m1. to remain\n   Example: Queda poco. — Little remains.\nm2. to arrange to meet");
+    expect(snapshot.text).toContain("My examples:\n- Quedamos mañana.");
+    expect(snapshot.text).not.toContain("Very common.");
+    expect(snapshot.meaningIds).toEqual({ m1: item.meanings[0].id, m2: item.meanings[2].id });
+    expect(snapshot.fingerprint).toBe(contentFingerprint(item));
+  });
+
+  it("uses meanings only unless examples were chosen, and marks the block as short form", () => {
+    const item = quedar();
+    const snapshots = keepAttachedSnapshots([item], [groupCandidate(item)]);
+    expect(snapshots[0].text).not.toContain("Queda poco.");
+    const block = attachedEntriesBlock(snapshots);
+    expect(block).toContain("Ref: c2\nShort form (from a group; meanings only): examples, tags and links only\nEntry: quedar");
+  });
+
+  it("keeps an attached entry in full beside group members", () => {
+    const full = quedar();
+    const member = makeLexical({ term: "picar" });
+    const snapshots = keepAttachedSnapshots([full, member], [attachedCandidate(full), groupCandidate(member)]);
+    expect(snapshots.map((snapshot) => snapshot.short)).toEqual([false, true]);
+    expect(snapshots[0].text).toContain("Very common.");
+  });
+});

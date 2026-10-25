@@ -3,8 +3,9 @@
  *
  * What is sent is exactly what Keep's confirmation names: the conversation (Pregunta's turns as
  * displayed, or text the owner pasted), the owner's tag names, the related entries found on
- * the device by `keepCandidates.js` (term, form and first gloss under `c#` references), and the
- * attached entries in full as `keepAttached.js` froze them. Nothing here touches the database;
+ * the device by `keepCandidates.js` (term, form and first gloss under `c#` references), the
+ * attached entries in full as `keepAttached.js` froze them, and the members of attached groups in
+ * the same short form Pregunta sent. Nothing here touches the database;
  * normalising proposals and writing them live elsewhere.
  */
 
@@ -30,7 +31,12 @@ export const KEEP_MODEL = "claude-opus-5-5";
  * latency can be traded back if it proves too slow on the phone.
  */
 export const KEEP_EFFORT = "high";
-const KEEP_MAX_TOKENS = 16000;
+export const KEEP_MAX_TOKENS = 16000;
+/**
+ * With group members attached, Keep may propose up to 30 changed entries; that output plus
+ * high-effort thinking can pass 16k, so the ceiling rises only then.
+ */
+export const KEEP_GROUP_MAX_TOKENS = 32000;
 export const MAX_PASTE_CHARS = 40000;
 const MAX_TAG_NAMES = 200;
 
@@ -151,7 +157,9 @@ Updates add to entries the learner attached, which <attached_entries> shows in f
 - "tags": tags to add, following the tag rules above; never one the entry already has.
 - Never repeat an example, meaning or note the entry already has. Additions are appended; never rewrite, correct or remove the learner's text.
 - An entry whose text ends with "[…shortened]" was not shown in full: give it only tags and links.
+- An entry marked "Short form" came from a group the learner attached and was shown only by its meanings (and sometimes examples), not its notes: give it only examples, tags and links — never new meanings or a note.
 - "reason": one short sentence on why these additions are worth keeping.
+- At most 30 entries may receive updates, with at most 60 additions in total across them.
 
 Links connect a new entry to an existing entry (c#) or to another new entry (n#). Add one only when it would genuinely help. Two existing entries may be linked only when at least one of them is in <attached_entries>. Each link reads "from TYPE to":
 - similar_meaning: the two express much the same idea.
@@ -161,7 +169,7 @@ Links connect a new entry to an existing entry (c#) or to another new entry (n#)
 - explained_by: "from" is explained by "to".
 - found_in: "from" appears inside "to" (a word found in a phrase).
 - related: any other useful connection.
-At most one link per pair.
+At most one link per pair, and at most 30 links in total.
 
 "summary": one sentence describing what you are proposing.`;
 
@@ -184,6 +192,27 @@ export function conversationText(source) {
   return (source?.turns || [])
     .map((turn) => `Learner: ${learnerText(turn)}\n\nClaude: ${turn.text}`)
     .join("\n\n");
+}
+
+/**
+ * The members of groups attached anywhere in an Ask conversation, in first-sent order:
+ * [{ itemId, detail }]. A member sent at both detail levels counts at the fuller one.
+ */
+export function attachedGroupMembers(source) {
+  if (source?.kind !== "ask") return [];
+  const byId = new Map();
+  for (const turn of source.turns || []) {
+    for (const record of turn.attachments || []) {
+      const group = record?.group;
+      if (!group) continue;
+      for (const itemId of group.memberIds || []) {
+        const known = byId.get(itemId);
+        if (!known) byId.set(itemId, { itemId, detail: group.detail === "examples" ? "examples" : "meanings" });
+        else if (group.detail === "examples") known.detail = "examples";
+      }
+    }
+  }
+  return [...byId.values()];
 }
 
 /** The notebook entries attached anywhere in an Ask conversation, in first-attached order. */
@@ -223,7 +252,7 @@ export function buildKeepRequest({ source, tagNames = [], candidates = [], attac
   ].filter(Boolean).join("\n\n");
   return withRefusalFallback({
     model: KEEP_MODEL,
-    max_tokens: KEEP_MAX_TOKENS,
+    max_tokens: attached.some((snapshot) => snapshot.short) ? KEEP_GROUP_MAX_TOKENS : KEEP_MAX_TOKENS,
     // No `thinking`, `temperature` or `top_p`: this model rejects all three.
     output_config: {
       effort: KEEP_EFFORT,
