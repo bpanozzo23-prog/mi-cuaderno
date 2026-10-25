@@ -110,6 +110,8 @@ describe("the request", () => {
     expect(body.output_config).toEqual({ effort: KEEP_EFFORT, format: { type: "json_schema", schema: KEEP_SCHEMA } });
     expect(body).not.toHaveProperty("thinking");
     expect(body).not.toHaveProperty("temperature");
+    // One request per Keep: a cache write would cost more and never be read.
+    expect(body).not.toHaveProperty("cache_control");
     expect(body.fallbacks).toBe("default");
     expect(globalThis.fetch.mock.calls[0][1].headers["anthropic-beta"]).toBe(REFUSAL_FALLBACK_BETA);
   });

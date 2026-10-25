@@ -71,6 +71,20 @@ describe("Pregunta", () => {
     expect(globalThis.fetch.mock.calls[0][1].headers["x-api-key"]).toBe(KEY);
   });
 
+  it("says when part of a follow-up was read from cache, and only then", async () => {
+    const user = userEvent.setup();
+    render(<Pregunta />);
+    await ask(user, "How do you say I miss you?");
+    await screen.findByText("te extraño");
+    expect(screen.queryByText(/partly from cache/)).toBeNull();
+    const cached = answer("**Me haces falta**.");
+    cached.usage = { input_tokens: 40, cache_read_input_tokens: 1500, output_tokens: 300 };
+    globalThis.fetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => cached });
+    await ask(user, "And another way?");
+    expect(await screen.findByText("Me haces falta")).toBeTruthy();
+    expect(screen.getAllByText(/partly from cache/)).toHaveLength(1);
+  });
+
   it("sends the earlier exchange with a follow-up", async () => {
     const user = userEvent.setup();
     render(<Pregunta />);

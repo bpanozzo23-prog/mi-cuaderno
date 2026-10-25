@@ -50,6 +50,11 @@ describe("the request", () => {
     expect(body).not.toHaveProperty("top_p");
   });
 
+  it("asks for automatic prompt caching, so follow-ups re-read the conversation cheaply", async () => {
+    await requestAskTurn({ question: "How do you say I miss you?", apiKey: KEY });
+    expect(requestBody().cache_control).toEqual({ type: "ephemeral" });
+  });
+
   it("opts into the refusal fallback with its beta header", async () => {
     await requestAskTurn({ question: "¿Qué significa 'ni modo'?", apiKey: KEY });
     expect(requestBody().fallbacks).toBe("default");

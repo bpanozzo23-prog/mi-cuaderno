@@ -499,6 +499,8 @@ function AnswerMeta({ turn }) {
   const parts = [];
   const cost = formatCost(turn.cost);
   if (cost) parts.push(cost);
+  // Prompt caching at work: earlier turns were re-read at a fraction of the price.
+  if (turn.usage?.cache_read_input_tokens > 0) parts.push("partly from cache");
   if (turn.fallback) parts.push("answered by a fallback model");
   if (parts.length === 0) return null;
   return (

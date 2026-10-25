@@ -27,6 +27,13 @@ const ASK_MAX_TOKENS = 16000;
 export const MAX_QUESTION_CHARS = 4000;
 /** Questions per conversation. Long threads cost more each turn and drift; Keep, then start fresh. */
 export const MAX_TURNS = 12;
+/**
+ * Automatic prompt caching: the API puts the cache point on the last block and moves it forward
+ * as the conversation grows. History is echoed byte for byte, so a follow-up within five minutes
+ * reads everything before it from cache instead of paying full price again — attachments
+ * included. Only Pregunta asks: Keep and the Diario review are single requests.
+ */
+export const ASK_CACHE_CONTROL = Object.freeze({ type: "ephemeral" });
 
 export const ASK_SYSTEM_PROMPT = `You answer Spanish-language questions for an intermediate learner of Latin American Spanish. Prefer Mexican Spanish wherever regional variation matters.
 
@@ -69,6 +76,7 @@ export function buildAskRequest({ history = [], question, attachments = [] }) {
     // No `thinking`, `temperature` or `top_p`: thinking is always on for this model and any of
     // the three in the request is rejected. Effort is the only depth control.
     output_config: { effort: ASK_EFFORT },
+    cache_control: { ...ASK_CACHE_CONTROL },
     system: ASK_SYSTEM_PROMPT,
     messages,
   });

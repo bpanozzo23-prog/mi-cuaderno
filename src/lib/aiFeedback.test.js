@@ -73,6 +73,7 @@ describe("the request", () => {
   it("sends no refusal fallback or beta header — the review's request is unchanged by Pregunta", async () => {
     await call();
     expect(requestBody()).not.toHaveProperty("fallbacks");
+    expect(requestBody()).not.toHaveProperty("cache_control");
     expect(requestInit().headers).not.toHaveProperty("anthropic-beta");
   });
 
