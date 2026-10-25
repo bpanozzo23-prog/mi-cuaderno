@@ -8,7 +8,13 @@ import { AI_API_KEY_PREF } from "../lib/aiPrefs.js";
 import { MAX_QUESTION_CHARS, MAX_TURNS, questionProblem, requestAskTurn } from "../lib/aiAsk.js";
 import { formatCost } from "../lib/aiRequest.js";
 import { MAX_PASTE_CHARS } from "../lib/aiKeep.js";
-import { MAX_ATTACHMENTS, attachmentSnapshot, starterQuestions } from "../lib/askContext.js";
+import { MAX_ATTACHMENTS, starterQuestions } from "../lib/askContext.js";
+import {
+  GROUP_DETAIL,
+  MAX_CONVERSATION_GROUP_CHARS,
+  conversationGroupChars,
+  resolveAttachments,
+} from "../lib/askGroups.js";
 import { allPersonalExamples } from "../lib/meanings.js";
 
 /**
@@ -28,6 +34,10 @@ import { allPersonalExamples } from "../lib/meanings.js";
  * them so Repaso can queue one without leaving its session. Their text is built from the latest
  * notebook when Ask is tapped and frozen into the turn as `userContent`; from then on the
  * disclosure says notebook entries are part of this conversation.
+ *
+ * A group (a collection page's vocabulary, or a list from Words & phrases or Cuaderno) travels in
+ * a short form whose detail the owner picks in the tray. `resolveAttachments` builds the preview,
+ * the sent blocks and the turn record from the same reading, so the three always agree.
  */
 
 let turnSequence = 0;
@@ -39,10 +49,13 @@ export default function Pregunta({
   attachments = [],
   arrival = 0,
   onRemoveAttachments = () => {},
+  onSetAttachmentDetail = () => {},
 }) {
   const [turns, setTurns] = useState([]);
   const [draft, setDraft] = useState("");
   const [pendingQuestion, setPendingQuestion] = useState(null);
+  /** What the question in flight carries, for its bubble. */
+  const [pendingSent, setPendingSent] = useState([]);
   const [error, setError] = useState("");
   const [confirmNew, setConfirmNew] = useState(false);
   const [mode, setMode] = useState("ask");
@@ -59,6 +72,8 @@ export default function Pregunta({
   const handledArrivalRef = useRef(0);
   const notebookItems = notebook?.items;
   const itemsById = useMemo(() => new Map((notebookItems || []).map((item) => [item.id, item])), [notebookItems]);
+  /** The tray's view of the queue: exactly what Ask would send right now. */
+  const resolved = useMemo(() => resolveAttachments(attachments, notebookItems || []), [attachments, notebookItems]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -98,19 +113,17 @@ export default function Pregunta({
     if (asking) return;
     const question = draft.trim();
     // Built now, from the notebook as it is, so an edit made after attaching is what is sent.
-    const sending = attachments.map((attachment) => ({
-      attachment,
-      snapshot: attachmentSnapshot(itemsById.get(attachment.itemId), { items: notebookItems || [], review: attachment.review }),
-    }));
-    const gone = sending.filter((entry) => !entry.snapshot);
+    const queued = attachments;
+    const sending = resolveAttachments(queued, notebookItems || []);
+    const gone = sending.gone;
     if (gone.length > 0) {
-      onRemoveAttachments(gone.map((entry) => entry.attachment.key));
+      onRemoveAttachments(gone);
       setError(gone.length === 1
         ? "An attached entry is no longer in your cuaderno, so it was removed. Nothing was sent."
         : `${gone.length} attached entries are no longer in your cuaderno, so they were removed. Nothing was sent.`);
       return;
     }
-    const snapshots = sending.map((entry) => entry.snapshot);
+    const snapshots = sending.snapshots;
     const problem = questionProblem(question, turns, snapshots);
     if (problem) {
       setError(problem);
@@ -119,6 +132,7 @@ export default function Pregunta({
     setError("");
     setConfirmNew(false);
     setPendingQuestion(question);
+    setPendingSent(sending.sent);
     const controller = new AbortController();
     abortRef.current = controller;
     try {
@@ -131,10 +145,9 @@ export default function Pregunta({
         signal: controller.signal,
       });
       if (!mountedRef.current || controller.signal.aborted) return;
-      const sent = snapshots.map(({ itemId, label, kind }) => ({ itemId, label, kind }));
-      setTurns((current) => [...current, { id: nextTurnId(), question, ...result, attachments: sent }]);
+      setTurns((current) => [...current, { id: nextTurnId(), question, ...result, attachments: sending.sent }]);
       // Only what was sent: anything queued while Claude was answering stays for the next question.
-      if (sending.length > 0) onRemoveAttachments(sending.map((entry) => entry.attachment.key));
+      if (queued.length > 0) onRemoveAttachments(queued.map((attachment) => attachment.key));
       setDraft("");
     } catch (err) {
       // A Stop is the owner's own doing: the question simply stays in the composer.
@@ -239,10 +252,7 @@ export default function Pregunta({
         ))}
         {asking && (
           <div className="space-y-2">
-            <QuestionBubble text={pendingQuestion} attachments={attachments.map((attachment) => ({
-              itemId: attachment.itemId,
-              label: itemLabel(itemsById.get(attachment.itemId)),
-            }))} itemsById={itemsById} onSelect={onSelect} />
+            <QuestionBubble text={pendingQuestion} attachments={pendingSent} itemsById={itemsById} onSelect={onSelect} />
             <div className="flex items-center gap-2 text-sm" style={{ color: C.mut }}>
               <Loader2 size={16} className="animate-spin" /> Claude is thinking…
               <Button tone="quiet" onClick={stop} className="ml-auto">
@@ -306,10 +316,12 @@ export default function Pregunta({
         {attachments.length > 0 && !asking && (
           <AttachmentTray
             attachments={attachments}
-            itemsById={itemsById}
-            items={notebookItems || []}
+            resolved={resolved}
+            overBudget={resolved.groupChars > 0
+              && conversationGroupChars(turns) + resolved.groupChars > MAX_CONVERSATION_GROUP_CHARS}
             joinsConversation={turns.length > 0}
             onRemove={(key) => onRemoveAttachments([key])}
+            onSetDetail={onSetAttachmentDetail}
             starters={draft.trim() === "" ? starterQuestions(attachments.map((attachment) => {
               const item = itemsById.get(attachment.itemId);
               return {
@@ -317,6 +329,7 @@ export default function Pregunta({
                 origin: attachment.origin,
                 review: attachment.review,
                 hasExamples: allPersonalExamples(item).length > 0,
+                group: (resolved.chips[attachment.key]?.group?.sent || 0) > 0,
               };
             })) : []}
             onStarter={applyStarter}
@@ -363,8 +376,9 @@ export default function Pregunta({
           {sharesNotebook ? (
             <>
               Tapping Ask sends your question, this conversation so far, and the attached entries
-              (meanings, examples, notes and the names of linked entries) to Anthropic (Claude).
-              Nothing else from your notebook is included, and the conversation is not saved.
+              (meanings, examples, notes and the names of linked entries; for a group, its name and
+              each entry's meanings, plus examples if you choose) to Anthropic (Claude). Nothing
+              else from your notebook is included, and the conversation is not saved.
             </>
           ) : (
             <>
@@ -379,32 +393,38 @@ export default function Pregunta({
   );
 }
 
-const itemLabel = (item) => (item?.type === "page" ? item.title : item?.term) || "(removed entry)";
 const itemKind = (item) => (item?.type === "page" ? "page" : item?.form === "phrase" ? "phrase" : "word");
 
+/** "· 24 entries" after a group's chip; nothing for a single entry. */
+const groupCount = (record) => {
+  const count = record?.group?.memberIds?.length;
+  return count ? ` · ${count} ${count === 1 ? "entry" : "entries"}` : "";
+};
+
 function QuestionBubble({ text, attachments = [], itemsById, onSelect }) {
+  const chipStyle = { background: C.paper, color: C.mut, border: `1px solid ${C.line}` };
   return (
     <div className="flex flex-col items-end gap-1">
       {attachments?.length > 0 && (
         <div className="flex max-w-[85%] flex-wrap justify-end gap-1">
-          {attachments.map((attachment) => (
-            itemsById?.has(attachment.itemId) && onSelect ? (
+          {attachments.map((attachment, index) => (
+            attachment.itemId && itemsById?.has(attachment.itemId) && onSelect ? (
               <button
-                key={attachment.itemId}
+                key={`${attachment.itemId}-${index}`}
                 type="button"
                 onClick={() => onSelect(attachment.itemId)}
                 className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] underline-offset-2 hover:underline"
-                style={{ background: C.paper, color: C.mut, border: `1px solid ${C.line}` }}
+                style={chipStyle}
               >
-                <Paperclip size={10} /> About: {attachment.label}
+                <Paperclip size={10} /> About: {attachment.label}{groupCount(attachment)}
               </button>
             ) : (
               <span
-                key={attachment.itemId}
+                key={`${attachment.itemId || attachment.label}-${index}`}
                 className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px]"
-                style={{ background: C.paper, color: C.mut, border: `1px solid ${C.line}` }}
+                style={chipStyle}
               >
-                <Paperclip size={10} /> About: {attachment.label}
+                <Paperclip size={10} /> About: {attachment.label}{groupCount(attachment)}
               </span>
             )
           ))}
@@ -420,14 +440,33 @@ function QuestionBubble({ text, attachments = [], itemsById, onSelect }) {
   );
 }
 
-/** What will go with the next question: removable chips, the exact text, and starter questions. */
-function AttachmentTray({ attachments, itemsById, items, joinsConversation, onRemove, starters, onStarter }) {
+const DETAIL_OPTIONS = [
+  { value: GROUP_DETAIL.meanings, label: "Meanings" },
+  { value: GROUP_DETAIL.examples, label: "+ Examples" },
+];
+
+/** How big a group is as it stands: what fits, and roughly how much text that is. */
+function groupSummary(group) {
+  if (group.sent === 0) return "every entry is attached on its own";
+  const size = `about ${(Math.max(100, Math.round(group.chars / 100) * 100)).toLocaleString("en-US")} characters`;
+  return group.omitted > 0
+    ? `first ${group.sent} of ${group.total} entries fit · ${size}`
+    : `${group.total} ${group.total === 1 ? "entry" : "entries"} · ${size}`;
+}
+
+/**
+ * What will go with the next question: removable chips, a detail switch per group, the exact
+ * text, and starter questions. Everything shown comes from `resolved`, which is what Ask sends.
+ */
+function AttachmentTray({ attachments, resolved, overBudget, joinsConversation, onRemove, onSetDetail, starters, onStarter }) {
+  const chipFor = (attachment) => resolved.chips[attachment.key] || null;
+  const groups = attachments.filter((attachment) => chipFor(attachment)?.group);
   return (
     <div className="mb-3 space-y-2" aria-label="Attached to your next question">
       <div className="flex flex-wrap gap-1.5">
         {attachments.map((attachment) => {
-          const item = itemsById.get(attachment.itemId);
-          const label = itemLabel(item);
+          const chip = chipFor(attachment);
+          const label = chip?.label || "(removed entry)";
           return (
             <span
               key={attachment.key}
@@ -436,6 +475,9 @@ function AttachmentTray({ attachments, itemsById, items, joinsConversation, onRe
             >
               <Paperclip size={11} style={{ color: C.mut }} />
               <span className="truncate">About: {label}</span>
+              {chip?.group && (
+                <span className="shrink-0" style={{ color: C.mut, fontFamily: MONO }}>· {chip.group.total}</span>
+              )}
               <button
                 type="button"
                 aria-label={`Remove ${label}`}
@@ -448,19 +490,37 @@ function AttachmentTray({ attachments, itemsById, items, joinsConversation, onRe
           );
         })}
       </div>
+      {groups.map((attachment) => {
+        const chip = chipFor(attachment);
+        return (
+          <div key={attachment.key} className="space-y-1">
+            <div className="text-xs" style={{ color: C.mut }}>
+              <span style={{ color: C.ink }}>{chip.label}</span>: {groupSummary(chip.group)}
+            </div>
+            <Segmented
+              label={`How much of each entry to send for ${chip.label}`}
+              value={chip.group.detail}
+              options={DETAIL_OPTIONS}
+              onChange={(detail) => onSetDetail(attachment.key, detail)}
+            />
+          </div>
+        );
+      })}
       <details className="text-xs" style={{ color: C.mut }}>
         <summary className="cursor-pointer">What's sent with your question</summary>
         <div className="mt-1 space-y-2">
           {attachments.map((attachment) => {
-            const snapshot = attachmentSnapshot(itemsById.get(attachment.itemId), { items, review: attachment.review });
+            const chip = chipFor(attachment);
             return (
               <pre
                 key={attachment.key}
-                aria-label={`Sent for ${snapshot?.label || "a removed entry"}`}
+                aria-label={`Sent for ${chip?.label || "a removed entry"}`}
                 className="max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-lg p-2 text-[11px]"
                 style={{ background: C.paper, color: C.ink, border: `1px solid ${C.line}`, fontFamily: MONO }}
               >
-                {snapshot ? snapshot.text : "This entry is no longer in your cuaderno; it will be removed."}
+                {!chip
+                  ? "This entry is no longer in your cuaderno; it will be removed."
+                  : chip.preview || "Nothing from this group: its entries are attached on their own."}
               </pre>
             );
           })}
@@ -469,6 +529,17 @@ function AttachmentTray({ attachments, itemsById, items, joinsConversation, onRe
       {attachments.length >= MAX_ATTACHMENTS && (
         <div className="text-xs" style={{ color: C.mut }}>
           {MAX_ATTACHMENTS} attachments is the most for one question.
+        </div>
+      )}
+      {resolved.groupCount > 2 && (
+        <div className="text-xs" style={{ color: C.red }}>
+          Two groups is the most for one question. Remove one before asking.
+        </div>
+      )}
+      {overBudget && (
+        <div className="text-xs" style={{ color: C.red }}>
+          This conversation already carries a lot of notebook text. Remove a group, or start a new
+          question (attachments stay).
         </div>
       )}
       {joinsConversation && (

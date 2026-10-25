@@ -11,6 +11,7 @@ import Wander from "./components/Wander.jsx";
 import CuidarHub from "./components/CuidarHub.jsx";
 import Pregunta from "./components/Pregunta.jsx";
 import { queueAttachment } from "./lib/askContext.js";
+import { setAttachmentDetail } from "./lib/askGroups.js";
 import { useNotebook } from "./useNotebook.js";
 import { isJournalEntry } from "./lib/journal.js";
 import { parseSharePayload } from "./lib/shareTarget.js";
@@ -591,6 +592,12 @@ export default function App() {
     setPreguntaQueue(preguntaQueueRef.current);
   }
 
+  /** The owner's choice of detail for a queued group (Meanings, or Meanings + examples). */
+  function setPreguntaAttachmentDetail(key, detail) {
+    preguntaQueueRef.current = setAttachmentDetail(preguntaQueueRef.current, key, detail);
+    setPreguntaQueue(preguntaQueueRef.current);
+  }
+
   /* Offered only while Pregunta is reachable; screens hide their Ask buttons otherwise. */
   const askAbout = aiReady === true
     ? (itemId, options) => {
@@ -963,6 +970,7 @@ export default function App() {
                   attachments={preguntaQueue.attachments}
                   arrival={preguntaQueue.arrival}
                   onRemoveAttachments={removePreguntaAttachments}
+                  onSetAttachmentDetail={setPreguntaAttachmentDetail}
                 />
               </section>
             )}

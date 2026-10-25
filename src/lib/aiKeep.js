@@ -189,7 +189,10 @@ export function conversationText(source) {
 /** The notebook entries attached anywhere in an Ask conversation, in first-attached order. */
 export function attachedItemIds(source) {
   if (source?.kind !== "ask") return [];
-  return [...new Set((source.turns || []).flatMap((turn) => (turn.attachments || []).map((attachment) => attachment.itemId)))];
+  // A list group has no entry of its own; its members are not single attachments.
+  return [...new Set((source.turns || []).flatMap((turn) => (turn.attachments || [])
+    .map((attachment) => attachment.itemId)
+    .filter(Boolean)))];
 }
 
 function conversationBlock(source) {

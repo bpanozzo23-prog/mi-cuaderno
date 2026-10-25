@@ -280,6 +280,10 @@ export function attachmentsBlock(snapshots = []) {
 /** One-tap openings for the composer. They only fill it; Ask still sends. */
 export function starterQuestions(attachments = []) {
   if (attachments.length === 0) return [];
+  // A group is the subject even when single entries come with it.
+  if (attachments.some((attachment) => attachment.group)) {
+    return ["Quiz me on these", "Which of these could I mix up?", "Give me a sentence using each", "What useful words are missing here?"];
+  }
   if (attachments.length > 1) {
     return ["What's the difference between these?", "Help me remember these", "Give me a sentence using each"];
   }

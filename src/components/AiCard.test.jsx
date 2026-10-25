@@ -37,6 +37,7 @@ describe("turning the feature on", () => {
     expect(screen.getByText(/Nothing is sent until you tap, and only to Anthropic/i)).toBeTruthy();
     expect(screen.getByText(/Diario Feedback sends that entry's title and text/i)).toBeTruthy();
     expect(screen.getByText(/From your notebook it sends\s+only entries you attach with Ask Claude/i)).toBeTruthy();
+    expect(screen.getByText(/A group — a collection's vocabulary or a list you narrowed — sends\s+its name and each entry's meanings, plus examples if you choose/)).toBeTruthy();
     expect(screen.getByText(/Keep also sends your tag names, a short list of entries .* and any attached entries in full/is)).toBeTruthy();
     expect(screen.getByText(/stored in this browser/i)).toBeTruthy();
     expect(await getPref(AI_ENABLED_PREF)).toBe(null);

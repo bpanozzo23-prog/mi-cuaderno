@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App.jsx";
+import { emptyCollection } from "./lib/pageKinds.js";
 import { db, clearAllPersonalData, setPref } from "./db/db.js";
 import { AI_API_KEY_PREF, AI_ENABLED_PREF } from "./lib/aiPrefs.js";
 import * as aiPrefs from "./lib/aiPrefs.js";
@@ -214,6 +215,30 @@ describe("Ask about this", () => {
     render(<App />);
     await user.click(await screen.findByRole("button", { name: "Ask Claude about this page" }));
     expect(within(await tray()).getByText("About: Ser vs estar")).toBeTruthy();
+  });
+
+  it("attaches a collection page's vocabulary as a group whose detail the owner picks", async () => {
+    const user = userEvent.setup();
+    await enableAi();
+    const quedar = await items.createItem(items.newLexical({
+      term: "quedar",
+      meanings: [{ gloss: "to remain", examples: [{ es: "Quedamos a las cinco.", en: "Let's meet at five." }] }],
+    }));
+    const page = await items.createItem({
+      ...items.newPage({ title: "Planes" }),
+      linkedKeys: [quedar.id],
+      collection: emptyCollection({ enabled: true, groups: [{ id: "group:1", name: "Verbos", itemKeys: [quedar.id] }] }),
+    });
+    startOnEntry(page.id);
+    render(<App />);
+    await user.click(await screen.findByRole("button", { name: "Ask Claude about this page" }));
+    const shown = await tray();
+    expect(within(shown).getByText("About: Planes")).toBeTruthy();
+    const preview = () => screen.getByLabelText("Sent for Planes").textContent;
+    expect(preview()).toContain("Entry: quedar");
+    expect(preview()).not.toContain("Quedamos");
+    await user.click(within(shown).getByRole("radio", { name: "+ Examples" }));
+    expect(preview()).toContain("Example: Quedamos a las cinco.");
   });
 
   it("forgets queued entries when AI is turned off, so turning it on again replays nothing", async () => {

@@ -119,7 +119,9 @@ export default function AiCard({ onChanged }) {
           <li>
             Pregunta sends your questions and the conversation so far. From your notebook it sends
             only entries you attach with Ask Claude: their meanings, examples, notes and the names
-            of linked entries. The conversation is never saved; turning AI off closes it.
+            of linked entries. A group — a collection's vocabulary or a list you narrowed — sends
+            its name and each entry's meanings, plus examples if you choose. The conversation is
+            never saved; turning AI off closes it.
           </li>
           <li>
             Keep also sends your tag names, a short list of entries that seem related (term and

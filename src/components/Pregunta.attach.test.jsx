@@ -9,6 +9,8 @@ import * as items from "../db/items.js";
 import { createItem, newLexical } from "../db/items.js";
 import { AI_API_KEY_PREF } from "../lib/aiPrefs.js";
 import * as persistence from "../lib/persistence.js";
+import { setAttachmentDetail } from "../lib/askGroups.js";
+import { emptyCollection } from "../lib/pageKinds.js";
 
 const KEY = "sk-ant-test-key";
 
@@ -53,6 +55,7 @@ function Harness({ notebookItems, initial = [], onSelect }) {
         ...current,
         attachments: current.attachments.filter((attachment) => !keys.includes(attachment.key)),
       }))}
+      onSetAttachmentDetail={(key, detail) => setQueue((current) => setAttachmentDetail(current, key, detail))}
     />
   );
 }
@@ -105,7 +108,7 @@ describe("attaching an entry", () => {
     const preview = screen.getByLabelText("Sent for quedar");
     expect(preview.textContent).toContain("Entry: quedar (word)");
     expect(preview.textContent).toContain("Example: Quedamos a las cinco. — Let's meet at five.");
-    expect(screen.getByText(/and the attached entries \(meanings, examples, notes and the names of linked entries\)/)).toBeTruthy();
+    expect(screen.getByText(/and the attached entries \(meanings, examples, notes and the names of linked entries; for a group, its name and\s+each entry's meanings, plus examples if you choose\)/)).toBeTruthy();
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
@@ -537,5 +540,106 @@ describe("Keep adds to an attached entry", () => {
     await user.click(screen.getByRole("button", { name: "Done" }));
     await user.click(screen.getByRole("button", { name: "New question" }));
     expect(screen.queryByText(/for plans/)).toBeNull();
+  });
+});
+
+describe("attaching a group", () => {
+  const listGroup = (memberIds, extra = {}) => ({
+    key: `group:${memberIds.join(",")}`,
+    kind: "group",
+    label: "Tagged “planes”",
+    memberIds,
+    detail: "meanings",
+    ...extra,
+  });
+
+  it("shows the group, lets the owner pick its detail, and sends exactly the preview", async () => {
+    const user = userEvent.setup();
+    await renderHarness({ initial: [listGroup([quedar.id, ir.id])] });
+
+    expect(within(tray()).getByText("About: Tagged “planes”")).toBeTruthy();
+    expect(within(tray()).getByText(/2 entries · about \d[\d,]* characters/)).toBeTruthy();
+    const preview = () => screen.getByLabelText("Sent for Tagged “planes”").textContent;
+    expect(preview()).toContain("Group: My words and phrases — Tagged “planes” (2 entries; meanings only)");
+    expect(preview()).not.toContain("Quedamos");
+    expect(within(tray()).getByRole("button", { name: "Quiz me on these" })).toBeTruthy();
+
+    await user.click(screen.getByRole("radio", { name: "+ Examples" }));
+    expect(preview()).toContain("Example: Quedamos a las cinco. — Let's meet at five.");
+    const shown = preview();
+
+    await ask(user, "Quiz me on these");
+    await screen.findByText("quedar");
+    const sent = bodyAt(0).messages.at(-1).content;
+    expect(sent).toBe(`<attached_group>\n${shown}\n</attached_group>\n\nQuiz me on these`);
+    expect(sent).not.toMatch(/user:/);
+    expect(screen.getByText(/About: Tagged “planes” · 2 entries/)).toBeTruthy();
+    expect(tray()).toBeNull();
+  });
+
+  it("sends a collection page's vocabulary as a group after the page", async () => {
+    const user = userEvent.setup();
+    const page = await createItem({
+      ...items.newPage({ title: "Planes", body: "Making plans." }),
+      linkedKeys: [quedar.id, ir.id],
+      collection: emptyCollection({ enabled: true, groups: [{ id: "group:1", name: "Verbos", itemKeys: [quedar.id, ir.id] }] }),
+    });
+    await renderHarness({ initial: [attach(page, { origin: "page" })] });
+
+    expect(within(tray()).getByText("About: Planes")).toBeTruthy();
+    expect(within(tray()).getByText(/^: 2 entries/)).toBeTruthy();
+    await ask(user, "Quiz me");
+    await screen.findByText("quedar");
+    const sent = bodyAt(0).messages.at(-1).content;
+    expect(sent).toMatch(/^<attached_entry>\nPage: Planes\nMaking plans\.\n<\/attached_entry>\n\n<attached_group>\nGroup: Vocabulary on the page “Planes” \(2 entries; meanings only\)\nSection: Verbos\nEntry: quedar/);
+  });
+
+  it("sends an entry attached on its own in full, and leaves it out of the group", async () => {
+    const user = userEvent.setup();
+    await renderHarness({ initial: [listGroup([quedar.id, ir.id]), attach(quedar)] });
+    await ask(user, "Compare");
+    await screen.findByText("quedar");
+    const sent = bodyAt(0).messages.at(-1).content;
+    const group = sent.slice(sent.indexOf("<attached_group>"), sent.indexOf("</attached_group>"));
+    expect(group).not.toContain("quedar");
+    expect(group).toContain("Entry: ir");
+    expect(sent).toContain("<attached_entry>\nEntry: quedar");
+  });
+
+  it("refuses a group whose entries were all deleted, and sends nothing", async () => {
+    const user = userEvent.setup();
+    const view = await renderHarness({ initial: [listGroup([ir.id]), attach(quedar)] });
+    await items.deleteItem(ir.id);
+    view.rerenderWith(await items.allItems());
+    await ask(user, "Compare");
+    expect((await screen.findByRole("alert")).textContent).toMatch(/no longer in your cuaderno, so it was removed\. Nothing was sent/);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(within(tray()).queryByText("About: Tagged “planes”")).toBeNull();
+    expect(within(tray()).getByText("About: quedar")).toBeTruthy();
+  });
+
+  it("warns before a conversation carries too much group text, and refuses to send it", async () => {
+    const user = userEvent.setup();
+    const long = "a meaning long enough to fill the group quickly ".repeat(5);
+    const many = [];
+    for (let index = 0; index < 45; index += 1) {
+      many.push(await createItem(newLexical({ term: `palabra${index}`, meanings: [{ gloss: `${long}${index}` }] })));
+    }
+    await renderHarness({ initial: [listGroup(many.map((item) => item.id))] });
+    const group = () => listGroup(many.map((item) => item.id), { key: `again-${Math.random()}` });
+
+    await ask(user, "First");
+    await waitFor(() => expect(globalThis.fetch).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(tray()).toBeNull());
+    control.add(group());
+    await ask(user, "Second");
+    await waitFor(() => expect(globalThis.fetch).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(tray()).toBeNull());
+    control.add(group());
+
+    expect(await within(await waitFor(() => tray())).findByText(/already carries a lot of notebook text/)).toBeTruthy();
+    await ask(user, "Third");
+    expect((await screen.findByRole("alert")).textContent).toMatch(/a lot of notebook text/);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
   });
 });
