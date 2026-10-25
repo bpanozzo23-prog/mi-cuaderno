@@ -604,7 +604,7 @@ discovery tradeoff; a real-use waiting period is not required.
 ### AI Ask and Tidy with a shared review
 
 - **Date added:** 2026-10-24
-- **Status:** in progress — Ask + Keep (first slice) published 2026-10-24 (`29101fe`) and awaiting owner checks; "Ask about this" attachments (follow-on step 1, below) published 2026-10-24 (`3f13cf1`) and awaiting owner checks; "Keep adds to existing entries" (follow-on step 2) published 2026-10-24 (`a8cbe36`) and awaiting owner checks; Tidy remains an idea
+- **Status:** in progress — Ask + Keep (first slice) published 2026-10-24 (`29101fe`) and awaiting owner checks; "Ask about this" attachments (follow-on step 1, below) published 2026-10-24 (`3f13cf1`) and awaiting owner checks; "Keep adds to existing entries" (follow-on step 2) published 2026-10-24 (`a8cbe36`) and awaiting owner checks; group attachments (follow-on step 3) OWNER-APPROVED 2026-10-24 and in progress; Tidy remains an idea
 - **Size (draft):** large overall. Ask with Keep is medium to large; Tidy is large; the shared
   review is part of whichever is built first
 - **Touches (draft):** AI request/disclosure (existing Phase 6 layer), a new proposal format and
@@ -719,7 +719,7 @@ question instead of the owner retyping it. Agreed order:
    leaving the session, "Ask now" ends the session first (owner chose both). One-tap starter
    questions, linked entry names included, and Keep treats attached entries as link targets.
 2. **"Add to an existing entry" proposals (OWNER-APPROVED 2026-10-24; published in `a8cbe36`; plan below)** for Keep — the same capability Tidy needs, built once.
-3. **Several entries or a collection as context**, which by then overlaps with Tidy.
+3. **Several entries or a collection as context (OWNER-APPROVED 2026-10-24; plan below)**, which by then overlaps with Tidy.
    Several entries already work one at a time (up to five chips); this step is attaching a whole
    collection, tag or selection in one tap, which needs compact per-entry text and a higher cap.
    Bring it forward as a small "Ask about this collection" if one-at-a-time attaching proves
@@ -788,6 +788,45 @@ use Ask, Keep and attachments for a few days first, so the kinds of change seen 
   [Personal-content provenance](#personal-content-provenance). This is the main design decision.
 - **Sizing (agent estimate):** medium, more delicate than Ask + Keep and Ask about this because
   it changes existing data. Codex review of plan and diff, as before.
+
+#### Step 3 plan: attach a whole group (OWNER-APPROVED 2026-10-24)
+
+**Owner decisions.** Group sources: collection pages and a tag or filtered list (not Repaso
+missed cards, not a hand-picked select mode). The owner picks the detail level before sending
+(Meanings, or Meanings + examples). Keep may add examples, tags and links to group members, but
+no new meanings or note paragraphs, because Claude saw only a short form. Codex scouted the code
+and reviewed the draft read-only; its nine findings are folded in.
+
+**Rules.**
+1. A group is one chip standing for many words and phrases, sent in a short form; it counts as
+   one of the five chips. Single attachments are unchanged.
+2. **Collection page:** the existing "Ask Claude" on a page also sends its vocabulary (members
+   from `deriveCollection`, the outgoing-link authority) when the Vocabulary structure is
+   enabled, resolved at Ask time; disabled vocabulary attaches as today. Empty, disabled or fully
+   covered vocabulary still sends the page's own content.
+3. **Filtered list:** "Ask Claude about these N" on the Words & phrases hub and Cuaderno's
+   Browse/Search when a tag, form/type, refine filter or search narrows the list (sort does not
+   count). Members are the full lexical result list, frozen when tapped. The label sent names only
+   the tag, form/type and search text; other narrowing adds "(filtered)". Learning filters are
+   never named.
+4. **Short form:** term, form, part of speech, numbered meanings with gloss and usage labels;
+   optionally examples and My examples. Never notes, tags, IDs, links, media or review data. One
+   serializer for Ask and Keep emits the text and its `m#` map together; `attached_group` joins
+   the shared data-tag scrub.
+5. **Limits (defaults):** 50 entries and 12,000 characters per group, 2 groups per question,
+   30,000 characters of group text per conversation; Keep sends at most 60 group members (first
+   sent first) besides the unchanged 40-entry related list, and proposes at most 30 changed
+   entries, 60 additions and 30 connections, with a 32k output ceiling only when groups are
+   present.
+6. **Keep:** group members are frozen with a fingerprint when Keep opens, marked short-form
+   (distinct from truncated singles, whose rule is unchanged); they may get examples, tags and
+   links, including links between two members. "Tick all / Untick all" skips stale entries and
+   flagged examples.
+7. **Prompt caching** for Pregunta (top-level automatic, five minutes) so follow-ups re-read the
+   conversation at a fraction of the price; the cost line says when part came from cache.
+
+**Not in scope.** Repaso missed-cards group, hand-picked selection, a names-only level, Tidy,
+pages as group members, per-entry tags, schema or storage changes, saved conversations.
 
 #### Risks, dependencies and related ideas
 
