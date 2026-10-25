@@ -2,7 +2,8 @@
 
 The app is deployed; reassessment Steps 1–3, bounded lint/refresh work, documentation-only CI
 filtering, shared Node selection, guarded Journal/Back/Forward navigation ordering, Ask + Keep
-(Pregunta), Ask about this and Keep adds to existing entries are published.
+(Pregunta), Ask about this and Keep adds to existing entries are published; group attachments are
+complete locally and not pushed.
 This is the starting point for current status, not a release diary.
 
 ## Verified release
@@ -25,6 +26,18 @@ This is the starting point for current status, not a release diary.
 
 ## Work and boundaries
 
+- **Complete locally; not pushed (`20e2b52`, 2026-10-24):** group attachments — step 3 of Ask about
+  this (approved 2026-10-24). Ask Claude on a collection page also sends its vocabulary, and "Ask
+  Claude about these N" on a narrowed Words & phrases or Browse all list sends that list, each as one
+  chip in a short form whose detail the owner picks (Meanings, or + Examples); never notes, tags,
+  links or review data, and learning filters are never named. Keep may give group members examples,
+  tags and connections only. Pregunta follow-ups use prompt caching. No schema change. Zero-warning
+  lint, **2,307 tests across 174 files** serially in 480.01s and the production build pass; Chromium
+  at 375×812 with fixtures and locally fulfilled requests verified the flows. Codex reviewed the
+  design and the diff; all findings are fixed. See the
+  [decision record](../DECISIONS.md#group-attachments--ask-about-this-step-3-2026-10-24).
+  **Pending owner checks:** real phone use, whether the detail switch, starters and group summaries
+  help, review size, and the "partly from cache" note on a quick real follow-up.
 - **Complete and published (`a8cbe36`, 2026-10-24):** "Keep adds to existing entries" —
   step 2 of Ask about this (approved 2026-10-24). Keep may propose additions to attached words and
   phrases (examples on a meaning or in My examples, new meanings, a note paragraph, tags) and

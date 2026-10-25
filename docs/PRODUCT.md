@@ -96,7 +96,19 @@ sent and one-tap starter questions before anything leaves the device, and the st
 says notebook entries are included. In Repaso, "Ask Claude later" queues the card without leaving
 the session; "Ask now" ends the session first. An attachment never discards an unkept
 conversation. The conversation lives only in memory: it survives switching tabs, and is discarded
-by New question, a reload, or turning AI off. It is never stored or backed up.
+by New question, a reload, or turning AI off. It is never stored or backed up. Follow-up questions
+reuse the earlier conversation through prompt caching, so they cost less; the cost line says when.
+
+A **group** attaches many words and phrases as one chip: Ask Claude on a collection page also sends
+its vocabulary (while the Vocabulary structure is enabled), and "Ask Claude about these N" on a
+Words & phrases or Browse all list narrowed by a tag, filter or search sends that list. A group is
+sent in a short form — each entry's term, kind, part of speech and numbered meanings with labels,
+plus examples if the owner chooses — never notes, tags, links or review data. The label Claude sees
+names only the tag, word/phrase form and search text; learning filters such as "Due today" are never
+named. A group holds at most 50 entries and 12,000 characters, a question at most two groups, and a
+conversation at most 30,000 characters of group text; the tray says what fits, what is attached
+elsewhere and what is left out. An entry attached on its own is sent in full and not repeated in a
+group.
 
 **Keep.** Keep turns a Pregunta conversation, or a conversation the owner pastes from another
 app, into proposed notebook entries. Before sending, it names exactly what leaves the device:
@@ -116,6 +128,11 @@ adds to pages or to entries it saw only by name, and adds only tags and links to
 that was shortened. An entry the owner changes after Claude saw it is not added to; the review
 says so. Ticking an addition adopts it: it carries no AI marker, and the entry's history records
 an ordinary edit.
+
+Members of an attached group reach Keep in the same short form, so Keep may give them only
+examples, tags and connections (including between two members), never new meanings or notes. Keep
+sends at most 60 group members and proposes at most 30 changed entries, 60 additions and 30
+connections; the confirmation says how many group members were left out.
 
 A notebook-wide assistant that reorganizes or edits existing content (Tidy) remains a future
 possibility. Any future saving of proposed content must remain explicit.

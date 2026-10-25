@@ -219,7 +219,9 @@ review](../src/lib/diarioReview.js) uses it through [AI feedback](../src/lib/aiF
 its own model and no refusal fallback. [Pregunta](../src/lib/aiAsk.js) and
 [Keep](../src/lib/aiKeep.js) use `claude-opus-5-5` with the server-side refusal fallback;
 thinking is never configured, and Pregunta echoes each earlier assistant content array unchanged
-so history stays append-only. [Preferences](../src/lib/aiPrefs.js) hold the flag and key.
+so history stays append-only. Pregunta alone asks for top-level automatic prompt caching (5-minute
+window), so a follow-up re-reads the echoed conversation from cache; Keep and the Diario review are
+single requests and send no `cache_control`. [Preferences](../src/lib/aiPrefs.js) hold the flag and key.
 
 [The feedback component](../src/components/DiarioFeedback.jsx) persists the latest response and
 reviewed-text hash without a content edit/timestamp change. A hash mismatch marks stale feedback.
@@ -238,18 +240,39 @@ messages, never the device-side item IDs. Attached words and phrases lead Keep's
 remote images, so an answer cannot trigger another network request. Keep finds related entries
 on the device with [keepCandidates](../src/lib/keepCandidates.js) (whole-token runs through
 `normalize`, ñ preserved), and sends them under opaque `c#` references, never `user:` IDs.
+[askGroups](../src/lib/askGroups.js) adds groups: a queued page whose Vocabulary structure is
+enabled sends its vocabulary (members from `deriveCollection`, the outgoing-link authority,
+resolved at Ask time), and a list group carries the member IDs frozen when "Ask Claude about these
+N" was tapped, a privacy-safe label (tag, form and search text only; other narrowing, including
+learning filters, is "(filtered)") and a device-only `sourceKey` that keeps same-label lists apart.
+One allowlisted short-form serializer (term, kind, part of speech, numbered meanings with labels,
+optionally up to three examples per meaning and three My examples; never notes) serves Ask and
+Keep and returns its `m#` map with the text. `resolveAttachments` turns the whole queue into the
+exact blocks, tray summaries and device-side turn records from one reading, so preview, request and
+record agree: an entry attached on its own is sent in full; membership across groups is settled
+before caps (first group that lists an entry owns it); then each group is filled entry by entry
+within 50 entries and 12,000 characters, its heading (cut to 200 characters) and omission line
+budgeted. A question carries at most two groups and a conversation at most 30,000 characters of
+group text (`questionProblem`). `attached_group` is a shared data tag, so notebook text cannot close
+the block. Cuaderno offers its list only after a pending dictionary lookup settles.
 When Keep opens, [keepAttached](../src/lib/keepAttached.js) freezes each attached word or phrase
 from one reading: the snapshot text sent in an `<attached_entries>` block (meanings numbered
 `m1`, `m2`…), the meaning-number → meaning-ID map, and an exact canonical-JSON
 [content fingerprint](../src/lib/contentFingerprint.js) (term, form, pos, meanings with IDs and
 order, My examples, notes, note sections, tags; links excluded because linking bumps `updatedAt`
-without changing content).
+without changing content). Members of attached groups (at most 60, first sent first, outside the
+40-entry related list, which still covers singles and matches; members past the limit are never
+matched back in) are frozen the same way but in short form at the detail sent, marked `short`
+(distinct from a `truncated` single), so they may receive only examples, tags and links; Keep's
+output ceiling rises from 16k to 32k tokens only then.
 [keepProposals](../src/lib/keepProposals.js) normalizes the structured response (drops
 unexportable examples, reuses owner tag spellings, adds `ia` to new entries only, flags notebook
 and in-batch duplicates, keeps one link per pair with at least one new or attached end) and turns
 ticks into writes. Additions go only to attached entries whose snapshot was not shortened (tags
 and links excepted); a meaning ref must be an own key of the frozen map; exact example repeats
-(accents kept) and notes already present are dropped, accent-only matches flagged unticked.
+(accents kept) and notes already present are dropped, accent-only matches flagged unticked. A Keep
+proposes at most 30 changed entries, 60 additions and 30 connections; the excess is counted as left
+out.
 [`applyKeep`](../src/db/items.js) applies everything in one items+events transaction. Each
 attached entry's additions are appended to the fresh record with one `updateItem` (one `edit`
 event, meaning-connection protection intact) only while its fingerprint still matches;
@@ -262,6 +285,8 @@ direction, is skipped and reported; any other failure rolls back the whole batch
 greys out an entry that changes while it is open, marks a batch committed before refreshing, so
 a failed refresh offers only Refresh, opens new entries only after a load, and counts the
 conversation as kept only when something saved and no ticked addition was refused as changed.
+With more than five changed entries it offers Tick all / Untick all; Tick all skips stale entries
+and leaves flagged examples as the owner set them.
 
 ## Changing this architecture
 
