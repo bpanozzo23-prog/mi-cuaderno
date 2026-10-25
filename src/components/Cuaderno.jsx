@@ -3,6 +3,7 @@ import { ArrowLeft, Plus, BookOpen, FileText, X } from "lucide-react";
 import { C, SERIF, MONO, dotGrid, Chip, Card } from "../theme.jsx";
 import ItemCard from "./ItemCard.jsx";
 import AddSheet from "./AddSheet.jsx";
+import AskAboutListButton from "./AskAboutListButton.jsx";
 import PageStarterGallery from "./PageStarterGallery.jsx";
 import Detail from "./Detail.jsx";
 import DictCard from "./DictCard.jsx";
@@ -23,6 +24,7 @@ import {
   tagCountsIn,
 } from "../lib/organization.js";
 import { isJournalEntry } from "../lib/journal.js";
+import { listGroupLabel } from "../lib/askGroups.js";
 import { emptyItemState } from "../useNotebook.js";
 import { deriveReviewState, emptyReviewState } from "../lib/review.js";
 import { eligibleWanderItems, sampleWanderStart } from "../lib/wander.js";
@@ -63,6 +65,7 @@ export default function Cuaderno({
   backLabel = "Todo el cuaderno",
   onOpenSettings,
   onAskAbout,
+  onAskAboutList = null,
   onOpenPages,
   onOpenLexical,
   onOpenCuidar,
@@ -341,6 +344,29 @@ export default function Cuaderno({
     + Number(browseOrder !== BROWSE_ORDERS.touched)
     + Number(Boolean(effectiveTag));
   const displayedVisible = activeRootMode === "landing" ? [] : visible.slice(0, resultLimit);
+  // The whole list, not just the loaded page: personal words and phrases only, in screen order.
+  const listedLexical = visible
+    .filter((result) => result.kind === "item" && result.item.type === "lexical")
+    .map((result) => result.item);
+  // Narrowing that changes which entries are listed; sort order does not. Only the tag, the type
+  // and the search are named to Claude.
+  const listFiltered = maintenanceView !== MAINTENANCE_VIEWS.all;
+  const canAskAboutList = Boolean(onAskAboutList)
+    && (activeRootMode === "browse" || activeRootMode === "search")
+    && (listFiltered || typeFilter !== FILTERS.all || Boolean(effectiveTag) || searching)
+    && listedLexical.length >= 2;
+
+  function askAboutList() {
+    onAskAboutList({
+      label: listGroupLabel({
+        tag: effectiveTag || "",
+        form: typeFilter === FILTERS.word ? "words" : typeFilter === FILTERS.phrase ? "phrases" : "",
+        search: searching ? query.trim() : "",
+        filtered: listFiltered,
+      }),
+      memberIds: listedLexical.map((item) => item.id),
+    });
+  }
   const canLoadMore = activeRootMode !== "landing" && displayedVisible.length < visible.length;
 
   const selected = items.find((i) => i.id === selectedId) || null;
@@ -620,6 +646,9 @@ export default function Cuaderno({
           </div>
 
           <div className="space-y-[7.5px] px-4 py-4 pb-28" style={dotGrid}>
+            {canAskAboutList && (
+              <AskAboutListButton count={listedLexical.length} onClick={askAboutList} />
+            )}
             {visible.length === 0 && (
               <EmptyState
                 hasItems={items.length > 0}

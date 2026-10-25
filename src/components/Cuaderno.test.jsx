@@ -696,3 +696,44 @@ describe("Cuaderno dictionary metadata", () => {
     }
   });
 });
+
+describe("asking Claude about a narrowed list", () => {
+  const askButton = () => screen.queryByRole("button", { name: /^Ask Claude about these/ });
+  const items = [
+    word("cebolla", { tags: ["cocina"], updatedAt: at(3) }),
+    word("picar", { tags: ["cocina"], updatedAt: at(2) }),
+    page("Recetas", { tags: ["cocina"], updatedAt: at(4) }),
+    word("dormir", { updatedAt: at(1) }),
+  ];
+
+  it("attaches the narrowed list's words and phrases — never pages — labelled by tag", async () => {
+    const user = userEvent.setup();
+    const onAskAboutList = vi.fn();
+    render(<Cuaderno {...propsFor(items, { onAskAboutList })} />);
+    await openRefine(user);
+    expect(askButton()).toBeNull();
+    await user.selectOptions(screen.getByRole("combobox", { name: "Order" }), "alphabetical");
+    expect(askButton()).toBeNull();
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Tag" }), "cocina");
+    expect(askButton().textContent).toContain("Ask Claude about these 2");
+    await user.click(askButton());
+    expect(onAskAboutList).toHaveBeenCalledWith({ label: "Tagged “cocina”", memberIds: ["user:cebolla", "user:picar"] });
+  });
+
+  it("marks a maintenance view as just filtered, and is absent without Pregunta", async () => {
+    const user = userEvent.setup();
+    const onAskAboutList = vi.fn();
+    const { unmount } = render(<Cuaderno {...propsFor(items, { onAskAboutList })} />);
+    await openRefine(user);
+    await user.selectOptions(screen.getByRole("combobox", { name: "View" }), "unlinked");
+    await user.click(askButton());
+    expect(onAskAboutList.mock.calls[0][0].label).toBe("(filtered)");
+    unmount();
+
+    render(<Cuaderno {...propsFor(items)} />);
+    await openRefine(user);
+    await user.selectOptions(screen.getByRole("combobox", { name: "Tag" }), "cocina");
+    expect(askButton()).toBeNull();
+  });
+});

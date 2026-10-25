@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, Link2, Play, Plus, Search } from "lucide-react";
 import { Button, C, Chip, MONO, SERIF } from "../theme.jsx";
 import AddSheet from "./AddSheet.jsx";
+import AskAboutListButton from "./AskAboutListButton.jsx";
 import { RefineBar, RefinePanel, RefineSelect } from "./Refine.jsx";
 import LexicalHubCard from "./LexicalHubCard.jsx";
 import PracticeSession from "./PracticeSession.jsx";
@@ -40,6 +41,7 @@ import {
 } from "../lib/lexicalViews.js";
 import { buildPracticeDeck, isPracticeEligible } from "../lib/practice.js";
 import { preparePracticeCards } from "../lib/practiceCards.js";
+import { listGroupLabel } from "../lib/askGroups.js";
 import {
   deriveSimilarMeaningPrompts,
   selectSimilarMeaningRecallDeck,
@@ -119,6 +121,7 @@ export default function LexicalHub({
   onBack,
   backLabel = "Cuaderno",
   onSearchDictionary,
+  onAskAboutList = null,
 }) {
   const { items, events, reload } = notebook;
   const [query, setQuery] = useState("");
@@ -352,6 +355,31 @@ export default function LexicalHub({
     + Number(effectivePos !== LEXICAL_POS_ANY)
     + Number(effectiveUsage !== LEXICAL_USAGE_ANY)
     + Number(effectiveVerbBehavior !== LEXICAL_VERB_BEHAVIOR_ANY);
+
+  // Narrowing that changes which entries are listed; sort order does not. Only the tag, the form
+  // and the search are named to Claude — learning filters such as "Due today" never are.
+  const listFiltered = contextFilter !== LEXICAL_CONTEXTS.anywhere
+    || Boolean(effectivePage)
+    || learningFilter !== LEXICAL_LEARNING.any
+    || maintenanceView !== MAINTENANCE_VIEWS.all
+    || effectivePos !== LEXICAL_POS_ANY
+    || effectiveUsage !== LEXICAL_USAGE_ANY
+    || effectiveVerbBehavior !== LEXICAL_VERB_BEHAVIOR_ANY;
+  const listNarrowed = listFiltered || formFilter !== FILTERS.all || Boolean(effectiveTag) || searching;
+  const canAskAboutList = Boolean(onAskAboutList) && listNarrowed && practiceSource.length >= 2;
+
+  function askAboutList() {
+    onAskAboutList({
+      label: listGroupLabel({
+        tag: effectiveTag || "",
+        form: formFilter === FILTERS.word ? "words" : formFilter === FILTERS.phrase ? "phrases" : "",
+        search: searching ? query.trim() : "",
+        filtered: listFiltered,
+      }),
+      // What the owner sees, in that order: pins first while browsing, relevance while searching.
+      memberIds: practiceSource.map((item) => item.id),
+    });
+  }
 
   function toggleSearch() {
     if (!searchOpen) {
@@ -646,6 +674,12 @@ export default function LexicalHub({
               ))}
             </RefineSelect>
           </RefinePanel>
+        )}
+
+        {canAskAboutList && (
+          <div className="mt-3">
+            <AskAboutListButton count={practiceSource.length} onClick={askAboutList} />
+          </div>
         )}
 
         <div className="mt-6 space-y-8">

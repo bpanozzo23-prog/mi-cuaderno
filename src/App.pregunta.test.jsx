@@ -241,6 +241,26 @@ describe("Ask about this", () => {
     expect(preview()).toContain("Example: Quedamos a las cinco.");
   });
 
+  it("attaches a narrowed Words & phrases list as one group from the hub", async () => {
+    const user = userEvent.setup();
+    await enableAi();
+    for (const term of ["cebolla", "picar", "dormir"]) {
+      await items.createItem({ ...items.newLexical({ term, meanings: [{ gloss: `meaning of ${term}` }] }), tags: term === "dormir" ? [] : ["cocina"] });
+    }
+    const navigation = pushDestination(createNavigation(), { tab: "cuaderno", screen: "lexical" });
+    window.history.replaceState(historyStateWithNavigation(null, navigation), "", "/");
+    render(<App />);
+    await user.click(await screen.findByRole("button", { name: /^Refine/ }));
+    await user.selectOptions(screen.getByLabelText("Vocabulary tag"), "cocina");
+    await user.click(screen.getByRole("button", { name: /^Ask Claude about these 2/ }));
+
+    const shown = await tray();
+    expect(window.history.state.mcNavigation.activeTab).toBe("pregunta");
+    expect(within(shown).getByText("About: Tagged “cocina”")).toBeTruthy();
+    expect(screen.getByLabelText("Sent for Tagged “cocina”").textContent).toContain("Entry: cebolla");
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
   it("forgets queued entries when AI is turned off, so turning it on again replays nothing", async () => {
     const user = userEvent.setup();
     await enableAi();

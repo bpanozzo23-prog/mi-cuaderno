@@ -11,7 +11,7 @@ import Wander from "./components/Wander.jsx";
 import CuidarHub from "./components/CuidarHub.jsx";
 import Pregunta from "./components/Pregunta.jsx";
 import { queueAttachment } from "./lib/askContext.js";
-import { setAttachmentDetail } from "./lib/askGroups.js";
+import { queueGroupAttachment, setAttachmentDetail } from "./lib/askGroups.js";
 import { useNotebook } from "./useNotebook.js";
 import { isJournalEntry } from "./lib/journal.js";
 import { parseSharePayload } from "./lib/shareTarget.js";
@@ -610,6 +610,19 @@ export default function App() {
     }
     : undefined;
   const askLater = aiReady === true ? addPreguntaAttachment : undefined;
+  /* A narrowed list from Words & phrases or Cuaderno, as one group. Pregunta opens either way: a
+     full queue is explained by its chips. */
+  const askAboutList = aiReady === true
+    ? (group) => {
+      const { queue, result } = queueGroupAttachment(preguntaQueueRef.current, group, makeNavigationVisitKey);
+      if (result !== "full") {
+        preguntaQueueRef.current = queue;
+        setPreguntaQueue(queue);
+      }
+      switchTab("pregunta");
+      return result;
+    }
+    : undefined;
 
   function openWander(id) {
     if (id) pushRoute({ tab: "cuaderno", screen: "wander", id });
@@ -884,6 +897,7 @@ export default function App() {
                     onCloseBiography={navigateBack}
                     onOpenSettings={() => switchTab("ajustes")}
                     onAskAbout={askAbout}
+                    onAskAboutList={askAboutList}
                     onOpenPages={openPages}
                     onOpenLexical={openLexical}
                     onOpenCuidar={openCuidar}
@@ -916,6 +930,7 @@ export default function App() {
                     onBack={navigateBack}
                     backLabel={backLabel}
                     onSearchDictionary={searchEverything}
+                    onAskAboutList={askAboutList}
                   />
                 </div>
                 <div hidden={cuadernoRoute.screen !== "cuidar"}>

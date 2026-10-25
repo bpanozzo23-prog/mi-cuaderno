@@ -1002,3 +1002,77 @@ describe("the Words & phrases hub", () => {
     expect(screen.queryByRole("button", { name: "Open Voces" })).toBeNull();
   });
 });
+
+describe("asking Claude about a narrowed list", () => {
+  const items = [
+    lexical("cebolla", { tags: ["cocina"], updatedAt: at(3) }),
+    lexical("picar", { tags: ["cocina"], updatedAt: at(2) }),
+    lexical("dar igual", { form: "phrase", tags: ["cocina"], updatedAt: at(4) }),
+    lexical("dormir", { updatedAt: at(1) }),
+  ];
+  const askButton = () => screen.queryByRole("button", { name: /^Ask Claude about these/ });
+
+  it("is offered only while the list is narrowed — sorting alone does not count", async () => {
+    const user = userEvent.setup();
+    const onAskAboutList = vi.fn();
+    render(<LexicalHub {...propsFor(items, { onAskAboutList })} />);
+    expect(askButton()).toBeNull();
+    await openRefine(user);
+    await choose(user, "Vocabulary order", "alphabetical");
+    expect(askButton()).toBeNull();
+    await choose(user, "Vocabulary tag", "cocina");
+    expect(askButton().textContent).toContain("Ask Claude about these 3");
+  });
+
+  it("is not offered without Pregunta, or for fewer than two entries", async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<LexicalHub {...propsFor(items)} />);
+    await openRefine(user);
+    await choose(user, "Vocabulary tag", "cocina");
+    expect(askButton()).toBeNull();
+    unmount();
+
+    render(<LexicalHub {...propsFor(items, { onAskAboutList: vi.fn() })} />);
+    await user.click(screen.getByRole("button", { name: /Phrases/ }));
+    expect(askButton()).toBeNull();
+  });
+
+  it("sends the entries in screen order, labelled by tag, form and search only", async () => {
+    const user = userEvent.setup();
+    const onAskAboutList = vi.fn();
+    render(<LexicalHub {...propsFor(items, { onAskAboutList })} />);
+    await openRefine(user);
+    await choose(user, "Vocabulary tag", "cocina");
+    await user.click(screen.getByRole("button", { name: /Words/ }));
+    await user.click(askButton());
+    expect(onAskAboutList).toHaveBeenCalledWith({
+      label: "Tagged “cocina” · words",
+      memberIds: ["user:cebolla", "user:picar"],
+    });
+
+    await search(user, "meaning");
+    await user.click(askButton());
+    const [{ label, memberIds }] = onAskAboutList.mock.calls[1];
+    expect(label).toBe("Tagged “cocina” · words · search “meaning”");
+    expect([...memberIds].sort()).toEqual(["user:cebolla", "user:picar"]);
+  });
+
+  it("never names a learning filter: it is just “filtered”", async () => {
+    const user = userEvent.setup();
+    const onAskAboutList = vi.fn();
+    const events = items.map((item, index) => ({
+      id: `e${index}`, type: "review_fail", itemKey: item.id, at: at(1), localDate: "2026-08-01", metadata: { grade: 0 },
+    }));
+    render(<LexicalHub {...propsFor(items, {
+      onAskAboutList,
+      notebook: { items, itemState: new Map(), events, reload: vi.fn() },
+    })} />);
+    await openRefine(user);
+    await choose(user, "Learning", "due");
+    await user.click(askButton());
+    const [{ label, memberIds }] = onAskAboutList.mock.calls[0];
+    expect(label).toBe("(filtered)");
+    expect(label).not.toMatch(/due|review/i);
+    expect(memberIds).toHaveLength(4);
+  });
+});
