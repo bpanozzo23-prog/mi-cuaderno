@@ -19,6 +19,7 @@ import {
   noteSectionBreadcrumb,
 } from "./pageKinds.js";
 import { neutralizeTags } from "./aiRequest.js";
+import { deriveCollection } from "./collections.js";
 
 /** Per attachment. A typical word is a few hundred characters; long pages are cut. */
 export const MAX_ATTACHMENT_CHARS = 6000;
@@ -58,6 +59,8 @@ export function queueAttachment(queue, itemId, { origin = "entry", review = null
 }
 
 const clean = (value) => neutralizeTags(scrubText(value));
+/** Scrubbed and made safe inside any data tag: the treatment every sent string gets. */
+export const cleanText = clean;
 const prose = (markdown, options) => clean(plainTextFromMarkdown(markdown || "", options));
 
 const line = (label, value) => {
@@ -76,6 +79,9 @@ const exampleLine = (example, prefix = "- ") => {
 const labelFor = (item) => clean(item?.type === "page" ? item?.title : item?.term) || "(untitled)";
 
 const kindFor = (item) => (item?.type === "page" ? "page" : item?.form === "phrase" ? "phrase" : "word");
+
+/** An entry's name and kind as a snapshot states them. */
+export { labelFor as entryLabel, kindFor as entryKind };
 
 /** Linked entries by name and relationship only, from either end of the link. */
 function linkedLines(item, items, skipIds = new Set()) {
@@ -131,6 +137,11 @@ export function lexicalLines(item, items, { meaningRefs = false } = {}) {
   return lines;
 }
 
+/**
+ * A page's own content. Its vocabulary, while the structure is enabled, travels as a separate
+ * group block (askGroups.js), so its members are not repeated here as linked entries. Disabled,
+ * those links are ordinary linked entries, named as any others.
+ */
 function pageLines(page, items) {
   const lines = [`Page: ${labelFor(page)}`];
   const body = prose(page.body, { noteCallouts: true });
@@ -178,24 +189,7 @@ function pageLines(page, items) {
     }
   }
 
-  const memberIds = new Set();
-  if (page.collection?.enabled) {
-    const byId = new Map(items.map((item) => [item.id, item]));
-    const groups = (page.collection.groups || []).map((group) => {
-      const terms = (group.itemKeys || [])
-        .map((key) => byId.get(key))
-        .filter((item) => item?.type === "lexical")
-        .map((item) => {
-          memberIds.add(item.id);
-          return labelFor(item);
-        });
-      if (!terms.length) return "";
-      const name = clean(group.name);
-      return `- ${name ? `${name}: ` : ""}${terms.join(", ")}`;
-    }).filter(Boolean);
-    if (groups.length) lines.push("Vocabulary on this page:", ...groups);
-  }
-
+  const memberIds = page.collection?.enabled ? new Set(deriveCollection(page, items).memberKeys) : new Set();
   lines.push(...linkedLines(page, items, memberIds));
   return lines;
 }
@@ -270,10 +264,16 @@ export function attachmentSnapshot(item, { items = [], review = null } = {}) {
   return { itemId: item.id, kind: kindFor(item), label: labelFor(item), text, truncated };
 }
 
-/** The attachments as they open the question: plain blocks, no attributes to escape. */
+/**
+ * The attachments as they open the question: plain blocks, no attributes to escape. A group
+ * (askGroups.js) is its own kind of block, so Claude can tell many short entries from one in full.
+ */
 export function attachmentsBlock(snapshots = []) {
   return snapshots
-    .map((snapshot) => `<attached_entry>\n${snapshot.text}\n</attached_entry>`)
+    .map((snapshot) => {
+      const tag = snapshot.block === "group" ? "attached_group" : "attached_entry";
+      return `<${tag}>\n${snapshot.text}\n</${tag}>`;
+    })
     .join("\n\n");
 }
 

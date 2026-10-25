@@ -191,6 +191,7 @@ export const DATA_TAG_NAMES = Object.freeze([
   "existing_entries",
   "attached_entry",
   "attached_entries",
+  "attached_group",
 ]);
 
 /**

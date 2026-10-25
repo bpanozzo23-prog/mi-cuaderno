@@ -104,7 +104,7 @@ describe("attachmentSnapshot — words and phrases", () => {
 });
 
 describe("attachmentSnapshot — pages", () => {
-  it("sends prose, sections, source, grammar and vocabulary names, but never the source URL", () => {
+  it("sends prose, sections, source and grammar, but never the source URL", () => {
     const member = makeLexical({ term: "quedar", meanings: [newMeaning({ gloss: "to remain" })] });
     const page = makePage({
       title: "Ser vs estar",
@@ -145,7 +145,10 @@ describe("attachmentSnapshot — pages", () => {
     expect(snapshot.text).toContain("Key idea: Essence vs state");
     expect(snapshot.text).toContain("Pattern: estar + adjective");
     expect(snapshot.text).toContain("Example: Está feliz. — She is happy. (temporary)");
-    expect(snapshot.text).toContain("- Verbs: quedar");
+    // The group layout names quedar, but the page never links it: layout alone is not membership,
+    // and linked vocabulary travels as its own group block (askGroups.js).
+    expect(snapshot.text).not.toContain("quedar");
+    expect(snapshot.text).not.toContain("Vocabulary on this page");
     expect(snapshot.text).not.toMatch(/podcast\.example|https?:|user:|dict:/);
   });
 
@@ -174,6 +177,11 @@ describe("the data block", () => {
     expect(block.match(/<\/attached_entry>/g)).toHaveLength(1);
     expect(block.endsWith("</attached_entry>")).toBe(true);
     expect(block).toContain("<\\/attached_entry>");
+  });
+
+  it("wraps a group in its own block", () => {
+    const block = attachmentsBlock([{ block: "group", text: "Group: G" }, { block: "entry", text: "Entry: e" }]);
+    expect(block).toBe("<attached_group>\nGroup: G\n</attached_group>\n\n<attached_entry>\nEntry: e\n</attached_entry>");
   });
 
   it("joins several attachments as plain blocks with no attributes", () => {
