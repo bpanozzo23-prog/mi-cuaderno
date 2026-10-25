@@ -122,8 +122,9 @@ export default function AiCard({ onChanged }) {
             of linked entries. The conversation is never saved; turning AI off closes it.
           </li>
           <li>
-            Keep also sends your tag names and a short list of entries that seem related (term and
-            first meaning). Only entries you tick and apply are saved, tagged #ia.
+            Keep also sends your tag names, a short list of entries that seem related (term and
+            first meaning) and any attached entries in full, so it can suggest additions to them.
+            Only what you tick and apply is saved; new entries are tagged #ia.
           </li>
         </ul>
 
