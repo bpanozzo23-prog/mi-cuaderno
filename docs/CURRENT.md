@@ -25,6 +25,18 @@ This is the starting point for current status, not a release diary.
 
 ## Work and boundaries
 
+- **Complete locally; not pushed (`762ed6e`, 2026-10-24):** "Keep adds to existing entries" —
+  step 2 of Ask about this (approved 2026-10-24). Keep may propose additions to attached words and
+  phrases (examples on a meaning or in My examples, new meanings, a note paragraph, tags) and
+  connections between two existing entries when one is attached, each ticked separately and
+  saved with one Apply. Append-only; no AI marker on additions (owner's choice); a content
+  fingerprint frozen with the snapshot refuses additions to an entry changed since. No schema
+  change. Zero-warning lint, **2,240 tests across 173 files** serially in 467.52s and the
+  production build pass. Chromium at 375×812 with fixtures and locally fulfilled requests
+  verified the flow. Codex reviewed the design and the diff; all findings are fixed. See the
+  [decision record](../DECISIONS.md#keep-adds-to-existing-entries--ask-about-this-step-2-2026-10-24).
+  **Pending owner checks:** real use on the phone, and whether the kinds and amount of additions
+  are right.
 - **Complete and published (`3f13cf1`, 2026-10-24):** "Ask about this" — the follow-on to Ask + Keep
   (approved 2026-10-24). "Ask Claude" on a word, phrase or page, or on a revealed Repaso card
   ("Ask later" keeps the session; "Ask now" ends it), attaches that entry to the next Pregunta

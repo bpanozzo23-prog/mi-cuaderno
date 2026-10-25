@@ -101,11 +101,21 @@ by New question, a reload, or turning AI off. It is never stored or backed up.
 **Keep.** Keep turns a Pregunta conversation, or a conversation the owner pastes from another
 app, into proposed notebook entries. Before sending, it names exactly what leaves the device:
 the conversation, the owner's tag names, and up to 40 related words and phrases found on the
-device (term and first meaning only), led by any attached to the conversation. The owner reviews each proposal (new words and phrases
-with a meaning, usage, examples and tags; connections to existing or other new entries) and
-saves only what they tick, with one explicit Apply. Keep creates; it never edits existing
-entries. Kept entries carry an `ia` tag marking them as AI-proposed, which the owner may untick
-per entry or remove later like any tag; once saved they are ordinary personal entries.
+device (term and first meaning only), led by any attached to the conversation, and any attached
+words and phrases in full as they are at that moment. The owner reviews each proposal (new words
+and phrases with a meaning, usage, examples and tags; connections to existing or other new
+entries) and saves only what they tick, with one explicit Apply. Kept entries carry an `ia` tag
+marking them as AI-proposed, which the owner may untick per entry or remove later like any tag;
+once saved they are ordinary personal entries.
+
+Keep may also propose **additions to attached words and phrases**, each ticked separately: an
+example on a named meaning or in My examples, a new meaning, a paragraph at the end of the
+General note, tags, and connections — including between two existing entries when at least one is
+attached. Additions only append; Keep never rewrites, reorders or deletes the owner's text, never
+adds to pages or to entries it saw only by name, and adds only tags and links to an attachment
+that was shortened. An entry the owner changes after Claude saw it is not added to; the review
+says so. Ticking an addition adopts it: it carries no AI marker, and the entry's history records
+an ordinary edit.
 
 A notebook-wide assistant that reorganizes or edits existing content (Tidy) remains a future
 possibility. Any future saving of proposed content must remain explicit.

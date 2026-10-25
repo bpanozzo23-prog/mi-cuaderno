@@ -238,15 +238,30 @@ messages, never the device-side item IDs. Attached words and phrases lead Keep's
 remote images, so an answer cannot trigger another network request. Keep finds related entries
 on the device with [keepCandidates](../src/lib/keepCandidates.js) (whole-token runs through
 `normalize`, ñ preserved), and sends them under opaque `c#` references, never `user:` IDs.
+When Keep opens, [keepAttached](../src/lib/keepAttached.js) freezes each attached word or phrase
+from one reading: the snapshot text sent in an `<attached_entries>` block (meanings numbered
+`m1`, `m2`…), the meaning-number → meaning-ID map, and an exact canonical-JSON
+[content fingerprint](../src/lib/contentFingerprint.js) (term, form, pos, meanings with IDs and
+order, My examples, notes, note sections, tags; links excluded because linking bumps `updatedAt`
+without changing content).
 [keepProposals](../src/lib/keepProposals.js) normalizes the structured response (drops
-unexportable examples, reuses owner tag spellings, adds `ia`, flags notebook and in-batch
-duplicates, keeps one link per pair with at least one new end) and turns ticks into writes.
-[`createItemsWithLinks`](../src/db/items.js) applies them in one items+events transaction:
-each item logs `create`; each connection is stored once on a new item through `linkItems`,
-reoriented when the suggestion started from an existing entry, with no `edit` event. A link whose
-existing end was deleted meanwhile is skipped and reported; any other failure rolls back the
-whole batch. [The review](../src/components/KeepReview.jsx) marks a batch committed before
-refreshing, so a failed refresh offers only Refresh, and opens new entries only after a load.
+unexportable examples, reuses owner tag spellings, adds `ia` to new entries only, flags notebook
+and in-batch duplicates, keeps one link per pair with at least one new or attached end) and turns
+ticks into writes. Additions go only to attached entries whose snapshot was not shortened (tags
+and links excepted); a meaning ref must be an own key of the frozen map; exact example repeats
+(accents kept) and notes already present are dropped, accent-only matches flagged unticked.
+[`applyKeep`](../src/db/items.js) applies everything in one items+events transaction. Each
+attached entry's additions are appended to the fresh record with one `updateItem` (one `edit`
+event, meaning-connection protection intact) only while its fingerprint still matches;
+otherwise the entry is skipped and reported, and an empty patch writes nothing. Each new item logs
+`create`; each connection is stored once through `linkItems` — on the new item (reoriented when
+the suggestion started from an existing entry) or, between two existing entries, on the `from`
+end — with no `edit` event. A link whose end was deleted, or a pair already connected in either
+direction, is skipped and reported; any other failure rolls back the whole batch.
+`createItemsWithLinks` remains the create-only wrapper. [The review](../src/components/KeepReview.jsx)
+greys out an entry that changes while it is open, marks a batch committed before refreshing, so
+a failed refresh offers only Refresh, opens new entries only after a load, and counts the
+conversation as kept only when something saved and no ticked addition was refused as changed.
 
 ## Changing this architecture
 
