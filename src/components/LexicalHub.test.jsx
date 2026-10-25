@@ -1048,6 +1048,7 @@ describe("asking Claude about a narrowed list", () => {
     expect(onAskAboutList).toHaveBeenCalledWith({
       label: "Tagged “cocina” · words",
       memberIds: ["user:cebolla", "user:picar"],
+      sourceKey: expect.any(String),
     });
 
     await search(user, "meaning");
@@ -1074,5 +1075,11 @@ describe("asking Claude about a narrowed list", () => {
     expect(label).toBe("(filtered)");
     expect(label).not.toMatch(/due|review/i);
     expect(memberIds).toHaveLength(4);
+
+    // Another learning filter has the same label but stays a separate list on the device.
+    await choose(user, "Learning", "reviewing");
+    await user.click(askButton());
+    expect(onAskAboutList.mock.calls[1][0].label).toBe("(filtered)");
+    expect(onAskAboutList.mock.calls[1][0].sourceKey).not.toBe(onAskAboutList.mock.calls[0][0].sourceKey);
   });
 });

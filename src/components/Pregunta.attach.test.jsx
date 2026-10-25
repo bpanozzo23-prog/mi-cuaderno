@@ -773,6 +773,32 @@ describe("keeping from a group conversation", () => {
     expect(sentIds).not.toContain(members[0].id);
   });
 
+  it("leaves out group members past Keep's limit, and never matches them back in", async () => {
+    const user = userEvent.setup();
+    const created = [];
+    for (let index = 0; index < 62; index += 1) {
+      created.push(await createItem(newLexical({ term: `vocablo${String(index).padStart(2, "0")}`, meanings: [{ gloss: `gloss ${index}` }] })));
+    }
+    const everyTerm = created.map((item) => item.term).join(", ");
+    globalThis.fetch.mockReset();
+    globalThis.fetch.mockResolvedValueOnce(ok(answer(`First: ${everyTerm}`))).mockResolvedValueOnce(ok(answer(`Second: ${everyTerm}`)));
+    await renderHarness({ initial: [{ key: "a", kind: "group", label: "A", memberIds: created.slice(0, 50).map((item) => item.id), detail: "meanings" }] });
+    await ask(user, "First");
+    await screen.findByText(/^First:/);
+    control.add({ key: "b", kind: "group", label: "B", memberIds: created.slice(50).map((item) => item.id), detail: "meanings" });
+    await ask(user, "Second");
+    await screen.findByText(/^Second:/);
+
+    await user.click(screen.getByRole("button", { name: "Keep" }));
+    const keep = screen.getByRole("generic", { name: "Keep" });
+    expect(keep.textContent).toMatch(/plus 60 entries from attached groups in short form/);
+    expect(keep.textContent).toMatch(/2 more group entries were left out/);
+    await user.click(within(keep).getByText("Show the entries that will be sent"));
+    const listed = within(keep).getAllByRole("listitem").map((row) => row.textContent);
+    expect(listed.filter((row) => row.endsWith("(from a group)"))).toHaveLength(60);
+    expect(listed.some((row) => row.startsWith("vocablo60") || row.startsWith("vocablo61"))).toBe(false);
+  });
+
   it("refuses additions to a group member changed after Keep froze it", async () => {
     const user = userEvent.setup();
     const picar = await createItem(newLexical({ term: "picar", meanings: [{ gloss: "to chop" }] }));

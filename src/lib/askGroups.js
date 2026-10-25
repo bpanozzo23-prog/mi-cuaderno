@@ -26,8 +26,8 @@ export const MAX_GROUPS_PER_QUESTION = 2;
 export const MAX_CONVERSATION_GROUP_CHARS = 30000;
 const MAX_SHORT_EXAMPLES_PER_MEANING = 3;
 const MAX_SHORT_MY_EXAMPLES = 3;
-/** Room kept for the heading and the "not included" line when filling a group. */
-const FRAME_ROOM = 300;
+/** A group's heading is cut to this, so a long page title or search cannot crowd out entries. */
+const MAX_HEADING_CHARS = 200;
 
 export const groupDetail = (detail) => (detail === GROUP_DETAIL.examples ? GROUP_DETAIL.examples : GROUP_DETAIL.meanings);
 
@@ -85,6 +85,14 @@ export function shortFormEntry(item, { detail = GROUP_DETAIL.meanings, meaningRe
 export function groupText({ heading, sections = [], detail }) {
   const level = groupDetail(detail);
   const total = sections.reduce((sum, section) => sum + section.items.length, 0);
+  const cleaned = cleanText(heading);
+  const title = cleaned.length > MAX_HEADING_CHARS ? `${cleaned.slice(0, MAX_HEADING_CHARS - 1)}…` : cleaned;
+  const headLine = (count) => `Group: ${title} (${count}; ${DETAIL_WORDS[level]})`;
+  const omittedLine = (omitted) => `[${omitted} more ${omitted === 1 ? "entry" : "entries"} not included]`;
+  // Every line the frame might add, at its longest, comes out of the cap before any entry.
+  const room = MAX_GROUP_CHARS
+    - headLine(`first ${MAX_GROUP_ENTRIES} of ${total} entries`).length
+    - (omittedLine(total).length + 1);
   const body = [];
   const sentIds = [];
   let size = 0;
@@ -96,7 +104,7 @@ export function groupText({ heading, sections = [], detail }) {
       const entry = shortFormEntry(item, { detail: level }).text;
       const sectionLine = section.name && !headed ? `Section: ${cleanText(section.name)}` : "";
       const added = entry.length + 1 + (sectionLine ? sectionLine.length + 1 : 0);
-      if (sentIds.length >= MAX_GROUP_ENTRIES || size + added > MAX_GROUP_CHARS - FRAME_ROOM) {
+      if (sentIds.length >= MAX_GROUP_ENTRIES || size + added > room) {
         full = true;
         break;
       }
@@ -112,8 +120,8 @@ export function groupText({ heading, sections = [], detail }) {
   const sent = sentIds.length;
   const omitted = total - sent;
   const count = omitted > 0 ? `first ${sent} of ${total} entries` : `${total} ${total === 1 ? "entry" : "entries"}`;
-  const lines = [`Group: ${cleanText(heading)} (${count}; ${DETAIL_WORDS[level]})`, ...body];
-  if (omitted > 0) lines.push(`[${omitted} more ${omitted === 1 ? "entry" : "entries"} not included]`);
+  const lines = [headLine(count), ...body];
+  if (omitted > 0) lines.push(omittedLine(omitted));
   return { text: lines.join("\n"), sentIds, total, omitted };
 }
 
@@ -150,10 +158,14 @@ export function listGroupLabel({ tag = "", form = "", search = "", filtered = fa
 
 /**
  * Adds a list group to Pregunta's queue: { queue, result: "added" | "updated" | "full" }. The same
- * label replaces the earlier group under a new key, as re-attaching an entry does.
+ * list replaces the earlier group under a new key, as re-attaching an entry does. `sourceKey`
+ * names the exact filters on the device, so two lists Claude would see under the same label
+ * ("(filtered)") stay apart; it is never sent.
  */
-export function queueGroupAttachment(queue, { label, memberIds = [] }, makeKey) {
-  const index = queue.attachments.findIndex((attachment) => attachment.kind === "group" && attachment.label === label);
+export function queueGroupAttachment(queue, { label, memberIds = [], sourceKey = null }, makeKey) {
+  const identity = sourceKey ?? `label:${label}`;
+  const index = queue.attachments.findIndex((attachment) =>
+    attachment.kind === "group" && (attachment.sourceKey ?? `label:${attachment.label}`) === identity);
   const groups = queue.attachments.filter((attachment) => attachment.kind === "group").length;
   if (index < 0 && (queue.attachments.length >= MAX_ATTACHMENTS || groups >= MAX_GROUPS_PER_QUESTION)) {
     return { queue, result: "full" };
@@ -162,6 +174,7 @@ export function queueGroupAttachment(queue, { label, memberIds = [] }, makeKey) 
     key: makeKey(),
     kind: "group",
     label: String(label || ""),
+    sourceKey: identity,
     memberIds: [...new Set(memberIds)],
     detail: index >= 0 ? groupDetail(queue.attachments[index].detail) : GROUP_DETAIL.meanings,
   };
@@ -200,51 +213,65 @@ export function resolveAttachments(attachments = [], items = []) {
   const singles = new Set(attachments
     .filter((attachment) => attachment.kind !== "group" && byId.get(attachment.itemId)?.type === "lexical")
     .map((attachment) => attachment.itemId));
-  const claimed = new Set();
-  const result = { snapshots: [], chips: {}, sent: [], gone: [], groupCount: 0, groupChars: 0 };
 
-  const takeGroup = (heading, sections, detail) => {
-    const kept = sections
+  // Membership first, in queue order and before any cap: an entry belongs to the first group
+  // that lists it, even if that group's cap later leaves it out.
+  const claimed = new Set();
+  const plans = new Map();
+  for (const attachment of attachments) {
+    let sections = null;
+    if (attachment.kind === "group") {
+      const members = (attachment.memberIds || []).map((id) => byId.get(id)).filter((item) => item?.type === "lexical");
+      if (members.length > 0) sections = [{ name: "", items: members }];
+    } else {
+      const item = byId.get(attachment.itemId);
+      sections = item?.type === "page" ? pageVocabulary(item, items)?.sections || null : null;
+    }
+    if (!sections) continue;
+    const total = sections.reduce((sum, section) => sum + section.items.length, 0);
+    const eligible = sections
       .map((section) => ({
         name: section.name,
-        items: section.items.filter((item) => item?.type === "lexical" && !singles.has(item.id) && !claimed.has(item.id)),
+        items: section.items.filter((item) => !singles.has(item.id) && !claimed.has(item.id)),
       }))
       .filter((section) => section.items.length > 0);
-    if (kept.length === 0) return null;
-    const built = groupText({ heading, sections: kept, detail });
-    for (const id of built.sentIds) claimed.add(id);
-    result.groupCount += 1;
-    result.groupChars += built.text.length;
-    return built;
+    for (const section of eligible) for (const item of section.items) claimed.add(item.id);
+    plans.set(attachment.key, { total, eligible });
+  }
+
+  const result = { snapshots: [], chips: {}, sent: [], gone: [], groupCount: 0, groupChars: 0 };
+  /** Builds a planned group's text: { built, group } for the chip and the turn record. */
+  const buildGroup = (plan, heading, detail) => {
+    const built = plan.eligible.length > 0 ? groupText({ heading, sections: plan.eligible, detail }) : null;
+    if (built) {
+      result.groupCount += 1;
+      result.groupChars += built.text.length;
+    }
+    const sent = built?.sentIds.length || 0;
+    return {
+      built,
+      summary: { detail, sent, total: plan.total, omitted: built?.omitted || 0, chars: built?.text.length || 0 },
+      record: { detail, memberIds: built?.sentIds || [], chars: built?.text.length || 0 },
+    };
   };
 
   for (const attachment of attachments) {
     if (attachment.kind === "group") {
-      const members = (attachment.memberIds || []).map((id) => byId.get(id)).filter((item) => item?.type === "lexical");
-      if (members.length === 0) {
+      const plan = plans.get(attachment.key);
+      if (!plan) {
         result.gone.push(attachment.key);
         continue;
       }
       const detail = groupDetail(attachment.detail);
       const label = cleanText(attachment.label) || "Filtered list";
-      const built = takeGroup(`My words and phrases — ${label}`, [{ name: "", items: members }], detail);
+      const { built, summary, record } = buildGroup(plan, `My words and phrases — ${label}`, detail);
       if (built) result.snapshots.push({ block: "group", text: built.text });
-      result.chips[attachment.key] = {
-        label,
-        kind: "group",
-        preview: built ? built.text : "",
-        group: { detail, sent: built?.sentIds.length || 0, total: members.length, omitted: built?.omitted || 0, chars: built?.text.length || 0 },
-      };
-      result.sent.push({
-        label,
-        kind: "group",
-        group: { source: "list", detail, memberIds: built?.sentIds || [], chars: built?.text.length || 0 },
-      });
+      result.chips[attachment.key] = { label, kind: "group", preview: built ? built.text : "", group: summary };
+      result.sent.push({ label, kind: "group", group: { source: "list", ...record } });
       continue;
     }
 
     const item = byId.get(attachment.itemId);
-    const vocabulary = item?.type === "page" ? pageVocabulary(item, items) : null;
     const snapshot = attachmentSnapshot(item, { items, review: attachment.review });
     if (!snapshot) {
       result.gone.push(attachment.key);
@@ -253,16 +280,16 @@ export function resolveAttachments(attachments = [], items = []) {
     result.snapshots.push({ block: "entry", ...snapshot });
     const record = { itemId: snapshot.itemId, label: snapshot.label, kind: snapshot.kind };
     const chip = { label: snapshot.label, kind: snapshot.kind, preview: snapshot.text, group: null };
-    if (vocabulary) {
+    const plan = plans.get(attachment.key);
+    if (plan) {
       const detail = groupDetail(attachment.detail);
-      const total = vocabulary.sections.reduce((sum, section) => sum + section.items.length, 0);
-      const built = takeGroup(`Vocabulary on the page “${snapshot.label}”`, vocabulary.sections, detail);
-      if (built) {
-        result.snapshots.push({ block: "group", text: built.text });
-        chip.preview = `${snapshot.text}\n\n${built.text}`;
+      const group = buildGroup(plan, `Vocabulary on the page “${snapshot.label}”`, detail);
+      if (group.built) {
+        result.snapshots.push({ block: "group", text: group.built.text });
+        chip.preview = `${snapshot.text}\n\n${group.built.text}`;
       }
-      chip.group = { detail, sent: built?.sentIds.length || 0, total, omitted: built?.omitted || 0, chars: built?.text.length || 0 };
-      record.group = { source: "page", detail, memberIds: built?.sentIds || [], chars: built?.text.length || 0 };
+      chip.group = group.summary;
+      record.group = { source: "page", ...group.record };
     }
     result.chips[attachment.key] = chip;
     result.sent.push(record);

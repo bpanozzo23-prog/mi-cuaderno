@@ -378,6 +378,9 @@ export default function LexicalHub({
       }),
       // What the owner sees, in that order: pins first while browsing, relevance while searching.
       memberIds: practiceSource.map((item) => item.id),
+      // The exact filters, kept on the device so lists with the same label stay apart.
+      sourceKey: `hub:${JSON.stringify([formFilter, contextFilter, effectivePage, learningFilter, maintenanceView,
+        effectiveTag, effectivePos, effectiveUsage, effectiveVerbBehavior, searching ? query.trim() : ""])}`,
     });
   }
 

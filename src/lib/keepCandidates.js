@@ -133,9 +133,10 @@ export function selectGroupMembers(items = [], groupMembers = [], singleIds = []
  * whatever their spelling — an attached "ir" counts although a matched one would not. Attached
  * IDs that are missing or not words/phrases are skipped. Group members (`groupIds`, already
  * chosen by `selectGroupMembers`) follow them with `matchedBy: "group"`, outside `limit`, which
- * still covers attached entries and matches together.
+ * still covers attached entries and matches together. `excludeIds` are never matched: group
+ * members Keep left out stay out rather than returning as related entries.
  */
-export function findKeepCandidates(items = [], text = "", { limit = DEFAULT_CANDIDATE_LIMIT, attachedIds = [], groupIds = [] } = {}) {
+export function findKeepCandidates(items = [], text = "", { limit = DEFAULT_CANDIDATE_LIMIT, attachedIds = [], groupIds = [], excludeIds = [] } = {}) {
   const max = Math.max(0, limit);
   const byId = new Map(items.map((item) => [item?.id, item]));
   const attached = [];
@@ -155,12 +156,13 @@ export function findKeepCandidates(items = [], text = "", { limit = DEFAULT_CAND
     grouped.push(candidateFromItem(item, { matchedBy: "group", score: 0 }));
   }
 
+  const excluded = new Set(excludeIds);
   const tokens = tokensOf(text);
   const matches = [];
   if (tokens.length > 0) {
     const prepared = { tokens, counts: runCounts(tokens), tokenSet: new Set(tokens) };
     for (const item of items) {
-      if (item?.type !== "lexical" || typeof item.term !== "string" || attachedSet.has(item.id)) continue;
+      if (item?.type !== "lexical" || typeof item.term !== "string" || attachedSet.has(item.id) || excluded.has(item.id)) continue;
       const byTerm = termMatch(item, prepared);
       const byGloss = byTerm ? null : glossMatch(item, prepared);
       const match = byTerm || byGloss;

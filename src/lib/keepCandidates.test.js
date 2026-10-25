@@ -163,3 +163,12 @@ describe("group members", () => {
     expect(found.map((candidate) => candidate.ref)).toEqual(found.map((_candidate, index) => `c${index + 1}`));
   });
 });
+
+describe("group members left out", () => {
+  it("are never matched back in as related entries", () => {
+    const left = word("picar", "to chop");
+    const other = word("hervir", "to boil");
+    const found = findKeepCandidates([left, other], "picar y hervir", { excludeIds: [left.id] });
+    expect(terms(found)).toEqual(["hervir"]);
+  });
+});

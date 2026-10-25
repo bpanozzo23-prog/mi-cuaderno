@@ -351,7 +351,11 @@ export default function Cuaderno({
   // Narrowing that changes which entries are listed; sort order does not. Only the tag, the type
   // and the search are named to Claude.
   const listFiltered = maintenanceView !== MAINTENANCE_VIEWS.all;
+  // A dictionary lookup still on its way can change which personal entries are listed (an
+  // attached entry replaces its reference row), so the list is offered only once it settles.
+  const listSettled = !dictionaryWanted || globalSearchSettled;
   const canAskAboutList = Boolean(onAskAboutList)
+    && listSettled
     && (activeRootMode === "browse" || activeRootMode === "search")
     && (listFiltered || typeFilter !== FILTERS.all || Boolean(effectiveTag) || searching)
     && listedLexical.length >= 2;
@@ -365,6 +369,7 @@ export default function Cuaderno({
         filtered: listFiltered,
       }),
       memberIds: listedLexical.map((item) => item.id),
+      sourceKey: `cuaderno:${JSON.stringify([typeFilter, maintenanceView, effectiveTag, searching ? query.trim() : ""])}`,
     });
   }
   const canLoadMore = activeRootMode !== "landing" && displayedVisible.length < visible.length;

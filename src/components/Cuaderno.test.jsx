@@ -718,7 +718,7 @@ describe("asking Claude about a narrowed list", () => {
     await user.selectOptions(screen.getByRole("combobox", { name: "Tag" }), "cocina");
     expect(askButton().textContent).toContain("Ask Claude about these 2");
     await user.click(askButton());
-    expect(onAskAboutList).toHaveBeenCalledWith({ label: "Tagged “cocina”", memberIds: ["user:cebolla", "user:picar"] });
+    expect(onAskAboutList).toHaveBeenCalledWith({ label: "Tagged “cocina”", memberIds: ["user:cebolla", "user:picar"], sourceKey: expect.any(String) });
   });
 
   it("marks a maintenance view as just filtered, and is absent without Pregunta", async () => {
@@ -735,5 +735,36 @@ describe("asking Claude about a narrowed list", () => {
     await openRefine(user);
     await user.selectOptions(screen.getByRole("combobox", { name: "Tag" }), "cocina");
     expect(askButton()).toBeNull();
+  });
+});
+
+describe("asking Claude about a search that is still settling", () => {
+  it("waits for the dictionary lookup, which can change the personal entries listed", async () => {
+    const user = userEvent.setup();
+    await seedCasaDictionary();
+    const onAskAboutList = vi.fn();
+    render(<Cuaderno {...propsFor([word("cama"), word("caja")], { onAskAboutList })} />);
+    await openBrowseAll(user);
+    await user.type(screen.getByRole("textbox", { name: "Search notebook" }), "ca");
+
+    expect(screen.queryByRole("button", { name: /^Ask Claude about these/ })).toBeNull();
+    const button = await screen.findByRole("button", { name: /^Ask Claude about these 2/ });
+    await user.click(button);
+    expect(onAskAboutList.mock.calls[0][0]).toMatchObject({ label: "Search “ca”" });
+  }, 10000);
+
+  it("keeps two lists apart on the device even when Claude would see the same label", async () => {
+    const user = userEvent.setup();
+    const onAskAboutList = vi.fn();
+    render(<Cuaderno {...propsFor([word("uno"), word("dos")], { onAskAboutList, now: new Date("2026-07-02T10:00:00Z") })} />);
+    await openRefine(user);
+    await user.selectOptions(screen.getByRole("combobox", { name: "View" }), "unlinked");
+    await user.click(screen.getByRole("button", { name: /^Ask Claude about these/ }));
+    await user.selectOptions(screen.getByRole("combobox", { name: "View" }), "added-7-days");
+    await user.click(screen.getByRole("button", { name: /^Ask Claude about these/ }));
+    const [first, second] = onAskAboutList.mock.calls.map(([group]) => group);
+    expect(first.label).toBe("(filtered)");
+    expect(second.label).toBe("(filtered)");
+    expect(first.sourceKey).not.toBe(second.sourceKey);
   });
 });

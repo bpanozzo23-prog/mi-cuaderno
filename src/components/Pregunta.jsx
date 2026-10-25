@@ -447,11 +447,11 @@ const DETAIL_OPTIONS = [
 
 /** How big a group is as it stands: what fits, and roughly how much text that is. */
 function groupSummary(group) {
-  if (group.sent === 0) return "every entry is attached on its own";
+  if (group.sent === 0) return "its entries are already attached";
   const size = `about ${(Math.max(100, Math.round(group.chars / 100) * 100)).toLocaleString("en-US")} characters`;
-  return group.omitted > 0
-    ? `first ${group.sent} of ${group.total} entries fit · ${size}`
-    : `${group.total} ${group.total === 1 ? "entry" : "entries"} · ${size}`;
+  if (group.omitted > 0) return `first ${group.sent} of ${group.total} entries fit · ${size}`;
+  if (group.sent < group.total) return `${group.sent} of ${group.total} entries (the rest are already attached) · ${size}`;
+  return `${group.total} ${group.total === 1 ? "entry" : "entries"} · ${size}`;
 }
 
 /**
@@ -520,7 +520,7 @@ function AttachmentTray({ attachments, resolved, overBudget, joinsConversation, 
               >
                 {!chip
                   ? "This entry is no longer in your cuaderno; it will be removed."
-                  : chip.preview || "Nothing from this group: its entries are attached on their own."}
+                  : chip.preview || "Nothing from this group: its entries are already attached."}
               </pre>
             );
           })}

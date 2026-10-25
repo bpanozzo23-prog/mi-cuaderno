@@ -53,12 +53,15 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
   const [disclosed] = useState(() => {
     const items = notebook.items || [];
     const attachedIds = attachedItemIds(source);
+    const groupMembers = attachedGroupMembers(source);
     // Members of attached groups, first sent first, up to Keep's own limit for them.
-    const group = selectGroupMembers(items, attachedGroupMembers(source), attachedIds);
+    const group = selectGroupMembers(items, groupMembers, attachedIds);
     // Entries attached to the conversation lead, so proposals link to them.
     const candidates = findKeepCandidates(items, conversationText(source), {
       attachedIds,
       groupIds: group.members.map((member) => member.itemId),
+      // Members past the limit are left out, as the confirmation says, not matched back in.
+      excludeIds: groupMembers.map((member) => member.itemId),
     });
     return {
       characters: conversationText(source).length,
