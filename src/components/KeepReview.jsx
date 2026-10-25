@@ -161,6 +161,8 @@ export default function KeepReview({ source, notebook, onSelect, onClose, onAppl
     // too, so they are reported and the conversation stays unkept.
     const refusedHere = response.proposals.updates
       .filter((update) => (selection.staleRefs || []).includes(update.ref))
+      // Restored and re-ticked meanwhile: it saved, so it was not refused.
+      .filter((update) => !result.updated.includes(update.itemId))
       .filter((update) => !result.skippedUpdates.some((skip) => skip.itemId === update.itemId))
       .map((update) => ({ itemId: update.itemId, reason: "entry_changed" }));
     const skippedUpdates = [...result.skippedUpdates, ...refusedHere].map((skip) => ({ ...skip, term: termOf.get(skip.itemId) }));
@@ -675,7 +677,9 @@ function AdditionBody({ addition }) {
       <>
         <span className="text-xs" style={{ color: C.mut }}>+ note, after your notes</span>
         {/* As it will look once saved; never loads a remote image. */}
-        <MarkdownText remoteImages={false} compact className="block" style={{ color: C.ink }}>{addition.note}</MarkdownText>
+        <MarkdownText remoteImages={false} blankLines explicitNoteCallouts compact className="block" style={{ color: C.ink }}>
+          {addition.note}
+        </MarkdownText>
       </>
     );
   }

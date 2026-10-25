@@ -518,4 +518,24 @@ describe("Keep adds to an attached entry", () => {
     expect((await db.items.get(ir.id)).linkedKeys).toEqual([quedar.id]);
     expect((await db.events.toArray()).filter((event) => event.type === "edit")).toEqual([]);
   });
+
+  it("saves re-ticked additions after the entry is edited and restored, without reporting a refusal", async () => {
+    const user = userEvent.setup();
+    const view = await reviewAdditions(user);
+    await items.updateItem(quedar.id, { notes: "My own edit." });
+    view.rerenderWith(await items.allItems());
+    await screen.findByText(/You changed this entry after Claude saw it/);
+    await items.updateItem(quedar.id, { notes: "" });
+    view.rerenderWith(await items.allItems());
+    await waitFor(() => expect(screen.queryByText(/You changed this entry after Claude saw it/)).toBeNull());
+
+    const card = screen.getByRole("generic", { name: "Changes to quedar" });
+    await user.click(within(card).getByRole("checkbox", { name: /Add example/ }));
+    await user.click(screen.getByRole("button", { name: "Apply 1 addition" }));
+    await screen.findByText(/Added to 1 entry/);
+    expect(screen.queryByText(/Nothing was added to quedar/)).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    await user.click(screen.getByRole("button", { name: "New question" }));
+    expect(screen.queryByText(/for plans/)).toBeNull();
+  });
 });
