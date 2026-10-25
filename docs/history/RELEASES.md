@@ -6,6 +6,24 @@ Documentation-only follow-ups covered by the [workflow exclusions](../../.github
 normally skip deployment. Keep the last verified published revision; the
 [agent guide](../AGENT-GUIDE.md#environment-and-checks) covers publication checks and filter limits.
 
+## 2026-10-25 — Group attachments (Ask about this, step 3)
+
+| Date | Published revision | Work | CI and checks |
+|---|---|---|---|
+| 2026-10-25 | `1985716` | Group attachments: Pregunta prompt caching, short-form group text and resolver, collection-page vocabulary, "Ask Claude about these N" on narrowed lists, Keep with group members, Codex fixes, a test wait and the contract record (`419cf8e`–`1985716`) | [40214049250](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/40214049250): lint, 2,307 tests / 174 files in 154.90 s, build and deployment passed; seven live files returned HTTP 200 and matched local build bytes |
+
+The owner-requested push advanced `main` from `5ba5efb` to `1985716`; local HEAD matched
+`origin/main`. CI used Node 24.21.0 / npm 11.19.0. Live comparison covered index HTML, manifest,
+service-worker registration, service worker, entry/application JavaScript and CSS, against the
+local build of `1985716` (the last code commit is `20e2b52`; `1985716` is documentation only).
+
+Local acceptance passed zero-warning lint, the complete serial suite (2,307/2,307 across 174 files
+in 480.01 s) and the production build. Every new guard was shown to fail with its protection
+removed. Headless Chromium at 375×812 with fixtures and locally fulfilled Anthropic requests
+verified the flows; no real API call was made and no owner data was accessed. Codex reviewed the
+plan (nine findings) and the diff (five findings, then one follow-up); all were fixed. Personal
+schema v12 and backups are unchanged. Pending owner checks are listed in [CURRENT](../CURRENT.md).
+
 ## 2026-10-24 — Keep adds to existing entries (Ask about this, step 2)
 
 | Date | Published revision | Work | CI and checks |

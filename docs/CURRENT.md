@@ -2,17 +2,16 @@
 
 The app is deployed; reassessment Steps 1–3, bounded lint/refresh work, documentation-only CI
 filtering, shared Node selection, guarded Journal/Back/Forward navigation ordering, Ask + Keep
-(Pregunta), Ask about this and Keep adds to existing entries are published; group attachments are
-complete locally and not pushed.
+(Pregunta), Ask about this, Keep adds to existing entries and group attachments are published.
 This is the starting point for current status, not a release diary.
 
 ## Verified release
 
-- **Published revision:** `a8cbe36`, 2026-10-24 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/40147692428)
-  passed lint, all **2,240 tests across 173 files** in 247.59 seconds, the production build and
+- **Published revision:** `1985716`, 2026-10-25 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/40214049250)
+  passed lint, all **2,307 tests across 174 files** in 154.90 seconds, the production build and
   deployment. Seven live app files returned HTTP 200 and matched the verified local build byte
   for byte. Detailed publication evidence lives in [release history](history/RELEASES.md).
-- **Delivered work:** Keep adds to existing entries (additions to attached entries, reviewed per addition), Ask about this (entry, page and Repaso attachments for Pregunta), Ask + Keep (Pregunta tab and Keep proposals), guarded Back/Forward and Journal tab navigation ordering, shared Node selection, documentation-only CI
+- **Delivered work:** group attachments (a collection's vocabulary or a narrowed list as one Pregunta chip; Keep adds examples, tags and connections to group members) and Pregunta prompt caching, Keep adds to existing entries (additions to attached entries, reviewed per addition), Ask about this (entry, page and Repaso attachments for Pregunta), Ask + Keep (Pregunta tab and Keep proposals), guarded Back/Forward and Journal tab navigation ordering, shared Node selection, documentation-only CI
   filtering, the bounded Step 5 lint setup and awaitable notebook refresh, on top of completed
   [Step 1 safety work](reviews/2026-10-17/STEP-1.md), [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md)
   and [Step 3 contract reset](reviews/2026-10-17/STEP-3.md). JavaScript/React Hooks lint runs locally
@@ -26,7 +25,7 @@ This is the starting point for current status, not a release diary.
 
 ## Work and boundaries
 
-- **Complete locally; not pushed (`20e2b52`, 2026-10-24):** group attachments — step 3 of Ask about
+- **Complete and published (`1985716`, 2026-10-25):** group attachments — step 3 of Ask about
   this (approved 2026-10-24). Ask Claude on a collection page also sends its vocabulary, and "Ask
   Claude about these N" on a narrowed Words & phrases or Browse all list sends that list, each as one
   chip in a short form whose detail the owner picks (Meanings, or + Examples); never notes, tags,
