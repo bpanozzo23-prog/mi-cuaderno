@@ -643,7 +643,8 @@ function ProposalReview({
       {proposals.droppedCount > 0 && (
         <div className="text-xs" style={{ color: C.mut }}>
           {proposals.droppedCount === 1 ? "One suggestion was" : `${proposals.droppedCount} suggestions were`} left out
-          because the app couldn't use {proposals.droppedCount === 1 ? "it" : "them"} (blank, repeated or unconnectable).
+          because the app couldn't use {proposals.droppedCount === 1 ? "it" : "them"} (blank, repeated, unconnectable,
+          or more than Keep may add — an entry from a group takes only examples, tags and connections).
         </div>
       )}
 

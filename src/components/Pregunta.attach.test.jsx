@@ -690,6 +690,7 @@ describe("keeping from a group conversation", () => {
     expect(screen.queryByRole("checkbox", { name: /Add meaning/ })).toBeNull();
     expect(screen.queryByRole("checkbox", { name: "Add to notes" })).toBeNull();
     expect(screen.getAllByRole("checkbox", { name: /Add example/ })).toHaveLength(6);
+    expect(screen.getByText(/12 suggestions were left out[\s\S]*an entry from a group takes only examples, tags and connections/)).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Untick all" }));
     expect(screen.getAllByRole("checkbox", { name: /Add example/ }).every((box) => !box.checked)).toBe(true);
