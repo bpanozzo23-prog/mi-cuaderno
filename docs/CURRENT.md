@@ -2,16 +2,16 @@
 
 The app is deployed; reassessment Steps 1–3, bounded lint/refresh work, documentation-only CI
 filtering, shared Node selection, guarded Journal/Back/Forward navigation ordering, Ask + Keep
-(Pregunta) and Ask about this are published.
+(Pregunta), Ask about this and Keep adds to existing entries are published.
 This is the starting point for current status, not a release diary.
 
 ## Verified release
 
-- **Published revision:** `3f13cf1`, 2026-10-24 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/40136679980)
-  passed lint, all **2,195 tests across 171 files** in 246.04 seconds, the production build and
+- **Published revision:** `a8cbe36`, 2026-10-24 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/40147692428)
+  passed lint, all **2,240 tests across 173 files** in 247.59 seconds, the production build and
   deployment. Seven live app files returned HTTP 200 and matched the verified local build byte
   for byte. Detailed publication evidence lives in [release history](history/RELEASES.md).
-- **Delivered work:** Ask about this (entry, page and Repaso attachments for Pregunta), Ask + Keep (Pregunta tab and Keep proposals), guarded Back/Forward and Journal tab navigation ordering, shared Node selection, documentation-only CI
+- **Delivered work:** Keep adds to existing entries (additions to attached entries, reviewed per addition), Ask about this (entry, page and Repaso attachments for Pregunta), Ask + Keep (Pregunta tab and Keep proposals), guarded Back/Forward and Journal tab navigation ordering, shared Node selection, documentation-only CI
   filtering, the bounded Step 5 lint setup and awaitable notebook refresh, on top of completed
   [Step 1 safety work](reviews/2026-10-17/STEP-1.md), [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md)
   and [Step 3 contract reset](reviews/2026-10-17/STEP-3.md). JavaScript/React Hooks lint runs locally
@@ -25,7 +25,7 @@ This is the starting point for current status, not a release diary.
 
 ## Work and boundaries
 
-- **Complete locally; not pushed (`762ed6e`, 2026-10-24):** "Keep adds to existing entries" —
+- **Complete and published (`a8cbe36`, 2026-10-24):** "Keep adds to existing entries" —
   step 2 of Ask about this (approved 2026-10-24). Keep may propose additions to attached words and
   phrases (examples on a meaning or in My examples, new meanings, a note paragraph, tags) and
   connections between two existing entries when one is attached, each ticked separately and

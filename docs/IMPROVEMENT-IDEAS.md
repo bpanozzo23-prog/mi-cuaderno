@@ -604,7 +604,7 @@ discovery tradeoff; a real-use waiting period is not required.
 ### AI Ask and Tidy with a shared review
 
 - **Date added:** 2026-10-24
-- **Status:** in progress — Ask + Keep (first slice) published 2026-10-24 (`29101fe`) and awaiting owner checks; "Ask about this" attachments (follow-on step 1, below) published 2026-10-24 (`3f13cf1`) and awaiting owner checks; "Keep adds to existing entries" (follow-on step 2) approved and implemented locally 2026-10-24, not pushed; Tidy remains an idea
+- **Status:** in progress — Ask + Keep (first slice) published 2026-10-24 (`29101fe`) and awaiting owner checks; "Ask about this" attachments (follow-on step 1, below) published 2026-10-24 (`3f13cf1`) and awaiting owner checks; "Keep adds to existing entries" (follow-on step 2) published 2026-10-24 (`a8cbe36`) and awaiting owner checks; Tidy remains an idea
 - **Size (draft):** large overall. Ask with Keep is medium to large; Tidy is large; the shared
   review is part of whichever is built first
 - **Touches (draft):** AI request/disclosure (existing Phase 6 layer), a new proposal format and
@@ -718,7 +718,7 @@ question instead of the owner retyping it. Agreed order:
    (words, phrases, pages) and on a revealed Repaso card: "Ask later" queues the card without
    leaving the session, "Ask now" ends the session first (owner chose both). One-tap starter
    questions, linked entry names included, and Keep treats attached entries as link targets.
-2. **"Add to an existing entry" proposals (OWNER-APPROVED 2026-10-24; implemented locally, not pushed; plan below)** for Keep — the same capability Tidy needs, built once.
+2. **"Add to an existing entry" proposals (OWNER-APPROVED 2026-10-24; published in `a8cbe36`; plan below)** for Keep — the same capability Tidy needs, built once.
 3. **Several entries or a collection as context**, which by then overlaps with Tidy.
    Several entries already work one at a time (up to five chips); this step is attaching a whole
    collection, tag or selection in one tap, which needs compact per-entry text and a higher cap.
