@@ -463,7 +463,8 @@ describe("derived context confirmations", () => {
       linkedKeys: [word.id],
       collection: { groups: [] },
     }));
-    expect(screen.getByText("Not grouped yet")).toBeTruthy();
+    // The save commits before the screen refreshes from it; wait for what the owner sees.
+    expect(await screen.findByText("Not grouped yet")).toBeTruthy();
   });
 
   it("confirms Source and Grammar matches into their exact saved contexts", async () => {
