@@ -13,6 +13,7 @@ import {
   GROUP_DETAIL,
   MAX_CONVERSATION_GROUP_CHARS,
   conversationGroupChars,
+  groupSummaryText,
   resolveAttachments,
 } from "../lib/askGroups.js";
 import { allPersonalExamples } from "../lib/meanings.js";
@@ -445,15 +446,6 @@ const DETAIL_OPTIONS = [
   { value: GROUP_DETAIL.examples, label: "+ Examples" },
 ];
 
-/** How big a group is as it stands: what fits, and roughly how much text that is. */
-function groupSummary(group) {
-  if (group.sent === 0) return "its entries are already attached";
-  const size = `about ${(Math.max(100, Math.round(group.chars / 100) * 100)).toLocaleString("en-US")} characters`;
-  if (group.omitted > 0) return `first ${group.sent} of ${group.total} entries fit · ${size}`;
-  if (group.sent < group.total) return `${group.sent} of ${group.total} entries (the rest are already attached) · ${size}`;
-  return `${group.total} ${group.total === 1 ? "entry" : "entries"} · ${size}`;
-}
-
 /**
  * What will go with the next question: removable chips, a detail switch per group, the exact
  * text, and starter questions. Everything shown comes from `resolved`, which is what Ask sends.
@@ -495,7 +487,7 @@ function AttachmentTray({ attachments, resolved, overBudget, joinsConversation, 
         return (
           <div key={attachment.key} className="space-y-1">
             <div className="text-xs" style={{ color: C.mut }}>
-              <span style={{ color: C.ink }}>{chip.label}</span>: {groupSummary(chip.group)}
+              <span style={{ color: C.ink }}>{chip.label}</span>: {groupSummaryText(chip.group)}
             </div>
             <Segmented
               label={`How much of each entry to send for ${chip.label}`}
@@ -520,7 +512,7 @@ function AttachmentTray({ attachments, resolved, overBudget, joinsConversation, 
               >
                 {!chip
                   ? "This entry is no longer in your cuaderno; it will be removed."
-                  : chip.preview || "Nothing from this group: its entries are already attached."}
+                  : chip.preview || `Nothing from this group is sent: ${groupSummaryText(chip.group)}.`}
               </pre>
             );
           })}

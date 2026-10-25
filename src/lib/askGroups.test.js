@@ -4,6 +4,7 @@ import {
   MAX_GROUP_CHARS,
   MAX_GROUP_ENTRIES,
   conversationGroupChars,
+  groupSummaryText,
   groupText,
   listGroupLabel,
   pageVocabulary,
@@ -297,7 +298,19 @@ describe("resolveAttachments", () => {
     expect(resolved.chips.a.group.omitted).toBeGreaterThanOrEqual(10);
     const sentB = resolved.sent[1].group.memberIds;
     expect(sentB).toEqual(unique.map((item) => item.id));
-    expect(resolved.chips.b.group).toMatchObject({ sent: 30, total: 40, omitted: 0 });
+    expect(resolved.chips.b.group).toMatchObject({ sent: 30, total: 40, omitted: 0, missing: 10, elsewhere: 0 });
+    // The ten are sent nowhere, so B's summary must not call them attached.
+    expect(groupSummaryText(resolved.chips.b.group)).toMatch(/^30 of 40 entries sent · 10 left out by size limits · about/);
+  });
+
+  it("says plainly which entries are attached elsewhere and which are sent nowhere", () => {
+    expect(groupSummaryText({ sent: 8, total: 8, missing: 0, elsewhere: 0, chars: 480 })).toBe("8 entries · about 500 characters");
+    expect(groupSummaryText({ sent: 43, total: 60, missing: 17, elsewhere: 0, chars: 11890 }))
+      .toBe("43 of 60 entries sent · 17 left out by size limits · about 11,900 characters");
+    expect(groupSummaryText({ sent: 1, total: 2, missing: 0, elsewhere: 1, chars: 40 }))
+      .toBe("1 of 2 entries sent · 1 already attached · about 100 characters");
+    expect(groupSummaryText({ sent: 0, total: 3, missing: 1, elsewhere: 2, chars: 0 }))
+      .toBe("no entries sent · 1 left out by size limits · 2 already attached");
   });
 
   it("cannot let a label, a group name or a gloss close the group's block", () => {

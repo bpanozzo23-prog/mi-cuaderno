@@ -597,6 +597,7 @@ describe("attaching a group", () => {
   it("sends an entry attached on its own in full, and leaves it out of the group", async () => {
     const user = userEvent.setup();
     await renderHarness({ initial: [listGroup([quedar.id, ir.id]), attach(quedar)] });
+    expect(within(tray()).getByText(/1 of 2 entries sent · 1 already attached · about/)).toBeTruthy();
     await ask(user, "Compare");
     await screen.findByText("quedar");
     const sent = bodyAt(0).messages.at(-1).content;

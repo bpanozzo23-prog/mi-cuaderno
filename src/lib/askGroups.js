@@ -228,7 +228,8 @@ export function resolveAttachments(attachments = [], items = []) {
       sections = item?.type === "page" ? pageVocabulary(item, items)?.sections || null : null;
     }
     if (!sections) continue;
-    const total = sections.reduce((sum, section) => sum + section.items.length, 0);
+    const memberIds = sections.flatMap((section) => section.items.map((item) => item.id));
+    const total = memberIds.length;
     const eligible = sections
       .map((section) => ({
         name: section.name,
@@ -236,7 +237,7 @@ export function resolveAttachments(attachments = [], items = []) {
       }))
       .filter((section) => section.items.length > 0);
     for (const section of eligible) for (const item of section.items) claimed.add(item.id);
-    plans.set(attachment.key, { total, eligible });
+    plans.set(attachment.key, { total, memberIds, eligible });
   }
 
   const result = { snapshots: [], chips: {}, sent: [], gone: [], groupCount: 0, groupChars: 0 };
@@ -294,7 +295,35 @@ export function resolveAttachments(attachments = [], items = []) {
     result.chips[attachment.key] = chip;
     result.sent.push(record);
   }
+
+  // What each group's chip can honestly say: entries sent elsewhere versus entries sent nowhere.
+  const sentAnywhere = new Set([...singles, ...result.sent.flatMap((record) => record.group?.memberIds || [])]);
+  for (const attachment of attachments) {
+    const chip = result.chips[attachment.key];
+    const plan = plans.get(attachment.key);
+    if (!chip?.group || !plan) continue;
+    const missing = plan.memberIds.filter((id) => !sentAnywhere.has(id)).length;
+    chip.group.missing = missing;
+    chip.group.elsewhere = plan.total - chip.group.sent - missing;
+  }
   return result;
+}
+
+/**
+ * A group's size as the tray states it, from a chip's `group`: what is sent, how much text that
+ * is, and why anything is not — attached elsewhere, or left out by a size limit.
+ */
+export function groupSummaryText(group) {
+  const reasons = [
+    group.missing > 0 ? `${group.missing} left out by size limits` : "",
+    group.elsewhere > 0 ? `${group.elsewhere} already attached` : "",
+  ].filter(Boolean);
+  if (group.sent === 0) return `no entries sent${reasons.length ? ` · ${reasons.join(" · ")}` : ""}`;
+  const size = `about ${Math.max(100, Math.round(group.chars / 100) * 100).toLocaleString("en-US")} characters`;
+  const count = group.sent === group.total
+    ? `${group.total} ${group.total === 1 ? "entry" : "entries"}`
+    : `${group.sent} of ${group.total} entries sent`;
+  return [count, ...reasons, size].join(" · ");
 }
 
 /** Group characters a conversation has already sent, from its turn records. */
