@@ -7,10 +7,12 @@ This is the starting point for current status, not a release diary.
 
 ## Verified release
 
-- **Published revision:** `1985716`, 2026-10-25 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/40214049250)
-  passed lint, all **2,307 tests across 174 files** in 154.90 seconds, the production build and
+- **Published revision:** `64756bc`, 2026-11-16 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/44026801435)
+  passed lint, all **2,307 tests across 174 files** in 151.36 seconds, the production build and
   deployment. Seven live app files returned HTTP 200 and matched the verified local build byte
-  for byte. Detailed publication evidence lives in [release history](history/RELEASES.md).
+  for byte. No shipped application file changed since `1985716` (2026-10-25); this release adds
+  research documentation, the lessons preview's port 5175 and a test-date fix. Detailed
+  publication evidence lives in [release history](history/RELEASES.md).
 - **Delivered work:** group attachments (a collection's vocabulary or a narrowed list as one Pregunta chip; Keep adds examples, tags and connections to group members) and Pregunta prompt caching, Keep adds to existing entries (additions to attached entries, reviewed per addition), Ask about this (entry, page and Repaso attachments for Pregunta), Ask + Keep (Pregunta tab and Keep proposals), guarded Back/Forward and Journal tab navigation ordering, shared Node selection, documentation-only CI
   filtering, the bounded Step 5 lint setup and awaitable notebook refresh, on top of completed
   [Step 1 safety work](reviews/2026-10-17/STEP-1.md), [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md)

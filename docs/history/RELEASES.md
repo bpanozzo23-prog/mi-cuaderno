@@ -6,6 +6,26 @@ Documentation-only follow-ups covered by the [workflow exclusions](../../.github
 normally skip deployment. Keep the last verified published revision; the
 [agent guide](../AGENT-GUIDE.md#environment-and-checks) covers publication checks and filter limits.
 
+## 2026-11-16 — Lessons preview port, media research and an expired test date
+
+| Date | Published revision | Work | CI and checks |
+|---|---|---|---|
+| 2026-11-16 | `64756bc` | Interactive Spanish and real-media research (documentation), the development-only lessons preview moved to port 5175, and the Adaptive initial-miss test kept inside its 90-day window (`d46c22d`–`64756bc`) | [44026801435](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/44026801435): lint, 2,307 tests / 174 files in 151.36 s, build and deployment passed; seven live files returned HTTP 200 and matched local build bytes |
+
+The owner-requested push advanced `main` from `b851b2e` to `0cb200f`. Its run
+[44024659374](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/44024659374) failed one
+test whose fixed 2026-08-07 fixture had aged past Adaptive's 90-day window, so deployment was
+skipped and `1985716` kept serving. After the test-only fix, a second owner-requested push advanced
+`main` to `64756bc`; local HEAD matched `origin/main` after both pushes. CI used Node 24.22.2 /
+npm 11.19.1, and the GitHub Pages deployment for `64756bc` reported success. Live comparison covered
+index HTML, manifest, service-worker registration, service worker, entry/application JavaScript
+and CSS against the local build of `64756bc`. No shipped application file changed since `1985716`.
+
+Local acceptance passed zero-warning lint, the complete serial suite (2,307/2,307 across 174 files
+in 467.72 s) and the production build (the existing chunk-size warning remains). The repaired test
+failed 5 of 5 runs with its miss moved past 90 days. There is no visible change, so no browser check
+was made. Personal schema v12 and backups are unchanged; no owner data was accessed.
+
 ## 2026-10-25 — Group attachments (Ask about this, step 3)
 
 | Date | Published revision | Work | CI and checks |
