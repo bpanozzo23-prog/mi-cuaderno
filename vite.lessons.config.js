@@ -13,6 +13,6 @@ export default defineConfig(({ command, isPreview }) => {
     base: "/",
     publicDir: false,
     plugins: [react(), tailwindcss()],
-    server: { host: "127.0.0.1", port: 5174, strictPort: true },
+    server: { host: "127.0.0.1", port: 5175, strictPort: true },
   };
 });

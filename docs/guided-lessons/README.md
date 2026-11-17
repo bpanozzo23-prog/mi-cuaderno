@@ -31,7 +31,7 @@ it does not yet have a separate storyboard.
 
 ## Try the A1 preview
 
-From the repository root, run `npm run dev:lessons` and open `http://127.0.0.1:5174/` on
+From the repository root, run `npm run dev:lessons` and open `http://127.0.0.1:5175/` on
 that same computer. If that port is occupied, choose another explicitly, for example
 `npm run dev:lessons -- --port 5341`; the server will not silently change ports. Stop it with Ctrl+C.
 This is a separate development reader, without a Lecciones tab in the normal app. Building or
