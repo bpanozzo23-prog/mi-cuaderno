@@ -6,6 +6,24 @@ Documentation-only follow-ups covered by the [workflow exclusions](../../.github
 normally skip deployment. Keep the last verified published revision; the
 [agent guide](../AGENT-GUIDE.md#environment-and-checks) covers publication checks and filter limits.
 
+## 2026-11-17 — Diario tests kept in the current year
+
+| Date | Published revision | Work | CI and checks |
+|---|---|---|---|
+| 2026-11-17 | `71f591d` | Two App Diario tests date their entries in the current year instead of August 2026, ahead of their 2027-01-01 expiry (`71f591d`) | [44144677647](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/44144677647): lint, 2,307 tests / 174 files in 190.73 s, build and deployment passed; seven live files returned HTTP 200 and matched local build bytes |
+
+The owner-requested push advanced `main` from `1255523` to `71f591d`; local HEAD matched
+`origin/main`. CI used Node 24.22.2 / npm 11.19.1, and the GitHub Pages deployment for `71f591d`
+reported success. Live comparison covered index HTML, manifest, service-worker registration,
+service worker, entry/application JavaScript and CSS against the local build of `71f591d`. No
+shipped application file changed since `1985716`.
+
+Local acceptance passed zero-warning lint, the complete serial suite (2,307/2,307 across 174 files
+in 468.61 s), the same suite with the current time shifted to 2027-01-01, and the production build
+(the existing chunk-size warning remains). Both repaired tests pass at 2026-12-31, 2027-01-01,
+2027-01-02 and 2027-08-15, and fail when dated last year. There is no visible change, so no browser
+check was made. Personal schema v12 and backups are unchanged; no owner data was accessed.
+
 ## 2026-11-16 — Lessons preview port, media research and an expired test date
 
 | Date | Published revision | Work | CI and checks |
