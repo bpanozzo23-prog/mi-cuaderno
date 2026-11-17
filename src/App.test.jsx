@@ -22,6 +22,18 @@ import { newNoteSection, PAGE_FOCUSES } from "./lib/pageKinds.js";
 const CASA = "dict:wiktionary-es:casa:noun";
 const SACAR = "dict:wiktionary-es:sacar:verb";
 
+/**
+ * A Diario date on the real clock's current-year timeline: earlier years move to the collapsed
+ * Archive and today's date gets its own card, so use yesterday, or tomorrow on 1 January.
+ */
+function thisYearDiarioDate() {
+  const now = new Date();
+  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  return localDate(yesterday.getFullYear() === now.getFullYear()
+    ? yesterday
+    : new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1));
+}
+
 beforeEach(async () => {
   window.history.replaceState(null, "", "/");
   await removeDictionary();
@@ -782,7 +794,7 @@ describe("Phase 4p Diario foundation", () => {
   it("gives dated General pages their own tab and excludes them from the page count", async () => {
     const user = userEvent.setup();
     await createItem(newPage({ title: "Grammar note" }));
-    await createItem(newPage({ title: "Morning check-in", pageDate: "2026-08-03", body: "Hoy practiqué." }));
+    await createItem(newPage({ title: "Morning check-in", pageDate: thisYearDiarioDate(), body: "Hoy practiqué." }));
     render(<App />);
 
     const navigation = await screen.findByRole("navigation", { name: "Primary" });
@@ -902,7 +914,7 @@ describe("Phase 4r journal capture", () => {
     await createItem(newPage({
       title: "Refreshable moment",
       body: "Todavía aquí.",
-      pageDate: "2026-08-18",
+      pageDate: thisYearDiarioDate(),
     }));
     let mounted = render(<App />);
 
