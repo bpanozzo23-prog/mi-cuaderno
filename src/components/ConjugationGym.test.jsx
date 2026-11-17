@@ -7,6 +7,7 @@ import ConjugationGym from "./ConjugationGym.jsx";
 import * as gymReference from "../db/ref/gym.js";
 import { clearAllPersonalData } from "../db/db.js";
 import { allEvents } from "../db/events.js";
+import { localDate } from "../lib/dates.js";
 import { removeDictionary } from "../db/ref/install.js";
 import { META_KEYS, refDb, setActiveSlot } from "../db/ref/refdb.js";
 import { FIXTURE_CONJUGATIONS, FIXTURE_ENTRIES, FIXTURE_FORM_SHARDS } from "../test/dictFixture.js";
@@ -538,12 +539,15 @@ describe("Conjugation Gym setup", () => {
     const user = userEvent.setup();
     await seedGymDictionary();
     const saved = makeLexical({ id: "user:sacar", term: "sacar", dictKey: SACAR });
+    // Adaptive only targets misses from the last 90 days and reads the real clock, so a fixed
+    // date expires; keep the miss a week old.
+    const missedAt = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const missed = {
       id: "adaptive-miss",
       type: "drill_fail",
       itemKey: "user:sacar",
-      at: "2026-08-07T12:00:00.000Z",
-      localDate: "2026-08-07",
+      at: missedAt.toISOString(),
+      localDate: localDate(missedAt),
       metadata: {
         sessionId: "old-session",
         promptId: "old-prompt",
