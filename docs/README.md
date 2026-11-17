@@ -20,6 +20,7 @@ for the task. Historical status describes its own date, not today's app.
 
 - [Improvement ideas](IMPROVEMENT-IDEAS.md): open ideas and their context, not an approved roadmap.
 - [Candidate data sources](research/CANDIDATE-DATA-SOURCES.md): dated reference research.
+- [Interactive Spanish and real-media learning](research/INTERACTIVE-SPANISH-AND-MEDIA-LEARNING.md): product patterns, implementation evidence, learning research, and unapproved guided/media feature possibilities.
 - [Phase 19/20 polish observations](reviews/2026-08-10/PHASE-19-20-NITS.md): unapproved follow-ups.
 - [Guided lessons](guided-lessons/README.md): planning and chapter drafts, not implementation.
 - [2026-10-17 reassessment](reviews/2026-10-17/README.md): findings and owner response;

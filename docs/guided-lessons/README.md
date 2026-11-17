@@ -12,6 +12,7 @@ Notebook integration remains proposed work.
 | [Development plan](PLAN.md) | Delivery sequence, approved A1 and later approval gates. |
 | [Scope](SCOPE.md) | Learning experience, research, chapter outlines and future topics. |
 | [Integration](INTEGRATION.md) | Proposed notebook handoffs, durability, storage, media and offline behavior. |
+| [Interactive Spanish and real-media research](../research/INTERACTIVE-SPANISH-AND-MEDIA-LEARNING.md) | Dated comparison of scenarios, media companions, and learning evidence; discussion background, not approved scope. |
 | [1917 storyboard](chapters/1917/STORYBOARD.md) | Page-by-page Spanish narrative, English help, optional activities, and visual suggestions. |
 | [1917 sources](chapters/1917/SOURCES.md) | Checked passages, source limitations, image candidates, and remaining publication checks. |
 | [1917 review and preview proposal](chapters/1917/REVIEW.md) | Editorial findings and the approved development-only first preview. |
