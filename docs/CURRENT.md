@@ -2,18 +2,18 @@
 
 The app is deployed; reassessment Steps 1–3, bounded lint/refresh work, documentation-only CI
 filtering, shared Node selection, guarded Journal/Back/Forward navigation ordering, Ask + Keep
-(Pregunta), Ask about this, Keep adds to existing entries and group attachments are published.
+(Pregunta), Ask about this, Keep adds to existing entries, group attachments and list
+Indent/Outdent are published.
 This is the starting point for current status, not a release diary.
 
 ## Verified release
 
-- **Published revision:** `71f591d`, 2026-11-17 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/44144677647)
-  passed lint, all **2,307 tests across 174 files** in 190.73 seconds, the production build and
+- **Published revision:** `d565edf`, 2026-11-18 (America/Chicago). Its [Actions run](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/44370561629)
+  passed lint, all **2,330 tests across 175 files** in 203.54 seconds, the production build and
   deployment. Seven live app files returned HTTP 200 and matched the verified local build byte
-  for byte. No shipped application file changed since `1985716` (2026-10-25); the releases since
-  add research documentation, the lessons preview's port 5175 and three test-date fixes found by
-  a clock-shifted audit. Detailed publication evidence lives in [release history](history/RELEASES.md).
-- **Delivered work:** group attachments (a collection's vocabulary or a narrowed list as one Pregunta chip; Keep adds examples, tags and connections to group members) and Pregunta prompt caching, Keep adds to existing entries (additions to attached entries, reviewed per addition), Ask about this (entry, page and Repaso attachments for Pregunta), Ask + Keep (Pregunta tab and Keep proposals), guarded Back/Forward and Journal tab navigation ordering, shared Node selection, documentation-only CI
+  for byte. It ships list Indent and Outdent, the first application change since `1985716`
+  (2026-10-25). Detailed publication evidence lives in [release history](history/RELEASES.md).
+- **Delivered work:** list Indent and Outdent (sub-bullets from the phone toolbar), group attachments (a collection's vocabulary or a narrowed list as one Pregunta chip; Keep adds examples, tags and connections to group members) and Pregunta prompt caching, Keep adds to existing entries (additions to attached entries, reviewed per addition), Ask about this (entry, page and Repaso attachments for Pregunta), Ask + Keep (Pregunta tab and Keep proposals), guarded Back/Forward and Journal tab navigation ordering, shared Node selection, documentation-only CI
   filtering, the bounded Step 5 lint setup and awaitable notebook refresh, on top of completed
   [Step 1 safety work](reviews/2026-10-17/STEP-1.md), [Step 2 documentation reset](reviews/2026-10-17/STEP-2.md)
   and [Step 3 contract reset](reviews/2026-10-17/STEP-3.md). JavaScript/React Hooks lint runs locally
@@ -27,7 +27,7 @@ This is the starting point for current status, not a release diary.
 
 ## Work and boundaries
 
-- **Complete locally; not pushed (2026-11-18):** list Indent and Outdent (approved 2026-11-18).
+- **Complete and published (`d565edf`, 2026-11-18):** list Indent and Outdent (approved 2026-11-18).
   Every Markdown toolbar gains Outdent and Indent after Numbered list, so the phone can make
   sub-bullets without Tab; Enter on an empty sub-item steps back one level. Indentation follows
   CommonMark's content column, numbered sub-lists restart at 1, and sub-items move with their

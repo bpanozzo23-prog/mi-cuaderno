@@ -6,6 +6,24 @@ Documentation-only follow-ups covered by the [workflow exclusions](../../.github
 normally skip deployment. Keep the last verified published revision; the
 [agent guide](../AGENT-GUIDE.md#environment-and-checks) covers publication checks and filter limits.
 
+## 2026-11-18 — List Indent and Outdent
+
+| Date | Published revision | Work | CI and checks |
+|---|---|---|---|
+| 2026-11-18 | `d565edf` | Outdent and Indent in every Markdown toolbar; Enter on an empty sub-item steps back one level (`d565edf`) | [44370561629](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/44370561629): lint, 2,330 tests / 175 files in 203.54 s, build and deployment passed; seven live files returned HTTP 200 and matched local build bytes |
+
+The owner-requested push advanced `main` from `af11320` to `d565edf`; local HEAD matched
+`origin/main`. CI used Node 24.22.2 / npm 11.19.1, and the GitHub Pages deployment for `d565edf`
+reported success. Live comparison covered index HTML, manifest, service-worker registration,
+service worker, entry/application JavaScript and CSS against the local build of `d565edf`.
+
+Local acceptance passed zero-warning lint, the complete serial suite (2,330/2,330 across 175 files
+in 487.94 s, no unhandled errors), the production build and `git diff --check`; five deliberate
+breaks each reddened the matching tests. Headless Chromium at 375×812 with touch taps on a
+disposable empty profile verified the typing flow, preview, saved read mode and toolbar geometry
+(see the [decision record](../../DECISIONS.md#list-indent-and-outdent-2026-11-18)). Personal schema
+v12 and backups are unchanged; no owner data was accessed. Pending owner check: real phone use.
+
 ## 2026-11-17 — Diario tests kept in the current year
 
 | Date | Published revision | Work | CI and checks |
