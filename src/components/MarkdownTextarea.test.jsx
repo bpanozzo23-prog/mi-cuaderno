@@ -41,6 +41,85 @@ describe("MarkdownTextarea", () => {
     expect(field.value).toBe("uno\ndos");
   });
 
+  it.each([
+    ["Bulleted list", "- "],
+    ["Numbered list", "1. "],
+    ["Heading", "## "],
+    ["Block quote", "> "],
+  ])("starts %s on an empty line with the caret after the marker", async (button, marker) => {
+    const user = userEvent.setup();
+    render(<Field initial={"Hola\n\nadiós"} />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(5, 5);
+
+    await user.click(screen.getByRole("button", { name: button }));
+
+    expect(field.value).toBe(`Hola\n${marker}\nadiós`);
+    await waitFor(() => expect(field.selectionStart).toBe(5 + marker.length));
+    expect(field.selectionEnd).toBe(field.selectionStart);
+  });
+
+  it("starts a list on an empty first line rather than the line below it", async () => {
+    const user = userEvent.setup();
+    render(<Field initial={"\nHola"} />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(0, 0);
+
+    await user.click(screen.getByRole("button", { name: "Bulleted list" }));
+
+    expect(field.value).toBe("- \nHola");
+    await waitFor(() => expect(field.selectionStart).toBe(2));
+  });
+
+  it("adds and removes a list marker around a plain caret without selecting the line", async () => {
+    const user = userEvent.setup();
+    render(<Field initial={"Hola\nuno"} />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+    // Each action restores its caret on the next animation frame; let that frame pass before
+    // the test moves the caret, as a person's next tap always does.
+    const caretAt = async (position) => {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      expect(field.selectionStart).toBe(position);
+      expect(field.selectionEnd).toBe(position);
+    };
+
+    await user.click(screen.getByRole("button", { name: "Bulleted list" }));
+    expect(field.value).toBe("Hola\n- uno");
+    await caretAt(field.value.length);
+
+    // A caret at the very start of the line stays there when the marker goes away.
+    field.setSelectionRange(5, 5);
+    await user.click(screen.getByRole("button", { name: "Bulleted list" }));
+    expect(field.value).toBe("Hola\nuno");
+    await caretAt(5);
+
+    // A caret inside the word keeps its place in the word, both ways.
+    field.setSelectionRange(6, 6);
+    await user.click(screen.getByRole("button", { name: "Numbered list" }));
+    expect(field.value).toBe("Hola\n1. uno");
+    await caretAt(9);
+    await user.click(screen.getByRole("button", { name: "Numbered list" }));
+    expect(field.value).toBe("Hola\nuno");
+    await caretAt(6);
+  });
+
+  it("keeps the whole changed range selected when lines were highlighted", async () => {
+    const user = userEvent.setup();
+    render(<Field initial={"uno\ndos"} />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(1, 6);
+
+    await user.click(screen.getByRole("button", { name: "Bulleted list" }));
+
+    expect(field.value).toBe("- uno\n- dos");
+    await waitFor(() => expect([field.selectionStart, field.selectionEnd]).toEqual([0, field.value.length]));
+  });
+
   it("offers every approved formatting action in one accessible toolbar", () => {
     render(<Field initial="" />);
     expect(screen.getByRole("toolbar", { name: "Text formatting" })).toBeTruthy();
@@ -312,10 +391,10 @@ describe("MarkdownTextarea", () => {
     await waitFor(() => expect(field.selectionStart).toBe(field.value.length));
 
     await user.keyboard("{Enter}");
-    expect(field.value).toBe("1. uno\n   1. a\n");
+    expect(field.value).toBe("1. uno\n   1. a\n\n");
   });
 
-  it("ends the list when Enter is pressed on an empty item", async () => {
+  it("ends the list with a blank line when Enter is pressed on an empty item", async () => {
     const user = userEvent.setup();
     render(<Field initial={"- uno\n- "} />);
     const field = screen.getByRole("textbox", { name: "Notes" });
@@ -324,8 +403,53 @@ describe("MarkdownTextarea", () => {
 
     await user.keyboard("{Enter}");
 
-    expect(field.value).toBe("- uno\n");
-    await waitFor(() => expect(field.selectionStart).toBe("- uno\n".length));
+    expect(field.value).toBe("- uno\n\n");
+    await waitFor(() => expect(field.selectionStart).toBe("- uno\n\n".length));
+  });
+
+  it("ends a quote with a blank line so the next text is not quoted", async () => {
+    const user = userEvent.setup();
+    render(<Field initial={"> cita\n> "} />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+
+    await user.keyboard("{Enter}");
+
+    expect(field.value).toBe("> cita\n\n");
+    await waitFor(() => expect(field.selectionStart).toBe(field.value.length));
+  });
+
+  it("adds no extra blank line when one is already above or the item is first", async () => {
+    const user = userEvent.setup();
+    render(<Field initial={"- uno\n\n- "} />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+    await user.keyboard("{Enter}");
+    expect(field.value).toBe("- uno\n\n");
+
+    cleanup();
+    render(<Field initial={"- \nmás"} />);
+    const first = screen.getByRole("textbox", { name: "Notes" });
+    first.focus();
+    first.setSelectionRange(2, 2);
+    await user.keyboard("{Enter}");
+    expect(first.value).toBe("\nmás");
+    await waitFor(() => expect(first.selectionStart).toBe(0));
+  });
+
+  it("leaves the following text in place when a mid-text list is ended", async () => {
+    const user = userEvent.setup();
+    render(<Field initial={"- uno\n- \nTexto"} />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(8, 8);
+
+    await user.keyboard("{Enter}");
+
+    expect(field.value).toBe("- uno\n\n\nTexto");
+    await waitFor(() => expect(field.selectionStart).toBe(7));
   });
 
   it("carries the rest of the line onto the new item on mid-line Enter", async () => {

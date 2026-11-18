@@ -41,9 +41,26 @@ function replaceSelection(value, onChange, replacement, start, end) {
 }
 
 function lineRange(value, start, end) {
-  const rangeStart = value.lastIndexOf("\n", Math.max(0, start - 1)) + 1;
+  // At position 0 there is no earlier break to find; searching from 0 would match a leading
+  // "\n" and select the line after an empty first line.
+  const rangeStart = start === 0 ? 0 : value.lastIndexOf("\n", start - 1) + 1;
   const nextBreak = value.indexOf("\n", end);
   return [rangeStart, nextBreak === -1 ? value.length : nextBreak];
+}
+
+/**
+ * Where a caret in `before` belongs once its line became `after`: text past the changed marker
+ * keeps its place, and a caret inside the old marker stays within the new one.
+ */
+function caretAfterLineChange(before, after, column) {
+  let shared = 0;
+  while (shared < before.length && shared < after.length
+    && before[before.length - 1 - shared] === after[after.length - 1 - shared]) {
+    shared += 1;
+  }
+  const oldPrefix = before.length - shared;
+  const newPrefix = after.length - shared;
+  return column >= oldPrefix ? column + newPrefix - oldPrefix : Math.min(column, newPrefix);
 }
 
 function ToolbarButton({ label, icon: Icon, onAction, disabled = false, pressed = null }) {
@@ -96,7 +113,8 @@ function MarkdownToolbar({
   function prefixLines(kind) {
     const textarea = textareaRef.current;
     if (!textarea) return;
-    const [start, end] = lineRange(value, textarea.selectionStart, textarea.selectionEnd);
+    const { selectionStart, selectionEnd } = textarea;
+    const [start, end] = lineRange(value, selectionStart, selectionEnd);
     const lines = value.slice(start, end).split("\n");
     const rules = {
       heading: { matches: (line) => /^##\s+/.test(line), strip: (line) => line.replace(/^#{1,6}\s+/, ""), add: () => "## " },
@@ -110,14 +128,25 @@ function MarkdownToolbar({
     let orderedIndex = 0;
     const changed = lines.map((line) => {
       if (!line.trim()) {
-        if (kind === "quote" && !remove) return lines.length === 1 ? "> " : ">";
+        // A lone empty line starts the block, ready to type after its marker. Blank lines
+        // inside a multi-line selection stay blank (quotes keep them inside the quote).
+        if (lines.length === 1) return rule.add(0);
+        if (kind === "quote" && !remove) return ">";
         return line;
       }
       const prefix = rule.add(orderedIndex++);
       return remove ? rule.strip(line) : `${prefix}${rule.strip(line)}`;
     }).join("\n");
     replaceSelection(value, onChange, changed, start, end);
-    focusSelection(textarea, start, start + changed.length);
+    if (selectionStart !== selectionEnd) {
+      // Highlighted lines stay highlighted, so a second tap removes the markers again.
+      focusSelection(textarea, start, start + changed.length);
+      return;
+    }
+    // A plain caret stays with its text and never selects the line: on a phone the next
+    // keystroke would replace the whole line.
+    const caret = start + caretAfterLineChange(lines[0], changed, selectionStart - start);
+    focusSelection(textarea, caret, caret);
   }
 
   function shiftLevel(direction) {
@@ -303,9 +332,15 @@ export default function MarkdownTextarea({
         focusSelection(textarea, caret, caret);
         return;
       }
-      // Enter on an empty top-level item ends the list instead of continuing it.
-      replaceSelection(value, onChange, "", lineStart, lineEnd);
-      focusSelection(textarea, lineStart, lineStart);
+      // Enter on an empty top-level item or quote line ends it. With text right above, a blank
+      // line is left between: otherwise the next line typed would join that last item or quote
+      // in read mode (Markdown's lazy continuation).
+      const lineAbove = lineStart === 0
+        ? ""
+        : value.slice(value.lastIndexOf("\n", lineStart - 2) + 1, lineStart - 1);
+      const separator = lineAbove.trim() ? "\n" : "";
+      replaceSelection(value, onChange, separator, lineStart, lineEnd);
+      focusSelection(textarea, lineStart + separator.length, lineStart + separator.length);
       return;
     }
     const insert = `\n${rule.next(found)}`;
