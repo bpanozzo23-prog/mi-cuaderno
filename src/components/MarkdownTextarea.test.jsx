@@ -44,7 +44,7 @@ describe("MarkdownTextarea", () => {
   it("offers every approved formatting action in one accessible toolbar", () => {
     render(<Field initial="" />);
     expect(screen.getByRole("toolbar", { name: "Text formatting" })).toBeTruthy();
-    for (const name of ["Bold", "Italic", "Highlight", "Inline code", "Heading", "Bulleted list", "Numbered list", "Block quote", "Link", "Image link", "Divider"]) {
+    for (const name of ["Bold", "Italic", "Highlight", "Inline code", "Heading", "Bulleted list", "Numbered list", "Outdent", "Indent", "Block quote", "Link", "Image link", "Divider"]) {
       expect(screen.getByRole("button", { name })).toBeTruthy();
     }
     expect(screen.queryByRole("button", { name: "Blank line" })).toBeNull();
@@ -235,6 +235,84 @@ describe("MarkdownTextarea", () => {
     await user.keyboard("{Enter}");
 
     expect(field.value).toBe("  - sub\n  - ");
+  });
+
+  it("indents the current bullet into a sub-bullet and keeps the caret in its text", async () => {
+    const user = userEvent.setup();
+    render(<Field initial={"- uno\n- dos"} />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+
+    await user.click(screen.getByRole("button", { name: "Indent" }));
+
+    expect(field.value).toBe("- uno\n  - dos");
+    await waitFor(() => expect(field.selectionStart).toBe(field.value.length));
+    expect(document.activeElement).toBe(field);
+  });
+
+  it("types a sub-bullet list with Enter and Indent alone", async () => {
+    const user = userEvent.setup();
+    render(<Field initial={"- uno"} />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+    // The editor restores its caret on the next animation frame. A person never types inside
+    // that frame, but a simulated keyboard would, so let it pass after each edit.
+    const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+
+    await user.keyboard("{Enter}");
+    await nextFrame();
+    await user.click(screen.getByRole("button", { name: "Indent" }));
+    await nextFrame();
+    await user.keyboard("dos{Enter}");
+    await nextFrame();
+    await user.keyboard("tres");
+
+    expect(field.value).toBe("- uno\n  - dos\n  - tres");
+  });
+
+  it("outdents a sub-bullet back to the level above", async () => {
+    const user = userEvent.setup();
+    render(<Field initial={"- uno\n  - dos"} />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+
+    await user.click(screen.getByRole("button", { name: "Outdent" }));
+
+    expect(field.value).toBe("- uno\n- dos");
+    await waitFor(() => expect(field.selectionStart).toBe(field.value.length));
+  });
+
+  it("leaves text and caret unchanged when there is nothing to indent", async () => {
+    const user = userEvent.setup();
+    render(<Field initial={"- uno"} />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(3, 3);
+
+    await user.click(screen.getByRole("button", { name: "Indent" }));
+
+    expect(field.value).toBe("- uno");
+    await waitFor(() => expect(document.activeElement).toBe(field));
+    expect(field.selectionStart).toBe(3);
+  });
+
+  it("steps an empty sub-item back one level on Enter instead of ending the list", async () => {
+    const user = userEvent.setup();
+    render(<Field initial={"1. uno\n   1. a\n   2. "} />);
+    const field = screen.getByRole("textbox", { name: "Notes" });
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+
+    await user.keyboard("{Enter}");
+
+    expect(field.value).toBe("1. uno\n   1. a\n2. ");
+    await waitFor(() => expect(field.selectionStart).toBe(field.value.length));
+
+    await user.keyboard("{Enter}");
+    expect(field.value).toBe("1. uno\n   1. a\n");
   });
 
   it("ends the list when Enter is pressed on an empty item", async () => {

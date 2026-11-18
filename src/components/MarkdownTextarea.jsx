@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import {
   BetweenHorizontalStart, Bold, Code, Eye, Heading2, Highlighter, Image as ImageIcon, Italic,
-  Lightbulb, Link as LinkIcon, List, ListOrdered, Minus, Quote, StickyNote, TriangleAlert,
+  Lightbulb, Link as LinkIcon, List, ListIndentDecrease, ListIndentIncrease, ListOrdered, Minus,
+  Quote, StickyNote, TriangleAlert,
 } from "lucide-react";
+import { BULLET_LINE, ORDERED_LINE, QUOTE_LINE, shiftListLevel } from "../lib/markdownLines.js";
 import { C } from "../theme.jsx";
 import MarkdownText from "./MarkdownText.jsx";
 
@@ -19,12 +21,8 @@ const EXPLICIT_CALLOUT_ACTIONS = Object.freeze([
   { label: "¡Ojo! callout", icon: TriangleAlert, marker: "OJO" },
 ]);
 
-// One grammar for both the toolbar's line rules and Enter continuation, so the two can never
-// disagree about what counts as a list or quote line.
-const BULLET_LINE = /^(\s*)([-*+])\s+(.*)$/;
-const ORDERED_LINE = /^(\s*)(\d+)([.)])\s+(.*)$/;
-const QUOTE_LINE = /^(>\s?)(.*)$/;
-
+// The line grammar lives in markdownLines.js so the toolbar's line rules, Enter continuation and
+// Indent/Outdent can never disagree about what counts as a list or quote line.
 const CONTINUATIONS = [
   { pattern: ORDERED_LINE, next: (m) => `${m[1]}${Number(m[2]) + 1}${m[3]} `, content: (m) => m[4] },
   { pattern: BULLET_LINE, next: (m) => `${m[1]}${m[2]} `, content: (m) => m[3] },
@@ -122,6 +120,19 @@ function MarkdownToolbar({
     focusSelection(textarea, start, start + changed.length);
   }
 
+  function shiftLevel(direction) {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const shifted = shiftListLevel(value, textarea.selectionStart, textarea.selectionEnd, direction);
+    if (!shifted) {
+      // Nothing to move (first item, already nested, plain prose): keep the caret and keyboard.
+      focusSelection(textarea, textarea.selectionStart, textarea.selectionEnd);
+      return;
+    }
+    onChange(shifted.value);
+    focusSelection(textarea, shifted.selectionStart, shifted.selectionEnd);
+  }
+
   function markdownLink(image = false) {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -203,6 +214,8 @@ function MarkdownToolbar({
       <ToolbarButton label="Heading" icon={Heading2} disabled={previewing} onAction={() => prefixLines("heading")} />
       <ToolbarButton label="Bulleted list" icon={List} disabled={previewing} onAction={() => prefixLines("bullet")} />
       <ToolbarButton label="Numbered list" icon={ListOrdered} disabled={previewing} onAction={() => prefixLines("ordered")} />
+      <ToolbarButton label="Outdent" icon={ListIndentDecrease} disabled={previewing} onAction={() => shiftLevel("outdent")} />
+      <ToolbarButton label="Indent" icon={ListIndentIncrease} disabled={previewing} onAction={() => shiftLevel("indent")} />
       <ToolbarButton label={quoteLabel} icon={Quote} disabled={previewing} onAction={() => prefixLines("quote")} />
       {noteCallouts && EXPLICIT_CALLOUT_ACTIONS.map((action) => (
         <ToolbarButton
@@ -281,7 +294,16 @@ export default function MarkdownTextarea({
     event.preventDefault();
     const { rule, found } = match;
     if (start === end && !rule.content(found).trim()) {
-      // Enter on an empty item ends the list instead of continuing it.
+      // Enter on an empty sub-item steps it back one level, as phone note apps do.
+      const outdented = rule.pattern === QUOTE_LINE ? null : shiftListLevel(value, start, end, "outdent");
+      if (outdented) {
+        onChange(outdented.value);
+        const nextBreak = outdented.value.indexOf("\n", lineStart);
+        const caret = nextBreak === -1 ? outdented.value.length : nextBreak;
+        focusSelection(textarea, caret, caret);
+        return;
+      }
+      // Enter on an empty top-level item ends the list instead of continuing it.
       replaceSelection(value, onChange, "", lineStart, lineEnd);
       focusSelection(textarea, lineStart, lineStart);
       return;

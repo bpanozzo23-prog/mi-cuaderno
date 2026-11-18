@@ -27,6 +27,14 @@ This is the starting point for current status, not a release diary.
 
 ## Work and boundaries
 
+- **Complete locally; not pushed (2026-11-18):** list Indent and Outdent (approved 2026-11-18).
+  Every Markdown toolbar gains Outdent and Indent after Numbered list, so the phone can make
+  sub-bullets without Tab; Enter on an empty sub-item steps back one level. Indentation follows
+  CommonMark's content column, numbered sub-lists restart at 1, and sub-items move with their
+  parent. No schema change. Zero-warning lint, **2,330 tests across 175 files** serially in
+  487.94s and the production build pass; Chromium at 375×812 with touch taps verified the flow.
+  See the [decision record](../DECISIONS.md#list-indent-and-outdent-2026-11-18).
+  **Pending owner check:** real phone use.
 - **Complete and published (`1985716`, 2026-10-25):** group attachments — step 3 of Ask about
   this (approved 2026-10-24). Ask Claude on a collection page also sends its vocabulary, and "Ask
   Claude about these N" on a narrowed Words & phrases or Browse all list sends that list, each as one
