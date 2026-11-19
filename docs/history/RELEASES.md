@@ -6,6 +6,25 @@ Documentation-only follow-ups covered by the [workflow exclusions](../../.github
 normally skip deployment. Keep the last verified published revision; the
 [agent guide](../AGENT-GUIDE.md#environment-and-checks) covers publication checks and filter limits.
 
+## 2026-11-18 — List buttons on empty lines and cleaner list endings
+
+| Date | Published revision | Work | CI and checks |
+|---|---|---|---|
+| 2026-11-18 | `0e1c81f` | With only a caret, the list, Heading and Block quote buttons start a marker on an empty line and keep the caret instead of selecting the line; Enter that ends a list or quote leaves a blank line (`0e1c81f`) | [44424765864](https://github.com/bpanozzo23-prog/mi-cuaderno/actions/runs/44424765864): lint, 2,340 tests / 175 files in 248.54 s, build and deployment passed; seven live files returned HTTP 200 and matched local build bytes |
+
+The owner-requested push advanced `main` from `7d2fb32` to `0e1c81f`; local HEAD matched
+`origin/main`. CI used Node 24.22.2 / npm 11.19.1, and the GitHub Pages deployment for `0e1c81f`
+reported success. Live comparison covered index HTML, manifest, service-worker registration,
+service worker, entry/application JavaScript and CSS against the local build of `0e1c81f`.
+
+Local acceptance passed zero-warning lint, the complete serial suite (2,340/2,340 across 175 files
+in 473.30 s, no unhandled errors), the production build and `git diff --check`; four deliberate
+breaks each reddened the matching tests. Headless Chromium at 375×812 with touch taps on a
+disposable empty profile verified the list, quote and following-paragraph flow in preview and
+saved read mode (see the [decision record](../../DECISIONS.md#list-indent-and-outdent-2026-11-18)).
+Personal schema v12, backups and saved notes are unchanged; no owner data was accessed. Pending
+owner check: real phone use.
+
 ## 2026-11-18 — List Indent and Outdent
 
 | Date | Published revision | Work | CI and checks |
